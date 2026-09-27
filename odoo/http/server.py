@@ -50,7 +50,7 @@ MAX_INCOMPLETE_EVENT_SIZE = 16384
 # No need to conceal the server agent as Odoo MUST run behind a web
 # server (apache/nginx/...), which is gonna replace it with its own.
 SERVER_SOFTWARE = ' '.join((
-    f'odoo/{odoo.release.series}',
+    f'insilos/{odoo.release.series}',
     h11.PRODUCT_ID,
     sys_version,
 ))

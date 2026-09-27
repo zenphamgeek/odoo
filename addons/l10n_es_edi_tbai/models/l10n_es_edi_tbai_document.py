@@ -145,7 +145,7 @@ class L10n_Es_Edi_TbaiDocument(models.Model):
 
                 if not refunded_doc:
                     if not refunded_name or not refunded_doc_invoice_date:
-                        return _("TicketBAI: For reversal documents without a source invoice in Odoo, you must provide the original invoice number and date")
+                        return _("TicketBAI: For reversal documents without a source invoice in Insilos, you must provide the original invoice number and date")
                     invoice_sent_before_original = True
                     domain = [
                         ('date', '<', refunded_doc_invoice_date),

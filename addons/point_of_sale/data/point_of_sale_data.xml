@@ -3,7 +3,7 @@
 
     <data noupdate="1">
         <record id="default_session_closing_partner" model="res.partner">
-            <field name="name">Odoo POS</field>
+            <field name="name">Insilos POS</field>
             <field name="active">False</field>
             <field name="is_company">False</field>
         </record>

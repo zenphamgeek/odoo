@@ -217,7 +217,7 @@ def add_banner(pdf_stream: io.BytesIO, text: str, logo: bool = False, thickness:
 
     :param pdf_stream:    The PDF stream where the banner will be applied.
     :param text:              The text to be displayed.
-    :param logo:             Whether to display Odoo's logo in the banner.
+    :param logo:             Whether to display Insilos's logo in the banner.
     :param thickness:       The thickness of the banner in pixels (default: 2cm).
     :return:              The modified PDF stream.
     """
@@ -233,9 +233,9 @@ def add_banner(pdf_stream: io.BytesIO, text: str, logo: bool = False, thickness:
     packet = io.BytesIO()
     can = canvas.Canvas(packet)
     with file_open('base/static/img/main_partner-image.png', mode='rb') as f:
-        odoo_logo_file = io.BytesIO(f.read())
-    odoo_logo = Image.open(odoo_logo_file)
-    odoo_color = colors.Color(113 / 255, 75 / 255, 103 / 255, 0.8)
+        insilos_logo_file = io.BytesIO(f.read())
+    insilos_logo = Image.open(insilos_logo_file)
+    insilos_color = colors.Color(0 / 255, 68 / 255, 85 / 255, 0.8)
 
     for page in old_pdf.pages:
         width = float(abs(page.mediabox.width))
@@ -251,7 +251,7 @@ def add_banner(pdf_stream: io.BytesIO, text: str, logo: bool = False, thickness:
         path.lineTo(-width, -2 * thickness)
         path.lineTo(width, -2 * thickness)
         path.lineTo(width, -thickness)
-        can.setFillColor(odoo_color)
+        can.setFillColor(insilos_color)
         can.drawPath(path, fill=1, stroke=False)
 
         # Insert text (and logo) inside the banner
@@ -259,7 +259,7 @@ def add_banner(pdf_stream: io.BytesIO, text: str, logo: bool = False, thickness:
         can.setFillColor(colors.white)
         can.drawRightString(0.75 * thickness, -1.45 * thickness, text)
         logo and can.drawImage(
-            ImageReader(odoo_logo), 0.25 * thickness, -2.05 * thickness, 40, 40, mask='auto', preserveAspectRatio=True)
+            ImageReader(insilos_logo), 0.25 * thickness, -2.05 * thickness, 40, 40, mask='auto', preserveAspectRatio=True)
 
         can.showPage()
 

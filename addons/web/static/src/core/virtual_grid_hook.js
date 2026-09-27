@@ -1,4 +1,4 @@
-import { computed, signal, types as t, useListener } from "@odoo/owl";
+import { computed, signal, types as t, untrack, useListener, useOnChange } from "@odoo/owl";
 import { useThrottleForAnimation } from "@web/core/utils/timing";
 
 /**
@@ -31,7 +31,7 @@ function computeIndices(sizes, start, span, prevStartIndex, bufferCoef) {
     const bufferEnd = start + span + bufferSize;
 
     // search the first index such that sizes[index] > bufferStart
-    let startIndex = prevStartIndex || 0;
+    let startIndex = Math.max(0, Math.min(prevStartIndex || 0, sizes.length - 1));
     while (startIndex > 0 && sizes[startIndex] > bufferStart) {
         startIndex--;
     }
@@ -101,6 +101,7 @@ export function useVirtualGrid({
     columnWidths,
     initialScroll,
     bufferCoef,
+    onChange,
 }) {
     function onResize() {
         innerWidth.set(window.innerWidth);
@@ -160,11 +161,57 @@ export function useVirtualGrid({
     useListener(scrollableRef, "scroll", useThrottleForAnimation(onScroll));
     useListener(window, "resize", useThrottleForAnimation(onResize));
 
+    let initialized = false;
+    let prevColStart = null;
+    let prevColEnd = null;
+    let prevRowStart = null;
+    let prevRowEnd = null;
+
+    if (onChange) {
+        useOnChange(
+            () => [firstColumn(), lastColumn(), firstRow(), lastRow()],
+            (colStart, colEnd, rowStart, rowEnd) => {
+                if (colStart === null && rowStart === null) {
+                    return;
+                }
+                if (!initialized) {
+                    initialized = true;
+                    prevColStart = colStart;
+                    prevColEnd = colEnd;
+                    prevRowStart = rowStart;
+                    prevRowEnd = rowEnd;
+                    return;
+                }
+                const changed = {};
+                if (colStart !== prevColStart || colEnd !== prevColEnd) {
+                    prevColStart = colStart;
+                    prevColEnd = colEnd;
+                    changed.columnsIndexes = [colStart, colEnd];
+                }
+                if (rowStart !== prevRowStart || rowEnd !== prevRowEnd) {
+                    prevRowStart = rowStart;
+                    prevRowEnd = rowEnd;
+                    changed.rowsIndexes = [rowStart, rowEnd];
+                }
+                if (Object.keys(changed).length) {
+                    onChange(changed);
+                }
+            },
+            { initialRun: false }
+        );
+    }
+
     return {
         firstRow,
         lastRow,
         firstColumn,
         lastColumn,
+        get columnsIndexes() {
+            return untrack(() => [firstColumn(), lastColumn()]);
+        },
+        get rowsIndexes() {
+            return untrack(() => [firstRow(), lastRow()]);
+        },
         /**
          * Sets the width of each column.
          * Indexes should match the indexes of the columns.
@@ -172,7 +219,13 @@ export function useVirtualGrid({
          * @param {number[]} widths
          */
         setColumnWidths(widths) {
+            lastColumnStartIndex = 0;
             summedColumnWidths.set(getSummed(widths));
+            prevColStart = firstColumn();
+            prevColEnd = lastColumn();
+        },
+        setColumnsWidths(widths) {
+            this.setColumnWidths(widths);
         },
         /**
          * Sets the height of each row.
@@ -181,7 +234,13 @@ export function useVirtualGrid({
          * @param {number[]} heights
          */
         setRowHeights(heights) {
+            lastRowStartIndex = 0;
             summedRowHeights.set(getSummed(heights));
+            prevRowStart = firstRow();
+            prevRowEnd = lastRow();
+        },
+        setRowsHeights(heights) {
+            this.setRowHeights(heights);
         },
     };
 }

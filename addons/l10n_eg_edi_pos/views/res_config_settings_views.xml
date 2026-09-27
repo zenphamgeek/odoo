@@ -18,12 +18,12 @@
                                     <li>Go to "View Taxpayer Profile", under "Representatives", "ERP". Click the three dots (⋮) next to your ERP entry and select Regenerate Secrets.</li>
                                     <li>Navigate to the "Point of Sale" section and click "Register Point of Sale". Fill in the required details: Branch, Vendor &amp; Model, Active from, and Serial Number.</li>
                                     <li>Once POS registered, note down the "Serial Number" and "Branch / Address Number".</li>
-                                    <li>In Odoo, fill in the fields below using the credentials and device details retrieved above.</li>
+                                    <li>In Insilos, fill in the fields below using the credentials and device details retrieved above.</li>
                                 </ol>
                                 <div class="text-muted">⚠️ Notes:</div>
                                 <ol class="text-muted">
                                     <li>Save your Client ID, Client Secret 1, and Client Secret 2 immediately. You will not be able to retrieve them again after closing this screen.</li>
-                                    <li>Production and Pre-production portals have separate credentials. Make sure to update your Odoo instance when switching environments.</li>
+                                    <li>Production and Pre-production portals have separate credentials. Make sure to update your Insilos instance when switching environments.</li>
                                 </ol>
                             </div>
                         </div>

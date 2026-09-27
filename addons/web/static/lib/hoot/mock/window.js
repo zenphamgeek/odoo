@@ -196,20 +196,20 @@ function getWatchedEventTargets(view) {
         view,
         view.document,
         // Permanent DOM elements
-        view.HTMLDocument.prototype,
-        view.HTMLBodyElement.prototype,
-        view.HTMLHeadElement.prototype,
-        view.HTMLHtmlElement.prototype,
+        view.HTMLDocument?.prototype,
+        view.HTMLBodyElement?.prototype,
+        view.HTMLHeadElement?.prototype,
+        view.HTMLHtmlElement?.prototype,
         // Other event targets
-        EventBus.prototype,
-        MockEventTarget.prototype,
-        view.MediaDevices.prototype,
-        view.MediaQueryList.prototype,
-        view.MediaStreamTrack.prototype,
-        view.RTCPeerConnection.prototype,
-        view.RTCDataChannel.prototype,
-        view.BaseAudioContext.prototype,
-    ];
+        EventBus?.prototype,
+        MockEventTarget?.prototype,
+        view.MediaDevices?.prototype,
+        view.MediaQueryList?.prototype,
+        view.MediaStreamTrack?.prototype,
+        view.RTCPeerConnection?.prototype,
+        view.RTCDataChannel?.prototype,
+        view.BaseAudioContext?.prototype,
+    ].filter(Boolean);
 }
 
 /**

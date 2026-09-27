@@ -198,7 +198,7 @@
         />
     </BuilderRow>
     <BuilderRow label.translate="Max File Size"
-        tooltip.translate="Note that your server has its own upload limit (typically 64 MB on Odoo SaaS), which will take precedence over this value">
+        tooltip.translate="Note that your server has its own upload limit (typically 64 MB on Insilos SaaS), which will take precedence over this value">
         <BuilderNumberInput
             dataAttributeAction="'maxFileSize'"
             applyTo="`input[type='file']`"

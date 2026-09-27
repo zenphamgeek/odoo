@@ -328,7 +328,7 @@ class IrModuleModule(models.Model):
     icon = fields.Char('Icon URL')
     icon_image = fields.Binary(string='Icon', compute='_get_icon_image')
     icon_flag = fields.Char(string='Flag', compute='_get_icon_image')
-    to_buy = fields.Boolean('Odoo Enterprise Module', default=False)
+    to_buy = fields.Boolean('Insilos Enterprise Module', default=False)
     iap_paid_service = fields.Boolean("Contains In-App Purchases")
 
     _name_uniq = models.Constraint(
@@ -627,7 +627,7 @@ class IrModuleModule(models.Model):
             self.env.cr.execute("LOCK ir_module_module IN EXCLUSIVE MODE")
         except psycopg2.OperationalError:
             self.env.cr.rollback()
-            raise UserError(_("Odoo is currently processing another module operation.\n"
+            raise UserError(_("Insilos is currently processing another module operation.\n"
                                "Please try again later or contact your system administrator."))
 
         try:
@@ -637,7 +637,7 @@ class IrModuleModule(models.Model):
             self.env.cr.execute("SELECT FROM ir_cron FOR UPDATE")
         except psycopg2.OperationalError:
             self.env.cr.rollback()
-            raise UserError(_("Odoo is currently processing a scheduled action.\n"
+            raise UserError(_("Insilos is currently processing a scheduled action.\n"
                               "Module operations are not possible at this time, "
                               "please try again later or contact your system administrator."))
         function(self)

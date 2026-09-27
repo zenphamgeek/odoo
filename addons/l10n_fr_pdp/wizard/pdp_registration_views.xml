@@ -77,15 +77,15 @@
                             invisible="pdp_kyc_status != 'success'">
                         <span invisible="edi_mode != 'prod'">
                             <span invisible="'company_pdp_annuaire_warning' in warnings">Validate Registration</span>
-                            <span invisible="'company_pdp_annuaire_warning' not in warnings">Migrate to Odoo</span>
+                            <span invisible="'company_pdp_annuaire_warning' not in warnings">Migrate to Insilos</span>
                         </span>
                         <span invisible="edi_mode != 'test'">
                             <span invisible="'company_pdp_annuaire_warning' in warnings">Validate Registration (Test)</span>
-                            <span invisible="'company_pdp_annuaire_warning' not in warnings">Migrate to Odoo (Test)</span>
+                            <span invisible="'company_pdp_annuaire_warning' not in warnings">Migrate to Insilos (Test)</span>
                         </span>
                         <span invisible="edi_mode != 'demo'">
                             <span invisible="'company_pdp_annuaire_warning' in warnings">Validate Registration (Demo)</span>
-                            <span invisible="'company_pdp_annuaire_warning' not in warnings">Migrate to Odoo (Demo)</span>
+                            <span invisible="'company_pdp_annuaire_warning' not in warnings">Migrate to Insilos (Demo)</span>
                         </span>
                     </button>
                     <button name="button_deregister_pdp_participant"

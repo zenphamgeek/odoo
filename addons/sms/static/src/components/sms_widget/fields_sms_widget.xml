@@ -18,7 +18,7 @@
         <div t-if="this.nbrChar > 0" class="ms-auto d-flex align-items-center">
             <span class="text-muted o_sms_count me-1">
                 <t t-out="this.nbrChar"/>/<t t-out="this.maxChar"/> <t t-out="this.nbrCharExplanation"/> | <t t-out="this.nbrSMS"/> SMS (<t t-out="this.encoding"/>)
-                <a href="https://iap-services.odoo.com/iap/sms/pricing" target="_blank"
+                <a href="https://insilos.com/pricing" target="_blank"
                    title="SMS Pricing" aria-label="SMS Pricing" class="oi oi-lg ms-1 align-middle" data-icon="info"/>
             </span>
         </div>

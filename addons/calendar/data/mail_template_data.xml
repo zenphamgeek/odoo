@@ -43,7 +43,7 @@
             View</a>
     </div>
     <div style="margin: 16px 0 0;">
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Details</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Details</h2>
         <table cellpadding="0" cellspacing="0" border="0" style="font-size: 13px; color: #374151;">
             <tr>
                 <td style="width: 100px; color: #676F7B;">Date &amp; Time</td>
@@ -83,7 +83,7 @@
                 </td>
                 <td style="padding-top: 6px;">
                     <a t-att-href="object.event_id.videocall_location" target="_blank" style="color: #008f8c;">
-                        <t t-if="object.get_base_url() in object.event_id.videocall_location">Odoo Discuss</t>
+                        <t t-if="object.get_base_url() in object.event_id.videocall_location">Insilos Discuss</t>
                         <t t-else="">Video meeting</t>
                     </a>
                 </td>
@@ -92,7 +92,7 @@
     </div>
     <div style="margin: 32px 0 0;">
         <t t-set="max_shown_attendees" t-value="20"/>
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Attendees</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Attendees</h2>
         <div t-foreach="object.event_id.attendee_ids[:max_shown_attendees]" t-as="attendee" style="margin-bottom: 5px;">
             <img t-if="attendee.state" t-attf-src="/calendar/static/src/img/state_{{ attendee.state }}.png" style="border:0; width: 15px; height: 15px; vertical-align: text-bottom;" />
             <t t-if="attendee != object">
@@ -107,7 +107,7 @@
         </div>
     </div>
     <div t-if="not is_html_empty(object.event_id.description)" style="margin: 32px 0 0;">
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Description of the event</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Description of the event</h2>
         <t t-out="object.event_id.description">Internal meeting for discussion for new pricing for product and services.</t>
     </div>
     <br/>
@@ -196,7 +196,7 @@
             View</a>
     </div>
     <div style="margin: 16px 0 0;">
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Details</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Details</h2>
         <table cellpadding="0" cellspacing="0" border="0" style="font-size: 13px; color: #374151;">
 		    <tr>
                 <td style="width: 100px; color: #676F7B;">Date &amp; Time</td>
@@ -236,7 +236,7 @@
                 </td>
                 <td style="padding-top: 6px;">
                     <a t-att-href="object.event_id.videocall_location" target="_blank" style="color: #008f8c;">
-                        <t t-if="object.event_id.videocall_source == 'discuss'">Odoo Discuss</t>
+                        <t t-if="object.event_id.videocall_source == 'discuss'">Insilos Discuss</t>
                         <t t-else="">Video meeting</t>
                     </a>
                 </td>
@@ -245,7 +245,7 @@
     </div>
     <div style="margin: 32px 0 0;">
         <t t-set="max_shown_attendees" t-value="20"/>
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Attendees</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Attendees</h2>
         <div t-foreach="object.event_id.attendee_ids[:max_shown_attendees]" t-as="attendee" style="margin-bottom: 5px;">
             <img t-if="attendee.state" t-attf-src="/calendar/static/src/img/state_{{ attendee.state }}.png" style="border:0; width: 15px; height: 15px; vertical-align: text-bottom;" />
             <t t-if="attendee != object">
@@ -260,7 +260,7 @@
         </div>
     </div>
     <div t-if="not is_html_empty(object.event_id.description)" style="margin: 32px 0 0;">
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Description of the event</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Description of the event</h2>
         <t t-out="object.event_id.description">Internal meeting for discussion for new pricing for product and services.</t>
     </div>
     <br/>
@@ -326,7 +326,7 @@
             View</a>
     </div>
     <div style="margin: 16px 0 0;">
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Details</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Details</h2>
         <table cellpadding="0" cellspacing="0" border="0" style="font-size: 13px; color: #374151;">
             <tr>
                 <td style="width: 100px; color: #676F7B;">Date &amp; Time</td>
@@ -370,7 +370,7 @@
                 </td>
                 <td style="padding-top: 6px;">
                     <a t-att-href="object.event_id.videocall_location" target="_blank" style="color: #008f8c;">
-                        <t t-if="object.get_base_url() in object.event_id.videocall_location">Odoo Discuss</t>
+                        <t t-if="object.get_base_url() in object.event_id.videocall_location">Insilos Discuss</t>
                         <t t-else="">Video meeting</t>
                     </a>
                 </td>
@@ -379,7 +379,7 @@
     </div>
     <div style="margin: 32px 0 0;">
         <t t-set="max_shown_attendees" t-value="20"/>
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Attendees</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Attendees</h2>
         <div t-foreach="object.event_id.attendee_ids[:max_shown_attendees]" t-as="attendee" style="margin-bottom: 5px;">
             <img t-if="attendee.state" t-attf-src="/calendar/static/src/img/state_{{ attendee.state }}.png" style="border:0; width: 15px; height: 15px; vertical-align: text-bottom;" />
             <t t-if="attendee != object">
@@ -394,7 +394,7 @@
         </div>
     </div>
     <div t-if="not is_html_empty(object.event_id.description)" style="margin: 32px 0 0;">
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Description of the event</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Description of the event</h2>
         <t t-out="object.event_id.description">Internal meeting for discussion for new pricing for product and services.</t>
     </div>
     <br/>
@@ -455,7 +455,7 @@
         This meeting has been updated.
     </p>
     <div style="margin: 32px 0 0;">
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Details</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Details</h2>
         <table cellpadding="0" cellspacing="0" border="0" style="font-size: 13px; color: #374151;">
             <tr>
                 <td style="width: 100px; color: #676F7B;">Date &amp; Time</td>
@@ -495,7 +495,7 @@
                 </td>
                 <td style="padding-top: 6px;">
                     <a t-att-href="object.videocall_location" target="_blank" style="color: #008f8c;">
-                        <t t-if="object.videocall_source == 'discuss'">Odoo Discuss</t>
+                        <t t-if="object.videocall_source == 'discuss'">Insilos Discuss</t>
                         <t t-else="">Video meeting</t>
                     </a>
                 </td>
@@ -504,7 +504,7 @@
     </div>
     <div style="margin: 32px 0 0;">
         <t t-set="max_shown_attendees" t-value="20"/>
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Attendees</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Attendees</h2>
         <div t-foreach="object.attendee_ids[:max_shown_attendees]" t-as="attendee" style="margin-bottom: 5px;">
             <img t-if="attendee.state" t-attf-src="/calendar/static/src/img/state_{{ attendee.state }}.png" style="border:0; width: 15px; height: 15px; vertical-align: text-bottom;" />
             <t t-if="attendee.common_name">
@@ -519,7 +519,7 @@
         </div>
     </div>
     <div t-if="not is_html_empty(object.description)" style="margin: 32px 0 0;">
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Description of the event</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Description of the event</h2>
         <t t-out="object.description">Internal meeting for discussion for new pricing for product and services.</t>
     </div>
     <br/>
@@ -581,7 +581,7 @@
         </span>
     </p>
     <div style="margin: 32px 0 0;">
-        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#875A7B'}};">Details</h2>
+        <h2 t-attf-style="margin-bottom: 12px; font-size: 14px; font-weight: bold; color: {{user.company_id.email_secondary_color or '#004455'}};">Details</h2>
         <table cellpadding="0" cellspacing="0" border="0" style="font-size: 13px; color: #374151;">
             <tr>
                 <td style="width: 100px; color: #676F7B;">Date &amp; Time</td>

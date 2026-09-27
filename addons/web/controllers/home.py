@@ -40,13 +40,19 @@ class Home(Controller):
     def index(self, s_action=None, db=None, **kw):
         if request.db and request.session.uid and not is_user_internal(request.session.uid):
             return request.redirect_query('/web/login_successful', query=request.params)
-        return request.redirect_query('/odoo', query=request.params)
+        return request.redirect_query('/insilos', query=request.params)
+
+    @route(['/odoo', '/odoo/<path:subpath>'], type='http', auth="none")
+    def odoo_legacy_redirect(self, subpath=None, **kw):
+        new_path = f'/insilos/{subpath}' if subpath else '/insilos'
+        query = {k: v for k, v in request.params.items() if k != 'subpath'}
+        return request.redirect_query(new_path, query=query)
 
     def _web_client_readonly(self, rule, args):
         return False
 
     # ideally, this route should be `auth="user"` but that don't work in non-monodb mode.
-    @route(['/web', '/odoo', '/odoo/<path:subpath>', '/scoped_app/<path:subpath>'], type='http', auth="none", readonly=_web_client_readonly)
+    @route(['/web', '/insilos', '/insilos/<path:subpath>', '/scoped_app/<path:subpath>'], type='http', auth="none", readonly=_web_client_readonly)
     def web_client(self, s_action=None, **kw):
 
         # Ensure we have both a database and a user
@@ -155,7 +161,7 @@ class Home(Controller):
             values['disable_database_manager'] = True
 
         safe_redirect = redirect if (redirect and redirect.startswith('/') and not redirect.startswith('//')) else None
-        values['disable_opengraph'] = bool(safe_redirect and safe_redirect.startswith('/odoo'))
+        values['disable_opengraph'] = bool(safe_redirect and (safe_redirect.startswith('/insilos') or safe_redirect.startswith('/odoo')))
         if values['disable_opengraph']:
             url_root = request.httprequest.url_root
             try:

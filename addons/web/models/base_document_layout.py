@@ -12,8 +12,8 @@ try:
 except ImportError:
     from PIL import Image as Resampling
 
-DEFAULT_PRIMARY = '#000000'
-DEFAULT_SECONDARY = '#000000'
+DEFAULT_PRIMARY = '#004455'
+DEFAULT_SECONDARY = '#004455'
 
 
 class BaseDocumentLayout(models.TransientModel):

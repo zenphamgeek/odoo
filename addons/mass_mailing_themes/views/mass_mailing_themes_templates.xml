@@ -121,7 +121,7 @@
                         <h1>
                             <span class="display-1-fs"><font class="text-white">Join us at the</font></span>
                             <font class="text-white"><br/></font>
-                            <span class="display-1-fs"><font class="text-white">Odoo Experience.</font></span>
+                            <span class="display-1-fs"><font class="text-white">Insilos Experience.</font></span>
                         </h1>
                         <p class="lead"><font class="text-white">Join us for a 2-day event filled with tech and business talks,<br/>workshops, and networking opportunities.</font></p>
                         <p><a class="btn btn-lg btn-primary" href="https://www.example.com">Grab your ticket!</a></p>
@@ -144,7 +144,7 @@
                                 alt=""/>
                         </div>
                         <h3 style="text-align: center;"><font class="text-o-color-4">Mark E. Ting</font></h3>
-                        <p style="text-align: center;"><font class="text-o-color-4">Go beyond the basics and unlock the full power of Odoo's framework.</font></p>
+                        <p style="text-align: center;"><font class="text-o-color-4">Go beyond the basics and unlock the full power of Insilos's framework.</font></p>
                     </div>
                     <div class="col-12 col-md-6 pb24">
                         <div class="mb-3 o_not_editable">
@@ -154,7 +154,7 @@
                                 alt=""/>
                         </div>
                         <h3 style="text-align: center;"><font class="text-o-color-4">Otto Mation</font></h3>
-                        <p style="text-align: center;"><font class="text-o-color-4">From idea to implementation, build smarter and faster in Odoo.</font></p>
+                        <p style="text-align: center;"><font class="text-o-color-4">From idea to implementation, build smarter and faster in Insilos.</font></p>
                     </div>
                 </div>
             </div>
@@ -171,7 +171,7 @@
                             </div>
                             <div class="col-md-7 s_media_list_body">
                                 <h3>Get 6-months' worth of knowledge<br/>in just 2 days</h3>
-                                <p>Learn through workshops, product demos, and inspiring talks from Odoo Experts and Partners.</p>
+                                <p>Learn through workshops, product demos, and inspiring talks from Insilos Experts and Partners.</p>
                                 <p><a class="btn btn-lg btn-primary" t-att-href="website_url_or_none">Check the agenda</a></p>
                             </div>
                         </div>
@@ -208,7 +208,7 @@
                 <div class="row">
                     <div class="col-md-12" style="border-color: rgb(56, 62, 69) !important;">
                         <h3 style="text-align: center;"><font style="color: rgb(255, 255, 255);">And it won't cost you a thing!</font></h3>
-                        <p style="text-align: center;"><font style="color: rgb(255, 255, 255);">Zero, zilch, nada! Odoo Experience is free for everyone!</font></p>
+                        <p style="text-align: center;"><font style="color: rgb(255, 255, 255);">Zero, zilch, nada! Insilos Experience is free for everyone!</font></p>
                     </div>
                     <div class="col-md-12" style="text-align: center;">
                         <p><a class="btn btn-primary btn-lg" t-att-href="website_url_or_none">Register now!</a></p>
@@ -1200,19 +1200,19 @@
         </section>
         <section class="s_title o_mail_snippet_general px-3 pb0 pt0" data-vxml="001" data-snippet="s_title" data-name="Title">
             <div class="container s_allow_columns">
-                    <h2 style="" class="">The story of Odoo</h2>
+                    <h2 style="" class="">The story of Insilos</h2>
             </div>
         </section>
         <section class="s_header_social o_mail_block_header_social o_mail_snippet_general bg-white px-3 pt24 pb24" style="" data-vxml="001" data-snippet="s_mail_block_header_social" data-name="Left Logo">
             <div class="container" style="">
                 <div class="col-md-12 o_mail_header_social" style="background-color: rgb(255, 255, 255) !important; text-align: left;">
-                    <a aria-label="Facebook" target="_blank" href="https://www.facebook.com/Odoo" data-original-title="Facebook" rel="noreferrer">
+                    <a aria-label="Facebook" target="_blank" href="https://www.facebook.com/insilos" data-original-title="Facebook" rel="noreferrer">
                         <img class="img-fluid o_we_custom_image" src="/mass_mailing_themes/static/src/img/theme_newsletter/social-facebook.png" data-attachment-id="435" data-original-id="435" data-original-src="/mass_mailing_themes/static/src/img/theme_newsletter/social-facebook.png" data-mimetype="image/png" style="width: 30px;"/>
                     </a>&amp;nbsp;&amp;nbsp;
-                    <a aria-label="X" target="_blank" href="https://twitter.com/Odoo" data-original-title="X" rel="noreferrer">
+                    <a aria-label="X" target="_blank" href="https://twitter.com/insilos" data-original-title="X" rel="noreferrer">
                         <img class="img-fluid o_we_custom_image" src="/mass_mailing_themes/static/src/img/theme_newsletter/social-twitter.png" data-attachment-id="436" data-original-id="436" data-original-src="/mass_mailing_themes/static/src/img/theme_newsletter/social-twitter.png" data-mimetype="image/png" style="width: 30px;"/>
                     </a>&amp;nbsp;&amp;nbsp;
-                    <a  aria-label="Instagram" target="_blank" href="https://www.linkedin.com/company/odoo" data-original-title="Linkedin" rel="noreferrer">
+                    <a  aria-label="Instagram" target="_blank" href="https://www.linkedin.com/company/insilos" data-original-title="Linkedin" rel="noreferrer">
                         <img class="img-fluid o_we_custom_image" src="/mass_mailing_themes/static/src/img/theme_newsletter/social-linkedin.png" data-attachment-id="437" data-original-id="437" data-original-src="/mass_mailing_themes/static/src/img/theme_newsletter/social-linkedin.png" data-mimetype="image/png" style="width: 30px;"/>
                     </a>
                 </div>
@@ -1220,7 +1220,7 @@
         </section>
         <section class="s_text_block o_mail_snippet_general px-3 pb24" data-vxml="001" data-snippet="s_text_block" data-name="Text">
             <div class="container s_allow_columns">
-                <p style="font-size: 14px;" class="small text-muted">Musings on the week from <a style="font-size: 14px;" href="https://twitter.com/fpodoo?ref_src=twsrc%5Egoogle%7Ctwcamp%5Eserp%7Ctwgr%5Eauthor">@fpodoo</a></p>
+                <p style="font-size: 14px;" class="small text-muted">Musings on the week from <a style="font-size: 14px;" href="https://twitter.com/insilos">@insilos</a></p>
             </div>
         </section>
         <section class="s_title o_mail_snippet_general px-3 pb0 pt0" data-vxml="001" data-snippet="s_title" data-name="Title">
@@ -1308,7 +1308,7 @@
         </section>
         <section class="s_title o_mail_snippet_general px-3 pb0 pt0" data-vxml="001" data-snippet="s_title" data-name="Title">
             <div class="container s_allow_columns">
-                <h3>The Rise of Odoo</h3>
+                <h3>The Rise of Insilos</h3>
             </div>
         </section>
         <section class="s_text_block o_mail_snippet_general px-3 pt16" data-vxml="001" data-snippet="s_text_block" data-name="Text">
@@ -1317,7 +1317,7 @@
                 <p>Our exceptional technology allowed us to move to newer markets (CMS &amp; eCommerce) and propose a product that disrupts existing open source players (Wordpress, Magento, etc). The OpenERP CMS is so good that even top competitors admitted it publicly when we released the beta version.</p>
                 <p>If current open source players have a real technical challenge to follow us, we also have a huge marketing challenge. Wordpress has 22% of all internet websites. We were the leader in management software, but we start with 0% of the website market.</p>
                 <p>To move forward, we raised 10 million USD in May 2014 in order to boost marketing and sales activities. In order to support our vision, we had to change the name that is not restricted to ERPs functions. We needed a name that allowed us to support our ambitions; build business solutions like CMS, eCommerce, Business Intelligence and, who knows, even sky rockets or driverless cars in the future...</p>
-                <p>In May 2014, we renamed the company and product to Odoo.</p>
+                <p>In May 2014, we renamed the company and product to Insilos.</p>
                 <p>And a new story just started...</p>
             </div>
         </section>
@@ -1332,13 +1332,13 @@
         <section class="s_footer_social o_mail_block_footer_social o_mail_footer_social_center o_mail_snippet_general o_cc o_cc1 pt0 pb0" data-vxml="001" data-snippet="s_mail_block_footer_social" data-name="Footer Center">
             <div class="container">
                 <div class="col-md-12 o_mail_footer_social pt0 pb0" style="text-align: center;">
-                    <a aria-label="Facebook" target="_blank" href="https://www.facebook.com/Odoo" data-original-title="Facebook" rel="noreferrer">
+                    <a aria-label="Facebook" target="_blank" href="https://www.facebook.com/insilos" data-original-title="Facebook" rel="noreferrer">
                         <img class="img-fluid o_we_custom_image" src="/mass_mailing_themes/static/src/img/theme_newsletter/social-facebook.png" data-attachment-id="435" data-original-id="435" data-original-src="/mass_mailing_themes/static/src/img/theme_newsletter/social-facebook.png" data-mimetype="image/png" style="width: 30px;"/>
                     </a>&amp;nbsp;&amp;nbsp;
-                    <a aria-label="X" target="_blank" href="https://twitter.com/Odoo" data-original-title="X" rel="noreferrer">
+                    <a aria-label="X" target="_blank" href="https://twitter.com/insilos" data-original-title="X" rel="noreferrer">
                         <img class="img-fluid o_we_custom_image" src="/mass_mailing_themes/static/src/img/theme_newsletter/social-twitter.png" data-attachment-id="436" data-original-id="436" data-original-src="/mass_mailing_themes/static/src/img/theme_newsletter/social-twitter.png" data-mimetype="image/png" style="width: 30px;"/>
                     </a>&amp;nbsp;&amp;nbsp;
-                    <a aria-label="Instagram" target="_blank" href="https://www.linkedin.com/company/odoo" data-original-title="Linkedin" rel="noreferrer">
+                    <a aria-label="Instagram" target="_blank" href="https://www.linkedin.com/company/insilos" data-original-title="Linkedin" rel="noreferrer">
                         <img class="img-fluid o_we_custom_image" src="/mass_mailing_themes/static/src/img/theme_newsletter/social-linkedin.png" data-attachment-id="437" data-original-id="437" data-original-src="/mass_mailing_themes/static/src/img/theme_newsletter/social-linkedin.png" data-mimetype="image/png" style="width: 30px;"/>
                     </a>
                 </div>
@@ -1382,7 +1382,7 @@
                         <h1>We're almost there!</h1>
                     </div>
                 </div>
-                <p>Odoo invites you on <span class="font-weight: bolder">[date]</span> at <span class="font-weight: bolder">[time]</span> for their infamous roadshow in <span class="font-weight: bolder">[city]</span>: an event that combines learning and networking in a casual afterwork-like atmosphere.</p>
+                <p>Insilos invites you on <span class="font-weight: bolder">[date]</span> at <span class="font-weight: bolder">[time]</span> for their infamous roadshow in <span class="font-weight: bolder">[city]</span>: an event that combines learning and networking in a casual afterwork-like atmosphere.</p>
             </div>
         </section>
         <section class="s_text_block o_mail_snippet_general px-3 pt8 pb0" data-vxml="001" data-snippet="s_text_block" data-name="Text">
@@ -1400,7 +1400,7 @@
         </section>
         <section class="s_text_block o_mail_snippet_general px-3 pt0 pb0" data-vxml="001" data-snippet="s_text_block" data-name="Text">
             <div class="container s_allow_columns">
-                <p>Discover Odoo, the all-in-one management platform, and its apps designed to improve employees' daily tasks. From sales and deliveries, to logistics, marketing and accounting ; learn what are the best available options to digitize your company.</p>
+                <p>Discover Insilos, the all-in-one management platform, and its apps designed to improve employees' daily tasks. From sales and deliveries, to logistics, marketing and accounting ; learn what are the best available options to digitize your company.</p>
             </div>
         </section>
         <section class="s_text_block o_mail_snippet_general px-3 pt0 pb0" data-vxml="001" data-snippet="s_text_block" data-name="Text">
@@ -1443,7 +1443,7 @@
                         <td class="p-2" data-name="Activity">
                             <span class="font-weight: bolder">[speaker] &amp; [speaker]'s conference</span>
                             <ul>
-                                <li>Interactive Odoo demo</li>
+                                <li>Interactive Insilos demo</li>
                                 <li>Best practices to digitize your company</li>
                             </ul>
                         </td>
@@ -1517,15 +1517,15 @@
         </section>
         <section class="s_text_block o_mail_snippet_general px-3 pt8 pb0" data-vxml="001" data-snippet="s_text_block" data-name="Text">
             <div class="container s_allow_columns">
-                <p>You had the chance to discover Odoo during a full 3 hours, how great is that?
-                    <br/>Now that you've seen Odoo in action and asked some questions, you likely need more information to move forward in your project and to work with us. You'll find additional points just below.
+                <p>You had the chance to discover Insilos during a full 3 hours, how great is that?
+                    <br/>Now that you've seen Insilos in action and asked some questions, you likely need more information to move forward in your project and to work with us. You'll find additional points just below.
                 </p>
             </div>
         </section>
         <section class="s_title o_mail_snippet_general pb0 pt0" data-vxml="001" data-snippet="s_title" data-name="Title">
             <div class="container s_allow_columns">
-                <h3>Do you wish to use Odoo?</h3>
-                <p>If you wish to evaluate Odoo while taking into account your company's specific needs, you can book a free appointment with one of our <a href="https://odoo.com/r/meeting" target="_blank">Odoo Experts</a> or <a href="https://odoo.com/page/tour" target="_blank">watch our videos about the product</a>.</p>
+                <h3>Do you wish to use Insilos?</h3>
+                <p>If you wish to evaluate Insilos while taking into account your company's specific needs, you can book a free appointment with one of our <a href="https://insilos.com/meeting" target="_blank">Insilos Experts</a> or <a href="https://insilos.com/tour" target="_blank">watch our videos about the product</a>.</p>
             </div>
         </section>
         <section class="s_text_block o_mail_snippet_general px-3 pt8 pb0" data-vxml="001" data-snippet="s_text_block" data-name="Text">
@@ -1537,14 +1537,14 @@
                     <li><a href="#" target="_blank">Link 3</a></li>
                     <li><a href="#" target="_blank">Link 4</a></li>
                 </ul>
-                <p>You may test Odoo for free by clicking <a href="https://odoo.com/trial" target="_blank">here</a>.</p>
+                <p>You may test Insilos for free by clicking <a href="https://insilos.com/trial" target="_blank">here</a>.</p>
             </div>
         </section>
         <section class="s_title o_mail_snippet_general pb0 pt0" data-vxml="001" data-snippet="s_title" data-name="Title">
             <div class="container s_allow_columns">
                 <h3>Do you wish to become a partner?</h3>
-                <p>If you wish to become a partner and offer your services in [country], take a look at <a href="https://odoo.com/r/meeting" target="_blank">this page</a>.</p>
-                <p>Learn more about our pricing <a href="https://odoo.com/r/meeting" target="_blank">here</a>.</p>
+                <p>If you wish to become a partner and offer your services in [country], take a look at <a href="https://insilos.com/meeting" target="_blank">this page</a>.</p>
+                <p>Learn more about our pricing <a href="https://insilos.com/meeting" target="_blank">here</a>.</p>
             </div>
         </section>
         <section class="s_text_block o_mail_snippet_general px-3 pt8 pb0" data-vxml="001" data-snippet="s_text_block" data-name="Text">

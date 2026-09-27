@@ -297,7 +297,7 @@ class AccountMove(models.Model):
                             'state': 'invoice_error',
                             'message': error.message or self.env._(
                                 "The electronic invoice request could not be processed. "
-                                "Please contact Odoo support if the problem persists."
+                                "Please contact Insilos support if the problem persists."
                             ),
                         })
                     elif error.code == 'e_invoo_request_failed':

@@ -302,7 +302,7 @@
                                             <p>The website will not work properly if you reject or discard those cookies.</p>
                                         </td>
                                         <td>
-                                            session_id (Odoo)<br/>
+                                            session_id (Insilos)<br/>
                                         </td>
                                     </tr>
                                     <tr>
@@ -314,8 +314,8 @@
                                             <p>Your experience may be degraded if you discard those cookies, but the website will still work.</p>
                                         </td>
                                         <td>
-                                            frontend_lang (Odoo)<br/>
-                                            tz (Odoo)
+                                            frontend_lang (Insilos)<br/>
+                                            tz (Insilos)
                                         </td>
                                     </tr>
                                     <tr>
@@ -328,10 +328,10 @@
                                             <p>We may not be able to provide the best service to you if you reject those cookies, but the website will work.</p>
                                         </td>
                                         <td>
-                                            im_livechat_previous_operator (Odoo)<br/>
-                                            utm_campaign (Odoo)<br/>
-                                            utm_source (Odoo)<br/>
-                                            utm_medium (Odoo)
+                                            im_livechat_previous_operator (Insilos)<br/>
+                                            utm_campaign (Insilos)<br/>
+                                            utm_source (Insilos)<br/>
+                                            utm_medium (Insilos)
                                         </td>
                                     </tr>
                                     <tr>

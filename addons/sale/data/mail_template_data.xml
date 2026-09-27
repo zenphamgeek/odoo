@@ -117,7 +117,7 @@
             <field name="email_layout_xmlid">mail.mail_notification_layout_with_responsible_signature</field>
             <field name="body_html" type="html">
                 <div style="margin: 0px; padding: 0px;">
-                    <t t-set="color" t-value="object.company_id.email_secondary_color or '#875A7B'"/>
+                    <t t-set="color" t-value="object.company_id.email_secondary_color or '#004455'"/>
                     <t
                             t-if="'website_id' in object and object.website_id"
                             t-set="logo_src"

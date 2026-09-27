@@ -127,7 +127,7 @@ def iap_jsonrpc(url, method='call', params=None, timeout=15, raise_user_error=Fa
         raise
     except Exception as e:
         if raise_user_error:
-            raise UserError(_("An error occurred while reaching %s. Please contact Odoo support if this error persists.", url)) from e
+            raise UserError(_("An error occurred while reaching %s. Please contact Insilos support if this error persists.", url)) from e
         else:
             raise
 

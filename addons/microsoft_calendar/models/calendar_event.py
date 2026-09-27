@@ -124,7 +124,7 @@ class CalendarEvent(models.Model):
             if not sender_sync_status and current_sync_status:
                 raise ValidationError(
                     _("For having a different organizer in your event, it is necessary that "
-                      "the organizer have its Odoo Calendar synced with Outlook Calendar."))
+                      "the organizer have its Insilos Calendar synced with Outlook Calendar."))
             elif sender_sync_status and not partner_included:
                 raise ValidationError(
                     _("It is necessary adding the proposed organizer as attendee before saving the event."))
@@ -685,7 +685,7 @@ class CalendarEvent(models.Model):
                               for event in invalid_event_ids]
             invalid_events = '\n'.join(invalid_events)
             details = "(%d/%d)" % (list_length_limit, total_invalid_events) if list_length_limit < total_invalid_events else "(%d)" % total_invalid_events
-            raise ValidationError(_("For a correct synchronization between Odoo and Outlook Calendar, "
+            raise ValidationError(_("For a correct synchronization between Insilos and Outlook Calendar, "
                                     "all attendees must have an email address. However, some events do "
                                     "not respect this condition. As long as the events are incorrect, "
                                     "the calendars will not be synchronized."

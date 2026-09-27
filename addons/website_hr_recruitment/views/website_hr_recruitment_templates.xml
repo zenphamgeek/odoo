@@ -261,7 +261,7 @@
                                                 <i class="oi oi-2x o_linkedin_icon" data-icon="oi_linkedin"></i>
                                                 <input id="recruitment4" type="text"
                                                     class="form-control s_website_form_input pl64"
-                                                    placeholder="e.g. https://www.linkedin.com/in/fpodoo"
+                                                    placeholder="e.g. https://www.linkedin.com/in/insilos"
                                                     style="padding-inline-start: calc(40px + 0.375rem)"
                                                     name="linkedin_profile"
                                                     data-fill-with="linkedin_profile"/>

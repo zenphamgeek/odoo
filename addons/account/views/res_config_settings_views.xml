@@ -400,6 +400,7 @@
                             </setting>
                         </block>
                         <block title="Reporting" id="account_reports_settings" groups="account.group_account_user">
+                            <setting id="dynamic_report" invisible="1"/>
                             <setting string="Restrictive Audit Trail" company_dependent="1" invisible="force_restrictive_audit_trail" help="Log changes to posted journal entries immutably">
                                 <field name="restrictive_audit_trail"/>
                             </setting>

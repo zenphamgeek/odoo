@@ -163,7 +163,7 @@ export class MailMessage extends models.ServerModel {
                 r.attr("has_mail_thread", () =>
                     Boolean(this.env[threadModel]?._inherit?.includes("mail.thread"))
                 );
-                r.attr("module_icon", () => "/base/static/description/icon.png", {
+                r.attr("module_icon", () => "/base/static/description/icon.svg", {
                     predicate: () => inbox_fields,
                 });
                 r.one("selfFollower", ["is_active", "partner_id"], {

@@ -39,6 +39,7 @@ class HrJob(models.Model):
         help="The Recruiter will be the default value for all Applicants in this job \
             position. The Recruiter is automatically added to all meetings with the Applicant.",
     )
+    user_id = fields.Many2one('res.users', related='recruiter_id.user_id', string="Recruiter User", readonly=False)
     department_id = fields.Many2one('hr.department', string='Department', check_company=True, tracking=True, index='btree_not_null')
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company, tracking=True, required=True, index=True, domain=lambda self: [('id', 'in', self.env.companies.ids)])
     employee_type_id = fields.Many2one('hr.employee.type', string='Employee Type', tracking=True)

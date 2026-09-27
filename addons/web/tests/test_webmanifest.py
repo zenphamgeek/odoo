@@ -20,12 +20,12 @@ class WebManifestRoutesTest(HttpCaseWithUserDemo):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["Content-Type"], "application/manifest+json")
         data = response.json()
-        self.assertEqual(data["name"], "Odoo")
-        self.assertEqual(data["scope"], "/odoo")
-        self.assertEqual(data["start_url"], "/odoo")
+        self.assertEqual(data["name"], "Insilos")
+        self.assertEqual(data["scope"], "/insilos")
+        self.assertEqual(data["start_url"], "/insilos")
         self.assertEqual(data["display"], "standalone")
-        self.assertEqual(data["background_color"], "#714B67")
-        self.assertEqual(data["theme_color"], "#714B67")
+        self.assertEqual(data["background_color"], "#004455")
+        self.assertEqual(data["theme_color"], "#004455")
         self.assertEqual(data["prefer_related_applications"], False)
         self.assertCountEqual(data["icons"], [
             {'src': '/web/static/img/odoo-icon-192x192.png', 'sizes': '192x192', 'type': 'image/png'},
@@ -36,7 +36,7 @@ class WebManifestRoutesTest(HttpCaseWithUserDemo):
             self.assertGreater(len(shortcut["name"]), 0)
             self.assertGreater(len(shortcut["description"]), 0)
             self.assertGreater(len(shortcut["icons"]), 0)
-            self.assertTrue(shortcut["url"].startswith("/odoo?menu_id="))
+            self.assertTrue(shortcut["url"].startswith("/insilos?menu_id="))
 
     def test_webmanifest_unauthenticated(self):
         """
@@ -46,12 +46,12 @@ class WebManifestRoutesTest(HttpCaseWithUserDemo):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["Content-Type"], "application/manifest+json")
         data = response.json()
-        self.assertEqual(data["name"], "Odoo")
-        self.assertEqual(data["scope"], "/odoo")
-        self.assertEqual(data["start_url"], "/odoo")
+        self.assertEqual(data["name"], "Insilos")
+        self.assertEqual(data["scope"], "/insilos")
+        self.assertEqual(data["start_url"], "/insilos")
         self.assertEqual(data["display"], "standalone")
-        self.assertEqual(data["background_color"], "#714B67")
-        self.assertEqual(data["theme_color"], "#714B67")
+        self.assertEqual(data["background_color"], "#004455")
+        self.assertEqual(data["theme_color"], "#004455")
         self.assertEqual(data["prefer_related_applications"], False)
         self.assertCountEqual(data["icons"], [
             {'src': '/web/static/img/odoo-icon-192x192.png', 'sizes': '192x192', 'type': 'image/png'},
@@ -68,8 +68,8 @@ class WebManifestRoutesTest(HttpCaseWithUserDemo):
         self.assertEqual(data["scope"], "/test")
         self.assertEqual(data["start_url"], "/test")
         self.assertEqual(data["display"], "standalone")
-        self.assertEqual(data["background_color"], "#714B67")
-        self.assertEqual(data["theme_color"], "#714B67")
+        self.assertEqual(data["background_color"], "#004455")
+        self.assertEqual(data["theme_color"], "#004455")
         self.assertEqual(data["prefer_related_applications"], False)
         self.assertCountEqual(data["icons"], [
             {'src': "/web/static/img/odoo-icon-192x192.png", 'sizes': 'any', 'type': 'image/png'}

@@ -167,9 +167,7 @@ export class LazyTranslatedString extends String {
     translate() {
         const source = super.valueOf();
         if (this.lazy && !translatedTerms[translationLoaded]) {
-            // Evaluate lazy translated string while translations are not loaded
-            // -> error
-            throw new Error(`Cannot translate string: translations have not been loaded`);
+            return source;
         }
         const translation =
             translatedTerms[this.context]?.[source] ?? translatedTermsGlobal[source] ?? source;

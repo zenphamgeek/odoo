@@ -2,7 +2,7 @@
 <odoo>
     <record id="action_open_shop_page" model="ir.actions.act_url">
         <field name="name">Open Shop Page</field>
-        <field name="url">/odoo/action-website.website_preview?path=/shop</field>
+        <field name="url">/insilos/action-website.website_preview?path=/shop</field>
         <field name="target">self</field>
     </record>
 

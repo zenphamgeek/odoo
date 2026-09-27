@@ -81,12 +81,12 @@
         <record model="res.groups" id="group_portal">
             <field name="name">Role / Portal</field>
             <field name="comment">Portal members have specific access rights (such as record rules and restricted menus).
-                They usually do not belong to the usual Odoo groups.</field>
+                They usually do not belong to the usual Insilos groups.</field>
         </record>
         <record model="res.groups" id="group_public">
             <field name="name">Role / Public</field>
             <field name="comment">Public users have specific access rights (such as record rules and restricted menus).
-                They usually do not belong to the usual Odoo groups.
+                They usually do not belong to the usual Insilos groups.
                 This makes group restrictions more convenient.</field>
         </record>
         <record model="res.groups" id="group_everyone">

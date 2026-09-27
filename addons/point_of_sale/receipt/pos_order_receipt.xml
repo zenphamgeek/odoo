@@ -240,7 +240,7 @@
                 <t t-call="point_of_sale.company_info_receipt" />
                 <div t-if="config['receipt_footer']" class="w-100 text-center mt-2 mb-2" style="white-space:pre-line" t-out="config['receipt_footer']" />
                 <div class="w-100 text-center mt-3">
-                    Powered by <strong>Odoo</strong>
+                    Powered by <strong>Insilos</strong>
                 </div>
             </div>
         </template>

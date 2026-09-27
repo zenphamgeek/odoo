@@ -93,3 +93,4 @@ export const phoneField = {
 };
 
 registry.category("fields").add("phone", phoneField);
+export const formPhoneField = phoneField;

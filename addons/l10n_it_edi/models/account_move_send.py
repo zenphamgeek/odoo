@@ -40,13 +40,13 @@ class AccountMoveSend(models.AbstractModel):
             if 'prod' not in it_moves.mapped('l10n_it_edi_proxy_mode'):
                 alerts['l10n_it_edi_invite_authorize'] = {
                     'level': 'info',
-                    'message': _("You must authorize Odoo in the Settings to use the IT EDI in production mode."),
+                    'message': _("You must authorize Insilos in the Settings to use the IT EDI in production mode."),
                     'action_text': _("View Settings"),
                     'action': {
                         'name': _("Settings"),
                         'type': 'ir.actions.act_url',
                         'target': 'self',
-                        'url': '/odoo/settings#l10n_it_edi_setting',
+                        'url': '/insilos/settings#l10n_it_edi_setting',
                     },
                 }
 

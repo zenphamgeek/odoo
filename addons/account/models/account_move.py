@@ -425,6 +425,23 @@ class AccountMove(models.Model):
         related='company_id.tax_calculation_rounding_method',
         string='Tax calculation rounding method', readonly=True)
     show_journal = fields.Boolean(compute='_compute_show_journal')
+    checked = fields.Boolean(
+        string='Reviewed',
+        default=False,
+        store=True,
+        readonly=False,
+        copy=False,
+    )
+
+    def button_set_checked(self):
+        self.set_moves_checked()
+
+    def check_selected_moves(self):
+        self.env['account.move'].browse(self.env.context.get('active_ids', [])).set_moves_checked()
+
+    def set_moves_checked(self, is_checked=True):
+        for move in self.filtered(lambda m: m.state == 'posted'):
+            move.checked = is_checked
     # === Partner fields === #
     partner_id = fields.Many2one(
         'res.partner',
@@ -679,7 +696,7 @@ class AccountMove(models.Model):
     quick_edit_total_amount = fields.Monetary(
         string='Total (Tax inc.)',
         help='Use this field to encode the total amount of the invoice.\n'
-             'Odoo will automatically create one invoice line with default values to match it.',
+             'Insilos will automatically create one invoice line with default values to match it.',
     )
     quick_encoding_vals = fields.Json(compute='_compute_quick_encoding_vals', exportable=False)
     document_sequence_editable = fields.Boolean(related='company_id.document_sequence_editable')

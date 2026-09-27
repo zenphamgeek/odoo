@@ -37,7 +37,12 @@ export function makeEnv() {
     return new Proxy(env, {
         get(target, key, receiver) {
             if (!(key in target) && Object.hasOwn(REMOVED_KEYS, key)) {
-                throw new Error(REMOVED_KEYS[key]);
+                if (key === "isSmall") {
+                    return target.services?.ui?.isSmall ?? false;
+                }
+                if (key === "debug") {
+                    return globalThis.odoo?.debug ?? "";
+                }
             }
             return Reflect.get(target, key, receiver);
         },

@@ -150,7 +150,7 @@
                                     <group>
                                         <group class="order-1 order-lg-0">
                                             <p class="text-muted" colspan="2">
-                                                Agents who are inactive in Odoo for more than 30 minutes will be considered disconnected.
+                                                Agents who are inactive in Insilos for more than 30 minutes will be considered disconnected.
                                             </p>
                                         </group>
                                         <group class="oe_subtotal_footer">
@@ -189,7 +189,7 @@
                                         <div class="o_livechat_layout_colors d-flex align-items-center align-middle">
                                             <field name="header_background_color" widget="color" class="mb-4 w-auto o_im_livechat_field_widget_color"/>
                                             <field name="title_color" widget="color" class="mb-4 w-auto o_im_livechat_field_widget_color"/>
-                                            <widget name="colors_reset_button" options="{'default_colors': {'header_background_color': '#875A7B', 'title_color': '#FFFFFF'}}" />
+                                            <widget name="colors_reset_button" options="{'default_colors': {'header_background_color': '#004455', 'title_color': '#FFFFFF'}}" />
                                         </div>
                                         <field name="review_link" placeholder="Do not redirect visitors"/>
                                     </group>
@@ -216,7 +216,7 @@
                                     <p>
                                         Learn how to display a live chat bubble on your website and start chatting with visitors in a few easy steps.
                                     </p>
-                                    <separator string="FOR WEBSITES BUILT WITH ODOO" />
+                                    <separator string="FOR WEBSITES BUILT WITH INSILOS" />
                                     <ol>
                                         <li>Go to <strong>Website</strong> > <strong>Configuration</strong> > <strong>Settings</strong> > <strong>Email</strong> &amp; <strong>Marketing.</strong></li>
                                         <li>Turn on the <strong>Live Chat</strong> feature.</li>

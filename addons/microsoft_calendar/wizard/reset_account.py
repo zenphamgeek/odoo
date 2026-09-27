@@ -9,7 +9,7 @@ class MicrosoftCalendarAccountReset(models.TransientModel):
 
     user_id = fields.Many2one('res.users', required=True)
     delete_events = fields.Boolean(
-        string="Delete synced events from Odoo",
+        string="Delete synced events from Insilos",
         help="This will only affect events for which the user is the owner")
 
     def reset_account(self):

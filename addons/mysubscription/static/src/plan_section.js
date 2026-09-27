@@ -17,13 +17,11 @@ export class PlanSection extends Component {
         this.dialog = useService("dialog");
         this.hasEnterpriseAccess = "enterprise_subscription" in this.env.services;
 
-        this.hrefCommunityPlan = "https://www.odoo.com/page/editions";
+        this.hrefCommunityPlan = "https://insilos.com";
     }
 
     hrefEnterprisePlan = computed(() => {
-        return this.props.hasSubscription
-            ? "https://accounts.odoo.com/my/home"
-            : "https://www.odoo.com/pricing";
+        return "https://insilos.com";
     });
 
     enterprisePlanButtons = computed(() => {
@@ -52,7 +50,7 @@ export class PlanSection extends Component {
     communityPlanProps = computed(() => {
         return {
             id: "community",
-            title: "Odoo Community",
+            title: "Insilos Community",
             price: "Free",
             hasSubscription: this.props.hasSubscription,
             buttons: [{
@@ -71,7 +69,7 @@ export class PlanSection extends Component {
     enterprisePlanProps = computed(() => {
         return {
             id: "enterprise",
-            title: "Odoo Enterprise",
+            title: "Insilos Enterprise",
             hasSubscription: this.props.hasSubscription,
             buttons: this.enterprisePlanButtons(),
             content: {

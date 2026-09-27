@@ -13,6 +13,14 @@ UPC_EAN_CONVERSIONS = [
 ]
 
 
+class BarcodeEventsMixin(models.AbstractModel):
+    _name = 'barcodes.barcode_events_mixin'
+    _description = 'Barcode Event Mixin'
+
+    def on_barcode_scanned(self, barcode):
+        pass
+
+
 class BarcodeNomenclature(models.Model):
     _name = 'barcode.nomenclature'
     _description = 'Barcode Nomenclature'

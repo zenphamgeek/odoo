@@ -92,6 +92,23 @@ class ResourceCalendar(models.Model):
         default=lambda self: self.env.company.resource_calendar_id,
         check_company=True,
         help="Reference working hours used to compute the full-time equivalent.")
+    flexible_hours = fields.Boolean(
+        string="Flexible Hours",
+        compute="_compute_flexible_hours",
+        inverse="_inverse_flexible_hours",
+        store=True,
+        readonly=False,
+        help="When enabled, it will allow employees to work flexibly, without relying on the company's working schedule (working hours)."
+    )
+
+    @api.depends('calendar_type')
+    def _compute_flexible_hours(self):
+        for calendar in self:
+            calendar.flexible_hours = calendar.calendar_type in ('undefined', 'variable')
+
+    def _inverse_flexible_hours(self):
+        for calendar in self:
+            calendar.calendar_type = 'undefined' if calendar.flexible_hours else 'fixed'
 
     def _is_flexible(self):
         self.ensure_one()
@@ -202,6 +219,9 @@ class ResourceCalendar(models.Model):
                 continue
             attendances = calendar.attendance_ids.filtered(lambda a: a._is_work_period())
             calendar.days_per_week = len(set(attendances.mapped('dayofweek')))
+
+    def _get_days_per_week(self):
+        return self.days_per_week or 5
 
     @api.depends('days_per_week', 'hours_per_week')
     def _compute_hours_per_day(self):

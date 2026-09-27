@@ -11,6 +11,6 @@ class ResConfigSettings(models.TransientModel):
         server_ip = self.company_id._get_iap_server_ip()
         if not server_ip:
             raise UserError(self.env._(
-                "Could not resolve the address of the Odoo IAP service. Please try again later.",
+                "Could not resolve the address of the Insilos IAP service. Please try again later.",
             ))
         self.company_id.l10n_pk_iap_server_ip = server_ip

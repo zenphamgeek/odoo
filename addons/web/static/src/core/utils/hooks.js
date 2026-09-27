@@ -3,6 +3,7 @@ import {
     onPatched,
     onWillUnmount,
     proxy,
+    signal,
     t,
     toRaw,
     useOnChange,
@@ -52,8 +53,10 @@ export const autofocusParamsType = t.object({
  * @param {boolean} [params.mobile] if true, will force autofocus on touch devices.
  * @returns {import("@odoo/owl").Signal<HTMLElement>} the element reference
  */
-export function useAutofocus({ ref, selectAll, mobile }) {
+export function useAutofocus({ ref, selectAll, mobile } = {}) {
     const uiService = useService("ui");
+    ref ||= signal.ref();
+    const getEl = typeof ref === "function" ? ref : () => ref?.el;
 
     // Prevent autofocus on touch devices to avoid the virtual keyboard from popping up unexpectedly
     if (!mobile && hasTouch()) {
@@ -82,7 +85,7 @@ export function useAutofocus({ ref, selectAll, mobile }) {
     // focus handlers, and the signals they read must not become dependencies,
     // or any later change to them would steal the focus back.
     useOnChange(
-        () => [ref()],
+        () => [getEl()],
         (el) => {
             if (isFocusable(el)) {
                 el.focus();
@@ -366,4 +369,22 @@ export function useBackButton(handler, shouldEnable) {
     onMounted(updateRegistration);
     onPatched(updateRegistration);
     onWillUnmount(unregister);
+}
+
+/**
+ * Backward compatibility hook for Owl 2 useChildRef.
+ * Returns an Owl 3 signal ref with a `.el` getter for legacy Owl 2 code.
+ * @returns {import("@odoo/owl").Signal<HTMLElement>}
+ */
+export function useChildRef() {
+    const r = signal.ref();
+    if (!Object.prototype.hasOwnProperty.call(r, "el")) {
+        Object.defineProperty(r, "el", {
+            get() {
+                return r();
+            },
+            configurable: true,
+        });
+    }
+    return r;
 }

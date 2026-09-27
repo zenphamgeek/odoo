@@ -40,6 +40,19 @@ export class Store extends BaseStore {
     FETCH_LIMIT = 30;
     DEFAULT_AVATAR = "/mail/static/src/img/smiley/avatar.jpg";
 
+    get Thread() {
+        return this["mail.thread"];
+    }
+    get Attachment() {
+        return this["ir.attachment"];
+    }
+    get Message() {
+        return this["mail.message"];
+    }
+    get Activity() {
+        return this["mail.activity"];
+    }
+
     isReadyPromise = new Promise((resolve) => (this._resolveIsReady = resolve));
     self_guest = fields.One("mail.guest");
     self_user = fields.One("res.users");

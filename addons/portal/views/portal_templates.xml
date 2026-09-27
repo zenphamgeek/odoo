@@ -124,7 +124,7 @@
                 <span t-if="_user_name" t-attf-class="#{_user_name_class}" t-out="user_id.name[:23] + '...' if user_id.name and len(user_id.name) &gt; 25 else user_id.name"/>
             </a>
             <div t-attf-class="dropdown-menu js_usermenu #{_dropdown_menu_class}" role="menu">
-                <a groups="base.group_user" href="/odoo" role="menuitem" class="dropdown-item ps-3" id="o_backend_user_dropdown_link">
+                <a groups="base.group_user" href="/insilos" role="menuitem" class="dropdown-item ps-3" id="o_backend_user_dropdown_link">
                     <i class="oi oi-fw me-1 small text-primary-emphasis" data-icon="grid_view"/> Apps
                 </a>
                 <div id="o_logout_divider" class="dropdown-divider"/>
@@ -252,6 +252,10 @@
                             </t>
                         </t>
                     </div>
+                    <div class="o_portal_cards d-grid mt-3" id="portal_client_category"/>
+                    <div class="o_portal_cards d-grid mt-3" id="portal_service_category"/>
+                    <div class="o_portal_cards d-grid mt-3" id="portal_vendor_category"/>
+                    <div class="o_portal_alert_category" id="portal_alert_category"/>
                     <div class="o_portal_doc_spinner spinner-border text-o-color-2 align-self-center mt-5"/>
                 </div>
             </div>
@@ -319,7 +323,7 @@
                 </div>
                 <t t-if="entries" t-out="entries"/>
                 <div class="d-none d-lg-block mt-4 small text-center text-muted">
-                    Powered by <a target="_blank" href="http://www.odoo.com?utm_source=db&amp;utm_medium=portal" title="odoo"><img src="/web/static/img/logo.png" alt="Odoo Logo" height="15"/></a>
+                    Powered by <a target="_blank" href="https://insilos.com?utm_source=db&amp;utm_medium=portal" title="Insilos"><img src="/web/static/img/logo.png" alt="Insilos Logo" height="15"/></a>
                 </div>
             </div>
         </div>
@@ -559,7 +563,7 @@
             <section t-if="debug and allow_api_keys">
                 <h4>
                 Developer API Keys
-                    <a href="https://www.odoo.com/documentation/latest/developer/reference/external_api.html#api-key" target="_blank">
+                    <a href="https://insilos.com/documentation/latest/developer/reference/external_api.html#api-key" target="_blank">
                         <i title="Documentation" class="oi oi-fw o_button_icon" data-icon="info"></i>
                     </a>
                 </h4>

@@ -399,7 +399,7 @@
                                         </div>
                                     </div>
                                 </setting>
-                                <setting help="Print information on the receipt to allow the customer to easily access the invoice anytime, from Odoo's portal." documentation="/applications/sales/point_of_sale/receipts_invoices.html" id="pos_use_ticket_qr_code">
+                                <setting help="Print information on the receipt to allow the customer to easily access the invoice anytime, from Insilos's portal." documentation="/applications/sales/point_of_sale/receipts_invoices.html" id="pos_use_ticket_qr_code">
                                     <field name="point_of_sale_use_ticket_qr_code"/>
                                     <div class="content-group mt16" invisible="not point_of_sale_use_ticket_qr_code">
                                         <div class="col mt16">
@@ -503,7 +503,7 @@
                                 </setting>
                                 <setting string="Receipt Printers" help="Connect printers to your PoS" id="pos_other_devices">
                                     <field name="pos_other_devices"/>
-                                    <div class="content-group" invisible="not pos_other_devices">
+                                    <div class="content-group pos_iot_config" invisible="not pos_other_devices">
                                         <div class="mt16 mb-1">
                                             <label string="Printers" for="pos_receipt_printer_ids" class="o_light_label me-2"/>
                                             <field name="pos_receipt_printer_ids" widget="many2many_tags" context="{'default_use_type': 'receipt'}" options="{'no_quick_create': True}"/>

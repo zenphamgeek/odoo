@@ -26,7 +26,7 @@ export async function createPublicRoot() {
     await lazyloader.allScriptsLoaded;
     await whenReady();
     const { env, root } = await mountComponent(MainComponentsContainer, document.body, {
-        name: "Odoo public",
+        name: "Insilos public",
     });
     env.services["public.interactions"].isReady.then(() => {
         document.body.setAttribute("is-ready", "true");

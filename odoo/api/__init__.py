@@ -6,6 +6,7 @@ from odoo.orm.cache import ormcache
 from odoo.orm.decorators import (
     autovacuum,
     constrains,
+    deprecated,
     depends,
     depends_context,
     model,

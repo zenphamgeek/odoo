@@ -39,7 +39,7 @@ whenReady(() => {
     browser.sessionStorage.removeItem("pos_reload_recovery");
     try {
         await mountComponent(Chrome, document.body, {
-            name: "Odoo Point of Sale",
+            name: "Insilos Point of Sale",
             props: { disableLoader: () => (loader.isShown = false) },
         });
         const classList = document.body.classList;

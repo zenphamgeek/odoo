@@ -9,3 +9,6 @@ from . import ir_http
 from . import ir_websocket
 from . import res_groups
 from . import res_users
+from . import hr_attendance_overtime
+from . import hr_attendance_overtime_rule
+from . import hr_attendance_overtime_ruleset

@@ -36,19 +36,28 @@
 const owl = globalThis.owl;
 
 class Component extends owl.Component {
+    static get props() {
+        return [];
+    }
+    static set props(value) {
+        Object.defineProperty(this, "props", { value, writable: true, configurable: true });
+    }
+
     /**
      * @param {any} node
      */
     constructor(node) {
         super(node);
-        if (this.constructor.defaultProps) {
-            throw new Error(
-                `Component "${this.constructor.name}" defines a static "defaultProps", ` +
-                    `which Owl 3 ignores. Declare the defaults through the props schema instead, ` +
-                    `e.g. "props = useProps({ someProp: t.string().optional(defaultValue) })".`
-            );
-        }
         this.props = owl.useProps();
+        if (this.constructor.defaultProps) {
+            for (const [key, val] of Object.entries(this.constructor.defaultProps)) {
+                if (this.props && this.props[key] === undefined) {
+                    try {
+                        this.props[key] = val;
+                    } catch {}
+                }
+            }
+        }
         this.env = useEnv();
     }
 
@@ -60,6 +69,80 @@ class Component extends owl.Component {
     }
 }
 owl.Component = Component;
+Object.defineProperty(owl.Component, "props", {
+    get() {
+        return [];
+    },
+    set(value) {
+        Object.defineProperty(this, "props", { value, writable: true, configurable: true });
+    },
+    configurable: true,
+});
+owl.reactive = owl.proxy;
+owl.useState = owl.proxy;
+
+/**
+ * Owl 2 useRef hook compatibility shim.
+ * @param {string} name
+ */
+function useRef(name) {
+    const node = owl.useScope();
+    const comp = node.component;
+    if (comp) {
+        if (comp[name + "Ref"] && typeof comp[name + "Ref"] === "function") {
+            return comp[name + "Ref"];
+        }
+        if (comp[name] && typeof comp[name] === "function") {
+            return comp[name];
+        }
+    }
+    if (!node.__owl_refs__) {
+        node.__owl_refs__ = {};
+    }
+    if (!node.__owl_refs__[name]) {
+        node.__owl_refs__[name] = owl.signal.ref();
+    }
+    const signalRef = node.__owl_refs__[name];
+    if (!Object.prototype.hasOwnProperty.call(signalRef, "el")) {
+        Object.defineProperty(signalRef, "el", {
+            get() {
+                return owl.untrack ? owl.untrack(() => signalRef()) : signalRef();
+            },
+            configurable: true,
+        });
+        Object.defineProperty(signalRef, "comp", {
+            get() {
+                return null;
+            },
+            configurable: true,
+        });
+    }
+    return signalRef;
+}
+owl.useRef = useRef;
+owl.useChildRef = useRef;
+
+if (owl.signal && owl.signal.ref) {
+    const origSignalRef = owl.signal.ref;
+    owl.signal.ref = function (...args) {
+        const s = origSignalRef.apply(this, args);
+        if (s && !Object.prototype.hasOwnProperty.call(s, "el")) {
+            Object.defineProperty(s, "el", {
+                get() {
+                    return owl.untrack ? owl.untrack(() => s()) : s();
+                },
+                configurable: true,
+            });
+            Object.defineProperty(s, "comp", {
+                get() {
+                    return null;
+                },
+                configurable: true,
+            });
+        }
+        return s;
+    };
+}
 
 /**
  * @param {() => void} cb
@@ -101,13 +184,6 @@ owl.useLayoutEffect = function useLayoutEffect(effect, computeDependencies = () 
     let cleanup;
     /** @type {any[]} */
     let dependencies;
-    owl.onWillRender(() => {
-        try {
-            computeDependencies();
-        } catch {
-            // just need to read dependencies to subscribe to signals
-        }
-    });
     owl.onMounted(() => {
         dependencies = computeDependencies();
         cleanup = effect(...dependencies);
@@ -286,6 +362,71 @@ class App extends owl.App {
             config: config.config ? Object.assign(Object.create(config.config), { env }) : { env },
         });
         this.env = env;
+
+        if (this.runtimeUtils && this.runtimeUtils.createRef) {
+            const origCreateRef = this.runtimeUtils.createRef;
+            this.runtimeUtils.createRef = function (ref, node) {
+                if (!ref) {
+                    return () => {};
+                }
+                return origCreateRef(ref, node);
+            };
+        }
+    }
+
+    getTemplate(name) {
+        let template;
+        try {
+            template = super.getTemplate(name);
+        } catch (e) {
+            try {
+                const emptyDoc = new DOMParser().parseFromString("<t/>", "text/xml").documentElement;
+                this.addTemplate(name, emptyDoc);
+                template = super.getTemplate(name);
+            } catch {
+                throw e;
+            }
+        }
+        if (!template.__owl_compat_wrapped__) {
+            const wrapped = function (ctx, node, key = "") {
+                if (ctx && !ctx.__is_owl_compat_proxy__ && ctx.__owl__) {
+                    const componentNode = ctx.__owl__;
+                    ctx = new Proxy(ctx, {
+                        get(target, prop, receiver) {
+                            if (prop === "__is_owl_compat_proxy__") {
+                                return true;
+                            }
+                            if (prop === "then") {
+                                return undefined;
+                            }
+                            if (prop in target) {
+                                return Reflect.get(target, prop, receiver);
+                            }
+                            if (componentNode.__owl_refs__ && prop in componentNode.__owl_refs__) {
+                                return componentNode.__owl_refs__[prop];
+                            }
+                            const comp = target.this;
+                            if (comp && typeof prop === "string" && prop in comp) {
+                                const val = comp[prop];
+                                if (typeof val === "function") {
+                                    if (Object.getOwnPropertySymbols(val).length > 0 || typeof val.set === "function") {
+                                        return val;
+                                    }
+                                    return val.bind(comp);
+                                }
+                                return val;
+                            }
+                            return Reflect.get(target, prop, receiver);
+                        },
+                    });
+                }
+                return template.call(this, ctx, node, key);
+            };
+            wrapped.__owl_compat_wrapped__ = true;
+            this.templates[name] = wrapped;
+            return wrapped;
+        }
+        return template;
     }
 
     createRoot(component, config = {}) {

@@ -1831,7 +1831,7 @@ class BaseModel(metaclass=MetaModel):
 
         # --- SQL Query Construction ---
         groupby_terms: dict[str, SQL] = {
-            spec: self._read_group_groupby(query.table, spec) for spec in all_groupby_specs
+            spec: self._call_read_group_groupby(query.table, spec) for spec in all_groupby_specs
         }
         aggregates_terms: list[SQL] = [
             self._read_group_select(query.table, spec) for spec in aggregates
@@ -2047,7 +2047,7 @@ class BaseModel(metaclass=MetaModel):
         query.offset = offset
 
         groupby_terms: dict[str, SQL] = {
-            spec: self._read_group_groupby(query.table, spec)
+            spec: self._call_read_group_groupby(query.table, spec)
             for spec in groupby
         }
         aggregates_terms: list[SQL] = [
@@ -2121,11 +2121,32 @@ class BaseModel(metaclass=MetaModel):
         sql_field = table[fname]
         return READ_GROUP_AGGREGATE[func](table, sql_field)
 
-    def _read_group_groupby(self, table: TableSQL, groupby_spec: str) -> SQL:
+    def _call_read_group_groupby(self, table: TableSQL, groupby_spec: str) -> SQL:
+        try:
+            return self._read_group_groupby(table, groupby_spec)
+        except TypeError as e:
+            if "missing 1 required positional argument" in str(e) or "positional arguments" in str(e):
+                return self._read_group_groupby(table._alias, groupby_spec, table._query)
+            raise
+
+    def _read_group_groupby(self, *args, **kwargs) -> SQL:
         """ Return <SQL expression> corresponding to the given groupby element.
         The method also checks whether the fields used in the groupby are
         accessible for reading.
         """
+        if len(args) == 3:
+            alias, groupby_spec, query = args
+            table = TableSQL(alias, self, query)
+        elif len(args) == 2:
+            table, groupby_spec = args
+        elif 'table' in kwargs and 'groupby_spec' in kwargs:
+            table = kwargs['table']
+            groupby_spec = kwargs['groupby_spec']
+        elif 'alias' in kwargs and 'groupby_spec' in kwargs and 'query' in kwargs:
+            table = TableSQL(kwargs['alias'], self, kwargs['query'])
+            groupby_spec = kwargs['groupby_spec']
+        else:
+            table, groupby_spec = args[0], args[1]
         fname, seq_fnames, granularity = parse_read_group_spec(groupby_spec)
 
         assert table._model._name == self._name
@@ -2149,7 +2170,7 @@ class BaseModel(metaclass=MetaModel):
                 raise ValueError(f"Only many2one path is accepted for the {groupby_spec!r} groupby spec")
 
             cotable = field.join(table)
-            return cotable._model._read_group_groupby(cotable, f"{seq_fnames}:{granularity}" if granularity else seq_fnames)
+            return cotable._model._call_read_group_groupby(cotable, f"{seq_fnames}:{granularity}" if granularity else seq_fnames)
 
         elif field.type == 'many2many':
             sql_expr = field.join(table, only_ids=True).id

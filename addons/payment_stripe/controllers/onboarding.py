@@ -21,7 +21,7 @@ class OnboardingController(http.Controller):
                             `ir.ui.menu` id
         """
         url = (
-            f"/odoo/action-payment_stripe.action_payment_provider_onboarding/{provider_id}"
+            f"/insilos/action-payment_stripe.action_payment_provider_onboarding/{provider_id}"
             f"?menu_id={menu_id}"
         )
         return request.redirect(url)

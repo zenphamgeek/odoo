@@ -5,7 +5,7 @@
         <record id="set_password_email" model="mail.template">
             <field name="name">Settings: New User Invite</field>
             <field name="model_id" ref="base.model_res_users"/>
-            <field name="subject">{{ object.create_uid.name }} from {{ object.company_id.name }} invites you to connect to Odoo</field>
+            <field name="subject">{{ object.create_uid.name }} from {{ object.company_id.name }} invites you to connect to Insilos</field>
             <field name="email_from">{{ (object.company_id.email_formatted or user.email_formatted) }}</field>
             <field name="partner_to" eval="False"/>
             <field name="use_default_to" eval="True"/>
@@ -18,23 +18,23 @@
 <t t-set="website_url" t-value="object.get_base_url()"/>
 Hi <t t-out="object.name or ''">Marc Demo</t>,<br/><br/>
 <em>This link is valid for <t t-out="(object.env['ir.config_parameter'].sudo().get_int('auth_signup.signup.validity.hours') or 144)//24">link_validity_days</t> days </em><br/>
-<b><t t-out="company_name"/></b> uses <a href="https://odoo.com" t-attf-style="color: {{object.company_id.email_secondary_color or '#875A7B'}};">Odoo</a>
-to run its business. You have been invited by <b><t t-out="object.create_uid.name or ''">OdooBot</t></b> to connect.
+<b><t t-out="company_name"/></b> uses <a href="https://insilos.com" t-attf-style="color: {{object.company_id.email_secondary_color or '#004455'}};">Insilos</a>
+to run its business. You have been invited by <b><t t-out="object.create_uid.name or ''">InsilosBot</t></b> to connect.
 <br/><br/>
 Once accepted, you can reconnect through: <br/>
 <ul>
     <li>Login: <a t-attf-href="/web/login?login={{ object.email }}" target="_blank" t-out="object.email or ''">mark.brown23@example.com</a></li>
-    <li>Link: <a t-att-href='website_url' t-out="website_url or ''">http://yourcompany.odoo.com</a></li>
+    <li>Link: <a t-att-href='website_url' t-out="website_url or ''">http://yourcompany.insilos.com</a></li>
 </ul>
 <br/>
 <div style="margin: 16px 0px 16px 0px;">
     <a t-att-href="object.partner_id._get_signup_url()"
-        t-attf-style="background-color: {{object.company_id.email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; font-size:13px;">
+        t-attf-style="background-color: {{object.company_id.email_secondary_color or '#004455'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; font-size:13px;">
         Accept invitation
     </a>
 </div>
 <br/>
-Enjoy Odoo!<br/><br/>
+Enjoy Insilos!<br/><br/>
 --<br/>The <t t-out="company_name"/> Team</t>
             </field>
             <field name="lang">{{ object.lang }}</field>
@@ -88,7 +88,7 @@ Have a nice day!<br />
                         To gain access to your account, you can use the following link:
                         <div style="margin: 32px 0px 32px 0px;">
                             <a t-attf-href="/web/login?auth_login={{object.email}}"
-                                t-attf-style="background-color: {{object.company_id.email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; font-size:13px;">
+                                t-attf-style="background-color: {{object.company_id.email_secondary_color or '#004455'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; font-size:13px;">
                                 Go to My Account
                             </a>
                         </div>
@@ -120,7 +120,7 @@ Have a nice day!<br />
                 Click on the button below to pick a password and activate your account.
                 <div style="margin: 16px 0px 16px 0px; text-align: center;">
                     <a t-att-href="object.partner_id._get_signup_url()"
-                    t-attf-style="display: inline-block; padding: 10px; text-decoration: none; font-size: 12px; background-color: {{object.company_id.email_secondary_color or '#875A7B'}}; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px;">
+                    t-attf-style="display: inline-block; padding: 10px; text-decoration: none; font-size: 12px; background-color: {{object.company_id.email_secondary_color or '#004455'}}; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px;">
                         <strong>Activate Account</strong>
                     </a>
                 </div>

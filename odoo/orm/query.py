@@ -48,6 +48,35 @@ def _generate_table_alias(src_table_alias: str, link: str) -> str:
     return make_identifier(f"{src_table_alias}__{link}")
 
 
+class _TablesDict(dict):
+    def __init__(self, query):
+        self._query = query
+        super().__init__()
+        for alias, (_, table, _) in query._joins.items():
+            super().__setitem__(alias, table)
+
+    def __getitem__(self, alias):
+        if alias in self._query._joins:
+            return self._query._joins[alias][1]
+        return super().__getitem__(alias)
+
+    def __setitem__(self, alias, table):
+        super().__setitem__(alias, table)
+        if alias in self._query._joins:
+            kind, _, cond = self._query._joins[alias]
+            self._query._joins[alias] = (kind, table, cond)
+        else:
+            self._query._joins[alias] = (_SQL_EMPTY, table, _SQL_EMPTY)
+
+    def __contains__(self, alias):
+        return alias in self._query._joins or super().__contains__(alias)
+
+    def get(self, alias, default=None):
+        if alias in self._query._joins:
+            return self._query._joins[alias][1]
+        return super().get(alias, default)
+
+
 class Query:
     """ Simple implementation of a query object, managing tables with aliases,
     join clauses (with aliases, condition and parameters), where clauses (with
@@ -55,13 +84,32 @@ class Query:
     """
 
     def __init__(self, model: BaseModel | None, alias: (str | None) = None, table: (SQL | None) = None):
+        if model is not None and not hasattr(model, '_table_sql'):
+            # Backward compatibility: model argument was actually env
+            env = model
+            if alias and alias in env:
+                model = env[alias]
+            elif alias:
+                candidate = alias.replace('_', '.')
+                if candidate in env:
+                    model = env[candidate]
+                else:
+                    found = None
+                    for name, cls in env.registry.items():
+                        if getattr(cls, '_table', None) == alias:
+                            found = env[name]
+                            break
+                    model = found
+            else:
+                model = None
+
         # database cursor
         self._model = model
 
         if alias is None:
-            alias = model._table
+            alias = model._table if model is not None else 'subquery'
         if table is None:
-            table = model._table_sql
+            table = model._table_sql if model is not None else SQL.identifier(alias)
 
         # joins {alias: (kind(SQL), table(SQL), condition(SQL))}
         self._joins: dict[str, tuple[SQL, SQL, SQL]] = {
@@ -82,6 +130,28 @@ class Query:
 
         # memoized result
         self._ids: tuple[int, ...] | None = None
+
+    @property
+    def env(self):
+        return self._model.env if self._model is not None else None
+
+    @property
+    def _env(self):
+        return self.env
+
+    @property
+    def _tables(self):
+        return _TablesDict(self)
+
+    @_tables.setter
+    def _tables(self, val):
+        if isinstance(val, dict):
+            for k, v in val.items():
+                if k in self._joins:
+                    kind, _, cond = self._joins[k]
+                    self._joins[k] = (kind, v, cond)
+                else:
+                    self._joins[k] = (_SQL_EMPTY, v, _SQL_EMPTY)
 
     def __copy__(self):
         assert isinstance(self, Query)

@@ -66,7 +66,7 @@
     <template id="portal_my_project" name="My Project">
         <t t-set="o_portal_fullwidth_alert" groups="project.group_project_user">
             <t t-call="portal.portal_back_in_edit_mode"
-                backend_url="'/odoo/project.project/%s' % (project.id)"/>
+                backend_url="'/insilos/project.project/%s' % (project.id)"/>
         </t>
         <t t-call="portal.portal_layout"
             title="project.name"

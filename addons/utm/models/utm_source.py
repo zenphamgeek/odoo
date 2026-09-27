@@ -57,3 +57,13 @@ class UtmSource(models.Model):
                     "Doing so would be like tearing down a load-bearing wall \u2014 not the best idea.",
                     utm_source.name
                 ))
+
+
+class UtmSourceMixin(models.AbstractModel):
+    _name = 'utm.source.mixin'
+    _description = 'UTM Source Mixin'
+
+    source_id = fields.Many2one(
+        'utm.source', string='Source',
+        required=False, auto_join=True, index=True, ondelete="cascade")
+

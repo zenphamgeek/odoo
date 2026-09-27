@@ -104,11 +104,14 @@ class Binary(Field[BinaryValue]):
             if filename and binary_value.filename != filename:
                 binary_value = BinaryBytes(binary_value.content, filename=filename)
             return binary_value
-        # Error needed because we used to write base64 encoded data and we
-        # cannot distinguish whether bytes are encoded or not in base64.
-        if isinstance(value, bytes) and (self.related_field or self).name == 'raw':
-            # Exception for the raw field, we know bytes are raw.
-            return BinaryBytes(value)
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            if (self.related_field or self).name == 'raw':
+                return BinaryBytes(value)
+            try:
+                decoded_value = base64.b64decode(value, validate=True)
+                return BinaryBytes(decoded_value)
+            except Exception:
+                return BinaryBytes(value)
         raise TypeError(f'{self}: use BinaryValue instead of {value.__class__.__name__}')
 
     def _insert_cache(self, records, values):

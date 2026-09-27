@@ -101,6 +101,7 @@ class HrLeaveAllocation(models.Model):
         domain=_domain_work_entry_type_id)
     allowed_work_entry_type_ids = fields.Many2many(
         'hr.work.entry.type', compute='_compute_allowed_work_entry_type_ids')
+    holiday_status_id = fields.Many2one('hr.work.entry.type', related='work_entry_type_id', string="Time Type", readonly=False)
     employee_id = fields.Many2one(
         'hr.employee', string='Employee', default=lambda self: self.env.user.employee_id,
         index=True, ondelete="restrict", required=True, tracking=True, domain=_domain_employee_id)

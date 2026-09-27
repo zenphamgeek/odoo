@@ -17,6 +17,7 @@
         'views/res_company_views.xml',
         'views/resource_calendar_views.xml',
         'views/hr_time_rule_views.xml',
+        'views/hr_work_entry_views.xml',
         'views/menuitems.xml',
         'security/ir.access.csv',
     ],

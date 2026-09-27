@@ -56,6 +56,16 @@ class IrModel(models.Model):
     def _get_definitions(self, model_names):
         model_definitions = {}
         for model_name in model_names:
+            if model_name not in self.env:
+                model_definitions[model_name] = {
+                    'description': model_name,
+                    'fields': {},
+                    'inherit': [],
+                    'order': 'id',
+                    'parent_name': 'parent_id',
+                    'rec_name': 'name',
+                }
+                continue
             model = self.env[model_name]
             # get fields, relational fields are kept only if the related model is in model_names
             fields_data_by_fname = {

@@ -5852,7 +5852,7 @@
             <input
               class="o-input"
               type="text"
-              placeholder="e.g. 'http://www.odoo.com'"
+              placeholder="e.g. 'https://insilos.com'"
               title="Link URL"
               t-ref="this.urlInput"
               t-att-value="this.state.url"

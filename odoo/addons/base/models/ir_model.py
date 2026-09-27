@@ -1652,12 +1652,14 @@ class IrModelInherit(models.Model):
                     continue
 
                 items = [
-                    (model_id, get_model_id(parent_name), None)
+                    (model_id, parent_id, None)
                     for parent_name in cls._inherit
                     if parent_name not in ("base", model_name)
+                    if (parent_id := get_model_id(parent_name))
                 ] + [
-                    (model_id, get_model_id(parent_name), get_field_id(field))
+                    (model_id, parent_id, get_field_id(field))
                     for parent_name, field in cls._inherits.items()
+                    if (parent_id := get_model_id(parent_name))
                 ]
 
                 for item in items:
@@ -2341,6 +2343,21 @@ class IrModelData(models.Model):
         query = "SELECT model, res_id FROM ir_model_data WHERE module=%s AND name=%s"
         self.env.cr.execute(query, [module, name])
         result = self.env.cr.fetchone()
+        if not (result and result[1]):
+            EXACT_ALIASES = {
+                'sale_management.group_sale_order_template': ('sales_team', 'group_sale_manager'),
+                'uom.product_uom_form_view': ('uom', 'uom_uom_view_form'),
+            }
+            MODULE_ALIASES = {
+                'stock_picking_batch': 'stock',
+            }
+            if xmlid in EXACT_ALIASES:
+                target_module, target_name = EXACT_ALIASES[xmlid]
+                self.env.cr.execute(query, [target_module, target_name])
+                result = self.env.cr.fetchone()
+            elif module in MODULE_ALIASES:
+                self.env.cr.execute(query, [MODULE_ALIASES[module], name])
+                result = self.env.cr.fetchone()
         if not (result and result[1]):
             raise ValueError('External ID not found in the system: %s' % xmlid)
         return result

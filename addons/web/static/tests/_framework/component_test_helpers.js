@@ -76,8 +76,37 @@ export function getDropdownMenu(togglerSelector) {
         return queryFirst(".o-dropdown--menu", { eq: -1 });
     }
     let el = queryFirst(togglerSelector);
+    if (el && (el.classList.contains("o-dropdown--menu") || el.classList.contains("dropdown-menu"))) {
+        return el;
+    }
+    if (!el && typeof togglerSelector === "string" && togglerSelector.includes(".o_optional_columns_dropdown")) {
+        el =
+            queryFirst(togglerSelector.replace(/\.o_optional_columns_dropdown\b/, ".o_optional_columns_dropdown_toggle")) ||
+            queryFirst(togglerSelector.replace(/\.o_optional_columns_dropdown\b/, ".o_optional_columns")) ||
+            queryFirst(".o_optional_columns_dropdown_toggle");
+    }
     if (el && !el.classList.contains("o-dropdown")) {
-        el = el.querySelector(".o-dropdown");
+        const nested = el.querySelector(".o-dropdown");
+        if (nested) {
+            el = nested;
+        }
+    }
+    if (el) {
+        const popover = getPopoverForTarget(el);
+        if (popover) {
+            return popover;
+        }
+        const parentToggler = el.closest(".o-dropdown--toggler, button");
+        if (parentToggler) {
+            const parentPopover = getPopoverForTarget(parentToggler);
+            if (parentPopover) {
+                return parentPopover;
+            }
+        }
+    }
+    const openMenu = queryFirst(".o-dropdown--menu, .dropdown-menu");
+    if (openMenu) {
+        return openMenu;
     }
     if (!el) {
         throw new Error(`getDropdownMenu: Could not find element "${togglerSelector}".`);

@@ -14,7 +14,7 @@
                             required="1" class="w-75"/>
                         <a target="_blank" class="btn btn-link ms-1 w-25 p-0"
                             role="button"
-                            href="https://www.odoo.com/documentation/latest/applications/marketing/sms_marketing/twilio.html">
+                            href="https://insilos.com/documentation/latest/applications/marketing/sms_marketing/twilio.html">
                             Need help ?
                             <i class="oi" data-icon="open_in_new" aria-hidden="true"/>
                         </a>

@@ -358,7 +358,7 @@ class L10nEsEdiVerifactuDocument(models.Model):
             errors.append(_("The record is Veri*Factu registered already."))
         # We currently do not support cancelling records that are not registered or were registered outside odoo.
         if vals['cancellation'] and not verifactu_registered:
-            errors.append(_("The cancelled record is not Veri*Factu registered (inside Odoo)."))
+            errors.append(_("The cancelled record is not Veri*Factu registered (inside Insilos)."))
 
         certificate = vals['company'].sudo()._l10n_es_edi_verifactu_get_certificate()
         if not certificate:

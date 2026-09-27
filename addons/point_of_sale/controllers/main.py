@@ -89,7 +89,7 @@ class PosController(PortalAccount):
             pos_session = request.env['pos.session'].sudo().search(domain, limit=1)
 
         if not pos_config or not pos_config.active or pos_config.current_session_id and not pos_session:
-            return request.redirect('/odoo/action-point_of_sale.action_client_pos_menu')
+            return request.redirect('/insilos/action-point_of_sale.action_client_pos_menu')
 
         if not pos_config.current_session_id:
             pos_config.open_session_if_not_opened()  # Create a session after doing the necessary checks.

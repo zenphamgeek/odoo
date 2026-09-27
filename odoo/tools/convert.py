@@ -356,6 +356,43 @@ form: module.record_id""" % (xml_id,)
 
     def _tag_record(self, rec, extra_vals=None):
         rec_model = rec.get("model")
+        if rec_model == 'ir.rule':
+            rec.set('model', 'ir.access')
+            rec_model = 'ir.access'
+            for f in rec.findall("field[@name='domain_force']"):
+                f.set('name', 'domain')
+            has_c = has_r = has_u = has_d = True
+            for f in list(rec.findall('field')):
+                fname = f.get('name')
+                feval = f.get('eval')
+                if fname == 'perm_create' and feval in ('0', 'False'):
+                    has_c = False
+                    rec.remove(f)
+                elif fname == 'perm_read' and feval in ('0', 'False'):
+                    has_r = False
+                    rec.remove(f)
+                elif fname == 'perm_write' and feval in ('0', 'False'):
+                    has_u = False
+                    rec.remove(f)
+                elif fname == 'perm_unlink' and feval in ('0', 'False'):
+                    has_d = False
+                    rec.remove(f)
+                elif fname in ('global', 'perm_create', 'perm_read', 'perm_write', 'perm_unlink'):
+                    rec.remove(f)
+                elif fname == 'groups':
+                    rec.remove(f)
+                    match = re.search(r"ref\(['\"]([^'\"]+)['\"]\)", feval or '')
+                    if match:
+                        grp_field = etree.SubElement(rec, 'field')
+                        grp_field.set('name', 'group_id')
+                        grp_field.set('ref', match.group(1))
+
+            if not rec.findall("field[@name='operation']"):
+                op = (('c' if has_c else '') + ('r' if has_r else '') + ('u' if has_u else '') + ('d' if has_d else '')) or 'r'
+                op_field = etree.SubElement(rec, 'field')
+                op_field.set('name', 'operation')
+                op_field.text = op
+
         env = self.get_env(rec)
         rec_id = rec.get("id", '')
 
@@ -753,12 +790,38 @@ def convert_csv_import(
     if not fields:
         return
 
-    # clean the data from translations (treated during translation import), then
-    # filter out empty lines (any([]) == False) and lines containing only empty cells
     datas = [
         data_line for line in reader
         if any(data_line := remove_translations(line))
     ]
+
+    if model == 'ir.model.access':
+        model = 'ir.access'
+        field_map = {f.split('/')[0].split(':')[0].strip(): i for i, f in enumerate(fields)}
+        id_idx = field_map.get('id')
+        name_idx = field_map.get('name')
+        model_idx = field_map.get('model_id')
+        group_idx = field_map.get('group_id')
+        r_idx = field_map.get('perm_read')
+        w_idx = field_map.get('perm_write')
+        c_idx = field_map.get('perm_create')
+        d_idx = field_map.get('perm_unlink')
+
+        new_datas = []
+        for row in datas:
+            rec_id = row[id_idx].strip() if (id_idx is not None and id_idx < len(row)) else ''
+            name = row[name_idx].strip() if (name_idx is not None and name_idx < len(row)) else ''
+            model_id = row[model_idx].strip() if (model_idx is not None and model_idx < len(row)) else ''
+            group_id = row[group_idx].strip() if (group_idx is not None and group_idx < len(row)) else ''
+            def is_true(idx):
+                if idx is not None and idx < len(row):
+                    return str(row[idx]).strip() in ('1', 'True', 'true')
+                return False
+            op = (('c' if is_true(c_idx) else '') + ('r' if is_true(r_idx) else '') + ('u' if is_true(w_idx) else '') + ('d' if is_true(d_idx) else '')) or 'r'
+            new_datas.append([rec_id, name, model_id, group_id, op])
+
+        fields = ['id', 'name', 'model_id:id', 'group_id:id', 'operation']
+        datas = new_datas
 
     context = {
         'mode': mode,

@@ -51,7 +51,7 @@ export class CashMoveListPopup extends Component {
             this.props.onDelete(cm.id);
         } catch (error) {
             this.dialog.add(AlertDialog, {
-                title: _t("Odoo Server Error"),
+                title: _t("Insilos Server Error"),
                 body: error.data.message,
             });
             throw error;

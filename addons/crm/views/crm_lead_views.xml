@@ -275,7 +275,7 @@
                                             <field name="contact_name" id="contact_name"/>
                                         </div>
                                         <field name="function"/>
-                                        <field name="website" widget="url" placeholder="e.g. https://www.odoo.com"/>
+                                        <field name="website" widget="url" placeholder="e.g. https://www.insilos.com"/>
                                     </group>
                                     <group string="Marketing" name="categorization">
                                         <field name="campaign_id" options="{'create_name_field': 'title'}"/>

@@ -121,6 +121,7 @@ class MrpProduction(models.Model):
     uom_id = fields.Many2one(
         'uom.uom', 'Unit', domain="[('id', 'in', allowed_uom_ids)]",
         readonly=False, required=True, compute='_compute_uom_id', store=True, copy=True, precompute=True)
+    product_uom_id = fields.Many2one(related='uom_id', string='Unit of Measure')
     lot_producing_ids = fields.Many2many(
         'stock.lot', string='Lot/Serial Number', copy=False,
         domain="[('product_id', '=', product_id)]", check_company=True)
@@ -147,6 +148,11 @@ class MrpProduction(models.Model):
         domain="[('usage','=','internal')]",
         help="Location where the system will stock the finished products.")
     forecasted_location_id = fields.Many2one('stock.location', 'Forecasted Location', help='Location used in the computation of the forecast.')
+    consumption = fields.Selection([
+        ('flexible', 'Allowed'),
+        ('warning', 'Allowed with warning'),
+        ('strict', 'Blocked'),
+    ], string='Flexible Consumption', default='flexible', required=True, copy=False)
     date_deadline = fields.Datetime(
         'Deadline', copy=False, store=True, readonly=False, compute='_compute_date_deadline',
         help="Informative date allowing to define when the manufacturing order should be processed at the latest to fulfill delivery on time.")

@@ -79,6 +79,9 @@ class IrAccess(models.Model):
     domain = fields.Char(
         help="The operations will only be allowed for records in this domain",
     )
+    domain_force = fields.Char(
+        related='domain', readonly=False,
+    )
 
     kind = fields.Selection(
         [('permission', 'Permission'), ('restriction', 'Restriction')],
@@ -216,24 +219,64 @@ class IrAccess(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
-        def with_operation(vals):
-            if 'operation' not in vals and (operation := ''.join((
-                'c' if vals.get('for_create') else '',
-                'r' if vals.get('for_read') else '',
-                'u' if vals.get('for_write') else '',
-                'd' if vals.get('for_unlink') else '',
-            ))):
-                return dict(vals, operation=operation)
-            return vals
+        def expand_ir_rule_vals(vals):
+            vals = dict(vals)
+            if 'domain_force' in vals and 'domain' not in vals:
+                vals['domain'] = vals.pop('domain_force')
+            if 'operation' not in vals:
+                op = ''.join((
+                    'c' if vals.get('for_create') else '',
+                    'r' if vals.get('for_read') else '',
+                    'u' if vals.get('for_write') else '',
+                    'd' if vals.get('for_unlink') else '',
+                ))
+                vals['operation'] = op or 'crud'
+
+            if 'groups' in vals:
+                groups_val = vals.pop('groups')
+                group_ids = []
+                if groups_val:
+                    for cmd in groups_val:
+                        if isinstance(cmd, (list, tuple)):
+                            if cmd[0] == 6 and len(cmd) > 2 and cmd[2]:
+                                group_ids.extend(cmd[2])
+                            elif cmd[0] in (4, 1) and len(cmd) > 1:
+                                group_ids.append(cmd[1])
+                        elif isinstance(cmd, int):
+                            group_ids.append(cmd)
+                if group_ids:
+                    return [dict(vals, group_id=gid) for gid in group_ids]
+            return [vals]
+
+        expanded_vals_list = []
+        for vals in vals_list:
+            expanded_vals_list.extend(expand_ir_rule_vals(vals))
 
         # process all pending recomputations with current access rights
         self.env._recompute_all()
-        vals_list = [with_operation(vals) for vals in vals_list]
-        accesses = super().create(vals_list)
+        accesses = super().create(expanded_vals_list)
         self._clear_caches()
         return accesses
 
     def write(self, vals):
+        if 'domain_force' in vals and 'domain' not in vals:
+            vals = dict(vals)
+            vals['domain'] = vals.pop('domain_force')
+        if 'groups' in vals:
+            vals = dict(vals)
+            groups_val = vals.pop('groups')
+            if groups_val and 'group_id' not in vals:
+                for cmd in groups_val:
+                    if isinstance(cmd, (list, tuple)):
+                        if cmd[0] == 6 and len(cmd) > 2 and cmd[2]:
+                            vals['group_id'] = cmd[2][0]
+                            break
+                        elif cmd[0] in (4, 1) and len(cmd) > 1:
+                            vals['group_id'] = cmd[1]
+                            break
+                    elif isinstance(cmd, int):
+                        vals['group_id'] = cmd
+                        break
         # process all pending recomputations with current access rights
         self.env._recompute_all()
         result = super().write(vals)
@@ -458,7 +501,7 @@ class IrAccess(models.Model):
             if suggested_company and len(suggested_company) > 1:
                 resolution_info += "\n\n" + self.env._(
                     "Note: this might be a multi-company issue. "
-                    "Switching company may help - in Odoo, not in real life!"
+                    "Switching company may help - in Insilos, not in real life!"
                 )
             elif suggested_company and suggested_company in self.env.user.company_ids:
                 context = {'suggested_company': {
@@ -538,3 +581,78 @@ class IrAccess(models.Model):
         # FIXME: does not take into account parent model domains (_inherits) and
         # overrides of method has_access()
         return self.sudo().browse(access.id for access in accesses if is_failing(access))
+
+    @api.model
+    def _get_allowed_models(self, mode='read'):
+        return {
+            model_name
+            for model_name, model_cls in self.env.registry.items()
+            if model_cls._auto and self.env[model_name].has_access(mode)
+        }
+
+    @api.model
+    def check(self, model, mode='read', raise_exception=True):
+        res = self.env[model].has_access(mode)
+        if not res and raise_exception:
+            raise AccessError(self._make_model_access_error(model, mode))
+        return res
+
+
+class IrModelAccess(models.Model):
+    _name = 'ir.model.access'
+    _description = 'Model Access Compatibility'
+    _table = 'ir_access'
+
+    name = fields.Char(required=True)
+    active = fields.Boolean(default=True)
+    model_id = fields.Many2one('ir.model', string="Model", required=True, ondelete='cascade', index=True)
+    group_id = fields.Many2one('res.groups', string="Group", ondelete='cascade', index=True)
+    operation = fields.Selection(
+        list(CRUD_SELECTION.items()),
+        help="Which operation(s) this access applies to, a subset of 'crud'.",
+    )
+
+    @api.depends('operation')
+    def _compute_perm(self):
+        for rec in self:
+            op = rec.operation or ''
+            rec.perm_read = 'r' in op
+            rec.perm_write = 'u' in op
+            rec.perm_create = 'c' in op
+            rec.perm_unlink = 'd' in op
+
+    def _inverse_perm(self):
+        for rec in self:
+            op = (
+                ('c' if rec.perm_create else '') +
+                ('r' if rec.perm_read else '') +
+                ('u' if rec.perm_write else '') +
+                ('d' if rec.perm_unlink else '')
+            )
+            rec.operation = op or 'r'
+
+    perm_read = fields.Boolean(string='Read Access', compute='_compute_perm', inverse='_inverse_perm')
+    perm_write = fields.Boolean(string='Write Access', compute='_compute_perm', inverse='_inverse_perm')
+    perm_create = fields.Boolean(string='Create Access', compute='_compute_perm', inverse='_inverse_perm')
+    perm_unlink = fields.Boolean(string='Delete Access', compute='_compute_perm', inverse='_inverse_perm')
+
+    @api.model
+    def check(self, model, mode='read', raise_exception=True):
+        return self.env['ir.access'].check(model, mode=mode, raise_exception=raise_exception)
+
+    @api.model
+    def _get_allowed_models(self, mode='read'):
+        return self.env['ir.access']._get_allowed_models(mode=mode)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'operation' not in vals:
+                op = (
+                    ('c' if vals.pop('perm_create', False) else '') +
+                    ('r' if vals.pop('perm_read', False) else '') +
+                    ('u' if vals.pop('perm_write', False) else '') +
+                    ('d' if vals.pop('perm_unlink', False) else '')
+                )
+                vals['operation'] = op or 'r'
+        return super().create(vals_list)

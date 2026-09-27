@@ -48,7 +48,7 @@
                     <label class="col-form-label col-md-4" for="google_font_serve">
                         Rely on Google servers to serve font
                         <sup class="text-info" title="By default, fonts are copied on your website. You can use Google's servers for fonts, but keep in mind it may impact GDPR compliance.">
-                            <a target="_blank" href="https://www.odoo.com/forum/help-1/how-to-use-google-fonts-and-respecting-german-requirements-214049">?</a>
+                            <a target="_blank" href="https://insilos.com/help">?</a>
                         </sup>
                     </label>
                     <Switch extraClasses="'col-form-label col-md-8'"

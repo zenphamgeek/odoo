@@ -48,6 +48,7 @@ class MrpBom(models.Model):
         'uom.uom', 'Unit',
         default=_default_uom_id, required=True,
         help="Unit of Measure (Unit of Measure) is the unit of measurement for the inventory control")
+    product_uom_id = fields.Many2one('uom.uom', related='uom_id', string='Unit of Measure', readonly=False)
     sequence = fields.Integer('Sequence')
     operation_ids = fields.One2many('mrp.routing.workcenter', 'bom_id', 'Operations', copy=True)
     operation_count = fields.Integer('Operations Count', compute='_compute_operation_count')
@@ -90,6 +91,11 @@ class MrpBom(models.Model):
     continuous = fields.Boolean('Continuous Production', default=False,
         help="If active, registering production on a work order will automatically unblock the next work order if it is blocked."
     )
+    consumption = fields.Selection([
+        ('flexible', 'Allowed'),
+        ('warning', 'Allowed with warning'),
+        ('strict', 'Blocked'),
+    ], string='Flexible Consumption', default='flexible', required=True)
 
     _qty_positive = models.Constraint(
         'check (product_qty > 0)',
@@ -671,6 +677,7 @@ class MrpBomLine(models.Model):
     uom_id = fields.Many2one(
         'uom.uom', 'Unit',
         default=_default_uom_id, required=True)
+    product_uom_id = fields.Many2one('uom.uom', related='uom_id', string='Unit of Measure', readonly=False)
     sequence = fields.Integer(
         'Sequence', default=1,
         help="Gives the sequence order when displaying.")
@@ -837,6 +844,7 @@ class MrpBomByproduct(models.Model):
         default=1.0, digits='Product Unit', required=True)
     uom_id = fields.Many2one('uom.uom', 'Unit', required=True,
                                      compute="_compute_uom_id", store=True, readonly=False, precompute=True)
+    product_uom_id = fields.Many2one('uom.uom', related='uom_id', string='Unit', readonly=False)
     bom_id = fields.Many2one('mrp.bom', 'BoM', ondelete='cascade', index=True)
     allowed_operation_ids = fields.One2many('mrp.routing.workcenter', related='bom_id.operation_ids')
     operation_id = fields.Many2one(

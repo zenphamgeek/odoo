@@ -53,7 +53,7 @@ class TestModuleManifest(BaseCase):
             'description': '',
             'external_dependencies': {},
             'iap_paid_service': False,
-            'icon': '/base/static/description/icon.png',
+            'icon': '/base/static/description/icon.svg',
             'installable': True,
             'images': [],
             'kpi_providers': [],

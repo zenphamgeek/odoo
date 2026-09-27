@@ -98,3 +98,42 @@ export const __debug__ = mainRunner;
 export function registerDebugInfo(...values) {
     logger.logDebug(...values);
 }
+
+export class Deferred extends Promise {
+    constructor(executor) {
+        let resolve, reject;
+        super((res, rej) => {
+            resolve = res;
+            reject = rej;
+            if (typeof executor === "function") {
+                executor(res, rej);
+            }
+        });
+        this.resolve = resolve;
+        this.reject = reject;
+    }
+
+    get promise() {
+        return this;
+    }
+}
+
+/**
+ * Destroys a component or app for unit testing.
+ * @param {any} target
+ */
+export function destroy(target) {
+    if (!target) return;
+    if (typeof target.destroy === "function") {
+        return target.destroy();
+    }
+    if (target.__owl__) {
+        if (typeof target.__owl__.destroy === "function") {
+            return target.__owl__.destroy();
+        }
+        if (typeof target.__owl__.node?.destroy === "function") {
+            return target.__owl__.node.destroy();
+        }
+    }
+}
+

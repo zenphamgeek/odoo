@@ -5887,7 +5887,7 @@ function hasStringValue(obj) {
 function replaceFunctionNamePlaceholder(functionResult, functionName) {
 	if (functionResult.message?.includes("[[FUNCTION_NAME]]")) functionResult.message = functionResult.message.replace("[[FUNCTION_NAME]]", functionName);
 }
-const implementationErrorMessage = _t("An unexpected error occurred. Submit a support ticket at odoo.com/help.");
+const implementationErrorMessage = _t("An unexpected error occurred. Submit a support ticket at insilos.com/help.");
 function hasStringMessage(obj) {
 	return obj?.message !== void 0 && typeof obj.message === "string";
 }

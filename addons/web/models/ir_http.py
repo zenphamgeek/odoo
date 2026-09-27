@@ -121,7 +121,7 @@ class IrHttp(models.AbstractModel):
             "user_settings": self.env['res.users.settings']._find_or_create_for_user(user)._res_users_settings_format(),
             "server_version": release.version,
             "server_version_info": release.version_info,
-            "support_url": "https://www.odoo.com/buy",
+            "support_url": "https://insilos.com/help",
             "name": user.name,
             "username": user.login,
             "quick_login": IrConfigSudo.get_bool('web.quick_login', True),

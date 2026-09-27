@@ -54,7 +54,7 @@ class SmsApiTwilio(SmsApiBase):
                 uuid = number_info['uuid']
                 response = self._sms_twilio_send_request(session, number_info['number'], body, uuid)
                 fields_values = {
-                    'failure_reason':  _("Unknown failure at sending, please contact Odoo support"),
+                    'failure_reason':  _("Unknown failure at sending, please contact Insilos support"),
                     'state': 'server_error',
                     'uuid': uuid,
                 }
@@ -115,6 +115,6 @@ class SmsApiTwilio(SmsApiBase):
             'wrong_number_format': _("The number you're trying to reach is not correctly formatted"),
             'twilio_wrong_credentials': _("Recheck your credentials"),
             # fallback
-            'unknown': _("Unknown error, please contact Odoo support"),
+            'unknown': _("Unknown error, please contact Insilos support"),
         })
         return error_dict

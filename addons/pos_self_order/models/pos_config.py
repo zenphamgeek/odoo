@@ -220,7 +220,7 @@ class PosConfig(models.Model):
     def _compute_selection_pay_after(self):
         selection_each_label = _("Each Order")
         if not release.version_info[-1]:
-            selection_each_label = f"{selection_each_label} {_('(require Odoo Enterprise)')}"
+            selection_each_label = f"{selection_each_label} {_('(require Insilos Enterprise)')}"
         return [("meal", _("Meal")), ("each", selection_each_label)]
 
     @api.constrains('self_ordering_default_user_id')

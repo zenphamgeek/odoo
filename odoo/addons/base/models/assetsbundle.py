@@ -460,7 +460,7 @@ class AssetsBundle(object):
             content.append(f'checkPrimaryTemplateParents({json.dumps(list(missing_names_for_primary))});')
         missing_names_for_extension = extension_parents - names
         if missing_names_for_extension:
-            content.append(f'console.error("Missing (extension) parent templates: {", ".join(missing_names_for_extension)}");')
+            content.append(f'console.warn("Missing (extension) parent templates: {", ".join(missing_names_for_extension)}");')
 
         return '\n'.join(content)
 

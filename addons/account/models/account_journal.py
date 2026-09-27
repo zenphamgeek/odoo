@@ -158,7 +158,7 @@ class AccountJournal(models.Model):
             ('number', "Numbers only (202400001)"),
         ],
         default=_default_invoice_reference_model,
-        help="You can choose different models for each type of reference. The default one is the Odoo reference.",
+        help="You can choose different models for each type of reference. The default one is the Insilos reference.",
     )
 
     currency_id = fields.Many2one('res.currency', help='The currency used to enter statement', string="Currency")
@@ -205,7 +205,7 @@ class AccountJournal(models.Model):
         inverse_name='journal_id',
         copy=False,
         check_company=True,
-        help="Manual: Get paid by any method outside of Odoo.\n"
+        help="Manual: Get paid by any method outside of Insilos.\n"
         "Payment Providers: Each payment provider has its own Payment Method. Request a transaction on/to a card thanks to a payment token saved by the partner when buying or subscribing online.\n"
         "Batch Deposit: Collect several customer checks at once generating and submitting a batch deposit to your bank. Module account_batch_payment is necessary.\n"
         "SEPA Direct Debit: Get paid in the SEPA zone thanks to a mandate your partner will have granted to you. Module account_sepa is necessary.\n"
@@ -220,8 +220,8 @@ class AccountJournal(models.Model):
         inverse_name='journal_id',
         copy=False,
         check_company=True,
-        help="Manual: Pay by any method outside of Odoo.\n"
-        "Check: Pay bills by check and print it from Odoo.\n"
+        help="Manual: Pay by any method outside of Insilos.\n"
+        "Check: Pay bills by check and print it from Insilos.\n"
         "SEPA Credit Transfer: Pay in the SEPA zone by submitting a SEPA Credit Transfer file to your bank. Module account_sepa is necessary.\n"
     )
     profit_account_id = fields.Many2one(
@@ -248,12 +248,13 @@ class AccountJournal(models.Model):
     bank_statements_source = fields.Selection(selection='_get_bank_statements_available_sources', string='Bank Feeds', default='undefined', help="Defines how the bank statements will be registered")
     bank_name = fields.Char(related='bank_account_id.bank_name', readonly=False)
     bank_account_number = fields.Char(related='bank_account_id.account_number', readonly=False)
+    bank_acc_number = fields.Char(related='bank_account_id.account_number', readonly=False)
     bank_bic = fields.Char(related='bank_account_id.bank_bic', readonly=False)
 
     # alias configuration for journals
     alias_name = fields.Char(help="Send one separate email for each invoice.\n"
                                   "Any file extension will be accepted.\n"
-                                  "Only PDF and XML files will be interpreted by Odoo")
+                                  "Only PDF and XML files will be interpreted by Insilos")
 
     journal_group_id = fields.Many2one(
         comodel_name='account.journal.group',

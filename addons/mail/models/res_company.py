@@ -29,7 +29,7 @@ class ResCompany(models.Model):
         "Email Button Text", default="#FFFFFF",
         readonly=False)
     email_secondary_color = fields.Char(
-        "Email Button Color", default="#875A7B",
+        "Email Button Color", default="#004455",
         readonly=False)
 
     @api.depends('alias_domain_id', 'name')

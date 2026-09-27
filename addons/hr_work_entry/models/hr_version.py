@@ -15,6 +15,11 @@ from odoo.tools.intervals import Intervals
 class HrVersion(models.Model):
     _inherit = 'hr.version'
 
+    work_entry_source = fields.Selection([
+        ('calendar', 'Working Schedule'),
+    ], string='Work Entry Source', default='calendar', required=True,
+       help='Source used to generate the working entries.')
+
     def _get_default_work_entry_type_id(self):
         country_code = self.country_code
         country_attendance = self.env['hr.work.entry.type'].search([

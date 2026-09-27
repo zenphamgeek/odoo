@@ -241,6 +241,8 @@ async function ensurePreviewHeaders(state) {
 // Components
 //------------------------------------------------------------------------------
 
+export class WelcomeScreen extends Component {}
+
 export class SkipButton extends Component {
     static template = "website.Configurator.SkipButton";
     props = useProps({

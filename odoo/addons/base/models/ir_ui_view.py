@@ -2385,6 +2385,12 @@ actual arch.
         There are exceptions though, e.g. the kanban arch defines qweb templates.
         We thus here validate that the given directive is allowed, according to the view_type.
         """
+        if self._is_qweb_based_view(view_type):
+            if directive in ('t-esc', 't-raw'):
+                val = node.attrib.pop(directive, None)
+                if val is not None and 't-out' not in node.attrib:
+                    node.attrib['t-out'] = val
+                return
         allowed_directives = ["t-translation"]
         if self._is_qweb_based_view(view_type):
             allowed_directives.extend([
@@ -3270,6 +3276,10 @@ class Base(models.AbstractModel):
             'res_id': self.id,
             'context': dict(self.env.context),
         }
+
+    @api.readonly
+    def get_formview_action(self, access_uid=None):
+        return self.get_record_default_action(access_uid=access_uid)
 
     def _get_records_action(self, **kwargs):
         """ Return an action to open given records.

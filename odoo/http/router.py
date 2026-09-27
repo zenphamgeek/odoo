@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import datetime as dt
 import functools
+import json
 import logging
 import os.path
 import re
@@ -96,6 +97,23 @@ def db_filter(dbs: Iterable[str], host: str | None = None) -> list[str]:
     :returns: The original list filtered.
     :rtype: List[str]
     """
+
+    dbfilter_map = config.get('dbfilter_map', {})
+    if dbfilter_map:
+        if isinstance(dbfilter_map, str):
+            try:
+                dbfilter_map = json.loads(dbfilter_map)
+            except Exception:
+                dbfilter_map = {}
+        target_host = host
+        if target_host is None and request:
+            target_host = request.httprequest.environ.get('HTTP_HOST', '')
+        if target_host:
+            clean_host = target_host.partition(':')[0].removeprefix('www.')
+            if clean_host in dbfilter_map:
+                mapped_db = dbfilter_map[clean_host]
+                if not dbs or mapped_db in dbs:
+                    return [mapped_db]
 
     if config['dbfilter']:
         #        host
@@ -282,9 +300,10 @@ class Application:
                         # TODO: move those bits in a dedicated function
                         request.db = None
                         logout(request.session)
-                        if (httprequest.path.startswith('/odoo/')
+                        if (httprequest.path.startswith('/insilos/')
+                            or httprequest.path.startswith('/odoo/')
                             or httprequest.path in (
-                                '/odoo', '/web', '/web/login', '/test_http/ensure_db',
+                                '/insilos', '/odoo', '/web', '/web/login', '/test_http/ensure_db',
                             )):
                             # ensure_db() protected routes, remove ?db= from the query string
                             args_nodb = request.httprequest.args.copy()

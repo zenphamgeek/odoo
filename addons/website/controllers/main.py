@@ -509,7 +509,7 @@ class Website(Home):
             return request.redirect('/')
         if request.env.lang != self.env.website.default_lang_id.code:
             return request.redirect('/%s%s' % (self.env.website.default_lang_id.url_code, request.httprequest.path))
-        action_url = f"/odoo/action-website.website_configurator?menu_id={request.env.ref('website.menu_website_configuration').id}"
+        action_url = f"/insilos/action-website.website_configurator?menu_id={request.env.ref('website.menu_website_configuration').id}"
         if step > 1:
             action_url += '&step=' + str(step)
         return request.redirect(action_url)
@@ -1465,7 +1465,7 @@ class Website(Home):
 
         if redirect:
             if ext_special_case:  # redirect non html pages to backend to edit
-                return request.redirect(f"/odoo/ir.ui.view/{page.get('view_id')}")
+                return request.redirect(f"/insilos/ir.ui.view/{page.get('view_id')}")
             return request.redirect(request.env['website'].get_client_action_url(url, True))
 
         if ext_special_case:

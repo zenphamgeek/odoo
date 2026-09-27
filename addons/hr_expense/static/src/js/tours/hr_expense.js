@@ -123,7 +123,7 @@ registry.category("web_tour.tours").add('hr_expense_tour' , {
 },
 {
     trigger: '.o_form_status_indicator .o_form_button_save',
-    content: markup(_t("Ready? You can save it manually or discard modifications from here. You don't <em>need to save</em> - Odoo will save everything for you when you navigate.")),
+    content: markup(_t("Ready? You can save it manually or discard modifications from here. You don't <em>need to save</em> - Insilos will save everything for you when you navigate.")),
     run: "click",
 }, ...stepUtils.statusbarButtonsSteps(_t("Attach Receipt"), _t("Attach a receipt - usually an image or a PDF file.")),
 ...stepUtils.statusbarButtonsSteps(_t("Submit"), markup(_t('Once your <b>Expense</b> is ready, you can submit it to your manager and wait for approval.'))),

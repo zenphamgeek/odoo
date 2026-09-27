@@ -41,10 +41,10 @@ class PeppolIAPConnector:
             if response_vals and 'code' in response_vals:
                 raise UserError(get_peppol_error_message(self.env, response_vals))
             _logger.debug("Failed to connect to Odoo Peppol Proxy %s, %s, %s", endpoint, data or params, e)
-            raise UserError(self.env._("Failed to connect to Odoo Peppol Proxy."))
+            raise UserError(self.env._("Failed to connect to Peppol Proxy."))
         except ValueError as ve:
             _logger.debug("Odoo Peppol Proxy returned an invalid response %s, %s, %s", endpoint, data or params, ve)
-            raise UserError(self.env._("Odoo Peppol Proxy returned an invalid response."))
+            raise UserError(self.env._("Peppol Proxy returned an invalid response."))
         return response_vals
 
     def can_connect(self, *, peppol_identifier, db_uuid, callback_url, connect_token, contact_email=None, webhook_url=None):

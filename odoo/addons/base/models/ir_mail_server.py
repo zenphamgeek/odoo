@@ -140,7 +140,7 @@ class IrMail_Server(models.Model):
     from_filter = fields.Char(
         "FROM Filtering",
         help='Comma-separated list of addresses or domains for which this server can be used.\n'
-             'e.g.: "notification@odoo.com" or "odoo.com"')
+             'e.g.: "notification@insilos.com" or "insilos.com"')
     smtp_host = fields.Char(string='SMTP Server', help="Hostname or IP of SMTP server")
     smtp_port = fields.Integer(string='SMTP Port', default=25, help="SMTP Port. Usually 465 for SSL, and 25 or 587 for other cases.")
     smtp_authentication = fields.Selection([

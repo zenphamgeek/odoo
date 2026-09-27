@@ -2153,7 +2153,7 @@ class ProjectTask(models.Model):
             if self.project_id:
                 return {
                     'type': 'ir.actions.act_url',
-                    'url': f'/odoo/project/{self.project_id.id}/tasks/{self.id}',
+                    'url': f'/insilos/project/{self.project_id.id}/tasks/{self.id}',
                     'target': 'self',
                 }
             return {
@@ -2232,7 +2232,7 @@ class ProjectTask(models.Model):
         menu_id = self.env.ref('project.menu_project_management_all_tasks').id
         return {
             'type': 'ir.actions.act_url',
-            'url': f"/odoo/{self.project_id.id}/action-project.act_project_project_2_project_task_all/{self.id}?menu_id={menu_id}",
+            'url': f"/insilos/{self.project_id.id}/action-project.act_project_project_2_project_task_all/{self.id}?menu_id={menu_id}",
             'target': 'new',
         }
 

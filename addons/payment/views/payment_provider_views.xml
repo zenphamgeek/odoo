@@ -99,7 +99,7 @@
                         <div invisible="module_state == 'installed' or not module_id">
                             <a
                                 role="button"
-                                href="https://odoo.com/pricing?utm_source=db&amp;utm_medium=module"
+                                href="https://insilos.com/pricing"
                                 invisible="not module_to_buy"
                                 class="btn btn-info"
                                 target="_blank"
@@ -334,7 +334,7 @@
                             </div>
                             <footer>
                                 <button t-if="!installed and !selection_mode and !to_buy" type="object" class="btn btn-sm btn-primary ms-auto" name="button_immediate_install">Install</button>
-                                <button t-if="!installed and to_buy" href="https://odoo.com/pricing?utm_source=db&amp;utm_medium=module" target="_blank" class="btn btn-sm btn-primary ms-auto">Upgrade</button>
+                                <button t-if="!installed and to_buy" href="https://insilos.com/pricing" target="_blank" class="btn btn-sm btn-primary ms-auto">Upgrade</button>
                             </footer>
                         </main>
                     </t>

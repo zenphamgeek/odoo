@@ -9,7 +9,7 @@ class GoogleCalendarAccountReset(models.TransientModel):
 
     user_id = fields.Many2one('res.users', required=True)
     delete_events = fields.Boolean(
-        string="Delete synced events from Odoo",
+        string="Delete synced events from Insilos",
         help="This will affect events in calendars you own, and any other events you are organizing.")
 
     def reset_account(self):

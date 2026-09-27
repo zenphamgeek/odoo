@@ -1,5 +1,6 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
+import json
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
 from collections import defaultdict
@@ -38,9 +39,11 @@ class MrpWorkorder(models.Model):
     product_id = fields.Many2one(related='production_id.product_id')
     product_tracking = fields.Selection(related="product_id.tracking")
     uom_id = fields.Many2one(related='production_id.uom_id')
+    product_uom_id = fields.Many2one(related='uom_id', string='Unit of Measure')
     product_variant_attributes = fields.Many2many('product.template.attribute.value', related='product_id.product_template_attribute_value_ids')
     production_id = fields.Many2one('mrp.production', 'Manufacturing Order', required=True, check_company=True, readonly=True, index='btree')
     production_lot_producing_id = fields.Many2many('stock.lot', related="production_id.lot_producing_ids")
+    finished_lot_ids = fields.Many2many('stock.lot', string='Finished Lot/Serial', related='production_id.lot_producing_ids', readonly=False)
     production_availability = fields.Selection(
         string='Stock Availability', readonly=True,
         related='production_id.reservation_state', store=True) # Technical: used in views and domains only
@@ -49,6 +52,8 @@ class MrpWorkorder(models.Model):
         related='production_id.state', tracking=False)  # Technical: used in views only
     production_bom_id = fields.Many2one('mrp.bom', related='production_id.bom_id')
     qty_production = fields.Float('Original Production Quantity', readonly=True, related='production_id.product_qty')
+    json_popover = fields.Char('JSON Popover', compute='_compute_json_popover')
+    consumption = fields.Selection(related='production_id.consumption')
     company_id = fields.Many2one(related='production_id.company_id')
     priority = fields.Selection(related='production_id.priority')
     qty_producing = fields.Float(
@@ -1080,6 +1085,23 @@ class MrpWorkorder(models.Model):
                 prev_finished = max(previous_finished) if previous_finished else False
                 if prev_start and prev_start > wo.date_start or prev_finished and prev_finished > wo.date_start:
                     wo.has_planning_issues = True
+
+    @api.depends('has_conflicts', 'has_planning_issues', 'decoration_dates', 'date_start', 'date_finished')
+    def _compute_json_popover(self):
+        conflicted_dict = self._get_conflicted_workorder_ids() if self.ids else {}
+        today = fields.Date.context_today(self)
+        for wo in self:
+            classes = []
+            if conflicted_dict.get(wo.id) or wo.has_planning_issues:
+                classes.append('text-danger')
+            if wo.decoration_dates == 'warning' or (wo.date_start and wo.date_start.date() < today):
+                classes.append('text-warning')
+            elif wo.decoration_dates == 'danger' and 'text-danger' not in classes:
+                classes.append('text-danger')
+            if classes:
+                wo.json_popover = json.dumps({'class': ' '.join(classes)})
+            else:
+                wo.json_popover = False
 
     def _search_has_planning_issues(self, operator, value):
         if operator != "in" or list(value) != [True]:

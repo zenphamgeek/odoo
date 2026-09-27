@@ -45,7 +45,7 @@ export const dialogProps = {
     header: t.boolean().optional(true),
     size: t.selection(["sm", "md", "lg", "xl", "fs", "fullscreen"]).optional("lg"),
     technical: t.boolean().optional(true),
-    title: t.string().optional("Odoo"),
+    title: t.string().optional("Insilos"),
     slots: t.object({
         default: t.object(), // Content is not optional
         header: t.object().optional(),

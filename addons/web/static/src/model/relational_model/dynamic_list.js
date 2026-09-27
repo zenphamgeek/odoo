@@ -186,7 +186,10 @@ export class DynamicList extends DataPoint {
     }
 
     selectDomain(value) {
-        return this.model.mutex.exec(() => this._selectDomain(value));
+        return this.model.mutex.exec(() => {
+            this._selectDomain(value);
+            this.model.notify();
+        });
     }
 
     sortBy(fieldName) {
@@ -605,7 +608,10 @@ export class DynamicList extends DataPoint {
     }
 
     unselectAll() {
-        return this.model.mutex.exec(() => this._unselectAll());
+        return this.model.mutex.exec(() => {
+            this._unselectAll();
+            this.model.notify();
+        });
     }
 
     _unselectAll() {

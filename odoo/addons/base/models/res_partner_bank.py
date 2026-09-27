@@ -39,6 +39,17 @@ class ResPartnerBank(models.Model):
         compute='_compute_account_holder_name',
         readonly=False, store=True,
     )
+
+    # Backward compatibility aliases
+    acc_number = fields.Char(related='account_number', readonly=False, string="IBAN/Account Number")
+    sanitized_acc_number = fields.Char(related='sanitized_account_number', readonly=True)
+    acc_type = fields.Selection(related='account_type', readonly=True)
+    acc_holder_name = fields.Char(related='holder_name', readonly=False)
+
+    @property
+    def bank_id(self):
+        return self
+
     partner_id = fields.Many2one(
         comodel_name='res.partner',
         string="Partner",
@@ -69,6 +80,7 @@ class ResPartnerBank(models.Model):
         help="Bank Identifier Code for international wires in the format Bank Code (4 letters) + Country Code (2 letters) + Location Code (2 letters/numbers) + Optional Branch Code (3 letters/numbers).",
         index=True,
     )
+    bic = fields.Char(related='bank_bic', readonly=False)
     clearing_label_id = fields.Many2one(
         comodel_name='clearing.label',
         required=True,

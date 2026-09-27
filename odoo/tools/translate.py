@@ -1083,10 +1083,10 @@ def _get_uid(frame) -> int | None:
 
 def _get_lang(frame, default_lang='') -> str:
     # get from: context.get('lang'), kwargs['context'].get('lang'),
-    if local_context := frame.f_locals.get('context'):
+    if (local_context := frame.f_locals.get('context')) and isinstance(local_context, dict):
         if lang := local_context.get('lang'):
             return lang
-    if (local_kwargs := frame.f_locals.get('kwargs')) and (local_context := local_kwargs.get('context')):
+    if (local_kwargs := frame.f_locals.get('kwargs')) and isinstance(local_kwargs, dict) and (local_context := local_kwargs.get('context')) and isinstance(local_context, dict):
         if lang := local_context.get('lang'):
             return lang
     # get from self.env

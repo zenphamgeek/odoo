@@ -43,7 +43,7 @@ class IrModuleModule(models.Model):
         string="Extra lines of Code",
         store=False,  # info is retrieved from the appstore in web_read
         help="Number of lines of code that may be billed under an Enterprise subscription."
-            " For exact pricing details, please contact your account manager or visit odoo.com/pricing.",
+            " For exact pricing details, please contact your account manager or visit insilos.com/pricing.",
     )
 
     @api.model
@@ -144,7 +144,7 @@ class IrModuleModule(models.Model):
             # Rebrowse to use the new registry
             return self.env[self._name].browse(self._ids)._import_module(module, path, force=force, with_demo=with_demo)
         elif 'web_studio' not in installed_mods and _is_studio_custom(path):
-            raise UserError(_("Studio customizations require the Odoo Studio app."))
+            raise UserError(_("Studio customizations require the Insilos Studio app."))
 
         mod = known_mods_names.get(module)
         if mod:
@@ -578,7 +578,7 @@ class IrModuleModule(models.Model):
                 description += "- " + module + "\n"
             description += _(
                 "\nYou may need the Enterprise version to install the data module. Please visit "
-                "https://www.odoo.com/pricing-plan for more information.\n"
+                "https://www.insilos.com/pricing-plan for more information.\n"
                 "If you need Website themes, it can be downloaded from https://github.com/odoo/design-themes.\n"
             )
         else:

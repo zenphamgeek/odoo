@@ -41,6 +41,7 @@ class ResConfigSettings(models.TransientModel):
     module_pos_pricer = fields.Boolean(string="Pricer electronic price tags", help="Display the price of your products through electronic price tags")
     barcode_nomenclature_id = fields.Many2one('barcode.nomenclature', related='company_id.nomenclature_id', readonly=False)
     use_kiosk_mode = fields.Boolean(string="Is Kiosk Mode", default=False)
+    is_kiosk_mode = fields.Boolean(string="Is Kiosk Mode", related='use_kiosk_mode', readonly=False)
     pos_customer_display_bg_img = fields.Image(related='pos_config_id.customer_display_bg_img', readonly=False)
     pos_customer_display_bg_img_name = fields.Char(related='pos_config_id.customer_display_bg_img_name', readonly=False)
 
@@ -94,6 +95,7 @@ class ResConfigSettings(models.TransientModel):
     pos_manual_discount = fields.Boolean(related='pos_config_id.manual_discount', readonly=False)
     pos_only_round_cash_method = fields.Boolean(related='pos_config_id.only_round_cash_method', readonly=False)
     pos_other_devices = fields.Boolean(related='pos_config_id.other_devices', readonly=False)
+    pos_is_posbox = fields.Boolean(related='pos_config_id.is_posbox', readonly=False)
     pos_preparation_devices = fields.Boolean(related='pos_config_id.preparation_devices', readonly=False)
     pos_payment_method_ids = fields.Many2many(related='pos_config_id.payment_method_ids', readonly=False)
     pos_pricelist_id = fields.Many2one('product.pricelist', string='Default Pricelist', compute='_compute_pos_pricelist_id', readonly=False, store=True)

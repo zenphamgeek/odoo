@@ -15,7 +15,11 @@ else:
 
 
 from .response import Response  # noqa: I001
+from .requestlib import Request
 from . import requestlib
 from .routing_map import Controller, route
+from .stream import Stream, content_disposition, STATIC_CACHE_LONG
+from .router import root
+from .dispatcher import serialize_exception
 # import all sub-modules
 from . import dispatcher, geoip, retrying, router, server, session, stream

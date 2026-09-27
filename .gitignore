@@ -51,3 +51,13 @@ package.json
 /man/
 /share/
 /src/
+.venv/
+
+# runtime data and local secrets
+local.yaml
+/data/
+*.log
+branding/phosphor/
+enterprise/
+
+

@@ -29,7 +29,7 @@ class WebManifest(http.Controller):
             if data:
                 shortcuts.append({
                     'name': module.display_name,
-                    'url': '/odoo?menu_id=%s' % data.mapped('res_id')[0],
+                    'url': '/insilos?menu_id=%s' % data.mapped('res_id')[0],
                     'description': module.summary,
                     'icons': [{
                         'sizes': '100x100',
@@ -40,14 +40,14 @@ class WebManifest(http.Controller):
         return shortcuts
 
     def _get_webmanifest(self):
-        web_app_name = request.env['ir.config_parameter'].sudo().get_str('web.web_app_name') or 'Odoo'
+        web_app_name = request.env['ir.config_parameter'].sudo().get_str('web.web_app_name') or 'Insilos'
         manifest = {
             'name': web_app_name,
-            'scope': '/odoo',
-            'start_url': '/odoo',
+            'scope': '/insilos',
+            'start_url': '/insilos',
             'display': 'standalone',
-            'background_color': '#714B67',
-            'theme_color': '#714B67',
+            'background_color': '#004455',
+            'theme_color': '#004455',
             'prefer_related_applications': False,
         }
         icon_sizes = ['192x192', '512x512']
@@ -59,7 +59,7 @@ class WebManifest(http.Controller):
         manifest['shortcuts'] = self._get_shortcuts()
         if self._has_share_target():
             manifest['share_target'] = {
-                'action': '/odoo?share_target=trigger',
+                'action': '/insilos?share_target=trigger',
                 'method': 'POST',
                 'enctype': 'multipart/form-data',
                 'params': {
@@ -90,13 +90,13 @@ class WebManifest(http.Controller):
             self._get_service_worker_content(),
             [
                 ('Content-Type', 'text/javascript'),
-                ('Service-Worker-Allowed', '/odoo'),
+                ('Service-Worker-Allowed', '/insilos'),
             ]
         )
         return response
 
     def _get_service_worker_content(self):
-        """ Returns a ServiceWorker javascript file scoped for the backend (aka. '/odoo')
+        """ Returns a ServiceWorker javascript file scoped for the backend (aka. '/insilos')
         """
         with file_open('web/static/src/service_worker.js') as f:
             body = f.read()
@@ -105,7 +105,7 @@ class WebManifest(http.Controller):
     def _icon_path(self):
         return 'web/static/img/odoo-icon-192x192.png'
 
-    @http.route('/odoo/offline', type='http', auth='public', methods=['GET'], readonly=True)
+    @http.route(['/insilos/offline', '/odoo/offline'], type='http', auth='public', methods=['GET'], readonly=True)
     def offline(self):
         """ Returns the offline page delivered by the service worker """
         with file_open(self._icon_path(), 'rb') as f:
@@ -170,8 +170,8 @@ class WebManifest(http.Controller):
             'scope': path,
             'start_url': path,
             'display': 'standalone',
-            'background_color': '#714B67',
-            'theme_color': '#714B67',
+            'background_color': '#004455',
+            'theme_color': '#004455',
             'prefer_related_applications': False,
             'shortcuts': self._get_scoped_app_shortcuts(app_id)
         }

@@ -5,6 +5,7 @@ from collections.abc import Mapping, Sequence
 from functools import partial
 
 from odoo import api
+from odoo.sql_db import PG_CONCURRENCY_EXCEPTIONS_TO_RETRY
 from odoo.exceptions import (
     AccessDenied,
     UserError,

@@ -14,10 +14,11 @@ class HrVersion(models.Model):
         groups="hr.group_hr_user",
         default=lambda self: self.env.company.sudo().attendance_based,
     )
+    ruleset_id = fields.Many2one('hr.attendance.overtime.ruleset', string="Overtime Ruleset", groups="hr.group_hr_user")
 
     @api.model
     def _get_whitelist_fields_from_template(self):
-        return super()._get_whitelist_fields_from_template() + ['attendance_based']
+        return super()._get_whitelist_fields_from_template() + ['attendance_based', 'ruleset_id']
 
     @api.model
     def _get_versions_by_employee_and_date(self, employee_dates):

@@ -9,7 +9,7 @@ export class TitlePlugin extends Plugin {
     titleParts = signal.Object({});
 
     /** @private */
-    defaultTitle = document.title || "Odoo";
+    defaultTitle = document.title || "Insilos";
 
     title = computed(() => {
         const prefix = this.prefix() ? this.prefix() + " " : "";

@@ -51,7 +51,7 @@
               No data for odometer analysis
             </p>
             <p>
-              Manage efficiently your vehicle Odometers with Odoo.
+              Manage efficiently your vehicle Odometers with Insilos.
             </p>
         </field>
         <field name="domain">[('vehicle_id.active', '=', True)]</field>

@@ -4,7 +4,7 @@ import { clamp } from "@web/core/utils/numbers";
  * visualizations (eg. graphs/charts), both in bright and dark themes.
  */
 
-const COLORS_ENT_BRIGHT = ["#875A7B", "#A5D8D7", "#DCD0D9"];
+const COLORS_ENT_BRIGHT = ["#004455", "#A5D8D7", "#DCD0D9"];
 const COLORS_ENT_DARK = ["#84487D", "#17928D", "#7A4374"];
 const COLORS_SM_BRIGHT = [
     '#36A2EBFF', // Blue

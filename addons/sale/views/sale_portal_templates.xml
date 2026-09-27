@@ -706,6 +706,12 @@
             </div>
             <hr t-if="has_info_cards" class="my-3 my-lg-4 mx-n3 mx-lg-n4"/>
             <div t-if="has_info_cards" id="informations" class="d-flex flex-column flex-lg-row gap-4 pt-2"/>
+            <div id="sale_info">
+                <span id="sale_info_title"/>
+                <table class="table table-borderless table-sm">
+                    <tbody id="sale_info_table"/>
+                </table>
+            </div>
         </div>
         <div id="content">
 

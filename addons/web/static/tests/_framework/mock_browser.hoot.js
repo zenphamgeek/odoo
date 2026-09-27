@@ -17,6 +17,30 @@ export function mockBrowserFactory(name, { fn }) {
     return function mockBrowser(...args) {
         const browserModule = fn(...args);
         browserModule.location = mockLocation;
+        browserModule.browser = new Proxy(browserModule.browser || window, {
+            get(target, prop) {
+                if (prop === "location") {
+                    return mockLocation;
+                }
+                const value = target[prop];
+                if (typeof value === "function") {
+                    return value.bind(target);
+                }
+                return value;
+            },
+            set(target, prop, value) {
+                if (prop === "location") {
+                    if (typeof value === "string") {
+                        mockLocation.href = value;
+                    } else {
+                        browserModule.location = value;
+                    }
+                    return true;
+                }
+                target[prop] = value;
+                return true;
+            },
+        });
         return browserModule;
     };
 }

@@ -13,7 +13,7 @@
                         <div class="text-muted">
                             <div>1. There are three modes available:</div>
                             <ul class="mb8">
-                                <li><span class="o_form_label">Demo</span> - Internal Odoo validations only (No credentials or ETA connection required)</li>
+                                <li><span class="o_form_label">Demo</span> - Internal Insilos validations only (No credentials or ETA connection required)</li>
                                 <li><span class="o_form_label">Pre-production (Testing)</span> - Pre-production credentials needed to connect to ETA testing environment</li>
                                 <li><span class="o_form_label">Production (Live)</span> - Production credentials needed to connect to the live ETA environment</li>
                             </ul>

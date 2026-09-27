@@ -29,7 +29,7 @@ _dangerous_logger = logging.getLogger(__name__)  # use config._log() instead
 optparse._ = str  # disable gettext  # ty:ignore[unresolved-attribute]
 
 ALL_DEV_MODE = ['access', 'qweb', 'reload', 'xml']
-DEFAULT_SERVER_WIDE_MODULES = ['base', 'rpc', 'web']
+DEFAULT_SERVER_WIDE_MODULES = ['base', 'rpc', 'web', 'insilos_adapter']
 REQUIRED_SERVER_WIDE_MODULES = ['base', 'web']
 
 DEFAULT_COLOR_SPEC = {
@@ -235,7 +235,7 @@ class configmanager:
         parser.add_option(FileOnlyOption(dest='import_file_timeout', type='int', my_default=3, file_exportable=False))
         parser.add_option(FileOnlyOption(dest='import_url_regex', my_default=r"^(?:http|https)://", file_exportable=False))
         parser.add_option(FileOnlyOption(dest='proxy_access_token', my_default='', file_exportable=False))
-        parser.add_option(FileOnlyOption(dest='publisher_warranty_url', my_default='http://services.odoo.com/publisher-warranty/', file_exportable=False))
+        parser.add_option(FileOnlyOption(dest='publisher_warranty_url', my_default='', file_exportable=False))
         parser.add_option(FileOnlyOption(dest='reportgz', action='store_true', my_default=False))
         parser.add_option(FileOnlyOption(dest='websocket_keep_alive_timeout', type='int', my_default=3600))
         parser.add_option(FileOnlyOption(dest='websocket_rate_limit_burst', type='int', my_default=10))
@@ -273,7 +273,7 @@ class configmanager:
         group.add_option("--load", dest="server_wide_modules", type='comma', metavar='MODULE,...', my_default=DEFAULT_SERVER_WIDE_MODULES,
                          help="Comma-separated list of server-wide modules.")
         group.add_option("-D", "--data-dir", dest="data_dir", type='path',  # sensitive default set in _load_default_options
-                         help="Directory where to store Odoo data")
+                         help="Directory where to store Insilos data")
         group.add_option("--unsafe-policy", dest='unsafe_policy', type='choice', my_default='log',
                          choices=['disable', 'log', 'raise', 'terminate'],
                          help="Policy if an unsafe object is detected during          "
@@ -308,6 +308,8 @@ class configmanager:
         group.add_option("--db-filter", dest="dbfilter", my_default='', metavar="REGEXP",
                          help="Regular expressions for filtering available databases for Web UI. "
                               "The expression can use %d (domain) and %h (host) placeholders.")
+        group.add_option("--db-filter-map", dest="dbfilter_map", my_default='', metavar="JSON",
+                         help="JSON mapping of host->db_name for multi-tenant routing.")
         parser.add_option_group(group)
 
         # Testing Group

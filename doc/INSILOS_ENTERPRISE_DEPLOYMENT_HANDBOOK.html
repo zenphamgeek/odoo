@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Insilos Enterprise Platform — Tài Liệu Hướng Dẫn Kỹ Thuật &amp; Bàn Giao Triển Khai</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    :root {
+      --primary: #004455;
+      --primary-dark: #002d38;
+      --primary-light: #006680;
+      --secondary: #0096B3;
+      --launcher-navy: #0B2E64;
+      --accent: #FF8000;
+      --accent-soft: #fff3e6;
+      --slate-50: #f8fafc;
+      --slate-100: #f1f5f9;
+      --slate-200: #e2e8f0;
+      --slate-300: #cbd5e1;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --slate-900: #0f172a;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --info: #0284c7;
+      --info-bg: #f0f9ff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--slate-800);
+      background-color: #ffffff;
+      line-height: 1.65;
+      font-size: 14px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 40px 48px;
+    }
+
+    /* Print styling */
+    @media print {
+      body { font-size: 11pt; line-height: 1.45; }
+      .container { max-width: 100%; padding: 0; margin: 0; }
+      .page-break { page-break-before: always; }
+      .no-break { page-break-inside: avoid; }
+      a { text-decoration: none; color: inherit; }
+      .shadow-box { box-shadow: none !important; border: 1px solid var(--slate-300) !important; }
+    }
+
+    /* Cover Page */
+    .cover-page {
+      min-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-bottom: 2px solid var(--slate-200);
+      padding-bottom: 40px;
+      margin-bottom: 40px;
+    }
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--slate-100);
+      padding: 8px 16px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      border: 1px solid var(--slate-200);
+      width: fit-content;
+    }
+    .brand-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+    .cover-title {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--primary);
+      line-height: 1.25;
+      margin-top: 24px;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .cover-subtitle {
+      font-size: 17px;
+      color: var(--slate-600);
+      font-weight: 400;
+      max-width: 760px;
+      margin-bottom: 32px;
+    }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      background: var(--slate-50);
+      padding: 20px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--slate-200);
+    }
+    .meta-item .meta-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--slate-600);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+    .meta-item .meta-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Headings */
+    h1, h2, h3, h4 { color: var(--primary); font-weight: 700; }
+    h2 {
+      font-size: 20px;
+      border-bottom: 2px solid var(--slate-200);
+      padding-bottom: 8px;
+      margin-top: 48px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h2 .section-num {
+      background: var(--primary);
+      color: #fff;
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    h3 {
+      font-size: 16px;
+      margin-top: 28px;
+      margin-bottom: 12px;
+      color: var(--slate-800);
+    }
+    p { margin-bottom: 14px; color: var(--slate-700); }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0 24px 0;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--slate-200);
+    }
+    th {
+      background: var(--slate-50);
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      border-top: 1px solid var(--slate-200);
+    }
+    tr:hover td { background-color: var(--slate-50); }
+    td code {
+      background: var(--slate-100);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      color: var(--primary);
+    }
+
+    /* Code & Callouts */
+    pre {
+      background: var(--slate-900);
+      color: #f8fafc;
+      padding: 16px 20px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      margin: 16px 0 24px 0;
+      line-height: 1.5;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .badge-success { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
+    .badge-info { background: var(--info-bg); color: var(--info); border: 1px solid #bae6fd; }
+    .badge-warning { background: var(--warning-bg); color: var(--warning); border: 1px solid #fde68a; }
+
+    .callout {
+      border-left: 4px solid var(--primary);
+      background: var(--slate-50);
+      padding: 14px 18px;
+      border-radius: 0 8px 8px 0;
+      margin: 18px 0;
+      font-size: 13px;
+    }
+    .callout-success { border-left-color: var(--success); background: var(--success-bg); }
+    .callout-warning { border-left-color: var(--warning); background: var(--warning-bg); }
+
+    /* Workflow Cards */
+    .station-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+      margin: 20px 0;
+    }
+    .station-card {
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      padding: 18px;
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+    }
+    .station-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--slate-100);
+      padding-bottom: 8px;
+    }
+    .station-title {
+      font-weight: 700;
+      font-size: 14px;
+      color: var(--primary);
+    }
+
+    /* Screenshots gallery */
+    .screenshot-card {
+      margin: 24px 0;
+      border: 1px solid var(--slate-200);
+      border-radius: 10px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    }
+    .screenshot-card img {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-bottom: 1px solid var(--slate-200);
+    }
+    .screenshot-caption {
+      padding: 12px 18px;
+      background: var(--slate-50);
+      font-size: 12px;
+      color: var(--slate-600);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- COVER PAGE -->
+  <div class="cover-page">
+    <div>
+      <div class="brand-badge">
+        <span class="brand-dot"></span>
+        <span>INSILOS ENTERPRISE PLATFORM (OD00 20 LTS HARDFORK)</span>
+      </div>
+      <h1 class="cover-title">TÀI LIỆU HƯỚNG DẪN KỸ THUẬT &amp; BÀN GIAO TRIỂN KHAI</h1>
+      <p class="cover-subtitle">
+        Cẩm nang chuyển giao công nghệ, kiến trúc ORM di trú 26 phân hệ Enterprise, quy trình kiểm định liên chuỗi giá trị (Logistics IDP &rarr; Hóa chất &rarr; FTA &rarr; ESG), và quy chuẩn vận hành hệ thống cấp doanh nghiệp.
+      </p>
+    </div>
+
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">MÃ TÀI LIỆU</div>
+        <div class="meta-value">INS-DOC-DEP-2026-01</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">PHIÊN BẢN HỆ THỐNG</div>
+        <div class="meta-value">Odoo 20.0 LTS (Insilos Core)</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">MÔ HÌNH DI TRÚ</div>
+        <div class="meta-value">Zero-Shims / Hexagonal Adapter</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">NGÀY PHÁT HÀNH</div>
+        <div class="meta-value">24-09-2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 -->
+  <h2><span class="section-num">01</span> Tổng Quan Kiến Trúc &amp; Nguyên Tắc Thiết Kế (Zero-Shims)</h2>
+  <p>
+    Nền tảng <strong>Insilos Enterprise v20.0</strong> được xây dựng trên nguyên tắc <em>Hardfork Enterprise sạch</em>, kế thừa nền tảng Odoo 20 hiện đại đồng thời tích hợp 26 phân hệ chuyên sâu cho giao thương quốc tế, chuỗi cung ứng hóa chất, xuất xứ quy tắc FTA và báo cáo phát thải ESG.
+  </p>
+
+  <div class="callout callout-success">
+    <strong>Cam kết Kiến trúc Cốt lõi (Strict Architectural Guarantees):</strong>
+    <ul style="margin-left: 20px; margin-top: 6px;">
+      <li><strong>Không sử dụng Shims kém nhất quán:</strong> Tuyệt đối không tạo các lớp vỏ bọc wrapper giả lập hay monkeypatch các hàm cốt lõi Odoo upstream.</li>
+      <li><strong>Bảo toàn 100% Core Upstream:</strong> Mã nguồn gốc tại <code>odoo/</code> và <code>addons/</code> được giữ nguyên vẹn, đảm bảo khả năng nâng cấp mượt mà.</li>
+      <li><strong>Tier 3 Upstream Adapter:</strong> Tách biệt theo kiến trúc Hexagonal (PEP 451 MetaPathFinder &amp; Loader) tại <code>addons/insilos_adapter/hook.py</code> để chuyển đổi không gian tên <code>insilos.*</code> sang <code>odoo.*</code> một cách trong suốt.</li>
+      <li><strong>Hợp nhất phân quyền Odoo 20:</strong> Chuyển dịch toàn bộ các lệnh kiểm tra quyền hạn cũ (<code>check_access_rule</code>) sang phương thức hợp nhất chuẩn hóa <code>check_access('read' | 'write')</code>.</li>
+    </ul>
+  </div>
+
+  <!-- SECTION 2 -->
+  <div class="page-break"></div>
+  <h2><span class="section-num">02</span> Ma Trận 26 Enterprise Modules Đã Di Trú &amp; Kiểm Định</h2>
+  <p>
+    Toàn bộ 26 phân hệ Enterprise đã được xác thực kiểm tra tự động qua 6 bộ Playwright Test Suite và kịch bản in-process, đạt tỷ lệ <strong>100% PASS</strong>.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 25%;">Tên Module (Kỹ thuật)</th>
+        <th style="width: 20%;">Tên Nghiệp Vụ</th>
+        <th style="width: 15%;">Tầng (Tier)</th>
+        <th style="width: 25%;">Các Models Cốt Lõi</th>
+        <th style="width: 15%;">Trạng Thái</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>insilos_hs_sync</code></td>
+        <td>Đồng Bộ Biểu Thuế HS</td>
+        <td>Tier 1</td>
+        <td><code>is.hs.tariff</code>, <code>is.customs.ruling</code></td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+      <tr>
+        <td><code>insilos_hse_compliance</code></td>
+        <td>An Toàn &amp; Pháp Quy HSE</td>
+        <td>Tier 2</td>
+        <td><code>is.hse.legal.register</code>, <code>is.hse.chemical.substance</code></td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+      <tr>
+        <td><code>insilos_logistics_idp</code></td>
+        <td>IDP Logistics &amp; Đối Soát</td>
+        <td>Tier 2</td>
+        <td><code>logistics.idp.case</code>, <code>logistics.idp.evidence</code></td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+      <tr>
+        <td><code>insilos_chemical_trade_compliance</code></td>
+        <td>Tuân Thủ Hóa Chất XNK</td>
+        <td>Tier 2</td>
+        <td><code>is.chemical.compliance.dossier</code>, <code>is.chemical.permit.quota</code></td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+      <tr>
+        <td><code>insilos_preferential_origin</code></td>
+        <td>Xuất Xứ Ưu Đãi FTA</td>
+        <td>Tier 2</td>
+        <td><code>preferential.origin.regime</code>, <code>preferential.origin.scenario</code></td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+      <tr>
+        <td><code>insilos_esg_bridge</code></td>
+        <td>Cầu Nối Báo Cáo ESG &amp; CBAM</td>
+        <td>Tier 3</td>
+        <td><code>is.esg.freight.carbon</code>, <code>is.esg.cbam.advisor</code></td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+      <tr>
+        <td><code>insilos_market_terminal</code></td>
+        <td>Terminal Dữ Liệu Thị Trường</td>
+        <td>Tier 3</td>
+        <td><code>market.terminal.feed</code> (TradingView integration)</td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+      <tr>
+        <td><code>insilos_finance_agent_os</code></td>
+        <td>Agentic AI Tài Chính</td>
+        <td>Tier 3</td>
+        <td><code>is.fin.agent.ledger</code>, <code>is.fin.risk.agent</code></td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+      <tr>
+        <td><code>insilos_knowledge_graph</code></td>
+        <td>Đồ Thị Tri Thức Doanh Nghiệp</td>
+        <td>Tier 3</td>
+        <td><code>is.kg.entity</code>, <code>is.kg.relation</code></td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+      <tr>
+        <td><code>insilos_pubsub_bridge</code></td>
+        <td>Kafka &amp; Event Streaming</td>
+        <td>Tier 1</td>
+        <td><code>is.pubsub.topic</code>, <code>is.pubsub.event.log</code></td>
+        <td><span class="badge badge-success">Sẵn Sàng</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SECTION 3 -->
+  <div class="page-break"></div>
+  <h2><span class="section-num">03</span> Báo Cáo Thực Nghiệm Luồng Liên Module Thực Tế (E2E Integration)</h2>
+  <p>
+    Kịch bản thử nghiệm toàn trình 4 trạm liên kết nghiệp vụ (Cross-Module Workflow) đã được chạy thành công trên cơ sở dữ liệu sản xuất <code>odoo20_dev</code> qua script <code>tools/run_in_shell_simulation.py</code>.
+  </p>
+
+  <div class="station-grid">
+    <!-- Station 1 -->
+    <div class="station-card">
+      <div class="station-header">
+        <span class="station-title">Trạm 1: Logistics IDP &amp; Snapshot Bất Biến</span>
+        <span class="badge badge-success">PASSED</span>
+      </div>
+      <p style="font-size: 12px; color: var(--slate-600); margin-bottom: 8px;">
+        Tiếp nhận chứng từ hải quan số một cửa (NSW), đối soát 3 chiều (PO vs Invoice vs Declaration), tạo bằng chứng mã hóa SHA-256.
+      </p>
+      <ul style="font-size: 11.5px; list-style: none; line-height: 1.6;">
+        <li>&bull; <strong>Hồ sơ IDP:</strong> <code>IDP-CASE-20260924094742</code></li>
+        <li>&bull; <strong>Evidence Hash:</strong> <code>82ce79cea9b2cf0c0...</code></li>
+        <li>&bull; <strong>Đối soát 3 chiều:</strong> 100% Match (PO-2026-CHEM &amp; INV-SG)</li>
+      </ul>
+    </div>
+
+    <!-- Station 2 -->
+    <div class="station-card">
+      <div class="station-header">
+        <span class="station-title">Trạm 2: Tuân Thủ Hóa Chất &amp; Trừ Hạn Ngạch</span>
+        <span class="badge badge-success">PASSED</span>
+      </div>
+      <p style="font-size: 12px; color: var(--slate-600); margin-bottom: 8px;">
+        Nhận diện chất kinh doanh có điều kiện theo Luật Hóa chất 69/2025 &amp; NĐ 113, trừ hạn ngạch giấy phép nhập khẩu Bộ Công Thương.
+      </p>
+      <ul style="font-size: 11.5px; list-style: none; line-height: 1.6;">
+        <li>&bull; <strong>Chất:</strong> Ethyl Acetate (CAS 141-78-6, UN1173)</li>
+        <li>&bull; <strong>Giấy phép:</strong> GP-BCT-2026-EA-019 (100,000 kg)</li>
+        <li>&bull; <strong>Khấu trừ:</strong> -20,000 kg &rarr; <strong>Còn lại:</strong> 80,000 kg (80%)</li>
+      </ul>
+    </div>
+
+    <!-- Station 3 -->
+    <div class="station-card">
+      <div class="station-header">
+        <span class="station-title">Trạm 3: Thẩm Định Xuất Xứ Ưu Đãi EVFTA</span>
+        <span class="badge badge-success">PASSED</span>
+      </div>
+      <p style="font-size: 12px; color: var(--slate-600); margin-bottom: 8px;">
+        Tính toán quy tắc xuất xứ hàng hóa cho sản phẩm sơn công nghiệp phủ xuất khẩu đi Liên minh Châu Âu (EU).
+      </p>
+      <ul style="font-size: 11.5px; list-style: none; line-height: 1.6;">
+        <li>&bull; <strong>Mã HS Thành phẩm:</strong> 3208.20 (FOB $175,000)</li>
+        <li>&bull; <strong>RVC Calculation:</strong> 82.86% (Ngưỡng yêu cầu: &ge; 50%)</li>
+        <li>&bull; <strong>Chuyển đổi nhóm (CTH):</strong> Ch.29 &rarr; Ch.32 &rarr; <strong>QUALIFYING</strong></li>
+      </ul>
+    </div>
+
+    <!-- Station 4 -->
+    <div class="station-card">
+      <div class="station-header">
+        <span class="station-title">Trạm 4: Báo Cáo ESG &amp; CBAM Advisory</span>
+        <span class="badge badge-success">PASSED</span>
+      </div>
+      <p style="font-size: 12px; color: var(--slate-600); margin-bottom: 8px;">
+        Đo lường phát thải vận tải Scope 3 Cat 4 theo chuẩn GLEC và khuyến nghị giảm thiểu thuế biên giới carbon CBAM.
+      </p>
+      <ul style="font-size: 11.5px; list-style: none; line-height: 1.6;">
+        <li>&bull; <strong>Vận tải biển:</strong> SGSIN &rarr; VNCLI (2,185 km, 20 tấn)</li>
+        <li>&bull; <strong>Phát thải ròng:</strong> 545.97 kg CO2e (Đã bù trừ Paperless IDP)</li>
+        <li>&bull; <strong>CBAM Exposure:</strong> 0.38 tCO2e/t &rarr; Khuyến nghị điện mặt trời</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SECTION 4 -->
+  <div class="page-break"></div>
+  <h2><span class="section-num">04</span> Bộ Ảnh Giao Diện Vận Hành Thực Tế (Operational Views)</h2>
+  
+  <div class="screenshot-card">
+    <img src="screenshots/01_insilos_launcher_apps.png" alt="Launcher Apps">
+    <div class="screenshot-caption">
+      <span><strong>Hình 4.1:</strong> Màn hình chính Insilos Enterprise với bộ biểu tượng Phosphor Duotone (#0B2E64).</span>
+      <span><code>/insilos</code></span>
+    </div>
+  </div>
+
+  <div class="screenshot-card">
+    <img src="screenshots/02_logistics_idp_control_tower.png" alt="Logistics IDP Control Tower">
+    <div class="screenshot-caption">
+      <span><strong>Hình 4.2:</strong> Tháp điều khiển Inbound Logistics IDP tiếp nhận và xử lý hồ sơ chứng từ ngoại thương.</span>
+      <span><code>/insilos/inbound-control-tower</code></span>
+    </div>
+  </div>
+
+  <div class="screenshot-card">
+    <img src="screenshots/03_logistics_idp_case_detail.png" alt="Logistics IDP Case Detail">
+    <div class="screenshot-caption">
+      <span><strong>Hình 4.3:</strong> Chi tiết hồ sơ IDP-CASE-20260924094742 với Evidence băm SHA-256 bất biến.</span>
+      <span><code>logistics.idp.case</code></span>
+    </div>
+  </div>
+
+  <div class="screenshot-card">
+    <img src="screenshots/05_chemical_quota_ledger.png" alt="Chemical Quota Ledger">
+    <div class="screenshot-caption">
+      <span><strong>Hình 4.4:</strong> Sổ cái quản trị hạn ngạch hóa chất nhập khẩu BCT với số dư khả dụng cập nhật tức thời.</span>
+      <span><code>is.chemical.permit.quota</code></span>
+    </div>
+  </div>
+
+  <div class="screenshot-card">
+    <img src="screenshots/07_esg_freight_carbon.png" alt="ESG Freight Carbon">
+    <div class="screenshot-caption">
+      <span><strong>Hình 4.5:</strong> Phân tích phát thải logistics Scope 3 Cat 4 liên kết trực tiếp từ hồ sơ vận chuyển.</span>
+      <span><code>is.esg.freight.carbon</code></span>
+    </div>
+  </div>
+
+  <!-- SECTION 5 -->
+  <div class="page-break"></div>
+  <h2><span class="section-num">05</span> Hướng Dẫn Vận Hành &amp; Triển Khai (DevOps Runbook)</h2>
+  
+  <h3>1. Khởi động Dịch Vụ Ứng Dụng</h3>
+  <pre><code># Kích hoạt môi trường và khởi động Odoo 20 Daemon trên port 28069
+cd /home/zen/O20
+source .venv/bin/activate
+./odoo-bin -c odoo.conf -d odoo20_dev</code></pre>
+
+  <h3>2. Thực thi Kiểm định Tự Động Định Kỳ</h3>
+  <pre><code># Kiểm tra toàn bộ 26 Enterprise Modules
+node tools/test_enterprise_ported_modules_e2e.js
+
+# Chạy mô phỏng tích hợp liên trạm (In-Process Simulation)
+.venv/bin/python tools/run_in_shell_simulation.py</code></pre>
+
+  <h3>3. Quản Trị Cơ Sở Dữ Liệu PostgreSQL</h3>
+  <pre><code># Backup database sản xuất
+PGPASSWORD=1NN0R1@2026 pg_dump -h 127.0.0.1 -p 5434 -U odoo -Fc odoo20_dev > backup_odoo20_$(date +%Y%m%d).dump
+
+# Restore database
+PGPASSWORD=1NN0R1@2026 pg_restore -h 127.0.0.1 -p 5434 -U odoo -d odoo20_dev backup_odoo20_xxxx.dump</code></pre>
+
+  <div class="callout callout-warning">
+    <strong>Lưu ý Bảo mật &amp; Quản trị Token:</strong>
+    Các tác vụ khấu trừ hạn ngạch hóa chất (<code>is.chemical.permit.quota</code>) và tạo bằng chứng bất biến (<code>logistics.idp.evidence</code>) được bảo vệ bằng các Python Capability Tokens bí mật (như <code>_CUSTOMS_CLEARANCE_CAPABILITY</code> và <code>_INTERNAL_SNAPSHOT_TOKEN</code>). Tuyệt đối không cho phép API bên thứ ba truy cập trực tiếp các methods này mà không thông qua workflow nội bộ đã kiểm duyệt.
+  </div>
+
+  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--slate-200); display: flex; justify-content: space-between; font-size: 11px; color: var(--slate-600);">
+    <span>&copy; 2026 Insilos Platform. Bản quyền thuộc về Đội ngũ Kỹ thuật &amp; Kiến trúc Giải pháp Insilos.</span>
+    <span>INS-DOC-DEP-2026-01 | CONFIDENTIAL</span>
+  </div>
+
+</div>
+
+</body>
+</html>

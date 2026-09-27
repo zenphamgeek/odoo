@@ -226,6 +226,11 @@ export async function makeTestApp(options) {
     return app;
 }
 
+export async function makeMockEnv(params = {}) {
+    const app = await makeTestApp(params);
+    return app.env;
+}
+
 /**
  * @template {keyof Services} T
  * @param {T} name

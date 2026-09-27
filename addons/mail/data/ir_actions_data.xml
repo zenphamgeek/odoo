@@ -15,7 +15,7 @@
         </record>
         <record id="action_open_discuss_settings" model="ir.actions.act_url">
             <field name="name">Settings</field>
-            <field name="url" eval="'/odoo/settings#discuss_setting'"/>
+            <field name="url" eval="'/insilos/settings#discuss_setting'"/>
             <field name="target">self</field>
         </record>
     </data>

@@ -20,7 +20,7 @@ import { session } from "@web/session";
     const root = makeRoot(document.body);
     const target = await makeShadow(root);
     const { env } = await mountComponent(MainComponentsContainer, target, {
-        name: "Odoo livechat",
+        name: "Insilos livechat",
     });
     env.rootId = root.getAttribute("id");
     env.services["discuss.rtc"].rootEl = target;

@@ -90,6 +90,9 @@ export class RPCCache {
     }
 
     async checkSize() {
+        if (!navigator.storage?.estimate) {
+            return;
+        }
         const { usage } = await navigator.storage.estimate();
         if (usage > MAX_STORAGE_SIZE) {
             console.log(`Deleting indexedDB database as maximum storage size is reached`);

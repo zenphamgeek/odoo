@@ -17,4 +17,8 @@
             </t>
         </xpath>
     </t>
+
+    <t t-name="mail.KanbanMany2ManyAvatarUserTagsList">
+        <a class="o_quick_assign"/>
+    </t>
 </templates>

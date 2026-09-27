@@ -1,4 +1,11 @@
-import { proxy } from "@odoo/owl";
+import { effect as owlEffect, proxy } from "@odoo/owl";
+
+export function effect(fn, deps) {
+    if (deps && deps.length) {
+        return owlEffect(() => fn(...deps));
+    }
+    return owlEffect(fn);
+}
 
 /**
  * @deprecated

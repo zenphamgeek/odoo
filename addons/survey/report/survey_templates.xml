@@ -24,7 +24,7 @@
                             <td class="align-bottom">
                                 <p class="fs-5 text-700">This certificate is presented to</p>
                                 <p class="o_text_cursive display-5 text-900" t-out="user_input.partner_id.name or user_input.email or ''">Demo certified name</p>
-                                <p class="mb-0 fs-5 text-700">by <span class="certification-company fw-semibold" t-field="user_input.create_uid.sudo().company_id.display_name">Odoo</span> for successfully completing this certification.</p>
+                                <p class="mb-0 fs-5 text-700">by <span class="certification-company fw-semibold" t-field="user_input.create_uid.sudo().company_id.display_name">Insilos</span> for successfully completing this certification.</p>
                             </td>
                             <td class="align-bottom">
                                 <div class="o_certification_number flex-column d-flex align-items-center justify-content-center rounded-circle ms-auto o_bg_color_15 fs-5 text-700">
@@ -58,7 +58,7 @@
                             <td>
                                 <p class="mb-0 fs-5 text-700">This certificate is presented to</p>
                                 <p class="mb-5 display-4 o_text_cursive" t-out="user_input.partner_id.name or user_input.email or ''">Demo certified name</p>
-                                <p class="mb-0 fs-5 text-700">by <span class="certification-company fw-semibold" t-field="user_input.create_uid.sudo().company_id.display_name">Odoo</span> for successfully completing</p>
+                                <p class="mb-0 fs-5 text-700">by <span class="certification-company fw-semibold" t-field="user_input.create_uid.sudo().company_id.display_name">Insilos</span> for successfully completing</p>
                                 <p class="me-5 fs-1 fw-bold lh-sm" t-field="user_input.survey_id.display_name">Functional Training</p>
                             </td>
                             <td rowspan="2" class="align-bottom">
@@ -89,7 +89,7 @@
                             <p class="display-4 fw-bold lh-1">Certificate of achievement</p>
                             <p class="text-600">This certificate is presented to</p>
                             <p class="display-4 o_text_cursive" t-out="user_input.partner_id.name or user_input.email or ''">Demo certified name</p>
-                            <p class="mb-4 text-600">by <span class="certification-company fw-semibold" t-field="user_input.create_uid.sudo().company_id.display_name">Odoo</span> <br/>for successfully completing this certification.</p>
+                            <p class="mb-4 text-600">by <span class="certification-company fw-semibold" t-field="user_input.create_uid.sudo().company_id.display_name">Insilos</span> <br/>for successfully completing this certification.</p>
                             <p class="mb-0 fs-1 fw-bold" t-field="user_input.survey_id.display_name">Functional Training</p>
                         </div>
                         <table class="w-100 table table-borderless mb-0 o_fixed_table_layout">
@@ -117,7 +117,7 @@
                             <p class="mb-0 display-5 fw-bold" t-field="user_input.survey_id.display_name">Functional Training</p>
                             <p class="my-4 text-600">presented to</p>
                             <p class="mb-2 pb-2 border-bottom border-secondary display-4 o_text_cursive" t-out="user_input.partner_id.name or user_input.email or ''">Demo certified name</p>
-                            <p class="mb-4 text-600">by <span class="certification-company fw-semibold" t-field="user_input.create_uid.sudo().company_id.display_name">Odoo</span> <br/>for successfully completing this certification.</p>
+                            <p class="mb-4 text-600">by <span class="certification-company fw-semibold" t-field="user_input.create_uid.sudo().company_id.display_name">Insilos</span> <br/>for successfully completing this certification.</p>
                         </div>
                         <table class="w-100 table table-borderless mb-0 o_fixed_table_layout">
                             <tr>

@@ -14,14 +14,14 @@
     <string>In this conversation</string>
     <string>Contact Details</string>
     <string>New Person</string>
-    <string>Add to Odoo</string>
-    <string>View in Odoo</string>
+    <string>Add to Insilos</string>
+    <string>View in Insilos</string>
     <string>Email already logged on the contact</string>
     <string>Can not save the contact</string>
     <string>Log email</string>
     <string>Could not connect to database. Try to log out and in.</string>
     <string>Something bad happened. Please, try again later.</string>
-    <string>Attachments could not be logged in Odoo because their total size exceeded the allowed maximum.</string>
-    <string>Odoo for Outlook</string>
+    <string>Attachments could not be logged in Insilos because their total size exceeded the allowed maximum.</string>
+    <string>Insilos for Outlook</string>
     <string>Show all</string>
 </resources>

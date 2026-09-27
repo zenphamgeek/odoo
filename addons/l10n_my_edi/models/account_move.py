@@ -256,7 +256,7 @@ class AccountMove(models.Model):
                 move.with_context(no_new_invoice=True).message_post(
                     body=self.env._(
                         'The invoice has been canceled on MyInvois, '
-                        'But the cancellation in Odoo failed with error: %(error)s\n'
+                        'But the cancellation in Insilos failed with error: %(error)s\n'
                         'Please resolve the problem manually, and then cancel the invoice.',
                         error=e,
                     ),

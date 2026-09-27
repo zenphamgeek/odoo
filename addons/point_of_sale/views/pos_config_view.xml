@@ -54,7 +54,7 @@
                                     </setting>
                                     <setting id="other_devices" string="Receipt Printers" help="Connect printers to your PoS">
                                         <field name="other_devices" />
-                                        <div class="content-group" invisible="not other_devices">
+                                        <div class="content-group pos_iot_config" invisible="not other_devices">
                                             <div class="row mb-2">
                                                 <div class="col-lg-2 o_light_label">
                                                     <label string="Available" for="receipt_printer_ids"/>

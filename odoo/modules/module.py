@@ -439,12 +439,50 @@ def get_module_icon(module: str) -> str:
         fpath = manifest.raw_value('icon') or ''
         fpath = fpath.lstrip('/')
     if not fpath:
-        fpath = f"{module}/static/description/icon.png"
+        try:
+            tools.file_path(f"{module}/static/description/icon.svg")
+            return f"/{module}/static/description/icon.svg"
+        except FileNotFoundError:
+            pass
+        try:
+            tools.file_path(f"{module}/static/description/icon.png")
+            return f"/{module}/static/description/icon.png"
+        except FileNotFoundError:
+            pass
+    if fpath:
+        if fpath.startswith(('base/static/img/country_flags/', '/base/static/img/country_flags/')):
+            try:
+                tools.file_path(f"{module}/static/description/icon.svg")
+                return f"/{module}/static/description/icon.svg"
+            except FileNotFoundError:
+                pass
+            try:
+                tools.file_path("account/static/description/l10n.svg")
+                return "/account/static/description/l10n.svg"
+            except FileNotFoundError:
+                pass
+        if fpath.endswith(('.png', '.jpg', '.jpeg')):
+            svg_fpath = fpath.rsplit('.', 1)[0] + '.svg'
+            try:
+                tools.file_path(svg_fpath)
+                return "/" + svg_fpath
+            except FileNotFoundError:
+                pass
+        try:
+            tools.file_path(fpath)
+            return "/" + fpath
+        except FileNotFoundError:
+            pass
     try:
-        tools.file_path(fpath)
-        return "/" + fpath
+        tools.file_path("base/static/description/icon.svg")
+        return "/base/static/description/icon.svg"
     except FileNotFoundError:
+        pass
+    try:
+        tools.file_path("base/static/description/icon.png")
         return "/base/static/description/icon.png"
+    except FileNotFoundError:
+        return "/base/static/description/icon.svg"
 
 
 def _load_manifest(module: str, manifest_content: dict) -> dict:

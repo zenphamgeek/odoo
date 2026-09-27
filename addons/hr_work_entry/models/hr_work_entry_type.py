@@ -40,6 +40,44 @@ class HrWorkEntryType(models.Model):
         tracking=True,
         help="Determines if the entry counts as working time or absence.",
     )
+    is_leave = fields.Boolean(
+        string="Is Leave",
+        compute="_compute_is_leave",
+        inverse="_inverse_is_leave",
+        store=True,
+        readonly=False,
+        help="Whether this work entry type is considered a leave/absence."
+    )
+    is_extra_hours = fields.Boolean(
+        string="Is Extra Hours",
+        default=False,
+        help="Whether this work entry type represents overtime / extra hours."
+    )
+
+    is_work = fields.Boolean(
+        string="Is Work",
+        compute="_compute_is_work",
+        store=True,
+        readonly=False,
+        help="Whether this work entry type is considered working time."
+    )
+
+    @api.depends('count_as')
+    def _compute_is_work(self):
+        for entry_type in self:
+            entry_type.is_work = (entry_type.count_as == 'working_time')
+
+    @api.depends('count_as')
+    def _compute_is_leave(self):
+        for entry_type in self:
+            entry_type.is_leave = (entry_type.count_as == 'absence')
+
+    def _inverse_is_leave(self):
+        for entry_type in self:
+            if entry_type.is_leave:
+                entry_type.count_as = 'absence'
+            elif entry_type.count_as == 'absence':
+                entry_type.count_as = 'working_time'
     amount_rate = fields.Float(
         string="Rate",
         default=1.0,

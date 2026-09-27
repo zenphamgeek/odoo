@@ -10,7 +10,7 @@ patch(AttendeeCalendarCalendarFilterSection.prototype, {
         }
         return {
             ...super.getDeleteCalendarDialogProps(filter),
-            body: _t("You're about to delete this calendar from Odoo.\n\n" +
+            body: _t("You're about to delete this calendar from Insilos.\n\n" +
                 "If you synchronized this calendar with Google, it will not be deleted from your Google Calendar."),
         };
     },

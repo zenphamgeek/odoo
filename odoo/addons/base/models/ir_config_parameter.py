@@ -128,6 +128,17 @@ class IrConfig_Parameter(models.Model):
             return default
         return value
 
+    @api.model
+    def get_param(self, key: str, default: Any = False):
+        val = self.get_str(key, default=None)
+        if val is None:
+            return default
+        return val
+
+    @api.model
+    def set_param(self, key: str, value: Any):
+        return self.set_str(key, value)
+
     @api.ormcache('key', 'type_', cache='stable')
     def _get(self, key: str, type_: Type_ = 'str') -> tuple[Any, int | None]:
         """

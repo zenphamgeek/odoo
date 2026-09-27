@@ -404,3 +404,13 @@
         -moz-appearance: textfield;
     }
 };
+
+@mixin o-grab-cursor {
+    cursor: -webkit-grab;
+    cursor: grab;
+}
+
+@mixin o-grabbing-cursor {
+    cursor: -webkit-grabbing;
+    cursor: grabbing;
+}

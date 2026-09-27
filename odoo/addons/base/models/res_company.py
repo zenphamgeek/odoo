@@ -60,7 +60,7 @@ def company_default_for(fname, target_model, target_fname):
 class ResCompany(models.CachedModel):
     _name = 'res.company'
     _description = 'Company'
-    _explanation = "Represents a legal entity within the Odoo database. Odoo supports multi-company environments where each company has its own settings, chart of accounts, and business data."
+    _explanation = "Represents a legal entity within the Insilos database. Insilos supports multi-company environments where each company has its own settings, chart of accounts, and business data."
     _order = 'sequence, name'
     _inherit = ['format.address.mixin', 'format.vat.label.mixin']
     _parent_store = True
@@ -139,8 +139,8 @@ class ResCompany(models.CachedModel):
         ('compact', 'Compact'),
     ], string='Table Design', default='light')
     font = fields.Selection([("Lato", "Lato"), ("Roboto", "Roboto"), ("Open_Sans", "Open Sans"), ("Montserrat", "Montserrat"), ("Oswald", "Oswald"), ("Raleway", "Raleway"), ('Tajawal', 'Tajawal'), ('Noto_Sans_Mono', 'Noto Sans Mono')], default="Lato")
-    primary_color = fields.Char()
-    secondary_color = fields.Char()
+    primary_color = fields.Char(default='#004455')
+    secondary_color = fields.Char(default='#004455')
     color = fields.Integer(compute='_compute_color', inverse='_inverse_color')
     uninstalled_l10n_module_ids = fields.Many2many('ir.module.module', compute='_compute_uninstalled_l10n_module_ids')
 

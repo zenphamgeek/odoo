@@ -10,7 +10,7 @@ patch(InvoiceButton.prototype, {
             !["successful", "successful_demo"].includes(this.props.order.l10n_pk_edi_pos_state)
         ) {
             this.dialog.add(WarningDialog, {
-                title: _t("Odoo Warning"),
+                title: _t("Insilos Warning"),
                 message: _t(
                     "Please submit this order to the FBR first. Only successful orders can be invoiced."
                 ),

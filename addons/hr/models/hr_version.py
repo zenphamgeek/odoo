@@ -193,6 +193,31 @@ class HrVersion(models.Model):
     country_code = fields.Char(related='company_country_id.code', depends=['company_country_id'], readonly=True)
     employee_type_id = fields.Many2one('hr.employee.type', "Employee Type", tracking=1, index=True,
                                        groups="hr.group_hr_manager")
+    contract_type_id = fields.Many2one('hr.employee.type', "Contract Type", related='employee_type_id', readonly=False, store=True, groups="hr.group_hr_manager")
+    employee_type = fields.Selection([
+        ('employee', 'Employee'),
+        ('student', 'Student'),
+        ('trainee', 'Trainee'),
+        ('interim', 'Interim'),
+        ('seasonal', 'Seasonal'),
+        ('apprenticeship', 'Apprenticeship'),
+        ('thesis', 'Thesis'),
+        ('company_executive', 'Company Executive'),
+    ], string="Employee Type", compute='_compute_employee_type', store=True, readonly=False, default='employee')
+    work_entry_source = fields.Selection([
+        ('calendar', 'Working Schedule'),
+    ], string='Work Entry Source', default='calendar',
+       help='Source used to generate the working entries.')
+
+    @api.depends('employee_type_id')
+    def _compute_employee_type(self):
+        for version in self:
+            if version.employee_type_id and version.employee_type_id.code:
+                code = version.employee_type_id.code.lower()
+                valid = dict(self._fields['employee_type'].selection)
+                version.employee_type = code if code in valid else 'employee'
+            elif not version.employee_type:
+                version.employee_type = 'employee'
 
     hr_responsible_id = fields.Many2one(
         'res.users', 'HR Responsible', tracking=1,

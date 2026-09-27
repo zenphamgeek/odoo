@@ -210,9 +210,13 @@ export class TourPlugin extends Plugin {
             new TourAutomatic(tour).start();
         } else {
             await loadBundle("web_tour.interactive");
-            const { TourInteractive } = odoo.loader.modules.get(
+            const tourModule = odoo.loader.modules.get(
                 "@web_tour/tour_interactive/tour_interactive"
             );
+            if (!tourModule) {
+                return;
+            }
+            const { TourInteractive } = tourModule;
             new TourInteractive(tour, {
                 orm: this.orm,
                 effect: this.effect,

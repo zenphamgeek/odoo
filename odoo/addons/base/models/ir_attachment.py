@@ -1,6 +1,7 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 from __future__ import annotations
 
+import base64
 import contextlib
 import hashlib
 import io
@@ -421,6 +422,18 @@ class IrAttachment(models.Model):
             with raw.open() as f:
                 self._file_write(fname, f)
 
+    @api.depends('raw')
+    def _compute_datas(self):
+        for attach in self:
+            attach.datas = base64.b64encode(attach.raw) if attach.raw else False
+
+    def _inverse_datas(self):
+        for attach in self:
+            if attach.datas:
+                attach.raw = base64.b64decode(attach.datas)
+            else:
+                attach.raw = b''
+
     def _get_datas_related_values(self, data: BinaryValue, mimetype):
         checksum = self._compute_checksum(data)
         try:
@@ -532,8 +545,18 @@ class IrAttachment(models.Model):
     def _check_contents(self, values):
         # get raw and remove db_datas
         if 'datas' in values:
-            warnings.warn("Use raw, datas has beeen removed")
-            values.pop('datas')  # ignoring
+            raw_data = values.pop('datas')
+            if raw_data and 'raw' not in values:
+                if isinstance(raw_data, str):
+                    try:
+                        values['raw'] = base64.b64decode(raw_data)
+                    except Exception:
+                        values['raw'] = raw_data.encode('utf-8')
+                elif isinstance(raw_data, bytes):
+                    try:
+                        values['raw'] = base64.b64decode(raw_data)
+                    except Exception:
+                        values['raw'] = raw_data
         raw = values.pop('db_datas', None)
         raw = values.get('raw', raw) or b''
         # make sure we have a BinaryValue in raw (if we have data)
@@ -614,6 +637,7 @@ class IrAttachment(models.Model):
     access_token = fields.Char('Access Token', groups="base.group_user")
 
     raw = fields.Binary(string="File Content (raw)", compute='_compute_raw', inverse='_inverse_raw')
+    datas = fields.Binary(string="File Content (base64)", compute='_compute_datas', inverse='_inverse_datas')
     db_datas = fields.Binary('Database Data', attachment=False)
     store_fname = fields.Char('Stored Filename', index=True)
     file_size = fields.Integer('File Size', readonly=True)

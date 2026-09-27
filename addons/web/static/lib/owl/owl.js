@@ -2151,6 +2151,10 @@ ${issueStrings}`);
     }
   }
   function setStyle(val) {
+    if (typeof val === "string") {
+      elemSetAttribute.call(this, "style", val);
+      return;
+    }
     val = val === "" ? {} : toStyleObj(val);
     const style = this.style;
     for (let prop in val) {
@@ -2158,6 +2162,16 @@ ${issueStrings}`);
     }
   }
   function updateStyle(val, oldVal) {
+    if (typeof val === "string" && (typeof oldVal === "string" || !oldVal)) {
+      if (val !== oldVal) {
+        if (!val) {
+          removeAttribute.call(this, "style");
+        } else {
+          elemSetAttribute.call(this, "style", val);
+        }
+      }
+      return;
+    }
     oldVal = oldVal === "" ? {} : toStyleObj(oldVal);
     val = val === "" ? {} : toStyleObj(val);
     const style = this.style;

@@ -54,7 +54,7 @@
                                 <table border="0" cellspacing="0" cellpadding="0">
                                     <tr>
                                         <td align="center" style="border-radius: 5px; background-color: #999999;">
-                                            <a t-attf-href="{{ object.get_base_url() }}/shop" target="_blank" t-attf-style="text-decoration:none; font-family:arial, 'helvetica neue', helvetica, sans-serif; font-size:18px; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border: 1px solid {{object.company_id.email_secondary_color or '#875A7B'}}; padding:12px 18px; display:inline-block; background-color: {{object.company_id.email_secondary_color or '#875A7B'}}; border-radius:5px; font-style:normal; line-height:26px; width:auto; text-align:center">Redeem Now!</a>
+                                            <a t-attf-href="{{ object.get_base_url() }}/shop" target="_blank" t-attf-style="text-decoration:none; font-family:arial, 'helvetica neue', helvetica, sans-serif; font-size:18px; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border: 1px solid {{object.company_id.email_secondary_color or '#004455'}}; padding:12px 18px; display:inline-block; background-color: {{object.company_id.email_secondary_color or '#004455'}}; border-radius:5px; font-style:normal; line-height:26px; width:auto; text-align:center">Redeem Now!</a>
                                         </td>
                                     </tr>
                                 </table>
@@ -89,7 +89,7 @@
 
         <t t-foreach="object.program_id.reward_ids" t-as="reward">
             <t t-if="reward.required_points &lt;= object.points">
-                <span t-attf-style="font-size: 50px; color: {{object.program_id.company_id.email_secondary_color or '#875A7B'}}; font-weight: bold;" t-out="reward.description">Reward Description</span>
+                <span t-attf-style="font-size: 50px; color: {{object.program_id.company_id.email_secondary_color or '#004455'}}; font-weight: bold;" t-out="reward.description">Reward Description</span>
                 <br/>
             </t>
         </t>

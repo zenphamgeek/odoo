@@ -193,9 +193,7 @@
 
     <t t-name="point_of_sale.CustomerDisplayFooter">
         <div class="d-flex bottom-0 align-items-center ps-3 pe-2 py-1 rounded-3 small">
-            Powered by
-            <OdooLogo t-if="!monochrome" style="'width: 3rem;'" />
-            <OdooLogo t-else="" style="'width: 3rem;'" monochrome="true"/>
+            Powered by <strong class="ms-1">Insilos</strong>
         </div>
     </t>
 </templates>

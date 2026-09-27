@@ -37,9 +37,9 @@
   --os-button-hover-text-color: var(--os-gray-900);
   --os-button-active-bg: light-dark(#e6f2f3, #17373b);
   --os-button-active-text-color: var(--os-gray-900);
-  --os-primary-button-bg: light-dark(#714b67, #6b3e66);
-  --os-primary-button-hover-bg: light-dark(#624159, #7b4775);
-  --os-primary-button-active-bg: light-dark(#f1edf0, #8b5185);
+  --os-primary-button-bg: light-dark(#004455, #0096B3);
+  --os-primary-button-hover-bg: light-dark(#003644, #00a8c9);
+  --os-primary-button-active-bg: light-dark(#e0f2f1, #00b4d8);
   --os-primary-button-text-color: light-dark(#ffffff, #ffffff);
   --os-action-color: var(--os-link-color); /* ACTION_COLOR */
   --os-action-color-hover: var(--os-link-hover-color);

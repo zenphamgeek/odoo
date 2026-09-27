@@ -12,18 +12,18 @@ import { _t } from "@web/core/l10n/translation";
  */
 
 const CHART_PLACEHOLDER_DISPLAY_NAME = {
-    bar: _t("Odoo Bar Chart"),
-    line: _t("Odoo Line Chart"),
-    pie: _t("Odoo Pie Chart"),
-    radar: _t("Odoo Radar Chart"),
-    geo: _t("Odoo Geo Chart"),
-    treemap: _t("Odoo Treemap Chart"),
-    sunburst: _t("Odoo Sunburst Chart"),
-    waterfall: _t("Odoo Waterfall Chart"),
-    pyramid: _t("Odoo Pyramid Chart"),
-    scatter: _t("Odoo Scatter Chart"),
-    combo: _t("Odoo Combo Chart"),
-    funnel: _t("Odoo Funnel Chart"),
+    bar: _t("Insilos Bar Chart"),
+    line: _t("Insilos Line Chart"),
+    pie: _t("Insilos Pie Chart"),
+    radar: _t("Insilos Radar Chart"),
+    geo: _t("Insilos Geo Chart"),
+    treemap: _t("Insilos Treemap Chart"),
+    sunburst: _t("Insilos Sunburst Chart"),
+    waterfall: _t("Insilos Waterfall Chart"),
+    pyramid: _t("Insilos Pyramid Chart"),
+    scatter: _t("Insilos Scatter Chart"),
+    combo: _t("Insilos Combo Chart"),
+    funnel: _t("Insilos Funnel Chart"),
 };
 
 export class OdooChartCorePlugin extends OdooCorePlugin {

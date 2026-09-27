@@ -19,7 +19,7 @@
     <head>
         <meta charset="utf-8"/>
         <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-        <title t-out="title or 'Odoo'"/>
+        <title t-out="title or 'Insilos'"/>
         <link type="image/x-icon" rel="shortcut icon" t-att-href="x_icon or '/web/static/img/favicon.ico'"/>
         <script id="web.layout.odooscript" type="text/javascript">
             var odoo = {
@@ -90,8 +90,8 @@
         <t t-set="odoo_logo">
             <strong>
                 <a target="_blank"
-                    t-attf-href="http://www.odoo.com?utm_source=db&amp;utm_medium=#{_utm_medium}">
-                    Odoo
+                    t-attf-href="https://insilos.com?utm_source=db&amp;utm_medium=#{_utm_medium}">
+                    Insilos
                 </a>
             </strong>
         </t>
@@ -126,7 +126,7 @@
                             <t t-if="not disable_database_manager">
                                 <a class="border-end pe-2 me-1" href="/web/database/manager">Manage Databases</a>
                             </t>
-                            <a href="https://www.odoo.com?utm_source=db&amp;utm_medium=auth" target="_blank">Powered by <span>Odoo</span></a>
+                            <a href="https://insilos.com?utm_source=db&amp;utm_medium=auth" target="_blank">Powered by <span>Insilos</span></a>
                         </div>
                     </div>
                 </div>
@@ -138,7 +138,7 @@
         <t t-set="head">
             <t t-if="disable_opengraph">
                 <!-- Open Graph / Facebook -->
-                <meta property="og:site_name" content="Odoo"/>
+                <meta property="og:site_name" content="Insilos"/>
                 <meta property="og:type" content="website"/>
                 <meta property="og:url" t-att-content="og_url"/>
                 <meta property="og:title" t-att-content="og_title"/>
@@ -149,7 +149,7 @@
                 <meta property="og:image:height" content="420"/>
                 <!-- Twitter -->
                 <meta name="twitter:card" content="summary_large_image"/>
-                <meta name="twitter:site" content="@Odoo"/>
+                <meta name="twitter:site" content="@Insilos"/>
                 <meta name="twitter:url" t-att-content="og_url"/>
                 <meta name="twitter:domain" t-att-content="og_domain"/>
                 <meta name="twitter:title" t-att-content="og_title"/>
@@ -348,9 +348,9 @@
                 filter: grayscale(.6);
                 }
                 .card button {
-                background-color: #714B67;
+                background-color: #004455;
                 color: #FFFFFF;
-                border: 1px solid #714B67;
+                border: 1px solid #004455;
                 border-radius: .25rem;
                 padding: .5rem 1rem;
                 cursor: pointer;
@@ -365,9 +365,9 @@
             title.translate="Offline"
             head="head">
             <div class="card">
-                <img t-attf-src="data:image/png;base64,{{odoo_icon.to_base64()}}" alt="Odoo logo"/>
+                <img t-attf-src="data:image/png;base64,{{odoo_icon.to_base64()}}" alt="Insilos logo"/>
                 <h1>You are offline</h1>
-                <p>Check your network connection and come back here. Odoo will load as soon as you're back online.</p>
+                <p>Check your network connection and come back here. Insilos will load as soon as you're back online.</p>
                 <button onclick="location.reload()">Check again</button>
             </div>
         </t>

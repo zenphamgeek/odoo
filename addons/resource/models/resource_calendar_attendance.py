@@ -18,7 +18,7 @@ class ResourceCalendarAttendance(models.Model):
     _name = 'resource.calendar.attendance'
     _description = "Work Detail"
     _order = 'sequence, date, dayofweek, hour_from'
-
+    name = fields.Char(string='Name')
     hour_from = fields.Float(string='Work from', compute="_compute_hours", store=True, default=0,
         readonly=False, required=True, index=True, precompute=True,
         help="Start and End time of working.\n"

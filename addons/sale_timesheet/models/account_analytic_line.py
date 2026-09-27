@@ -23,6 +23,7 @@ class AccountAnalyticLine(models.Model):
         ])
 
     commercial_partner_id = fields.Many2one('res.partner', compute="_compute_commercial_partner")
+    timesheet_invoice_id = fields.Many2one('account.move', string="Invoice", related='reinvoice_move_id', store=True, readonly=False)
     so_line = fields.Many2one(
         falsy_value_label="Non-billable",
         help="Sales order item to which the time spent will be added in order to be invoiced to your customer. Remove the sales order item for the timesheet entry to be non-billable."

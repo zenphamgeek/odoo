@@ -10,7 +10,7 @@ class StockPickingType(models.Model):
 
     auto_print_cmr_report = fields.Boolean(
         'Auto Print Consignment Note (CMR)',
-        help="If this checkbox is ticked, Odoo will automatically print the Consignment Note (CMR) of a delivery when it is validated.",
+        help="If this checkbox is ticked, Insilos will automatically print the Consignment Note (CMR) of a delivery when it is validated.",
     )
     dispatch_management = fields.Boolean(
         'Dispatch Management',

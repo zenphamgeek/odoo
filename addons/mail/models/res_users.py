@@ -43,7 +43,7 @@ class ResUsers(models.Model):
         user_writeable=True,
         help="How notifications for document messages and system updates are delivered:\n"
              "- By email: Notifications are sent to your email address.\n"
-             "- In Odoo: Notifications appear in your Odoo inbox.")
+             "- In Insilos: Notifications appear in your Insilos inbox.")
     presence_ids = fields.One2many("mail.presence", "user_id", groups="base.group_system")
     # OOO management
     out_of_office_from = fields.Datetime(user_writeable=True)
@@ -88,7 +88,7 @@ class ResUsers(models.Model):
 
     _notification_type = models.Constraint(
         "CHECK (notification_type = 'email' OR NOT share)",
-        'Only internal user can receive notifications in Odoo',
+        'Only internal user can receive notifications in Insilos',
     )
 
     @api.depends('share', 'all_group_ids')
@@ -565,7 +565,7 @@ class ResUsers(models.Model):
     def _format_activity_group(self, model_name, activities):
         Model = self.env[model_name]
         module = Model._original_module
-        icon = (module and modules.module.get_module_icon(module)) or "/base/static/description/icon.png"
+        icon = (module and modules.module.get_module_icon(module)) or "/base/static/description/icon.svg"
         model = self.env['ir.model']._get(model_name)
         states = activities.mapped('state')
 

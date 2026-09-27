@@ -69,6 +69,7 @@ class StockMove(models.Model):
         'uom.uom', "Unit", required=True, domain="[('id', 'in', allowed_uom_ids)]",
         compute="_compute_uom_id", store=True, readonly=False, precompute=True,
     )
+    product_uom = fields.Many2one('uom.uom', related='uom_id', readonly=False)
     # TDE FIXME: make it stored, otherwise group will not work
     product_tmpl_id = fields.Many2one(
         'product.template', 'Product Template',

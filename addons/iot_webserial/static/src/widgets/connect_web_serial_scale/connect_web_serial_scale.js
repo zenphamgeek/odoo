@@ -16,7 +16,7 @@ export class ConnectWebSerialScale extends Component {
     checkBrowserCompatibility() {
         if (!window.isSecureContext) {
             this.notification.add(
-                _t("Connecting a scale directly requires you to access Odoo via HTTPS."),
+                _t("Connecting a scale directly requires you to access Insilos via HTTPS."),
                 { type: "danger" }
             );
             return false;
@@ -54,7 +54,7 @@ export class ConnectWebSerialScale extends Component {
                 this.notification.add(_t("Scale connected successfully!"), { type: "success" });
                 await port.close();
             } else {
-                this.notification.add(_t("Your scale is not compatible with Odoo."), {
+                this.notification.add(_t("Your scale is not compatible with Insilos."), {
                     type: "danger",
                 });
                 await port.forget();

@@ -23,3 +23,4 @@ from . import stock_request_count
 from . import stock_rules_report
 from . import stock_warn_insufficient_qty
 from . import stock_zero_demand_confirmation
+from . import stock_picking_return

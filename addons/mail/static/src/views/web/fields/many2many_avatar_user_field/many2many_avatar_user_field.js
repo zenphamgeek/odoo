@@ -125,3 +125,7 @@ export const listMany2ManyTagsAvatarUserField = {
 
 registry.category("fields").add("list.many2many_avatar_user", listMany2ManyTagsAvatarUserField);
 registry.category("fields").add("activity.many2many_avatar_user", cardMany2ManyTagsAvatarUserField);
+
+export const KanbanMany2ManyTagsAvatarUserField = CardMany2ManyTagsAvatarUserField;
+export const kanbanMany2ManyTagsAvatarUserField = cardMany2ManyTagsAvatarUserField;
+export class KanbanMany2ManyAvatarUserTagsList extends CardMany2ManyTagsAvatarUserField {}

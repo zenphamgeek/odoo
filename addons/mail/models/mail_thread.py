@@ -3372,6 +3372,7 @@ class MailThread(models.AbstractModel):
             'send_after_commit',
             'skip_existing',
             'subtitles',
+            'msg_vals',
         }
         # limit mail headers to internal users
         if not self.env.user.share or self.env.su:

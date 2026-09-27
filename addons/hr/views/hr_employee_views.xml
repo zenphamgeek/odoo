@@ -387,6 +387,7 @@
                                     <group string="Education" name="hr_education_group">
                                         <field name="certificate"/>
                                         <field name="study_field" placeholder="e.g. Engineering, Commerce, Business Administration, ..."/>
+                                        <field name="study_school" placeholder="e.g. University, High School, ..."/>
                                     </group>
                                     <group string="Documents" name="hr_document_group">
                                         <field name="id_card_name" invisible="1"/>

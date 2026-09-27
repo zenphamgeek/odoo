@@ -162,7 +162,7 @@ class PdpRegistration(models.TransientModel):
                     "level": "warning",
                     "message": self.env._(
                         "Another platform is already assigned to this identifier in the annuaire (Platform%(platform_name)s with ID %(platform_id)s). "
-                        "By registering, you confirm that you want to migrate to Odoo.",
+                        "By registering, you confirm that you want to migrate to Insilos.",
                         platform_name=platform_name,
                         platform_id=participant_info.get("platform_id"),
                     ),

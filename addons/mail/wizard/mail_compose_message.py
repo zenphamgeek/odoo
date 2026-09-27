@@ -194,7 +194,7 @@ class MailComposeMessage(models.TransientModel):
     auto_delete = fields.Boolean(
         'Delete Emails',
         compute="_compute_auto_delete", readonly=False, store=True, compute_sudo=False,
-        help='This option permanently removes any track of email after it\'s been sent, including from the Technical menu in the Settings, in order to preserve storage space of your Odoo database.')
+        help='This option permanently removes any track of email after it\'s been sent, including from the Technical menu in the Settings, in order to preserve storage space of your Insilos database.')
     auto_delete_keep_log = fields.Boolean(
         'Keep Message Copy',
         compute="_compute_auto_delete_keep_log", readonly=False, store=True,

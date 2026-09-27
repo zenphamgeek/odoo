@@ -23,7 +23,7 @@ class L10n_LatamDocumentType(models.Model):
     report_name = fields.Char('Name on Reports', help='Name that will be printed in reports, for example "CREDIT NOTE"', translate=True)
     internal_type = fields.Selection(
         [('invoice', 'Invoices'), ('debit_note', 'Debit Notes'), ('credit_note', 'Credit Notes'), ('all', 'All Documents')],
-        help='Analog to odoo account.move.move_type but with more options allowing to identify the kind of document we are'
+        help='Analog to Insilos account.move.move_type but with more options allowing to identify the kind of document we are'
         ' working with. (not only related to account.move, could be for documents of other models like stock.picking)')
 
     def _format_document_number(self, document_number):

@@ -34,10 +34,10 @@ class StockPickingType(models.Model):
 
     auto_print_done_production_order = fields.Boolean(
         "Auto Print Done Production Order",
-        help="If this checkbox is ticked, Odoo will automatically print the production order of a MO when it is done.")
+        help="If this checkbox is ticked, Insilos will automatically print the production order of a MO when it is done.")
     auto_print_done_mrp_product_labels = fields.Boolean(
         "Auto Print Produced Product Labels",
-        help="If this checkbox is ticked, Odoo will automatically print the product labels of a MO when it is done.")
+        help="If this checkbox is ticked, Insilos will automatically print the product labels of a MO when it is done.")
     mrp_product_label_to_print = fields.Selection(
         selection='_get_mrp_product_label_to_print_selection',
         string="Product Label to Print",
@@ -45,16 +45,16 @@ class StockPickingType(models.Model):
     )
     auto_print_done_mrp_lot = fields.Boolean(
         "Auto Print Produced Lot Label",
-        help="If this checkbox is ticked, Odoo will automatically print the lot/SN label of a MO when it is done.")
+        help="If this checkbox is ticked, Insilos will automatically print the lot/SN label of a MO when it is done.")
     done_mrp_lot_label_to_print = fields.Selection(
         selection='_get_lot_label_format_selection',
         string="Lot/SN Label to Print", default='4x12_lots')
     auto_print_mrp_reception_report = fields.Boolean(
         "Auto Print Allocation Report",
-        help="If this checkbox is ticked, Odoo will automatically print the allocation report of a MO when it is done and has assigned moves.")
+        help="If this checkbox is ticked, Insilos will automatically print the allocation report of a MO when it is done and has assigned moves.")
     auto_print_mrp_reception_report_labels = fields.Boolean(
         "Auto Print Allocation Report Labels",
-        help="If this checkbox is ticked, Odoo will automatically print the allocation report labels of a MO when it is done.")
+        help="If this checkbox is ticked, Insilos will automatically print the allocation report labels of a MO when it is done.")
     auto_print_generated_mrp_lot = fields.Boolean(
         "Auto Print Generated Lot/SN Label",
         help='Automatically print the lot/SN label when the "Create a new serial/lot number" button is used.')

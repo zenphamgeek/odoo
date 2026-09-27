@@ -774,6 +774,19 @@ function orderByField(model, orderBy, records) {
                 v2 = Number(v2);
                 break;
             }
+            case "selection": {
+                if (Array.isArray(field.selection)) {
+                    if (v1 !== false) {
+                        const idx1 = field.selection.findIndex(([val]) => val === v1);
+                        v1 = idx1 === -1 ? Infinity : idx1;
+                    }
+                    if (v2 !== false) {
+                        const idx2 = field.selection.findIndex(([val]) => val === v2);
+                        v2 = idx2 === -1 ? Infinity : idx2;
+                    }
+                }
+                break;
+            }
             case "many2one": {
                 v1 &&= valuesMap.get(v1[0] ?? v1);
                 v2 &&= valuesMap.get(v2[0] ?? v2);
@@ -2088,6 +2101,18 @@ export class Model extends Array {
             );
         }
         return result;
+    }
+
+    /**
+     * @param {number | number[]} id
+     */
+    get_record_default_action(id) {
+        return {
+            res_id: Array.isArray(id) ? id[0] : id,
+            res_model: this.name,
+            type: "ir.actions.act_window",
+            views: [[false, "form"]],
+        };
     }
 
     /**

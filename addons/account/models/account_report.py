@@ -98,6 +98,7 @@ class AccountReport(models.Model):
     )
     load_more_limit = fields.Integer(string="Load More Limit", default=500)
     search_bar = fields.Boolean(string="Search Bar")
+    prefix_groups_threshold = fields.Integer(string="Prefix Groups Threshold", default=4000)
     integer_rounding = fields.Selection(string="Integer Rounding", selection=[('HALF-UP', "Nearest"), ('UP', "Up"), ('DOWN', "Down")])
     allow_foreign_vat = fields.Boolean(
         string="Allow Foreign Tax ID",
@@ -228,6 +229,11 @@ class AccountReport(models.Model):
     filter_budgets = fields.Boolean(
         string="Budgets",
         compute=lambda x: x._compute_report_option_filter('filter_budgets'), readonly=False,
+        precompute=True, store=True, depends=['root_report_id', 'section_main_report_ids'],
+    )
+    filter_analytic = fields.Boolean(
+        string="Analytic",
+        compute=lambda x: x._compute_report_option_filter('filter_analytic'), readonly=False,
         precompute=True, store=True, depends=['root_report_id', 'section_main_report_ids'],
     )
 
@@ -450,6 +456,13 @@ class AccountReportLine(models.Model):
         store=True,
         readonly=False,
     )
+    foldable = fields.Boolean(
+        string="Foldable (compat)",
+        compute='_compute_foldable',
+        inverse='_inverse_foldable',
+        search='_search_foldable',
+        store=False,
+    )
     print_on_new_page = fields.Boolean('Print On New Page', help='When checked this line and everything after it will be printed on a new page.')
     action_id = fields.Many2one(string="Action", comodel_name='ir.actions.actions', help="Setting this field will turn the line into a link, executing the action when clicked.")
     hide_if_zero = fields.Boolean(string="Hide if Zero", help="This line and its children will be hidden when all of their columns are 0.")
@@ -659,6 +672,42 @@ class AccountReportLine(models.Model):
         called if the parent model is deleted.
         """
         self.expression_ids.unlink()
+
+    def _compute_foldable(self):
+        for line in self:
+            line.foldable = line.foldability == 'foldable'
+
+    def _inverse_foldable(self):
+        for line in self:
+            if line.foldable:
+                line.foldability = 'foldable'
+            elif line.foldability == 'foldable':
+                line.foldability = 'always_unfolded'
+
+    def _search_foldable(self, operator, value):
+        if (operator in ('=', '!=') and value) or (operator in ('!=', '<>') and not value):
+            return [('foldability', '=', 'foldable')]
+        else:
+            return [('foldability', '!=', 'foldable')]
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if 'foldable' in vals:
+                if 'foldability' not in vals:
+                    vals['foldability'] = 'foldable' if vals.pop('foldable') else 'always_unfolded'
+                else:
+                    vals.pop('foldable')
+        return super().create(vals_list)
+
+    def write(self, vals):
+        if 'foldable' in vals:
+            vals = dict(vals)
+            if 'foldability' not in vals:
+                vals['foldability'] = 'foldable' if vals.pop('foldable') else 'always_unfolded'
+            else:
+                vals.pop('foldable')
+        return super().write(vals)
 
 
 class AccountReportExpression(models.Model):

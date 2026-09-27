@@ -928,7 +928,7 @@ class TestChannelInternals(MailCommon, HttpCase):
         self.assertEqual(test_channel.avatar_128.content, self._expected_default_avatar("C", str(test_channel.id)))
         # regular group: the group glyph recolored with the UI palette
         bgcolor_group = get_random_ui_color_from_seed(str(private_group.id))
-        expected_group = group_avatar.replace('fill="#875a7b"', f'fill="{bgcolor_group}"').encode()
+        expected_group = group_avatar.replace('fill="#004455"', f'fill="{bgcolor_group}"').encode()
         self.assertEqual(private_group.avatar_128.content, expected_group)
         # meeting: day of month of the creation date
         self.assertEqual(meeting.avatar_128.content, self._expected_default_avatar(str(meeting.create_date.day), str(meeting.id)))

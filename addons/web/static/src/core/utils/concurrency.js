@@ -11,6 +11,29 @@ export function delay(wait) {
 }
 
 /**
+ * Deferred is a Promise subclass that exposes resolve and reject methods.
+ */
+export class Deferred extends Promise {
+    constructor(executor) {
+        let resolve, reject;
+        super((res, rej) => {
+            resolve = res;
+            reject = rej;
+            if (typeof executor === "function") {
+                executor(res, rej);
+            }
+        });
+        this.resolve = resolve;
+        this.reject = reject;
+    }
+
+    get promise() {
+        return this;
+    }
+}
+
+
+/**
  * KeepLast is a concurrency primitive that manages a list of tasks, and only
  * keeps the last task active.
  *

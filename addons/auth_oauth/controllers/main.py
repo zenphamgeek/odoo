@@ -114,11 +114,11 @@ class OAuthController(Controller):
             action = state.get('a')
             menu = state.get('m')
             redirect = werkzeug.urls.url_unquote_plus(state['r']) if state.get('r') else False
-            url = '/odoo'
+            url = '/insilos'
             if redirect:
                 url = redirect
             elif action:
-                url = '/odoo/action-%s' % action
+                url = '/insilos/action-%s' % action
             elif menu:
                 url = '/odoo?menu_id=%s' % menu
 

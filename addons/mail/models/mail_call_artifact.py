@@ -131,8 +131,8 @@ class MailCallArtifact(models.Model):
             )
             body = Markup('<h2>%s</h2><p>%s</p><p><a href="%s">%s</a></p>') % (
                 subject,
-                artifact.env._("Your meeting recording is available in Odoo."),
-                f"{artifact.get_base_url()}/odoo/discuss.call.history/{call.id}",
+                artifact.env._("Your meeting recording is available in Insilos."),
+                f"{artifact.get_base_url()}/insilos/discuss.call.history/{call.id}",
                 artifact.env._("View recording"),
             )
             body = artifact.env["mail.render.mixin"]._render_encapsulate(

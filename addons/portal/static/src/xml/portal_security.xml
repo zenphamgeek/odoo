@@ -14,7 +14,7 @@
         <form id="key_description_form" string="Key Description">
             <label class="text-muted d-block mb-1">Key Name — your only way to identify that key</label>
             <h1 class="mb-3">
-                <input type="text" class="form-control form-control-lg border-0 px-1" placeholder='e.g. "Odoo MCP"' name="description" required="1"/>
+                <input type="text" class="form-control form-control-lg border-0 px-1" placeholder='e.g. "Insilos MCP"' name="description" required="1"/>
             </h1>
             <div class="mb-3" t-if="scope_selection and scope_selection.length > 1">
                 <div class="d-flex flex-wrap gap-2">
@@ -59,7 +59,7 @@
                     import requests<br/><br/>
                     url = "<t t-out="base_url"/>"<br/>
                     # Store the API key securely, not in the code.<br/>
-                    mcp_key = os.environ["ODOO_MCP_KEY"]<br/><br/>
+                    mcp_key = os.environ["INSILOS_MCP_KEY"]<br/><br/>
                     headers = {<br/>
                         "Authorization": f"bearer {mcp_key}",<br/>
                         "Content-Type": "application/json",<br/>

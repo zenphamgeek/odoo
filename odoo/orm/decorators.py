@@ -331,3 +331,11 @@ def model_create_multi[T](method: Callable[[T, list[ValuesType]], T]) -> Callabl
 
     create._api_model = True  # type: ignore
     return create
+
+
+def deprecated(message=""):
+    """ Decorate a deprecated method. """
+    def decorator(func):
+        return func
+    return decorator
+

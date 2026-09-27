@@ -43,7 +43,7 @@ class ProductDocument(models.Model):
             if attachment.type == 'url' and attachment.url and\
                 not attachment.url.startswith(('https://', 'http://', 'ftp://')):
                 raise ValidationError(_(
-                    "Please enter a valid URL.\nExample: https://www.odoo.com\n\nInvalid URL: %s",
+                    "Please enter a valid URL.\nExample: https://www.insilos.com\n\nInvalid URL: %s",
                     attachment.url
                 ))
 

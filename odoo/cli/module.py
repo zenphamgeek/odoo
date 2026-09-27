@@ -72,7 +72,7 @@ class Module(Command):
                 '-d', '--database', dest='db_name', default=None,
                 help="database name, connection details will be taken from the config file")
             parser.add_argument("-D", "--data-dir", dest="data_dir",
-                 help="directory where to store Odoo data")
+                 help="directory where to store Insilos data")
         for parser in (
             install_parser,
             uninstall_parser,

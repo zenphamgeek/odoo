@@ -177,6 +177,7 @@ class HrLeave(models.Model):
         tracking=True)
     allowed_work_entry_type_ids = fields.Many2many(
         'hr.work.entry.type', compute='_compute_allowed_work_entry_type_ids')
+    holiday_status_id = fields.Many2one('hr.work.entry.type', related='work_entry_type_id', string="Time Off Type", readonly=False)
     work_entry_type_requires_allocation = fields.Boolean(related="work_entry_type_id.requires_allocation")
     count_as = fields.Selection(related='work_entry_type_id.count_as')
     color = fields.Integer("Color", related='work_entry_type_id.color')

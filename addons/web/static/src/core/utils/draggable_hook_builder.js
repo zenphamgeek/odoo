@@ -139,7 +139,7 @@ const DEFAULT_ACCEPTED_PARAMS = {
     allowDisconnected: [Boolean], // do not use, introduced for stable versions, to challenge in master
     enable: [Boolean, Function],
     preventDrag: [Function],
-    ref: [Function],
+    ref: [Function, Object],
     elements: [String],
     handle: [String, Function],
     ignore: [String, Function],
@@ -486,7 +486,7 @@ export function makeDraggableHook(hookParams) {
                     // the host component's render to the ref signal. Otherwise
                     // `getReturnValue` would call the signal in a tracked context,
                     // causing an extra re-render when the ref is set on mount.
-                    computedParams[prop] = untrack(params[prop]);
+                    computedParams[prop] = typeof params[prop] === "function" ? untrack(params[prop]) : params[prop]?.el;
                 } else if (
                     allAcceptedParams[prop].length === 1 &&
                     allAcceptedParams[prop][0] === Function
@@ -1178,7 +1178,7 @@ export function makeDraggableHook(hookParams) {
                         return cleanup;
                     }
                 },
-                () => [untrack(ctx.ref)]
+                () => [typeof ctx.ref === "function" ? untrack(ctx.ref) : ctx.ref?.el]
             );
 
             setupHooks.setup(
@@ -1211,7 +1211,7 @@ export function makeDraggableHook(hookParams) {
                         }
                         return cleanup;
                     },
-                    () => [...getIframes(untrack(ctx.ref))]
+                    () => [...getIframes(typeof ctx.ref === "function" ? untrack(ctx.ref) : ctx.ref?.el)]
                 );
             }
 

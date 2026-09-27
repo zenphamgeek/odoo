@@ -1,6 +1,8 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 # ruff: noqa: F401
 
+import warnings
+
 from . import constants
 from . import urls
 from .parse_version import parse_version
@@ -12,7 +14,7 @@ from .i18n import format_list, py_to_js_locale
 from .json import json_default
 from .mail import *
 from .misc import *
-from .sql import SQL, drop_view_if_exists
+from .sql import SQL, drop_view_if_exists, escape_psql
 from .translate import _, html_translate, xml_translate, LazyTranslate
 from .xml_utils import cleanup_xml_node, load_xsd_files_from_url, validate_xml_from_attachment
 from .convert import convert_file
@@ -20,7 +22,9 @@ from .set_expression import SetDefinitions
 
 
 def __getattr__(name):
-    import warnings  # noqa: PLC0415
+    if name == 'Query':
+        from odoo.orm.query import Query  # noqa: PLC0415
+        return Query
     if name in ('cache', 'ormcache'):
         warnings.warn("Since 20.0 import ormcache from odoo.api", DeprecationWarning, stacklevel=2)
         from odoo.orm import cache  # noqa: PLC0415

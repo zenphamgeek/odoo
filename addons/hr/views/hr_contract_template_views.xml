@@ -35,6 +35,7 @@
                             <group name="salary_info">
                                 <group name="contract" string="Contract Overview" groups="hr.group_hr_user">
                                     <field name="employee_type_id" string="Employee Type" placeholder="Select employee type"/>
+                                    <field name="work_entry_source" invisible="1"/>
                                     <label for="wage"/>
                                     <div class="o_row" name="wage">
                                         <field name="wage" class="o_hr_narrow_field"/>

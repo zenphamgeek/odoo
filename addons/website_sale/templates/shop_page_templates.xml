@@ -489,7 +489,7 @@
                                     <div>
                                         <a
                                             name="products_manager_button"
-                                            href="/odoo/action-website_sale.product_template_action_website"
+                                            href="/insilos/action-website_sale.product_template_action_website"
                                             class="btn btn-primary d-md-none mb-3"
                                             >
                                             Go to Products Manager

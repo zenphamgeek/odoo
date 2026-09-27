@@ -400,7 +400,7 @@
                                     import requests<br/><br/>
                                     url = "<field name="base_url"/>"<br/>
                                     # Store the API key securely, not in the code.<br/>
-                                    mcp_key = os.environ["ODOO_MCP_KEY"]<br/><br/>
+                                    mcp_key = os.environ["INSILOS_MCP_KEY"]<br/><br/>
                                     headers = {<br/>
                                         "Authorization": f"bearer {mcp_key}",<br/>
                                         "Content-Type": "application/json",<br/>

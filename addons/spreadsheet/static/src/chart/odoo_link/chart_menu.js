@@ -9,7 +9,7 @@ patch(spreadsheet.components.ChartMenu.prototype, {
         if (this.hasOdooLink && !this.env.model.getters.isDashboard()) {
             items.push({
                 id: "chartOdooLink",
-                label: _t("Chart Odoo Link"),
+                label: _t("Chart Insilos Link"),
                 icon: "o-spreadsheet-Icon.EXTERNAL",
                 onClick: (ev) => this.navigateToOdooLink(false),
             });

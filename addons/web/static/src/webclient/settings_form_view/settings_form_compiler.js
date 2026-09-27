@@ -54,12 +54,16 @@ export class SettingsFormCompiler extends FormCompiler {
             // but in this case we want to see its settings (notApp="0").
             return;
         }
+        let logo = el.getAttribute("logo");
+        if (logo && logo.endsWith(".png")) {
+            logo = logo.replace(/\.png$/, ".svg");
+        }
         const module = {
             key: el.getAttribute("name"),
             string: el.getAttribute("string"),
             imgurl:
-                el.getAttribute("logo") ||
-                "/" + el.getAttribute("name") + "/static/description/icon.png",
+                logo ||
+                "/" + el.getAttribute("name") + "/static/description/icon.svg",
         };
         params.modules.push(module);
         const settingsApp = createElement("SettingsApp", {

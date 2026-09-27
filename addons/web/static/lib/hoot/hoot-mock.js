@@ -80,3 +80,5 @@ export const watchAddedNodes = _window.watchAddedNodes;
 export const watchKeys = _window.watchKeys;
 /** @deprecated use `import { watchListeners } from "@odoo/hoot";` */
 export const watchListeners = _window.watchListeners;
+
+export { Deferred } from "./hoot";

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Insilos Enterprise Platform — Executive Presentation Deck</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    :root {
+      --primary: #004455;
+      --primary-dark: #002b36;
+      --secondary: #0096B3;
+      --navy: #0B2E64;
+      --accent: #FF8000;
+      --accent-soft: #fff3e6;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* Deck Container */
+    .deck-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateX(60px);
+      padding: 60px 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(0);
+    }
+
+    .slide.prev {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    /* Navigation Bar */
+    .nav-bar {
+      height: 64px;
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 40px;
+      font-size: 13px;
+      color: var(--text-muted);
+      z-index: 100;
+    }
+
+    .nav-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn-nav {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      transition: background 0.2s ease;
+    }
+    .btn-nav:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    /* Slide Elements */
+    .slide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 128, 0, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(255, 128, 0, 0.3);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 20px;
+      width: fit-content;
+    }
+
+    h1 {
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 24px;
+      color: #ffffff;
+    }
+    h1 span {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    h2 {
+      font-size: 34px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+
+    p.lead {
+      font-size: 20px;
+      color: var(--text-muted);
+      max-width: 860px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    /* Grid layouts */
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-top: 16px;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 36px;
+      margin-top: 20px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    .card h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #38bdf8;
+    }
+    .card p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+
+    /* Metric cards */
+    .metric-box {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      border-radius: 16px;
+      padding: 30px 24px;
+      text-align: center;
+    }
+    .metric-val {
+      font-size: 46px;
+      font-weight: 900;
+      color: #38bdf8;
+      margin-bottom: 8px;
+      line-height: 1;
+    }
+    .metric-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Screenshot viewer */
+    .screenshot-viewer {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      background: #000;
+      max-height: 480px;
+    }
+    .screenshot-viewer img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* Indicators */
+    .progress-bar {
+      height: 3px;
+      background: rgba(255, 255, 255, 0.1);
+      position: absolute;
+      top: 0; left: 0; width: 100%;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--secondary), var(--accent));
+      width: 12.5%;
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="deck-container">
+
+    <!-- SLIDE 1: COVER -->
+    <div class="slide active" data-slide="1">
+      <div class="slide-badge">⚡ INSILOS ENTERPRISE v20.0-PROD</div>
+      <h1>Kiến Tạo Tương Lai ERP<br><span>Ngoại Thương, Hóa Chất &amp; ESG</span></h1>
+      <p class="lead">
+        Nền tảng quản trị tài nguyên doanh nghiệp thế hệ mới, tích hợp tự động hóa xử lý chứng từ hải quan (IDP), kiểm soát hạn ngạch hóa chất theo thời gian thực và thẩm định thuế quan FTA toàn cầu.
+      </p>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; color: var(--text-muted);">
+        Tháng 09/2026 | Insilos Enterprise Solutions Group | Bấm phím [&rarr;] hoặc [Space] để tiếp tục
+      </div>
+    </div>
+
+    <!-- SLIDE 2: INDUSTRY PAIN POINTS -->
+    <div class="slide" data-slide="2">
+      <div class="slide-badge">BỐI CẢNH &amp; THÁCH THỨC</div>
+      <h2>Tại Sao Các Tập Đoàn Toàn Cầu Cần Insilos?</h2>
+      <p class="lead">Doanh nghiệp xuất nhập khẩu và hóa chất đang phải đối mặt với áp lực kép về tuân thủ pháp luật và rào cản xanh:</p>
+      <div class="grid-4">
+        <div class="card">
+          <div style="font-size: 32px; margin-bottom: 12px;">⚖️</div>
+          <h3>Luật Hóa Chất 2025</h3>
+          <p>Luật Hóa chất 69/2025/QH15 &amp; Nghị định 113 siết chặt quản lý giấy phép, khai báo NSW và quy chuẩn an toàn hóa chất nghiêm ngặt.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 32px; margin-bottom: 12px;">🌱</div>
+          <h3>Cơ Chế CBAM EU</h3>
+          <p>Rào cản thuế biên giới carbon của Liên minh Châu Âu đòi hỏi doanh nghiệp phải bóc tách dữ liệu phát thải Scope 3 chính xác.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 32px; margin-bottom: 12px;">🌐</div>
+          <h3>Ma Trận Thuế FTA</h3>
+          <p>Quy tắc xuất xứ trong EVFTA, CPTPP phức tạp, doanh nghiệp dễ bỏ lỡ cơ hội hưởng thuế ưu đãi 0% do thiếu bằng chứng đối soát.</p>
+        </div>
+        <div class="card">
+          <div style="font-size: 32px; margin-bottom: 12px;">⏳</div>
+          <h3>Xử Lý Giấy Tờ Rời Rạc</h3>
+          <p>Đối soát thủ công giữa Đơn mua hàng (PO), Hóa đơn (Invoice) và Tờ khai gây lãng phí 95% thời gian và rủi ro phạt hàng tỷ đồng.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: 4 CORE PILLARS -->
+    <div class="slide" data-slide="3">
+      <div class="slide-badge">KIẾN TRÚC GIẢI PHÁP</div>
+      <h2>4 Trụ Cột Giá Trị Cốt Lõi Của Insilos</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>1. Logistics IDP &amp; Tamper-Proof Audit Trail</h3>
+          <p>Tự động trích xuất thông minh từ chứng từ NSW, đối soát 3 chiều PO - Invoice - Tờ khai và đóng dấu băm SHA-256 bất biến trên sổ cái điện tử.</p>
+        </div>
+        <div class="card">
+          <h3>2. Sổ Cái Hạn Ngạch Hóa Chất Thời Gian Thực</h3>
+          <p>Tự động nhận diện danh mục quản lý theo số CAS và trừ trực tiếp quota giấy phép nhập khẩu Bộ Công Thương qua token bảo mật cao.</p>
+        </div>
+        <div class="card">
+          <h3>3. Công Cụ Thẩm Định Xuất Xứ FTA Tự Động</h3>
+          <p>Tự động tính hàm lượng RVC, kiểm định tiêu chí chuyển đổi mã số hàng hóa CTH và cấp chứng thư Form EUR.1, Form D, Form E tức thời.</p>
+        </div>
+        <div class="card">
+          <h3>4. Báo Cáo Phát Thải Scope 3 &amp; Cố Vấn CBAM</h3>
+          <p>Đo lường phát thải vận tải biển/bộ theo chuẩn quốc tế GLEC và mô phỏng giải pháp năng lượng mặt trời tiết kiệm thuế carbon Châu Âu.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: CROSS-MODULE INTEGRATION -->
+    <div class="slide" data-slide="4">
+      <div class="slide-badge">KỊCH BẢN THỰC NGHIỆM ĐÃ KIỂM ĐỊNH</div>
+      <h2>Chuỗi Giá Trị Liên Module Toàn Trình (100% PASS)</h2>
+      <div class="grid-4" style="margin-top: 24px;">
+        <div class="metric-box">
+          <div style="font-size: 13px; color: #38bdf8; font-weight: 700; margin-bottom: 6px;">TRẠM 1: LOGISTICS IDP</div>
+          <div class="metric-val" style="font-size: 26px;">SHA-256</div>
+          <div class="metric-label">Bằng chứng bất biến, đối soát 3 chiều khớp 100%</div>
+        </div>
+        <div class="metric-box">
+          <div style="font-size: 13px; color: #38bdf8; font-weight: 700; margin-bottom: 6px;">TRẠM 2: HÓA CHẤT</div>
+          <div class="metric-val" style="font-size: 26px;">-20,000 kg</div>
+          <div class="metric-label">Khấu trừ quota Ethyl Acetate (Còn 80,000 kg khả dụng)</div>
+        </div>
+        <div class="metric-box">
+          <div style="font-size: 13px; color: #38bdf8; font-weight: 700; margin-bottom: 6px;">TRẠM 3: XUẤT XỨ FTA</div>
+          <div class="metric-val" style="font-size: 26px;">82.86%</div>
+          <div class="metric-label">RVC vượt ngưỡng (&ge; 50%), đủ điều kiện thuế EVFTA 0%</div>
+        </div>
+        <div class="metric-box">
+          <div style="font-size: 13px; color: #38bdf8; font-weight: 700; margin-bottom: 6px;">TRẠM 4: ESG &amp; CBAM</div>
+          <div class="metric-val" style="font-size: 26px;">545.97 kg</div>
+          <div class="metric-label">Phát thải ròng GLEC &amp; Cố vấn tiết kiệm €1,462/năm</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 5: SCREENSHOT SHOWCASE -->
+    <div class="slide" data-slide="5">
+      <div class="slide-badge">GIAO DIỆN VẬN HÀNH THỰC TẾ</div>
+      <h2>Trải Nghiệm Đẳng Cấp Insilos Signature UI</h2>
+      <div class="grid-2">
+        <div class="screenshot-viewer">
+          <img src="screenshots/01_insilos_launcher_apps.png" alt="Launcher">
+        </div>
+        <div class="screenshot-viewer">
+          <img src="screenshots/05_chemical_quota_ledger.png" alt="Quota Ledger">
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 6: ROI METRICS -->
+    <div class="slide" data-slide="6">
+      <div class="slide-badge">HIỆU QUẢ KINH TẾ (ROI)</div>
+      <h2>Chuyển Hóa Chi Phí Thành Lợi Thế Cạnh Tranh</h2>
+      <div class="grid-4" style="margin-top: 30px;">
+        <div class="metric-box">
+          <div class="metric-val">95%</div>
+          <div class="metric-label">Giảm thiểu thời gian xử lý và nhập liệu hồ sơ ngoại thương</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">100%</div>
+          <div class="metric-label">Loại trừ hoàn toàn rủi ro sai sót và quá hạn ngạch hóa chất</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">0%</div>
+          <div class="metric-label">Hưởng trọn vẹn mức thuế suất ưu đãi xuất nhập khẩu FTA</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-val">24/7</div>
+          <div class="metric-label">Giám sát pháp lý và cảnh báo rủi ro chuỗi cung ứng thời gian thực</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: ARCHITECTURE & ZERO-SHIMS -->
+    <div class="slide" data-slide="7">
+      <div class="slide-badge">KIẾN TRÚC KỸ THUẬT</div>
+      <h2>Kiến Trúc Hardfork Enterprise &amp; Zero Shims</h2>
+      <p class="lead">Được thiết kế cho tính ổn định tuyệt đối và khả năng bảo trì lâu dài:</p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Bảo Toàn 100% Upstream Core</h3>
+          <p>Không sửa mã nguồn gốc tại <code>odoo/</code> và <code>addons/</code>. Hệ thống giữ vững tính trong sáng của framework, sẵn sàng nâng cấp liên phiên bản mượt mà.</p>
+        </div>
+        <div class="card">
+          <h3>Hexagonal Upstream Adapter (PEP 451)</h3>
+          <p>Cơ chế MetaPathFinder &amp; Loader tại <code>addons/insilos_adapter</code> chuyển đổi không gian tên <code>insilos.*</code> sang <code>odoo.*</code> một cách trong suốt ở tầng bộ nhớ.</p>
+        </div>
+        <div class="card">
+          <h3>Capability-based Tokens</h3>
+          <p>Khấu trừ hạn ngạch và tạo bằng chứng được kiểm soát bằng token nội bộ bất khả xâm phạm (<code>_CUSTOMS_CLEARANCE_CAPABILITY</code>, <code>_INTERNAL_SNAPSHOT_TOKEN</code>).</p>
+        </div>
+        <div class="card">
+          <h3>Kiểm Định Toàn Diện Playwright E2E</h3>
+          <p>Toàn bộ 26 Enterprise Modules và 72 Launcher Apps đã vượt qua 6 bộ kiểm thử tự động, đạt tỷ lệ <strong>100% PASS</strong> không một lỗi console.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: CALL TO ACTION -->
+    <div class="slide" data-slide="8">
+      <div class="slide-badge">HỢP TÁC TRIỂN KHAI</div>
+      <h1>Sẵn Sàng Dẫn Đầu Chuỗi Cung Ứng Số?</h1>
+      <p class="lead">
+        Hãy để Insilos đồng hành cùng doanh nghiệp của bạn trên con đường tự động hóa ngoại thương, tuân thủ hóa chất bền vững và đáp ứng các tiêu chuẩn xanh quốc tế.
+      </p>
+      <div style="background: var(--card-bg); padding: 30px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.1); max-width: 640px; margin-top: 20px;">
+        <div style="font-size: 16px; font-weight: 700; color: #38bdf8; margin-bottom: 10px;">THÔNG TIN LIÊN HỆ ĐỘI NGŨ GIẢI PHÁP:</div>
+        <div style="font-size: 14px; color: var(--text-muted); line-height: 1.8;">
+          🌐 Website: <strong>https://insilos.com</strong><br>
+          📧 Email: <strong>enterprise@insilos.com</strong><br>
+          📞 Hotline: <strong>+84 (0) 28 8888 6666</strong><br>
+          📍 Trụ sở: Tòa nhà Insilos Innovation Hub, TP. Hồ Chí Minh, Việt Nam
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- NAVIGATION BAR -->
+  <div class="nav-bar">
+    <div>
+      <strong style="color: #fff;">INSILOS ENTERPRISE</strong> &nbsp;|&nbsp; Executive Presentation
+    </div>
+    <div class="nav-controls">
+      <button class="btn-nav" id="btnPrev">&larr; Trước</button>
+      <span id="slideIndicator" style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">1 / 8</span>
+      <button class="btn-nav" id="btnNext">Tiếp &rarr;</button>
+    </div>
+  </div>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 8;
+    const slides = document.querySelectorAll('.slide');
+    const indicator = document.getElementById('slideIndicator');
+    const progressFill = document.getElementById('progressFill');
+
+    function showSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+      currentSlide = index;
+
+      slides.forEach((slide, idx) => {
+        slide.classList.remove('active', 'prev');
+        if (idx + 1 === currentSlide) {
+          slide.classList.add('active');
+        } else if (idx + 1 < currentSlide) {
+          slide.classList.add('prev');
+        }
+      });
+
+      indicator.textContent = `${currentSlide} / ${totalSlides}`;
+      progressFill.style.width = `${(currentSlide / totalSlides) * 100}%`;
+    }
+
+    document.getElementById('btnPrev').addEventListener('click', () => showSlide(currentSlide - 1));
+    document.getElementById('btnNext').addEventListener('click', () => showSlide(currentSlide + 1));
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        showSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        showSlide(currentSlide - 1);
+      }
+    });
+  </script>
+</body>
+</html>

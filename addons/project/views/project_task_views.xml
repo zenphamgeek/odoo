@@ -61,6 +61,7 @@
                 <filter name="groupby_priority" position="before">
                     <filter string="Assignees" name="user" context="{'group_by': 'user_ids'}"/>
                     <filter string="Project" name="project" context="{'group_by': 'project_id'}" invisible="context.get('default_project_id')"/>
+                    <filter string="Customer" name="customer" context="{'group_by': 'partner_id'}"/>
                 </filter>
             </field>
         </record>

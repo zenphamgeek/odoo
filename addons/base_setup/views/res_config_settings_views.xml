@@ -8,7 +8,7 @@
             <field name="arch" type="xml">
                 <xpath expr="//form" position="inside">
                     <field name="is_root_company" invisible="1"/>
-                    <app data-string="General Settings" string="General Settings" name="general_settings" logo="/base/static/description/settings.png">
+                    <app data-string="General Settings" string="General Settings" name="general_settings" logo="/base/static/description/settings.svg">
 
                         <div id="invite_users">
                             <block title="Users" name="users_setting_container">
@@ -106,7 +106,7 @@
                                     <!-- Invisible to avoid breaking any custom inheriting templates -->
                                     <field name="module_sms" invisible="1"/>
                                 </setting>
-                                <setting help="Automatically enrich your contact base with company data" title="When populating your address book, Odoo provides a list of matching companies. When selecting one item, the company data and logo are auto-filled." id="partner_autocomplete">
+                                <setting help="Automatically enrich your contact base with company data" title="When populating your address book, Insilos provides a list of matching companies. When selecting one item, the company data and logo are auto-filled." id="partner_autocomplete">
                                     <field name="module_partner_autocomplete"/>
                                 </setting>
                         </block>
@@ -120,7 +120,7 @@
                                 </div>
                             </div>
                         </setting>
-                        <setting string="API Keys" help="API Keys allow your users to access Odoo with external tools when multi-factor authentication is enabled." groups="base.group_system">
+                        <setting string="API Keys" help="API Keys allow your users to access Insilos with external tools when multi-factor authentication is enabled." groups="base.group_system">
                             <button type="action" name="%(base.action_apikeys_admin)d" string="Manage API Keys" icon="east" class="btn-link"/>
                         </setting>
                         <setting string="Import &amp; Export" help="Allow users to import data from CSV/XLS/XLSX/ODS files" documentation="/applications/general/export_import_data.html" groups="base.group_no_one" id="allow_import">
@@ -132,8 +132,8 @@
                     </block>
 
                     <block title="Progressive Web App" id="pwa_settings" groups="base.group_no_one">
-                        <setting help="This name will be used for the application when Odoo is installed through the browser.">
-                            <field name="web_app_name" placeholder="Odoo"/>
+                        <setting help="This name will be used for the application when Insilos is installed through the browser.">
+                            <field name="web_app_name" placeholder="Insilos"/>
                         </setting>
                     </block>
 
@@ -165,19 +165,19 @@
                                     <div class="mt16 text-warning"><strong>Save</strong> this page and come back here to choose your Geo Provider.</div>
                                 </div>
                             </setting>
-                            <setting help="Protect your forms from spam and abuse." id="recaptcha" documentation="https://www.odoo.com/documentation/latest/applications/websites/website/configuration/spam_protection.html#website-spam-protection-google-recaptcha">
+                            <setting help="Protect your forms from spam and abuse." id="recaptcha" documentation="https://insilos.com/documentation/latest/applications/websites/website/configuration/spam_protection.html#website-spam-protection-google-recaptcha">
                                 <field name="module_google_recaptcha"/>
                                 <div class="content-group" invisible="not module_google_recaptcha" id="recaptcha_warning">
                                     <div class="mt16 text-warning"><strong>Save</strong> this page and come back here to set up reCaptcha.</div>
                                 </div>
                             </setting>
-                            <setting help="Protect your forms with CF Turnstile." id="cf-turnstile" documentation="https://www.odoo.com/documentation/latest/applications/websites/website/configuration/spam_protection.html#website-spam-protection-cloudflare-turnstile">
+                            <setting help="Protect your forms with CF Turnstile." id="cf-turnstile" documentation="https://insilos.com/documentation/latest/applications/websites/website/configuration/spam_protection.html#website-spam-protection-cloudflare-turnstile">
                                 <field name="module_website_cf_turnstile"/>
                                 <div class="content-group" invisible="not module_website_cf_turnstile" id="turnstile_warning">
                                     <div class="mt16 text-warning"><strong>Save</strong> this page and come back here to set up Cloudflare turnstile.</div>
                                 </div>
                             </setting>
-                            <setting help="Autocomplete partner addresses with Google Places" id="google_address_autocomplete"  documentation="https://www.odoo.com/documentation/latest/applications/general/integrations/address_autocomplete.html">
+                            <setting help="Autocomplete partner addresses with Google Places" id="google_address_autocomplete"  documentation="https://insilos.com/documentation/latest/applications/general/integrations/address_autocomplete.html">
                                 <field name="module_google_address_autocomplete" />
                                 <div class="content-group" invisible="not module_google_address_autocomplete" id="google_address_autocomplete_warning">
                                     <div class="mt16 text-warning"><strong>Save</strong> this page and come back here to set up Google Places API key</div>

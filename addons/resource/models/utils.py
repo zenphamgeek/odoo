@@ -47,6 +47,17 @@ def filter_map_domain(domain, map_function) -> Domain:
     return adapt_domain(domain, ignored=Domain.TRUE)
 
 
+def filter_domain_leaf(domain, filter_func=None, field_name_mapping=None):
+    field_name_mapping = field_name_mapping or {}
+    def map_fn(condition):
+        field = condition.field_expr
+        if filter_func and not filter_func(field):
+            return None
+        new_field = field_name_mapping.get(field, field)
+        return Domain(new_field, condition.operator, condition.value)
+    return filter_map_domain(domain, map_fn)
+
+
 def extract_comodel_domain(
     model,
     domain,

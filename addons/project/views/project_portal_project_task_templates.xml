@@ -150,7 +150,7 @@
             <t t-set="title" t-value="task.name"/>
             <t t-set="o_portal_fullwidth_alert" groups="project.group_project_user">
                 <t t-call="portal.portal_back_in_edit_mode"
-                    backend_url="'/odoo/action-project.action_view_my_task/%s' % (task.id)"/>
+                    backend_url="'/insilos/action-project.action_view_my_task/%s' % (task.id)"/>
             </t>
         </xpath>
         <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">

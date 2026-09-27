@@ -7,7 +7,7 @@
             </xpath>
             <xpath expr="//span[@t-field='activity.summary']" position="after">
                 <a t-if="activity.summary and activity.calendar_event_id"
-                   t-attf-href="{{base_url}}/odoo/{{activity.res_model}}/{{activity.res_id}}/calendar.event/{{activity.calendar_event_id.id}}"
+                   t-attf-href="{{base_url}}/insilos/{{activity.res_model}}/{{activity.res_id}}/calendar.event/{{activity.calendar_event_id.id}}"
                    title="View Meeting"
                 >
                     <span t-field="activity.summary"/>

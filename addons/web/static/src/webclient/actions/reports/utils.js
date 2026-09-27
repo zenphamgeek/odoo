@@ -43,7 +43,7 @@ function getPdfEngineMessage(status) {
             "You should upgrade your version of the PDF engine in order to get a correct render it.",
         ),
         workers: _t(
-            "You need to start Odoo with at least two workers to print a pdf version of the reports."
+            "You need to start the server with at least two workers to print a pdf version of the reports."
         ),
     };
     return _status[status];

@@ -279,7 +279,9 @@ class ProductTemplate(models.Model):
     @api.depends("is_published")
     def _compute_publish_date(self):
         """Set `publish_date` to the moment of (re-)publishing."""
-        self.filtered("is_published").publish_date = fields.Datetime.now()
+        for product in self:
+            if product.is_published or not product.publish_date:
+                product.publish_date = fields.Datetime.now()
 
     @api.depends(
         "is_storable",

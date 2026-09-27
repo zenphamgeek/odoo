@@ -1,4 +1,23 @@
 <svg width="150" height="150" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="150" height="150" fill="white"/>
-<path d="M75 150C60.1664 150 45.666 145.601 33.3323 137.36C20.9986 129.119 11.3856 117.406 5.70907 103.701C0.032495 89.9968 -1.45275 74.9168 1.44114 60.3683C4.33503 45.8197 11.4781 32.456 21.967 21.967C32.456 11.4781 45.8197 4.33503 60.3683 1.44114C74.9168 -1.45275 89.9968 0.032495 103.701 5.70907C117.406 11.3856 129.119 20.9986 137.36 33.3323C145.601 45.666 150 60.1664 150 75C150 94.8913 142.098 113.968 128.033 128.033C113.968 142.098 94.8913 150 75 150V150ZM75 119C83.7024 119 92.2094 116.419 99.4451 111.585C106.681 106.75 112.32 99.8781 115.651 91.8381C118.981 83.7982 119.852 74.9512 118.155 66.4161C116.457 57.8809 112.266 50.0408 106.113 43.8873C99.9592 37.7338 92.1192 33.5432 83.584 31.8455C75.0488 30.1477 66.2019 31.0191 58.162 34.3493C50.122 37.6796 43.2502 43.3192 38.4154 50.555C33.5806 57.7907 31 66.2977 31 75C31 86.6696 35.6357 97.8611 43.8873 106.113C52.1389 114.364 63.3305 119 75 119V119Z" fill="#714B67"/>
+  <rect width="150" height="150" rx="75" fill="white"/>
+  <g transform="translate(25, 25) scale(0.1)">
+    <!-- Tower 1 -->
+    <path d="M52 811C163 842 280 842 391 811" stroke="#004455" stroke-width="60" stroke-linecap="round" fill="none"/>
+    <path d="M52 691C163 721 280 721 391 691" stroke="#004455" stroke-width="60" stroke-linecap="round" fill="none"/>
+    <path d="M52 570C163 601 280 601 391 570" stroke="#004455" stroke-width="60" stroke-linecap="round" fill="none"/>
+    <path d="M52 449C163 480 280 480 391 449" stroke="#004455" stroke-width="60" stroke-linecap="round" fill="none"/>
+    <path d="M53 325C163 359 280 359 390 325" stroke="#FF8000" stroke-width="70" stroke-linecap="round" fill="none"/>
+    <!-- Tower 2 -->
+    <path d="M444 649C505 667 570 667 632 649" stroke="#FF8000" stroke-width="45" stroke-linecap="round" fill="none"/>
+    <path d="M444 582C505 599 570 599 632 582" stroke="#FF8000" stroke-width="45" stroke-linecap="round" fill="none"/>
+    <path d="M444 515C505 532 570 532 632 515" stroke="#FF8000" stroke-width="45" stroke-linecap="round" fill="none"/>
+    <path d="M444 448C505 465 570 465 632 448" stroke="#FF8000" stroke-width="45" stroke-linecap="round" fill="none"/>
+    <path d="M444 379C505 398 570 398 631 379" stroke="#FF8000" stroke-width="55" stroke-linecap="round" fill="none"/>
+    <!-- Tower 3 -->
+    <path d="M736 813C806 833 880 833 951 813" stroke="#FF8000" stroke-width="50" stroke-linecap="round" fill="none"/>
+    <path d="M736 728C806 747 880 747 951 728" stroke="#FF8000" stroke-width="50" stroke-linecap="round" fill="none"/>
+    <path d="M736 642C806 662 880 662 951 642" stroke="#FF8000" stroke-width="50" stroke-linecap="round" fill="none"/>
+    <path d="M736 557C806 577 880 577 951 557" stroke="#FF8000" stroke-width="50" stroke-linecap="round" fill="none"/>
+    <path d="M737 470C806 491 880 491 950 470" stroke="#FF8000" stroke-width="60" stroke-linecap="round" fill="none"/>
+  </g>
 </svg>

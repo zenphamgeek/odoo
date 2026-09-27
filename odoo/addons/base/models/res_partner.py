@@ -298,6 +298,7 @@ class ResPartner(models.Model):
     parent_id: ResPartner = fields.Many2one('res.partner', string='Related Company', index=True)
     # It's Stored intentionally and will act in place of `company_name`
     parent_name = fields.Char(related='parent_id.name', readonly=True, store=False, string='Parent name')
+    company_name = fields.Char(related='parent_id.name', readonly=False, string='Company Name')
     child_ids: ResPartner = fields.One2many('res.partner', 'parent_id', string='Related Contacts', domain=[('active', '=', True)], context={'active_test': False})
     ref = fields.Char(string='Reference', index=True)
     lang = fields.Selection(_lang_get, string='Language',
@@ -365,6 +366,12 @@ class ResPartner(models.Model):
     phone = fields.Char()
     is_company = fields.Boolean(string='Is a Company', default=False, compute="_compute_is_company", store=True,
         help="Check if the contact is a company, otherwise it is a person")
+    company_type = fields.Selection(
+        string='Company Type',
+        selection=[('person', 'Individual'), ('company', 'Company')],
+        compute='_compute_company_type', inverse='_inverse_company_type',
+        help="Check if the contact is a company, otherwise it is a person"
+    )
     is_public = fields.Boolean(compute='_compute_is_public', compute_sudo=True)
     industry_id: ResPartnerIndustry = fields.Many2one('res.partner.industry', 'Industry')
     company_id: ResCompany = fields.Many2one('res.company', 'Company', index=True)
@@ -953,6 +960,15 @@ class ResPartner(models.Model):
         ...) """
         for partner in self:
             partner.is_company = partner.commercial_partner_id == partner and partner.has_vat
+
+    @api.depends('is_company')
+    def _compute_company_type(self):
+        for partner in self:
+            partner.company_type = 'company' if partner.is_company else 'person'
+
+    def _inverse_company_type(self):
+        for partner in self:
+            partner.is_company = (partner.company_type == 'company')
 
     def _compute_is_public(self):
         for partner in self.with_context(active_test=False):

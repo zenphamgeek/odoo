@@ -45,7 +45,7 @@
                         <setting string="Absence Management" company_dependent="1" help="If checked, days not covered by an attendance will be visible in the Report. Does not apply to employees with a flexible working schedule.">
                             <field name="absence_management"/>
                         </setting>
-                        <setting string="Attendances from Backend" company_dependent="1" help="Allow Users to Check in/out from Odoo.">
+                        <setting string="Attendances from Backend" company_dependent="1" help="Allow Users to Check in/out from Insilos.">
                             <field name="attendance_from_systray" required="1"/>
                         </setting>
                         <setting string="Device &amp; Location Tracking" company_dependent="1" help="Allow the collection of GPS location, IP address, and browser/device details used to track employee access and attendance">
@@ -67,7 +67,7 @@
                         <setting string="Kiosk Mode" company_dependent="1" help="Define the way the user will be identified by the application.">
                             <field name="attendance_kiosk_mode" widget="radio" options="{'horizontal': True}"/>
                             <div>
-                                <a href="https://www.odoo.com/documentation/latest/applications/hr/attendances/hardware.html"
+                                <a href="https://insilos.com/documentation/latest/applications/hr/attendances/hardware.html"
                                     target="_blank"><i class="oi oi-fw" data-icon="arrow_forward"/>Installation Manual</a>
                             </div>
                         </setting>

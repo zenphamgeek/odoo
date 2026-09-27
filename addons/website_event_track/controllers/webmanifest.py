@@ -25,7 +25,7 @@ class TrackManifest(http.Controller):
             'start_url': request.env['ir.http']._url_for('/event'),
             'display': 'standalone',
             'background_color': '#ffffff',
-            'theme_color': '#875A7B',
+            'theme_color': '#004455',
         }
         icon_sizes = ['192x192', '512x512']
         manifest['icons'] = [{

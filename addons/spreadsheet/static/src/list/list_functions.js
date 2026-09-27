@@ -67,7 +67,7 @@ const ODOO_LIST_HEADER = {
 };
 
 const ODOO_LIST = {
-    description: _t("Get a dynamic Odoo list function."),
+    description: _t("Get a dynamic Insilos list function."),
     args: [
         arg("list_id (string)", _t("ID of the list.")),
         arg("row_count (number, optional)", _t("number of rows to display")),

@@ -748,7 +748,7 @@ env['res.partner'].create({'name': partner_name})
             <field name="name">Configuration Wizards</field>
             <field name="res_model">ir.actions.todo</field>
             <field name="view_id" ref="ir_actions_todo_tree"/>
-            <field name="help">The configuration wizards are used to help you configure a new instance of Odoo. They are launched during the installation of new modules, but you can choose to restart some wizards manually from this menu.</field>
+            <field name="help">The configuration wizards are used to help you configure a new instance of Insilos. They are launched during the installation of new modules, but you can choose to restart some wizards manually from this menu.</field>
         </record>
         <record id="action_run_ir_action_todo" model="ir.actions.server">
             <field name="name">Config: Run Remaining Action Todo</field>

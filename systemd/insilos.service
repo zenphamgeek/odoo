@@ -1,0 +1,23 @@
+[Unit]
+Description=Insilos Enterprise Platform (Odoo 20 LTS Hardfork)
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=zen
+Group=zen
+WorkingDirectory=/home/zen/O20
+ExecStart=/home/zen/O20/.venv/bin/python /home/zen/O20/odoo-bin -c /home/zen/O20/odoo.conf -d odoo20_dev
+Restart=always
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=insilos-enterprise
+
+# Security hardening
+ProtectSystem=full
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

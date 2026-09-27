@@ -13,7 +13,7 @@
                 t-att-name="this.props.attributes.urlInputName"
                 class="form-control"
                 autocomplete="off"
-                placeholder='e.g "https://www.youtube.com/watch?v=ebBez6bcSEc"'
+                placeholder='e.g "https://www.youtube.com/watch?v=dQw4w9WgXcQ"'
                 required="required"
                 t-on-change="() => this.props.onChangeUrl(this.state.url)"
             />

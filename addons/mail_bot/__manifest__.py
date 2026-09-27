@@ -1,11 +1,11 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'OdooBot',
+    'name': 'InsilosBot',
     'version': '1.2',
     'category': 'Productivity/Discuss',
-    'summary': 'Add OdooBot in discussions',
-    'website': 'https://www.odoo.com/app/discuss',
+    'summary': 'Add InsilosBot in discussions',
+    'website': 'https://insilos.com',
     'depends': ['mail'],
     'auto_install': True,
     'data': [
@@ -17,6 +17,6 @@
             'mail_bot/static/src/scss/odoobot_style.scss',
         ],
     },
-    'author': 'Odoo S.A.',
+    'author': 'Insilos',
     'license': 'LGPL-3',
 }

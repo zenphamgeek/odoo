@@ -38,12 +38,12 @@ export async function startWebClient(Webclient) {
     }
 
     await whenReady();
-    await mountComponent(Webclient, document.body, { name: "Odoo Web Client" });
+    await mountComponent(Webclient, document.body, { name: "Insilos Web Client" });
 
     if (!window.isSecureContext) {
         console.error(
             _t(
-                "You are currently using a non-secure context. As a result, some Odoo features may be unavailable or function improperly. For more information, please visit: https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts"
+                "You are currently using a non-secure context. As a result, some features may be unavailable or function improperly. For more information, please visit: https://developer.mozilla.org/en-US/docs/Web/Security/Defenses/Secure_Contexts"
             )
         );
     }

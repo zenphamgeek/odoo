@@ -295,7 +295,7 @@
                     <t t-foreach="gamification_redirection_data" t-as="data">
                         <t t-set="url" t-value="data['url']"/>
                         <t t-set="label" t-value="data['label']"/>
-                        <a t-att-href="url" t-attf-style="background-color: {{object.company_id.email_secondary_color or '#875A7B'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; font-size:13px; display: flex; max-width: fit-content; margin-bottom: 8px;" t-out="label or ''">LABEL</a>
+                        <a t-att-href="url" t-attf-style="background-color: {{object.company_id.email_secondary_color or '#004455'}}; padding: 8px 16px 8px 16px; text-decoration: none; color: {{object.company_id.email_primary_color or '#FFFFFF'}}; border-radius: 5px; font-size:13px; display: flex; max-width: fit-content; margin-bottom: 8px;" t-out="label or ''">LABEL</a>
                     </t>
                 </div>
             </td>

@@ -797,4 +797,32 @@
             <field name="state">code</field>
             <field name="code">action = records.action_split_transfer()</field>
         </record>
+
+        <record id="view_stock_return_picking_form" model="ir.ui.view">
+            <field name="name">Return lines</field>
+            <field name="model">stock.return.picking</field>
+            <field name="arch" type="xml">
+                <form string="Return">
+                    <field name="product_return_moves">
+                        <list editable="top">
+                            <field name="product_id"/>
+                            <field name="quantity"/>
+                            <field name="uom_id"/>
+                        </list>
+                    </field>
+                    <footer>
+                        <button name="action_create_returns" string="Return" type="object" class="btn-primary"/>
+                        <button name="action_create_exchanges" string="Exchange" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-secondary" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="act_stock_return_picking" model="ir.actions.act_window">
+            <field name="name">Reverse Transfer</field>
+            <field name="res_model">stock.return.picking</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
 </odoo>

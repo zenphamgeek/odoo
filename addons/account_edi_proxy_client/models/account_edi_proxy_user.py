@@ -147,7 +147,7 @@ class Account_Edi_Proxy_ClientUser(models.Model):
             if error_code == 'invalid_signature':
                 raise AccountEdiProxyError(
                     error_code,
-                    _("Failed to connect to Odoo Access Point server. This might be due to another connection to Odoo Access Point "
+                    _("Failed to connect to Insilos Access Point server. This might be due to another connection to Insilos Access Point "
                       "server. It can occur if you have duplicated your database. \n\n"
                       "If you are not sure how to fix this, please contact our support."),
                 )

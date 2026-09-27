@@ -36,3 +36,6 @@ export const cardMany2OneAvatarResourceField = {
 registry
     .category("fields")
     .add("card.many2one_avatar_resource", cardMany2OneAvatarResourceField);
+
+export const KanbanMany2OneAvatarResourceField = CardMany2OneAvatarResourceField;
+export const kanbanMany2OneAvatarResourceField = cardMany2OneAvatarResourceField;

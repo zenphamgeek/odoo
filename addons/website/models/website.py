@@ -118,6 +118,19 @@ class Website(models.CachedModel):
     def website_domain(self):
         return Domain('website_id', 'in', [False, *self.ids])
 
+    @api.model
+    def get_current_website(self, fallback=True):
+        if self.env.context.get('website_id'):
+            return self.browse(self.env.context['website_id'])
+        if request and getattr(request, 'website', None):
+            return request.website
+        if hasattr(self.env, 'website') and self.env.website:
+            return self.env.website
+        website = self.search([('company_id', '=', self.env.company.id)], limit=1)
+        if not website:
+            website = self.search([], limit=1)
+        return website
+
     def _active_languages(self):
         return self.env['res.lang'].search([]).ids
 
@@ -1596,7 +1609,7 @@ class Website(models.CachedModel):
                 dependencies[model_display_name] += [{
                     'field_name': field_string,
                     'record_name': rec.display_name,
-                    'link': 'website_url' in rec and rec.website_url or f'/odoo/{model_name}/{rec.id}',
+                    'link': 'website_url' in rec and rec.website_url or f'/insilos/{model_name}/{rec.id}',
                     'model_name': model_display_name,
                     'url': _choose_url(rec[field_name]),
                 } for rec in dependency_records]
@@ -2042,7 +2055,7 @@ class Website(models.CachedModel):
             action_params["enable_editor"] = 1
         if mode_debug:
             action_params["debug"] = mode_debug
-        return "/odoo/action-website.website_preview?" + urls.url_encode(action_params)
+        return "/insilos/action-website.website_preview?" + urls.url_encode(action_params)
 
     def get_client_action(self, url, mode_edit=False, website_id=False):
         action = self.env["ir.actions.actions"]._for_xml_id("website.website_preview")

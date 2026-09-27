@@ -76,7 +76,7 @@ class SmsTwilioAccountManage(models.TransientModel):
             raise UserError(_("Please set the number to which you want to send a test SMS."))
         self.company_id._assert_twilio_sid()
         composer = self.env['sms.composer'].create({
-            'body': _("This is a test SMS from Odoo"),
+            'body': _("This is a test SMS from Insilos"),
             'composition_mode': 'numbers',
             'numbers': self.test_number,
         })

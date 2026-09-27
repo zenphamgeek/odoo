@@ -241,7 +241,7 @@ export class IndexedDB {
                     .then(resolve)
                     .catch(async (e) => {
                         if (e.name === "QuotaExceededError") {
-                            const { quota, usage } = await navigator.storage.estimate();
+                            const { quota, usage } = (await navigator.storage?.estimate?.()) || {};
                             console.error(
                                 `IndexedDB error: Quota Exceeded (${formatStorageSize(
                                     usage

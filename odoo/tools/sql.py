@@ -97,6 +97,14 @@ class SQL(metaclass=_SQLMeta):
     _sql_tuple: tuple[str, tuple, tuple[Field, ...]]
     """ The tuple used to execute the query: (code, params, to_flush) """
 
+    @property
+    def code(self) -> str:
+        return self._sql_tuple[0]
+
+    @property
+    def params(self) -> tuple:
+        return self._sql_tuple[1]
+
     def __eq__(self, other):
         if not isinstance(other, SQL):
             return False
@@ -107,6 +115,28 @@ class SQL(metaclass=_SQLMeta):
 
     def __bool__(self):
         return bool(self._sql_tuple[0])
+
+    def __add__(self, other):
+        if isinstance(other, str):
+            code, params, to_flush = self._sql_tuple
+            res = SQL.__new__(LiteralSQL)
+            res._LiteralSQL__sql_tuple = (code + other, params, to_flush)
+            return res
+        if isinstance(other, SQL):
+            c1, p1, f1 = self._sql_tuple
+            c2, p2, f2 = other._sql_tuple
+            res = SQL.__new__(LiteralSQL)
+            res._LiteralSQL__sql_tuple = (c1 + c2, p1 + p2, f1 + f2)
+            return res
+        return NotImplemented
+
+    def __radd__(self, other):
+        if isinstance(other, str):
+            code, params, to_flush = self._sql_tuple
+            res = SQL.__new__(LiteralSQL)
+            res._LiteralSQL__sql_tuple = (other + code, params, to_flush)
+            return res
+        return NotImplemented
 
 
 class LiteralSQL(SQL):

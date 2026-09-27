@@ -19,22 +19,22 @@ _logger = logging.getLogger(__name__)
 
 def og_title_from_path(env, path):
     if not path:
-        return "Odoo"
-    odoo_path = urlsplit(path).path.removeprefix('/odoo')
+        return "Insilos"
+    odoo_path = urlsplit(path).path.removeprefix('/insilos').removeprefix('/odoo')
     if not odoo_path or odoo_path == '/':
-        return "Odoo"
+        return "Insilos"
     try:
         triples = list(get_action_triples(env(su=True), odoo_path))
         if not triples:
-            return "Odoo"
+            return "Insilos"
         _, action, _ = triples[-1]
-        return action.name or "Odoo"
+        return action.name or "Insilos"
     except ValueError:
         _logger.debug("og_title_from_path failed for path %r", path, exc_info=True)
-        return "Odoo"
+        return "Insilos"
     except Exception:
         _logger.warning("og_title_from_path failed for path %r", path, exc_info=True)
-        return "Odoo"
+        return "Insilos"
 
 
 def clean_action(action, env):
@@ -250,7 +250,7 @@ def _get_login_redirect_url(uid, redirect=None):
     fully logged and can proceed to the requested URL
     """
     if request.session.uid:  # fully logged
-        return redirect or ('/odoo' if is_user_internal(request.session.uid)
+        return redirect or ('/insilos' if is_user_internal(request.session.uid)
                             else '/web/login_successful')
 
     # partial session (MFA)

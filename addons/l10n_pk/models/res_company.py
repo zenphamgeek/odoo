@@ -8,7 +8,7 @@ class ResCompany(models.Model):
     _inherit = 'res.company'
 
     # Single value shared by the whole instance, kept in a system parameter rather than per company.
-    l10n_pk_iap_server_ip = fields.Char(string="Odoo Static IP Address", compute='_compute_l10n_pk_iap_server_ip', inverse='_inverse_l10n_pk_iap_server_ip')
+    l10n_pk_iap_server_ip = fields.Char(string="Insilos Static IP Address", compute='_compute_l10n_pk_iap_server_ip', inverse='_inverse_l10n_pk_iap_server_ip')
 
     def _compute_l10n_pk_iap_server_ip(self):
         server_ip = self.env['ir.config_parameter'].sudo().get_str('l10n_pk.iap_server_ip', '')

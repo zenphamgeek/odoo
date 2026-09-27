@@ -43,3 +43,5 @@ registry
     .category("debug")
     .category("default")
     .add("runClickbotLauncherItem", runClickbotLauncherItem);
+
+window.clickEverywhere = startClickEverywhere;

@@ -299,6 +299,7 @@ class PosOrder(models.Model):
     payment_ids = fields.One2many('pos.payment', 'pos_order_id', string='Payments')
     to_invoice = fields.Boolean('To invoice', copy=False)
     preset_time = fields.Datetime(string='Hour', help="Hour of the day for the order")
+    is_invoiced = fields.Boolean('Is Invoiced', compute='_compute_is_invoiced')
     is_singly_invoiced = fields.Boolean('Is Singly Invoiced', compute='_compute_is_invoiced')
     is_globally_invoiced = fields.Boolean('Is Globally Invoiced', compute='_compute_is_invoiced')
     is_tipped = fields.Boolean('Is this already tipped?', readonly=True)
@@ -366,6 +367,7 @@ class PosOrder(models.Model):
             session_moves = order.session_id.move_ids
             order.is_singly_invoiced = order_move and order_move not in session_moves
             order.is_globally_invoiced = order_move and order_move in session_moves
+            order.is_invoiced = bool(order_move)
             order.invoice_status = 'invoiced' if order.is_singly_invoiced else 'to_invoice'
 
     @api.depends('date_order', 'company_id', 'currency_id', 'company_id.currency_id')

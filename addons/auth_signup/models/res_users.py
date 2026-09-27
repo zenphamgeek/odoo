@@ -220,7 +220,7 @@ class ResUsers(models.Model):
                     account_created_template.with_context(
                         email_notification_force_header=True,
                         email_notification_force_footer=True,
-                        email_notification_subtitles=[_lt("Welcome to Odoo"), user.name or ''],
+                        email_notification_subtitles=[_lt("Welcome to Insilos"), user.name or ''],
                     ).send_mail_batch(
                         user.ids, force_send=True,
                         raise_exception=True, email_values=email_values,

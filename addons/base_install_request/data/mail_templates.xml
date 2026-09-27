@@ -15,8 +15,8 @@
                         </div>
                     </div>
                 </t>
-                <a id="review_request_button" t-attf-style="background-color: {{user_id.company_id.email_secondary_color or '#875A7B'}}; padding:8px 16px 8px 16px; text-decoration:none; color: {{user_id.company_id.email_primary_color or '#FFFFFF'}}; border-radius:5px"
-                   t-attf-href="/odoo/{{ module_id.id }}/action-base_install_request.action_base_module_install_review?menu_id={{ menu_id }}">
+                <a id="review_request_button" t-attf-style="background-color: {{user_id.company_id.email_secondary_color or '#004455'}}; padding:8px 16px 8px 16px; text-decoration:none; color: {{user_id.company_id.email_primary_color or '#FFFFFF'}}; border-radius:5px"
+                   t-attf-href="/insilos/{{ module_id.id }}/action-base_install_request.action_base_module_install_review?menu_id={{ menu_id }}">
                     Review Request
                 </a>
                 <br/><br/>

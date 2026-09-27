@@ -4,26 +4,35 @@
     <t t-name="sale.SaleActionHelperDialog">
         <Dialog
             bodyClass="'shadow'"
-            contentClass="'border-0 bg-transparent shadow-none'"
+            contentClass="'border-0 bg-dark text-white rounded-3 shadow-none overflow-hidden'"
             footer="false"
-            size="'xl'"
+            size="'lg'"
             technical="false"
             withBodyPadding="false"
             t-on-click="this.props.close"
         >
-            <div class="ratio ratio-16x9">
-                <iframe
-                    allow="autoplay; encrypted-media; picture-in-picture; web-share"
-                    width="1140"
-                    height="641"
-                    t-att-src="this.props.url"
-                    title="Sale"
-                    frameborder="0"
-                    allowfullscreen="1"
-                >
-                    Your browser does not support iframe.
-                </iframe>
-            </div>
+            <t t-if="this.props.url">
+                <div class="ratio ratio-16x9">
+                    <iframe
+                        allow="autoplay; encrypted-media; picture-in-picture; web-share"
+                        width="1140"
+                        height="641"
+                        t-att-src="this.props.url"
+                        title="Sale"
+                        frameborder="0"
+                        allowfullscreen="1"
+                    >
+                        Your browser does not support iframe.
+                    </iframe>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="ratio ratio-16x9 d-flex flex-column align-items-center justify-content-center text-center p-4">
+                    <i class="oi oi-4x mb-3 text-primary" data-icon="play_circle"/>
+                    <h3 class="fw-bold">Sales Overview</h3>
+                    <p class="text-white-50 mb-0">Learn how to create quotes, manage orders, and boost your sales pipeline.</p>
+                </div>
+            </t>
         </Dialog>
     </t>
 </templates>

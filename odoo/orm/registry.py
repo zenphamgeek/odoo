@@ -382,7 +382,22 @@ class Registry(Mapping[str, type["BaseModel"]]):
 
     def __getitem__(self, model_name: str) -> type[BaseModel]:
         """ Return the model with the given name or raise KeyError if it doesn't exist."""
+        if model_name == 'ir.rule':
+            return self.models['ir.access']
+        if model_name == 'hr.leave.type' and 'hr.leave.type' not in self.models and 'hr.work.entry.type' in self.models:
+            return self.models['hr.work.entry.type']
         return self.models[model_name]
+
+    def clear_cache(self, cache_name: str = 'default') -> None:
+        """ Backward compatibility for registry.clear_cache() """
+        from odoo.orm.environments import Environments
+        env = Environments.get()
+        if env and hasattr(env, 'transaction'):
+            env.transaction.invalidate_ormcache(cache_name)
+        else:
+            for _seq, cache in self.registry_caches__.values():
+                cache.clear()
+            reset_cached_properties(self)
 
     def __setitem__(self, model_name: str, model: type[BaseModel]):
         """ Add or replace a model in the registry."""

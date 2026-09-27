@@ -1,4 +1,4 @@
-import { before, withFetch } from "@odoo/hoot";
+import { before, expect, withFetch } from "@odoo/hoot";
 import { loadBundle } from "@web/core/assets";
 import { patch } from "@web/core/utils/patch";
 import * as _fields from "./_framework/mock_server/mock_fields";
@@ -48,6 +48,7 @@ export {
     getMockEnv,
     getService,
     getTestApp,
+    makeMockEnv,
     makeTestApp,
     mockOffline,
     mockService,
@@ -222,3 +223,11 @@ export const webModels = {
 
 /** @deprecated `patch` from "@web/core/utils/patch" is already cleaned up; use it directly */
 export const patchWithCleanup = patch;
+
+export function asyncStep(step) {
+    expect.step(step);
+}
+
+export function waitForSteps(steps, options) {
+    return expect.waitForSteps(steps, options);
+}

@@ -12,7 +12,7 @@
         <field name="country_id" ref="base.sa"/>
         <field name="vat">399999999900003</field>
         <field name="is_company" eval="True"/>
-        <field name="website">https://www.MySaudiCompany.odoo.com</field>
+        <field name="website">https://www.MySaudiCompany.insilos.com</field>
         <field name="is_company" eval="True"/>
         <field name="additional_identifiers" eval="{'SA_CRN': '1008434875'}"></field>
     </record>

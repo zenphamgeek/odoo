@@ -22,7 +22,7 @@
         <!-- Timestamp of the XML file generation. -->
         <DataWytworzeniaFa t-out="DataWytworzeniaFa"/>
         <!-- Information about the system that generated the file. -->
-        <SystemInfo>Odoo</SystemInfo>
+        <SystemInfo>Insilos</SystemInfo>
       </Naglowek>
 
       <!--

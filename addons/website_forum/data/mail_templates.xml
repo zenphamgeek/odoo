@@ -32,7 +32,7 @@
                     text-align: center;
                     vertical-align: middle;
                     cursor: pointer;
-                    background-color: {{_company_id.email_secondary_color or '#875A7B'}};
+                    background-color: {{_company_id.email_secondary_color or '#004455'}};
                     border-radius:3px"
                 t-out="label">
             </a>

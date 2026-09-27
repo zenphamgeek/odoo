@@ -45,9 +45,9 @@ class MailBot(models.AbstractModel):
             "bold_end": Markup("</b>"),
             "command_start": Markup("<span class='o_odoobot_command'>"),
             "command_end": Markup("</span>"),
-            "document_link_start": Markup("<a href='https://www.odoo.com/documentation' target='_blank'>"),
+            "document_link_start": Markup("<a href='https://insilos.com/documentation' target='_blank'>"),
             "document_link_end": Markup("</a>"),
-            "slides_link_start": Markup("<a href='https://www.odoo.com/slides' target='_blank'>"),
+            "slides_link_start": Markup("<a href='https://insilos.com/slides' target='_blank'>"),
             "slides_link_end": Markup("</a>"),
             "paperclip_icon": Markup("<i class='oi' data-icon='attach_file' aria-hidden='true'/>"),
             "smile_icon": Markup("<i class='oi' data-icon='sentiment_satisfied' aria-hidden='true'/>"),
@@ -68,7 +68,7 @@ class MailBot(models.AbstractModel):
                 return self.env._(
                     "Wow, you're a natural!%(new_line)s Use @username to mention someone and grab their "
                     "attention.%(new_line)s %(bold_start)sTry mentioning me by typing%(bold_end)s "
-                    "%(command_start)s@OdooBot%(command_end)s in your message.",
+                    "%(command_start)s@InsilosBot%(command_end)s in your message.",
                     **self._get_style_dict()
                 )
             elif odoobot_state == "onboarding_ping" and odoobot in message.partner_ids:
@@ -114,7 +114,7 @@ class MailBot(models.AbstractModel):
                 self.env.user.odoobot_failed = False
                 return self.env._(
                     "That's the end of this overview. You can %(bold_start)sclose this conversation%(bold_end)s or type "
-                    "%(command_start)sstart the tour%(command_end)s to see it again. Enjoy exploring Odoo!",
+                    "%(command_start)sstart the tour%(command_end)s to see it again. Enjoy exploring Insilos!",
                     **self._get_style_dict(),
                 )
             # repeat question if needed
@@ -157,7 +157,7 @@ class MailBot(models.AbstractModel):
                     self.env.user.odoobot_failed = True
                     return self.env._(
                         "Sorry, I'm not listening right now. To get my attention, %(bold_start)smention "
-                        "me%(bold_end)s by typing %(command_start)s@OdooBot%(command_end)s and selecting"
+                        "me%(bold_end)s by typing %(command_start)s@InsilosBot%(command_end)s and selecting"
                         " me.",
                         **self._get_style_dict()
                     )

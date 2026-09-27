@@ -99,7 +99,7 @@ class PaymentProvider(models.Model):
     )
     support_refund = fields.Selection(
         string="Refund",
-        help="Refund is a feature allowing to refund customers directly from the payment in Odoo.",
+        help="Refund is a feature allowing to refund customers directly from the payment in Insilos.",
         selection=[
             ("none", "Unsupported"),
             ("full_only", "Full Only"),
@@ -124,7 +124,7 @@ class PaymentProvider(models.Model):
     )
     capture_manually = fields.Boolean(
         string="Capture Amount Manually",
-        help="Capture the amount from Odoo, when the delivery is completed. Use this if you want to"
+        help="Capture the amount from Insilos, when the delivery is completed. Use this if you want to"
         " charge your customers cards only when you are sure you can ship the goods to them.",
     )
     company_id = fields.Many2one(
@@ -245,7 +245,7 @@ class PaymentProvider(models.Model):
 
     module_id = fields.Many2one(string="Corresponding Module", comodel_name="ir.module.module")
     module_state = fields.Selection(string="Installation State", related="module_id.state")
-    module_to_buy = fields.Boolean(string="Odoo Enterprise Module", related="module_id.to_buy")
+    module_to_buy = fields.Boolean(string="Insilos Enterprise Module", related="module_id.to_buy")
 
     # === COMPUTE METHODS === #
 

@@ -7,7 +7,7 @@
             <form string="How do you want to display prices?">
                 <sheet>
                         <p>
-                            Odoo stores one price per product. How tax is applied to
+                            Insilos stores one price per product. How tax is applied to
                             that price is not mathematically reversible so rounding
                             creates permanent discrepancies.
                         </p>

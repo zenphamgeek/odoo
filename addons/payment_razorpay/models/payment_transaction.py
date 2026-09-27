@@ -290,7 +290,7 @@ class PaymentTransaction(models.Model):
             return super()._send_void_request()
 
         raise UserError(
-            self.env._("Transactions processed by Razorpay can't be manually voided from Odoo.")
+            self.env._("Transactions processed by Razorpay can't be manually voided from Insilos.")
         )
 
     @api.model

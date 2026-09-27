@@ -98,7 +98,7 @@ async function actionGetDrive(env, actionDescr, type) {
     } else if (result[key]) {
         await orm.call("l10n_eg_edi.thumb.drive", method, [[drive_id], result[key]]).catch(() => {
             dialog.add(AlertDialog, {
-                body: _t("Error trying to connect to Odoo. Check your internet connection"),
+                body: _t("Error trying to connect to Insilos. Check your internet connection"),
             });
         });
         action.doAction({

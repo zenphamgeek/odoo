@@ -1292,7 +1292,7 @@ class HrExpense(models.Model):
                     template='hr_expense.hr_expense_template_submitted_expenses',
                     values={
                         'manager_name': manager.name,
-                        'url': f'/odoo/{manager.id}/expenses-to-process',
+                        'url': f'/insilos/{manager.id}/expenses-to-process',
                         'company': company,
                         'user': self.env.user,
                         'total_amount': sum(expenses_submitted.mapped('total_amount')),
@@ -2236,8 +2236,8 @@ class HrExpense(models.Model):
 
         if not account:
             raise UserError(self.env._(
-                "Odoo had a look at your expense, its product, your company and the journal but came back with empty hands.\n"
-                "Give Odoo a hand to find an account by setting up an expense account.\n"
+                "Insilos had a look at your expense, its product, your company and the journal but came back with empty hands.\n"
+                "Give Insilos a hand to find an account by setting up an expense account.\n"
                 "%(expense)s %(expense_name)s.\n",
                 expense=self,
                 expense_name=self.name,

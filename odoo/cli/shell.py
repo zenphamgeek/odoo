@@ -131,6 +131,7 @@ class Shell(Command):
         local_vars = {
             'openerp': odoo,
             'odoo': odoo,
+            'insilos': odoo,
         }
         if dbname:
             registry = Registry(dbname)
