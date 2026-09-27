@@ -1,0 +1,36 @@
+# Git & VCS
+.git
+.git/
+**/.git
+**/.git/**
+.gitignore
+**/.gitignore
+
+# Virtual Environments & Python cache
+.venv/
+__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Runtime data & secrets
+local.yaml
+data/
+/data/
+*.log
+*.env*
+.env*
+**/.env*
+
+# Node / JS tooling
+node_modules/
+**/node_modules/
+package-lock.json
+
+# IDE & Editor artifacts
+.vscode/
+.idea/
+.trae/
+*.swp
+*.swo
+*~

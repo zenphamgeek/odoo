@@ -69,18 +69,20 @@ WORKDIR /app/insilos
 COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy application codebase
-COPY . /app/insilos/
-
-# Set up user, directories, symlinks, and permissions
+# Set up user, directories, and base configuration
 RUN useradd -m -u 1000 -s /bin/bash insilos && \
-    ln -s /app/insilos/enterprise /app/insilos/apps && \
-    ln -s /app/insilos /opt/insilos && \
-    mkdir -p /var/lib/insilos/filestore /var/log/insilos && \
+    mkdir -p /app/insilos /var/lib/insilos/filestore /var/log/insilos && \
     chown -R insilos:insilos /app /var/lib/insilos /var/log/insilos && \
     printf '[options]\naddons_path = /app/insilos/addons,/app/insilos/apps\ndata_dir = /var/lib/insilos/filestore\nlogfile = /var/log/insilos/insilos.log\nlog_level = info\nproxy_mode = True\n' > /etc/insilos.conf && \
     cp /etc/insilos.conf /etc/odoo.conf && \
     chown insilos:insilos /etc/insilos.conf /etc/odoo.conf
+
+# Copy application codebase directly with insilos ownership
+COPY --chown=insilos:insilos . /app/insilos/
+
+# Create symlinks
+RUN ln -s /app/insilos/enterprise /app/insilos/apps && \
+    ln -s /app/insilos /opt/insilos
 
 USER insilos
 
