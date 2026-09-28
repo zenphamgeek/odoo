@@ -79,5 +79,6 @@ export const sapLexiconService = {
         };
     },
 };
-
-registry.category("services").add("sap_lexicon", sapLexiconService);
+if (!registry.category("services").contains("sap_lexicon")) {
+    registry.category("services").add("sap_lexicon", sapLexiconService);
+}

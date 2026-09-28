@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <asset id="insilos_sap_fiori.fiori_horizon_scss" name="Fiori Horizon High-Density SCSS">
+            <bundle>web.assets_backend</bundle>
+            <path>insilos_sap_fiori/static/src/scss/fiori_horizon.scss</path>
+            <field name="sequence" eval="20"/>
+        </asset>
+        <asset id="insilos_sap_fiori.fiori_status_badges_scss" name="Fiori Horizon Status Badges SCSS">
+            <bundle>web.assets_backend</bundle>
+            <path>insilos_sap_fiori/static/src/scss/fiori_status_badges.scss</path>
+            <field name="sequence" eval="21"/>
+        </asset>
+        <asset id="insilos_sap_fiori.fiori_kpi_cards_scss" name="Fiori Horizon KPI Cards SCSS">
+            <bundle>web.assets_backend</bundle>
+            <path>insilos_sap_fiori/static/src/scss/fiori_kpi_cards.scss</path>
+            <field name="sequence" eval="22"/>
+        </asset>
+        <asset id="insilos_sap_fiori.sap_lexicon_service_js" name="SAP Lexicon OWL Service JS">
+            <bundle>web.assets_backend</bundle>
+            <path>insilos_sap_fiori/static/src/js/sap_lexicon_service.js</path>
+            <field name="sequence" eval="23"/>
+        </asset>
+    </data>
+</odoo>

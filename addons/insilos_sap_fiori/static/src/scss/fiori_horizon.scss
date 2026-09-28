@@ -33,19 +33,68 @@
         tbody {
             tr {
                 transition: background-color 0.12s ease;
-                height: 32px;
-                min-height: 32px;
+                height: 32px !important;
+                min-height: 32px !important;
+                max-height: 34px !important;
 
                 &:hover {
                     background-color: rgba(255, 128, 0, 0.04) !important;
                 }
 
                 td {
-                    padding: 0.35rem 0.65rem !important;
-                    vertical-align: middle;
+                    padding: 0.2rem 0.5rem !important;
+                    vertical-align: middle !important;
                     border-bottom: 1px solid #E2E8F0;
-                    line-height: 1.35 !important;
-                    font-size: 0.875rem !important;
+                    line-height: 1.25 !important;
+                    font-size: 0.8125rem !important;
+
+                    &.o_list_record_selector {
+                        padding-top: 0 !important;
+                        padding-bottom: 0 !important;
+                        .o-checkbox, .form-check {
+                            margin: 0 !important;
+                            padding-left: 20px !important;
+                            display: flex;
+                            align-items: center;
+                        }
+                    }
+
+                    .o_field_badge {
+                        padding: 0 !important;
+                        border: none !important;
+                        background: transparent !important;
+                        margin: 0 !important;
+                        display: inline-flex !important;
+                        align-items: center !important;
+                    }
+
+                    .badge, .o_tag {
+                        padding: 0.125rem 0.5rem !important;
+                        font-size: 0.6875rem !important;
+                        line-height: 1.15 !important;
+                        border-radius: 9999px !important;
+                        white-space: nowrap !important;
+                    }
+
+                    .o_field_many2one_avatar {
+                        height: 22px !important;
+                        display: inline-flex !important;
+                        align-items: center !important;
+                        .o_m2o_avatar {
+                            width: 18px !important;
+                            height: 18px !important;
+                        }
+                    }
+
+                    .o_field_list_activity {
+                        height: 20px !important;
+                        display: inline-flex !important;
+                        align-items: center !important;
+                    }
+
+                    .o_field_monetary {
+                        line-height: 1.25 !important;
+                    }
                 }
             }
         }

@@ -41,6 +41,7 @@ Insilos Enterprise SAP Lexicon & Fiori Horizon Design System
     ],
     'data': [
         'security/ir.model.access.csv',
+        'data/sap_assets.xml',
         'data/sap_menu_data.xml',
         'data/sap_financial_reports.xml',
         'views/sap_master_data_views.xml',

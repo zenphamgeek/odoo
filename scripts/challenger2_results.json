@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-09-28T09:33:44Z",
+  "timestamp": "2026-09-28T17:34:15Z",
   "server_boot": {
-    "registry_load_time_seconds": 7.048,
+    "registry_load_time_seconds": 6.567,
     "registry_under_20s": true,
-    "installed_modules_count": 697,
+    "installed_modules_count": 700,
     "modules_count_gte_697": true
   },
   "scss_compilation": {
@@ -23,17 +23,17 @@
   "asset_bundles": {
     "web.assets_backend": {
       "status": "PASS",
-      "duration_sec": 1.089,
+      "duration_sec": 4.629,
       "css_generated": true
     },
     "web.assets_frontend": {
       "status": "PASS",
-      "duration_sec": 0.196,
+      "duration_sec": 3.681,
       "css_generated": true
     },
     "web.assets_web": {
       "status": "PASS",
-      "duration_sec": 0.406,
+      "duration_sec": 0.699,
       "css_generated": true
     }
   },
@@ -63,7 +63,7 @@
     },
     "/insilos": {
       "status_code": 303,
-      "location": "/insilos",
+      "location": "/web/login?redirect=%2Finsilos%3F",
       "status": "PASS"
     },
     "POST /web/session/logout (No CSRF)": {

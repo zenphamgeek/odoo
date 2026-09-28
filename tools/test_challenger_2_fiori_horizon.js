@@ -8,50 +8,6 @@ if (!fs.existsSync(ARTIFACTS_DIR)) {
   fs.mkdirSync(ARTIFACTS_DIR, { recursive: true });
 }
 
-function getSessionCookie() {
-  return new Promise((resolve, reject) => {
-    const req = http.request({
-      hostname: '127.0.0.1',
-      port: 28069,
-      path: '/web/login',
-      method: 'GET'
-    }, (res) => {
-      let data = '';
-      const setCookies = res.headers['set-cookie'] || [];
-      const initCookie = setCookies.map(c => c.split(';')[0]).join('; ');
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => {
-        const match = data.match(/name="csrf_token" value="([^"]+)"/);
-        if (!match) return reject(new Error('No CSRF token'));
-        const csrf = match[1];
-
-        const postData = `login=admin&password=admin&csrf_token=${csrf}&redirect=/insilos`;
-        const postReq = http.request({
-          hostname: '127.0.0.1',
-          port: 28069,
-          path: '/web/login',
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Content-Length': Buffer.byteLength(postData),
-            'Cookie': initCookie
-          }
-        }, (postRes) => {
-          const authCookies = postRes.headers['set-cookie'] || [];
-          const sessionMatch = authCookies.join('; ').match(/session_id=([^;]+)/);
-          if (sessionMatch) resolve(sessionMatch[1]);
-          else reject(new Error('No session_id in login response'));
-        });
-        postReq.on('error', reject);
-        postReq.write(postData);
-        postReq.end();
-      });
-    });
-    req.on('error', reject);
-    req.end();
-  });
-}
-
 // Color comparison helper (handles rgb, rgba, hex)
 function normalizeColor(colorStr) {
   if (!colorStr) return '';
@@ -89,9 +45,6 @@ async function runEmpiricalAudit() {
     if (details) console.log(`         -> ${JSON.stringify(details)}`);
   }
 
-  const sessionId = await getSessionCookie();
-  console.log('✓ Acquired authenticated admin session token.');
-
   const browser = await chromium.launch({
     headless: true,
     executablePath: '/usr/bin/google-chrome',
@@ -101,12 +54,14 @@ async function runEmpiricalAudit() {
   const context = await browser.newContext({
     viewport: { width: 1440, height: 900 }
   });
-  await context.addCookies([{
-    name: 'session_id',
-    value: sessionId,
-    domain: 'localhost',
-    path: '/'
-  }]);
+
+  const authRes = await context.request.post('http://localhost:28069/web/session/authenticate', {
+    data: { jsonrpc: '2.0', params: { db: 'odoo20_dev', login: 'admin', password: 'admin' } }
+  });
+  if (!authRes.ok()) {
+    throw new Error(`Authentication failed with status ${authRes.status()}`);
+  }
+  console.log('✓ Acquired authenticated admin session token.');
 
   const page = await context.newPage();
 

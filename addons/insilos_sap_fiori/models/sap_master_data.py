@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 # Part of Insilos. See LICENSE file for full copyright and licensing details.
 
+from collections.abc import Iterable
 import logging
 from insilos import models, fields, api
+from insilos.fields import Domain
 
 _logger = logging.getLogger(__name__)
 
@@ -90,21 +92,36 @@ class ResPartner(models.Model):
                 partner.supplier_rank = 0
 
     def _search_bp_role(self, operator, value):
-        if operator in ('=', '!='):
-            if value == 'general':
-                domain = [('customer_rank', '<=', 0), ('supplier_rank', '<=', 0)]
-            elif value == 'customer':
-                domain = [('customer_rank', '>', 0), ('supplier_rank', '<=', 0)]
-            elif value == 'vendor':
-                domain = [('customer_rank', '<=', 0), ('supplier_rank', '>', 0)]
-            elif value == 'both':
-                domain = [('customer_rank', '>', 0), ('supplier_rank', '>', 0)]
-            else:
-                domain = []
-            if operator == '!=':
-                domain = ['!'] + domain
-            return domain
-        return []
+        if operator not in ('=', '!=', 'in', 'not in'):
+            return []
+
+        role_domains = {
+            'general': [('customer_rank', '<=', 0), ('supplier_rank', '<=', 0)],
+            'customer': [('customer_rank', '>', 0), ('supplier_rank', '<=', 0)],
+            'vendor': [('customer_rank', '<=', 0), ('supplier_rank', '>', 0)],
+            'both': [('customer_rank', '>', 0), ('supplier_rank', '>', 0)],
+        }
+        all_roles = set(role_domains.keys())
+
+        if isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+            values = set(value)
+        elif value:
+            values = {value}
+        else:
+            values = set()
+
+        if operator in ('!=', 'not in'):
+            target_roles = all_roles - values
+        else:
+            target_roles = values & all_roles
+
+        if not target_roles:
+            return [('id', '=', False)]
+        if target_roles == all_roles:
+            return []
+        if len(target_roles) == 1:
+            return role_domains[next(iter(target_roles))]
+        return list(Domain.OR([role_domains[r] for r in target_roles]))
 
     @api.depends('customer_rank', 'supplier_rank')
     def _compute_bp_role_flags(self):
@@ -113,20 +130,56 @@ class ResPartner(models.Model):
             partner.is_bp_vendor = bool(partner.supplier_rank and partner.supplier_rank > 0)
             partner.is_bp_general = not (partner.is_bp_customer or partner.is_bp_vendor)
 
+    @classmethod
+    def _eval_bool_search(cls, operator, value):
+        if operator not in ('=', '!=', 'in', 'not in'):
+            return None
+        if isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+            bool_values = {bool(v) for v in value}
+        else:
+            bool_values = {bool(value)}
+
+        if not bool_values:
+            return 'CONTRADICTION' if operator in ('=', 'in') else 'TAUTOLOGY'
+        if bool_values == {True, False}:
+            return 'TAUTOLOGY' if operator in ('=', 'in') else 'CONTRADICTION'
+
+        val = next(iter(bool_values))
+        if operator in ('=', 'in'):
+            return val
+        elif operator in ('!=', 'not in'):
+            return not val
+        return None
+
     def _search_bp_customer(self, operator, value):
-        if (operator == '=' and value) or (operator == '!=' and not value):
+        mode = self._eval_bool_search(operator, value)
+        if mode is True:
             return [('customer_rank', '>', 0)]
-        return [('customer_rank', '<=', 0)]
+        elif mode is False:
+            return [('customer_rank', '<=', 0)]
+        elif mode == 'TAUTOLOGY':
+            return []
+        return [('id', '=', False)]
 
     def _search_bp_vendor(self, operator, value):
-        if (operator == '=' and value) or (operator == '!=' and not value):
+        mode = self._eval_bool_search(operator, value)
+        if mode is True:
             return [('supplier_rank', '>', 0)]
-        return [('supplier_rank', '<=', 0)]
+        elif mode is False:
+            return [('supplier_rank', '<=', 0)]
+        elif mode == 'TAUTOLOGY':
+            return []
+        return [('id', '=', False)]
 
     def _search_bp_general(self, operator, value):
-        if (operator == '=' and value) or (operator == '!=' and not value):
+        mode = self._eval_bool_search(operator, value)
+        if mode is True:
             return [('customer_rank', '<=', 0), ('supplier_rank', '<=', 0)]
-        return ['|', ('customer_rank', '>', 0), ('supplier_rank', '>', 0)]
+        elif mode is False:
+            return ['|', ('customer_rank', '>', 0), ('supplier_rank', '>', 0)]
+        elif mode == 'TAUTOLOGY':
+            return []
+        return [('id', '=', False)]
 
 
 class ProductTemplate(models.Model):
@@ -163,26 +216,64 @@ class ProductTemplate(models.Model):
              "- DIEN: Services (non-physical work or consulting)",
     )
 
+    @classmethod
+    def _get_sap_material_type_defaults(cls, material_type):
+        if material_type == 'DIEN':
+            return {
+                'type': 'service',
+                'is_storable': False,
+            }
+        elif material_type == 'ROH':
+            return {
+                'type': 'consu',
+                'is_storable': True,
+                'purchase_ok': True,
+                'sale_ok': False,
+            }
+        elif material_type == 'HALB':
+            return {
+                'type': 'consu',
+                'is_storable': True,
+                'purchase_ok': True,
+                'sale_ok': False,
+            }
+        elif material_type == 'FERT':
+            return {
+                'type': 'consu',
+                'is_storable': True,
+                'purchase_ok': False,
+                'sale_ok': True,
+            }
+        elif material_type == 'HAWA':
+            return {
+                'type': 'consu',
+                'is_storable': True,
+                'purchase_ok': True,
+                'sale_ok': True,
+            }
+        return {}
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            m_type = vals.get('sap_material_type')
+            if m_type:
+                for k, v in self._get_sap_material_type_defaults(m_type).items():
+                    vals.setdefault(k, v)
+        return super().create(vals_list)
+
+    def write(self, vals):
+        m_type = vals.get('sap_material_type')
+        if m_type:
+            for k, v in self._get_sap_material_type_defaults(m_type).items():
+                vals.setdefault(k, v)
+        return super().write(vals)
+
     @api.onchange('sap_material_type')
     def _onchange_sap_material_type(self):
-        if self.sap_material_type == 'DIEN':
-            self.type = 'service'
-        elif self.sap_material_type == 'ROH':
-            self.type = 'consu'
-            self.purchase_ok = True
-            self.sale_ok = False
-        elif self.sap_material_type == 'HALB':
-            self.type = 'consu'
-            self.purchase_ok = True
-            self.sale_ok = False
-        elif self.sap_material_type == 'FERT':
-            self.type = 'consu'
-            self.purchase_ok = False
-            self.sale_ok = True
-        elif self.sap_material_type == 'HAWA':
-            self.type = 'consu'
-            self.purchase_ok = True
-            self.sale_ok = True
+        defaults = self._get_sap_material_type_defaults(self.sap_material_type)
+        for k, v in defaults.items():
+            setattr(self, k, v)
 
 
 class ProductProduct(models.Model):
