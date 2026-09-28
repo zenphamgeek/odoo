@@ -33,6 +33,7 @@ Insilos Enterprise SAP Lexicon & Fiori Horizon Design System
         'web.assets_backend': [
             'insilos_sap_fiori/static/src/scss/fiori_horizon.scss',
             'insilos_sap_fiori/static/src/scss/fiori_status_badges.scss',
+            'insilos_sap_fiori/static/src/scss/fiori_kpi_cards.scss',
             'insilos_sap_fiori/static/src/js/sap_lexicon_service.js',
         ],
     },

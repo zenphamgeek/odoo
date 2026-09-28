@@ -1,0 +1,88 @@
+// =============================================================================
+// SAP Fiori Horizon KPI Cards & Executive Micro-Widgets
+// Insilos Enterprise Platform
+// =============================================================================
+
+// KPI Card Container
+.o_fiori_kpi_card, .o_kanban_view .o_kanban_record {
+    background: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+    padding: 1rem 1.25rem !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease !important;
+
+    &:hover {
+        border-color: #CBD5E1 !important;
+        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08) !important;
+        transform: translateY(-2px) !important;
+    }
+
+    // KPI Header
+    .o_kpi_header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+
+        .o_kpi_title {
+            color: #64748B;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .o_kpi_icon {
+            font-size: 1.25rem;
+            color: #FF8000;
+        }
+    }
+
+    // KPI Value
+    .o_kpi_value {
+        color: #0F172A;
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+    }
+
+    // KPI Subtitle & Trend Indicator
+    .o_kpi_trend {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-top: 0.35rem;
+
+        &.positive {
+            color: #107E3E;
+        }
+
+        &.negative {
+            color: #BB0000;
+        }
+
+        &.neutral {
+            color: #64748B;
+        }
+    }
+}
+
+// Kanban High-Density Column Header
+.o_kanban_view .o_kanban_group {
+    background-color: #F8FAFC !important;
+    border-radius: 8px;
+    padding: 0.5rem;
+
+    .o_kanban_header {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: #1E293B;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #E2E8F0;
+        margin-bottom: 0.5rem;
+    }
+}
