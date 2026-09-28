@@ -14,8 +14,8 @@ async function main() {
     data: { jsonrpc: '2.0', params: { db: 'odoo20_dev', login: 'admin', password: 'admin' } }
   });
 
-  console.log('Visiting Home App Drawer (/odoo)...');
-  await page.goto('http://localhost:28069/odoo', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  console.log('Visiting Home App Drawer (/web)...');
+  await page.goto('http://localhost:28069/web', { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(3000);
 
   // 1. Check title
@@ -38,8 +38,8 @@ async function main() {
   }
 
   // 3. Check Contacts ListView for Create button
-  console.log('\nNavigating to Contacts (/odoo/contacts)...');
-  await page.goto('http://localhost:28069/odoo/contacts', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  console.log('\nNavigating to Contacts (/web/contacts)...');
+  await page.goto('http://localhost:28069/web/contacts', { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(3000);
 
   const createBtn = await page.$('.o_list_button_add, .o-kanban-button-new');
@@ -51,8 +51,8 @@ async function main() {
   }
 
   // 4. Check CRM for Create button
-  console.log('\nNavigating to CRM (/odoo/crm)...');
-  await page.goto('http://localhost:28069/odoo/crm', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  console.log('\nNavigating to CRM (/web/crm)...');
+  await page.goto('http://localhost:28069/web/crm', { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(3000);
 
   const crmCreateBtn = await page.$('.o-kanban-button-new, .o_list_button_add');

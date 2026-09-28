@@ -1,4 +1,4 @@
-import { computed, usePlugin, Plugin, signal, useEffect } from "@odoo/owl";
+import { computed, usePlugin, Plugin, signal, useEffect } from "@insilos/owl";
 import { services } from "@web/core/services";
 import { registry } from "@web/core/registry";
 

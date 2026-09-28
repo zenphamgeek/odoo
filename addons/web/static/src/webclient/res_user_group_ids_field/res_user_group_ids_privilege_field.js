@@ -1,4 +1,4 @@
-import { Component, usePlugin, useProps } from "@odoo/owl";
+import { Component, usePlugin, useProps } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { registry } from "@web/core/registry";

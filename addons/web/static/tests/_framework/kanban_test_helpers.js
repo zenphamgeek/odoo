@@ -1,4 +1,4 @@
-import { animationFrame, queryAll, queryAllAttributes, queryAllTexts, queryOne } from "@odoo/hoot";
+import { animationFrame, queryAll, queryAllAttributes, queryAllTexts, queryOne } from "@insilos/hoot";
 import { getDropdownMenu } from "./component_test_helpers";
 import { contains } from "./dom_test_helpers";
 import { buildSelector } from "./view_test_helpers";

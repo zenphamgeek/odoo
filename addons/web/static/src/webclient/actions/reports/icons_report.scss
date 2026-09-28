@@ -19,7 +19,7 @@
     width: calc(#{$oi-fw-ratio} * var(--oi-font-size, #{$oi-default-size}));
 }
 
-// Icons of the Odoo UI library switch font through `--icon-font-family`, hence
+// Icons of the Insilos UI library switch font through `--icon-font-family`, hence
 // the plain `font-family` they need on top of the rule above.
 .oi[data-icon^="oi_"] {
     font-family: $oi-font-family;

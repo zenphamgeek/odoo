@@ -1,4 +1,4 @@
-from odoo import fields, models
+from insilos import fields, models
 
 
 class BaseModuleUpdate(models.TransientModel):

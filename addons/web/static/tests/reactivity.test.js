@@ -1,5 +1,5 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { toRaw, proxy } from "@odoo/owl";
+import { describe, expect, test } from "@insilos/hoot";
+import { toRaw, proxy } from "@insilos/owl";
 
 const {
     DateTime,

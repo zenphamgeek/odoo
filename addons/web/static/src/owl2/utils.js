@@ -4,7 +4,7 @@ const owl = globalThis.owl;
 /**
  * @param {any} component
  * @param {boolean} [deep]
- * @deprecated use Owl reactivity {@link https://github.com/odoo/owl/blob/master/doc/v3/owl/reference/reactivity.md}
+ * @deprecated use Owl reactivity {@link https://github.com/insilos/owl/blob/master/doc/v3/owl/reference/reactivity.md}
  */
 export function render(component, deep = false) {
     component.__owl__.render(deep);

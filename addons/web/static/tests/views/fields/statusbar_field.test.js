@@ -1,4 +1,4 @@
-import { expect, resize, test } from "@odoo/hoot";
+import { expect, resize, test } from "@insilos/hoot";
 import {
     click,
     edit,
@@ -7,8 +7,8 @@ import {
     queryAllTexts,
     queryAttribute,
     queryFirst,
-} from "@odoo/hoot-dom";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
+} from "@insilos/hoot-dom";
+import { animationFrame, runAllTimers } from "@insilos/hoot-mock";
 import {
     contains,
     clickSave,
@@ -26,7 +26,7 @@ import {
     pagerNext,
     pagerPrevious,
 } from "@web/../tests/web_test_helpers";
-import { EventBus } from "@odoo/owl";
+import { EventBus } from "@insilos/owl";
 import { range } from "@web/core/utils/numbers";
 import { WebClient } from "@web/webclient/webclient";
 import { patch } from "@web/core/utils/patch";

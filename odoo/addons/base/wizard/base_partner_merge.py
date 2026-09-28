@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from ast import literal_eval
 from collections import defaultdict
@@ -7,13 +7,13 @@ import logging
 import psycopg2
 import datetime
 
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError, UserError
-from odoo.fields import Command
-from odoo.tools import mute_logger, SQL
-from odoo.tools.sql import table_columns
+from insilos import api, fields, models
+from insilos.exceptions import ValidationError, UserError
+from insilos.fields import Command
+from insilos.tools import mute_logger, SQL
+from insilos.tools.sql import table_columns
 
-_logger = logging.getLogger('odoo.addons.base.partner.merge')
+_logger = logging.getLogger('insilos.addons.base.partner.merge')
 
 
 class BasePartnerMergeLine(models.TransientModel):
@@ -176,7 +176,7 @@ class BasePartnerMergeAutomaticWizard(models.TransientModel):
                 ))
             else:
                 try:
-                    with mute_logger('odoo.sql_db'), self.env.cr.savepoint():
+                    with mute_logger('insilos.sql_db'), self.env.cr.savepoint():
                         self.env.execute_query(SQL(
                             "UPDATE %(table)s SET %(column)s = %(dst_record_id)s WHERE %(column)s = ANY(%(src_record_ids)s)",
                             table=table_sql,
@@ -216,7 +216,7 @@ class BasePartnerMergeAutomaticWizard(models.TransientModel):
                 records.env.flush_all()
                 return
             try:
-                with mute_logger('odoo.sql_db'), self.env.cr.savepoint():
+                with mute_logger('insilos.sql_db'), self.env.cr.savepoint():
                     records.sudo().write({field_id: dst_record.id})
                     records.env.flush_all()
             except psycopg2.Error:

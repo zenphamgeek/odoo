@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { press, unload, waitFor } from "@odoo/hoot-dom";
-import { animationFrame, mockSendBeacon } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { press, unload, waitFor } from "@insilos/hoot-dom";
+import { animationFrame, mockSendBeacon } from "@insilos/hoot-mock";
 import {
     contains,
     defineActions,

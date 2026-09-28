@@ -1,4 +1,4 @@
-import { markRaw } from "@odoo/owl";
+import { markRaw } from "@insilos/owl";
 import { x2ManyCommands } from "@web/core/orm_plugin";
 import { intersection } from "@web/core/utils/arrays";
 import { omit, pick } from "@web/core/utils/objects";

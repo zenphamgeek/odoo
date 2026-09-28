@@ -1,6 +1,6 @@
-from odoo.tests.common import tagged, TransactionCase
-from odoo.exceptions import AccessError, UserError
-from odoo import Command
+from insilos.tests.common import tagged, TransactionCase
+from insilos.exceptions import AccessError, UserError
+from insilos import Command
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install

@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import base64
 import json
@@ -7,23 +7,23 @@ import os
 import unicodedata
 from contextlib import nullcontext
 
-import odoo
-from odoo import _, api
-from odoo.exceptions import AccessError, UserError
-from odoo.http import Controller, request, route
-from odoo.http.stream import STATIC_CACHE_LONG, Stream
-from odoo.tools import SQL, file_open, file_path, replace_exceptions, str2bool
-from odoo.tools.image import image_guess_size_from_field_name
+import insilos
+from insilos import _, api
+from insilos.exceptions import AccessError, UserError
+from insilos.http import Controller, request, route
+from insilos.http.stream import STATIC_CACHE_LONG, Stream
+from insilos.tools import SQL, file_open, file_path, replace_exceptions, str2bool
+from insilos.tools.image import image_guess_size_from_field_name
 
-from odoo.addons.base.models.assetsbundle import ANY_UNIQUE
+from insilos.addons.base.models.assetsbundle import ANY_UNIQUE
 
 _logger = logging.getLogger(__name__)
 
 BAD_X_SENDFILE_ERROR = """\
-Odoo is running with --x-sendfile but is receiving /web/filestore requests.
+Insilos is running with --x-sendfile but is receiving /web/filestore requests.
 
 With --x-sendfile enabled, NGINX should be serving the
-/web/filestore route, however Odoo is receiving the
+/web/filestore route, however Insilos is receiving the
 request.
 
 This usually indicates that NGINX is badly configured,
@@ -45,10 +45,10 @@ class Binary(Controller):
 
     @route('/web/filestore/<path:_path>', type='http', auth='none')
     def content_filestore(self, _path):
-        if odoo.tools.config['x_sendfile']:
+        if insilos.tools.config['x_sendfile']:
             # pylint: disable=logging-format-interpolation
             _logger.error(BAD_X_SENDFILE_ERROR.format(
-                data_dir=odoo.tools.config['data_dir'],
+                data_dir=insilos.tools.config['data_dir'],
             ))
         raise request.not_found()
 
@@ -286,7 +286,7 @@ class Binary(Controller):
                 else:
                     response = Stream.from_path('web/static/img/nologo.png').get_response()
             except Exception:  # noqa: BLE001
-                _logger.warning("While retrieving the company logo, using the Odoo logo instead", exc_info=True)
+                _logger.warning("While retrieving the company logo, using the Insilos logo instead", exc_info=True)
                 response = Stream.from_path(f'web/static/img/{imgname}{imgext}').get_response()
 
         return response

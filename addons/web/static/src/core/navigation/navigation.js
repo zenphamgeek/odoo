@@ -1,5 +1,5 @@
 import { useLayoutEffect } from "@web/owl2/utils";
-import { onWillDestroy, useListener } from "@odoo/owl";
+import { onWillDestroy, useListener } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 import { deepMerge } from "@web/core/utils/objects";
 import { scrollTo } from "@web/core/utils/scrolling";
@@ -427,7 +427,7 @@ export class Navigator {
  * - Optional virtual focus
  * - Focus on mouse enter
  *
- * @param {import("@odoo/owl").Signal<HTMLElement>} containerRef ref on the
+ * @param {import("@insilos/owl").Signal<HTMLElement>} containerRef ref on the
  *  container element (`null` while unmounted)
  * @param {NavigationOptions} options
  * @returns {Navigator}

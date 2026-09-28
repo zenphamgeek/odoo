@@ -1,7 +1,7 @@
-import { expect, test } from "@odoo/hoot";
-import { queryRect, queryOne } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
-import { Component, signal, xml } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { queryRect, queryOne } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
+import { Component, signal, xml } from "@insilos/owl";
 import { contains, mountWithCleanup } from "@web/../tests/web_test_helpers";
 
 import { useAutoresize } from "@web/core/utils/autoresize";

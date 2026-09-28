@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@odoo/hoot";
+import { describe, expect, test } from "@insilos/hoot";
 
 import { Cache } from "@web/core/utils/cache";
 

@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import functools
 import itertools
@@ -6,9 +6,9 @@ import json
 from datetime import UTC
 from typing import NamedTuple
 
-from odoo import api, Command, fields, models
-from odoo.tools import OrderedSet, SQL
-from odoo.tools.translate import _, code_translations, LazyTranslate
+from insilos import api, Command, fields, models
+from insilos.tools import OrderedSet, SQL
+from insilos.tools.translate import _, code_translations, LazyTranslate
 
 _lt = LazyTranslate(__name__)
 
@@ -96,11 +96,11 @@ class IrFieldsConverter(models.AbstractModel):
     @api.model
     def for_model(self, model, fromtype=str, *, savepoint):
         """ Returns a converter object for the model. A converter is a
-        callable taking a record-ish (a dictionary representing an odoo
+        callable taking a record-ish (a dictionary representing an insilos
         record with values of typetag ``fromtype``) and returning a converted
-        records matching what :meth:`odoo.models.Model.write` expects.
+        records matching what :meth:`insilos.models.Model.write` expects.
 
-        :param model: :class:`odoo.models.Model` for the conversion base
+        :param model: :class:`insilos.models.Model` for the conversion base
         :param fromtype:
         :param savepoint: savepoint to rollback to on error
         :returns: a converter callable
@@ -191,7 +191,7 @@ class IrFieldsConverter(models.AbstractModel):
 
         :param model:
         :param field: field object to generate a value for
-        :type field: :class:`odoo.fields.Field`
+        :type field: :class:`insilos.fields.Field`
         :param fromtype: type to convert to something fitting for ``field``
         :type fromtype: type | str
         :param savepoint: savepoint to rollback to on errors

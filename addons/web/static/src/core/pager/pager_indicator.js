@@ -3,7 +3,7 @@ import { registry } from "../registry";
 import { Transition } from "../transition";
 import { useBus } from "../utils/hooks";
 
-import { Component, proxy } from "@odoo/owl";
+import { Component, proxy } from "@insilos/owl";
 import { PAGER_UPDATED_EVENT, pagerBus } from "./pager";
 
 export class PagerIndicator extends Component {

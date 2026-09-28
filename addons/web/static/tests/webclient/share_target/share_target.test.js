@@ -1,6 +1,6 @@
-import { expect, test, runAllTimers } from "@odoo/hoot";
-import { animationFrame } from "@odoo/hoot-mock";
-import { queryAllTexts } from "@odoo/hoot-dom";
+import { expect, test, runAllTimers } from "@insilos/hoot";
+import { animationFrame } from "@insilos/hoot-mock";
+import { queryAllTexts } from "@insilos/hoot-dom";
 import {
     contains,
     defineModels,
@@ -11,7 +11,7 @@ import {
     webModels,
 } from "@web/../tests/web_test_helpers";
 import { registry } from "@web/core/registry";
-import { onMounted, xml } from "@odoo/owl";
+import { onMounted, xml } from "@insilos/owl";
 import { ShareTargetItem } from "@web/webclient/share_target/share_target_item";
 import { WebClient } from "@web/webclient/webclient";
 import { shareTargetService } from "@web/webclient/share_target/share_target_service";

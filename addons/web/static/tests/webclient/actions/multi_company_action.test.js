@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
+import { beforeEach, expect, test } from "@insilos/hoot";
 import { cookie } from "@web/core/browser/cookie";
 import { redirect } from "@web/core/utils/urls";
 import {
@@ -13,7 +13,7 @@ import {
     patchWithCleanup,
     serverState,
 } from "@web/../tests/web_test_helpers";
-import { animationFrame } from "@odoo/hoot-dom";
+import { animationFrame } from "@insilos/hoot-dom";
 import { location } from "@web/core/browser/browser";
 import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 import { router } from "@web/core/browser/router";
@@ -63,11 +63,11 @@ test("open record withtout the correct company (load state)", async () => {
         });
     });
 
-    redirect("/odoo/res.partner/1");
+    redirect("/insilos/res.partner/1");
     await mountWebClient();
     expect(cookie.get("cids")).toBe("1-2");
     expect.verifySteps(["reload"]);
-    expect(location.href).toBe("http://example.com/odoo/res.partner/1", {
+    expect(location.href).toBe("http://example.com/insilos/res.partner/1", {
         message: "url did not change",
     });
 });
@@ -88,7 +88,7 @@ test("open record withtout the correct company (doAction)", async () => {
             expect(location.href).toBe("https://www.hoot.test/");
             const res = _pushState(state, options);
             expect.step("pushState");
-            expect(location.href).toBe("http://example.com/odoo/res.partner/1");
+            expect(location.href).toBe("http://example.com/insilos/res.partner/1");
             return res;
         },
     });
@@ -103,7 +103,7 @@ test("open record withtout the correct company (doAction)", async () => {
     await animationFrame();
     expect(cookie.get("cids")).toBe("1-2");
     expect.verifySteps(["pushState", "reload"]);
-    expect(location.href).toBe("http://example.com/odoo/res.partner/1", {
+    expect(location.href).toBe("http://example.com/insilos/res.partner/1", {
         message: "url should contain the information of the doAction",
     });
 });

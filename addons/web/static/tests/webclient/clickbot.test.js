@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, test } from "@odoo/hoot";
-import { animationFrame, mockDate, runAllTimers, tick } from "@odoo/hoot-mock";
+import { beforeEach, describe, expect, test } from "@insilos/hoot";
+import { animationFrame, mockDate, runAllTimers, tick } from "@insilos/hoot-mock";
 import {
     defineActions,
     defineMenus,
@@ -12,7 +12,7 @@ import {
     patchWithCleanup,
 } from "@web/../tests/web_test_helpers";
 
-import { onWillStart, onWillUpdateProps } from "@odoo/owl";
+import { onWillStart, onWillUpdateProps } from "@insilos/owl";
 
 import { ListRenderer } from "@web/views/list/list_renderer";
 import { ClickbotLauncher, FAILURE_SIGNAL, SUCCESS_SIGNAL } from "@web/webclient/clickbot/clickbot";
@@ -555,13 +555,13 @@ test("clickbot show rpc error when an error dialog is detected", async () => {
             type: "server",
             code: 0,
             data: {
-                name: "odoo.exceptions.Programming error",
+                name: "insilos.exceptions.Programming error",
                 debug: "traceback",
                 arguments: [],
                 context: {},
                 message: "This is a server Error, it should be displayed in an error dialog",
             },
-            exceptionName: "odoo.exceptions.Programming error",
+            exceptionName: "insilos.exceptions.Programming error",
             subType: "server",
             message: "This is a server Error, it should be displayed in an error dialog",
             model: "foo",
@@ -581,7 +581,7 @@ test("clickbot show rpc error when an error dialog is detected", async () => {
                     <div class="text-bg-100 clearfix mt-2 position-relative o_error_detail pb-2">
                         <button class="btn position-absolute top-0 end-0 pt-2 btn-link link-body-emphasis" data-available-offline=""><span class="oi" data-icon="assignment"></span></button>
                         <div class="ps-1 pt-1 ps-md-3 pt-md-3">
-                            <p class="m-0"><b>Odoo Server Error</b></p>
+                            <p class="m-0"><b>Insilos Server Error</b></p>
                             <p class="d-block small text-info">ERROR INFO</p>
                             <code>RPC_ERROR</code>
                             <code class="d-block">This is a server Error, it should be displayed in an error dialog</code>

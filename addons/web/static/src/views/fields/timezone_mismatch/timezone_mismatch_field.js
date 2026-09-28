@@ -1,4 +1,4 @@
-import { t, useProps } from "@odoo/owl";
+import { t, useProps } from "@insilos/owl";
 import { formatDateTime } from "@web/core/l10n/dates";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";

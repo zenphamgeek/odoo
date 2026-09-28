@@ -1,7 +1,7 @@
-import { expect, test } from "@odoo/hoot";
-import { click, edit } from "@odoo/hoot-dom";
-import { animationFrame, tick } from "@odoo/hoot-mock";
-import { Component, proxy, signal, useProps, xml } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { click, edit } from "@insilos/hoot-dom";
+import { animationFrame, tick } from "@insilos/hoot-mock";
+import { Component, proxy, signal, useProps, xml } from "@insilos/owl";
 import { mountWithCleanup } from "@web/../tests/web_test_helpers";
 import { DateTimeInput } from "@web/core/datetime/datetime_input";
 import { useDateTimePicker } from "@web/core/datetime/datetime_picker_hook";

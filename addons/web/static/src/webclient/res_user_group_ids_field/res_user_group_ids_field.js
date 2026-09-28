@@ -1,4 +1,4 @@
-import { Component, signal, toRaw, useEffect, usePlugin, useProps } from "@odoo/owl";
+import { Component, signal, toRaw, useEffect, usePlugin, useProps } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { _t } from "@web/core/l10n/translation";
 import { localeCompare } from "@web/core/l10n/utils";

@@ -57,7 +57,7 @@ const nonDigitRegex = /[^\d]/g;
 
 const normalizeFormatTable = {
     // Python strftime to luxon.js conversion table
-    // See odoo/addons/base/views/res_lang_views.xml
+    // See insilos/addons/base/views/res_lang_views.xml
     // for details about supported directives
     a: "ccc",
     A: "cccc",
@@ -297,7 +297,7 @@ function isValidDate(date) {
 
 /**
  * Smart date inputs are shortcuts to write dates quicker.
- * These shortcuts are based on python version: `odoo.tools.date_utils.parse_date`.
+ * These shortcuts are based on python version: `insilos.tools.date_utils.parse_date`.
  * Starting from now (or "today"), add relative delta to the date.
  *
  * e.g.

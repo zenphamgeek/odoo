@@ -3,7 +3,7 @@ import { _t } from "@web/core/l10n/translation";
 import { useService } from "@web/core/utils/hooks";
 import { fuzzyLookup } from "@web/core/utils/search";
 
-import { Component, onWillStart, t, useProps } from "@odoo/owl";
+import { Component, onWillStart, t, useProps } from "@insilos/owl";
 
 export class ModelSelector extends Component {
     static template = "web.ModelSelector";

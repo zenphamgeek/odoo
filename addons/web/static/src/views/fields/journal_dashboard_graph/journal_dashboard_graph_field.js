@@ -3,7 +3,7 @@ import { registry } from "@web/core/registry";
 import { getColor, hexToRGBA, getCustomColor } from "@web/core/colors/colors";
 import { standardFieldProps } from "../standard_field_props";
 
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { cookie } from "@web/core/browser/cookie";
 
 const colorScheme = cookie.get("color_scheme");
@@ -38,7 +38,7 @@ export class JournalDashboardGraphField extends Component {
             return pt.x;
         });
 
-        const color10 = getColor(3, cookie.get("color_scheme"), "odoo");
+        const color10 = getColor(3, cookie.get("color_scheme"), "insilos");
         const sampleColor = getCustomColor(colorScheme, "#d8dadd", "#495057");
         const borderColor = this.data[0].is_sample_data ? hexToRGBA(sampleColor, 0.225) : color10;
         const backgroundColor = this.data[0].is_sample_data
@@ -117,8 +117,8 @@ export class JournalDashboardGraphField extends Component {
         const labels = [];
         const backgroundColor = [];
 
-        const color13 = getColor(2, cookie.get("color_scheme"), "odoo");
-        const color19 = getColor(1, cookie.get("color_scheme"), "odoo");
+        const color13 = getColor(2, cookie.get("color_scheme"), "insilos");
+        const color19 = getColor(1, cookie.get("color_scheme"), "insilos");
         this.data[0].values.forEach((pt) => {
             data.push(pt.value);
             labels.push(pt.label);

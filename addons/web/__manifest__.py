@@ -1,13 +1,13 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 {
     'name': 'Web',
     'category': 'Hidden',
     'description': """
-Odoo Web core module.
-========================
+Web Client Core for Insilos Platform.
+=====================================
 
-This module provides the core of the Odoo Web Client.
+This module provides the core of the Insilos Web Client.
 """,
     'depends': ['base'],
     'auto_install': True,
@@ -541,20 +541,24 @@ This module provides the core of the Odoo Web Client.
             '/web/static/src/libs/materialsymbols/material_symbols_sharp_subset.woff2',
             '/web/static/src/libs/materialsymbols/material_symbols_sharp.css',
         ],
-        'web.odoo_ui_icons': [
+        'web.insilos_icons': [
             '/web/static/lib/odoo_ui_icons/fonts/odoo_ui_icons.woff2',
             '/web/static/lib/odoo_ui_icons/odoo_ui_icons.css',
+        ],
+        'web.odoo_ui_icons': [
+            ('include', 'web.insilos_icons'),
         ],
         'web.icons_fonts': [
             ('include', 'web.material_symbols_outlined'),
             ('include', 'web.material_symbols_rounded'),
             ('include', 'web.material_symbols_sharp'),
-            ('include', 'web.odoo_ui_icons'),
+            ('include', 'web.insilos_icons'),
             'web/static/src/webclient/icons_mappings/**',
             'web/static/src/webclient/icons.scss',
         ],
     },
     'bootstrap': True,  # load translations for login screen,
-    'author': 'Odoo S.A.',
+    'author': 'Insilos Core Team',
+    'website': 'https://insilos.com',
     'license': 'LGPL-3',
 }

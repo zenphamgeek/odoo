@@ -1,6 +1,6 @@
 import { _t } from "@web/core/l10n/translation";
 import { Dialog } from "@web/core/dialog/dialog";
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 import { BarcodeVideoScanner, isBarcodeScannerSupported } from "./barcode_video_scanner";
 
 export const barcodeDialogProps = {

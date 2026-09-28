@@ -1,7 +1,7 @@
 import { _t } from "@web/core/l10n/translation";
 import { editModelDebug } from "@web/core/debug/debug_utils";
 import { registry } from "@web/core/registry";
-import { usePlugin } from "@odoo/owl";
+import { usePlugin } from "@insilos/owl";
 import { ORM } from "@web/core/orm_plugin";
 import { useService } from "@web/core/utils/hooks";
 

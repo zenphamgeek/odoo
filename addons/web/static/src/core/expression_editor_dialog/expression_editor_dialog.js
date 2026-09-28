@@ -1,4 +1,4 @@
-import { Component, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, proxy, signal, t, useProps } from "@insilos/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { ExpressionEditor } from "@web/core/expression_editor/expression_editor";
 import { evaluateExpr } from "@web/core/py_js/py";

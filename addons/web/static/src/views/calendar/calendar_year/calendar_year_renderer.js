@@ -7,7 +7,7 @@ import { makeWeekColumn } from "@web/views/calendar/calendar_common/calendar_com
 import { CalendarYearPopover } from "@web/views/calendar/calendar_year/calendar_year_popover";
 import { TOUCH_SELECTION_THRESHOLD } from "@web/views/utils";
 
-import { Component, onMounted, onPatched, signal, t, useProps } from "@odoo/owl";
+import { Component, onMounted, onPatched, signal, t, useProps } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 
 const { DateTime } = luxon;

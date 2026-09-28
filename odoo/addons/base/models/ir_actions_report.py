@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import io
 import json
 import logging
@@ -14,17 +14,17 @@ from lxml import etree
 from markupsafe import Markup
 from PIL import Image, ImageFile
 
-from odoo import _, api, fields, models, modules, tools
-from odoo.exceptions import AccessError, RedirectWarning, UserError, ValidationError
-from odoo.fields import Domain
-from odoo.tools import is_html_empty
-from odoo.tools.barcode import (
+from insilos import _, api, fields, models, modules, tools
+from insilos.exceptions import AccessError, RedirectWarning, UserError, ValidationError
+from insilos.fields import Domain
+from insilos.tools import is_html_empty
+from insilos.tools.barcode import (
     check_barcode_encoding,
     createBarcodeDrawing,
     get_barcode_font,
 )
-from odoo.tools.pdf import PdfFileReader, PdfFileWriter, PdfReadError
-from odoo.tools.safe_eval import safe_eval, time
+from insilos.tools.pdf import PdfFileReader, PdfFileWriter, PdfReadError
+from insilos.tools.safe_eval import safe_eval, time
 
 # Allow truncated images
 ImageFile.LOAD_TRUNCATED_IMAGES = True

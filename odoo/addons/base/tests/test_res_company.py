@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from unittest.mock import patch
 
-from odoo.exceptions import ValidationError
-from odoo.tests import Command, TransactionCase, tagged, Form
+from insilos.exceptions import ValidationError
+from insilos.tests import Command, TransactionCase, tagged, Form
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -85,7 +85,7 @@ class TestCompany(TransactionCase):
             'symbol': 'AAA',
             'rate_ids': [Command.create({'name': '2009-09-09', 'rate': 1})]
         })
-        with patch('odoo.addons.base.models.res_company.ResCompany._get_company_root_delegated_field_names', return_value=["currency_id", "zip"]):
+        with patch('insilos.addons.base.models.res_company.ResCompany._get_company_root_delegated_field_names', return_value=["currency_id", "zip"]):
             self.env.company.write({'currency_id': new_currency.id, 'zip': '12345'})
 
 

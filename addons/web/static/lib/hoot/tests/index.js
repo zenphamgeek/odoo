@@ -1,4 +1,4 @@
-import { isHootReady, start } from "@odoo/hoot";
+import { isHootReady, start } from "@insilos/hoot";
 
 import "./core/expect.test.js";
 import "./core/runner.test.js";

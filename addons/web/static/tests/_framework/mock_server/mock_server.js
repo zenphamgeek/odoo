@@ -8,7 +8,7 @@ import {
     mockLocation,
     mockWebSocket,
     registerDebugInfo,
-} from "@odoo/hoot";
+} from "@insilos/hoot";
 import { makeErrorFromResponse, rpc, RPCError } from "@web/core/network/rpc";
 import { RPCCache } from "@web/core/network/rpc_cache";
 import { ensureArray, isIterable } from "@web/core/utils/arrays";
@@ -90,7 +90,7 @@ const { DateTime } = luxon;
  *  translations?: Record<string, string>;
  * }} ServerParams
  *
- * @typedef {import("@odoo/hoot").ServerWebSocket} ServerWebSocket
+ * @typedef {import("@insilos/hoot").ServerWebSocket} ServerWebSocket
  *
  * @typedef {string | Iterable<string> | RegExp} StringMatcher
  *
@@ -631,7 +631,7 @@ export class MockServer {
         });
         if (!actions.length) {
             throw makeServerError({
-                errorName: "odoo.addons.web.controllers.action.MissingActionError",
+                errorName: "insilos.addons.web.controllers.action.MissingActionError",
                 message: `The action ${JSON.stringify(id)} does not exist`,
             });
         }

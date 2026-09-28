@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { mount } from "@odoo/owl";
+import { mount } from "@insilos/owl";
 import { HootFixtureElement } from "../core/fixture";
 import { waitForDocument } from "../hoot_utils";
 import { patchWindow } from "../mock/window";

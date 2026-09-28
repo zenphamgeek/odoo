@@ -1,7 +1,7 @@
 from unittest.mock import patch
 
-from odoo.exceptions import AccessError
-from odoo.tests import TransactionCase, tagged, users
+from insilos.exceptions import AccessError
+from insilos.tests import TransactionCase, tagged, users
 
 
 @tagged('at_install', '-post_install')

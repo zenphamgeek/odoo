@@ -1,4 +1,4 @@
-/** @odoo-module */
+/** @insilos-module */
 
 import { validateSeed } from "../hoot_utils";
 

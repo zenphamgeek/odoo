@@ -1,13 +1,13 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from datetime import datetime, timedelta
 from freezegun import freeze_time
 from werkzeug.urls import url_unquote_plus
 
-from odoo.addons.base.tests.files import GIF_RAW
-from odoo.tests.common import HttpCase, new_test_user, tagged
-from odoo.tools.image import binary_to_image
-from odoo.tools.misc import limited_field_access_token
+from insilos.addons.base.tests.files import GIF_RAW
+from insilos.tests.common import HttpCase, new_test_user, tagged
+from insilos.tools.image import binary_to_image
+from insilos.tools.misc import limited_field_access_token
 
 
 @tagged('-at_install', 'post_install')

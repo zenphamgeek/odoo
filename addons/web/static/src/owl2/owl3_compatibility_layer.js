@@ -17,7 +17,7 @@
  *
  * 3. Update hooks:
  *    - replace all `useEffect` with `useLayoutEffect`
- *      import { useLayoutEffect } from "@odoo/owl";
+ *      import { useLayoutEffect } from "@insilos/owl";
  *
  * ---------------------------------------------------------------------------
  * Migration (once the app builds successfully)

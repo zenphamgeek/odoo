@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import base64
 import contextlib
 import hashlib
@@ -10,14 +10,14 @@ from unittest.mock import patch
 
 from PIL import Image
 
-from odoo.api import SUPERUSER_ID
-from odoo.exceptions import AccessError, ValidationError
-from odoo.tests import tagged
-from odoo.tools import BinaryBytes, file_open, file_path, mute_logger
-from odoo.tools.image import image_apply_opt
+from insilos.api import SUPERUSER_ID
+from insilos.exceptions import AccessError, ValidationError
+from insilos.tests import tagged
+from insilos.tools import BinaryBytes, file_open, file_path, mute_logger
+from insilos.tools.image import image_apply_opt
 
-from odoo.addons.base.models.ir_attachment import IrAttachment
-from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
+from insilos.addons.base.models.ir_attachment import IrAttachment
+from insilos.addons.base.tests.common import TransactionCaseWithUserDemo
 
 HASH_SPLIT = 2      # FIXME: testing implementations detail is not a good idea
 
@@ -141,7 +141,7 @@ class TestIrAttachment(TransactionCaseWithUserDemo):
         Attachment = self.env['ir.attachment']
         img_bin = io.BytesIO()
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        with Image.open(os.path.join(dir_path, 'odoo.jpg'), 'r') as logo:
+        with Image.open(os.path.join(dir_path, 'insilos.jpg'), 'r') as logo:
             img = Image.new('RGB', (4000, 2000), '#4169E1')
             img.paste(logo)
             img.save(img_bin, 'JPEG')
@@ -266,7 +266,7 @@ class TestIrAttachment(TransactionCaseWithUserDemo):
         # Only try the attachment creation without the indexation
         with (
             patch(
-                "odoo.addons.base.models.ir_attachment.IrAttachment._index",
+                "insilos.addons.base.models.ir_attachment.IrAttachment._index",
                 new=lambda *args, **kwargs: None,
             ),
             file_open('base/i18n/base.pot', 'rb') as f,
@@ -306,7 +306,7 @@ class TestIrAttachment(TransactionCaseWithUserDemo):
 
         # Only try the attachment creation without the indexation
         with patch(
-            "odoo.addons.base.models.ir_attachment.IrAttachment._index",
+            "insilos.addons.base.models.ir_attachment.IrAttachment._index",
             new=lambda *args, **kwargs: None,
         ):
             # warmup outside of tracemalloc
@@ -410,7 +410,7 @@ class TestPermissions(TransactionCaseWithUserDemo):
         self.assertNotEqual(SUPERUSER_ID, admin_user.id)
         attachment_admin.with_user(admin_user).raw
 
-    @mute_logger("odoo.addons.base.models.ir_access", "odoo.models")
+    @mute_logger("insilos.addons.base.models.ir_access", "insilos.models")
     def test_field_read_permission(self):
         """If the record field can't be read,
         e.g. `groups="base.group_system"` on the field,

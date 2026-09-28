@@ -2,7 +2,7 @@ import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
 import { RainbowMan } from "./rainbow_man";
-import { Plugin, usePlugin, useScope } from "@odoo/owl";
+import { Plugin, usePlugin, useScope } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 import { services } from "@web/core/services";
 import { OverlayPlugin } from "@web/core/overlay/overlay_plugin";
@@ -30,7 +30,7 @@ const effectRegistry = registry.category("effects");
  *    'fast' will make rainbowman dissapear quickly
  *    'medium' and 'slow' will wait little longer before disappearing (can be used when options.message is longer)
  *    'no' will keep rainbowman on screen until user clicks anywhere outside rainbowman
- * @param {typeof import("@odoo/owl").Component} [params.Component]
+ * @param {typeof import("@insilos/owl").Component} [params.Component]
  *    Custom Component class to instantiate inside the Rainbow Man
  * @param {Object} [params.props]
  *    If params.Component is given, its props can be passed with this argument

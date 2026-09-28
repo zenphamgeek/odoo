@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 import {
     clickSave,
     contains,
@@ -10,7 +10,7 @@ import {
     onRpc,
 } from "@web/../tests/web_test_helpers";
 
-import { Component, useProps, xml } from "@odoo/owl";
+import { Component, useProps, xml } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 
 class Partner extends models.Model {

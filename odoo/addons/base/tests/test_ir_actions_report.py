@@ -1,13 +1,13 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import io
 import logging
 from unittest import skipIf
 
-import odoo.tests
-from odoo import tools
-from odoo.exceptions import UserError
+import insilos.tests
+from insilos import tools
+from insilos.exceptions import UserError
 
-from odoo.addons.base.tests.files import PDF_RAW
+from insilos.addons.base.tests.files import PDF_RAW
 
 try:
     from pdfminer.converter import PDFPageAggregator
@@ -23,8 +23,8 @@ except ImportError:
 _logger = logging.getLogger(__name__)
 
 
-@odoo.tests.tagged('post_install', '-at_install', 'post_install_l10n')
-class TestReports(odoo.tests.TransactionCase):
+@insilos.tests.tagged('post_install', '-at_install', 'post_install_l10n')
+class TestReports(insilos.tests.TransactionCase):
     def test_reports(self):
         invoice_domain = [('move_type', 'in', ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund', 'in_receipt'))]
         specific_model_domains = {
@@ -131,10 +131,10 @@ class TestReports(odoo.tests.TransactionCase):
         minimal_pdf_content = io.BytesIO(PDF_RAW)
         malformed_pdf_content = io.BytesIO(b'not a pdf')
 
-        with self.assertRaises(UserError, msg="Odoo is unable to merge the generated PDFs."):
+        with self.assertRaises(UserError, msg="Insilos is unable to merge the generated PDFs."):
             report._merge_pdfs([malformed_pdf_content])
 
-        with self.assertRaises(UserError, msg="Odoo is unable to merge the generated PDFs."):
+        with self.assertRaises(UserError, msg="Insilos is unable to merge the generated PDFs."):
             report._merge_pdfs([minimal_pdf_content, malformed_pdf_content])
 
         failed_streams = []
@@ -219,7 +219,7 @@ class Box:
 
 
 @skipIf(pdfminer is False, "pdfminer not installed")
-class TestReportsRenderingCommon(odoo.tests.HttpCase):
+class TestReportsRenderingCommon(insilos.tests.HttpCase):
 
     def setUp(self):
         super().setUp()
@@ -312,7 +312,7 @@ class TestReportsRenderingCommon(odoo.tests.HttpCase):
 
     def save_pdf(self):
         assert self.last_pdf_content
-        odoo.tests.save_test_file(self._testMethodName, self.last_pdf_content, 'pdf_', 'pdf', document_type='Report PDF', logger=_logger)
+        insilos.tests.save_test_file(self._testMethodName, self.last_pdf_content, 'pdf_', 'pdf', document_type='Report PDF', logger=_logger)
 
     def _get_pdf_pages(self, pdf_content):
         ioBytes = io.BytesIO(pdf_content)
@@ -371,7 +371,7 @@ class TestReportsRenderingCommon(odoo.tests.HttpCase):
             )
 
 
-@odoo.tests.tagged('post_install', '-at_install', 'pdf_rendering')
+@insilos.tests.tagged('post_install', '-at_install', 'pdf_rendering')
 class TestReportsRendering(TestReportsRenderingCommon):
     """
         This test aims to test as much as possible the current pdf rendering,
@@ -642,7 +642,7 @@ class TestReportsRendering(TestReportsRenderingCommon):
         ])
 
 
-@odoo.tests.tagged('post_install', '-at_install', '-standard', 'pdf_rendering')
+@insilos.tests.tagged('post_install', '-at_install', '-standard', 'pdf_rendering')
 class TestReportsRenderingLimitations(TestReportsRenderingCommon):
     def test_no_clip(self):
         """
@@ -672,8 +672,8 @@ class TestReportsRenderingLimitations(TestReportsRenderingCommon):
         self.assertGreaterEqual(content.top, header.end_top, "EXISTING LIMITATION: large header shouldn't overflow on body, but they do")
 
 
-@odoo.tests.tagged('post_install', '-at_install')
-class TestAggregatePdfReports(odoo.tests.HttpCase):
+@insilos.tests.tagged('post_install', '-at_install')
+class TestAggregatePdfReports(insilos.tests.HttpCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()

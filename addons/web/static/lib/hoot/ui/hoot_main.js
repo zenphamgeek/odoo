@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, signal, t, xml } from "@odoo/owl";
+import { Component, signal, t, xml } from "@insilos/owl";
 import { Test } from "../core/test";
 import { createUrl, refresh } from "../core/url";
 import { callHootKey, T_NULL, useHootKey, useWindowListener } from "../hoot_utils";
@@ -78,7 +78,7 @@ export class HootMain extends Component {
                     <nav class="hoot-controls py-1 px-2">
                         <h1
                             class="hoot-logo m-0 select-none"
-                            title="Hierarchically Organized Odoo Tests"
+                            title="Hierarchically Organized Insilos Tests"
                         >
                             <strong class="flex">HOOT</strong>
                         </h1>

@@ -1,5 +1,5 @@
-import { after, describe, expect, test } from "@odoo/hoot";
-import { usePlugin } from "@odoo/owl";
+import { after, describe, expect, test } from "@insilos/hoot";
+import { usePlugin } from "@insilos/owl";
 import { startInteraction } from "@web/../tests/public/helpers";
 import { Interaction } from "@web/public/interaction";
 import { patch } from "@web/core/utils/patch";

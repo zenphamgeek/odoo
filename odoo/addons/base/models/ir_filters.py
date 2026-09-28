@@ -1,9 +1,9 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import ast
 
-from odoo import api, fields, models
-from odoo.fields import Domain
-from odoo.tools.misc import clean_context
+from insilos import api, fields, models
+from insilos.fields import Domain
+from insilos.tools.misc import clean_context
 
 
 class IrFilters(models.Model):

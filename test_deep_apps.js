@@ -76,7 +76,7 @@ async function run() {
   // Test 1: Desktop Home Menu
   currentApp = 'Desktop Home Menu';
   console.log(`\n---> Testing ${currentApp}...`);
-  await page.goto('http://localhost:28069/odoo', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto('http://localhost:28069/web', { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForTimeout(2000);
   const homeApps = await page.$$('.o_app');
   console.log(`Home menu apps found: ${homeApps.length}`);
@@ -143,7 +143,7 @@ async function run() {
       params: { db: 'odoo20_dev', login: 'admin', password: 'admin' }
     }
   });
-  await mobilePage.goto('http://localhost:28069/odoo', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await mobilePage.goto('http://localhost:28069/web', { waitUntil: 'domcontentloaded', timeout: 60000 });
   await mobilePage.waitForTimeout(2000);
   await mobilePage.click('.o_app:first-child');
   await mobilePage.waitForTimeout(2000);

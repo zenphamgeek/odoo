@@ -48,7 +48,7 @@ async function main() {
   console.log('Logged in UID:', auth.result?.uid);
 
   currentApp = 'Home Menu';
-  await page.goto('http://localhost:28069/odoo', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto('http://localhost:28069/web', { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForSelector('.o_app', { timeout: 20000 });
 
   const apps = await page.$$eval('.o_app', els =>

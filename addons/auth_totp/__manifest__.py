@@ -1,3 +1,5 @@
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+
 {
     'name': 'Two-Factor Authentication (TOTP)',
     'description': """
@@ -36,6 +38,7 @@ can setup API keys to replace their main password.
             'auth_totp/static/src/services/check_identity/*',
         ],
     },
-    'author': 'Odoo S.A.',
+    'author': 'Insilos Core Team',
+    'website': 'https://insilos.com',
     'license': 'LGPL-3',
 }

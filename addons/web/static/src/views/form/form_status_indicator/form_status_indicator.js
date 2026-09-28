@@ -1,4 +1,4 @@
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 import { useBus } from "@web/core/utils/hooks";
 
 export function useStatusIndicator(model, actions = {}) {

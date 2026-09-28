@@ -6,7 +6,7 @@ import { capitalize } from "@web/core/utils/strings";
 import { getVisibleElements } from "@web/core/utils/ui";
 import { DefaultCommandItem } from "./command_palette";
 
-import { Component, t, useProps, usePlugin } from "@odoo/owl";
+import { Component, t, useProps, usePlugin } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 import { HotkeyPlugin } from "@web/core/hotkeys/hotkey_plugin";
 

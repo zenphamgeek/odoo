@@ -1,4 +1,4 @@
-import { onMounted, onPatched, untrack } from "@odoo/owl";
+import { onMounted, onPatched, untrack } from "@insilos/owl";
 import { useLayoutEffect } from "@web/owl2/utils";
 import { memoize } from "@web/core/utils/functions";
 

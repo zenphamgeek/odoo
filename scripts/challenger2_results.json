@@ -1,0 +1,90 @@
+{
+  "timestamp": "2026-09-28T09:33:44Z",
+  "server_boot": {
+    "registry_load_time_seconds": 7.048,
+    "registry_under_20s": true,
+    "installed_modules_count": 697,
+    "modules_count_gte_697": true
+  },
+  "scss_compilation": {
+    "primary_variables.scss": {
+      "status": "PASS",
+      "bytes": 0
+    },
+    "primary_variables.dark.scss": {
+      "status": "PASS",
+      "bytes": 0
+    },
+    "home_menu_background.scss": {
+      "status": "PASS",
+      "bytes": 5759
+    }
+  },
+  "asset_bundles": {
+    "web.assets_backend": {
+      "status": "PASS",
+      "duration_sec": 1.089,
+      "css_generated": true
+    },
+    "web.assets_frontend": {
+      "status": "PASS",
+      "duration_sec": 0.196,
+      "css_generated": true
+    },
+    "web.assets_web": {
+      "status": "PASS",
+      "duration_sec": 0.406,
+      "css_generated": true
+    }
+  },
+  "routes": {
+    "/web/login": {
+      "status_code": 200,
+      "checks": {
+        "status_code_200": true,
+        "has_csrf_token": true,
+        "has_input_login": true,
+        "has_input_password": true,
+        "has_submit_button": true,
+        "no_error_traces": true,
+        "oe_login_form_present": true
+      },
+      "status": "PASS"
+    },
+    "/web/login (Multi-DB)": {
+      "status_code": 200,
+      "checks": {
+        "status_code_200": true,
+        "has_db_input": true,
+        "has_db_selector_link": true,
+        "has_csrf_token": true
+      },
+      "status": "PASS"
+    },
+    "/insilos": {
+      "status_code": 303,
+      "location": "/insilos",
+      "status": "PASS"
+    },
+    "POST /web/session/logout (No CSRF)": {
+      "status_code": 400,
+      "status": "PASS"
+    },
+    "POST /web/session/logout (Valid CSRF)": {
+      "status_code": 303,
+      "location": "/insilos",
+      "status": "PASS"
+    },
+    "GET /web/session/logout": {
+      "status_code": 405,
+      "status": "PASS"
+    }
+  },
+  "qweb_template_hooks": {
+    "webclient_bootstrap_theme_color": {
+      "status": "PASS",
+      "tokens_found": true
+    }
+  },
+  "verdict": "APPROVE"
+}

@@ -1,0 +1,4 @@
+# Patch image: only replaces insilos_website addon (~few MB delta)
+# Avoids full 975MB rebuild — base image already cached locally
+FROM docker.io/innoriahub/insilos:v20.0.0-qa
+COPY enterprise/insilos_website/ /app/insilos/apps/insilos_website/

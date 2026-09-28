@@ -1,4 +1,4 @@
-import { describe, expect, getFixture, test } from "@odoo/hoot";
+import { describe, expect, getFixture, test } from "@insilos/hoot";
 import { getService, makeTestApp, onRpc } from "@web/../tests/web_test_helpers";
 import { browser } from "@web/core/browser/browser";
 import { patch } from "@web/core/utils/patch";
@@ -24,14 +24,14 @@ test("PWA service fetches the manifest found in the page", async () => {
     mountManifestLink("/web/manifest.webmanifest");
     onRpc("/*", (request) => {
         expect.step(new URL(request.url).pathname);
-        return { name: "Odoo PWA" };
+        return { name: "Insilos PWA" };
     });
     const pwaService = await getService("pwa");
     let appManifest = await pwaService.getManifest();
-    expect(appManifest).toEqual({ name: "Odoo PWA" });
+    expect(appManifest).toEqual({ name: "Insilos PWA" });
     expect.verifySteps(["/web/manifest.webmanifest"]);
     appManifest = await pwaService.getManifest();
-    expect(appManifest).toEqual({ name: "Odoo PWA" });
+    expect(appManifest).toEqual({ name: "Insilos PWA" });
     // manifest is only fetched once to get the app name
     expect.verifySteps([]);
 });
@@ -65,5 +65,5 @@ test("PWA installation process", async () => {
         },
     });
     expect(pwaService.canPromptToInstall).toBe(false);
-    expect.verifySteps(['{"/odoo":"accepted"}', "onDone call with installation accepted"]);
+    expect.verifySteps(['{"/insilos":"accepted"}', "onDone call with installation accepted"]);
 });

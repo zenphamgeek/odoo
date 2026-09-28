@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { describe, expect, mockSendBeacon, mockTouch, mockVibrate, test } from "@odoo/hoot";
+import { describe, expect, mockSendBeacon, mockTouch, mockVibrate, test } from "@insilos/hoot";
 import { parseUrl } from "../local_helpers";
 
 /**

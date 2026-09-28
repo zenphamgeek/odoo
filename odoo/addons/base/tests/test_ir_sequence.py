@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from contextlib import contextmanager
 from datetime import date, datetime
@@ -6,13 +6,13 @@ from datetime import date, datetime
 import psycopg2
 import psycopg2.errors
 
-import odoo
-from odoo.exceptions import UserError
-from odoo.fields import Command
-from odoo.modules.registry import Registry
-from odoo.tests import tagged, common
-from odoo.tests.common import BaseCase, TransactionCase
-from odoo.tools.misc import mute_logger
+import insilos
+from insilos.exceptions import UserError
+from insilos.fields import Command
+from insilos.modules.registry import Registry
+from insilos.tests import tagged, common
+from insilos.tests.common import BaseCase, TransactionCase
+from insilos.tools.misc import mute_logger
 
 ADMIN_USER_ID = common.ADMIN_USER_ID
 
@@ -24,7 +24,7 @@ def environment():
     """
     registry = Registry(common.get_db_name())
     with registry.cursor() as cr:
-        yield odoo.api.Environment(cr, ADMIN_USER_ID, {})
+        yield insilos.api.Environment(cr, ADMIN_USER_ID, {})
 
 
 def drop_sequence(code):
@@ -92,7 +92,7 @@ class TestIrSequenceNoGap(BaseCase):
             n = env['ir.sequence'].next_by_code('test_sequence_type_2')
             self.assertTrue(n)
 
-    @mute_logger('odoo.sql_db')
+    @mute_logger('insilos.sql_db')
     def test_ir_sequence_draw_twice_no_gap(self):
         """ Try to draw a number from two transactions.
         This is expected to not work.

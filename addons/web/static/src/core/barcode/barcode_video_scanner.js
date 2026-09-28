@@ -15,7 +15,7 @@ import {
     status,
     t,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 import { pick } from "@web/core/utils/objects";
 

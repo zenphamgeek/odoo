@@ -1,12 +1,12 @@
 /**
- * @odoo
+ * @insilos
  * This file contains 2 modifications from the original 'diff_match_patch.js' file:
  *
  * 1. it has been trimmed to only keep the 'diff' functions (as is), without the
  *    'match' and 'patch' functions, to reduce file size;
  *
  * 2. this comment block has been prepended and an extra 'export' block has been
- *    appended at the end as to make it fit into the Odoo module system.
+ *    appended at the end as to make it fit into the Insilos module system.
  */
 ((exports) => {
 
@@ -1556,7 +1556,7 @@ diff_match_patch.patch_obj.prototype.toString = function () {
 
 
 /**
- * @odoo
+ * @insilos
  * Export main object and attach useful variables
  */
 exports.DiffMatchPatch = Object.assign(diff_match_patch, {

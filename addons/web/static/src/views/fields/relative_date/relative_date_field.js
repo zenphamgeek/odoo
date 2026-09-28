@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { evaluateExpr } from "@web/core/py_js/py";
 import { getClassNameFromDecoration } from "@web/views/utils";
 import { _t } from "@web/core/l10n/translation";

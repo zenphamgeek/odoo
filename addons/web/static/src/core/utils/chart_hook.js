@@ -1,5 +1,5 @@
 import { loadBundle } from "@web/core/assets";
-import { onMounted, onPatched, onWillStart, onWillUnmount, signal } from "@odoo/owl";
+import { onMounted, onPatched, onWillStart, onWillUnmount, signal } from "@insilos/owl";
 
 /**
  * Manages the lifecycle of a Chart.js chart: loads the chart.js bundle before

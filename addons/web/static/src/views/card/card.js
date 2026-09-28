@@ -5,7 +5,7 @@ import { useViewButtons } from "@web/views/view_button/view_button_hook";
 import { CardRenderer } from "./card_renderer";
 import { CARD_ATTRIBUTE, CardArchParser } from "./card_arch_parser";
 
-import { Component, signal, t, useProps, xml } from "@odoo/owl";
+import { Component, signal, t, useProps, xml } from "@insilos/owl";
 
 export class Card extends Component {
     static template = xml`

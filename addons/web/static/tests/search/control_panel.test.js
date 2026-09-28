@@ -1,7 +1,7 @@
-import { Component, proxy, xml } from "@odoo/owl";
-import { expect, test, getFixture } from "@odoo/hoot";
-import { click, press, keyDown, keyUp, queryAll, queryFirst } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { Component, proxy, xml } from "@insilos/owl";
+import { expect, test, getFixture } from "@insilos/hoot";
+import { click, press, keyDown, keyUp, queryAll, queryFirst } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 import {
     contains,
     defineModels,

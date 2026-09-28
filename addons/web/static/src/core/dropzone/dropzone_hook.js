@@ -1,10 +1,10 @@
 import { OverlayPlugin } from "@web/core/overlay/overlay_plugin";
 import { Dropzone } from "@web/core/dropzone/dropzone";
 import { useService } from "@web/core/utils/hooks";
-import { useListener, useOnChange, usePlugin } from "@odoo/owl";
+import { useListener, useOnChange, usePlugin } from "@insilos/owl";
 
 /**
- * @param {import("@odoo/owl").Signal<HTMLElement>} targetRef - Element on which to place the dropzone.
+ * @param {import("@insilos/owl").Signal<HTMLElement>} targetRef - Element on which to place the dropzone.
  * @param {Class} dropzoneComponent - Class used to instantiate the dropzone component.
  * @param {Object} dropzoneComponentProps - Props given to the instantiated dropzone component.
  * @param {function} isDropzoneEnabled - Function that determines whether the dropzone should be enabled.
@@ -88,7 +88,7 @@ export function useCustomDropzone(
 }
 
 /**
- * @param {import("@odoo/owl").Signal<HTMLElement>} targetRef - Element on which to place the dropzone.
+ * @param {import("@insilos/owl").Signal<HTMLElement>} targetRef - Element on which to place the dropzone.
  * @param {function} onDrop - Callback function called when the user drops a file on the dropzone.
  * @param {string} extraClass - Classes that will be added to the standard `Dropzone` component.
  * @param {function} isDropzoneEnabled - Function that determines whether the dropzone should be enabled.

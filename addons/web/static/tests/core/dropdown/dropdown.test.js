@@ -1,4 +1,4 @@
-import { expect, getFixture, queryRect, test } from "@odoo/hoot";
+import { expect, getFixture, queryRect, test } from "@insilos/hoot";
 import {
     click,
     hover,
@@ -10,9 +10,9 @@ import {
     queryAllTexts,
     queryOne,
     resize,
-} from "@odoo/hoot-dom";
-import { animationFrame, runAllTimers, tick } from "@odoo/hoot-mock";
-import { Component, onMounted, onPatched, proxy, signal, t, useProps, xml } from "@odoo/owl";
+} from "@insilos/hoot-dom";
+import { animationFrame, runAllTimers, tick } from "@insilos/hoot-mock";
+import { Component, onMounted, onPatched, proxy, signal, t, useProps, xml } from "@insilos/owl";
 
 import { getPickerCell } from "@web/../tests/core/datetime/datetime_test_helpers";
 import {

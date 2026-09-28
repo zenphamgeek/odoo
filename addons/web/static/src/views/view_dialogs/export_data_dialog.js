@@ -9,7 +9,7 @@ import {
     t,
     usePlugin,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { AutoComplete } from "@web/core/autocomplete/autocomplete";
 import { browser } from "@web/core/browser/browser";
 import { CheckBox } from "@web/core/checkbox/checkbox";

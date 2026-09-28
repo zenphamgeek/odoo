@@ -1,4 +1,4 @@
-import { Component, proxy, t, useProps, useScope } from "@odoo/owl";
+import { Component, proxy, t, useProps, useScope } from "@insilos/owl";
 import { PropertiesGroupByItem } from "@web/search/properties_group_by_item/properties_group_by_item";
 import { SearchBarDropdown } from "../search_bar_dropdown";
 import { dropdownProps } from "@web/core/dropdown/dropdown";

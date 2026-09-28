@@ -1,4 +1,4 @@
-import { usePlugin } from "@odoo/owl";
+import { usePlugin } from "@insilos/owl";
 import { UncaughtPromiseError } from "../errors/error_service";
 import { ConnectionLostError } from "../network/rpc";
 import { registry } from "../registry";

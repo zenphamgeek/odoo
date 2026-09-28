@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import email.message
 import email.policy
@@ -9,14 +9,14 @@ from unittest.mock import patch
 
 import psycopg2.errors
 
-from odoo import tools
-from odoo.addons.base.models.ir_mail_server import MailDeliveryException
-from odoo.addons.base.tests import mail_examples
-from odoo.addons.base.tests.common import MockSmtplibCase
-from odoo.tests import tagged, users
-from odoo.tests.common import Like, TransactionCase
-from odoo.tools import mute_logger
-from odoo.tools import config
+from insilos import tools
+from insilos.addons.base.models.ir_mail_server import MailDeliveryException
+from insilos.addons.base.tests import mail_examples
+from insilos.addons.base.tests.common import MockSmtplibCase
+from insilos.tests import tagged, users
+from insilos.tests.common import Like, TransactionCase
+from insilos.tools import mute_logger
+from insilos.tools import config
 
 
 class _FakeSMTP:
@@ -141,7 +141,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
                     body_alternative = part.get_content().rstrip('\n')
             self.assertEqual(body_alternative, expected)
 
-    @mute_logger('odoo.sql_db')
+    @mute_logger('insilos.sql_db')
     def test_mail_server_auth_cert_requires_tls(self):
         with self.assertRaises(psycopg2.errors.CheckViolation):
             self.env['ir.mail_server'].create({
@@ -211,10 +211,10 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
         for email, from_filter in tests:
             self.assertFalse(self.env['ir.mail_server']._match_from_filter(email, from_filter))
 
-    @mute_logger('odoo.models.unlink')
+    @mute_logger('insilos.models.unlink')
     def test_mail_server_priorities(self):
         """ Test if we choose the right mail server to send an email. Simulates
-        simple Odoo DB so we have to spoof the FROM otherwise we cannot send
+        simple Insilos DB so we have to spoof the FROM otherwise we cannot send
         any email. """
         for email_from, (expected_mail_server, expected_email_from) in zip(
             [
@@ -233,7 +233,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
                 self.assertEqual(mail_server, expected_mail_server)
                 self.assertEqual(mail_from, expected_email_from)
 
-    @mute_logger('odoo.models.unlink')
+    @mute_logger('insilos.models.unlink')
     def test_mail_server_send_email(self):
         """ Test main 'send_email' usage: check mail_server choice based on from
         filters, encapsulation, spoofing. """
@@ -310,19 +310,19 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
             self.mock_smtplib_connection(),
             patch.object(self.testing_smtp_session, 'send_message', side_effect=smtplib.SMTPDataError(550, b'failure')),
             self.assertRaisesRegex(MailDeliveryException, r"User specific server"),
-            self.assertLogs('odoo.addons.base.models.ir_mail_server', 'INFO') as capture,
+            self.assertLogs('insilos.addons.base.models.ir_mail_server', 'INFO') as capture,
         ):
             self.env['ir.mail_server'].send_email(message, mail_server_id=self.mail_server_user.id)
 
         self.assertEqual(capture.output, [
             Like(
-                "INFO:odoo.addons.base.models.ir_mail_server:"
+                "INFO:insilos.addons.base.models.ir_mail_server:"
                 "Mail delivery failed via SMTP server 'User specific server'.\n"
                 "SMTPDataError: ..."
             ),
         ])
 
-    @mute_logger('odoo.models.unlink', 'odoo.addons.base.models.ir_mail_server')
+    @mute_logger('insilos.models.unlink', 'insilos.addons.base.models.ir_mail_server')
     def test_mail_server_send_email_context_force(self):
         """ Allow to force notifications_email / bounce_address from context
         to allow higher-level apps to send values until end of mail stack
@@ -366,7 +366,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
             from_filter='random.domain',
         )
 
-    @mute_logger('odoo.models.unlink')
+    @mute_logger('insilos.models.unlink')
     def test_mail_server_send_email_IDNA(self):
         """ Test that the mail from / recipient envelop are encoded using IDNA """
         with self.mock_smtplib_connection():
@@ -381,22 +381,22 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
             from_filter=False,
         )
 
-    @mute_logger('odoo.models.unlink', 'odoo.addons.base.models.ir_mail_server')
+    @mute_logger('insilos.models.unlink', 'insilos.addons.base.models.ir_mail_server')
     @patch.dict(config.options, {
         "from_filter": "dummy@example.com, test.mycompany.com, dummy2@example.com",
         "smtp_server": "example.com",
     })
     def test_mail_server_config_bin(self):
-        """ Test the configuration provided in the odoo-bin arguments. This config
+        """ Test the configuration provided in the insilos-bin arguments. This config
         is used when no mail server exists. Test with and without giving a
         pre-configured SMTP session, should not impact results.
 
         Also check "mail.default.from_filter" parameter usage that should overwrite
-        odoo-bin argument "--from-filter".
+        insilos-bin argument "--from-filter".
         """
         IrMailServer = self.env['ir.mail_server']
 
-        # Remove all mail server so we will use the odoo-bin arguments
+        # Remove all mail server so we will use the insilos-bin arguments
         IrMailServer.search([]).unlink()
         self.assertFalse(IrMailServer.search([]))
 
@@ -440,7 +440,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
                         from_filter="dummy@example.com, test.mycompany.com, dummy2@example.com",
                     )
 
-        # for from_filter in ICP, overwrite the one from odoo-bin
+        # for from_filter in ICP, overwrite the one from insilos-bin
         self.env['ir.config_parameter'].sudo().set_str('mail.default.from_filter', 'icp.example.com')
 
         # Use an email in the domain of the config parameter "mail.default.from_filter"
@@ -454,11 +454,11 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
             from_filter='icp.example.com',
         )
 
-    @mute_logger('odoo.models.unlink')
+    @mute_logger('insilos.models.unlink')
     @patch.dict(config.options, {'from_filter': 'fake.com', 'smtp_server': 'cli_example.com'})
     def test_mail_server_config_cli(self):
         """ Test the mail server configuration when the "smtp_authentication" is
-        "cli". It should take the configuration from the odoo-bin argument. The
+        "cli". It should take the configuration from the insilos-bin argument. The
         "from_filter" of the mail server should overwrite the one set in the CLI
         arguments.
         """
@@ -476,7 +476,7 @@ class TestIrMailServer(TransactionCase, MockSmtplibCase):
 
         for mail_from, (expected_smtp_from, expected_msg_from, expected_mail_server) in zip(
             [
-                # check that the CLI server take the configuration in the odoo-bin argument
+                # check that the CLI server take the configuration in the insilos-bin argument
                 # except the from_filter which is taken on the mail server
                 'test@cli_example.com',
                 # other mail servers still work

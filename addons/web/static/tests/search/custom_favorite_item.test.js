@@ -1,5 +1,5 @@
-import { after, animationFrame, expect, press, test } from "@odoo/hoot";
-import { Component, xml } from "@odoo/owl";
+import { after, animationFrame, expect, press, test } from "@insilos/hoot";
+import { Component, xml } from "@insilos/owl";
 import {
     defineModels,
     editFavoriteName,

@@ -24,7 +24,7 @@ import {
     t,
     useEffect,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { deepCopy } from "@web/core/utils/objects";
 
 export class PropertiesField extends Component {

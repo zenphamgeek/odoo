@@ -8,7 +8,7 @@
 #
 #     git config --global blame.ignoreRevsFile ':(optional).git-blame-ignore-revs'
 
-# odoo/odoo#237354: payment & sale reformatting
+# upstream-pr#237354: payment & sale reformatting
 18a2407a311302eba0623bb0eeded0a4022eddf5
 3383b7be0329e5637a321215de8dab3f48a69a09
 6e461afbbec879b649cf53ff598c2d7700639e95
@@ -17,5 +17,5 @@ b9db729bd38bd1eab729f7b025c7778baa1c46e6
 db52fcb72670537948825bde558c145d032f3b9b
 ee4851307243008eb2ff20b33c399e9b52700f88
 
-# odoo/odoo#278134: _rec_names_search list -> tuple
+# upstream-pr#278134: _rec_names_search list -> tuple
 03eaa2f39bfea38b924c8c4e4c1a740b787cf978

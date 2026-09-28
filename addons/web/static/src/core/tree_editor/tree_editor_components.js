@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { BadgeTag } from "@web/core/tags_list/badge_tag";
 import { _t } from "@web/core/l10n/translation";
 import { toLocaleDateString } from "@web/core/l10n/dates";

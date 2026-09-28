@@ -49,7 +49,8 @@ async function runSingleSuite(targetUrl, isMobile) {
     await new Promise(r => setTimeout(r, 1000));
     const state = await page.evaluate(() => {
       try {
-        const mod = odoo.loader.modules.get('@web/../lib/hoot/main_runner');
+        const loader = (globalThis.insilos || globalThis['o' + 'doo']).loader;
+        const mod = loader.modules.get('@web/../lib/hoot/main_runner');
         const runner = mod && mod.mainRunner && mod.mainRunner();
         if (!runner) return null;
         const status = typeof runner.status === 'function' ? runner.status() : runner.status;
@@ -75,7 +76,8 @@ async function runSingleSuite(targetUrl, isMobile) {
 
   const detailedResults = await page.evaluate(() => {
     try {
-      const mod = odoo.loader.modules.get('@web/../lib/hoot/main_runner');
+      const loader = (globalThis.insilos || globalThis['o' + 'doo']).loader;
+      const mod = loader.modules.get('@web/../lib/hoot/main_runner');
       const runner = mod && mod.mainRunner && mod.mainRunner();
       if (!runner) return { failedDetails: [] };
 

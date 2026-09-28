@@ -1,7 +1,7 @@
-import { expect, test } from "@odoo/hoot";
-import { queryAllTexts, queryFirst } from "@odoo/hoot-dom";
-import { runAllTimers } from "@odoo/hoot-mock";
-import { Component, onError, proxy, xml } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { queryAllTexts, queryFirst } from "@insilos/hoot-dom";
+import { runAllTimers } from "@insilos/hoot-mock";
+import { Component, onError, proxy, xml } from "@insilos/owl";
 import {
     contains,
     defineModels,

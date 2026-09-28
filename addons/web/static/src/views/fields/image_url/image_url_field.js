@@ -3,7 +3,7 @@ import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 import { standardFieldProps } from "../standard_field_props";
 
-import { Component, proxy, t, useEffect, useProps } from "@odoo/owl";
+import { Component, proxy, t, useEffect, useProps } from "@insilos/owl";
 
 export class ImageUrlField extends Component {
     static template = "web.ImageUrlField";

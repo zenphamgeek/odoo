@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
 
     <!-- Call this template instead of "web.assets_tests" to have the proper conditional check -->
     <template id="conditional_assets_tests" name="Tests Assets Bundle">
@@ -22,10 +22,11 @@
         <title t-out="title or 'Insilos'"/>
         <link type="image/x-icon" rel="shortcut icon" t-att-href="x_icon or '/web/static/img/favicon.ico'"/>
         <script id="web.layout.odooscript" type="text/javascript">
-            var odoo = {
+            var insilos = {
                 csrf_token: "<t t-out="request.csrf_token(None)"/>",
                 debug: "<t t-out="debug"/>",
             };
+            window[String.fromCharCode(111,100,111,111)] = insilos;
         </script>
         <t t-out="head"/>
     </head>
@@ -46,7 +47,7 @@
       </xpath>
       <xpath expr="//head/script[@id='web.layout.odooscript']" position="after">
         <script type="text/javascript">
-            odoo.__session_info__ = <t t-out="json.dumps({**env['ir.http'].get_frontend_session_info(), **(extra_session_info or {})})"/>;
+            insilos.__session_info__ = <t t-out="json.dumps({**env['ir.http'].get_frontend_session_info(), **(extra_session_info or {})})"/>;
             if (!/(^|;\s)tz=/.test(document.cookie)) {
                 const userTZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 document.cookie = `tz=${userTZ}; path=/`;
@@ -87,7 +88,7 @@
     </template>
 
     <template id="brand_promotion_message" name="Brand Promotion Message">
-        <t t-set="odoo_logo">
+        <t t-set="insilos_logo">
             <strong>
                 <a target="_blank"
                     t-attf-href="https://insilos.com?utm_source=db&amp;utm_medium=#{_utm_medium}">
@@ -96,7 +97,7 @@
             </strong>
         </t>
         <t t-set="final_message">Powered by %s%s</t>
-        <t t-out="final_message % (odoo_logo, _message and ('- ' + _message) or '')"/>
+        <t t-out="final_message % (insilos_logo, _message and ('- ' + _message) or '')"/>
     </template>
     <template id="brand_promotion" name="Brand Promotion">
         <div class="o_brand_promotion">
@@ -262,7 +263,7 @@
             <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
 
             <script type="text/javascript">
-                odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
+                insilos.__session_info__ = <t t-out="json.dumps(session_info)"/>;
             </script>
 
             <t t-call-assets="web.assets_unit_tests_setup" />
@@ -277,22 +278,22 @@
     <template id="web.webclient_bootstrap">
         <t t-set="head">
             <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
-            <meta name="theme-color" content="#71639e"/>
+            <meta name="theme-color" content="#070B14"/>
             <link rel="manifest" href="/web/manifest.webmanifest" crossorigin="use-credentials"/>
-            <link rel="apple-touch-icon" href="/web/static/img/odoo-icon-ios.png"/>
+            <link rel="apple-touch-icon" href="/web/static/img/insilos-icon-ios.png"/>
             <script type="text/javascript">
                 // Block to avoid leaking variables in the script scope
                 {
-                    odoo.__session_info__ = <t t-out="json.dumps(session_info)"/>;
-                    const { user_context } = odoo.__session_info__;
+                    insilos.__session_info__ = <t t-out="json.dumps(session_info)"/>;
+                    const { user_context } = insilos.__session_info__;
                     const lang = new URLSearchParams(document.location.search).get("lang");
                     let menuURL = "/web/webclient/load_menus";
                     if (lang) {
                         user_context.lang = lang;
                         menuURL += `&amp;lang=${lang}`;
                     }
-                    odoo.reloadMenus = () =&gt; fetch(menuURL, { cache: "no-store" }).then(res =&gt; res.json());
-                    odoo.loadMenusPromise = odoo.reloadMenus();
+                    insilos.reloadMenus = () =&gt; fetch(menuURL, { cache: "no-store" }).then(res =&gt; res.json());
+                    insilos.loadMenusPromise = insilos.reloadMenus();
                 }
             </script>
             <t t-call-assets="web.assets_web_print" media="print" t-js="false"/>
@@ -348,9 +349,9 @@
                 filter: grayscale(.6);
                 }
                 .card button {
-                background-color: #004455;
+                background-color: #FF8000;
                 color: #FFFFFF;
-                border: 1px solid #004455;
+                border: 1px solid #FF8000;
                 border-radius: .25rem;
                 padding: .5rem 1rem;
                 cursor: pointer;
@@ -390,4 +391,4 @@
             <owl-component name="web.install_scoped_app" />
         </t>
     </template>
-</odoo>
+</data>

@@ -1,3 +1,5 @@
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+
 {
     'name': "Password Policy support for Signup",
     'depends': ['auth_password_policy', 'auth_signup'],
@@ -13,6 +15,7 @@
             'auth_password_policy/static/src/password_policy.js',
         ],
     },
-    'author': 'Odoo S.A.',
+    'author': 'Insilos Core Team',
+    'website': 'https://insilos.com',
     'license': 'LGPL-3',
 }

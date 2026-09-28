@@ -1,6 +1,6 @@
-import { expect } from "@odoo/hoot";
-import { click, edit, queryAll, queryAllTexts, queryFirst, queryText } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { expect } from "@insilos/hoot";
+import { click, edit, queryAll, queryAllTexts, queryFirst, queryText } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 import { isSmall } from "@web/../tests/web_test_helpers";
 
 const { DateTime } = luxon;

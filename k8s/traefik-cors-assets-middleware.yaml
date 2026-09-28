@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: insilos-cors-assets
+  namespace: production
+spec:
+  headers:
+    accessControlAllowOriginList:
+      - "*"
+    accessControlAllowMethods:
+      - GET
+      - OPTIONS
+    accessControlMaxAge: 31536000
+    addVaryHeader: true

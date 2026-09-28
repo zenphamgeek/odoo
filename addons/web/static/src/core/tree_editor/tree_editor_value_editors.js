@@ -98,7 +98,7 @@ function makeSelectEditor(options, params = {}) {
         component: Select,
         extractProps: ({ value, update, displayPlaceholder }) => {
             const visibleOptions = options.filter(
-                (opt) => odoo.debug || !opt[2]?.debugOnly || opt[0] === value
+                (opt) => insilos.debug || !opt[2]?.debugOnly || opt[0] === value
             );
             return {
                 value,

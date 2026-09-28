@@ -1,4 +1,4 @@
-/** @odoo-module alias=@odoo/hoot-dom default=false */
+/** @insilos-module alias=@insilos/hoot-dom default=false */
 
 import * as dom from "./helpers/dom";
 import * as events from "./helpers/events";

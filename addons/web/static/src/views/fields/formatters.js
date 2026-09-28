@@ -15,7 +15,7 @@ import {
 } from "@web/core/utils/numbers";
 import { exprToBoolean } from "@web/core/utils/strings";
 
-import { markup } from "@odoo/owl";
+import { markup } from "@insilos/owl";
 import { formatCurrency } from "@web/core/currency";
 import { normalizeTimeStr } from "@web/core/l10n/time";
 

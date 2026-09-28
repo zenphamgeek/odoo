@@ -1,6 +1,6 @@
 import { render } from "@web/owl2/utils";
-import { expect, getFixture, test } from "@odoo/hoot";
-import { Component, xml } from "@odoo/owl";
+import { expect, getFixture, test } from "@insilos/hoot";
+import { Component, xml } from "@insilos/owl";
 import { mountWithCleanup } from "@web/../tests/web_test_helpers";
 import { ErrorHandler } from "@web/core/utils/components";
 

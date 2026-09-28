@@ -1,4 +1,4 @@
-import { onWillDestroy, onWillStart, usePlugin, Plugin, useListener } from "@odoo/owl";
+import { onWillDestroy, onWillStart, usePlugin, Plugin, useListener } from "@insilos/owl";
 import { session } from "@web/session";
 import { jsToPyLocale } from "@web/core/l10n/utils";
 import { user } from "@web/core/user";

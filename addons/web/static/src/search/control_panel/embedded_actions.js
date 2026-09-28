@@ -1,4 +1,4 @@
-import { Component, proxy, signal, t, useEnv, useLayoutEffect, useProps } from "@odoo/owl";
+import { Component, proxy, signal, t, useEnv, useLayoutEffect, useProps } from "@insilos/owl";
 import { CheckBox } from "@web/core/checkbox/checkbox";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { makeContext } from "@web/core/context";

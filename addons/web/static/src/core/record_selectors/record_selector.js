@@ -1,5 +1,5 @@
 import { render } from "@web/owl2/utils";
-import { asyncComputed, Component, onWillStart, t, useProps } from "@odoo/owl";
+import { asyncComputed, Component, onWillStart, t, useProps } from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 import { isId } from "@web/core/tree_editor/utils";
 import { useService } from "@web/core/utils/hooks";

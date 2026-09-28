@@ -8,9 +8,9 @@ import {
     mountWithCleanup,
     onRpc,
 } from "@web/../tests/web_test_helpers";
-import { beforeEach, expect, test } from "@odoo/hoot";
-import { click, queryAll, queryAllTexts } from "@odoo/hoot-dom";
-import { markup } from "@odoo/owl";
+import { beforeEach, expect, test } from "@insilos/hoot";
+import { click, queryAll, queryAllTexts } from "@insilos/hoot-dom";
+import { markup } from "@insilos/owl";
 
 const userMenuRegistry = registry.category("user_menuitems");
 

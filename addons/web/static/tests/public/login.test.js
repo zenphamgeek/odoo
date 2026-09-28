@@ -1,7 +1,7 @@
 import { setupInteractionWhiteList, startInteractions } from "@web/../tests/public/helpers";
 
-import { describe, expect, test } from "@odoo/hoot";
-import { queryOne } from "@odoo/hoot-dom";
+import { describe, expect, test } from "@insilos/hoot";
+import { queryOne } from "@insilos/hoot-dom";
 
 setupInteractionWhiteList("public.login");
 

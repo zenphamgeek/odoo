@@ -1,4 +1,4 @@
-import { t, useProps } from "@odoo/owl";
+import { t, useProps } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import { floatField, FloatField, floatFieldProps } from "../float/float_field";
 import { _t } from "@web/core/l10n/translation";

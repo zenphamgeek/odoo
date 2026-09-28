@@ -6,7 +6,7 @@ import { kanbanView } from "@web/views/kanban/kanban_view";
 import { SelectCreateDialog } from "@web/views/view_dialogs/select_create_dialog";
 import { WebClient } from "@web/webclient/webclient";
 
-import { Component, xml } from "@odoo/owl";
+import { Component, xml } from "@insilos/owl";
 
 import {
     clickModalButton,
@@ -29,9 +29,9 @@ import {
     toggleSearchBarMenu,
 } from "@web/../tests/web_test_helpers";
 
-import { beforeEach, expect, test } from "@odoo/hoot";
-import { click, queryOne } from "@odoo/hoot-dom";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
+import { beforeEach, expect, test } from "@insilos/hoot";
+import { click, queryOne } from "@insilos/hoot-dom";
+import { animationFrame, runAllTimers } from "@insilos/hoot-mock";
 
 class Partner extends models.Model {
     name = fields.Char({ string: "Displayed name" });

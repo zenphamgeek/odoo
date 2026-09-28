@@ -1,6 +1,6 @@
 import { browser } from "@web/core/browser/browser";
 
-import { Component, onMounted, onWillUnmount, proxy, t, useListener, useProps } from "@odoo/owl";
+import { Component, onMounted, onWillUnmount, proxy, t, useListener, useProps } from "@insilos/owl";
 
 /**
  * @typedef Common
@@ -15,7 +15,7 @@ import { Component, onMounted, onWillUnmount, proxy, t, useListener, useProps } 
  * @property {TranslatedString} message Message to be displayed on rainbowman card
  *
  * @typedef Custom
- * @property {typeof import("@odoo/owl").Component} Component
+ * @property {typeof import("@insilos/owl").Component} Component
  * @property {any} [props]
  *
  * @typedef {Common & (Simple | Custom)} RainbowManProps

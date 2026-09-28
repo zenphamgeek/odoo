@@ -1,5 +1,5 @@
 {
-    "name": "odoo-js-config",
+    "name": "insilos-js-config",
     "version": "1.0.0",
     "description": "JS Config for better DX in javascript",
     "scripts": {
@@ -19,8 +19,8 @@
         "prettier": "^2.7.1",
         "sip.js": "0.21.2",
         "@types/luxon": "^3.1.0",
-        "@odoo/o-spreadsheet": "alpha",
-        "@odoo/owl": ">=3.0.0-alpha.31 <4.0.0"
+        "@insilos/o-spreadsheet": "alpha",
+        "@insilos/owl": ">=3.0.0-alpha.31 <4.0.0"
     },
     "lint-staged": {
         "*.js": [

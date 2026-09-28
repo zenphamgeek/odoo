@@ -1,7 +1,7 @@
-import { expect, queryRect, test } from "@odoo/hoot";
-import { click, hover, leave, waitFor } from "@odoo/hoot-dom";
-import { advanceTime, animationFrame, runAllTimers } from "@odoo/hoot-mock";
-import { effect, markup } from "@odoo/owl";
+import { expect, queryRect, test } from "@insilos/hoot";
+import { click, hover, leave, waitFor } from "@insilos/hoot-dom";
+import { advanceTime, animationFrame, runAllTimers } from "@insilos/hoot-mock";
+import { effect, markup } from "@insilos/owl";
 import { getService, makeTestApp, mountWithCleanup } from "@web/../tests/web_test_helpers";
 
 import { registry } from "@web/core/registry";

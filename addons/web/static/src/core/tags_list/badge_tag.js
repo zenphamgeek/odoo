@@ -1,4 +1,4 @@
-import { Component, signal, t, useProps } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@insilos/owl";
 import { mergeClasses } from "@web/core/utils/classname";
 import { _t } from "@web/core/l10n/translation";
 

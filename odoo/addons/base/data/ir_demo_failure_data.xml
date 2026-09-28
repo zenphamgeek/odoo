@@ -1,4 +1,4 @@
-<odoo>
+<data>
     <record model="ir.actions.server" id="demo_failure_action">
         <field name="name">Failed to install demo data for some modules, demo disabled</field>
         <field name="model_id" ref="base.model_ir_demo_failure_wizard"/>
@@ -68,4 +68,4 @@ action = {
         <field name="state">done</field>
         <field name="action_id" ref="base.demo_failure_action"/>
     </record>
-</odoo>
+</data>

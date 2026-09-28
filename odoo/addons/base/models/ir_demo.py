@@ -1,7 +1,7 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo import models
-from odoo.addons.base.models.ir_module import assert_log_admin_access
+from insilos import models
+from insilos.addons.base.models.ir_module import assert_log_admin_access
 
 
 class IrDemo(models.TransientModel):
@@ -10,10 +10,10 @@ class IrDemo(models.TransientModel):
 
     @assert_log_admin_access
     def install_demo(self):
-        import odoo.modules.loading  # noqa: PLC0415
-        odoo.modules.loading.force_demo(self.env)
+        import insilos.modules.loading  # noqa: PLC0415
+        insilos.modules.loading.force_demo(self.env)
         return {
             'type': 'ir.actions.act_url',
             'target': 'self',
-            'url': '/odoo',
+            'url': '/insilos',
         }

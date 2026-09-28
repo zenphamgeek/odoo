@@ -1,4 +1,4 @@
-Odoo UI Icons - v2.0
+Insilos UI Icons - v2.0
 
 Credits
 - https://www.carbondesignsystem.com/guidelines/icons/library/
@@ -7,7 +7,7 @@ Credits
 - https://fontawesome.com/v4/ (4.7.0)
 
 The fonts in `fonts/` are generated, do not edit them by hand.  They are built
-by `odoo/addons/web/tooling/icons/generate_icons.py` out of
+by `insilos/addons/web/tooling/icons/generate_icons.py` out of
 `tooling/icons/odoo_ui_icons_config.json`, the Fontello project file the icon
 set is maintained in: adding, redrawing or renaming an icon is editing that file
 by re-exporting it from Fontello (https://fontello.com/) and running the script.

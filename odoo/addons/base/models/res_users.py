@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 from __future__ import annotations
 
 import binascii
@@ -19,13 +19,13 @@ from zoneinfo import ZoneInfo
 from markupsafe import Markup
 from passlib.context import CryptContext as _CryptContext
 
-from odoo import _, api, fields, models, tools
-from odoo.api import SUPERUSER_ID
-from odoo.exceptions import AccessDenied, AccessError, UserError, ValidationError
-from odoo.fields import Command, Domain
-from odoo.http import request
-from odoo.http.session import DEFAULT_LANG
-from odoo.tools import (
+from insilos import _, api, fields, models, tools
+from insilos.api import SUPERUSER_ID
+from insilos.exceptions import AccessDenied, AccessError, UserError, ValidationError
+from insilos.fields import Command, Domain
+from insilos.http import request
+from insilos.http.session import DEFAULT_LANG
+from insilos.tools import (
     SQL,
     email_domain_extract,
     frozendict,
@@ -33,8 +33,8 @@ from odoo.tools import (
     reset_cached_properties,
     str2bool,
 )
-from odoo.tools.date_utils import all_timezones
-from odoo.tools.sql import escape_like_value
+from insilos.tools.date_utils import all_timezones
+from insilos.tools.sql import escape_like_value
 
 _logger = logging.getLogger(__name__)
 
@@ -164,7 +164,7 @@ class ResUsersLog(models.Model):
 
 
 class ResUsers(models.Model):
-    """ User class. A res.users record models an OpenERP user and is different
+    """ User class. A res.users record models an Insilos user and is different
         from an employee.
 
         res.users class now inherits from res.partner. The partner model is
@@ -319,9 +319,9 @@ class ResUsers(models.Model):
         Overrides should:
 
         * call ``super`` to delegate to parents for credentials-checking
-        * catch :class:`~odoo.exceptions.AccessDenied` and perform their
+        * catch :class:`~insilos.exceptions.AccessDenied` and perform their
           own checking
-        * (re)raise :class:`~odoo.exceptions.AccessDenied` if the
+        * (re)raise :class:`~insilos.exceptions.AccessDenied` if the
           credentials are still invalid according to their own
           validation method
         * return the ``auth_info``
@@ -958,8 +958,8 @@ class ResUsers(models.Model):
         password is not used to authenticate requests.
 
         :return: True
-        :raise: odoo.exceptions.AccessDenied when old password is wrong
-        :raise: odoo.exceptions.UserError when new password is not set or empty
+        :raise: insilos.exceptions.AccessDenied when old password is wrong
+        :raise: insilos.exceptions.UserError when new password is not set or empty
         """
         if not old_passwd:
             raise AccessDenied()
@@ -998,7 +998,7 @@ class ResUsers(models.Model):
 
         This is used to give the opportunity to portal users to de-activate their accounts.
         Indeed, as the portal users can easily create accounts, they will sometimes wish
-        it removed because they don't use this Odoo portal anymore.
+        it removed because they don't use this Insilos portal anymore.
 
         Before this feature, they would have to contact the website or the support to get
         their account removed, which could be tedious.
@@ -1305,10 +1305,10 @@ class ResUsers(models.Model):
             if ipaddress.ip_address(source).is_private:
                 _logger.warning(
                     "The rate-limited IP address %s is classified as private "
-                    "and *might* be a proxy. If your Odoo is behind a proxy, "
+                    "and *might* be a proxy. If your Insilos is behind a proxy, "
                     "it may be mis-configured. Check that you are running "
-                    "Odoo in Proxy Mode and that the proxy is properly configured, see "
-                    "https://www.odoo.com/documentation/latest/administration/install/deploy.html#https for details.",
+                    "Insilos in Proxy Mode and that the proxy is properly configured, see "
+                    "https://insilos.com/documentation/latest/administration/install/deploy.html#https for details.",
                     source
                 )
             raise AccessDenied(_("Too many login failures, please wait a bit before trying again."))
@@ -1743,7 +1743,7 @@ def _check_apikey_credentials(cr, *, scope, key, table='res_users_apikeys'):
     """
     Check an API key.
 
-    :param odoo.sql_db.BaseCursor cr: database cursor
+    :param insilos.sql_db.BaseCursor cr: database cursor
     :param str scope:                 scope of the API key
     :param str key:                   the API key to verify
     :param str|None table:            optional table name

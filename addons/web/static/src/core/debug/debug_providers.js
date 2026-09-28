@@ -1,4 +1,4 @@
-import { usePlugin } from "@odoo/owl";
+import { usePlugin } from "@insilos/owl";
 import { browser } from "@web/core/browser/browser";
 import { router } from "@web/core/browser/router";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";

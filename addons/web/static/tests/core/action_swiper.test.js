@@ -1,7 +1,7 @@
-/** @odoo-module alias=@web/../tests/mobile/core/action_swiper_tests default=false */
+/** @insilos-module alias=@web/../tests/mobile/core/action_swiper_tests default=false */
 
-import { beforeEach, expect, hover, mockTouch, queryFirst, test } from "@odoo/hoot";
-import { Component, xml } from "@odoo/owl";
+import { beforeEach, expect, hover, mockTouch, queryFirst, test } from "@insilos/hoot";
+import { Component, xml } from "@insilos/owl";
 import {
     contains,
     defineParams,

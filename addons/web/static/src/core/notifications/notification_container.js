@@ -1,7 +1,7 @@
 import { Notification } from "./notification";
 import { Transition } from "@web/core/transition";
 import { registry } from "@web/core/registry";
-import { Component, onWillDestroy, Plugin, usePlugin, xml } from "@odoo/owl";
+import { Component, onWillDestroy, Plugin, usePlugin, xml } from "@insilos/owl";
 import { NotificationPlugin } from "./notification_plugin";
 import { services } from "@web/core/services";
 

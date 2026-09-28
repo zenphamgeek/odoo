@@ -1,7 +1,7 @@
-import { expect, test } from "@odoo/hoot";
-import { queryAll, queryAllTexts, queryFirst, queryOne, queryText, resize } from "@odoo/hoot-dom";
-import { animationFrame, mockDate } from "@odoo/hoot-mock";
-import { markup } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { queryAll, queryAllTexts, queryFirst, queryOne, queryText, resize } from "@insilos/hoot-dom";
+import { animationFrame, mockDate } from "@insilos/hoot-mock";
+import { markup } from "@insilos/owl";
 import {
     contains,
     defineModels,

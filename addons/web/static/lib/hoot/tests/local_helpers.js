@@ -1,7 +1,7 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { after, getFixture } from "@odoo/hoot";
-import { App, Component, xml } from "@odoo/owl";
+import { after, getFixture } from "@insilos/hoot";
+import { App, Component, xml } from "@insilos/owl";
 import { Runner } from "../core/runner";
 import { undefineTags } from "../core/tag";
 import { RunnerPlugin } from "../ui/runner_plugin";
@@ -18,8 +18,8 @@ export function makeTestRunner() {
 }
 
 /**
- * @param {import("@odoo/owl").ComponentConstructor} ComponentClass
- * @param {Parameters<import("@odoo/owl").mount>[2]} [params]
+ * @param {import("@insilos/owl").ComponentConstructor} ComponentClass
+ * @param {Parameters<import("@insilos/owl").mount>[2]} [params]
  */
 export async function mountForTest(ComponentClass, params) {
     if (typeof ComponentClass === "string") {

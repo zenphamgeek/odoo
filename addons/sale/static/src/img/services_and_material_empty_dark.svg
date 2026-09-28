@@ -117,25 +117,25 @@
 @keyframes kf_Save-button_fill_0 {
   0% {
     animation-timing-function: step-end;
-    fill: #714B67;
+    fill: #FF8000;
   }
   43.769% {
     animation-timing-function: step-end;
-    fill: #714B67;
+    fill: #FF8000;
   }
   43.917% {
     animation-timing-function: step-end;
-    fill: #855C7A;
+    fill: #FFA033;
   }
   46.884% {
     animation-timing-function: linear;
-    fill: #593852;
+    fill: #EA580C;
   }
   49.11% {
-    fill: #714B67;
+    fill: #FF8000;
   }
   100% {
-    fill: #714B67;
+    fill: #FF8000;
   }
 }
 #Save-button {
@@ -773,7 +773,7 @@
 <g id="Button-and-title">
 <g id="Buttons" opacity="0">
 <g id="Save-button" opacity="0">
-<rect width="16" height="9" rx="1" id="Save-button_bg_0" fill="#714B67">
+<rect width="16" height="9" rx="1" id="Save-button_bg_0" fill="#FF8000">
 </rect>
 <text id="Save" transform="translate(3 2)" fill="white" style="white-space: pre" xml:space="preserve" font-family="Inter" font-size="4" font-weight="600" letter-spacing="0em"><tspan x="0.291016" y="3.95455">Save</tspan></text>
 </g>
@@ -785,15 +785,15 @@
 </g>
 <g id="Group_6">
 <g id="New-button">
-<rect width="15" height="9" rx="1" id="New-button_bg_0" fill="#714B67">
+<rect width="15" height="9" rx="1" id="New-button_bg_0" fill="#FF8000">
 </rect>
 <text id="New" transform="translate(3 2)" fill="white" style="white-space: pre" xml:space="preserve" font-family="Inter" font-size="4" font-weight="600" letter-spacing="0em"><tspan x="0.164062" y="3.95455">New</tspan></text>
 </g>
 <g id="New-button-active" opacity="0">
 <rect x="0.125" y="0.125" width="14.75" height="8.75" rx="0.875" id="New-button-active_bg_0" fill="#3C3E4B">
 </rect>
-<rect x="0.125" y="0.125" width="14.75" height="8.75" rx="0.875" stroke="#714B67" stroke-width="0.25"/>
-<text id="New_2" transform="translate(3 2)" fill="#714B67" style="white-space: pre" xml:space="preserve" font-family="Inter" font-size="4" font-weight="600" letter-spacing="0em"><tspan x="0.164062" y="3.95455">New</tspan></text>
+<rect x="0.125" y="0.125" width="14.75" height="8.75" rx="0.875" stroke="#FF8000" stroke-width="0.25"/>
+<text id="New_2" transform="translate(3 2)" fill="#FF8000" style="white-space: pre" xml:space="preserve" font-family="Inter" font-size="4" font-weight="600" letter-spacing="0em"><tspan x="0.164062" y="3.95455">New</tspan></text>
 </g>
 </g>
 <g id="Frame_6_2" transform="translate(17 2)">

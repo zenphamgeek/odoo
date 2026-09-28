@@ -1,6 +1,6 @@
-import { test, expect } from "@odoo/hoot";
+import { test, expect } from "@insilos/hoot";
 import { RecordSelector } from "@web/core/record_selectors/record_selector";
-import { Component, proxy, xml } from "@odoo/owl";
+import { Component, proxy, xml } from "@insilos/owl";
 import {
     contains,
     defineModels,
@@ -9,8 +9,8 @@ import {
     mountWithCleanup,
     onRpc,
 } from "@web/../tests/web_test_helpers";
-import { animationFrame } from "@odoo/hoot-mock";
-import { click, runAllTimers, waitFor } from "@odoo/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
+import { click, runAllTimers, waitFor } from "@insilos/hoot-dom";
 
 class Partner extends models.Model {
     _name = "res.partner";

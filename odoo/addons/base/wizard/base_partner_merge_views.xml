@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<odoo>
+<data>
         <record id="action_partner_deduplicate" model="ir.actions.act_window">
             <field name="name">Deduplicate Contacts</field>
             <field name="res_model">base.partner.merge.automatic.wizard</field>
@@ -107,4 +107,4 @@
             <field name="binding_model_id" ref="base.model_res_partner"/>
             <field name="binding_view_types">list,kanban</field>
         </record>
-</odoo>
+</data>

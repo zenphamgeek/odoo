@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 {
     'name': 'Signup',
@@ -32,6 +32,7 @@ Allow users to sign up and reset their password
             'auth_signup/static/src/interactions/**/*',
         ],
     },
-    'author': 'Odoo S.A.',
+    'author': 'Insilos Core Team',
+    'website': 'https://insilos.com',
     'license': 'LGPL-3',
 }

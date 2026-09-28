@@ -4214,7 +4214,7 @@ class MailThread(models.AbstractModel):
             title = "%s: %s" % (message.author_id.name, title)
             icon = "/web/image/res.partner/%d/avatar_128" % message.author_id.id
         else:
-            icon = '/web/static/img/odoo-icon-192x192.png'
+            icon = '/web/static/img/favicon.png'
         if tools.is_html_empty(body):
             # sudo - mail.poll: accessing polls of a message we just posted is acceptable.
             if ended_poll := message.sudo().ended_poll_ids:

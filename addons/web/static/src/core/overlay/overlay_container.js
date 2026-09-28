@@ -7,7 +7,7 @@ import {
     usePlugin,
     useProps,
     useScope,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { useSubEnv } from "@web/owl2/utils";
 import { ErrorHandler } from "@web/core/utils/components";
 import { services } from "@web/core/services";

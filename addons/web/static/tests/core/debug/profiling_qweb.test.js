@@ -1,5 +1,5 @@
-import { test, expect, beforeEach } from "@odoo/hoot";
-import { runAllTimers } from "@odoo/hoot-mock";
+import { test, expect, beforeEach } from "@insilos/hoot";
+import { runAllTimers } from "@insilos/hoot-mock";
 import { fields, models, defineModels, mountView } from "@web/../tests/web_test_helpers";
 
 beforeEach(() => {

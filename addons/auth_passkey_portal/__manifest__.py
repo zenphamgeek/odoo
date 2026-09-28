@@ -1,3 +1,5 @@
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+
 {
     'name': 'Passkeys Portal',
     'summary': 'Passkeys for portal users',
@@ -21,7 +23,8 @@ When a user logs in with a Passkey, MFA will not be required.
             'auth_passkey_portal/static/tests/tours/*.js',
         ],
     },
-    'author': 'Odoo S.A.',
+    'author': 'Insilos Core Team',
+    'website': 'https://insilos.com',
     'license': 'LGPL-3',
     'auto_install': True,
 }

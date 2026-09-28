@@ -1,4 +1,4 @@
-import { onMounted, onWillUnmount, untrack, useListener, useProps, useScope } from "@odoo/owl";
+import { onMounted, onWillUnmount, untrack, useListener, useProps, useScope } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 import { useEnv } from "../owl2/utils";
 

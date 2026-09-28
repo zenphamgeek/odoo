@@ -1,4 +1,4 @@
-import { Component, EventBus, proxy, signal, t, useEffect, useListener, useProps } from "@odoo/owl";
+import { Component, EventBus, proxy, signal, t, useEffect, useListener, useProps } from "@insilos/owl";
 import { useAutofocus, useService } from "@web/core/utils/hooks";
 import { clamp } from "@web/core/utils/numbers";
 

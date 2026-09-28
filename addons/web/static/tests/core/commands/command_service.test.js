@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, test } from "@odoo/hoot";
-import { keyDown, press, queryAllTexts } from "@odoo/hoot-dom";
-import { advanceFrame, advanceTime, animationFrame, mockUserAgent } from "@odoo/hoot-mock";
+import { beforeEach, describe, expect, test } from "@insilos/hoot";
+import { keyDown, press, queryAllTexts } from "@insilos/hoot-dom";
+import { advanceFrame, advanceTime, animationFrame, mockUserAgent } from "@insilos/hoot-mock";
 import {
     contains,
     getService,
@@ -9,7 +9,7 @@ import {
     patchWithCleanup,
 } from "@web/../tests/web_test_helpers";
 
-import { Component, proxy, signal, useProps, xml } from "@odoo/owl";
+import { Component, proxy, signal, useProps, xml } from "@insilos/owl";
 
 import { useCommand } from "@web/core/commands/command_hook";
 import { HotkeyCommandItem } from "@web/core/commands/default_providers";

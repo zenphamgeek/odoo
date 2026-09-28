@@ -1,11 +1,11 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { signal, t } from "@odoo/owl";
+import { signal, t } from "@insilos/owl";
 import { deepEqual, DEFAULT_EVENT_TYPES, generateSeed } from "../hoot_utils";
 
 /**
  * @typedef {BaseConfigManager & {
- *  [Key in keyof HootConfig]: import("@odoo/owl").ReactiveValue<HootConfig[Key]>
+ *  [Key in keyof HootConfig]: import("@insilos/owl").ReactiveValue<HootConfig[Key]>
  * }} ConfigManager
  *
  * @typedef {typeof DEFAULT_CONFIG_AND_FILTERS} HootConfig
@@ -130,7 +130,7 @@ export const CONFIG_SCHEMA = {
         parse: parseNumber(1),
     },
     /**
-     * Debug parameter used in Odoo.
+     * Debug parameter used in Insilos.
      * It has no direct effect on the test runner, but is taken into account since
      * all URL parameters not explicitly defined in the schema are ignored.
      * @default ""

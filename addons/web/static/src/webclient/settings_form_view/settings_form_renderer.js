@@ -1,4 +1,4 @@
-import { proxy, t, useProps } from "@odoo/owl";
+import { proxy, t, useProps } from "@insilos/owl";
 import { FormRenderer, formRendererProps } from "@web/views/form/form_renderer";
 import { FormLabelHighlightText } from "./highlight_text/form_label_highlight_text";
 import { HighlightText } from "./highlight_text/highlight_text";

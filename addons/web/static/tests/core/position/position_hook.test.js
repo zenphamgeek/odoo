@@ -9,8 +9,8 @@ import {
     resize,
     scroll,
     test,
-} from "@odoo/hoot";
-import { Component, onMounted, signal, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, onMounted, signal, xml } from "@insilos/owl";
 import {
     defineParams,
     defineStyle,

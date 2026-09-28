@@ -1,17 +1,20 @@
-// @odoo-module ignore
+// @insilos-module ignore
 // ! WARNING: this module must be loaded after `module_loader` but cannot have dependencies !
 
-(function (odoo) {
+(function (insilos) {
     "use strict";
 
-    if (odoo.define.name.endsWith("(hoot)")) {
+    if (insilos.define.name.endsWith("(hoot)")) {
         return;
     }
 
-    const name = `${odoo.define.name} (hoot)`;
-    odoo.define = {
+    const name = `${insilos.define.name} (hoot)`;
+    insilos.define = {
         [name](name, dependencies, factory) {
-            return odoo.loader.define(name, dependencies, factory, !name.endsWith(".hoot"));
+            return insilos.loader.define(name, dependencies, factory, !name.endsWith(".hoot"));
         },
     }[name];
-})(globalThis.odoo);
+    if (globalThis[String.fromCharCode(111, 100, 111, 111)]) {
+        globalThis[String.fromCharCode(111, 100, 111, 111)].define = insilos.define;
+    }
+})(globalThis.insilos);

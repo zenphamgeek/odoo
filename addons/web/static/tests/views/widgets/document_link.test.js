@@ -5,8 +5,8 @@ import {
     mountView,
     mountWithCleanup,
 } from "@web/../tests/web_test_helpers";
-import { Component, xml } from "@odoo/owl";
-import { expect, test } from "@odoo/hoot";
+import { Component, xml } from "@insilos/owl";
+import { expect, test } from "@insilos/hoot";
 import { DocumentationLink } from "@web/views/widgets/documentation_link/documentation_link";
 
 class Partner extends models.Model {
@@ -107,7 +107,7 @@ test("documentation_link: relative path", async () => {
     });
     expect(".o_doc_link").toHaveAttribute(
         "href",
-        "https://www.odoo.com/documentation/1.0/applications/technical/web/settings/this_is_a_test.html"
+        "https://www.insilos.com/documentation/1.0/applications/technical/web/settings/this_is_a_test.html"
     );
 });
 
@@ -118,10 +118,10 @@ test("documentation_link: absolute path (http)", async () => {
         arch: /* xml */ `
             <form>
                 <field name="bar"/>
-                <widget name="documentation_link" path="http://www.odoo.com/"/>
+                <widget name="documentation_link" path="https://www.insilos.com/"/>
             </form>`,
     });
-    expect(".o_doc_link").toHaveAttribute("href", "http://www.odoo.com/");
+    expect(".o_doc_link").toHaveAttribute("href", "https://www.insilos.com/");
 });
 
 test("documentation_link: absolute path (https)", async () => {
@@ -131,9 +131,9 @@ test("documentation_link: absolute path (https)", async () => {
         arch: /* xml */ `
         <form>
             <field name="bar"/>
-            <widget name="documentation_link" path="https://www.odoo.com/"/>
+            <widget name="documentation_link" path="https://www.insilos.com/"/>
         </form>`,
     });
 
-    expect(".o_doc_link").toHaveAttribute("href", "https://www.odoo.com/");
+    expect(".o_doc_link").toHaveAttribute("href", "https://www.insilos.com/");
 });

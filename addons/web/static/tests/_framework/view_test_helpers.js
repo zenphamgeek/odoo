@@ -9,8 +9,8 @@ import {
     queryFirst,
     runAllTimers,
     tick,
-} from "@odoo/hoot";
-import { Component, onMounted, t, useProps, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, onMounted, t, useProps, xml } from "@insilos/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { MainComponentsContainer } from "@web/core/main_components_container";
 import { useSubEnv } from "@web/owl2/utils";
@@ -46,7 +46,7 @@ import { isSmall } from "./ui_test_helpers";
  *  text?: string;
  * }} SelectorOptions
  *
- * @typedef {import("@odoo/hoot").FormatXmlOptions} FormatXmlOptions
+ * @typedef {import("@insilos/hoot").FormatXmlOptions} FormatXmlOptions
  * @typedef {import("@web/views/view").ViewProps} ViewProps
  * @typedef {import("./mock_server/mock_model").ViewType} ViewType
  */

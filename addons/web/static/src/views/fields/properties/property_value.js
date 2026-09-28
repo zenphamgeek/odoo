@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { CheckBox } from "@web/core/checkbox/checkbox";
 import { getCurrency } from "@web/core/currency";
 import { DateTimeInput } from "@web/core/datetime/datetime_input";

@@ -14,7 +14,7 @@ import {
     signal,
     t,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 
 class MenuItem extends Component {
     static template = "web.ProfilingQwebView.menuitem";

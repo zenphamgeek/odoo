@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { FormLabel } from "../form_label";
 import { DocumentationLink } from "@web/views/widgets/documentation_link/documentation_link";
 import { user } from "@web/core/user";

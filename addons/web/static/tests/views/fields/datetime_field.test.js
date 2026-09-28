@@ -1,4 +1,4 @@
-import { after, expect, queryFirst, test } from "@odoo/hoot";
+import { after, expect, queryFirst, test } from "@insilos/hoot";
 import {
     click,
     edit,
@@ -7,8 +7,8 @@ import {
     queryAllTexts,
     queryRect,
     resize,
-} from "@odoo/hoot-dom";
-import { animationFrame, mockTimeZone } from "@odoo/hoot-mock";
+} from "@insilos/hoot-dom";
+import { animationFrame, mockTimeZone } from "@insilos/hoot-mock";
 import {
     editTime,
     getPickerCell,

@@ -1,4 +1,4 @@
-import { untrack } from "@odoo/owl";
+import { untrack } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 
 /**

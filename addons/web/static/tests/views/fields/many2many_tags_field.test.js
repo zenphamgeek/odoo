@@ -1,7 +1,7 @@
-import { expect, getFixture, test } from "@odoo/hoot";
+import { expect, getFixture, test } from "@insilos/hoot";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
-import { click, hover, press, queryAllTexts, queryOne } from "@odoo/hoot-dom";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
+import { click, hover, press, queryAllTexts, queryOne } from "@insilos/hoot-dom";
+import { animationFrame, runAllTimers } from "@insilos/hoot-mock";
 
 import {
     clickFieldDropdown,

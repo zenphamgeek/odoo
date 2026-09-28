@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import csv
 import datetime
 import functools
@@ -11,13 +11,13 @@ from collections import OrderedDict, defaultdict
 
 from werkzeug.exceptions import InternalServerError
 
-from odoo.exceptions import UserError
-from odoo.http import Controller, request, route
-from odoo.http.dispatcher import serialize_exception
-from odoo.http.stream import content_disposition
-from odoo.tools import BinaryBytes, BinaryValue, osutil
-from odoo.tools.misc import split_every
-from odoo.tools.constants import IN_MAX
+from insilos.exceptions import UserError
+from insilos.http import Controller, request, route
+from insilos.http.dispatcher import serialize_exception
+from insilos.http.stream import content_disposition
+from insilos.tools import BinaryBytes, BinaryValue, osutil
+from insilos.tools.misc import split_every
+from insilos.tools.constants import IN_MAX
 
 _logger = logging.getLogger(__name__)
 
@@ -415,7 +415,7 @@ class ExportFormat:
         return f"{model_description} ({base})"
 
     def from_data(self, fields, columns_headers, rows):
-        """ Conversion method from Odoo's export data to whatever the
+        """ Conversion method from Insilos's export data to whatever the
         current export class outputs
 
         :params list fields: a list of fields to export
@@ -523,7 +523,7 @@ class CSVExport(ExportFormat, Controller):
             _logger.exception("Exception during request handling.")
             payload = json.dumps({
                 'code': 0,
-                'message': "Odoo Server Error",
+                'message': "Insilos Server Error",
                 'data': serialize_exception(exc)
             })
             raise InternalServerError(payload) from exc
@@ -572,7 +572,7 @@ class ExcelExport(ExportFormat, Controller):
             _logger.exception("Exception during request handling.")
             payload = json.dumps({
                 'code': 0,
-                'message': "Odoo Server Error",
+                'message': "Insilos Server Error",
                 'data': serialize_exception(exc),
             })
             raise InternalServerError(payload) from exc

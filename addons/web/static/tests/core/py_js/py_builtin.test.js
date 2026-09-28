@@ -1,5 +1,5 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { mockDate, mockTimeZone } from "@odoo/hoot-mock";
+import { describe, expect, test } from "@insilos/hoot";
+import { mockDate, mockTimeZone } from "@insilos/hoot-mock";
 import { evaluateExpr } from "@web/core/py_js/py";
 import { BUILTINS } from "@web/core/py_js/py_builtin";
 

@@ -1,4 +1,4 @@
-/** @odoo-module alias=@odoo/hoot default=false */
+/** @insilos-module alias=@insilos/hoot default=false */
 
 import { logger } from "./core/logger";
 import { Runner } from "./core/runner";
@@ -86,7 +86,7 @@ export {
 } from "./mock/window";
 
 // HOOT-DOM
-export * from "@odoo/hoot-dom";
+export * from "@insilos/hoot-dom";
 
 // Debug
 export { exposeHelpers } from "../hoot-dom/hoot_dom_utils";

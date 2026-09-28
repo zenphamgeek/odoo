@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { animationFrame, press } from "@odoo/hoot-dom";
+import { expect, test } from "@insilos/hoot";
+import { animationFrame, press } from "@insilos/hoot-dom";
 import {
     contains,
     getMockEnv,
@@ -17,7 +17,7 @@ import { WebClient } from "@web/webclient/webclient";
 test("Barcode scanner crop overlay", async () => {
     await mountWithCleanup(WebClient);
 
-    const firstBarcodeValue = "Odoo";
+    const firstBarcodeValue = "Insilos";
     const secondBarcodeValue = "OCDTEST";
 
     let barcodeToGenerate = firstBarcodeValue;

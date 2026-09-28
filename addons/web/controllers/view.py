@@ -1,8 +1,8 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo.exceptions import AccessError
-from odoo.http import Controller, route, request
-from odoo.tools.translate import _
+from insilos.exceptions import AccessError
+from insilos.http import Controller, route, request
+from insilos.tools.translate import _
 
 
 class View(Controller):

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
         <record id="edit_menu_access" model="ir.ui.view">
             <field name="model">ir.ui.menu</field>
             <field name="arch" type="xml">
@@ -69,4 +69,4 @@
             <field name="help">Manage and customize the items available and displayed in your Insilos system menu. You can delete an item by clicking on the box at the beginning of each line and then delete it through the button that appeared. Items can be assigned to specific groups in order to make them accessible to some users within the system.</field>
         </record>
 
-</odoo>
+</data>

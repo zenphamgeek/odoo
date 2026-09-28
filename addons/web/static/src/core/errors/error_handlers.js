@@ -1,4 +1,4 @@
-import { usePlugin } from "@odoo/owl";
+import { usePlugin } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import {
     ClientErrorDialog,
@@ -165,7 +165,7 @@ export function swallowAllVisitorErrors(env, error, originalError) {
 
 if (user.isInternalUser === undefined) {
     // Only warn about this while on the "frontend": the session info might
-    // apparently not be present in all Odoo screens at the moment... TODO ?
+    // apparently not be present in all Insilos screens at the moment... TODO ?
     if (session.is_frontend) {
         console.warn(
             "isInternalUser information is required for this handler to work. It must be available in the page."

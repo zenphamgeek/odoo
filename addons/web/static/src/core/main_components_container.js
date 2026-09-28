@@ -1,5 +1,5 @@
 import { render } from "@web/owl2/utils";
-import { Component, t, xml } from "@odoo/owl";
+import { Component, t, xml } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import { useRegistry } from "@web/core/registry_hook";
 import { ErrorHandler } from "@web/core/utils/components";

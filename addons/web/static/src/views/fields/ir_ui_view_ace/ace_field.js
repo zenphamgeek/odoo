@@ -1,4 +1,4 @@
-/** @odoo-module **/
+/** @insilos-module **/
 import { registry } from "@web/core/registry";
 import { aceField, AceField } from "@web/views/fields/ace/ace_field";
 import { IrUiViewCodeEditor } from "@web/core/ir_ui_view_code_editor/code_editor";

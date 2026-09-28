@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, signal, t, useEffect, usePlugin, xml } from "@odoo/owl";
+import { Component, signal, t, useEffect, usePlugin, xml } from "@insilos/owl";
 import { getColorHex } from "../../hoot-dom/hoot_dom_utils";
 import { Test } from "../core/test";
 import { formatTime } from "../hoot_utils";

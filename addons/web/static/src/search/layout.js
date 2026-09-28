@@ -1,4 +1,4 @@
-import { Component, signal, t, useProps } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@insilos/owl";
 import { ControlPanel } from "@web/search/control_panel/control_panel";
 import { SearchPanel } from "@web/search/search_panel/search_panel";
 

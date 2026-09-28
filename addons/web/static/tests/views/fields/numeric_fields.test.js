@@ -1,6 +1,6 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
-import { click, keyDown, pointerDown, queryAll, queryFirst } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { beforeEach, expect, test } from "@insilos/hoot";
+import { click, keyDown, pointerDown, queryAll, queryFirst } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 import {
     defineModels,
     defineParams,
@@ -10,7 +10,7 @@ import {
     mountWithCleanup,
 } from "@web/../tests/web_test_helpers";
 
-import { Component, proxy, signal, xml } from "@odoo/owl";
+import { Component, proxy, signal, xml } from "@insilos/owl";
 import { useNumpadDecimal } from "@web/views/fields/numpad_decimal_hook";
 
 class Partner extends models.Model {

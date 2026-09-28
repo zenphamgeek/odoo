@@ -1,4 +1,4 @@
-/** @odoo-module */
+/** @insilos-module */
 
 import {
     animationFrame,
@@ -26,7 +26,7 @@ import {
     test,
     waitFor,
     waitForNone,
-} from "@odoo/hoot";
+} from "@insilos/hoot";
 import { getParentFrame } from "@web/../lib/hoot-dom/helpers/dom";
 import { mountForTest, parseUrl } from "../local_helpers";
 

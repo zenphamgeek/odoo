@@ -1,4 +1,4 @@
-import { before, beforeEach, describe, expect, test } from "@odoo/hoot";
+import { before, beforeEach, describe, expect, test } from "@insilos/hoot";
 import {
     animationFrame,
     click,
@@ -7,8 +7,8 @@ import {
     queryAll,
     queryFirst,
     queryOne,
-} from "@odoo/hoot-dom";
-import { advanceTime } from "@odoo/hoot-mock";
+} from "@insilos/hoot-dom";
+import { advanceTime } from "@insilos/hoot-mock";
 import {
     Component,
     markup,
@@ -20,7 +20,7 @@ import {
     useProps,
     useScope,
     xml,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { clearRegistry, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { registry } from "@web/core/registry";
 import { services } from "@web/core/services";

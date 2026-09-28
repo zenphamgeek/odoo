@@ -173,5 +173,5 @@ export function documentationUrl(path) {
     const serverVersion = session.server_version_info.includes("final")
         ? `${session.server_version_info[0]}.${session.server_version_info[1]}`.replace("~", "-")
         : "master";
-    return "https://www.odoo.com/documentation/" + serverVersion + path;
+    return "https://www.insilos.com/documentation/" + serverVersion + path;
 }

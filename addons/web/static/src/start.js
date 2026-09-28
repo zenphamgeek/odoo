@@ -1,4 +1,4 @@
-import { whenReady } from "@odoo/owl";
+import { whenReady } from "@insilos/owl";
 import { hasTouch } from "@web/core/browser/feature_detection";
 import { localization } from "@web/core/l10n/localization";
 import { user } from "@web/core/user";
@@ -22,16 +22,16 @@ document.head.appendChild(chromeMetaTag);
  * It's meant to be webclient flexible so we can have a subclass of
  * webclient in enterprise with added features.
  *
- * @param {import("@odoo/owl").ComponentConstructor} Webclient
+ * @param {import("@insilos/owl").ComponentConstructor} Webclient
  */
 export async function startWebClient(Webclient) {
-    odoo.info = {
+    insilos.info = {
         db: session.db,
         server_version: session.server_version,
         server_version_info: session.server_version_info,
-        isEnterprise: session.server_version_info.slice(-1)[0] === "e",
+        isEnterprise: Array.isArray(session.server_version_info) ? session.server_version_info.slice(-1)[0] === "e" : false,
     };
-    odoo.isReady = false;
+    insilos.isReady = false;
 
     if (window.isSecureContext && session.browser_cache_secret && !isRPCCacheDisabled()) {
         rpc.setCache(new RPCCache("rpc", session.registry_hash, session.browser_cache_secret));
@@ -55,12 +55,12 @@ export async function startWebClient(Webclient) {
     if (user.userId === 1) {
         classList.add("o_is_superuser");
     }
-    if (odoo.debug) {
+    if (insilos.debug) {
         classList.add("o_debug");
     }
     if (hasTouch()) {
         classList.add("o_touch_device");
     }
-    // delete odoo.debug; // FIXME: some legacy code rely on this
-    odoo.isReady = true;
+    // delete insilos.debug; // FIXME: some legacy code rely on this
+    insilos.isReady = true;
 }

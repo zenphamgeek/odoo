@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 import {
     animationFrame,
     hover,
@@ -13,8 +13,8 @@ import {
     queryOne,
     queryRect,
     runAllTimers,
-} from "@odoo/hoot-dom";
-import { Component, xml, proxy } from "@odoo/owl";
+} from "@insilos/hoot-dom";
+import { Component, xml, proxy } from "@insilos/owl";
 
 import { contains, mountWithCleanup } from "@web/../tests/web_test_helpers";
 import { AutoComplete } from "@web/core/autocomplete/autocomplete";
@@ -24,7 +24,7 @@ import { AutoComplete } from "@web/core/autocomplete/autocomplete";
  * This is to make sure an element is actually visible, not just "within
  * viewport boundaries" but below or above a parent's scroll point.
  *
- * @param {import("@odoo/hoot-dom").Target} target
+ * @param {import("@insilos/hoot-dom").Target} target
  * @returns {boolean}
  */
 function isInViewWithinScrollableY(target) {

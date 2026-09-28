@@ -1,13 +1,13 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
 import math
 from collections.abc import Iterable
 from datetime import date
 
-from odoo import api, fields, models, tools
-from odoo.exceptions import UserError, ValidationError
-from odoo.tools import SQL, frozendict, parse_date
+from insilos import api, fields, models, tools
+from insilos.exceptions import UserError, ValidationError
+from insilos.tools import SQL, frozendict, parse_date
 
 _logger = logging.getLogger(__name__)
 

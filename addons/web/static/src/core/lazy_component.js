@@ -1,4 +1,4 @@
-import { Component, onWillStart, t, useProps, xml } from "@odoo/owl";
+import { Component, onWillStart, t, useProps, xml } from "@insilos/owl";
 import { loadBundle } from "@web/core/assets";
 import { registry } from "@web/core/registry";
 

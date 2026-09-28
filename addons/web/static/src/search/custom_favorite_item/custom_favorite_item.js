@@ -4,7 +4,7 @@ import { CheckBox } from "@web/core/checkbox/checkbox";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
 
-import { Component, proxy, signal } from "@odoo/owl";
+import { Component, proxy, signal } from "@insilos/owl";
 
 const favoriteMenuRegistry = registry.category("favoriteMenu");
 

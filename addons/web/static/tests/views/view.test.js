@@ -1,5 +1,5 @@
-import { animationFrame, before, click, expect, queryOne, test } from "@odoo/hoot";
-import { Component, proxy, useEffect, useProps, xml } from "@odoo/owl";
+import { animationFrame, before, click, expect, queryOne, test } from "@insilos/hoot";
+import { Component, proxy, useEffect, useProps, xml } from "@insilos/owl";
 import {
     assignTestEnv,
     defineModels,

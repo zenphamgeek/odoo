@@ -1,4 +1,4 @@
-import { Component, proxy, signal, t, useEffect, useProps } from "@odoo/owl";
+import { Component, proxy, signal, t, useEffect, useProps } from "@insilos/owl";
 import { hasTouch } from "@web/core/browser/feature_detection";
 import { downloadFile } from "@web/core/network/download";
 import { useAutofocus, useBackButton, useService } from "@web/core/utils/hooks";

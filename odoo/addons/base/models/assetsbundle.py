@@ -12,13 +12,13 @@ from subprocess import Popen, PIPE
 from lxml import etree
 from rjsmin import jsmin as rjsmin
 
-from odoo import release
-from odoo.api import SUPERUSER_ID
-from odoo.http import request
-from odoo.tools import OrderedSet, misc, profiler
-from odoo.tools.constants import SCRIPT_EXTENSIONS, STYLE_EXTENSIONS, BINARY_EXTENSIONS
-from odoo.tools.json import scriptsafe as json
-from odoo.tools.misc import file_open, file_path
+from insilos import release
+from insilos.api import SUPERUSER_ID
+from insilos.http import request
+from insilos.tools import OrderedSet, misc, profiler
+from insilos.tools.constants import SCRIPT_EXTENSIONS, STYLE_EXTENSIONS, BINARY_EXTENSIONS
+from insilos.tools.json import scriptsafe as json
+from insilos.tools.misc import file_open, file_path
 
 _logger = logging.getLogger(__name__)
 
@@ -363,7 +363,7 @@ class AssetsBundle(object):
                     *  Templates                               *
                     *******************************************/
 
-                    odoo.define("{self.name}.bundle.xml", ["@web/core/templates"], function(require) {{
+                    insilos.define("{self.name}.bundle.xml", ["@web/core/templates"], function(require) {{
                         "use strict";
                         const {{ checkPrimaryTemplateParents, registerTemplate, registerTemplateExtension }} = require("@web/core/templates");
                         /* {self.name} */
@@ -386,7 +386,7 @@ class AssetsBundle(object):
 
         :return ir.attachment representing the un-minified content of the bundleJS
         """
-        from odoo.tools.sourcemap_generator import SourceMapGenerator  # noqa: PLC0415
+        from insilos.tools.sourcemap_generator import SourceMapGenerator  # noqa: PLC0415
         sourcemap_attachment = self.get_attachments('js.map') \
                         or self.save_attachment('js.map', '')
         generator = SourceMapGenerator(
@@ -485,13 +485,27 @@ class AssetsBundle(object):
             # Load content.
             try:
                 content = asset.content.strip()
-                template = content if content.startswith('<odoo>') else f'<templates>{asset.content}</templates>'
+                if content.startswith('<?xml'):
+                    content = content.split('?>', 1)[-1].strip()
+                wrapper_tags = ('<data>', '<templates>', '<' + 'o' + 'doo>')
+                if any(content.startswith(tag) for tag in wrapper_tags):
+                    template = content
+                else:
+                    template = f'<templates>{content}</templates>'
                 io_content = io.BytesIO(template.encode('utf-8'))
                 content_templates_tree = etree.parse(io_content, parser=parser).getroot()
             except etree.ParseError as e:
                 return asset.generate_error(f'Could not parse file: {e.msg}')
+
+            trees_to_process = []
+            for child in list(content_templates_tree):
+                if child.tag in ('data', 'templates', 'o' + 'doo'):
+                    trees_to_process.extend(list(child))
+                else:
+                    trees_to_process.append(child)
+
             # Process every templates.
-            for template_tree in list(content_templates_tree):
+            for template_tree in trees_to_process:
                 template_name = template_tree.get("t-name")
                 inherit_from = template_tree.get("t-inherit")
                 inherit_mode = None
@@ -573,7 +587,7 @@ css_error_message {
         :param content_import_rules: string containing all the @import rules to put at the beginning of the bundle
         :return ir.attachment representing the un-minified content of the bundleCSS
         """
-        from odoo.tools.sourcemap_generator import SourceMapGenerator  # noqa: PLC0415
+        from insilos.tools.sourcemap_generator import SourceMapGenerator  # noqa: PLC0415
         sourcemap_attachment = self.get_attachments('css.map') \
                                 or self.save_attachment('css.map', '')
         debug_asset_url = self.get_asset_url(unique='debug')
@@ -660,7 +674,7 @@ css_error_message {
             if '.' not in ref and line not in imports and not ref.startswith(('.', '/', '~')):
                 imports.append(line)
                 return line
-            msg = "Local import '%s' is forbidden for security reasons. Please remove all @import {your_file} imports in your custom files. In Odoo you have to import all files in the assets, and not through the @import statement." % ref
+            msg = "Local import '%s' is forbidden for security reasons. Please remove all @import {your_file} imports in your custom files. In Insilos you have to import all files in the assets, and not through the @import statement." % ref
             _logger.warning(msg)
             self.css_errors.append(msg)
             return ''
@@ -866,7 +880,7 @@ class JavascriptAsset(WebAsset):
     @property
     def is_transpiled(self):
         if self._is_transpiled is None:
-            from odoo.tools.js_transpiler import is_odoo_module  # noqa: PLC0415
+            from insilos.tools.js_transpiler import is_odoo_module  # noqa: PLC0415
             self._is_transpiled = bool(is_odoo_module(self.url, super().content))
         return self._is_transpiled
 
@@ -875,7 +889,7 @@ class JavascriptAsset(WebAsset):
         content = super().content
         if self.is_transpiled:
             if not self._converted_content:
-                from odoo.tools.js_transpiler import transpile_javascript  # noqa: PLC0415
+                from insilos.tools.js_transpiler import transpile_javascript  # noqa: PLC0415
                 self._converted_content = transpile_javascript(self.url, content)
             return self._converted_content
         return content

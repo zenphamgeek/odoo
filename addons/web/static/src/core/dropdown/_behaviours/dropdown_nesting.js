@@ -1,5 +1,5 @@
 import { useEnv, useSubEnv } from "@web/owl2/utils";
-import { EventBus, onMounted, onWillDestroy, useEffect } from "@odoo/owl";
+import { EventBus, onMounted, onWillDestroy, useEffect } from "@insilos/owl";
 import { localization } from "@web/core/l10n/localization";
 import { useBus, useService } from "@web/core/utils/hooks";
 

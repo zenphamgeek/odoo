@@ -5,8 +5,8 @@ import {
     expect,
     manuallyDispatchProgrammaticEvent,
     test,
-} from "@odoo/hoot";
-import { Component, useProps, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, useProps, xml } from "@insilos/owl";
 import {
     assignTestEnv,
     makeTestApp,

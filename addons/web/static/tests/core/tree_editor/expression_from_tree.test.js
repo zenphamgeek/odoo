@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 
 import { complexCondition, condition, expression } from "@web/core/tree_editor/condition_tree";
 import { expressionFromTree } from "@web/core/tree_editor/expression_from_tree";

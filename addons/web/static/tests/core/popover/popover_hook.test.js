@@ -1,4 +1,4 @@
-import { animationFrame, expect, getFixture, test } from "@odoo/hoot";
+import { animationFrame, expect, getFixture, test } from "@insilos/hoot";
 import {
     Component,
     onMounted,
@@ -10,7 +10,7 @@ import {
     usePlugin,
     useProps,
     xml,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { contains, mountWithCleanup } from "@web/../tests/web_test_helpers";
 import { usePopover } from "@web/core/popover/popover_hook";
 

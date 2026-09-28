@@ -4,7 +4,7 @@ import { htmlSprintf, isMarkup } from "@web/core/utils/html";
 import { mapSubstitutions, sprintf } from "@web/core/utils/strings";
 
 /**
- * @typedef {ReturnType<typeof import("@odoo/owl").markup>} Markup
+ * @typedef {ReturnType<typeof import("@insilos/owl").markup>} Markup
  */
 
 /**
@@ -91,7 +91,7 @@ const R_BLANK = /^[\s\u200B]*$/;
  * @param {Substitutions} substitutions
  */
 export function _t(source, ...substitutions) {
-    return appTranslateFn(source, odoo.translationContext, ...substitutions);
+    return appTranslateFn(source, insilos.translationContext, ...substitutions);
 }
 
 /**

@@ -10,8 +10,8 @@ import {
     queryOne,
     resize,
     test,
-} from "@odoo/hoot";
-import { Component, onMounted, proxy, useProps, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, onMounted, proxy, useProps, xml } from "@insilos/owl";
 import {
     assignDialogTestEnv,
     contains,

@@ -1,4 +1,4 @@
-import { whenReady } from "@odoo/owl";
+import { whenReady } from "@insilos/owl";
 import { session } from "@web/session";
 
 /**

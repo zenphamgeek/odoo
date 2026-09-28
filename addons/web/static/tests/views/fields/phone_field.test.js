@@ -8,10 +8,10 @@ import {
     onRpc,
     patchWithCleanup,
 } from "@web/../tests/web_test_helpers";
-import { afterEach, beforeEach, expect, test } from "@odoo/hoot";
-import { click, edit, pointerDown, queryFirst, queryOne } from "@odoo/hoot-dom";
+import { afterEach, beforeEach, expect, test } from "@insilos/hoot";
+import { click, edit, pointerDown, queryFirst, queryOne } from "@insilos/hoot-dom";
 import { getNextTabableElement } from "@web/core/utils/ui";
-import { animationFrame } from "@odoo/hoot-mock";
+import { animationFrame } from "@insilos/hoot-mock";
 import { browser } from "@web/core/browser/browser";
 import { callPhoneNumber, phoneCallHandlerRegistry } from "@web/core/phone/phone_call";
 import { user } from "@web/core/user";

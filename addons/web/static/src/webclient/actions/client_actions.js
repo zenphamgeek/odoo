@@ -1,4 +1,4 @@
-import { markup } from "@odoo/owl";
+import { markup } from "@insilos/owl";
 import { location, browser } from "@web/core/browser/browser";
 import { router } from "@web/core/browser/router";
 import { makeErrorFromResponse, rpc } from "@web/core/network/rpc";

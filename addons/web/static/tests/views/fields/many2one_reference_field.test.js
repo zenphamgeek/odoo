@@ -1,6 +1,6 @@
-import { animationFrame, expect, test } from "@odoo/hoot";
-import { queryAllTexts } from "@odoo/hoot-dom";
-import { runAllTimers } from "@odoo/hoot-mock";
+import { animationFrame, expect, test } from "@insilos/hoot";
+import { queryAllTexts } from "@insilos/hoot-dom";
+import { runAllTimers } from "@insilos/hoot-mock";
 
 import {
     clickFieldDropdown,

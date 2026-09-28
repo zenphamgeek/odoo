@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@odoo/hoot";
+import { describe, expect, test } from "@insilos/hoot";
 import { patchTranslations } from "@web/../tests/web_test_helpers";
 
 import {
@@ -12,9 +12,9 @@ import {
 import { _t as basic_t } from "@web/core/l10n/translation";
 
 function _t() {
-    odoo.translationContext = "web";
+    insilos.translationContext = "web";
     const translatedTerm = basic_t(...arguments);
-    odoo.translationContext = null;
+    insilos.translationContext = null;
     return translatedTerm;
 }
 
@@ -24,8 +24,8 @@ test("escapeRegExp", () => {
     expect(escapeRegExp("")).toBe("");
     expect(escapeRegExp("wowl")).toBe("wowl");
     expect(escapeRegExp("[wowl]")).toBe("\\[wowl\\]");
-    expect(escapeRegExp("[wowl.odoo]")).toBe("\\[wowl\\.odoo\\]");
-    expect(escapeRegExp("^odoo.define([.]*)$")).toBe("\\^odoo\\.define\\(\\[\\.\\]\\*\\)\\$");
+    expect(escapeRegExp("[wowl.insilos]")).toBe("\\[wowl\\.insilos\\]");
+    expect(escapeRegExp("^insilos.define([.]*)$")).toBe("\\^insilos\\.define\\(\\[\\.\\]\\*\\)\\$");
     expect(escapeRegExp("[.*+?^${}()|[]\\")).toBe("\\[\\.\\*\\+\\?\\^\\$\\{\\}\\(\\)\\|\\[\\]\\\\");
 });
 
@@ -115,11 +115,11 @@ test("capitalize", () => {
 test("isEmail", () => {
     expect(isEmail("")).toBe(false);
     expect(isEmail("test")).toBe(false);
-    expect(isEmail("test@odoo")).toBe(false);
-    expect(isEmail("test@odoo@odoo.com")).toBe(false);
-    expect(isEmail("te st@odoo.com")).toBe(false);
+    expect(isEmail("test@insilos")).toBe(false);
+    expect(isEmail("test@insilos@insilos.com")).toBe(false);
+    expect(isEmail("te st@insilos.com")).toBe(false);
 
-    expect(isEmail("test@odoo.com")).toBe(true);
+    expect(isEmail("test@insilos.com")).toBe(true);
 });
 
 test("isNumeric", () => {

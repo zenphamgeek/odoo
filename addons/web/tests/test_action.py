@@ -1,6 +1,6 @@
 import json
 
-from odoo.tests import HttpCase, tagged
+from insilos.tests import HttpCase, tagged
 
 
 @tagged('post_install', '-at_install')
@@ -234,7 +234,7 @@ class TestLoadBreadcrumbs(HttpCase):
                 },
             }),
         )
-        self.assertEqual(resp.json()['error']['message'], 'Odoo Server Error')
+        self.assertEqual(resp.json()['error']['message'], 'Insilos Server Error')
 
         resp = self.url_open(
             '/web/action/load_breadcrumbs',
@@ -272,4 +272,4 @@ class TestLoadBreadcrumbs(HttpCase):
                 },
             }),
         )
-        self.assertEqual(resp.json()['error']['message'], 'Odoo Server Error')
+        self.assertEqual(resp.json()['error']['message'], 'Insilos Server Error')

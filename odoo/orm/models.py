@@ -256,8 +256,8 @@ class MetaModel(type):
             # determine '_module'
             if '_module' not in attrs:
                 module = attrs['__module__']
-                assert module.startswith('odoo.addons.'), \
-                    f"Invalid import of {module}.{name}, it should start with 'odoo.addons'."
+                assert module.startswith(('odoo.addons.', 'insilos.addons.')), \
+                    f"Invalid import of {module}.{name}, it should start with 'odoo.addons' or 'insilos.addons'."
                 attrs['_module'] = module.split('.')[2]
 
             _inherit = attrs.get('_inherit')

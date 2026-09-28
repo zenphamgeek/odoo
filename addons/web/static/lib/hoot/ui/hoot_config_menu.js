@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, usePlugin, xml } from "@odoo/owl";
+import { Component, usePlugin, xml } from "@insilos/owl";
 import { hasConfigChanged } from "../core/config";
 import { LOG_LEVELS } from "../core/logger";
 import { refresh } from "../core/url";

@@ -9,8 +9,8 @@ import {
     runAllTimers,
     test,
     tick,
-} from "@odoo/hoot";
-import { Component, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, xml } from "@insilos/owl";
 import { destroyApp, mountWithCleanup } from "@web/../tests/web_test_helpers";
 
 import {

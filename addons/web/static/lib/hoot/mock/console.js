@@ -1,4 +1,4 @@
-/** @odoo-module */
+/** @insilos-module */
 
 import { MockEventTarget } from "../hoot_utils";
 import { logger } from "../core/logger";

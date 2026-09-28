@@ -1,5 +1,5 @@
 # ==============================================================================
-# Insilos Enterprise Platform — Production Container Image (Odoo 20 Hardfork)
+# Insilos Enterprise Platform — Production Container Image
 # Multi-stage build with Python 3.12 & OWL 2.0 assets
 # ==============================================================================
 
@@ -74,8 +74,7 @@ RUN useradd -m -u 1000 -s /bin/bash insilos && \
     mkdir -p /app/insilos /var/lib/insilos/filestore /var/log/insilos && \
     chown -R insilos:insilos /app /var/lib/insilos /var/log/insilos && \
     printf '[options]\naddons_path = /app/insilos/addons,/app/insilos/apps\ndata_dir = /var/lib/insilos/filestore\nlogfile = /var/log/insilos/insilos.log\nlog_level = info\nproxy_mode = True\n' > /etc/insilos.conf && \
-    cp /etc/insilos.conf /etc/odoo.conf && \
-    chown insilos:insilos /etc/insilos.conf /etc/odoo.conf
+    chown insilos:insilos /etc/insilos.conf
 
 # Copy application codebase directly with insilos ownership
 COPY --chown=insilos:insilos . /app/insilos/

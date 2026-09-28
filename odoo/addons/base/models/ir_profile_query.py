@@ -1,13 +1,13 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
 
 import psycopg2
 
-from odoo import api, fields, models
-from odoo.tools.speedscope import shorten
-from odoo.tools.sql import format_query
-from odoo.exceptions import AccessError, UserError
+from insilos import api, fields, models
+from insilos.tools.speedscope import shorten
+from insilos.tools.sql import format_query
+from insilos.exceptions import AccessError, UserError
 
 _logger = logging.getLogger(__name__)
 

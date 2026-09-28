@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import itertools
 import markupsafe
@@ -6,13 +6,13 @@ import markupsafe
 from lxml import etree
 from unittest.mock import patch
 
-from odoo.tests import tagged
-from odoo.tests.common import BaseCase, TransactionCase
-from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
-from odoo.addons.base.models.ir_qweb import QWebError, render as mock_render
-from odoo.tools import file_open, misc, mute_logger
-from odoo.tools.json import scriptsafe as json_scriptsafe
-from odoo.exceptions import UserError, MissingError
+from insilos.tests import tagged
+from insilos.tests.common import BaseCase, TransactionCase
+from insilos.addons.base.tests.common import TransactionCaseWithUserDemo
+from insilos.addons.base.models.ir_qweb import QWebError, render as mock_render
+from insilos.tools import file_open, misc, mute_logger
+from insilos.tools.json import scriptsafe as json_scriptsafe
+from insilos.exceptions import UserError, MissingError
 
 unsafe_eval = eval
 
@@ -680,7 +680,7 @@ class TestQWebNS(TransactionCase):
             'type': 'qweb',
             'arch': """
                 <t t-name="base.dummy">
-                    <Invoice xmlns:od="http://odoo.com/od">
+                    <Invoice xmlns:od="https://insilos.com/od">
                         <od:name t-att-test="'a' + 1"/>
                     </Invoice>
                 </t>
@@ -702,13 +702,13 @@ class TestQWebNS(TransactionCase):
         """
         tempate = """
             <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
-                <g:brand>Odoo</g:brand>
+                <g:brand>Insilos</g:brand>
                 <g:link>My Link</g:link>
             </rss>
         """
         expected_result = """
             <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
-                <g:brand>Odoo</g:brand>
+                <g:brand>Insilos</g:brand>
                 <g:link>My Link</g:link>
             </rss>
 
@@ -963,10 +963,10 @@ class TestQWebBasic(TransactionCase):
             </t>'''
         })
         result = """
-                <a href="/link/odoo/sub">link</a>
-                <a href="/link/odoo/">link2</a>
+                <a href="/link/insilos/sub">link</a>
+                <a href="/link/insilos/">link2</a>
             """
-        values = {'url': 'odoo', 'other': True}
+        values = {'url': 'insilos', 'other': True}
         rendered = self.env['ir.qweb']._render(t.id, values)
         self.assertEqual(rendered.strip(), result.strip())
 
@@ -1143,7 +1143,7 @@ class TestQWebBasic(TransactionCase):
             rendered = self.env['ir.qweb']._render(t.id)
             self.assertEqual(str(rendered.strip()), result.strip(), (test, res))
 
-    @mute_logger('odoo.addons.base.models.ir_qweb')
+    @mute_logger('insilos.addons.base.models.ir_qweb')
     def test_set_error_1(self):
         t = self.env['ir.ui.view'].create({
             'name': 'test',
@@ -1163,7 +1163,7 @@ class TestQWebBasic(TransactionCase):
             self.assertIn("KeyError: 't-set'", error)
             self.assertIn('<t t-set="" t-value="1"/>', error)
 
-    @mute_logger('odoo.addons.base.models.ir_qweb')
+    @mute_logger('insilos.addons.base.models.ir_qweb')
     def test_set_error_2(self):
         t = self.env['ir.ui.view'].create({
             'name': 'test',
@@ -1634,7 +1634,7 @@ class TestQWebBasic(TransactionCase):
         with self.assertRaises(MissingError, msg="Not Found"):
             self.env['ir.qweb']._render(-9999)
 
-    @mute_logger('odoo.addons.base.models.ir_qweb') # warning for template not found
+    @mute_logger('insilos.addons.base.models.ir_qweb') # warning for template not found
     def test_error_message_6(self):
         # Error not found a second rendering (first rendering with option hide this error).
         html = self.env['ir.qweb']._render(-9999, raise_if_not_found=False)
@@ -1653,7 +1653,7 @@ class TestQWebBasic(TransactionCase):
         with self.assertRaises(UserError, msg="Not Found"):
             self.env['ir.qweb']._render(-9999)
 
-    @mute_logger('odoo.addons.base.models.ir_qweb') # warning for template not found
+    @mute_logger('insilos.addons.base.models.ir_qweb') # warning for template not found
     def test_error_message_8(self):
         # UserError not found a second rendering (first rendering with option hide this error).
         html = self.env['ir.qweb']._render(-9999, raise_if_not_found=False)
@@ -2662,7 +2662,7 @@ class TestQwebPerformance(TransactionCaseWithUserDemo):
             init = env.cr.sql_log_count
             counter_init = next(counter) + 1
 
-            with patch('odoo.addons.base.models.ir_qweb.IrQweb._generate_code_uncached', side_effect=generate_code_uncached):
+            with patch('insilos.addons.base.models.ir_qweb.IrQweb._generate_code_uncached', side_effect=generate_code_uncached):
                 value = env['ir.qweb']._render(template)
 
             self.assertEqual(str(value), expected)

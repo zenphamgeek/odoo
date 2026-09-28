@@ -59,9 +59,9 @@ async function testApp(name, path) {
 
 async function run() {
   console.log('--- TESTING KITCHEN DISPLAY ---');
-  await testApp('Kitchen Display', '/odoo/action-4757');
+  await testApp('Kitchen Display', '/web#action=4757');
   console.log('\n--- TESTING ACCOUNTING ---');
-  await testApp('Accounting', '/odoo/accounting');
+  await testApp('Accounting', '/web#action=accounting');
 }
 
 run();

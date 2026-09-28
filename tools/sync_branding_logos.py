@@ -28,10 +28,8 @@ TARGET_MAPPINGS = [
     ('h-logo-light', os.path.join(WEB_IMG_DIR, 'odoo_logo.svg')),
     ('h-logo-dark', os.path.join(WEB_IMG_DIR, 'logo_dark.svg')),
     ('h-logo-dark', os.path.join(WEB_IMG_DIR, 'insilos_logo_dark.svg')),
-    ('h-logo-dark', os.path.join(WEB_IMG_DIR, 'odoo_logo_dark.svg')),
     ('icon-dark', os.path.join(WEB_IMG_DIR, 'favicon.svg')),
     ('icon-dark', os.path.join(WEB_IMG_DIR, 'insilos-icon.svg')),
-    ('icon-dark', os.path.join(WEB_IMG_DIR, 'odoo-icon.svg')),
 ]
 
 def check_branding_sources():
@@ -97,9 +95,9 @@ def sync_logos(write=False):
     src_favicon_png = os.path.join(BRANDING_DIR, 'favicon.png')
     target_favicon_ico = os.path.join(WEB_IMG_DIR, 'favicon.ico')
     target_favicon_png = os.path.join(WEB_IMG_DIR, 'favicon.png')
-    target_odoo_ios = os.path.join(WEB_IMG_DIR, 'odoo-icon-ios.png')
-    target_odoo_192 = os.path.join(WEB_IMG_DIR, 'odoo-icon-192x192.png')
-    target_odoo_512 = os.path.join(WEB_IMG_DIR, 'odoo-icon-512x512.png')
+    target_insilos_ios = os.path.join(WEB_IMG_DIR, 'insilos-icon-ios.png')
+    target_insilos_192 = os.path.join(WEB_IMG_DIR, 'insilos-icon-192x192.png')
+    target_insilos_512 = os.path.join(WEB_IMG_DIR, 'insilos-icon-512x512.png')
     pos_favicon_ico = os.path.join(REPO_ROOT, 'addons', 'point_of_sale', 'static', 'src', 'img', 'favicon.ico')
     iot_favicon_png = os.path.join(REPO_ROOT, 'addons', 'iot_drivers', 'static', 'img', 'favicon.png')
     wl_favicon_png = os.path.join(REPO_ROOT, 'addons', 'website_links', 'static', 'img', 'default_favicon.png')
@@ -107,7 +105,7 @@ def sync_logos(write=False):
     if os.path.exists(src_favicon_png):
         if write:
             shutil.copy2(src_favicon_png, target_favicon_png)
-            shutil.copy2(src_favicon_png, target_odoo_ios)
+            shutil.copy2(src_favicon_png, target_insilos_ios)
             # Create proper favicon.ico from PNG
             img = Image.open(src_favicon_png).convert('RGBA')
             img.save(target_favicon_ico, format='ICO', sizes=[(16, 16), (32, 32), (48, 48), (64, 64)])
@@ -115,12 +113,12 @@ def sync_logos(write=False):
             
             # PWA icons (192x192, 512x512)
             icon_192 = img.resize((192, 192), Image.Resampling.LANCZOS)
-            icon_192.save(target_odoo_192, 'PNG')
-            print(f"  → Generated PWA icon: {os.path.relpath(target_odoo_192, REPO_ROOT)}")
+            icon_192.save(target_insilos_192, 'PNG')
+            print(f"  → Generated PWA icon: {os.path.relpath(target_insilos_192, REPO_ROOT)}")
             
             icon_512 = img.resize((512, 512), Image.Resampling.LANCZOS)
-            icon_512.save(target_odoo_512, 'PNG')
-            print(f"  → Generated PWA icon: {os.path.relpath(target_odoo_512, REPO_ROOT)}")
+            icon_512.save(target_insilos_512, 'PNG')
+            print(f"  → Generated PWA icon: {os.path.relpath(target_insilos_512, REPO_ROOT)}")
 
             # Subsystem favicons
             shutil.copy2(target_favicon_ico, pos_favicon_ico)
@@ -134,7 +132,7 @@ def sync_logos(write=False):
             fav_16.save(wl_favicon_png, 'PNG')
             print(f"  → Synced website_links favicon: {os.path.relpath(wl_favicon_png, REPO_ROOT)}")
         else:
-            for p in [target_favicon_ico, target_favicon_png, target_odoo_192, target_odoo_512, pos_favicon_ico, iot_favicon_png, wl_favicon_png]:
+            for p in [target_favicon_ico, target_favicon_png, target_insilos_192, target_insilos_512, pos_favicon_ico, iot_favicon_png, wl_favicon_png]:
                 if not os.path.exists(p):
                     all_matched = False
                     print(f"  ✗ Missing: {os.path.relpath(p, REPO_ROOT)}")

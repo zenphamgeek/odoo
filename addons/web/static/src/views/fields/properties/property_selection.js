@@ -1,4 +1,4 @@
-import { Component, props, asyncComputed, computed } from "@odoo/owl";
+import { Component, props, asyncComputed, computed } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 import { _t } from "@web/core/l10n/translation";

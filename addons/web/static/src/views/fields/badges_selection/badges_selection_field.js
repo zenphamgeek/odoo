@@ -1,7 +1,7 @@
 import { BaseBadgesField, extractStandardFieldProps } from "./base_badges_field";
 import { registry } from "@web/core/registry";
 import { _t } from "@web/core/l10n/translation";
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { standardFieldProps } from "../standard_field_props";
 
 export class BadgesSelectionField extends Component {

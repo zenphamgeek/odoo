@@ -1,4 +1,4 @@
-import { Component, useProps } from "@odoo/owl";
+import { Component, useProps } from "@insilos/owl";
 
 import { browser } from "@web/core/browser/browser";
 import { NotificationAlertDialog } from "@web/core/notification_alert_dialog/notification_alert_dialog";

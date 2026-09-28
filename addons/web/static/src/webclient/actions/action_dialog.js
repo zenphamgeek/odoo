@@ -1,4 +1,4 @@
-import { t, usePlugin, useProps } from "@odoo/owl";
+import { t, usePlugin, useProps } from "@insilos/owl";
 import { useOwnDebugContext } from "@web/core/debug/debug_context";
 import { DebugMenu } from "@web/core/debug/debug_menu";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";

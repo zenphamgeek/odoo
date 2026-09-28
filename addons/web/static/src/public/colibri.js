@@ -304,7 +304,7 @@ export class Colibri {
                 } else if (directive === "t-out") {
                     this.tOuts.push({ sel, definition: value, initialValue: null });
                 } else if (directive === "t-component") {
-                    const { Component } = odoo.loader.modules.get("@odoo/owl");
+                    const { Component } = insilos.loader.modules.get("@insilos/owl");
                     if (Object.prototype.isPrototypeOf.call(Component, value)) {
                         for (const node of nodes) {
                             this.mountComponent(node, value);
@@ -387,7 +387,7 @@ export class Colibri {
             for (const node of nodes) {
                 if (!initialValue || !initialValue.has(node)) {
                     if (!owl) {
-                        owl = odoo.loader.modules.get("@odoo/owl");
+                        owl = insilos.loader.modules.get("@insilos/owl");
                     }
                     const value = node.children.length
                         ? owl.markup(node.innerHTML)

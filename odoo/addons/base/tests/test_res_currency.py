@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
-from odoo import Command
-from odoo.tests.common import tagged, TransactionCase
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+from insilos import Command
+from insilos.tests.common import tagged, TransactionCase
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -114,7 +114,7 @@ class TestResCurrency(TransactionCase):
     def test_amount_to_text_currency_aware_inflection_uk_ua(self):
         """ amount_to_text should delegate to num2words' own currency-aware
         inflection (gender and plural forms) when it has data for the (lang,
-        currency) pair, while keeping Odoo's own sentence shape: the
+        currency) pair, while keeping Insilos's own sentence shape: the
         zero-fraction clause is still dropped, and the two clauses are still
         joined with the translatable "and" rather than num2words' own
         separator. """
@@ -127,7 +127,7 @@ class TestResCurrency(TransactionCase):
         self.assertEqual(uah.amount_to_text(1.0), "одна гривня")
         self.assertEqual(uah.amount_to_text(2.0), "дві гривні")
         self.assertEqual(uah.amount_to_text(5.0), "п'ять гривень")
-        # Odoo's own "and" joiner is kept, not num2words' ", " separator
+        # Insilos's own "and" joiner is kept, not num2words' ", " separator
         self.assertEqual(uah.amount_to_text(21.56), "двадцять одна гривня and п'ятдесят шість копійок")
 
         # currencies num2words has no data for keep using the old
@@ -143,7 +143,7 @@ class TestResCurrency(TransactionCase):
     def test_amount_to_text_currency_aware_inflection_fr_fr(self):
         """ Same as test_amount_to_text_currency_aware_inflection, but with a
         Latin-script language: French singular/plural agreement ("un euro" vs
-        "deux euros") also comes from num2words' data, not from Odoo's static,
+        "deux euros") also comes from num2words' data, not from Insilos's static,
         non-inflected currency_unit_label/currency_subunit_label. """
         fr_lang = self.env['res.lang'].with_context(active_test=False).search([('code', '=', 'fr_FR')])
         fr_lang.active = True

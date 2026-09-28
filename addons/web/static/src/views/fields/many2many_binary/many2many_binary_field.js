@@ -5,7 +5,7 @@ import { standardFieldProps } from "../standard_field_props";
 import { useX2ManyCrud } from "@web/views/fields/relational_utils";
 import { Many2XBinary } from "../many2x_binary/many2x_binary";
 
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 
 export class Many2ManyBinaryField extends Component {
     static template = "web.Many2ManyBinaryField";

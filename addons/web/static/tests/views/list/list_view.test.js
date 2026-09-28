@@ -27,8 +27,8 @@ import {
     tick,
     unload,
     waitFor,
-} from "@odoo/hoot";
-import { Component, markup, onPatched, onWillStart, signal, t, useProps, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, markup, onPatched, onWillStart, signal, t, useProps, xml } from "@insilos/owl";
 import { buildSelector } from "@web/../tests/_framework/view_test_helpers";
 import { getPickerCell } from "@web/../tests/core/datetime/datetime_test_helpers";
 import {
@@ -6267,7 +6267,7 @@ test(`custom delete confirmation dialog`, async () => {
 
 test(`deleting record which throws UserError should close confirmation dialog`, async () => {
     onRpc("web_unlink", () => {
-        throw makeServerError({ message: "Odoo Server Error" });
+        throw makeServerError({ message: "Insilos Server Error" });
     });
 
     await mountView({
@@ -6288,7 +6288,7 @@ test(`deleting record which throws UserError should close confirmation dialog`, 
     await contains(`.modal footer button.btn-danger`).click();
     await waitFor(".modal .modal-title:contains(Invalid Operation)");
 
-    expect.verifyErrors(["Odoo Server Error"]);
+    expect.verifyErrors(["Insilos Server Error"]);
 });
 
 test(`deleting a record blocked by a foreign key: the view reloads once archived`, async () => {
@@ -6308,7 +6308,7 @@ test(`deleting a record blocked by a foreign key: the view reloads once archived
     onRpc("web_unlink", () => {
         expect.step("web_unlink");
         throw makeServerError({
-            errorName: "odoo.addons.web.models.models.UnlinkBlockedError",
+            errorName: "insilos.addons.web.models.models.UnlinkBlockedError",
             context: {
                 archivable: true,
                 model_name: "Bar",
@@ -6332,7 +6332,7 @@ test(`deleting a record blocked by a foreign key: the view reloads once archived
     expect.errors(1);
     await contains(`.modal footer button.btn-danger`).click();
     await waitFor(`.modal .modal-title:contains(Oops)`);
-    expect.verifyErrors(["Odoo Server Error"]);
+    expect.verifyErrors(["Insilos Server Error"]);
 
     await contains(`.modal-footer .btn-primary`).click();
     expect(`.modal`).toHaveCount(0);

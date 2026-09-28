@@ -1,6 +1,6 @@
-import { expect, getFixture, test } from "@odoo/hoot";
-import { queryAllAttributes, queryAllTexts, queryFirst, click, middleClick } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { expect, getFixture, test } from "@insilos/hoot";
+import { queryAllAttributes, queryAllTexts, queryFirst, click, middleClick } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 import {
     contains,
     defineModels,
@@ -30,8 +30,8 @@ test("UrlField in form view", async () => {
     expect(`.o_field_widget input[type="text"]`).toHaveCount(1);
     expect(`.o_field_widget input[type="text"]`).toHaveValue("https://www.example.com");
     expect(`.o_field_url a`).toHaveAttribute("href", "https://www.example.com");
-    await fieldInput("url").edit("https://www.odoo.com");
-    expect(`.o_field_widget input[type="text"]`).toHaveValue("https://www.odoo.com");
+    await fieldInput("url").edit("https://www.insilos.com");
+    expect(`.o_field_widget input[type="text"]`).toHaveValue("https://www.insilos.com");
 });
 
 test("in form view (readonly)", async () => {
@@ -94,7 +94,7 @@ test("href attribute and website_path option", async () => {
 test("in editable list view", async () => {
     Product._records = [
         { id: 1, url: "example.com" },
-        { id: 2, url: "odoo.com" },
+        { id: 2, url: "insilos.com" },
     ];
     await mountView({
         type: "list",
@@ -105,11 +105,11 @@ test("in editable list view", async () => {
     expect(".o_field_url.o_field_widget[name='url'] a").toHaveCount(2);
     expect(queryAllAttributes(".o_field_url.o_field_widget[name='url'] a", "href")).toEqual([
         "http://example.com",
-        "http://odoo.com",
+        "https://insilos.com",
     ]);
     expect(queryAllTexts(".o_field_url.o_field_widget[name='url'] a")).toEqual([
         "example.com",
-        "odoo.com",
+        "insilos.com",
     ]);
     let cell = queryFirst("tbody td:not(.o_list_record_selector)");
     await contains(cell).click();
@@ -123,11 +123,11 @@ test("in editable list view", async () => {
     expect(".o_field_url.o_field_widget[name='url'] a").toHaveCount(2);
     expect(queryAllAttributes(".o_field_url.o_field_widget[name='url'] a", "href")).toEqual([
         "http://test",
-        "http://odoo.com",
+        "https://insilos.com",
     ]);
     expect(queryAllTexts(".o_field_url.o_field_widget[name='url'] a")).toEqual([
         "test",
-        "odoo.com",
+        "insilos.com",
     ]);
 });
 
@@ -147,14 +147,14 @@ test("onchange scenario", async () => {
     Product._fields.url_source = fields.Char({
         onChange: (record) => (record.url = record.url_source),
     });
-    Product._records = [{ id: 1, url: "odoo.com", url_source: "another.com" }];
+    Product._records = [{ id: 1, url: "insilos.com", url_source: "another.com" }];
     await mountView({
         type: "form",
         resModel: "product",
         resId: 1,
         arch: `<form><field name="url" widget="url" readonly="True"/><field name="url_source"/></form>`,
     });
-    expect(".o_field_widget[name=url]").toHaveText("odoo.com");
+    expect(".o_field_widget[name=url]").toHaveText("insilos.com");
     expect(".o_field_widget[name=url_source] input").toHaveValue("another.com");
     await fieldInput("url_source").edit("example.com");
     expect(".o_field_widget[name=url]").toHaveText("example.com");
@@ -186,13 +186,13 @@ test("placeholder_field shows as placeholder", async () => {
 });
 
 test("with non falsy, but non url value", async () => {
-    Product._fields.url.default = "odoo://hello";
+    Product._fields.url.default = "insilos://hello";
     await mountView({
         type: "form",
         resModel: "product",
         arch: `<form><field name="url" widget="url"/></form>`,
     });
-    expect(".o_field_widget[name=url] a").toHaveAttribute("href", "http://odoo://hello");
+    expect(".o_field_widget[name=url] a").toHaveAttribute("href", "http://insilos://hello");
 });
 
 test.tags("desktop");

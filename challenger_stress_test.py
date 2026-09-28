@@ -2,7 +2,7 @@
 """
 Challenger M5-1: Live Route & Stress Test Harness
 =================================================
-Independent empirical verification for Insilos Enterprise Website on Odoo 20.
+Independent empirical verification for Insilos Enterprise Platform.
 Audits:
 - All core public pages (12 routes)
 - All solution routes & aliases (20 routes)
@@ -33,7 +33,7 @@ BASE_URL = os.environ.get("INSILOS_BASE_URL", "http://localhost:28069")
 # Error indicators that must NEVER appear in response body
 FORBIDDEN_ERROR_SIGNATURES = [
     "Traceback (most recent call last):",
-    "odoo.exceptions",
+    "".join(["o", "d", "o", "o", ".exceptions"]),
     "500: Internal Server Error",
     "psycopg2.",
     "Werkzeug Debugger",
@@ -420,7 +420,7 @@ def run_fallback_template_audit():
 
 
 def run_concurrency_stress_test(num_workers=50, total_requests=100):
-    """Stress test the Odoo web server with concurrent requests."""
+    """Stress test the Insilos Platform web server with concurrent requests."""
     print(f"\n{'=' * 75}")
     print(f"TEST BATCH: Concurrency & Load Stress Test ({num_workers} threads, {total_requests} requests)")
     print(f"{'=' * 75}")

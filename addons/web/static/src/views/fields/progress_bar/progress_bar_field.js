@@ -6,7 +6,7 @@ import { parseFloat } from "../parsers";
 import { useInputField } from "@web/views/fields/input_field_hook";
 import { standardFieldProps } from "../standard_field_props";
 
-import { Component, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, proxy, signal, t, useProps } from "@insilos/owl";
 const formatters = registry.category("formatters");
 
 export class ProgressBarField extends Component {

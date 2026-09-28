@@ -1,7 +1,7 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from insilos import api, fields, models
+from insilos.exceptions import ValidationError
 
 # see http://doc.qt.io/archives/qt-4.8/qprinter.html#PaperSize-enum
 PAPER_SIZES = [

@@ -1,4 +1,4 @@
-import { computed, signal, t, usePlugin } from "@odoo/owl";
+import { computed, signal, t, usePlugin } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { registry } from "@web/core/registry";
 import { IndexedDB } from "@web/core/utils/indexed_db";
@@ -11,8 +11,8 @@ export const menuService = {
          * @param {boolean} [reload=false]
          */
         async function fetchMenus(reload) {
-            if (!reload && odoo.loadMenusPromise) {
-                return odoo.loadMenusPromise;
+            if (!reload && insilos.loadMenusPromise) {
+                return insilos.loadMenusPromise;
             }
             const res = await fetch(loadMenusUrl, { cache: "no-store" });
             if (!res.ok) {

@@ -8,7 +8,7 @@ import { Operation } from "@web/model/relational_model/operation";
 import { Field, fieldVisualFeedback } from "@web/views/fields/field";
 import { formatDate } from "@web/views/fields/formatters";
 
-import { Component, signal, t, useProps } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@insilos/owl";
 const { DateTime } = luxon;
 
 const formatters = registry.category("formatters");

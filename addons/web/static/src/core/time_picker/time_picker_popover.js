@@ -1,4 +1,4 @@
-import { Component, useProps, t } from "@odoo/owl";
+import { Component, useProps, t } from "@insilos/owl";
 import { TimePicker, timePickerProps } from "./time_picker";
 
 /**

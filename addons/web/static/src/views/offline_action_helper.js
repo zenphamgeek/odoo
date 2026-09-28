@@ -1,4 +1,4 @@
-import { Component, onWillStart, usePlugin } from "@odoo/owl";
+import { Component, onWillStart, usePlugin } from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 
 export class OfflineActionHelper extends Component {

@@ -1,9 +1,9 @@
 import json
 
-from odoo.tests import HttpCase, tagged
-from odoo.tools import mute_logger
+from insilos.tests import HttpCase, tagged
+from insilos.tools import mute_logger
 
-UNLINK_BLOCKED_ERROR = 'odoo.addons.web.models.models.UnlinkBlockedError'
+UNLINK_BLOCKED_ERROR = 'insilos.addons.web.models.models.UnlinkBlockedError'
 
 
 @tagged('-at_install', 'post_install')
@@ -23,7 +23,7 @@ class TestWebUnlink(HttpCase):
 
     def _web_unlink_over_http(self, records):
         self.authenticate('admin', 'admin')
-        with mute_logger('odoo.sql_db', 'odoo.http'):
+        with mute_logger('insilos.sql_db', 'insilos.http'):
             return self.url_open('/web/dataset/call_kw', data=json.dumps({
                 'params': {
                     'model': records._name,

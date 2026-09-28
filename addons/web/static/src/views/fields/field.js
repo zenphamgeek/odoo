@@ -1,4 +1,4 @@
-import { Component, t, usePlugin, useProps, xml } from "@odoo/owl";
+import { Component, t, usePlugin, useProps, xml } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { Domain } from "@web/core/domain";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";

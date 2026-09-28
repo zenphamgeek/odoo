@@ -1,4 +1,4 @@
-import { Component, useProps } from "@odoo/owl";
+import { Component, useProps } from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { computeM2OProps, Many2One } from "../many2one/many2one";

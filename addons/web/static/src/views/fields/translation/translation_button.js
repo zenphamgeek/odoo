@@ -1,4 +1,4 @@
-import { Component, computed, useProps, signal, types } from "@odoo/owl";
+import { Component, computed, useProps, signal, types } from "@insilos/owl";
 import { localization } from "@web/core/l10n/localization";
 import { _t } from "@web/core/l10n/translation";
 import { user } from "@web/core/user";

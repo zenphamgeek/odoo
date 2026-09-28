@@ -1,11 +1,11 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import ast
 import io
 
-from odoo import api, fields, models, tools
-from odoo.tools import BinaryBytes
-from odoo.tools.translate import trans_export, trans_export_records
+from insilos import api, fields, models, tools
+from insilos.tools import BinaryBytes
+from insilos.tools.translate import trans_export, trans_export_records
 
 NEW_LANG_KEY = '__new__'
 

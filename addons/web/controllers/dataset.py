@@ -1,11 +1,11 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import threading
 
 from werkzeug.exceptions import NotFound
 
-from odoo import http
-from odoo.http import request
-from odoo.service.model import call_kw
+from insilos import http
+from insilos.http import request
+from insilos.service.model import call_kw
 
 from .utils import clean_action
 

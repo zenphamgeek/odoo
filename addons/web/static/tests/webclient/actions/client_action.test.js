@@ -1,5 +1,5 @@
-import { animationFrame, beforeEach, expect, runAllTimers, test } from "@odoo/hoot";
-import { Component, onMounted, useProps, xml } from "@odoo/owl";
+import { animationFrame, beforeEach, expect, runAllTimers, test } from "@insilos/hoot";
+import { Component, onMounted, useProps, xml } from "@insilos/owl";
 import {
     contains,
     defineActions,
@@ -427,7 +427,7 @@ test("test next action on display_notification client action", async () => {
 });
 
 test("test reload client action", async () => {
-    redirect("/odoo?test=42");
+    redirect("/insilos?test=42");
     location.search = "?test=42";
 
     patchWithCleanup(browser.history, {
@@ -478,19 +478,19 @@ test("test reload client action", async () => {
     });
     await runAllTimers();
     expect.verifySteps([
-        "replaceState /odoo?test=42",
+        "replaceState /insilos?test=42",
         "window_reload",
-        "pushState /odoo/action-2",
+        "pushState /insilos/action-2",
         "window_reload",
-        "pushState /odoo?menu_id=1",
+        "pushState /insilos?menu_id=1",
         "window_reload",
-        "pushState /odoo/action-1?menu_id=2",
+        "pushState /insilos/action-1?menu_id=2",
         "window_reload",
     ]);
 });
 
 test("test home client action", async () => {
-    redirect("/odoo");
+    redirect("/insilos");
     location.search = "";
 
     patchWithCleanup(location, {
@@ -520,9 +520,9 @@ test("test display_exception client action", async () => {
         tag: "display_exception",
         params: {
             code: 0,
-            message: "Odoo Server Error",
+            message: "Insilos Server Error",
             data: {
-                name: `odoo.exceptions.UserError`,
+                name: `insilos.exceptions.UserError`,
                 debug: "traceback",
                 arguments: [],
                 context: {},

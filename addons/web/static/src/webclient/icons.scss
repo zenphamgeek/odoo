@@ -7,6 +7,7 @@
 
 $ms-font-family: 'Material Symbols Outlined';
 $oi-font-family: 'odoo_ui_icons';
+$ph-font-family: 'Phosphor';
 // Icon sizing map
 $icon-sizes: (
     'sm': 0.8em,
@@ -171,3 +172,71 @@ $oi-fw-ratio: 1.28571429; // Matches .fa-fw
         transform: rotate(359deg);
     }
 }
+
+// ============================================================================
+// PHOSPHOR ICONS INTEGRATION & BACKWARD-COMPATIBILITY SHIM
+// ============================================================================
+
+@import "../../lib/phosphor/phosphor_icons";
+@import "../../lib/phosphor/phosphor_shim";
+
+.ph {
+    font-family: 'Phosphor' !important;
+    speak: never;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: inline-block;
+
+    // Ligatures & rendering
+    letter-spacing: 0;
+    -webkit-font-feature-settings: 'liga';
+    -moz-font-feature-settings: 'liga=1';
+    -moz-font-feature-settings: 'liga';
+    -ms-font-feature-settings: 'liga' 1;
+    font-feature-settings: 'liga';
+    -webkit-font-variant-ligatures: discretionary-ligatures;
+    font-variant-ligatures: discretionary-ligatures;
+}
+
+.ph-duotone {
+    font-family: 'Phosphor-Duotone', 'Phosphor' !important;
+    speak: never;
+    font-style: normal;
+    font-weight: normal;
+    font-variant: normal;
+    text-transform: none;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: inline-block;
+}
+
+// Sizing classes for Phosphor
+@each $name, $size in $icon-sizes {
+    .ph-#{$name} {
+        font-size: $size;
+
+        @if $name == 'lg' {
+            vertical-align: middle;
+        }
+    }
+}
+
+.ph-fw {
+    width: calc(#{$oi-fw-ratio} * var(--oi-font-size, #{$oi-default-size}));
+    text-align: center;
+}
+
+.ph-spin {
+    animation: oi-spin 2s infinite linear;
+}
+
+.ph-pulse {
+    animation: oi-spin 1s infinite steps(8);
+}
+

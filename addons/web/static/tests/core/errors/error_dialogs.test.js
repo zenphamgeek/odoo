@@ -8,7 +8,7 @@ import {
     queryFirst,
     test,
     tick,
-} from "@odoo/hoot";
+} from "@insilos/hoot";
 import {
     assignDialogTestEnv,
     mockService,
@@ -52,14 +52,14 @@ test("ErrorDialog with traceback", async () => {
     await click("main summary");
     await animationFrame();
     expect(queryAllTexts("main .clearfix div > *")).toEqual([
-        "Odoo Error",
+        "Error",
         "Occurred on 11/Mar/2019 09:30:00",
         "ERROR_NAME",
         "Something bad happened",
         "This is a traceback string",
     ]);
     expect(queryAllTexts("main .clearfix div > p")).toEqual([
-        "Odoo Error",
+        "Error",
         "Occurred on 11/Mar/2019 09:30:00",
     ]);
     expect(queryAllTexts("main .clearfix div > code")).toEqual([
@@ -93,14 +93,14 @@ test("Client ErrorDialog with traceback", async () => {
     await click("main summary");
     await animationFrame();
     expect(queryAllTexts("main .clearfix div > *")).toEqual([
-        "Odoo Client Error",
+        "Client Error",
         "Occurred on 11/Mar/2019 09:30:00",
         "ERROR_NAME",
         "Something bad happened",
         "This is a traceback string",
     ]);
     expect(queryAllTexts("main .clearfix div > p")).toEqual([
-        "Odoo Client Error",
+        "Client Error",
         "Occurred on 11/Mar/2019 09:30:00",
     ]);
     expect(queryAllTexts("main .clearfix div > code")).toEqual([
@@ -168,7 +168,7 @@ test("WarningDialog", async () => {
     assignDialogTestEnv();
     await mountWithCleanup(WarningDialog, {
         props: {
-            exceptionName: "odoo.exceptions.UserError",
+            exceptionName: "insilos.exceptions.UserError",
             message: "...",
             data: { arguments: ["Some strange unreadable message"] },
             close() {},
@@ -204,7 +204,7 @@ test("RedirectWarningDialog", async () => {
         },
     });
     expect(".o_dialog").toHaveCount(1);
-    expect("header .modal-title").toHaveText("Odoo Warning");
+    expect("header .modal-title").toHaveText("Warning");
     expect("main").toHaveText("Some strange unreadable message");
     expect(queryAllTexts("footer button")).toEqual(["Buy book on cryptography", "Close"]);
 
@@ -346,9 +346,9 @@ test("SessionExpiredDialog", async () => {
     await mountWithCleanup(SessionExpiredDialog, { props: { close() {} } });
     expect(".o_dialog").toHaveCount(1);
     expect(".o_dialog").toHaveCount(1);
-    expect("header .modal-title").toHaveText("Odoo Session Expired");
+    expect("header .modal-title").toHaveText("Session Expired");
     expect("main p").toHaveText(
-        "Your Odoo session expired. The current page is about to be refreshed."
+        "Your session expired. The current page is about to be refreshed."
     );
     expect(".o_dialog footer button").toHaveText("Close");
     await click(".o_dialog footer button");
@@ -379,14 +379,14 @@ test("ErrorDialog with timestamp provided", async () => {
     await click("main summary");
     await animationFrame();
     expect(queryAllTexts("main .clearfix div > *")).toEqual([
-        "Odoo Error",
+        "Error",
         "Occurred on 14/Nov/2023 23:53:20",
         "ERROR_NAME",
         "Something bad happened",
         "This is a traceback string",
     ]);
     expect(queryAllTexts("main .clearfix div > p")).toEqual([
-        "Odoo Error",
+        "Error",
         "Occurred on 14/Nov/2023 23:53:20",
     ]);
     expect(queryAllTexts("main .clearfix div > code")).toEqual([

@@ -1,9 +1,9 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from hashlib import sha512
-from odoo import models, fields, api
-from odoo.tools import BinaryBytes, html_escape
-from odoo.tools.misc import file_open, limited_field_access_token
+from insilos import models, fields, api
+from insilos.tools import BinaryBytes, html_escape
+from insilos.tools.misc import file_open, limited_field_access_token
 
 
 def get_random_ui_color_from_seed(seed: str):
@@ -20,7 +20,7 @@ def generate_text_avatar_svg(text, seed):
     :param str text: the short text (initials or number) drawn on the avatar.
     :param str seed: value the background color is derived from.
     :return: the SVG avatar bytes.
-    :rtype: odoo.tools.BinaryBytes
+    :rtype: insilos.tools.BinaryBytes
     """
     bgcolor = get_random_ui_color_from_seed(seed)
     font_size = 104 if len(text) <= 1 else 86

@@ -42,7 +42,7 @@ import {
     useListener,
     usePlugin,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { getCurrencyRates } from "@web/core/currency";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { _t } from "@web/core/l10n/translation";

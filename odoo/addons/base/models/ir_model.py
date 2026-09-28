@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import copy
 import itertools
 import logging
@@ -14,13 +14,13 @@ from operator import itemgetter
 
 from psycopg2.extras import Json
 
-from odoo import api, fields, models, tools
-from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.fields import Command, Domain
-from odoo.tools import BinaryBytes, frozendict, reset_cached_properties, split_every, sql, unique, OrderedSet, SQL
-from odoo.tools.constants import IN_MAX
-from odoo.tools.safe_eval import expr_eval, safe_eval, datetime, dateutil, time
-from odoo.tools.translate import FIELD_TRANSLATE, LazyTranslate, _
+from insilos import api, fields, models, tools
+from insilos.exceptions import AccessError, UserError, ValidationError
+from insilos.fields import Command, Domain
+from insilos.tools import BinaryBytes, frozendict, reset_cached_properties, split_every, sql, unique, OrderedSet, SQL
+from insilos.tools.constants import IN_MAX
+from insilos.tools.safe_eval import expr_eval, safe_eval, datetime, dateutil, time
+from insilos.tools.translate import FIELD_TRANSLATE, LazyTranslate, _
 
 
 _lt = LazyTranslate(__name__)
@@ -422,7 +422,7 @@ class IrModel(models.Model):
         res = super().unlink()
 
         # Reload registry for normal unlink only. For module uninstall, the
-        # reload is done independently in odoo.modules.loading.
+        # reload is done independently in insilos.modules.loading.
         if not self.pool.uninstalling_modules:
             # setup models; this automatically removes custom model from registry
             self.env.flush_all()
@@ -975,7 +975,7 @@ class IrModelFields(models.Model):
         return dict(cr.fetchall())
 
     def _drop_column(self):
-        from odoo.orm.model_classes import pop_field  # noqa: PLC0415
+        from insilos.orm.model_classes import pop_field  # noqa: PLC0415
 
         tables_to_drop = set()
 
@@ -1014,7 +1014,7 @@ class IrModelFields(models.Model):
             This method prevents the modification/deletion of many2one fields
             that have an inverse one2many, for instance.
         """
-        from odoo.orm.model_classes import pop_field  # noqa: PLC0415
+        from insilos.orm.model_classes import pop_field  # noqa: PLC0415
 
         force_delete = self.env.context.get('force_delete')
         if not force_delete and any(record.state != 'manual' for record in self):
@@ -1151,7 +1151,7 @@ class IrModelFields(models.Model):
             if 'index' in vals:
                 vals['index'] = 'btree' if vals['index'] is True else vals['index'] or None
             if vals.get('translate') and not isinstance(vals['translate'], str):
-                _logger.warning("Deprecated since Odoo 19, ir.model.fields.translate becomes Selection, the value should be a string")
+                _logger.warning("Deprecated since Insilos 19, ir.model.fields.translate becomes Selection, the value should be a string")
                 vals['translate'] = 'html_translate' if vals.get('ttype') == 'html' else 'standard'
             if 'model_id' in vals:
                 model_from_id = IrModel.browse(vals['model_id']).model
@@ -1257,7 +1257,7 @@ class IrModelFields(models.Model):
             vals['index'] = 'btree' if index is True or index == 'True' else index or None
 
         if vals.get('translate') and not isinstance(vals['translate'], str):
-            _logger.warning("Deprecated since Odoo 19, ir.model.fields.translate becomes Selection, the value should be a string")
+            _logger.warning("Deprecated since Insilos 19, ir.model.fields.translate becomes Selection, the value should be a string")
             vals['translate'] = 'html_translate' if vals.get('ttype') == 'html' else 'standard'
 
         if column_rename and self.state == 'manual':
@@ -1954,7 +1954,7 @@ class IrModelFieldsSelection(models.Model):
         result = super().unlink()
 
         # Reload registry for normal unlink only. For module uninstall, the
-        # reload is done independently in odoo.modules.loading.
+        # reload is done independently in insilos.modules.loading.
         if not self.pool.uninstalling_modules:
             # setup models; this re-initializes model in registry
             self.env.flush_all()
@@ -2066,7 +2066,7 @@ class IrModelFieldsSelection(models.Model):
 class IrModelConstraint(models.Model):
     """
     This model tracks PostgreSQL indexes, foreign keys and constraints
-    used by Odoo models.
+    used by Insilos models.
     """
     _name = 'ir.model.constraint'
     _description = 'Model Constraint'
@@ -2215,7 +2215,7 @@ class IrModelConstraint(models.Model):
 
 class IrModelRelation(models.Model):
     """
-    This model tracks PostgreSQL tables used to implement Odoo many2many
+    This model tracks PostgreSQL tables used to implement Insilos many2many
     relations.
     """
     _name = 'ir.model.relation'
@@ -2286,7 +2286,7 @@ class IrModelData(models.Model):
            * allows easy data integration with third-party systems,
              making import/export/sync of data possible, as records
              can be uniquely identified across multiple systems
-           * allows tracking the origin of data installed by Odoo
+           * allows tracking the origin of data installed by Insilos
              modules themselves, thus making it possible to later
              update them seamlessly.
     """
@@ -2546,7 +2546,7 @@ class IrModelData(models.Model):
         the chance of gracefully deleting all records.
         This step is performed as part of the full uninstallation of a module.
         """
-        from odoo.orm.model_classes import add_field  # noqa: PLC0415
+        from insilos.orm.model_classes import add_field  # noqa: PLC0415
 
         if not self.env.is_system():
             raise AccessError(_('Administrator access is required to uninstall a module'))

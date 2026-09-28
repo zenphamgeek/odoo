@@ -7,7 +7,7 @@ import {
     useListener,
     useOnChange,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 
 function useResizable({
     containerRef,

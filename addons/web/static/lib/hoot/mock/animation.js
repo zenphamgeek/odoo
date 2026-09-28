@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { on } from "@odoo/hoot-dom";
+import { on } from "@insilos/hoot-dom";
 import { MockEventTarget } from "../hoot_utils";
 import { ensureTest } from "../main_runner";
 

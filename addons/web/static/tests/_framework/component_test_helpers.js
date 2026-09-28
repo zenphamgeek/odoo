@@ -1,5 +1,5 @@
-import { after, getFixture, queryFirst, queryOne } from "@odoo/hoot";
-import { App, Component, onWillDestroy, xml } from "@odoo/owl";
+import { after, getFixture, queryFirst, queryOne } from "@insilos/hoot";
+import { App, Component, onWillDestroy, xml } from "@insilos/owl";
 import { MainComponentsContainer } from "@web/core/main_components_container";
 import { getPopoverForTarget } from "@web/core/popover/popover";
 import { patch } from "@web/core/utils/patch";
@@ -8,8 +8,8 @@ import { makeMockServer, MockServer } from "./mock_server/mock_server";
 import { isSmall } from "./ui_test_helpers";
 
 /**
- * @typedef {import("@odoo/hoot").Target} Target
- * @typedef {import("@odoo/owl").Component} Component
+ * @typedef {import("@insilos/hoot").Target} Target
+ * @typedef {import("@insilos/owl").Component} Component
  * @typedef {import("@web/env").OdooEnv} OdooEnv
  *
  * @typedef {ConstructorParameters<typeof App>[1]} AppConfig
@@ -18,7 +18,7 @@ import { isSmall } from "./ui_test_helpers";
 /**
  * @template [P=any]
  * @template [E=any]
- * @typedef {import("@odoo/owl").ComponentConstructor<P, E>} ComponentConstructor
+ * @typedef {import("@insilos/owl").ComponentConstructor<P, E>} ComponentConstructor
  */
 
 patch(MainComponentsContainer.prototype, {

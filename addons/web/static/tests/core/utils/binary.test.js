@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@odoo/hoot";
+import { describe, expect, test } from "@insilos/hoot";
 import { allowTranslations } from "@web/../tests/web_test_helpers";
 
 import { humanSize } from "@web/core/utils/binary";

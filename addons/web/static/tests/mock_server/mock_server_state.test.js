@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@odoo/hoot";
+import { describe, expect, test } from "@insilos/hoot";
 import { serverState } from "@web/../tests/web_test_helpers";
 
 import { user } from "@web/core/user";
@@ -7,7 +7,7 @@ import { session } from "@web/session";
 describe.current.tags("headless");
 
 test("default state", () => {
-    expect(odoo.debug).toBe("");
+    expect(insilos.debug).toBe("");
     const s = { ...serverState };
     expect(s).toInclude("view_info");
     delete s.view_info;

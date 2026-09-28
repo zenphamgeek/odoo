@@ -4,12 +4,12 @@ import typing
 from collections import defaultdict
 from collections.abc import Iterator
 
-from odoo import api, fields, models
-from odoo.exceptions import AccessError, ValidationError
-from odoo.fields import Domain
-from odoo.tools import SQL, frozendict
-from odoo.tools.safe_eval import safe_eval, time
-from odoo.tools.translate import _lt
+from insilos import api, fields, models
+from insilos.exceptions import AccessError, ValidationError
+from insilos.fields import Domain
+from insilos.tools import SQL, frozendict
+from insilos.tools.safe_eval import safe_eval, time
+from insilos.tools.translate import _lt
 
 _logger = logging.getLogger(__name__)
 

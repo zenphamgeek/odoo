@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "@odoo/hoot";
+import { beforeEach, describe, expect, test } from "@insilos/hoot";
 import { getService, makeTestApp } from "@web/../tests/web_test_helpers";
 
 describe.current.tags("headless");
@@ -33,7 +33,7 @@ test("delete title part", () => {
     titleService.setParts({ one: "MyOdoo" });
     expect(titleService.current).toBe("MyOdoo");
     titleService.setParts({ one: null });
-    expect(titleService.current).toBe("Odoo");
+    expect(titleService.current).toBe("Insilos");
 });
 
 test("all at once", () => {
@@ -44,7 +44,7 @@ test("all at once", () => {
 });
 
 test("get title parts", () => {
-    expect(titleService.current).toBe("Odoo");
+    expect(titleService.current).toBe("Insilos");
     titleService.setParts({ one: "MyOdoo", two: "Import" });
     expect(titleService.current).toBe("MyOdoo - Import");
     const parts = titleService.getParts();

@@ -1,6 +1,6 @@
-from odoo import Command
-from odoo.tests import TransactionCase, tagged
-from odoo.tests.common import new_test_user
+from insilos import Command
+from insilos.tests import TransactionCase, tagged
+from insilos.tests.common import new_test_user
 
 
 @tagged('post_install', '-at_install')
@@ -62,7 +62,7 @@ class TestWebReadX2manyAccessRules(TransactionCase):
         partner_blocked.company_id = company_blocked.id
 
         category = self.env['res.partner.category'].create({
-            'name': 'Odoo Lovers',
+            'name': 'Insilos Lovers',
             'partner_ids': [Command.set([
                 partner_accessible.id,
                 partner_blocked.id,

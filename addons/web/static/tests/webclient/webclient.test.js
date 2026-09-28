@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { animationFrame } from "@odoo/hoot-mock";
-import { Component, xml } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { animationFrame } from "@insilos/hoot-mock";
+import { Component, xml } from "@insilos/owl";
 
 import { contains, mountWithCleanup, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { registry } from "@web/core/registry";

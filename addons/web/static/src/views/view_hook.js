@@ -1,4 +1,4 @@
-import { onWillUnmount, useListener, usePlugin } from "@odoo/owl";
+import { onWillUnmount, useListener, usePlugin } from "@insilos/owl";
 import {
     ConfirmationDialog,
     deleteConfirmationMessage,

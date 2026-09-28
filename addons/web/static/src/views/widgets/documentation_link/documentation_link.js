@@ -1,5 +1,5 @@
 import { standardWidgetProps } from "@web/views/widgets/standard_widget_props";
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import { documentationUrl } from "@web/core/utils/urls";
 

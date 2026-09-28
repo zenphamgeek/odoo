@@ -6,7 +6,7 @@ import {
     signal,
     useListener,
     usePlugin,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { browser } from "@web/core/browser/browser";
 import { Crypto, CRYPTO_ALGO } from "@web/core/crypto";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";

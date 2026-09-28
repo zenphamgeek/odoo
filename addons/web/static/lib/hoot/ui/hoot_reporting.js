@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, computed, signal, t, useEffect, usePlugin, xml } from "@odoo/owl";
+import { Component, computed, signal, t, useEffect, usePlugin, xml } from "@insilos/owl";
 import { Test } from "../core/test";
 import { formatTime, parseQuery } from "../hoot_utils";
 import { HootJobButtons } from "./hoot_job_buttons";

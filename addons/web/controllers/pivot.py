@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import io
 import json
 from collections import deque
@@ -6,10 +6,10 @@ from collections import deque
 from werkzeug.datastructures import FileStorage
 from werkzeug.exceptions import UnprocessableEntity
 
-from odoo import _, http
-from odoo.http import request
-from odoo.http.stream import content_disposition
-from odoo.tools import osutil
+from insilos import _, http
+from insilos.http import request
+from insilos.http.stream import content_disposition
+from insilos.tools import osutil
 
 
 class TableExporter(http.Controller):

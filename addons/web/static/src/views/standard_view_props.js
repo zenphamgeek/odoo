@@ -1,4 +1,4 @@
-import { t } from "@odoo/owl";
+import { t } from "@insilos/owl";
 
 export const standardViewProps = {
     info: t.object(),

@@ -241,3 +241,312 @@ span.o_force_ltr {
         display: inline-flex !important;
     }
 }
+
+// ============================================================================
+// Insilos Enterprise: System Navigation, Command Palette, Preferences & Settings
+// ============================================================================
+
+// 1. Global Command Palette & Search Focus Ring
+.o_command_palette {
+    border-radius: 14px !important;
+    overflow: hidden;
+
+    .o_command_palette_search {
+        input {
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+            &:focus {
+                border-color: #FF8000 !important;
+                box-shadow: 0 0 0 2px rgba(255, 128, 0, 0.25) !important;
+            }
+        }
+    }
+
+    .o_command_palette_listbox {
+        .o_command {
+            border-radius: 6px;
+            margin: 2px 6px;
+            transition: background-color 0.15s ease, border-left 0.15s ease;
+
+            &.focused {
+                background-color: rgba(255, 128, 0, 0.12) !important;
+                border-left: 3px solid #FF8000 !important;
+            }
+        }
+    }
+}
+
+// 2. User Preferences Dialog (view_users_form_simple_modif)
+.o_dialog:has([name="preferences_page"]),
+.modal:has([name="preferences_page"]),
+.o_form_view:has([name="preferences_page"]) {
+    // Header Avatar Controls
+    .o_field_widget[name="image_1920"], .o_field_image {
+        img {
+            border-radius: 16px !important;
+            border: 2px solid rgba(255, 128, 0, 0.3) !important;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12) !important;
+            transition: all 0.2s ease;
+
+            &:hover {
+                border-color: #FF8000 !important;
+                box-shadow: 0 0 16px rgba(255, 128, 0, 0.35) !important;
+            }
+        }
+
+        .o_select_file_button {
+            background-color: #FF8000 !important;
+            color: #FFFFFF !important;
+            border-radius: 50% !important;
+            border: 2px solid #FFFFFF !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+            transition: transform 0.15s ease;
+
+            &:hover {
+                transform: scale(1.1);
+            }
+        }
+    }
+
+    // Modern Notebook Tabs
+    .nav-tabs {
+        border-bottom: 2px solid rgba(148, 163, 184, 0.2);
+
+        .nav-link {
+            font-weight: 500;
+            color: var(--body-color, #64748B);
+            border: none;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            padding: 0.65rem 1.25rem;
+            transition: all 0.18s ease;
+
+            &:hover {
+                color: #FF8000;
+            }
+
+            &.active {
+                color: #FF8000 !important;
+                border-bottom: 2px solid #FF8000 !important;
+                background: transparent !important;
+                font-weight: 600;
+            }
+        }
+    }
+
+    // Language Selector & Add Language Button
+    .o_row [name="lang"] {
+        select, input {
+            &:focus {
+                border-color: #FF8000 !important;
+                box-shadow: 0 0 0 2px rgba(255, 128, 0, 0.2) !important;
+            }
+        }
+    }
+
+    .btn-link[name*="action_view_base_language_install"] {
+        color: #FF8000 !important;
+        font-weight: 500;
+
+        &:hover {
+            color: #FFA033 !important;
+        }
+    }
+
+    // Theme Switch (Radio Buttons Light / Dark)
+    [name="color_scheme"] {
+        .form-check {
+            .form-check-input {
+                cursor: pointer;
+
+                &:checked {
+                    background-color: #FF8000 !important;
+                    border-color: #FF8000 !important;
+                    box-shadow: 0 0 0 2px rgba(255, 128, 0, 0.25) !important;
+                }
+
+                &:focus {
+                    border-color: #FF8000 !important;
+                    box-shadow: 0 0 0 3px rgba(255, 128, 0, 0.25) !important;
+                }
+            }
+
+            .form-check-label {
+                cursor: pointer;
+                font-weight: 500;
+                padding-left: 0.25rem;
+            }
+        }
+    }
+
+    // Dialog Footer Action Buttons
+    footer {
+        .btn-primary {
+            background: linear-gradient(135deg, #FFA033 0%, #FF8000 45%, #E66A00 100%) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 4px 14px rgba(255, 128, 0, 0.3) !important;
+            color: #FFFFFF !important;
+            font-weight: 600;
+
+            &:hover {
+                box-shadow: 0 6px 20px rgba(255, 128, 0, 0.45) !important;
+                transform: translateY(-1px);
+            }
+        }
+    }
+}
+
+// 3. Layout Settings Modernization (res_config_settings_view_form)
+.o_base_settings_view {
+    // Control Panel Search Box
+    .o_control_panel .o_searchview,
+    .o_control_panel input.o_searchview_input {
+        &:focus, &:focus-within {
+            border-color: #FF8000 !important;
+            box-shadow: 0 0 0 2px rgba(255, 128, 0, 0.25) !important;
+        }
+    }
+
+    .o_form_renderer {
+        .settings_tab {
+            .tab {
+                transition: background-color 0.15s ease, color 0.15s ease;
+
+                &:hover {
+                    color: #FF8000 !important;
+                    background-color: rgba(255, 128, 0, 0.05);
+                }
+
+                &.selected {
+                    color: #FF8000 !important;
+                    background-color: rgba(255, 128, 0, 0.1) !important;
+                    box-shadow: inset 3px 0 0 #FF8000 !important;
+                    font-weight: 600;
+                }
+            }
+        }
+
+        .settings {
+            .settingSearchHeader {
+                background-color: rgba(255, 128, 0, 0.08) !important;
+                border-left: 3px solid #FF8000 !important;
+                border-radius: 4px;
+                font-weight: 600;
+            }
+
+            > .app_settings_block h2 {
+                border-left: 3px solid #FF8000;
+                padding-left: 0.75rem;
+            }
+        }
+    }
+}
+
+// 4. Universal Public Login Card & Form Modernization
+.oe_website_login_container {
+    padding: 3rem 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .oe_login_form, .oe_signup_form, .oe_reset_password_form {
+        max-width: 420px !important;
+        width: 100%;
+        margin: 20px auto;
+        padding: 2.25rem 2rem;
+        background: rgba(13, 21, 39, 0.94) !important;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 128, 0, 0.25) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 35px rgba(255, 128, 0, 0.12) !important;
+        color: #F8FAFC !important;
+
+        .form-label, label {
+            color: #94A3B8 !important;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-control {
+            background-color: rgba(15, 23, 42, 0.85) !important;
+            border: 1px solid rgba(148, 163, 184, 0.25) !important;
+            border-radius: 8px !important;
+            color: #F8FAFC !important;
+            padding: 0.65rem 0.9rem !important;
+            font-size: 0.925rem;
+            transition: all 0.2s ease;
+
+            &::placeholder {
+                color: rgba(148, 163, 184, 0.5) !important;
+            }
+
+            &:focus {
+                border-color: #FF8000 !important;
+                background-color: rgba(15, 23, 42, 0.98) !important;
+                box-shadow: 0 0 0 3px rgba(255, 128, 0, 0.25) !important;
+                color: #FFFFFF !important;
+            }
+        }
+
+        .input-group {
+            .btn {
+                background-color: rgba(30, 41, 59, 0.8) !important;
+                border: 1px solid rgba(148, 163, 184, 0.25) !important;
+                color: #94A3B8 !important;
+
+                &:hover {
+                    color: #FF8000 !important;
+                }
+            }
+        }
+
+        .oe_login_buttons {
+            .btn-primary {
+                background: linear-gradient(135deg, #FFA033 0%, #FF8000 45%, #E66A00 100%) !important;
+                border: 1px solid rgba(255, 255, 255, 0.2) !important;
+                border-radius: 8px !important;
+                color: #FFFFFF !important;
+                font-weight: 600;
+                font-size: 0.95rem;
+                padding: 0.7rem 1.5rem !important;
+                box-shadow: 0 4px 18px rgba(255, 128, 0, 0.35) !important;
+                transition: transform 0.18s ease, box-shadow 0.18s ease;
+
+                &:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(255, 128, 0, 0.5) !important;
+                }
+            }
+
+            .btn-link {
+                color: #94A3B8 !important;
+                &:hover {
+                    color: #FF8000 !important;
+                }
+            }
+        }
+
+        .alert {
+            border-radius: 8px;
+            font-size: 0.875rem;
+
+            &.alert-danger {
+                background-color: rgba(220, 53, 69, 0.2) !important;
+                border: 1px solid rgba(220, 53, 69, 0.4) !important;
+                color: #FCA5A5 !important;
+            }
+
+            &.alert-success {
+                background-color: rgba(40, 167, 69, 0.2) !important;
+                border: 1px solid rgba(40, 167, 69, 0.4) !important;
+                color: #86EFAC !important;
+            }
+        }
+    }
+}
+
+

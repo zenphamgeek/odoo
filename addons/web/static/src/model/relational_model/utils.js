@@ -1,4 +1,4 @@
-import { markup, onWillStart, t, useEffect, useProps } from "@odoo/owl";
+import { markup, onWillStart, t, useEffect, useProps } from "@insilos/owl";
 import { evalPartialContext, makeContext } from "@web/core/context";
 import { Domain } from "@web/core/domain";
 import {

@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 # ----------------------------------------------------------
 # ir_http modular http routing
 # ----------------------------------------------------------
@@ -30,15 +30,15 @@ try:
 except ImportError:
     slugify_lib = None
 
-import odoo
-from odoo import api, models
-from odoo.api import SUPERUSER_ID
-from odoo.exceptions import AccessDenied
-from odoo.http import Response, request
-from odoo.http.dispatcher import SAFE_HTTP_METHODS
-from odoo.http.requestlib import is_cors_preflight
-from odoo.http.routing_map import ROUTING_KEYS
-from odoo.http.session import (
+import insilos
+from insilos import api, models
+from insilos.api import SUPERUSER_ID
+from insilos.exceptions import AccessDenied
+from insilos.http import Response, request
+from insilos.http.dispatcher import SAFE_HTTP_METHODS
+from insilos.http.requestlib import is_cors_preflight
+from insilos.http.routing_map import ROUTING_KEYS
+from insilos.http.session import (
     check,
     CheckIdentityException,
     SessionExpiredException,
@@ -46,13 +46,13 @@ from odoo.http.session import (
     get_session_max_inactivity,
     session_store,
 )
-from odoo.tools.json import json_default
-from odoo.tools.misc import get_lang, submap
-from odoo.tools.translate import code_translations
+from insilos.tools.json import json_default
+from insilos.tools.misc import get_lang, submap
+from insilos.tools.translate import code_translations
 
 _logger = logging.getLogger(__name__)
 
-# see also mimetypes module: https://docs.python.org/3/library/mimetypes.html and odoo.tools.mimetypes
+# see also mimetypes module: https://docs.python.org/3/library/mimetypes.html and insilos.tools.mimetypes
 EXTENSION_TO_WEB_MIMETYPES = {
     '.css': 'text/css',
     '.less': 'text/less',
@@ -454,12 +454,12 @@ class IrHttp(models.AbstractModel):
             try:
                 # explicitly crash now, instead of crashing later
                 args[key].check_access('read')
-            except (odoo.exceptions.AccessError, odoo.exceptions.MissingError) as e:
+            except (insilos.exceptions.AccessError, insilos.exceptions.MissingError) as e:
                 # custom behavior in case a record is not accessible / has been removed
                 if handle_error := rule.endpoint.routing.get('handle_params_access_error'):
                     if response := handle_error(e, **args):
                         werkzeug.exceptions.abort(response)
-                if request.env.user.is_public or isinstance(e, odoo.exceptions.MissingError):
+                if request.env.user.is_public or isinstance(e, insilos.exceptions.MissingError):
                     raise werkzeug.exceptions.NotFound() from e
                 raise
 
@@ -500,14 +500,14 @@ class IrHttp(models.AbstractModel):
         return werkzeug.utils.redirect(location, code=code, Response=Response)
 
     def _generate_routing_rules(self, modules, converters):
-        from odoo.http.routing_map import _generate_routing_rules  # noqa: PLC0415
+        from insilos.http.routing_map import _generate_routing_rules  # noqa: PLC0415
         return _generate_routing_rules(modules, False, converters)
 
     @api.ormcache('key', cache='routing')
     def routing_map(self, key=None):
         _logger.info("Generating routing map for key %s", key)
         registry = self.env.registry
-        installed = registry._init_modules.union(odoo.tools.config['server_wide_modules'])
+        installed = registry._init_modules.union(insilos.tools.config['server_wide_modules'])
         mods = sorted(installed)
         # Note : when routing map is generated, we put it on the class `cls`
         # to make it available for all instance. Since `env` create an new instance

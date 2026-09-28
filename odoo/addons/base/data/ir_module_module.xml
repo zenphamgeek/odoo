@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
     <data>
 
         <record model="ir.module.module" id="base.module_web_studio">
@@ -279,4 +279,4 @@
             <field name="icon">/base/static/img/icons/payment_sepa_direct_debit.png</field>
         </record>
     </data>
-</odoo>
+</data>

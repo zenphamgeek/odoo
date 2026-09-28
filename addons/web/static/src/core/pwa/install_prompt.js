@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { isIOS } from "@web/core/browser/feature_detection";
 

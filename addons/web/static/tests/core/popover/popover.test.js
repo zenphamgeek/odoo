@@ -9,8 +9,8 @@ import {
     scroll,
     test,
     waitFor,
-} from "@odoo/hoot";
-import { assertType, Component, htmlEscape, useProps, signal, t, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { assertType, Component, htmlEscape, useProps, signal, t, xml } from "@insilos/owl";
 import {
     contains,
     defineStyle,

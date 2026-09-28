@@ -1,4 +1,4 @@
-import { Component, proxy, useProps } from "@odoo/owl";
+import { Component, proxy, useProps } from "@insilos/owl";
 import { DateTimePicker } from "@web/core/datetime/datetime_picker";
 import { _t } from "@web/core/l10n/translation";
 import { useBus, useService } from "@web/core/utils/hooks";

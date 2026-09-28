@@ -1,8 +1,8 @@
-import { test, expect } from "@odoo/hoot";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
-import { click, press } from "@odoo/hoot-dom";
+import { test, expect } from "@insilos/hoot";
+import { animationFrame, runAllTimers } from "@insilos/hoot-mock";
+import { click, press } from "@insilos/hoot-dom";
 import { Pager } from "@web/core/pager/pager";
-import { Component, proxy, useProps, xml } from "@odoo/owl";
+import { Component, proxy, useProps, xml } from "@insilos/owl";
 import { contains, mountWithCleanup, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { config as transitionConfig } from "@web/core/transition";
 

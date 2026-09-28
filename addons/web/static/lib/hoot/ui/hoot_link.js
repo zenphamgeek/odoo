@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, signal, t, useProps, xml } from "@odoo/owl";
+import { Component, signal, t, useProps, xml } from "@insilos/owl";
 import { FILTER_SCHEMA } from "../core/config";
 import { createUrlFromId } from "../core/url";
 import { ensureArray, INCLUDE_LEVEL } from "../hoot_utils";

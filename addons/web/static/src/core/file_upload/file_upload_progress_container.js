@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 
 export class FileUploadProgressContainer extends Component {
     static template = "web.FileUploadProgressContainer";

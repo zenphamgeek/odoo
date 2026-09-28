@@ -5,7 +5,7 @@ import { Transition } from "@web/core/transition";
 import { useOwnedDialogs, useService } from "@web/core/utils/hooks";
 import { SelectCreateDialog } from "@web/views/view_dialogs/select_create_dialog";
 import { getColor } from "../utils";
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 
 let nextId = 1;
 

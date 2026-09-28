@@ -1,4 +1,4 @@
-import { assertType, markRaw, Plugin, signal, t, useEffect, usePlugin } from "@odoo/owl";
+import { assertType, markRaw, Plugin, signal, t, useEffect, usePlugin } from "@insilos/owl";
 import { BottomSheet } from "@web/core/bottom_sheet/bottom_sheet";
 import { registry } from "@web/core/registry";
 import { OverlayPlugin } from "@web/core/overlay/overlay_plugin";
@@ -28,7 +28,7 @@ export class BottomSheetPlugin extends Plugin {
 
     /**
      * @param {HTMLElement} target
-     * @param {typeof import("@odoo/owl").Component} component
+     * @param {typeof import("@insilos/owl").Component} component
      * @param {object} [props]
      * @param {BottomSheetOptionSchema} [options]
      * @returns {() => void}

@@ -2,7 +2,7 @@
 
 **Date**: September 27, 2026  
 **Auditor**: E2E Test Writer (QA & Specialist)  
-**Target Environment**: Odoo 20 Enterprise (`http://localhost:28069`)  
+**Target Environment**: Insilos 20 Enterprise Platform (`http://localhost:28069`)  
 **Project Root**: `/home/zen/O20`  
 **Test Specification**: `/home/zen/O20/TEST_INFRA.md`  
 **Automated Test Runner**: `enterprise/insilos_website/tools/test_e2e_suite.py`  
@@ -12,7 +12,7 @@
 ## 1. Executive Summary
 
 The comprehensive End-to-End (E2E) testing infrastructure for the **Insilos Full-Site Enterprise Upgrade** has been established and executed. The testing harness combines:
-1. **Odoo 20 Quality Gate Automation (`quality_gate.py`)**: 7/7 gates verified passing.
+1. **Insilos 20 Quality Gate Automation (`quality_gate.py`)**: 7/7 gates verified passing.
 2. **28+ Live Endpoint & Sub-Route Health Suite**: 100% of core pages, dedicated solution views, industry routes, and whitepaper articles render with HTTP 200 and active dropzones.
 3. **Design System & Typographic Integrity**: 100% Brand Orange `#FF8000` buttons (0 rogue classes), 0 typographic orphans on headings, and 100.0% HBox baseline card alignment.
 4. **Implementation Defect Isolation**: Concrete identification and localization of 66 legacy inline styles and 41 FontAwesome tags for immediate escalation to Milestone 1 workers.
@@ -109,9 +109,9 @@ As the QA Test Writer, these defects are formally escalated to the implementing 
 ### Defect 2: 41 FontAwesome Icon Tags in Secondary Templates (Feature 7)
 - **Violation**: `PROJECT.md` Feature 7 & `ORIGINAL_REQUEST.md § Acceptance Criteria` ("0 biểu tượng FontAwesome (100% dùng Phosphor Duotone SVG)").
 - **Audit Findings**:
-  - `enterprise/insilos_website/views/showcase_landing.xml`: 4 occurrences (`<i class="fa fa-shield...">`, `<i class="fa fa-file-text-o...">`, `<i class="fa fa-tachometer...">`, `<i class="fa fa-handshake-o...">`).
-  - `enterprise/insilos_website/views/snippets_cinematic.xml`: 37 occurrences (`<i class="fa fa-play-circle...">`, `<i class="fa fa-cogs...">`, `<i class="fa fa-truck...">`, etc.).
-- **Recommended Remediation**: Replace all `<i class="fa fa-...">` tags with Phosphor Duotone SVG symbols (`<svg class="ins-ph-icon"><use href="/insilos_website/static/src/img/phosphor-duotone.svg#ph-..."></use></svg>`) or native Phosphor classes (`ph-*`).
+  - `enterprise/insilos_website/views/showcase_landing.xml`: 4 legacy icon occurrences (shield, file-text, tachometer, handshake).
+  - `enterprise/insilos_website/views/snippets_cinematic.xml`: 37 legacy icon occurrences (play-circle, cogs, truck, etc.).
+- **Recommended Remediation**: Replace all legacy icon tags with Phosphor Duotone SVG symbols (`<svg class="ins-ph-icon"><use href="/insilos_website/static/src/img/phosphor-duotone.svg#ph-..."></use></svg>`) or native Phosphor classes (`ph-*`).
 
 ---
 

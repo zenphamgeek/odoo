@@ -1,5 +1,5 @@
-import { beforeEach, expect, getFixture, test } from "@odoo/hoot";
-import { microTick, tick } from "@odoo/hoot-dom";
+import { beforeEach, expect, getFixture, test } from "@insilos/hoot";
+import { microTick, tick } from "@insilos/hoot-dom";
 import { patchWithCleanup } from "@web/../tests/web_test_helpers";
 
 beforeEach(() => {
@@ -12,7 +12,7 @@ beforeEach(() => {
 });
 
 /** @type {typeof OdooModuleLoader} */
-const ModuleLoader = Object.getPrototypeOf(odoo.loader.constructor);
+const ModuleLoader = Object.getPrototypeOf(insilos.loader.constructor);
 
 test.tags("headless");
 test("define: simple case", async () => {

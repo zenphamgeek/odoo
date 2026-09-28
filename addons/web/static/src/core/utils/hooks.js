@@ -8,7 +8,7 @@ import {
     toRaw,
     useOnChange,
     useScope,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { hasTouch, isMobileOS } from "@web/core/browser/feature_detection";
 import { router } from "@web/core/browser/router";
 import { useEnv } from "@web/owl2/utils";
@@ -29,7 +29,7 @@ import { useEnv } from "@web/owl2/utils";
  */
 
 /**
- * @typedef {import("@odoo/owl").Signal<HTMLElement> | (() => HTMLElement | null)} Ref
+ * @typedef {import("@insilos/owl").Signal<HTMLElement> | (() => HTMLElement | null)} Ref
  */
 
 // -----------------------------------------------------------------------------
@@ -48,10 +48,10 @@ export const autofocusParamsType = t.object({
  * as soon as it appears in the DOM and if it was not displayed before.
  * If it is an input/textarea, set the selection at the end.
  * @param {Object} params
- * @param {import("@odoo/owl").Signal<HTMLElement>} params.ref the ref to focus
+ * @param {import("@insilos/owl").Signal<HTMLElement>} params.ref the ref to focus
  * @param {boolean} [params.selectAll] if true, will select the entire text value.
  * @param {boolean} [params.mobile] if true, will force autofocus on touch devices.
- * @returns {import("@odoo/owl").Signal<HTMLElement>} the element reference
+ * @returns {import("@insilos/owl").Signal<HTMLElement>} the element reference
  */
 export function useAutofocus({ ref, selectAll, mobile } = {}) {
     const uiService = useService("ui");
@@ -133,7 +133,7 @@ function handleAbortError(reason) {
 
 /**
  * @template {(...args: any[]) => any} T
- * @param {import("@odoo/owl").Scope} scope
+ * @param {import("@insilos/owl").Scope} scope
  * @param {T} fn
  * @returns {T}
  */
@@ -270,7 +270,7 @@ export class BackButtonManager {
     /**
      * Enables the func listener, overriding default back button behavior.
      *
-     * @param {import("@odoo/owl").Scope} scope
+     * @param {import("@insilos/owl").Scope} scope
      * @param {function} func
      */
     addListener(scope, func) {
@@ -287,7 +287,7 @@ export class BackButtonManager {
      * Disables the func listener, restoring the default back button behavior if
      * no other listeners are present.
      *
-     * @param {import("@odoo/owl").Scope} scope
+     * @param {import("@insilos/owl").Scope} scope
      */
     removeListener(scope) {
         if (!this._listeners.has(scope)) {
@@ -374,7 +374,7 @@ export function useBackButton(handler, shouldEnable) {
 /**
  * Backward compatibility hook for Owl 2 useChildRef.
  * Returns an Owl 3 signal ref with a `.el` getter for legacy Owl 2 code.
- * @returns {import("@odoo/owl").Signal<HTMLElement>}
+ * @returns {import("@insilos/owl").Signal<HTMLElement>}
  */
 export function useChildRef() {
     const r = signal.ref();

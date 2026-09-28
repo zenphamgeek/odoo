@@ -1,6 +1,6 @@
-from odoo.exceptions import ValidationError
-from odoo.tests import TransactionCase, tagged
-from odoo.tools.partner_identifiers import TIN_METADATA
+from insilos.exceptions import ValidationError
+from insilos.tests import TransactionCase, tagged
+from insilos.tools.partner_identifiers import TIN_METADATA
 
 
 @tagged('post_install', '-at_install')
@@ -90,7 +90,7 @@ class TestPartnerIdentifiers(TransactionCase):
 
     def test_unknown_key_dropped(self):
         """Unknown identifier keys should be dropped on save with a logger warning."""
-        with self.assertLogs('odoo.addons.base.models.res_partner', level='WARNING') as logger:
+        with self.assertLogs('insilos.addons.base.models.res_partner', level='WARNING') as logger:
             partner = self.env['res.partner'].create({
                 'name': 'Test Unknown Key',
                 'country_id': self.env.ref('base.be').id,

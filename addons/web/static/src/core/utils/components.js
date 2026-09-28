@@ -1,4 +1,4 @@
-import { Component, onError, useProps, xml } from "@odoo/owl";
+import { Component, onError, useProps, xml } from "@insilos/owl";
 
 export class ErrorHandler extends Component {
     static template = xml`<t t-call-slot="default" />`;

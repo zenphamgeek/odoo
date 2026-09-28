@@ -1,4 +1,4 @@
-import { untrack } from "@odoo/owl";
+import { untrack } from "@insilos/owl";
 import { clamp } from "@web/core/utils/numbers";
 import { omit } from "@web/core/utils/objects";
 import { closestScrollableX, closestScrollableY } from "@web/core/utils/scrolling";
@@ -60,11 +60,11 @@ function pointerInsideElementOffset(pointer, elementRect) {
  * @property {Record<string, any>} [defaultParams]
  * Setup hooks
  * @property {{
- *  addListener: typeof import("@odoo/owl")["useListener"];
- *  setup: typeof import("@odoo/owl")["useLayoutEffect"];
- *  teardown: typeof import("@odoo/owl")["onWillUnmount"];
+ *  addListener: typeof import("@insilos/owl")["useListener"];
+ *  setup: typeof import("@insilos/owl")["useLayoutEffect"];
+ *  teardown: typeof import("@insilos/owl")["onWillUnmount"];
  *  throttle: typeof import("./timing")["useThrottleForAnimation"];
- *  wrapState: typeof import("@odoo/owl")["reactive"];
+ *  wrapState: typeof import("@insilos/owl")["reactive"];
  * }} setupHooks
  * Build hooks
  * @property {(params: DraggableBuildHandlerParams) => any} onComputeParams

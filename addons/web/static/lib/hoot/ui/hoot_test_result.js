@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, computed, signal, t, usePlugin, useProps, xml } from "@odoo/owl";
+import { Component, computed, signal, t, usePlugin, useProps, xml } from "@insilos/owl";
 import { isFirefox } from "../../hoot-dom/hoot_dom_utils";
 import { Tag } from "../core/tag";
 import { Test } from "../core/test";
@@ -92,7 +92,7 @@ function stackTemplate(label, owner) {
     `;
 }
 
-const DOC_URL = `https://www.odoo.com/documentation/18.0/developer/reference/frontend/unit_testing/hoot.html#`;
+const DOC_URL = `https://www.insilos.com/documentation/18.0/developer/reference/frontend/unit_testing/hoot.html#`;
 
 const ERROR_TEMPLATE = /* xml */ `
     <div class="text-rose flex items-center gap-1 px-2 truncate">

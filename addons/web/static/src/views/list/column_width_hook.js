@@ -10,7 +10,7 @@ import { utils } from "@web/core/ui/ui_utils";
 import { renderToElement } from "@web/core/utils/render";
 import { useDebounced } from "@web/core/utils/timing";
 
-import { onMounted, onPatched, onWillUnmount, useListener, useScope, xml } from "@odoo/owl";
+import { onMounted, onPatched, onWillUnmount, useListener, useScope, xml } from "@insilos/owl";
 
 // This file defines a hook that encapsulates the column width logic of the list view. This logic
 // aims at optimizing the available space between columns and, once computed, at freezing the table

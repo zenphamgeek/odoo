@@ -1,10 +1,10 @@
-import { Component, proxy, xml } from "@odoo/owl";
+import { Component, proxy, xml } from "@insilos/owl";
 import { browser } from "@web/core/browser/browser";
 import { rpc } from "@web/core/network/rpc";
 
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 
-import { advanceTime, animationFrame, expect, runAllTimers, test, tick } from "@odoo/hoot";
+import { advanceTime, animationFrame, expect, runAllTimers, test, tick } from "@insilos/hoot";
 import {
     contains,
     getService,

@@ -1,4 +1,4 @@
-import { Plugin, types as t, useConfig, useListener } from "@odoo/owl";
+import { Plugin, types as t, useConfig, useListener } from "@insilos/owl";
 
 export const TEXT_TRUNCATE_TOOLTIP_SELECTOR = "[data-text-truncate-tooltip]";
 

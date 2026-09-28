@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import datetime
 import json
@@ -6,14 +6,14 @@ import logging
 
 from dateutil.relativedelta import relativedelta
 
-from odoo import fields, models, api
-from odoo.exceptions import UserError
-from odoo.http import request
-from odoo.tools import BinaryBytes
-from odoo.tools.misc import str2bool
-from odoo.tools.constants import GC_UNLINK_LIMIT
-from odoo.tools.profiler import make_session
-from odoo.tools.speedscope import Speedscope
+from insilos import fields, models, api
+from insilos.exceptions import UserError
+from insilos.http import request
+from insilos.tools import BinaryBytes
+from insilos.tools.misc import str2bool
+from insilos.tools.constants import GC_UNLINK_LIMIT
+from insilos.tools.profiler import make_session
+from insilos.tools.speedscope import Speedscope
 
 _logger = logging.getLogger(__name__)
 

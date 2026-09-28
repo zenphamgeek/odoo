@@ -1,4 +1,4 @@
-import { onMounted, onPatched, untrack, useListener, useProps } from "@odoo/owl";
+import { onMounted, onPatched, untrack, useListener, useProps } from "@insilos/owl";
 import { getActiveHotkey } from "@web/core/hotkeys/hotkey_utils";
 import { useBus } from "@web/core/utils/hooks";
 import { onWillRender } from "@web/owl2/utils";

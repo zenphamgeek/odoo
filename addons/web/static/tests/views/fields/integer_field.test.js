@@ -1,5 +1,5 @@
-import { expect, getFixture, test } from "@odoo/hoot";
-import { queryAllTexts } from "@odoo/hoot-dom";
+import { expect, getFixture, test } from "@insilos/hoot";
+import { queryAllTexts } from "@insilos/hoot-dom";
 import {
     clickSave,
     contains,

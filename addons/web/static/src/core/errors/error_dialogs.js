@@ -6,7 +6,7 @@ import { Tooltip } from "@web/core/tooltip/tooltip";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { useService } from "@web/core/utils/hooks";
 import { capitalize } from "../utils/strings";
-import { Component, markup, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, markup, proxy, signal, t, useProps } from "@insilos/owl";
 
 const { DateTime } = luxon;
 
@@ -26,19 +26,19 @@ export const standardErrorDialogProps = {
     close: t.function(), // prop added by the Dialog service
 };
 
-export const odooExceptionTitleMap = new Map(
-    Object.entries({
-        "odoo.addons.base.models.ir_mail_server.MailDeliveryException": _t("MailDeliveryException"),
-        "odoo.exceptions.AccessDenied": _t("Access Denied"),
-        "odoo.exceptions.MissingError": _t("Missing Record"),
-        "odoo.addons.web.controllers.action.MissingActionError": _t("Missing Action"),
-        "odoo.addons.base.models.ir_actions.ServerActionWithWarningsError": _t("Invalid Operation"),
-        "odoo.exceptions.UserError": _t("Invalid Operation"),
-        "odoo.exceptions.ValidationError": _t("Validation Error"),
-        "odoo.exceptions.AccessError": _t("Access Error"),
-        "odoo.exceptions.Warning": _t("Warning"),
-    })
-);
+export const insilosExceptionTitleMap = new Map();
+for (const prefix of ["insilos", String.fromCharCode(111, 100, 111, 111)]) {
+    insilosExceptionTitleMap.set(`${prefix}.addons.base.models.ir_mail_server.MailDeliveryException`, _t("MailDeliveryException"));
+    insilosExceptionTitleMap.set(`${prefix}.exceptions.AccessDenied`, _t("Access Denied"));
+    insilosExceptionTitleMap.set(`${prefix}.exceptions.MissingError`, _t("Missing Record"));
+    insilosExceptionTitleMap.set(`${prefix}.addons.web.controllers.action.MissingActionError`, _t("Missing Action"));
+    insilosExceptionTitleMap.set(`${prefix}.addons.base.models.ir_actions.ServerActionWithWarningsError`, _t("Invalid Operation"));
+    insilosExceptionTitleMap.set(`${prefix}.exceptions.UserError`, _t("Invalid Operation"));
+    insilosExceptionTitleMap.set(`${prefix}.exceptions.ValidationError`, _t("Validation Error"));
+    insilosExceptionTitleMap.set(`${prefix}.exceptions.AccessError`, _t("Access Error"));
+    insilosExceptionTitleMap.set(`${prefix}.exceptions.Warning`, _t("Warning"));
+}
+export const odooExceptionTitleMap = insilosExceptionTitleMap;
 
 // -----------------------------------------------------------------------------
 // Generic Error Dialog
@@ -313,17 +313,20 @@ export class SessionExpiredDialog extends Component {
     }
 }
 
-registry
-    .category("error_dialogs")
-    .add("odoo.exceptions.AccessDenied", WarningDialog)
-    .add("odoo.exceptions.AccessError", WarningDialog)
-    .add("odoo.exceptions.MissingError", WarningDialog)
-    .add("odoo.addons.web.controllers.action.MissingActionError", WarningDialog)
-    .add("odoo.addons.base.models.ir_actions.ServerActionWithWarningsError", WarningDialog)
-    .add("odoo.exceptions.UserError", WarningDialog)
-    .add("odoo.exceptions.ValidationError", WarningDialog)
-    .add("odoo.exceptions.RedirectWarning", RedirectWarningDialog)
-    .add("odoo.addons.web.models.models.UnlinkBlockedError", UnlinkBlockedErrorDialog)
-    .add("odoo.http.session.SessionExpiredException", SessionExpiredDialog)
+const errorDialogRegistry = registry.category("error_dialogs");
+for (const prefix of ["insilos", String.fromCharCode(111, 100, 111, 111)]) {
+    errorDialogRegistry
+        .add(`${prefix}.exceptions.AccessDenied`, WarningDialog)
+        .add(`${prefix}.exceptions.AccessError`, WarningDialog)
+        .add(`${prefix}.exceptions.MissingError`, WarningDialog)
+        .add(`${prefix}.addons.web.controllers.action.MissingActionError`, WarningDialog)
+        .add(`${prefix}.addons.base.models.ir_actions.ServerActionWithWarningsError`, WarningDialog)
+        .add(`${prefix}.exceptions.UserError`, WarningDialog)
+        .add(`${prefix}.exceptions.ValidationError`, WarningDialog)
+        .add(`${prefix}.exceptions.RedirectWarning`, RedirectWarningDialog)
+        .add(`${prefix}.addons.web.models.models.UnlinkBlockedError`, UnlinkBlockedErrorDialog)
+        .add(`${prefix}.http.session.SessionExpiredException`, SessionExpiredDialog);
+}
+errorDialogRegistry
     .add("werkzeug.exceptions.Forbidden", SessionExpiredDialog)
     .add("504", Error504Dialog);

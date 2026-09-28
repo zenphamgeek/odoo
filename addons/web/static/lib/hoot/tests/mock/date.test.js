@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { advanceTime, describe, expect, freezeTime, mockDate, test } from "@odoo/hoot";
+import { advanceTime, describe, expect, freezeTime, mockDate, test } from "@insilos/hoot";
 import { parseUrl } from "../local_helpers";
 
 describe(parseUrl(import.meta.url), () => {

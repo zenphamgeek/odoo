@@ -6,7 +6,7 @@ import { useInputField } from "../input_field_hook";
 import { useNumpadDecimal } from "../numpad_decimal_hook";
 import { standardFieldProps } from "../standard_field_props";
 
-import { Component, signal, t, useProps } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@insilos/owl";
 
 export class PercentageField extends Component {
     static template = "web.PercentageField";

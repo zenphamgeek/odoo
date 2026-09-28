@@ -1,5 +1,5 @@
 import { render, useSubEnv } from "@web/owl2/utils";
-import { Component, onWillStart, onWillUpdateProps, t, toRaw, useProps } from "@odoo/owl";
+import { Component, onWillStart, onWillUpdateProps, t, toRaw, useProps } from "@insilos/owl";
 import { CallbackRecorder, useSetupAction } from "@web/search/action_hook";
 import { SearchModel } from "@web/search/search_model";
 import { useBus, useService } from "@web/core/utils/hooks";

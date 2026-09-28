@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { queryAllTexts } from "@odoo/hoot-dom";
+import { expect, test } from "@insilos/hoot";
+import { queryAllTexts } from "@insilos/hoot-dom";
 import { contains, mountWithCleanup, onRpc } from "@web/../tests/web_test_helpers";
 import { NameAndSignature } from "@web/core/signature/name_and_signature";
 

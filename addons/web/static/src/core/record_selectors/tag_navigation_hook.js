@@ -6,7 +6,7 @@ import { useNavigation } from "../navigation/navigation";
  * It is meant to be used in component which contains both the components
  * `Autocomplete` and `TagList`.
  *
- * @param {import("@odoo/owl").Signal<HTMLElement | null>} tagsContainerRef Owl 3
+ * @param {import("@insilos/owl").Signal<HTMLElement | null>} tagsContainerRef Owl 3
  *  signal returning the element which contains the `Autocomplete` and `TagList`
  *  components.
  * @param {object} [options]

@@ -11,13 +11,13 @@ from pathlib import Path
 from socket import getaddrinfo  # keep a reference on the non-patched function
 from unittest.mock import patch
 
-from odoo.exceptions import UserError
-from odoo.tools import BinaryBytes, config, file_path, mute_logger
+from insilos.exceptions import UserError
+from insilos.tools import BinaryBytes, config, file_path, mute_logger
 
 from .common import TransactionCaseWithUserDemo
-from odoo.tests import tagged
+from insilos.tests import tagged
 
-from odoo.addons.base.models.ir_mail_server import IrMail_Server
+from insilos.addons.base.models.ir_mail_server import IrMail_Server
 
 try:
     import aiosmtpd
@@ -70,7 +70,7 @@ class Certificate:
 @unittest.skipUnless(aiosmtpd, "aiosmtpd couldn't be imported")
 @unittest.skipUnless(_openssl, "openssl not found in path")
 # fail fast for timeout errors
-@patch('odoo.addons.base.models.ir_mail_server.SMTP_TIMEOUT', SMTP_TIMEOUT)
+@patch('insilos.addons.base.models.ir_mail_server.SMTP_TIMEOUT', SMTP_TIMEOUT)
 # prevent the CLI from interfering with the tests
 @patch.dict(config.options, {'smtp_server': ''})
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -110,7 +110,7 @@ class TestIrMailServerSMTPD(TransactionCaseWithUserDemo):
                 return True
         logging.getLogger('mail.log').addFilter(CustomFilter())
 
-        # decrease aiosmtpd verbosity, odoo INFO = aiosmtpd WARNING
+        # decrease aiosmtpd verbosity, insilos INFO = aiosmtpd WARNING
         logging.getLogger('mail.log').setLevel(_logger.getEffectiveLevel() + 10)
 
         # Get various TLS keys and certificates. CA was used to sign
@@ -147,7 +147,7 @@ class TestIrMailServerSMTPD(TransactionCaseWithUserDemo):
 
         # fix runbot, docker uses a single ipv4 stack but it gives ::1
         # when resolving "localhost" (so stupid), use the following to
-        # force aiosmtpd/odoo to bind/connect to a fixed ipv4 OR ipv6
+        # force aiosmtpd/insilos to bind/connect to a fixed ipv4 OR ipv6
         # address.
         family, addr, cls.port = _find_free_local_address()
         cls.localhost = getaddrinfo(addr, cls.port, family)
@@ -273,7 +273,7 @@ class TestIrMailServerSMTPD(TransactionCaseWithUserDemo):
                         if error_pattern:
                             timeout = .1 if 'timed out' in error_pattern else SMTP_TIMEOUT
                             with self.assertRaises(UserError) as error_capture, \
-                                 patch('odoo.addons.base.models.ir_mail_server.SMTP_TIMEOUT', timeout):
+                                 patch('insilos.addons.base.models.ir_mail_server.SMTP_TIMEOUT', timeout):
                                 mail_server.test_smtp_connection()
                             self.assertRegex(error_capture.exception.args[0], error_pattern)
                         else:
@@ -324,7 +324,7 @@ class TestIrMailServerSMTPD(TransactionCaseWithUserDemo):
                         if error_pattern:
                             timeout = .1 if 'timed out' in error_pattern else SMTP_TIMEOUT
                             with self.assertRaises(UserError) as capture, \
-                                 patch('odoo.addons.base.models.ir_mail_server.SMTP_TIMEOUT', timeout):
+                                 patch('insilos.addons.base.models.ir_mail_server.SMTP_TIMEOUT', timeout):
                                 mail_server.test_smtp_connection()
                             self.assertRegex(capture.exception.args[0], error_pattern)
                         else:
@@ -382,7 +382,7 @@ class TestIrMailServerSMTPD(TransactionCaseWithUserDemo):
                 with self.start_smtpd(server_encryption, ssl_context, auth_required=False):
                     timeout = .1 if 'timed out' in error_pattern else SMTP_TIMEOUT
                     with self.assertRaises(UserError) as capture, \
-                         patch('odoo.addons.base.models.ir_mail_server.SMTP_TIMEOUT', timeout):
+                         patch('insilos.addons.base.models.ir_mail_server.SMTP_TIMEOUT', timeout):
                         mail_server.test_smtp_connection()
                     self.assertRegex(capture.exception.args[0], error_pattern)
 
@@ -390,7 +390,7 @@ class TestIrMailServerSMTPD(TransactionCaseWithUserDemo):
     def test_man_in_the_middle_matrix(self):
         """
         Simulate that a pirate was successful at intercepting the live
-        traffic in between the Odoo server and the legitimate SMTP
+        traffic in between the Insilos server and the legitimate SMTP
         server.
         """
         mail_server = self.env['ir.mail_server'].create({

@@ -1,4 +1,4 @@
-import { onTimeZoneChange } from "@odoo/hoot";
+import { onTimeZoneChange } from "@insilos/hoot";
 import { patch } from "@web/core/utils/patch";
 
 const { FixedOffsetZone, IANAZone, Settings } = luxon;

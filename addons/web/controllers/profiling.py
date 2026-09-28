@@ -1,10 +1,10 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import base64
 import json
 
-from odoo.exceptions import UserError
-from odoo.http import Controller, Response, request, route
-from odoo.http.stream import content_disposition
+from insilos.exceptions import UserError
+from insilos.http import Controller, Response, request, route
+from insilos.http.stream import content_disposition
 
 SPEEDSCOPE_CDN = "https://cdn.jsdelivr.net/npm/speedscope@1.13.0/dist/release/"
 

@@ -1,7 +1,7 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { on, setFrameRate } from "@odoo/hoot-dom";
-import { proxy, signal, t, untrack } from "@odoo/owl";
+import { on, setFrameRate } from "@insilos/hoot-dom";
+import { proxy, signal, t, untrack } from "@insilos/owl";
 import { cleanupDOM, defineRootNode } from "@web/../lib/hoot-dom/helpers/dom";
 import { cleanupEvents, enableEventLogs } from "@web/../lib/hoot-dom/helpers/events";
 import { cleanupTime, setupTime } from "@web/../lib/hoot-dom/helpers/time";
@@ -50,7 +50,7 @@ import { Test, testError } from "./test";
 import { EXCLUDE_PREFIX, createUrlFromId } from "./url";
 
 // Import all helpers for debug mode
-import * as _hootDom from "@odoo/hoot-dom";
+import * as _hootDom from "@insilos/hoot-dom";
 import * as _animation from "../mock/animation";
 import * as _date from "../mock/date";
 import * as _math from "../mock/math";

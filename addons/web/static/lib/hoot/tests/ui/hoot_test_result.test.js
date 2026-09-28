@@ -1,10 +1,10 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { describe, expect, makeExpect, test } from "@odoo/hoot";
+import { describe, expect, makeExpect, test } from "@insilos/hoot";
 import { makeTestRunner, mountForTest, parseUrl } from "../local_helpers";
 
-import { animationFrame, click } from "@odoo/hoot-dom";
-import { Component, xml } from "@odoo/owl";
+import { animationFrame, click } from "@insilos/hoot-dom";
+import { Component, xml } from "@insilos/owl";
 import { Test } from "../../core/test";
 import { HootTestResult } from "../../ui/hoot_test_result";
 

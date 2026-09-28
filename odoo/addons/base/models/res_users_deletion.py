@@ -1,9 +1,9 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
 
-from odoo import api, fields, models
-from odoo.exceptions import LockError
+from insilos import api, fields, models
+from insilos.exceptions import LockError
 
 _logger = logging.getLogger(__name__)
 

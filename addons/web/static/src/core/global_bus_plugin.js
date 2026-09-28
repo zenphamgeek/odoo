@@ -1,4 +1,4 @@
-import { EventBus, Plugin, t, useConfig, usePlugin } from "@odoo/owl";
+import { EventBus, Plugin, t, useConfig, usePlugin } from "@insilos/owl";
 import { services } from "@web/core/services";
 import { useEnv } from "@web/owl2/utils";
 

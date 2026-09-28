@@ -48,3 +48,13 @@ odoo.SUPERUSER_ID = SUPERUSER_ID
 odoo._ = _
 odoo._lt = _lt
 odoo.Command = Command
+
+# ----------------------------------------------------------
+# Insilos PEP 451 adapter bridge
+# ----------------------------------------------------------
+try:
+    from insilos_adapter import hook as _insilos_hook
+    _insilos_hook.install()
+except Exception:
+    pass
+

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests import tagged, TransactionCase, Form
-from odoo.exceptions import UserError
+from insilos.tests import tagged, TransactionCase, Form
+from insilos.exceptions import UserError
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
 class test_res_lang(TransactionCase):
 
     def test_00_intersperse(self):
-        from odoo.addons.base.models.res_lang import intersperse
+        from insilos.addons.base.models.res_lang import intersperse
 
         assert intersperse("", []) == ("", 0)
         assert intersperse("0", []) == ("0", 0)

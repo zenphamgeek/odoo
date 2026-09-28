@@ -1,4 +1,4 @@
-import { Component, onWillStart, onWillUpdateProps, t, usePlugin, useProps } from "@odoo/owl";
+import { Component, onWillStart, onWillUpdateProps, t, usePlugin, useProps } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { getExpressionDisplayedOperators } from "@web/core/expression_editor/expression_editor_operator_editor";
 import { _t } from "@web/core/l10n/translation";

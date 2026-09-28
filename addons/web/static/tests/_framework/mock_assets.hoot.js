@@ -1,6 +1,6 @@
 // ! WARNING: this module cannot depend on modules not ending with ".hoot" (except libs) !
 
-const { loader } = odoo;
+const { loader } = insilos;
 
 /**
  * @param {string} moduleName

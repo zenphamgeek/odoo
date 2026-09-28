@@ -1,4 +1,4 @@
-import { Component, onMounted, onWillDestroy, signal, t, useProps } from "@odoo/owl";
+import { Component, onMounted, onWillDestroy, signal, t, useProps } from "@insilos/owl";
 import { useHotkey } from "@web/core/hotkeys/hotkey_hook";
 import { OVERLAY_SYMBOL } from "@web/core/overlay/overlay_container";
 import { usePosition } from "@web/core/position/position_hook";

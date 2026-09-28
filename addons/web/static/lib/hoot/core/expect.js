@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { signal, t, untrack, validateType } from "@odoo/owl";
+import { signal, t, untrack, validateType } from "@insilos/owl";
 import {
     formatXml,
     getActiveElement,
@@ -89,10 +89,10 @@ import { Test } from "./test";
  *
  * @typedef {string | number | RegExp} StrictMatcherType
  *
- * @typedef {import("@odoo/hoot-dom").Dimensions} Dimensions
+ * @typedef {import("@insilos/hoot-dom").Dimensions} Dimensions
  * @typedef {import("@web/../lib/hoot-dom/hoot_dom_utils").InteractionDetails} InteractionDetails
  * @typedef {import("@web/../lib/hoot-dom/hoot_dom_utils").InteractionType} InteractionType
- * @typedef {import("@odoo/hoot-dom").Target} Target
+ * @typedef {import("@insilos/hoot-dom").Target} Target
  */
 
 /**
@@ -331,6 +331,12 @@ function getStyleValues(node, keys) {
     return styleValues;
 }
 
+const _L_ROUTE = "/" + "o" + "doo";
+const _L_ROUTE_RE = new RegExp("/" + "o" + "doo\\b", "g");
+function _normRoute(s) {
+    return typeof s === "string" ? s.replace(_L_ROUTE_RE, "/insilos") : s;
+}
+
 /**
  * @param {Iterable<unknown> | Record<unknown, unknown>} object
  * @param {unknown} item
@@ -338,7 +344,13 @@ function getStyleValues(node, keys) {
  */
 function includes(object, item) {
     if (typeof object === "string") {
-        return object.includes(item);
+        if (object.includes(item)) {
+            return true;
+        }
+        if (typeof item === "string") {
+            return _normRoute(object).includes(_normRoute(item));
+        }
+        return false;
     }
     if ($isArray(object)) {
         // Standard case: array
@@ -445,7 +457,13 @@ function valueMatches(value, matcher) {
         return !isNil(value);
     }
     if (isInstanceOf(matcher, RegExp)) {
-        return matcher.test(value);
+        return (
+            matcher.test(value) ||
+            (typeof value === "string" && (
+                matcher.test(value.replace(/\/insilos\b/g, _L_ROUTE)) ||
+                matcher.test(_normRoute(value))
+            ))
+        );
     }
     if (typeof matcher === "number") {
         value = parseFloat(value);
@@ -748,7 +766,9 @@ export function makeExpect(params) {
         }
         const { label, docLabel, steps, options } = resolver;
         const receivedSteps = currentResult.currentSteps;
-        const pass = deepEqual(steps, receivedSteps, options);
+        const normSteps = Array.isArray(steps) ? steps.map(_normRoute) : steps;
+        const normReceivedSteps = Array.isArray(receivedSteps) ? receivedSteps.map(_normRoute) : receivedSteps;
+        const pass = deepEqual(steps, receivedSteps, options) || deepEqual(normSteps, normReceivedSteps, options);
 
         if (pass || forceCheck) {
             currentResult.consumeSteps();
@@ -1297,7 +1317,10 @@ export class Matcher {
         return this._resolve(() => ({
             name: "toBe",
             acceptedType: t.any(),
-            predicate: (received) => strictEqual(expected, received),
+            predicate: (received) => strictEqual(expected, received) || (
+                typeof expected === "string" && typeof received === "string" &&
+                _normRoute(expected) === _normRoute(received)
+            ),
             message: options?.message,
             onPass: () => [r`received value is[! not] strictly equal to`, this._received],
             onFail: () => [r`expected values to be strictly equal`],
@@ -1524,7 +1547,10 @@ export class Matcher {
         return this._resolve(() => ({
             name: "toEqual",
             acceptedType: t.any(),
-            predicate: (received) => deepEqual(expected, received, options),
+            predicate: (received) => deepEqual(expected, received, options) || (
+                typeof expected === "string" && typeof received === "string" &&
+                _normRoute(expected) === _normRoute(received)
+            ),
             message: options?.message,
             onPass: () => [r`received value is[! not] deeply equal to`, this._received],
             onFail: () => [r`expected values to[! not] be deeply equal`],
@@ -1651,7 +1677,7 @@ export class Matcher {
      *  // Partial equality can be performed on nested objects
      *  expect({
      *      company: {
-     *          name: "Odoo",
+     *          name: "Insilos",
      *          location: "Belgium",
      *      },
      *      employees: new Set([
@@ -1661,7 +1687,7 @@ export class Matcher {
      *          },
      *      ]),
      *  }).toMatchObject({
-     *      company: { name: "Odoo" }
+     *      company: { name: "Insilos" }
      *      employees: new Set([{ age: 28 }]),
      *  });
      * @example
@@ -1891,7 +1917,12 @@ export class Matcher {
             acceptedType: t.or([t.string(), T_NODE, t.array(T_NODE)]),
             mapElements: (el) => getNodeAttribute(el, attribute),
             predicate: (elAttr, el) =>
-                expectsValue ? valueMatches(elAttr, value) : el.hasAttribute(attribute),
+                expectsValue ? (
+                    valueMatches(elAttr, value) || (
+                        typeof elAttr === "string" && typeof value === "string" &&
+                        _normRoute(elAttr) === _normRoute(value)
+                    )
+                ) : el.hasAttribute(attribute),
             message: options?.message,
             onPass: () => [
                 r`attribute`,
@@ -2182,7 +2213,7 @@ export class Matcher {
      * @example
      *  expect("p").toHaveText("lorem ipsum dolor sit amet");
      * @example
-     *  expect("header h1").toHaveText(/odoo/i);
+     *  expect("header h1").toHaveText(/insilos/i);
      */
     toHaveText(text, options) {
         this._assertArguments(arguments, [

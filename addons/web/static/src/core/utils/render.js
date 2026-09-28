@@ -1,4 +1,4 @@
-import { blockDom, markup, TemplateSet } from "@odoo/owl";
+import { blockDom, markup, TemplateSet } from "@insilos/owl";
 import { appTranslateFn } from "@web/core/l10n/translation";
 import { getTemplate } from "@web/core/templates";
 

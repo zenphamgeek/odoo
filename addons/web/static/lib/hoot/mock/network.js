@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { delay, tick } from "@odoo/hoot-dom";
+import { delay, tick } from "@insilos/hoot-dom";
 import {
     mockedCancelAnimationFrame,
     mockedRequestAnimationFrame,

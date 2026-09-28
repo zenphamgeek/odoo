@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, getFixture, test, tick } from "@odoo/hoot";
-import { Component, signal, useProps, xml } from "@odoo/owl";
+import { afterEach, beforeEach, describe, expect, getFixture, test, tick } from "@insilos/hoot";
+import { Component, signal, useProps, xml } from "@insilos/owl";
 import {
     allowTranslations,
     clearRegistry,
@@ -19,7 +19,7 @@ const servicesRegistry = registry.category("services");
 
 beforeEach(() => {
     clearRegistry(servicesRegistry);
-    // ideally, should not be done like this, we should simply start odoo with
+    // ideally, should not be done like this, we should simply start insilos with
     // the services that we want. but for now, it will do
     patchWithCleanup(services, {
         _items: signal.Array([]),
@@ -27,8 +27,8 @@ beforeEach(() => {
     services.add(LegacyServiceStarterPlugin);
 });
 afterEach(() => {
-    delete odoo.isReady;
-    delete odoo.__WOWL_DEBUG__;
+    delete insilos.isReady;
+    delete insilos.__WOWL_DEBUG__;
 });
 
 /**
@@ -211,7 +211,7 @@ test(`mountComponent creates an env and sets the application as root`, async () 
     const { env } = await mountComponent(Root, getFixture());
     expect(env.services).toEqual({ my_service: "a" });
     expect(comp).not.toBe(null);
-    expect(odoo.__WOWL_DEBUG__).toEqual({ root: comp });
+    expect(insilos.__WOWL_DEBUG__).toEqual({ root: comp });
     expect(getFixture()).toHaveText("Root");
 });
 

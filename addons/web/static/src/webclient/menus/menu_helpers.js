@@ -26,8 +26,8 @@ export function computeAppsAndMenuItems(menuTree) {
         }
         const isApp = menuItem.id === menuItem.appID;
         let href = `/insilos/${menuItem.actionPath || "action-" + menuItem.actionID}`;
-        if (odoo.debug) {
-            href += "?debug=" + odoo.debug;
+        if (insilos.debug) {
+            href += "?debug=" + insilos.debug;
         }
         const item = {
             parents: parents

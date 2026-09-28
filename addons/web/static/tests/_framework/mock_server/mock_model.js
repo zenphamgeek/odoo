@@ -1,4 +1,4 @@
-import { after, createJobScopedGetter } from "@odoo/hoot";
+import { after, createJobScopedGetter } from "@insilos/hoot";
 import { Domain } from "@web/core/domain";
 import {
     deserializeDate,

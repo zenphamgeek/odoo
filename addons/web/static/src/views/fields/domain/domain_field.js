@@ -1,4 +1,4 @@
-import { Component, proxy, t, untrack, usePlugin, useProps } from "@odoo/owl";
+import { Component, proxy, t, untrack, usePlugin, useProps } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { Domain, InvalidDomainError } from "@web/core/domain";
 import { DomainSelector } from "@web/core/domain_selector/domain_selector";

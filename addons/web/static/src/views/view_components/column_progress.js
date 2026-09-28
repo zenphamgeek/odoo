@@ -1,4 +1,4 @@
-import { Component, usePlugin, t, useProps } from "@odoo/owl";
+import { Component, usePlugin, t, useProps } from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { AnimatedNumber } from "./animated_number";
 

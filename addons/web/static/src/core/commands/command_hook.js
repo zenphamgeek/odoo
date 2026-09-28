@@ -1,5 +1,5 @@
 import { useService } from "@web/core/utils/hooks";
-import { onMounted, onWillUnmount } from "@odoo/owl";
+import { onMounted, onWillUnmount } from "@insilos/owl";
 
 /**
  * @typedef {import("./command_service").CommandOptions} CommandOptions

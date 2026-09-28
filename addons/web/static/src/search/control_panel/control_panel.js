@@ -18,7 +18,7 @@ import {
     signal,
     t,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { EmbeddedActionsPanel, useEmbeddedActions } from "./embedded_actions";
 

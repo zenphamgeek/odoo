@@ -1,7 +1,7 @@
 import { FileInput } from "@web/core/file_input/file_input";
 import { standardFieldProps } from "../standard_field_props";
 
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 
 export class Many2XBinary extends Component {
     static template = "web.Many2XBinary";

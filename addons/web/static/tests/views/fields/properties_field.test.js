@@ -13,11 +13,11 @@ import {
     runAllTimers,
     test,
     waitFor,
-} from "@odoo/hoot";
+} from "@insilos/hoot";
 import { PropertiesField } from "@web/views/fields/properties/properties_field";
 import { many2XAutocompleteProps } from "@web/views/fields/relational_utils";
 import { SelectCreateDialog } from "@web/views/view_dialogs/select_create_dialog";
-import { t } from "@odoo/owl";
+import { t } from "@insilos/owl";
 import { WebClient } from "@web/webclient/webclient";
 
 import { editTime, getPickerCell } from "@web/../tests/core/datetime/datetime_test_helpers";

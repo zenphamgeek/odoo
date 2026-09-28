@@ -1,4 +1,4 @@
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 import { BadgeTag } from "@web/core/tags_list/badge_tag";
 
 export class TagsList extends Component {

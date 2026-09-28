@@ -1,4 +1,4 @@
-import { types as t, useProps } from "@odoo/owl";
+import { types as t, useProps } from "@insilos/owl";
 import { Dropdown, dropdownProps } from "@web/core/dropdown/dropdown";
 
 export class SearchBarDropdown extends Dropdown {

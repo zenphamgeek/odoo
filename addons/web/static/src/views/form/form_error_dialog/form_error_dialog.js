@@ -1,7 +1,7 @@
 import { Dialog } from "@web/core/dialog/dialog";
 import { useService } from "@web/core/utils/hooks";
 
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 
 export class FormErrorDialog extends Component {
     static template = "web.FormErrorDialog";
@@ -18,7 +18,7 @@ export class FormErrorDialog extends Component {
     setup() {
         this.action = useService("action");
         this.message = this.props.message;
-        if (this.props?.data.name === "odoo.exceptions.RedirectWarning") {
+        if (this.props?.data.name === "insilos.exceptions.RedirectWarning") {
             this.message = this.props.data.arguments[0];
             this.redirectAction = this.props.data.arguments[1];
             this.redirectBtnLabel = this.props.data.arguments[2];

@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo.addons.base.models.ir_config_parameter import _default_parameters
-from odoo.exceptions import ValidationError
-from odoo.tests.common import tagged, TransactionCase
-from odoo.tools import mute_logger
+from insilos.addons.base.models.ir_config_parameter import _default_parameters
+from insilos.exceptions import ValidationError
+from insilos.tests.common import tagged, TransactionCase
+from insilos.tools import mute_logger
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -121,14 +121,14 @@ class TestIrConfigParameter(TransactionCase):
     def test_invalid_value_fixup(self):
         ICP = self.env['ir.config_parameter'].sudo()
         ICP.create({'key': 'config_key', 'value': 'invalid int value'})
-        with self.assertLogs('odoo.addons.base.models.ir_config_parameter', level='WARNING') as logs:
+        with self.assertLogs('insilos.addons.base.models.ir_config_parameter', level='WARNING') as logs:
             self.env.transaction.invalidate_ormcache('stable')
             self.assertEqual(ICP.get_int('config_key', 100), 100)
-            self.assertEqual(logs.output[0], "WARNING:odoo.addons.base.models.ir_config_parameter:ir.config_parameter with key config_key has invalid value 'invalid int value' for type int")
+            self.assertEqual(logs.output[0], "WARNING:insilos.addons.base.models.ir_config_parameter:ir.config_parameter with key config_key has invalid value 'invalid int value' for type int")
 
-        with mute_logger('odoo.addons.base.models.ir_config_parameter'):
+        with mute_logger('insilos.addons.base.models.ir_config_parameter'):
             ICP.set_int('config_key', None)
 
-        with self.assertNoLogs('odoo.addons.base.models.ir_config_parameter', 'WARNING'):
+        with self.assertNoLogs('insilos.addons.base.models.ir_config_parameter', 'WARNING'):
             self.env.transaction.invalidate_ormcache('stable')
             self.assertEqual(ICP.get_int('config_key', 100), 100)

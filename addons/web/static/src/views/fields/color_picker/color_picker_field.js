@@ -4,7 +4,7 @@ import { useDropdownState } from "@web/core/dropdown/dropdown_hooks";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "@web/views/fields/standard_field_props";
 
-import { Component, useProps } from "@odoo/owl";
+import { Component, useProps } from "@insilos/owl";
 
 export class ColorPickerField extends Component {
     static template = "web.ColorPickerField";

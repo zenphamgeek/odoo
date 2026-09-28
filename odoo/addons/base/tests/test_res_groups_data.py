@@ -1,10 +1,10 @@
 from unittest.mock import patch
 
-from odoo import Command
-from odoo.exceptions import ValidationError
-from odoo.tests import common
+from insilos import Command
+from insilos.exceptions import ValidationError
+from insilos.tests import common
 
-from odoo.addons.base.models.res_groups import ResGroups
+from insilos.addons.base.models.res_groups import ResGroups
 
 
 @common.tagged('at_install', '-post_install', 'groups')

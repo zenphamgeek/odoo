@@ -1,5 +1,5 @@
-from odoo import _, api, models
-from odoo.exceptions import AccessError
+from insilos import _, api, models
+from insilos.exceptions import AccessError
 
 
 class PropertiesBaseDefinition(models.Model):

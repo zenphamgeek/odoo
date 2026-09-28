@@ -10,7 +10,7 @@ import {
     useListener,
     useProps,
     useScope,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { hasTouch, isMacOS } from "@web/core/browser/feature_detection";
 import { Dialog } from "@web/core/dialog/dialog";
 import { useHotkey } from "@web/core/hotkeys/hotkey_hook";

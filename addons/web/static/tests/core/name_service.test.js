@@ -1,4 +1,4 @@
-import { after, describe, expect, test } from "@odoo/hoot";
+import { after, describe, expect, test } from "@insilos/hoot";
 import {
     defineModels,
     fields,

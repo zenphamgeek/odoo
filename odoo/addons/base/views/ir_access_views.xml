@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
 
     <!-- ir.access -->
     <record id="ir_access_list_view" model="ir.ui.view">
@@ -83,7 +83,7 @@
                             Permissions are combined together with a logical OR operator.<br/>
                             If a user belongs to several groups, the permissions are combined with a logical OR operator.
                             </p>
-                            <a class="oe_link" target="_blank" href="https://www.odoo.com/documentation/19.0/applications/general/users/access_rights.html#create-and-modify-groups">
+                            <a class="oe_link" target="_blank" href="https://insilos.com/documentation/19.0/applications/general/users/access_rights.html#create-and-modify-groups">
                                 <i class="oi oi-fw o_button_icon" data-icon="east"/>
                                 Access rights documentation
                             </a>
@@ -185,4 +185,4 @@
         <field name="search_view_id" ref="ir_access_search_view"/>
     </record>
 
-</odoo>
+</data>

@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { click } from "@odoo/hoot-dom";
+import { expect, test } from "@insilos/hoot";
+import { click } from "@insilos/hoot-dom";
 import { defineModels, fields, models, mountWithCleanup } from "@web/../tests/web_test_helpers";
 import { DEFAULT_DATE, FAKE_FIELDS } from "./calendar_test_helpers";
 

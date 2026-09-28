@@ -1,5 +1,5 @@
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 import { user } from "@web/core/user";
 import { CheckBox } from "@web/core/checkbox/checkbox";
 import { _t } from "@web/core/l10n/translation";

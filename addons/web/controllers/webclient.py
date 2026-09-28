@@ -1,15 +1,15 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
 from hashlib import sha256
 
-import odoo.tools
-from odoo import http, release
-from odoo.http import request
-from odoo.http.stream import STATIC_CACHE_LONG
-from odoo.modules import Manifest
-from odoo.tools import translate
-from odoo.tools.misc import file_path
+import insilos.tools
+from insilos import http, release
+from insilos.http import request
+from insilos.http.stream import STATIC_CACHE_LONG
+from insilos.modules import Manifest
+from insilos.tools import translate
+from insilos.tools.misc import file_path
 
 
 from .utils import _local_web_translations
@@ -31,7 +31,7 @@ class WebClient(http.Controller):
         lang = request.env.context['lang'].partition('_')[0]
 
         if mods is None:
-            mods = odoo.tools.config['server_wide_modules']
+            mods = insilos.tools.config['server_wide_modules']
             if request.db:
                 mods = request.env.registry._init_modules.union(mods)
 
@@ -60,7 +60,7 @@ class WebClient(http.Controller):
         if mods:
             mods = mods.split(',')
         else:
-            mods = request.env.registry._init_modules.union(odoo.tools.config['server_wide_modules'])
+            mods = request.env.registry._init_modules.union(insilos.tools.config['server_wide_modules'])
 
         if lang and lang not in {code for code, _ in request.env['res.lang'].sudo().get_installed()}:
             lang = None

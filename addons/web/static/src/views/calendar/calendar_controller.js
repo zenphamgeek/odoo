@@ -20,7 +20,7 @@ import { standardViewProps } from "@web/views/standard_view_props";
 import { MultiSelectionButtons } from "@web/views/view_components/multi_selection_buttons";
 import { getLocalYearAndWeek } from "@web/core/l10n/dates";
 
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 import { hasTouch, isMobileOS } from "@web/core/browser/feature_detection";
 
 const { DateTime } = luxon;

@@ -1,4 +1,4 @@
-import { whenReady } from "@odoo/owl";
+import { whenReady } from "@insilos/owl";
 import { browser } from "@web/core/browser/browser";
 import { cookie } from "@web/core/browser/cookie";
 import { jsToPyLocale, pyToJsLocale } from "@web/core/l10n/utils";

@@ -1,4 +1,4 @@
-import { Component, proxy, t, useEffect, useProps } from "@odoo/owl";
+import { Component, proxy, t, useEffect, useProps } from "@insilos/owl";
 import { cookie } from "@web/core/browser/cookie";
 import { CodeEditor } from "@web/core/code_editor/code_editor";
 import { _t } from "@web/core/l10n/translation";

@@ -12,7 +12,7 @@ export class UpgradeBooleanField extends BooleanField {
     setup() {
         super.setup();
         this.dialogService = useService("dialog");
-        this.isEnterprise = odoo.info && odoo.info.isEnterprise;
+        this.isEnterprise = insilos.info && insilos.info.isEnterprise;
     }
 
     async onChange(newValue) {

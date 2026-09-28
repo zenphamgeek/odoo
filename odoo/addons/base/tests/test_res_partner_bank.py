@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 # Copyright (c) 2015 ACSONE SA/NV (<http://acsone.eu>)
 
-from odoo.tests import tagged, TransactionCase, Form
+from insilos.tests import tagged, TransactionCase, Form
 
-from odoo.addons.base.tests.common import SavepointCaseWithUserDemo
+from insilos.addons.base.tests.common import SavepointCaseWithUserDemo
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install

@@ -29426,7 +29426,7 @@ class PDFFunctionFactory {
     isEvalSupported = true
   }) {
     this.xref = xref;
-    // Odoo: don't support scripting
+    // Insilos: don't support scripting
     this.isEvalSupported = false;
   }
   create(fn, parseArray = false) {

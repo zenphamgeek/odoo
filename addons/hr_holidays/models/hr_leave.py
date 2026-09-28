@@ -239,9 +239,9 @@ class HrLeave(models.Model):
         inverse='_inverse_supported_attachment_ids')
     supported_attachment_ids_count = fields.Integer(compute='_compute_supported_attachment_ids')
     attachment_is_visible = fields.Boolean(compute='_compute_attachment_is_visible', compute_sudo=True)
-    # UX fields
     work_entry_type_request_unit = fields.Selection(related='work_entry_type_id.request_unit', readonly=True)
     work_entry_type_support_document = fields.Boolean(related="work_entry_type_id.support_document")
+    leave_type_support_document = fields.Boolean(related="work_entry_type_support_document")
     # Interface fields used when not using hour-based computation
     # These are the fields that should be used to manipulate the start- and
     # end-dates of the leave request. date_from and date_to are computed and

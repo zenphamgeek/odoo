@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { queryAllTexts } from "@odoo/hoot-dom";
-import { onMounted } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { queryAllTexts } from "@insilos/hoot-dom";
+import { onMounted } from "@insilos/owl";
 import {
     defineModels,
     fields,

@@ -1,10 +1,10 @@
-import { test, expect, beforeEach, waitFor } from "@odoo/hoot";
-import { click, press, queryAll, queryAllTexts, queryOne } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { test, expect, beforeEach, waitFor } from "@insilos/hoot";
+import { click, press, queryAll, queryAllTexts, queryOne } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 import { getService, mountWithCleanup } from "@web/../tests/web_test_helpers";
 import { Dialog } from "@web/core/dialog/dialog";
 import { DialogPlugin } from "@web/core/dialog/dialog_plugin";
-import { Component, signal, useProps, xml } from "@odoo/owl";
+import { Component, signal, useProps, xml } from "@insilos/owl";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { useAutofocus } from "@web/core/utils/hooks";
 import { MainComponentsContainer } from "@web/core/main_components_container";

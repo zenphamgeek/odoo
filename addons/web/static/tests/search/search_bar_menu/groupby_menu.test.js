@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { queryAllTexts, queryFirst } from "@odoo/hoot-dom";
+import { expect, test } from "@insilos/hoot";
+import { queryAllTexts, queryFirst } from "@insilos/hoot-dom";
 import {
     contains,
     getFacetTexts,
@@ -13,7 +13,7 @@ import {
 } from "@web/../tests/web_test_helpers";
 import { defineSearchBarModels } from "./models";
 
-import { animationFrame } from "@odoo/hoot-mock";
+import { animationFrame } from "@insilos/hoot-mock";
 import { SearchBar } from "@web/search/search_bar/search_bar";
 import { SearchBarMenu } from "@web/search/search_bar_menu/search_bar_menu";
 

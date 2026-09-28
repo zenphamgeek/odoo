@@ -1,8 +1,8 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import psycopg2
 from unittest.mock import patch
 
-from odoo.tests import tagged, HttpCase
+from insilos.tests import tagged, HttpCase
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -25,7 +25,7 @@ class TestWebController(HttpCase):
         def _raise_psycopg2_error(*args):
             raise psycopg2.Error('boom')
 
-        with patch('odoo.sql_db.db_connect', new=_raise_psycopg2_error):
+        with patch('insilos.sql_db.db_connect', new=_raise_psycopg2_error):
             response = self.url_open('/web/health?db_server_status=1')
             self.assertEqual(response.status_code, 500)
             payload = response.json()
@@ -42,7 +42,7 @@ class TestCloc(HttpCase):
             "state": "code",
             "code": "action = {}"
         })
-        self.start_tour("/odoo?debug=1", "test_cloc_user_space", login="admin")
+        self.start_tour("/insilos?debug=1", "test_cloc_user_space", login="admin")
 
         result = self.make_jsonrpc_request("/web/cloc")
         self.assertDictEqual(result, {
@@ -53,7 +53,7 @@ class TestCloc(HttpCase):
                 'display_name': 'test cloc user space',
                 'id': action.id,
                 'model': 'ir.actions.server',
-                'module': 'odoo/studio'}],
+                'module': 'insilos/studio'}],
             'total_billable': 1,
             'total_lines': 1
         })

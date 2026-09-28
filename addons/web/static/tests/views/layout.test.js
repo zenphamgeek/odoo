@@ -1,7 +1,7 @@
 import { useSubEnv } from "@web/owl2/utils";
-import { expect, test } from "@odoo/hoot";
-import { animationFrame } from "@odoo/hoot-mock";
-import { Component, onWillStart, proxy, useProps, xml } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { animationFrame } from "@insilos/hoot-mock";
+import { Component, onWillStart, proxy, useProps, xml } from "@insilos/owl";
 import {
     assignTestEnv,
     defineModels,

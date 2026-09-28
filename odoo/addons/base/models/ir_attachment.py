@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 from __future__ import annotations
 
 import base64
@@ -18,11 +18,11 @@ import warnings
 from collections import defaultdict
 from datetime import datetime
 
-from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, MissingError, UserError, ValidationError
-from odoo.fields import Domain
-from odoo.http.stream import Stream
-from odoo.tools import (
+from insilos import _, api, fields, models
+from insilos.exceptions import AccessError, MissingError, UserError, ValidationError
+from insilos.fields import Domain
+from insilos.http.stream import Stream
+from insilos.tools import (
     OrderedSet,
     SQL,
     config,
@@ -31,10 +31,10 @@ from odoo.tools import (
     split_every,
     str2bool,
 )
-from odoo.tools.binary import EMPTY_BINARY, BinaryBytes, BinaryValue
-from odoo.tools.constants import IN_MAX
-from odoo.tools.mimetypes import guess_file_mimetype, guess_mimetype
-from odoo.tools.misc import limited_field_access_token
+from insilos.tools.binary import EMPTY_BINARY, BinaryBytes, BinaryValue
+from insilos.tools.constants import IN_MAX
+from insilos.tools.mimetypes import guess_file_mimetype, guess_mimetype
+from insilos.tools.misc import limited_field_access_token
 
 if typing.TYPE_CHECKING:
     from collections.abc import Collection
@@ -67,7 +67,7 @@ def condition_values(model, field_name, domain):
 
 
 class IrAttachment(models.Model):
-    """Attachments are used to link binary files or url to any openerp document.
+    """Attachments are used to link binary files or url to any insilos document.
 
     External attachment storage
     ---------------------------

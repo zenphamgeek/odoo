@@ -1,7 +1,7 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { drag, queryOne, queryRect, resize } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
-import { Component, proxy, useProps, xml } from "@odoo/owl";
+import { describe, expect, test } from "@insilos/hoot";
+import { drag, queryOne, queryRect, resize } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
+import { Component, proxy, useProps, xml } from "@insilos/owl";
 import { mountWithCleanup } from "@web/../tests/web_test_helpers";
 import { ResizablePanel } from "@web/core/resizable_panel/resizable_panel";
 

@@ -1,6 +1,6 @@
 import { registry } from "@web/core/registry";
 import { WORKER_STATE } from "@bus/workers/websocket_worker";
-import { whenReady } from "@odoo/owl";
+import { whenReady } from "@insilos/owl";
 
 function logout() {
     return [
@@ -10,7 +10,7 @@ function logout() {
                 await whenReady();
                 await new Promise((resolve) => requestAnimationFrame(resolve));
                 await new Promise((resolve) => {
-                    const bus = odoo.__WOWL_DEBUG__.root.env.services.bus_service;
+                    const bus = insilos.__WOWL_DEBUG__.root.env.services.bus_service;
                     bus.addEventListener("BUS:CONNECT", resolve, { once: true });
                     if (bus.workerState === WORKER_STATE.CONNECTED) {
                         resolve();

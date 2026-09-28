@@ -1,5 +1,5 @@
-from odoo.exceptions import ValidationError
-from odoo.tests import TransactionCase
+from insilos.exceptions import ValidationError
+from insilos.tests import TransactionCase
 
 
 class TestResUsersSettings(TransactionCase):

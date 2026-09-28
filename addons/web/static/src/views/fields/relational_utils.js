@@ -8,7 +8,7 @@ import {
     usePlugin,
     useProps,
     useScope,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { AutoComplete } from "@web/core/autocomplete/autocomplete";
 import { makeContext } from "@web/core/context";
 import { Dialog } from "@web/core/dialog/dialog";
@@ -410,7 +410,7 @@ export class Many2XAutocomplete extends Component {
     onQuickCreateError(error, request) {
         if (
             error instanceof RPCError &&
-            error.exceptionName === "odoo.exceptions.ValidationError"
+            error.exceptionName === "insilos.exceptions.ValidationError"
         ) {
             return this.slowCreate(request);
         } else {

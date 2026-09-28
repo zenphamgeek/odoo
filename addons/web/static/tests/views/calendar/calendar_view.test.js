@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
+import { beforeEach, expect, test } from "@insilos/hoot";
 import {
     advanceTime,
     animationFrame,
@@ -10,9 +10,9 @@ import {
     queryOne,
     queryRect,
     runAllTimers,
-} from "@odoo/hoot-dom";
-import { mockDate, mockTimeZone, mockTouch } from "@odoo/hoot-mock";
-import { Component, onMounted, onPatched, onWillStart, xml } from "@odoo/owl";
+} from "@insilos/hoot-dom";
+import { mockDate, mockTimeZone, mockTouch } from "@insilos/hoot-mock";
+import { Component, onMounted, onPatched, onWillStart, xml } from "@insilos/owl";
 import {
     MockServer,
     contains,
@@ -6170,7 +6170,7 @@ test("Revert to the previous state if updateRecord fails (onEventResize)", async
     const oldInsetSize = event.parentElement.style.inset;
     await resizeEventToTime(2, "2016-12-12 17:00:00");
     expect(event.parentElement.style.inset).toEqual(oldInsetSize);
-    expect.verifyErrors(["RPC_ERROR: Odoo Server Error"]);
+    expect.verifyErrors(["RPC_ERROR: Insilos Server Error"]);
 });
 
 test("Revert to the previous state if updateRecord fails (onEventDrop)", async () => {
@@ -6191,7 +6191,7 @@ test("Revert to the previous state if updateRecord fails (onEventDrop)", async (
     await moveEventToTime(2, "2016-12-14 11:00:00");
     event = findEvent(2);
     expect(columnEvent.contains(event)).toBe(true, { message: "Event shouldn't move column " });
-    expect.verifyErrors(["RPC_ERROR: Odoo Server Error"]);
+    expect.verifyErrors(["RPC_ERROR: Insilos Server Error"]);
 });
 
 test.tags("desktop");

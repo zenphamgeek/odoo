@@ -1,5 +1,5 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
-import { mockUserAgent, mockVibrate, runAllTimers } from "@odoo/hoot-mock";
+import { beforeEach, expect, test } from "@insilos/hoot";
+import { mockUserAgent, mockVibrate, runAllTimers } from "@insilos/hoot-mock";
 
 import {
     clickSave,

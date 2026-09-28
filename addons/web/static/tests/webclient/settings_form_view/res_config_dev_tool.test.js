@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { click, queryAllTexts } from "@odoo/hoot-dom";
-import { animationFrame, tick } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { click, queryAllTexts } from "@insilos/hoot-dom";
+import { animationFrame, tick } from "@insilos/hoot-mock";
 import {
     defineModels,
     fields,
@@ -23,7 +23,7 @@ defineModels([ResConfigSettings]);
 
 test("Simple render", async () => {
     onRpc("/base_setup/demo_active", () => true);
-    redirect("/odoo");
+    redirect("/insilos");
     await mountView({
         type: "form",
         arch: /* xml */ `
@@ -51,7 +51,7 @@ test("Activate the developer mode", async () => {
             expect.step("location reload");
         },
     });
-    redirect("/odoo");
+    redirect("/insilos");
     await mountView({
         type: "form",
         arch: /* xml */ `
@@ -76,7 +76,7 @@ test("Activate the developer mode (with assets)", async () => {
             expect.step("location reload");
         },
     });
-    redirect("/odoo");
+    redirect("/insilos");
     await mountView({
         type: "form",
         arch: /* xml */ `
@@ -101,7 +101,7 @@ test("Activate the developer mode (with tests assets)", async () => {
             expect.step("location reload");
         },
     });
-    redirect("/odoo");
+    redirect("/insilos");
     await mountView({
         type: "form",
         arch: /* xml */ `
@@ -128,7 +128,7 @@ test("Activate the developer modeddd (with tests assets)", async () => {
             expect.step("location reload");
         },
     });
-    redirect("/odoo?debug=assets%2Ctests");
+    redirect("/insilos?debug=assets%2Ctests");
     await mountView({
         type: "form",
         arch: /* xml */ `

@@ -23,7 +23,7 @@ import {
     toRaw,
     t,
     applyDefaults,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { session } from "@web/session";
 
 /**

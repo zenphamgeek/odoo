@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { animationFrame, queryAllTexts } from "@odoo/hoot-dom";
+import { expect, test } from "@insilos/hoot";
+import { animationFrame, queryAllTexts } from "@insilos/hoot-dom";
 import { followRelation } from "@web/../tests/core/tree_editor/condition_tree_editor_test_helpers";
 import { contains, defineModels, fields, models, mountView } from "../../web_test_helpers";
 

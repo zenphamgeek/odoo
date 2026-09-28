@@ -87,7 +87,7 @@ async function testSingleApp(page, app, results) {
 }
 
 async function main() {
-  console.log('Fetching app list from Odoo...');
+  console.log('Fetching app list from Insilos Platform...');
   const apps = await getAppList();
   console.log(`Found ${apps.length} apps. Initializing session storageState...\n`);
 

@@ -1,6 +1,6 @@
 // ! WARNING: this module cannot depend on modules not ending with ".hoot" (except libs) !
 
-import { after } from "@odoo/hoot";
+import { after } from "@insilos/hoot";
 
 //-----------------------------------------------------------------------------
 // Exports

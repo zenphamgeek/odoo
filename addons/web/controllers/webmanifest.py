@@ -1,13 +1,13 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import mimetypes
 
 from urllib.parse import unquote, urlencode
 
-from odoo import http, modules
-from odoo.exceptions import AccessError
-from odoo.http import request
-from odoo.tools import BinaryBytes, file_open, file_path
-from odoo.tools.image import image_process
+from insilos import http, modules
+from insilos.exceptions import AccessError
+from insilos.http import request
+from insilos.tools import BinaryBytes, file_open, file_path
+from insilos.tools.image import image_process
 
 
 class WebManifest(http.Controller):
@@ -52,10 +52,14 @@ class WebManifest(http.Controller):
         }
         icon_sizes = ['192x192', '512x512']
         manifest['icons'] = [{
-            'src': '/web/static/img/odoo-icon-%s.png' % size,
+            'src': '/web/static/img/favicon.png',
             'sizes': size,
             'type': 'image/png',
-        } for size in icon_sizes]
+        } for size in icon_sizes] + [{
+            'src': '/web/static/img/insilos-icon.svg',
+            'sizes': 'any',
+            'type': 'image/svg+xml',
+        }]
         manifest['shortcuts'] = self._get_shortcuts()
         if self._has_share_target():
             manifest['share_target'] = {
@@ -103,9 +107,9 @@ class WebManifest(http.Controller):
             return body
 
     def _icon_path(self):
-        return 'web/static/img/odoo-icon-192x192.png'
+        return 'web/static/img/favicon.png'
 
-    @http.route(['/insilos/offline', '/odoo/offline'], type='http', auth='public', methods=['GET'], readonly=True)
+    @http.route(['/insilos/offline', '/insilos/offline'], type='http', auth='public', methods=['GET'], readonly=True)
     def offline(self):
         """ Returns the offline page delivered by the service worker """
         with file_open(self._icon_path(), 'rb') as f:
@@ -121,7 +125,7 @@ class WebManifest(http.Controller):
         path = f"/{unquote(path)}"
         scoped_app_values = {
             'app_id': app_id,
-            'apple_touch_icon': '/web/static/img/odoo-icon-ios.png',
+            'apple_touch_icon': '/web/static/img/favicon.png',
             'app_name': app_name,
             'path': path,
             'safe_manifest_url': "/web/manifest.scoped_app_manifest?" + urlencode({
@@ -160,7 +164,7 @@ class WebManifest(http.Controller):
     @http.route('/web/manifest.scoped_app_manifest', type='http', auth='public', methods=['GET'])
     def scoped_app_manifest(self, app_id, path, app_name=''):
         """ Returns a WebManifest dedicated to the scope of the given app. A custom scope and start
-            url are set to make sure no other installed PWA can overlap the scope (e.g. /odoo)
+            url are set to make sure no other installed PWA can overlap the scope (e.g. /insilos)
         """
         path = unquote(path)
         app_name = unquote(app_name) if app_name else self._get_scoped_app_name(app_id)

@@ -1,5 +1,5 @@
-import { beforeEach, expect, test, waitFor, fill } from "@odoo/hoot";
-import { animationFrame, press, queryAllTexts } from "@odoo/hoot-dom";
+import { beforeEach, expect, test, waitFor, fill } from "@insilos/hoot";
+import { animationFrame, press, queryAllTexts } from "@insilos/hoot-dom";
 import {
     contains,
     defineModels,

@@ -1,6 +1,6 @@
 {
     "projects": {
-        "odoo-20": [
+        "insilos-20": [
             {
                 "name": "account",
                 "filemask": "addons/account/i18n/*.po",
@@ -158,8 +158,8 @@
             },
             {
                 "name": "base",
-                "filemask": "odoo/addons/base/i18n/*.po",
-                "new_base": "odoo/addons/base/i18n/base.pot"
+                "filemask": "addons/base/i18n/*.po",
+                "new_base": "addons/base/i18n/base.pot"
             },
             {
                 "name": "base_address_extended",

@@ -99,6 +99,11 @@ class InsilosLoader(importlib.abc.Loader):
                 except Exception:
                     pass
 
+        # If this module is a package, install recursive __getattr__ for subpackages
+        if hasattr(self.target_module, "__path__"):
+            odoo_pkg = "odoo" + self.insilos_name[len("insilos"):]
+            _install_getattr_on_module(self.target_module, odoo_pkg)
+
 
 class InsilosMetaPathFinder(importlib.abc.MetaPathFinder):
     """PEP 451 MetaPathFinder mapping 'insilos' namespace to 'odoo'."""
@@ -110,10 +115,13 @@ class InsilosMetaPathFinder(importlib.abc.MetaPathFinder):
         _ensure_odoo_addons_paths()
         odoo_name = "odoo" + fullname[len("insilos"):]
 
-        try:
-            target_mod = importlib.import_module(odoo_name)
-        except ImportError:
-            return None
+        # Fast path: check if odoo module is already in sys.modules
+        target_mod = sys.modules.get(odoo_name)
+        if target_mod is None:
+            try:
+                target_mod = importlib.import_module(odoo_name)
+            except ImportError:
+                return None
 
         is_pkg = hasattr(target_mod, "__path__")
         loader = InsilosLoader(target_mod, fullname)
@@ -131,27 +139,105 @@ class InsilosMetaPathFinder(importlib.abc.MetaPathFinder):
 _FINDER_INSTANCE = None
 
 
-def _odoo_getattr(name: str):
-    """Dynamic attribute accessor for odoo module to support insilos.<submodule>."""
-    try:
-        mod = importlib.import_module(f"odoo.{name}")
-        import odoo
-        setattr(odoo, name, mod)
-        return mod
-    except ImportError:
-        raise AttributeError(f"module 'odoo' has no attribute {name!r}")
+def _submod_getattr(pkg_name: str):
+    """Factory for dynamic attribute accessors on packages."""
+    def _getattr(name: str):
+        try:
+            target_pkg = pkg_name
+            if target_pkg.startswith("insilos."):
+                target_pkg = "odoo." + target_pkg[len("insilos."):]
+            elif target_pkg == "insilos":
+                target_pkg = "odoo"
+
+            if target_pkg == "odoo.addons":
+                _ensure_odoo_addons_paths()
+
+            odoo_full = f"{target_pkg}.{name}"
+            mod = importlib.import_module(odoo_full)
+
+            # Register in both odoo and insilos namespaces in sys.modules
+            insilos_full = "insilos" + odoo_full[4:]
+
+            sys.modules[odoo_full] = mod
+            sys.modules[insilos_full] = mod
+
+            # Set attribute on parent package
+            pkg = sys.modules.get(pkg_name)
+            if pkg:
+                try:
+                    setattr(pkg, name, mod)
+                except Exception:
+                    pass
+
+            # Also set attribute on counterpart package
+            alt_pkg_name = "insilos" + target_pkg[4:] if target_pkg.startswith("odoo") else "odoo" + target_pkg[len("insilos"):]
+            alt_pkg = sys.modules.get(alt_pkg_name)
+            if alt_pkg and alt_pkg is not pkg:
+                try:
+                    setattr(alt_pkg, name, mod)
+                except Exception:
+                    pass
+
+            return mod
+        except ImportError:
+            raise AttributeError(f"module {pkg_name!r} has no attribute {name!r}")
+    return _getattr
 
 
-def _addons_getattr(name: str):
-    """Dynamic attribute accessor for odoo.addons module to support insilos.addons.<addon>."""
-    _ensure_odoo_addons_paths()
+def _install_getattr_on_module(mod, pkg_name: str) -> None:
+    """Safely attach or wrap __getattr__ on a module object."""
+    if mod is None:
+        return
+    orig_getattr = getattr(mod, "__getattr__", None)
+    if orig_getattr is None:
+        mod.__getattr__ = _submod_getattr(pkg_name)
+    else:
+        if getattr(orig_getattr, "_insilos_wrapped", False):
+            return
+        sub_getattr = _submod_getattr(pkg_name)
+        def _wrapped_getattr(name: str):
+            try:
+                return orig_getattr(name)
+            except (AttributeError, KeyError):
+                return sub_getattr(name)
+        _wrapped_getattr._insilos_wrapped = True
+        mod.__getattr__ = _wrapped_getattr
+
+
+def _patch_mute_logger() -> None:
+    """Bridge mute_logger so muting 'insilos.X' also mutes 'odoo.X' and vice versa."""
     try:
-        mod = importlib.import_module(f"odoo.addons.{name}")
-        import odoo.addons
-        setattr(odoo.addons, name, mod)
-        return mod
-    except ImportError:
-        raise AttributeError(f"module 'odoo.addons' has no attribute {name!r}")
+        from odoo.tools.misc import mute_logger
+        if getattr(mute_logger, "_insilos_patched", False):
+            return
+        orig_init = mute_logger.__init__
+
+        def new_init(self, *loggers):
+            expanded = []
+            seen = set()
+            for l in loggers:
+                if l not in seen:
+                    expanded.append(l)
+                    seen.add(l)
+                if isinstance(l, str):
+                    partner = None
+                    if l.startswith("insilos."):
+                        partner = "odoo." + l[len("insilos."):]
+                    elif l == "insilos":
+                        partner = "odoo"
+                    elif l.startswith("odoo."):
+                        partner = "insilos." + l[len("odoo."):]
+                    elif l == "odoo":
+                        partner = "insilos"
+                    if partner and partner not in seen:
+                        expanded.append(partner)
+                        seen.add(partner)
+            orig_init(self, *expanded)
+
+        mute_logger.__init__ = new_init
+        mute_logger._insilos_patched = True
+    except Exception as exc:
+        _logger.debug("Failed patching mute_logger: %s", exc)
 
 
 def install() -> None:
@@ -170,14 +256,45 @@ def install() -> None:
         import odoo
         sys.modules["insilos"] = odoo
 
-        # Install __getattr__ on odoo module if not present
-        if not hasattr(odoo, "__getattr__"):
-            odoo.__getattr__ = _odoo_getattr
+        # Install dynamic __getattr__ on odoo module
+        _install_getattr_on_module(odoo, "odoo")
 
         import odoo.addons
         sys.modules["insilos.addons"] = odoo.addons
-        if not hasattr(odoo.addons, "__getattr__"):
-            odoo.addons.__getattr__ = _addons_getattr
+        _install_getattr_on_module(odoo.addons, "odoo.addons")
+
+        # Install dynamic __getattr__ on key subpackages
+        for p in [
+            "odoo.modules",
+            "odoo.tools",
+            "odoo.http",
+            "odoo.tests",
+            "odoo.orm",
+            "odoo.service",
+            "odoo.cli",
+        ]:
+            try:
+                m = importlib.import_module(p)
+                _install_getattr_on_module(m, p)
+            except Exception:
+                pass
+
+        # Proactively alias key core subpackages into sys.modules and odoo/insilos attributes
+        core_subpackages = [
+            "models", "fields", "api", "tools", "http",
+            "modules", "sql_db", "exceptions", "release",
+            "service", "cli", "orm", "tests", "osv"
+        ]
+        for name in core_subpackages:
+            try:
+                mod = importlib.import_module(f"odoo.{name}")
+                sys.modules[f"insilos.{name}"] = mod
+                setattr(odoo, name, mod)
+            except Exception:
+                pass
+
+        # Install mute_logger bridge
+        _patch_mute_logger()
 
     except Exception as exc:
         _logger.warning("Error initializing insilos namespace aliases: %s", exc)

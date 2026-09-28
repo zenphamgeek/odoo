@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 from __future__ import annotations
 
 import collections
@@ -16,13 +16,13 @@ from stdnum.util import clean
 from zoneinfo import ZoneInfo
 from werkzeug import urls
 
-from odoo import api, fields, models, tools, _, Command
-from odoo.exceptions import RedirectWarning, UserError, ValidationError
-from odoo.tools import SQL, LazyTranslate
-from odoo.tools.business_data import street_split, split_vat
-from odoo.tools.date_utils import all_timezones
-from odoo.tools.translate import LazyGettext
-from odoo.tools.partner_identifiers import (
+from insilos import api, fields, models, tools, _, Command
+from insilos.exceptions import RedirectWarning, UserError, ValidationError
+from insilos.tools import SQL, LazyTranslate
+from insilos.tools.business_data import street_split, split_vat
+from insilos.tools.date_utils import all_timezones
+from insilos.tools.translate import LazyGettext
+from insilos.tools.partner_identifiers import (
     ADDITIONAL_IDENTIFIERS_METADATA,
     COMPANY_CATEGORIES,
     INDIVIDUAL_CATEGORIES,
@@ -679,7 +679,7 @@ class ResPartner(models.Model):
             emails_normalized = tools.email_normalize_all(partner.email)
             if emails_normalized:
                 # note: multi-email input leads to invalid email like "Name" <email1, email2>
-                # but this is current behavior in Odoo 14+ and some servers allow it
+                # but this is current behavior in Insilos 14+ and some servers allow it
                 partner.email_formatted = tools.formataddr((
                     partner.name or u"False",
                     ','.join(emails_normalized)
@@ -981,7 +981,7 @@ class ResPartner(models.Model):
             # DLE: It should not be necessary to modify this to make work the ORM. The problem was just the recompute
             # of partner.user_ids when you create a new user for this partner, see test test_70_archive_internal_partners
             # You modified it in a previous commit, see original commit of this:
-            # https://github.com/odoo/odoo/commit/9d7226371730e73c296bcc68eb1f856f82b0b4ed
+            # https://insilos.com
             #
             # RCO: when creating a user for partner, the user is automatically added in partner.user_ids.
             # This is wrong if the user is not active, as partner.user_ids only returns active users.

@@ -3,7 +3,7 @@ import { ColorList } from "@web/core/colorlist/colorlist";
 import { registry } from "@web/core/registry";
 import { standardFieldProps } from "../standard_field_props";
 
-import { Component, useProps } from "@odoo/owl";
+import { Component, useProps } from "@insilos/owl";
 
 class KanbanColorPickerField extends Component {
     static template = "web.KanbanColorPickerField";

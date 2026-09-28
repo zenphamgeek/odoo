@@ -1,5 +1,5 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { markup } from "@odoo/owl";
+import { describe, expect, test } from "@insilos/hoot";
+import { markup } from "@insilos/owl";
 
 import {
     formatList,
@@ -157,10 +157,10 @@ describe("normalize", () => {
 
         // Ensure the shield doesn't accidentally prevent lowercasing
         // of standard uppercase strings.
-        expect(normalize("ODOO")).toBe("odoo");
+        expect(normalize("INSILOS")).toBe("insilos");
 
         // Ensure it correctly triggers the 'heavy' logic when a symbol appears
-        expect(normalize("Odoo™")).toBe("odootm");
+        expect(normalize("Insilos™")).toBe("insilostm");
     });
     test("Hindi (Devanagari): should preserve vowel marks", () => {
         // 'नमस्ते' (Namaste) contains 'म' (ma) + 'स' (sa) + '्' (Virama) + 'त' (ta) + 'े' (vowel e)

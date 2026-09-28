@@ -1,13 +1,13 @@
 import { registry } from "../registry";
 import { useSortable } from "@web/core/utils/sortable";
 import { throttleForAnimation } from "@web/core/utils/timing";
-import { Plugin, proxy, usePlugin } from "@odoo/owl";
+import { Plugin, proxy, usePlugin } from "@insilos/owl";
 import { services } from "@web/core/services";
 
 /**
  * @typedef SortableServiceHookParams
  * @extends SortableParams
- * @property {import("@odoo/owl").Signal<HTMLElement> | (() => HTMLElement)} [ref]
+ * @property {import("@insilos/owl").Signal<HTMLElement> | (() => HTMLElement)} [ref]
  *  container of sortable
  * @property {string | Symbol} [sortableId] identifier when multiple sortable on the same container
  */

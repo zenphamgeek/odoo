@@ -1,12 +1,12 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from psycopg2 import IntegrityError
 from psycopg2.errors import NotNullViolation
 
-from odoo.exceptions import UserError, ValidationError
-from odoo.tests import Form, TransactionCase, HttpCase, tagged
-from odoo.tools import mute_logger, sql
-from odoo import Command
+from insilos.exceptions import UserError, ValidationError
+from insilos.tests import Form, TransactionCase, HttpCase, tagged
+from insilos.tools import mute_logger, sql
+from insilos import Command
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -163,7 +163,7 @@ class TestXMLID(TransactionCase):
         self.assertEqual(self.get_data('test_convert.foo').noupdate, True)
         self.assertEqual(self.get_data('test_convert.bar').noupdate, True)
 
-    @mute_logger('odoo.sql_db', 'odoo.addons.base.models.ir_model')
+    @mute_logger('insilos.sql_db', 'insilos.addons.base.models.ir_model')
     def test_create_external_id_with_space(self):
         model = self.env['res.partner.category']
         data_list = [{
@@ -322,7 +322,7 @@ class TestIrModelEdition(TransactionCase):
         self.assertFalse(model.exists())
         self.assertFalse(model2.exists())
 
-    @mute_logger('odoo.sql_db')
+    @mute_logger('insilos.sql_db')
     def test_ir_model_fields_name_create(self):
         model = self.env['ir.model'].create({
             'name': 'Bananas',
@@ -402,10 +402,10 @@ class TestIrModelFieldsTranslation(HttpCase):
         field = self.env['ir.model.fields'].search([('model_id.model', '=', 'res.users'), ('name', '=', 'login')])
         self.assertEqual(field.with_context(lang='en_US').field_description, 'Login')
         # check the name column of res.users is displayed as 'Login'
-        self.start_tour("/odoo", 'ir_model_fields_translation_en_tour', login="admin")
+        self.start_tour("/insilos", 'ir_model_fields_translation_en_tour', login="admin")
         field.update_field_translations('field_description', {'en_US': 'Login2'})
         # check the name column of res.users is displayed as 'Login2'
-        self.start_tour("/odoo", 'ir_model_fields_translation_en_tour2', login="admin")
+        self.start_tour("/insilos", 'ir_model_fields_translation_en_tour2', login="admin")
 
         # modify fr_FR translation
         self.env['res.lang']._activate_lang('fr_FR')
@@ -415,10 +415,10 @@ class TestIrModelFieldsTranslation(HttpCase):
         admin = self.env['res.users'].search([('login', '=', 'admin')], limit=1)
         admin.lang = 'fr_FR'
         # check the name column of res.users is displayed as 'Identifiant'
-        self.start_tour("/odoo", 'ir_model_fields_translation_fr_tour', login="admin")
+        self.start_tour("/insilos", 'ir_model_fields_translation_fr_tour', login="admin")
         field.update_field_translations('field_description', {'fr_FR': 'Identifiant2'})
         # check the name column of res.users is displayed as 'Identifiant2'
-        self.start_tour("/odoo", 'ir_model_fields_translation_fr_tour2', login="admin")
+        self.start_tour("/insilos", 'ir_model_fields_translation_fr_tour2', login="admin")
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -541,13 +541,13 @@ class TestCustomFields(TestCommonCustomFields):
 
     def test_create_custom(self):
         """ custom field names must be start with 'x_' """
-        with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
+        with self.assertRaises(IntegrityError), mute_logger('insilos.sql_db'):
             self.create_field('xyz')
 
     def test_rename_custom(self):
         """ custom field names must be start with 'x_' """
         field = self.create_field('x_xyz')
-        with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
+        with self.assertRaises(IntegrityError), mute_logger('insilos.sql_db'):
             field.name = 'xyz'
 
     def test_create_valid(self):
@@ -564,14 +564,14 @@ class TestCustomFields(TestCommonCustomFields):
     def test_create_unique(self):
         """ one cannot create two fields with the same name on a given model """
         self.create_field('x_foo')
-        with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
+        with self.assertRaises(IntegrityError), mute_logger('insilos.sql_db'):
             self.create_field('x_foo')
 
     def test_rename_unique(self):
         """ one cannot create two fields with the same name on a given model """
         field1 = self.create_field('x_foo')
         field2 = self.create_field('x_bar')
-        with self.assertRaises(IntegrityError), mute_logger('odoo.sql_db'):
+        with self.assertRaises(IntegrityError), mute_logger('insilos.sql_db'):
             field2.name = field1.name
 
     def test_remove_without_view(self):
@@ -584,7 +584,7 @@ class TestCustomFields(TestCommonCustomFields):
         field = self.create_field('x_foo')
         field.name = 'x_bar'
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_remove_with_view(self):
         """ try removing a custom field that occurs in a view """
         field = self.create_field('x_foo')
@@ -595,7 +595,7 @@ class TestCustomFields(TestCommonCustomFields):
             field.unlink()
         self.assertIn('x_foo', self.env[self.MODEL]._fields)
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_rename_with_view(self):
         """ try renaming a custom field that occurs in a view """
         field = self.create_field('x_foo')
@@ -934,7 +934,7 @@ class TestCustomFieldsPostInstall(TestCommonCustomFields):
         # as a user could do through a SQL shell or a `cr.execute` in a server action
         self.env.cr.execute("ALTER TABLE ir_model_fields DROP CONSTRAINT ir_model_fields_name_manual_field")
         self.env.cr.execute("UPDATE ir_model_fields SET name = 'foo' WHERE id = %s", [field.id])
-        with self.assertLogs('odoo.registry') as log_catcher:
+        with self.assertLogs('insilos.registry') as log_catcher:
             # Trick to reload the registry. The above rename done through SQL didn't reload the registry. This will.
             self.env.registry._setup_models__(self.cr, [self.MODEL])
             self.assertIn(
@@ -955,12 +955,12 @@ class TestIrModelExplanation(TransactionCase):
             _abstract = False
             _transient = False
             _fold_name = 'fold'
-            __module__ = 'odoo.addons.base.models.mock'
+            __module__ = 'insilos.addons.base.models.mock'
             _explanation = 'Base explanation'
             __doc__ = 'Base doc'
 
         class MockExtensionModel(MockBaseModel):
-            __module__ = 'odoo.addons.hr.models.mock'
+            __module__ = 'insilos.addons.hr.models.mock'
             _explanation = 'Extension explanation'
 
         # Instantiate the extension model as if the ORM built it
@@ -985,7 +985,7 @@ class TestIrModelExplanation(TransactionCase):
             _abstract = False
             _transient = False
             _fold_name = 'fold'
-            __module__ = 'odoo.addons.base.models.mock'
+            __module__ = 'insilos.addons.base.models.mock'
             _explanation = 'This is a mock model explanation.'
             __doc__ = 'Base doc'
 

@@ -1,4 +1,4 @@
-import { t, useProps } from "@odoo/owl";
+import { t, useProps } from "@insilos/owl";
 import { CogMenu, cogMenuProps } from "../../search/cog_menu/cog_menu";
 
 export class ListCogMenu extends CogMenu {

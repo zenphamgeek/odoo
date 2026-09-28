@@ -2,7 +2,7 @@ import { useAutofocus, useService } from "@web/core/utils/hooks";
 import { Dialog } from "@web/core/dialog/dialog";
 import { _t } from "@web/core/l10n/translation";
 
-import { Component, signal, t, useProps } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@insilos/owl";
 
 export class CalendarQuickCreate extends Component {
     static template = "web.CalendarQuickCreate";

@@ -1,4 +1,4 @@
-import { onMounted, proxy, signal, t, useProps } from "@odoo/owl";
+import { onMounted, proxy, signal, t, useProps } from "@insilos/owl";
 import { location } from "@web/core/browser/browser";
 import { normalize } from "@web/core/l10n/utils";
 import { Setting, settingProps } from "@web/views/form/setting/setting";

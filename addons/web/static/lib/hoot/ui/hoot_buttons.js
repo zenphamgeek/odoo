@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, signal, t, xml } from "@odoo/owl";
+import { Component, signal, t, xml } from "@insilos/owl";
 import { refresh } from "../core/url";
 import { STORAGE, storageSet } from "../hoot_utils";
 import { HootLink } from "./hoot_link";

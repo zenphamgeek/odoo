@@ -26,7 +26,7 @@ import {
     useEffect,
     useProps,
     xml,
-} from "@odoo/owl";
+} from "@insilos/owl";
 
 export const formRendererProps = {
     archInfo: t.object(),

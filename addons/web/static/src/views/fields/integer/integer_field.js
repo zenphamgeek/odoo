@@ -6,7 +6,7 @@ import { useInputField } from "../input_field_hook";
 import { standardFieldProps } from "../standard_field_props";
 import { useNumpadDecimal } from "../numpad_decimal_hook";
 
-import { Component, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, proxy, signal, t, useProps } from "@insilos/owl";
 
 export const integerFieldProps = {
     ...standardFieldProps,

@@ -1,7 +1,9 @@
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+
 {
     'name' : 'IM Bus',
     'category': 'Hidden',
-    'description': "Instant Messaging Bus allow you to send messages to users, in live.",
+    'description': "Instant Messaging Bus for Insilos Platform",
     'depends': ['base', 'web'],
     'auto_install': True,
     'assets': {
@@ -30,6 +32,7 @@
             'bus/static/src/workers/*',
         ],
     },
-    'author': 'Odoo S.A.',
+    'author': 'Insilos Core Team',
+    'website': 'https://insilos.com',
     'license': 'LGPL-3',
 }

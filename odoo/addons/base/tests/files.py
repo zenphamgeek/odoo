@@ -1,6 +1,6 @@
 from base64 import b64encode
 
-from odoo.tools import file_open
+from insilos.tools import file_open
 
 
 def get_file_content(ext) -> tuple[bytes, str]:

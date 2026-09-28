@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Plugin, t, useConfig, usePlugin } from "@odoo/owl";
+import { Plugin, t, useConfig, usePlugin } from "@insilos/owl";
 import { Runner } from "../core/runner";
 
 //-----------------------------------------------------------------------------

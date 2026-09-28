@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import hashlib
 import re
@@ -7,8 +7,8 @@ from collections import OrderedDict
 from werkzeug.urls import url_quote
 from markupsafe import Markup
 
-from odoo import api, models, fields
-from odoo.tools import html_escape as escape
+from insilos import api, models, fields
+from insilos.tools import html_escape as escape
 
 
 class IrQwebFieldImage(models.AbstractModel):

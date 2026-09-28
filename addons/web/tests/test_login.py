@@ -1,10 +1,10 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-import odoo
-from odoo.http.session import session_store
-from odoo.tests.common import HttpCase, new_test_user, tagged
+import insilos
+from insilos.http.session import session_store
+from insilos.tests.common import HttpCase, new_test_user, tagged
 
-from odoo.addons.base.tests.common import HttpCaseWithUserDemo
+from insilos.addons.base.tests.common import HttpCaseWithUserDemo
 
 
 class TestWebLoginCommon(HttpCase):
@@ -41,7 +41,7 @@ class TestWebLogin(TestWebLoginCommon):
             data='{}',
         ).raise_for_status()
         # ensure we end up on the right page for internal users.
-        self.assertEqual(res_post.request.path_url, '/odoo')
+        self.assertEqual(res_post.request.path_url, '/insilos')
 
     def test_web_login_external(self):
         res_post = self.login('portal_user', 'portal_user')
@@ -74,7 +74,7 @@ class TestWebLogin(TestWebLoginCommon):
         res = self.url_open('/web/become', allow_redirects=False)
         res.raise_for_status()
         self.assertEqual(res.status_code, 303)
-        self.assertURLEqual(res.headers['Location'], '/odoo')
+        self.assertURLEqual(res.headers['Location'], '/insilos')
         sid = res.cookies.get('session_id', session.sid)
         self.assertEqual(sid, session.sid, "it should not have a new session")
         self.assertEqual(session_store().get(sid)['uid'], self.internal_user.id,
@@ -84,14 +84,14 @@ class TestWebLogin(TestWebLoginCommon):
         res = self.url_open('/web/become', allow_redirects=False)
         res.raise_for_status()
         self.assertEqual(res.status_code, 303)
-        self.assertURLEqual(res.headers['Location'], '/odoo')
+        self.assertURLEqual(res.headers['Location'], '/insilos')
         sid = res.cookies.get('session_id', session.sid)
         # self.assertNotEqual(sid, session.sid, "it should have a new session")
-        self.assertEqual(session_store().get(sid)['uid'], odoo.SUPERUSER_ID,
+        self.assertEqual(session_store().get(sid)['uid'], insilos.SUPERUSER_ID,
             "it should had become SUPERUSER")
 
 
 @tagged('post_install', '-at_install')
 class TestUserSwitch(HttpCaseWithUserDemo):
     def test_user_switch(self):
-        self.start_tour('/odoo', 'test_user_switch', login='demo')
+        self.start_tour('/insilos', 'test_user_switch', login='demo')

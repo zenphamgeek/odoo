@@ -1,4 +1,4 @@
-import { Component, computed, onMounted, onPatched, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, computed, onMounted, onPatched, proxy, signal, t, useProps } from "@insilos/owl";
 import { hasTouch } from "@web/core/browser/feature_detection";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { useDropdownState } from "@web/core/dropdown/dropdown_hooks";

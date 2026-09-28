@@ -1,7 +1,7 @@
 # TEST_INFRA.md: Insilos Enterprise Platform E2E Test Infrastructure & Specification
 
 **Standard**: Enterprise Industrial AI Testing Architecture & Quality Assurance Protocol  
-**Target Platform**: Odoo 20 Enterprise (`enterprise/insilos_website`)  
+**Target Platform**: Insilos 20 Enterprise Platform (`enterprise/insilos_website`)  
 **Integrity Mode**: Continuous PDCA Benchmark & Zero-Defect Enforcement  
 **Author**: E2E Test Writer (Specialist & QA)  
 **Date**: September 27, 2026  
@@ -15,7 +15,7 @@ The Insilos Enterprise testing architecture is built upon **opaque-box, requirem
 - **HTTP / Network Layer**: Live HTTP status codes, response headers, content negotiation, caching directives, and redirect flows (`urllib`, `requests`, Playwright).
 - **DOM & Rendered QWeb Layer**: Structural element presence, dropzone activation (`oe_structure`, `s_*`), metadata attributes (`data-snippet`, `data-name`), and semantic HTML5 tags.
 - **Visual Design System & CSS Token Layer**: CSS custom properties (`--ins-orange: #FF8000`), typography wrapping rules (`text-wrap: balance/pretty`), layout rhythm constraints (`.ins-card-row-balanced`), and baseline alignment geometry.
-- **Static Asset & Template Hygiene**: Pure Phosphor SVG iconography, zero FontAwesome legacy tags, zero inline `style="..."` attributes, and clean Odoo 20 QWeb directives (`t-out`, zero `t-esc`, zero server `t-key`).
+- **Static Asset & Template Hygiene**: Pure Phosphor SVG iconography, zero FontAwesome legacy tags, zero inline `style="..."` attributes, and clean Insilos 20 QWeb directives (`t-out`, zero `t-esc`, zero server `t-key`).
 - **Interactive State & Event Contracts**: Mega-Menu custom events (`insilos-menu-preview-change`), Video Transition Stage buffer switching, RAF throttling listeners, and IntersectionObserver memory management.
 
 ### 1.2 Progressive Testability & Milestone Isolation
@@ -28,8 +28,8 @@ Tests are decoupled into progressive tiers corresponding to project milestones (
 
 ### 1.3 Expected Output Derivation & Authoritative Oracles
 Every test case defines an explicit, authoritative source of truth:
-1. **Design System Token Oracle**: `enterprise/insilos_website/static/src/scss/insilos.scss` and `odoo-web-design-premium` standard.
-2. **Structural & QWeb Directive Oracle**: Odoo 20 Website Builder core specifications and `quality_gate.py`.
+1. **Design System Token Oracle**: `enterprise/insilos_website/static/src/scss/insilos.scss` and `insilos-web-design-premium` standard.
+2. **Structural & QWeb Directive Oracle**: Insilos 20 Website Builder core specifications and `quality_gate.py`.
 3. **Route & Content Oracle**: `controllers/main.py`, `controllers/industry_registry.py`, and `ORIGINAL_REQUEST.md`.
 4. **Behavioral Interaction Oracle**: `PROJECT.md § Interface Contracts` and `static/src/js/c3ai_interactive.js`.
 
@@ -108,7 +108,7 @@ Each of the 30 features from `PROJECT.md` is mapped to at least 5 isolated, veri
 - **TEST-F08-01 (Backdrop Filter SCSS Rule)**: Verify `.ins-mega-menu` declares `backdrop-filter: blur(16px)` and `-webkit-backdrop-filter: blur(16px)`.
 - **TEST-F08-02 (Background Translucency)**: Verify container background uses deep translucent navy `rgba(7, 11, 20, 0.92)`.
 - **TEST-F08-03 (Border & Shadow Elegance)**: Verify 1px glass border `rgba(255, 255, 255, 0.08)` and box shadow.
-- **TEST-F08-04 (QWeb Menu Integration)**: Verify mega-menu template inherits or overrides `website.header_standard` without breaking Odoo navbar.
+- **TEST-F08-04 (QWeb Menu Integration)**: Verify mega-menu template inherits or overrides `website.header_standard` without breaking Insilos navbar.
 - **TEST-F08-05 (Z-Index Hierarchy)**: Verify mega-menu dropdown has `z-index: 1050` ensuring it floats over 3D hero canvas.
 
 ### Feature 9: Mega-Menu Dynamic Indicator Sheen (M2)
@@ -251,8 +251,8 @@ Each of the 30 features from `PROJECT.md` is mapped to at least 5 isolated, veri
 - **TEST-F28-04 (Gate 4 Snippet Diversity Pass)**: Verify distinct snippet count >= 20 (Target achieved: 26).
 - **TEST-F28-05 (Gate 5-7 Pass)**: Verify Gate 5 (QWeb), Gate 6 (Button Theme), Gate 7 (Typographic/HBox) all pass.
 
-### Feature 29: Odoo Module Upgrade Execution (M5)
-- **TEST-F29-01 (Upgrade Command Syntax)**: Verify upgrade command matches `.venv/bin/python odoo-bin -c odoo.conf -d odoo20_dev -u insilos_website --stop-after-init`.
+### Feature 29: Insilos Module Upgrade Execution (M5)
+- **TEST-F29-01 (Upgrade Command Syntax)**: Verify upgrade command matches `.venv/bin/python insilos-bin -c insilos.conf -d odoo20_dev -u insilos_website --stop-after-init`.
 - **TEST-F29-02 (Clean Upgrade Log)**: Verify 0 critical errors or tracebacks in upgrade output.
 - **TEST-F29-03 (Manifest Asset Bundle Ingestion)**: Verify `__manifest__.py` assets bundle compiles cleanly.
 - **TEST-F29-04 (View Record Parsing)**: Verify all XML views parse without QWeb syntax errors.
@@ -306,7 +306,7 @@ Tier 3 validates contracts and event flows across coupled subsystems:
 | **TEST-INT-07** | Brand Orange Tokens | Button Pseudo-classes | Hover, active, focus states on `.btn-primary` maintain brand orange luminance |
 | **TEST-INT-08** | Dynamic Sheen Bar | Active Route URL | Sheen bar initializes over current route's navbar link on initial page load |
 | **TEST-INT-09** | Demo Request POST | CRM Lead Pipeline | Valid submission creates `insilos.demo.request` record and queues email |
-| **TEST-INT-10** | Website Editor (`?enable_editor=1`) | Custom Insilos Snippets | All 13 custom snippets appear in Odoo snippet sidebar for drag-and-drop |
+| **TEST-INT-10** | Website Editor (`?enable_editor=1`) | Custom Insilos Snippets | All 13 custom snippets appear in Insilos snippet sidebar for drag-and-drop |
 
 ---
 

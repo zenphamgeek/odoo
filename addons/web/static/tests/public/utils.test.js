@@ -6,7 +6,7 @@ import {
     expect,
     getFixture,
     test,
-} from "@odoo/hoot";
+} from "@insilos/hoot";
 import {
     DEBOUNCE,
     makeAsyncHandler,

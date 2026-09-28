@@ -13,7 +13,7 @@
                     aria-label="Save manually"
                     data-available-offline=""
                     t-att-disabled="!this.props.isNew and this.indicatorMode === 'invalid'">
-                    <i class="oi oi-fw" data-icon="cloud_upload" />
+                    <i class="ph ph-cloud-arrow-up ph-fw" />
                 </button>
                 <button
                     type="button"
@@ -23,14 +23,14 @@
                     data-tooltip="Discard all changes"
                     data-available-offline=""
                     aria-label="Discard all changes">
-                    <i class="oi oi-fw" data-icon="close" />
+                    <i class="ph ph-x ph-fw" />
                 </button>
             </div>
             <span
                 t-if="!this.props.isNew and this.indicatorMode === 'invalid'"
                 class="text-danger small ms-2"
                 data-tooltip="Unable to save. Correct the issue or discard all changes">
-                <i class="oi" data-icon="warning" />
+                <i class="ph ph-warning" />
             </span>
         </div>
     </t>

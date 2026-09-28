@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, computed, signal, t, useEffect, useProps, xml } from "@odoo/owl";
+import { Component, computed, signal, t, useEffect, useProps, xml } from "@insilos/owl";
 import { Test } from "../core/test";
 import { refresh } from "../core/url";
 import { formatTime, throttle } from "../hoot_utils";
@@ -58,7 +58,7 @@ function groupAssertions(assertions) {
 /**
  * @param {ReturnType<typeof t.ref>} containerRef
  * @param {ReturnType<typeof t.ref>} handleRef
- * @param {import("@odoo/owl").ReactiveValue<boolean>} isOpen
+ * @param {import("@insilos/owl").ReactiveValue<boolean>} isOpen
  */
 function useMovable(containerRef, handleRef, isOpen) {
     /**

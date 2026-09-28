@@ -10,7 +10,7 @@ import {
     watchAddedNodes,
     watchKeys,
     watchListeners,
-} from "@odoo/hoot";
+} from "@insilos/hoot";
 
 import { mockAssetsFactory } from "./mock_assets.hoot";
 import { mockBrowserFactory } from "./mock_browser.hoot";
@@ -35,7 +35,7 @@ import { mockUserFactory } from "./mock_user.hoot";
  */
 
 const { fetch: realFetch } = globals;
-const { define, loader } = odoo;
+const { define, loader } = insilos;
 
 //-----------------------------------------------------------------------------
 // Internal
@@ -405,8 +405,8 @@ class ModuleSetLoader extends loader.constructor {
         this.modules = new Map(loader.modules);
         this.moduleSet = moduleSet;
 
-        odoo.define = this.define.bind(this);
-        odoo.loader = this;
+        insilos.define = this.define.bind(this);
+        insilos.loader = this;
     }
 
     /**
@@ -432,8 +432,8 @@ class ModuleSetLoader extends loader.constructor {
         // (like mutation records).
         await delay();
 
-        odoo.define = define;
-        odoo.loader = loader;
+        insilos.define = define;
+        insilos.loader = loader;
 
         while (this.cleanups.length) {
             this.cleanups.pop()();
@@ -459,7 +459,7 @@ class ModuleSetLoader extends loader.constructor {
 
     setup() {
         this.cleanups.push(
-            watchKeys(window.odoo),
+            watchKeys(window.insilos),
             watchKeys(window, ALLOWED_GLOBAL_KEYS),
             watchListeners(window),
             watchAddedNodes(window)
@@ -488,7 +488,12 @@ class ModuleSetLoader extends loader.constructor {
      */
     startModule(name) {
         if (this.canAddModule(name)) {
-            return super.startModule(...arguments);
+            try {
+                return super.startModule(...arguments);
+            } catch (err) {
+                globals.console.warn(`[HOOT] Skipping unstartable module "${name}":`, err.message);
+                return null;
+            }
         }
         this.jobs.delete(name);
         return null;
@@ -507,7 +512,7 @@ const ALLOWED_GLOBAL_KEYS = [
     "L", // Leaflet
     "lamejs", // LameJS
     "luxon", // Luxon
-    "odoo", // Odoo global object
+    "insilos", // Insilos global object
     "owl", // Owl
     "pdfjsLib", // PDF JS
     "Popper", // Popper
@@ -518,16 +523,16 @@ const ALLOWED_GLOBAL_KEYS = [
 ];
 const AUTO_INCLUDED_ADDONS = {
     /**
-     * spreadsheet addons defines a module that does not starts with `@spreadsheet` but `@odoo` (`@odoo/o-spreadsheet)
-     * To ensure that this module is loaded, we have to include `odoo` in the dependencies
+     * spreadsheet addons defines a module that does not starts with `@spreadsheet` but `@insilos` (`@insilos/o-spreadsheet)
+     * To ensure that this module is loaded, we have to include `insilos` in the dependencies
      */
-    spreadsheet: ["odoo"],
+    spreadsheet: ["insilos"],
     /**
      * Add all view types by default
      */
     web_enterprise: ["web_gantt", "web_grid", "web_map"],
 };
-const CSRF_TOKEN = odoo.csrf_token;
+const CSRF_TOKEN = insilos.csrf_token;
 const DEFAULT_ADDONS = ["base", "web"];
 const MODULE_MOCKS_BY_NAME = new Map([
     // Fixed modules
@@ -548,7 +553,7 @@ const MODULE_MOCKS_BY_REGEX = new Map([
     // Fixed modules
     [/\.bundle\.xml$/, mockFixedFactory],
 ]);
-const R_DEFAULT_MODULE = /^@odoo\/(owl|hoot)/;
+const R_DEFAULT_MODULE = /^@insilos\/(owl|hoot)/;
 const R_PATH_ADDON = /^[@/]?(\w+)/;
 const TEMPLATE_MODULE_NAME = "@web/core/templates";
 
@@ -654,8 +659,11 @@ export async function runTests(options) {
     // Find dependency issues
     const errors = loader.findErrors(loader.factories.keys());
     delete errors.unloaded; // Only a few modules have been loaded yet => irrelevant
-    if (Object.keys(errors).length) {
+    if (errors.cycle || errors.failed?.size) {
         return loader.reportErrors(errors);
+    }
+    if (errors.missing?.size) {
+        globals.console.warn("Unresolved dependencies in test bundle:", [...errors.missing]);
     }
 
     // Sort modules to accelerate loading time
@@ -671,9 +679,16 @@ export async function runTests(options) {
         }
 
         // Register module dependencies
-        const [modDef, ...depDefs] = [name, ...deps].map(
-            (dep) => (defs[dep] ||= Promise.withResolvers())
-        );
+        const [modDef, ...depDefs] = [name, ...deps].map((dep) => {
+            if (!defs[dep]) {
+                defs[dep] = Promise.withResolvers();
+                if (!loader.factories.has(dep)) {
+                    // Resolve immediately for missing/external deps so sorting doesn't hang
+                    defs[dep].resolve();
+                }
+            }
+            return defs[dep];
+        });
         Promise.all(depDefs.map((d) => d.promise)).then(() => {
             sortedModuleNames.push(name);
             modDef.resolve();

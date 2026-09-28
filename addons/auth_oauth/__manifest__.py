@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 {
     'name': 'OAuth2 Authentication',
@@ -20,6 +20,7 @@ Allow users to login through OAuth2 Provider.
             'auth_oauth/static/**/*',
         ],
     },
-    'author': 'Odoo S.A.',
+    'author': 'Insilos Core Team',
+    'website': 'https://insilos.com',
     'license': 'LGPL-3',
 }

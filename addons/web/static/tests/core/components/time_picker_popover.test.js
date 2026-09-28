@@ -1,9 +1,9 @@
-import { Component, xml } from "@odoo/owl";
-import { expect, getFixture, test } from "@odoo/hoot";
+import { Component, xml } from "@insilos/owl";
+import { expect, getFixture, test } from "@insilos/hoot";
 import { mountWithCleanup } from "../../web_test_helpers";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { TimePickerPopover } from "@web/core/time_picker/time_picker_popover";
-import { animationFrame, click } from "@odoo/hoot-dom";
+import { animationFrame, click } from "@insilos/hoot-dom";
 
 test("timepicker popover can be used with popover service", async () => {
     class Button extends Component {

@@ -1,4 +1,4 @@
-import { onMounted, onPatched, proxy, signal } from "@odoo/owl";
+import { onMounted, onPatched, proxy, signal } from "@insilos/owl";
 import { useLayoutEffect, useSubEnv } from "@web/owl2/utils";
 import { _t } from "@web/core/l10n/translation";
 import { useAutofocus } from "@web/core/utils/hooks";

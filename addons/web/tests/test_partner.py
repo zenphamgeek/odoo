@@ -1,14 +1,14 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import io
 import logging
 import unittest
 import zipfile
 
-from odoo.addons.base.tests.common import TransactionCaseWithUserPortal
-from odoo.exceptions import AccessError
-from odoo.fields import Command
-from odoo.tests.common import HttpCase, tagged
-from odoo.tools import mute_logger
+from insilos.addons.base.tests.common import TransactionCaseWithUserPortal
+from insilos.exceptions import AccessError
+from insilos.fields import Command
+from insilos.tests.common import HttpCase, tagged
+from insilos.tools import mute_logger
 
 _logger = logging.getLogger(__name__)
 
@@ -107,7 +107,7 @@ class TestPartnerVCard(HttpCase):
             'password': 'testuser',
         })
         self.authenticate('testuser', 'testuser')
-        with mute_logger('odoo.http'):  # mute 403 warning
+        with mute_logger('insilos.http'):  # mute 403 warning
             res = self.url_open('/web/partner/vcard?partner_ids=%s,%s' %
                             (self.partners[0].id, self.partners[1].id))
         self.assertEqual(res.status_code, 403)

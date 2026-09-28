@@ -1,5 +1,5 @@
 import { usePopover } from "@web/core/popover/popover_hook";
-import { useListener } from "@odoo/owl";
+import { useListener } from "@insilos/owl";
 
 export function useCalendarPopover(component) {
     let popoverClass = "";

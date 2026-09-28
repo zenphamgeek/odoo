@@ -1,5 +1,5 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { htmlEscape, markup } from "@odoo/owl";
+import { describe, expect, test } from "@insilos/hoot";
+import { htmlEscape, markup } from "@insilos/owl";
 
 import {
     createDocumentFragmentFromContent,

@@ -3,7 +3,7 @@
  * view. On each view, click on each filter.
  */
 
-import { App, effect, proxy } from "@odoo/owl";
+import { App, effect, proxy } from "@insilos/owl";
 import { browser } from "@web/core/browser/browser";
 import { rpcBus } from "@web/core/network/rpc";
 import { ClickbotOverlay } from "@web/webclient/clickbot/clickbot_overlay";

@@ -1,7 +1,7 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
-import { click, queryAllTexts, queryFirst } from "@odoo/hoot-dom";
-import { animationFrame, mockDate } from "@odoo/hoot-mock";
-import { Component, proxy, xml } from "@odoo/owl";
+import { beforeEach, expect, test } from "@insilos/hoot";
+import { click, queryAllTexts, queryFirst } from "@insilos/hoot-dom";
+import { animationFrame, mockDate } from "@insilos/hoot-mock";
+import { Component, proxy, xml } from "@insilos/owl";
 import {
     defineParams,
     isSmall,

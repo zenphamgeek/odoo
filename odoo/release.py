@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 RELEASE_LEVELS = [ALPHA, BETA, RELEASE_CANDIDATE, FINAL] = ['alpha', 'beta', 'candidate', 'final']
 RELEASE_LEVELS_DISPLAY = {ALPHA: 'a',
@@ -16,9 +16,9 @@ version_info = (20, 0, 0, FINAL, 0, '')
 series = serie = major_version = '.'.join(str(s) for s in version_info[:2])
 version = series + RELEASE_LEVELS_DISPLAY[version_info[3]] + str(version_info[4] or '') + version_info[5]
 
-product_name = 'Odoo'
-description = 'Odoo Server'
-long_desc = '''Odoo is a complete ERP and CRM. The main features are accounting (analytic
+product_name = 'Insilos'
+description = 'Insilos Platform Server'
+long_desc = '''Insilos is an enterprise-grade sovereign industrial AI and ERP platform. The main features are accounting (analytic
 and financial), stock management, sales and purchases management, tasks
 automation, marketing campaigns, help desk, POS, etc. Technical features include
 a distributed server, an object database, a dynamic GUI,
@@ -29,12 +29,12 @@ License :: OSI Approved :: GNU Lesser General Public License v3
 
 Programming Language :: Python
 """
-url = 'https://www.odoo.com'
-author = 'OpenERP S.A.'
-author_email = 'info@odoo.com'
+url = 'https://insilos.com'
+author = 'Insilos Core Team'
+author_email = 'core@insilos.com'
 license = 'LGPL-3'
 
-nt_service_name = "odoo-server-" + series.replace('~','-')
+nt_service_name = "insilos-server-" + series.replace('~','-')
 
 MIN_PY_VERSION = (3, 12)
 MAX_PY_VERSION = (3, 14)

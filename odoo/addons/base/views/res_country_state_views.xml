@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
 
     <record id="view_country_state_tree" model="ir.ui.view">
         <field name="name">res.country.state.list</field>
@@ -56,4 +56,4 @@
         </field>
     </record>
 
-</odoo>
+</data>

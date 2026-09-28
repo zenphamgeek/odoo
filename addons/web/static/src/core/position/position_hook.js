@@ -1,4 +1,4 @@
-import { EventBus, onMounted, onPatched, onWillDestroy, onWillUnmount } from "@odoo/owl";
+import { EventBus, onMounted, onPatched, onWillDestroy, onWillUnmount } from "@insilos/owl";
 import { reposition } from "@web/core/position/utils";
 import { omit } from "@web/core/utils/objects";
 import { useThrottleForAnimation } from "@web/core/utils/timing";

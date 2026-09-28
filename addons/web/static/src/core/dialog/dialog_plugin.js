@@ -9,7 +9,7 @@ import {
     useProps,
     usePlugin,
     xml,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import { OverlayPlugin } from "@web/core/overlay/overlay_plugin";
 import { services } from "@web/core/services";
@@ -41,7 +41,7 @@ export class DialogPlugin extends Plugin {
     stack = [];
 
     /**
-     * @param {typeof import("@odoo/owl").Component} dialogClass
+     * @param {typeof import("@insilos/owl").Component} dialogClass
      * @param {object} [props]
      * @param {DialogOptionSchema} [options]
      * @returns {() => Promise<void>}

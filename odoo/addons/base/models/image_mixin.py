@@ -1,6 +1,6 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo import models, fields
+from insilos import models, fields
 
 
 class ImageMixin(models.AbstractModel):

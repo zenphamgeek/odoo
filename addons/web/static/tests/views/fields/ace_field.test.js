@@ -1,8 +1,8 @@
 /* global ace */
 
-import { expect, getFixture, test, queryAll } from "@odoo/hoot";
-import { queryOne } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { expect, getFixture, test, queryAll } from "@insilos/hoot";
+import { queryOne } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 
 import {
     clickSave,

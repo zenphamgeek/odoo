@@ -1513,7 +1513,7 @@ class BaseExternalServices {
 class BasePreferences {
   #defaults = Object.freeze({
     altTextLearnMoreUrl: "",
-    // Odoo
+    // Insilos
     annotationEditorMode: -1,
     annotationMode: 2,
     capCanvasAreaFactor: 200,
@@ -1532,11 +1532,11 @@ class BasePreferences {
     enableOptimizedPartialRendering: false,
     enablePermissions: false,
     enablePrintAutoRotate: true,
-    // Odoo: don't support scripting (#115302)
+    // Insilos: don't support scripting (#115302)
     enableScripting: false,
     enableSignatureEditor: false,
     enableUpdatedAddImage: false,
-    // ODOO: open links in new tabs to keep odoo document (#84594)
+    // Insilos: open links in new tabs to keep insilos document (#84594)
     externalLinkTarget: 2,
     highlightEditorColors: "yellow=#FFFF98,green=#53FFBC,blue=#80EBFF,pink=#FFCBE6,red=#FF4F5F,yellow_HCM=#FFFFCC,green_HCM=#53FFBC,blue_HCM=#80EBFF,pink_HCM=#F6B8FF,red_HCM=#C50043",
     historyUpdateUrl: false,
@@ -1549,7 +1549,7 @@ class BasePreferences {
     scrollModeOnLoad: -1,
     spreadModeOnLoad: -1,
     textLayerMode: 1,
-    // Odoo
+    // Insilos
     viewerCssTheme: document.cookie.includes("color_scheme=dark") ? 2 : 1,
     viewOnLoad: 0,
     disableAutoFetch: false,
@@ -8730,7 +8730,7 @@ class PDFPrintService {
     this.pageStyleSheet = document.createElement("style");
     this.pageStyleSheet.textContent = `@page { size: ${width}pt ${height}pt;}`;
     body.append(this.pageStyleSheet);
-    // ODOO PATCH PRINT PREVIEW MOBILE
+    // Insilos PATCH PRINT PREVIEW MOBILE
     this.hasFinishPrint = null;
   }
   destroy() {
@@ -8796,7 +8796,7 @@ class PDFPrintService {
   }
   performPrint() {
     this.throwIfInactive();
-    // ODOO PATCH PRINT PREVIEW MOBILE
+    // Insilos PATCH PRINT PREVIEW MOBILE
     const hasFinishPrintPromise = new Promise((resolve) => {
       if ("afterprint" in window) {
         this.hasFinishPrint = resolve;
@@ -8806,13 +8806,13 @@ class PDFPrintService {
     });
     setTimeout(() => {
       if (!this.active) {
-        // ODOO PATCH PRINT PREVIEW MOBILE
+        // Insilos PATCH PRINT PREVIEW MOBILE
         this.hasFinishPrint();
         return;
       }
       print.call(window);
     }, 0);
-    // ODOO PATCH PRINT PREVIEW MOBILE
+    // Insilos PATCH PRINT PREVIEW MOBILE
     return hasFinishPrintPromise;
   }
   get active() {
@@ -8845,10 +8845,10 @@ window.print = function () {
       });
     } else {
       const activeServiceOnEntry = activeService;
-      // ODOO: FIX MOBILE PRINT PREVIEW
+      // Insilos: FIX MOBILE PRINT PREVIEW
       const timeBeforeRendering = new Date().getTime();
       activeService.renderPages().then(function () {
-        // ODOO: FIX MOBILE PRINT PREVIEW
+        // Insilos: FIX MOBILE PRINT PREVIEW
         return Promise.all([
           activeServiceOnEntry.performPrint(),
           new Promise(resolve => setTimeout(resolve, 1000 + new Date().getTime() - timeBeforeRendering))
@@ -8894,7 +8894,7 @@ window.addEventListener("keydown", function (event) {
 }, true);
 if ("onbeforeprint" in window) {
   const stopPropagationIfNeeded = function (event) {
-    // ODOO PATCH PRINT PREVIEW MOBILE
+    // Insilos PATCH PRINT PREVIEW MOBILE
     if (activeService?.hasFinishPrint && event.type === "afterprint") {
       activeService.hasFinishPrint();
       return;
@@ -17034,7 +17034,7 @@ const PDFViewerApplication = {
     });
     pagesPromise.then(() => {
       this._unblockDocumentLoadEvent();
-      // Odoo: don't support scripting (#115302)
+      // Insilos: don't support scripting (#115302)
       // this._initializeAutoPrint(pdfDocument, openActionPromise);
     }, reason => {
       this._documentError("pdfjs-loading-error", {

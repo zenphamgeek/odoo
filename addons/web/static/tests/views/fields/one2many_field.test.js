@@ -1,4 +1,4 @@
-import { expect, getFixture, test } from "@odoo/hoot";
+import { expect, getFixture, test } from "@insilos/hoot";
 import {
     click,
     getNextFocusableElement,
@@ -7,10 +7,10 @@ import {
     queryAllTexts,
     queryFirst,
     queryOne,
-} from "@odoo/hoot-dom";
-import { animationFrame, mockTimeZone, runAllTimers } from "@odoo/hoot-mock";
+} from "@insilos/hoot-dom";
+import { animationFrame, mockTimeZone, runAllTimers } from "@insilos/hoot-mock";
 
-import { Component, onWillDestroy, onWillStart, proxy, useProps, xml } from "@odoo/owl";
+import { Component, onWillDestroy, onWillStart, proxy, useProps, xml } from "@insilos/owl";
 import { getPickerCell } from "@web/../tests/core/datetime/datetime_test_helpers";
 import {
     clickFieldDropdown,
@@ -8223,7 +8223,7 @@ test("display correct value after validation error", async () => {
     expect.assertions(5);
 
     function validationHandler(env, error, originalError) {
-        if (originalError.data.name === "odoo.exceptions.ValidationError") {
+        if (originalError.data.name === "insilos.exceptions.ValidationError") {
             return true;
         }
     }
@@ -9400,7 +9400,7 @@ test("one2many form view with action button", async () => {
     // onClose handler, executed because the python method does not return
     // any action, or an ir.action.act_window_close) ; this test ensures that
     // it reloads the fields of the opened view (i.e. the form in this case).
-    // See https://github.com/odoo/odoo/issues/24189
+    // See https://github.com/insilos/insilos/issues/24189
     mockService("action", {
         doActionButton(params) {
             for (const record of MockServer.env["partner"].browse(params.resIds)) {

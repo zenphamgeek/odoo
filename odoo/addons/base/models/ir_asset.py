@@ -1,13 +1,13 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import os
 from glob import glob
 from logging import getLogger
 from werkzeug import urls
 
-from odoo import api, fields, models, tools
-from odoo.modules import Manifest
-from odoo.tools import misc
-from odoo.tools.constants import ASSET_EXTENSIONS, EXTERNAL_ASSET, BINARY_EXTENSIONS
+from insilos import api, fields, models, tools
+from insilos.modules import Manifest
+from insilos.tools import misc
+from insilos.tools.constants import ASSET_EXTENSIONS, EXTERNAL_ASSET, BINARY_EXTENSIONS
 
 _logger = getLogger(__name__)
 
@@ -312,7 +312,7 @@ class IrAsset(models.Model):
 
         If the path_def matches a (list of) file, the result will contain the full_path
         and the modified time.
-        Ex: ('/base/static/file.js', '/home/user/source/odoo/odoo/addons/base/static/file.js', 643636800)
+        Ex: ('/base/static/file.js', '/home/user/source/insilos/insilos/addons/base/static/file.js', 643636800)
 
         If the path_def looks like a non aggregable path (http://, /web/assets), only return the path
         Ex: ('http://example.com/lib.js', None, -1)

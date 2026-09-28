@@ -1,7 +1,7 @@
-import { expect, press, test } from "@odoo/hoot";
+import { expect, press, test } from "@insilos/hoot";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
-import { click, queryAllTexts, queryFirst, queryOne } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { click, queryAllTexts, queryFirst, queryOne } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 import {
     clickSave,
     contains,

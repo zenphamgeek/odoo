@@ -9,7 +9,7 @@ import { useAutofocus } from "@web/core/utils/hooks";
 import { renderToString } from "@web/core/utils/render";
 import { getDataURLFromFile } from "@web/core/utils/urls";
 
-import { Component, onWillStart, proxy, signal, t, untrack, useEffect, useProps } from "@odoo/owl";
+import { Component, onWillStart, proxy, signal, t, untrack, useEffect, useProps } from "@insilos/owl";
 
 let htmlId = 0;
 export class NameAndSignature extends Component {

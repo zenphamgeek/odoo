@@ -8,7 +8,7 @@ import { CogMenu } from "@web/search/cog_menu/cog_menu";
 import { Widget } from "@web/views/widgets/widget";
 import { ActionHelper } from "@web/views/action_helper";
 
-import { Component, onMounted, onPatched, signal, t, useProps } from "@odoo/owl";
+import { Component, onMounted, onPatched, signal, t, useProps } from "@insilos/owl";
 
 export class PivotController extends Component {
     static template = "web.PivotView";

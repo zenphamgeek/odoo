@@ -1,5 +1,5 @@
 import { render } from "@web/owl2/utils";
-import { Component, xml, useListener } from "@odoo/owl";
+import { Component, xml, useListener } from "@insilos/owl";
 
 // -----------------------------------------------------------------------------
 // ActionContainer (Component)

@@ -1,4 +1,4 @@
-import { Component, onPatched, useProps, signal, t } from "@odoo/owl";
+import { Component, onPatched, useProps, signal, t } from "@insilos/owl";
 
 export const ACCORDION = Symbol("Accordion");
 export class AccordionItem extends Component {

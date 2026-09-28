@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import datetime
 import email.policy
@@ -20,9 +20,9 @@ from OpenSSL.SSL import VERIFY_FAIL_IF_NO_PEER_CERT, VERIFY_PEER
 from OpenSSL.SSL import Error as SSLError
 from urllib3.contrib.pyopenssl import PyOpenSSLContext, get_subj_alt_name
 
-from odoo import _, api, fields, models, modules, tools
-from odoo.exceptions import UserError
-from odoo.tools import (
+from insilos import _, api, fields, models, modules, tools
+from insilos.exceptions import UserError
+from insilos.tools import (
     BinaryValue,
     email_domain_extract,
     email_domain_normalize,
@@ -39,7 +39,7 @@ except ImportError:
     from urllib3.packages.ssl_match_hostname import CertificateError, match_hostname
 
 _logger = logging.getLogger(__name__)
-_test_logger = logging.getLogger('odoo.tests')
+_test_logger = logging.getLogger('insilos.tests')
 
 SMTP_TIMEOUT = 60
 
@@ -276,7 +276,7 @@ class IrMail_Server(models.Model):
         return email_from
 
     def _get_test_email_to(self):
-        return "noreply@odoo.com"
+        return "noreply@insilos.com"
 
     def test_smtp_connection(self):
         """Test the connection.
@@ -366,9 +366,9 @@ class IrMail_Server(models.Model):
                The 'strict' variants verify the remote server's certificate against the operating system trust store.
            :param smtp_from: FROM SMTP envelop, used to find the best mail server
            :param ssl_certificate: filename of the SSL certificate used for authentication
-               Used when no mail server is given and overwrite  the odoo-bin argument "smtp_ssl_certificate"
+               Used when no mail server is given and overwrite  the insilos-bin argument "smtp_ssl_certificate"
            :param ssl_private_key: filename of the SSL private key used for authentication
-               Used when no mail server is given and overwrite  the odoo-bin argument "smtp_ssl_private_key"
+               Used when no mail server is given and overwrite  the insilos-bin argument "smtp_ssl_private_key"
            :param bool smtp_debug: toggle debugging of SMTP sessions (all i/o
                               will be output in logs)
            :param mail_server_id: ID of specific mail server to use (overrides other parameters)
@@ -497,7 +497,7 @@ class IrMail_Server(models.Model):
         # Anyway, as it may have been sent by login(), all subsequent usages should consider this command as sent.
         connection.ehlo_or_helo_if_needed()
 
-        # Store the "from_filter" of the mail server / odoo-bin argument to  know if we
+        # Store the "from_filter" of the mail server / insilos-bin argument to  know if we
         # need to change the FROM headers or not when we will prepare the mail message
         connection.from_filter = from_filter
         connection.smtp_from = smtp_from
@@ -728,7 +728,7 @@ class IrMail_Server(models.Model):
             message.replace_header('From', smtp_from)
 
         # cleanup unwanted headers
-        del message['Bcc']                   # see odoo/odoo@2445f9e3c22db810d61996afde883e4ca608f15b
+        del message['Bcc']                   # see git commit
         del message['X-Forge-To']
         del message['X-Msg-Cc-Add']
         del message['X-Msg-To-Add']
@@ -851,7 +851,7 @@ class IrMail_Server(models.Model):
         :rtype: tuple[IrMail_Server | None, str]
         :returns: A two-elements tuple: ``(Record<ir.mail_server>, email_from)``
 
-          1. Mail server to use to send the email (``None`` if we use the odoo-bin arguments)
+          1. Mail server to use to send the email (``None`` if we use the insilos-bin arguments)
           2. Email FROM to use to send the email (in some case, it might be impossible
              to use the given email address directly if no mail server is configured for)
         """
@@ -906,7 +906,7 @@ class IrMail_Server(models.Model):
                 notifications_email or email_from)
             return mail_servers[0], notifications_email or email_from
 
-        # 5: SMTP config in odoo-bin arguments
+        # 5: SMTP config in insilos-bin arguments
         from_filter = self.env['ir.mail_server']._get_default_from_filter()
 
         if self._match_from_filter(email_from, from_filter):

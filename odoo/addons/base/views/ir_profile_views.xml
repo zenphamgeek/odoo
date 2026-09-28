@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
 
     <record id="ir_profile_view_search" model="ir.ui.view">
         <field name="name">IR Profile Search</field>
@@ -160,4 +160,4 @@
         <field name="context">{'search_default_group_session': 1}</field>
     </record>
 
-</odoo>
+</data>

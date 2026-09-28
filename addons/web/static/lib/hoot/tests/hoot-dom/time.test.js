@@ -1,4 +1,4 @@
-/** @odoo-module */
+/** @insilos-module */
 
 import {
     advanceTime,
@@ -10,7 +10,7 @@ import {
     test,
     tick,
     waitUntil,
-} from "@odoo/hoot";
+} from "@insilos/hoot";
 import { parseUrl } from "../local_helpers";
 
 // timeout of 1 second to ensure all timeouts are actually mocked

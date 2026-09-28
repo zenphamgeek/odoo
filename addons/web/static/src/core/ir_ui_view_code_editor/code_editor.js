@@ -1,4 +1,4 @@
-import { t, useEffect, useProps } from "@odoo/owl";
+import { t, useEffect, useProps } from "@insilos/owl";
 import { CodeEditor } from "@web/core/code_editor/code_editor";
 import { escapeRegExp } from "@web/core/utils/strings";
 

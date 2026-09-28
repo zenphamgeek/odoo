@@ -111,7 +111,7 @@ class Controller:
         super().__init_subclass__()
         if Controller in cls.__bases__:
             path = cls.__module__.split('.')
-            module = path[2] if path[:2] == ['odoo', 'addons'] else ''
+            module = path[2] if path[:2] in (['odoo', 'addons'], ['insilos', 'addons']) else ''
             Controller.children_classes[module].append(cls)
 
     @property

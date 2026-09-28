@@ -1,4 +1,4 @@
-import { t, useProps } from "@odoo/owl";
+import { t, useProps } from "@insilos/owl";
 import { ViewButton, viewButtonProps } from "./view_button";
 import { useViewButtonHandler } from "@web/views/view_button/view_button_hook";
 

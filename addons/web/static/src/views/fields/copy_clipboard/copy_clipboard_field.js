@@ -8,7 +8,7 @@ import { CharField } from "../char/char_field";
 import { standardFieldProps } from "../standard_field_props";
 import { UrlField } from "../url/url_field";
 
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 
 export const copyClipboardFieldProps = {
     ...standardFieldProps,

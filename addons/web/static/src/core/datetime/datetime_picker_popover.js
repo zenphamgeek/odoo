@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { useHotkey } from "../hotkeys/hotkey_hook";
 import { DateTimePicker, dateTimePickerProps } from "./datetime_picker";
 

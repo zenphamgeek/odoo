@@ -4,7 +4,7 @@ import { ConnectionLostError } from "@web/core/network/rpc";
 import { BaseBadgesField, extractStandardFieldProps } from "../badges_selection/base_badges_field";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { standardFieldProps } from "../standard_field_props";
 
 export class BadgesMany2oneField extends Component {

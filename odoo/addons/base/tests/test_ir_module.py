@@ -1,29 +1,29 @@
-from odoo.exceptions import ValidationError
-from odoo.tests.common import tagged, TransactionCase
-from odoo.tools import mute_logger
+from insilos.exceptions import ValidationError
+from insilos.tests.common import tagged, TransactionCase
+from insilos.tools import mute_logger
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
 class IrModuleCase(TransactionCase):
-    @mute_logger("odoo.modules.module")
+    @mute_logger("insilos.modules.module")
     def test_missing_module_icon(self):
         module = self.env["ir.module.module"].create({"name": "missing"})
         base = self.env["ir.module.module"].search([("name", "=", "base")])
         self.assertEqual(base.icon_image.content, module.icon_image.content)
 
-    @mute_logger("odoo.modules.module")
+    @mute_logger("insilos.modules.module")
     def test_new_module_icon(self):
         module = self.env["ir.module.module"].new({"name": "missing"})
         self.assertFalse(module.icon_image)
 
-    @mute_logger("odoo.modules.module")
+    @mute_logger("insilos.modules.module")
     def test_module_wrong_icon(self):
         module = self.env["ir.module.module"].create(
             {"name": "wrong_icon", "icon": "/not/valid.png"}
         )
         self.assertFalse(module.icon_image)
 
-    @mute_logger("odoo.modules.module")
+    @mute_logger("insilos.modules.module")
     def test_falsy_res_id(self):
         module = self.env["ir.module.module"].create(
             {"name": "get_views_test", "state": "installed"},

@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { click, edit, queryFirst } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { click, edit, queryFirst } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 import { defineModels, fields, models, mountView } from "@web/../tests/web_test_helpers";
 
 class Report extends models.Model {

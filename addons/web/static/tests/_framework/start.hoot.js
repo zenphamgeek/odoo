@@ -1,6 +1,6 @@
 // ! WARNING: this module cannot depend on modules not ending with ".hoot" (except libs) !
 
-import { definePreset, defineTags, globals, isHootReady } from "@odoo/hoot";
+import { definePreset, defineTags, globals, isHootReady } from "@insilos/hoot";
 import { runTests } from "./module_set.hoot";
 
 function beforeFocusRequired(test) {

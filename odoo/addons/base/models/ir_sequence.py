@@ -1,10 +1,10 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import logging
 from datetime import datetime, timedelta
 
-from odoo import api, fields, models, _
-from odoo.exceptions import UserError
-from odoo.tools import SQL
+from insilos import api, fields, models, _
+from insilos.exceptions import UserError
+from insilos.tools import SQL
 
 _logger = logging.getLogger(__name__)
 

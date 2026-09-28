@@ -1,4 +1,4 @@
-<odoo>
+<data>
     <record model="ir.actions.act_window" id="demo_force_install_action">
         <field name="name">Load demo data</field>
         <field name="res_model">ir.demo</field>
@@ -34,4 +34,4 @@
             </form>
         </field>
     </record>
-</odoo>
+</data>

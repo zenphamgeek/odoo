@@ -1,4 +1,4 @@
-/** @odoo-module */
+/** @insilos-module */
 
 /**
  * @typedef {[string, string | undefined, any[], any]} InteractionDetails

@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import json
 from datetime import date
@@ -6,13 +6,13 @@ from unittest.mock import patch
 import requests
 from markupsafe import Markup
 
-from odoo import Command
-from odoo.exceptions import AccessError, ValidationError
-from odoo.tests import TransactionCase, tagged
-from odoo.tools import mute_logger, frozendict
+from insilos import Command
+from insilos.exceptions import AccessError, ValidationError
+from insilos.tests import TransactionCase, tagged
+from insilos.tools import mute_logger, frozendict
 
-from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
-from odoo.addons.base.models.res_partner import ResPartner
+from insilos.addons.base.tests.common import TransactionCaseWithUserDemo
+from insilos.addons.base.models.res_partner import ResPartner
 
 
 class TestActionExplanation(TransactionCase):
@@ -99,15 +99,15 @@ except Exception:
 @tagged('at_install', '-post_install')  # LEGACY at_install
 class TestServerActions(TestServerActionsBase):
     def test_00_server_action(self):
-        with self.assertLogs('odoo.addons.base.models.ir_actions.server_action_safe_eval',
+        with self.assertLogs('insilos.addons.base.models.ir_actions.server_action_safe_eval',
                              level='DEBUG') as log_catcher:
             self.test_server_action.run()
             self.assertEqual(log_catcher.output, [
-                'DEBUG:odoo.addons.base.models.ir_actions.server_action_safe_eval:This is a test debug log',
-                'INFO:odoo.addons.base.models.ir_actions.server_action_safe_eval:This is a test info log',
-                'WARNING:odoo.addons.base.models.ir_actions.server_action_safe_eval:This is a test warning log',
-                'ERROR:odoo.addons.base.models.ir_actions.server_action_safe_eval:This is a test error log',
-"""ERROR:odoo.addons.base.models.ir_actions.server_action_safe_eval:This is a test exception log
+                'DEBUG:insilos.addons.base.models.ir_actions.server_action_safe_eval:This is a test debug log',
+                'INFO:insilos.addons.base.models.ir_actions.server_action_safe_eval:This is a test info log',
+                'WARNING:insilos.addons.base.models.ir_actions.server_action_safe_eval:This is a test warning log',
+                'ERROR:insilos.addons.base.models.ir_actions.server_action_safe_eval:This is a test error log',
+"""ERROR:insilos.addons.base.models.ir_actions.server_action_safe_eval:This is a test exception log
 Traceback (most recent call last):
   File "ir.actions.server(%d,)", line 6, in <module>
 ZeroDivisionError: division by zero""" % self.test_server_action.id
@@ -431,7 +431,7 @@ ZeroDivisionError: division by zero""" % self.test_server_action.id
         # Test: partner updated
         self.assertTrue(self.test_partner.active, 'ir_actions_server: partner should have been reactivated')
 
-    @mute_logger('odoo.addons.base.models.ir_model', 'odoo.models')
+    @mute_logger('insilos.addons.base.models.ir_model', 'insilos.models')
     def test_40_multi(self):
         # Data: 2 server actions that will be nested
         action1 = self.action.create({
@@ -521,7 +521,7 @@ ZeroDivisionError: division by zero""" % self.test_server_action.id
         self.action.with_context(self.context).run()
         self.assertEqual(self.test_country.vat_label, 'VatFromTest', 'vat label should be changed to VatFromTest')
 
-    @mute_logger('odoo.addons.base.models.ir_actions')
+    @mute_logger('insilos.addons.base.models.ir_actions')
     def test_55_access_error_message(self):
         self.action.write({
             'model_id': self.res_country_model.id,
@@ -612,7 +612,7 @@ ZeroDivisionError: division by zero""" % self.test_server_action.id
             num_requests += 1
             return response
 
-        with patch.object(requests, 'post', _patched_post), mute_logger('odoo.addons.base.models.ir_actions'):
+        with patch.object(requests, 'post', _patched_post), mute_logger('insilos.addons.base.models.ir_actions'):
             # first run: 200
             self.action.with_context(self.context).run()
             self.env.cr.postcommit.run()  # webhooks run in postcommit

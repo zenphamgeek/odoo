@@ -1,6 +1,6 @@
-import { Component, onMounted, onWillStart, xml } from "@odoo/owl";
-import { expect, test } from "@odoo/hoot";
-import { animationFrame } from "@odoo/hoot-mock";
+import { Component, onMounted, onWillStart, xml } from "@insilos/owl";
+import { expect, test } from "@insilos/hoot";
+import { animationFrame } from "@insilos/hoot-mock";
 import {
     getService,
     mountWithCleanup,

@@ -1,4 +1,4 @@
-import { Component, proxy, usePlugin, useProps } from "@odoo/owl";
+import { Component, proxy, usePlugin, useProps } from "@insilos/owl";
 import { router } from "@web/core/browser/router";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { registry } from "@web/core/registry";

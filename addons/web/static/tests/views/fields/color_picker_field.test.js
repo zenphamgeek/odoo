@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { queryAll } from "@odoo/hoot-dom";
+import { expect, test } from "@insilos/hoot";
+import { queryAll } from "@insilos/hoot-dom";
 import { contains, defineModels, fields, models, mountView } from "@web/../tests/web_test_helpers";
 
 class Partner extends models.Model {

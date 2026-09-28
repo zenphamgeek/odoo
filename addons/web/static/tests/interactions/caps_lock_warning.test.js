@@ -1,5 +1,5 @@
-import { click, describe, edit, expect, test } from "@odoo/hoot";
-import { keyUp, pointerDown, queryOne } from "@odoo/hoot-dom";
+import { click, describe, edit, expect, test } from "@insilos/hoot";
+import { keyUp, pointerDown, queryOne } from "@insilos/hoot-dom";
 import { setupInteractionWhiteList, startInteractions } from "@web/../tests/public/helpers";
 
 setupInteractionWhiteList(["web.caps_lock_warning", "web.show_password"]);

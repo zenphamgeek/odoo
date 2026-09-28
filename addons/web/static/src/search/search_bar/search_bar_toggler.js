@@ -7,7 +7,7 @@ import {
     proxy,
     t,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { browser } from "@web/core/browser/browser";
 import { useService } from "@web/core/utils/hooks";

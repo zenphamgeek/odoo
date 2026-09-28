@@ -1,9 +1,9 @@
-import { Component, onWillStart, useProps, xml } from "@odoo/owl";
-import { test, expect, beforeEach, getFixture } from "@odoo/hoot";
+import { Component, onWillStart, useProps, xml } from "@insilos/owl";
+import { test, expect, beforeEach, getFixture } from "@insilos/hoot";
 import { getService, mountWithCleanup } from "@web/../tests/web_test_helpers";
-import { animationFrame } from "@odoo/hoot-mock";
+import { animationFrame } from "@insilos/hoot-mock";
 import { MainComponentsContainer } from "@web/core/main_components_container";
-import { click, press } from "@odoo/hoot-dom";
+import { click, press } from "@insilos/hoot-dom";
 import { PopoverPlugin } from "@web/core/popover/popover_plugin";
 
 let target;

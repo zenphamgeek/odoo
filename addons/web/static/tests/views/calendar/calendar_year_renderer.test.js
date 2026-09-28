@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { queryAllTexts, resize } from "@odoo/hoot-dom";
-import { mockTimeZone, runAllTimers } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { queryAllTexts, resize } from "@insilos/hoot-dom";
+import { mockTimeZone, runAllTimers } from "@insilos/hoot-mock";
 import {
     mockService,
     mountWithCleanup,

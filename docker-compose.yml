@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_DB: odoo20_dev
-      POSTGRES_USER: odoo
+      POSTGRES_USER: insilos
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-1NN0R1@2026}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
@@ -15,7 +15,7 @@ services:
     ports:
       - "5434:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U odoo -d odoo20_dev"]
+      test: ["CMD-SHELL", "pg_isready -U insilos -d odoo20_dev"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -35,11 +35,11 @@ services:
     environment:
       - HOST=db
       - PORT=5432
-      - USER=odoo
+      - USER=insilos
       - PASSWORD=1NN0R1@2026
     volumes:
-      - insilos_filestore:/opt/insilos/.local/share/Odoo/filestore
-      - ./odoo.conf:/opt/insilos/odoo.conf:ro
+      - insilos_filestore:/opt/insilos/.local/share/Insilos/filestore
+      - ./insilos.conf:/opt/insilos/insilos.conf:ro
 
 volumes:
   insilos_pgdata:

@@ -7,7 +7,7 @@ import { useNumpadDecimal } from "../numpad_decimal_hook";
 import { DurationParseError, InvalidNumberError, parseFloatTime } from "../parsers";
 import { Operation } from "@web/model/relational_model/operation";
 
-import { Component, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, proxy, signal, t, useProps } from "@insilos/owl";
 import { usePopover } from "@web/core/popover/popover_hook";
 
 export const floatTimeFieldProps = {

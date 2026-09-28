@@ -1,4 +1,4 @@
-import { Component, useProps, toRaw, proxy, signal, t } from "@odoo/owl";
+import { Component, useProps, toRaw, proxy, signal, t } from "@insilos/owl";
 import * as BarcodeScanner from "@web/core/barcode/barcode_dialog";
 import { isBarcodeScannerSupported } from "@web/core/barcode/barcode_video_scanner";
 import { isMobileOS } from "@web/core/browser/feature_detection";

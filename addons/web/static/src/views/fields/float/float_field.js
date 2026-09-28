@@ -6,7 +6,7 @@ import { formatFloat } from "../formatters";
 import { parseFloat } from "../parsers";
 import { standardFieldProps } from "../standard_field_props";
 
-import { Component, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, proxy, signal, t, useProps } from "@insilos/owl";
 
 export const floatFieldProps = {
     ...standardFieldProps,

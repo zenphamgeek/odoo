@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { getColor } from "../utils";
 
 export class CalendarMobileFilterPanel extends Component {

@@ -2,7 +2,7 @@ import { useSubEnv } from "@web/owl2/utils";
 import { useHotkey } from "@web/core/hotkeys/hotkey_hook";
 import { useActiveElement } from "../ui/ui_plugin";
 import { useBackButton, useService } from "@web/core/utils/hooks";
-import { Component, onWillDestroy, proxy, signal, t, useListener, useProps } from "@odoo/owl";
+import { Component, onWillDestroy, proxy, signal, t, useListener, useProps } from "@insilos/owl";
 import { throttleForAnimation } from "@web/core/utils/timing";
 import { makeDraggableHook } from "../utils/draggable_hook_builder_owl";
 import { hasTouch } from "@web/core/browser/feature_detection";

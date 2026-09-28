@@ -1,8 +1,8 @@
 from collections.abc import Iterable
 
-from odoo import models, api, fields
-from odoo.fields import Domain
-from odoo.tools import SQL
+from insilos import models, api, fields
+from insilos.fields import Domain
+from insilos.tools import SQL
 
 
 class PropertiesBaseDefinitionMixin(models.AbstractModel):

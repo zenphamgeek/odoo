@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { press, queryAll, queryOne } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { press, queryAll, queryOne } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 import {
     contains,
     defineModels,

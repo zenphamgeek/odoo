@@ -1,6 +1,6 @@
 import { location, browser } from "@web/core/browser/browser";
 import { registry } from "@web/core/registry";
-import { Component, onMounted, proxy } from "@odoo/owl";
+import { Component, onMounted, proxy } from "@insilos/owl";
 import { isDisplayStandalone } from "@web/core/browser/feature_detection";
 import { useService } from "@web/core/utils/hooks";
 import { Dropdown } from "@web/core/dropdown/dropdown";

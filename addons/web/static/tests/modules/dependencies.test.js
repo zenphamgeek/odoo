@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@odoo/hoot";
+import { describe, expect, test } from "@insilos/hoot";
 
 /**
  * @param {string} folder folder that can only import from `allowedFolders`
@@ -9,14 +9,14 @@ import { describe, expect, test } from "@odoo/hoot";
 function invalidImportsFrom(folder, allowedFolders) {
     // modules within a folder can always depend on one another
     allowedFolders.push(folder);
-    const modulesToCheck = Array.from(odoo.loader.modules.keys()).filter((module) =>
+    const modulesToCheck = Array.from(insilos.loader.modules.keys()).filter((module) =>
         module.startsWith(`@web/${folder}/`)
     );
     const invalidDeps = {};
     for (const module of modulesToCheck) {
-        const invalid = odoo.loader.factories.get(module).deps.filter((dep) => {
+        const invalid = insilos.loader.factories.get(module).deps.filter((dep) => {
             // owl and @web/session are allowed everywhere
-            if (dep === "@odoo/owl" || dep === "@web/session" || dep.startsWith(`@web/owl2/`)) {
+            if (dep === "@insilos/owl" || dep === "@web/session" || dep.startsWith(`@web/owl2/`)) {
                 return false;
             }
             return !allowedFolders.some((allowed) => dep.startsWith(`@web/${allowed}/`));

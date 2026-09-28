@@ -1,4 +1,4 @@
-import { Component, onMounted, onWillStart, proxy, useListener, usePlugin } from "@odoo/owl";
+import { Component, onMounted, onWillStart, proxy, useListener, usePlugin } from "@insilos/owl";
 import { location, browser } from "@web/core/browser/browser";
 import { router, routerBus } from "@web/core/browser/router";
 import { useOwnDebugContext } from "@web/core/debug/debug_context";

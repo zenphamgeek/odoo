@@ -1,7 +1,7 @@
 /* eslint no-restricted-syntax: 0 */
-import { after, describe, expect, test } from "@odoo/hoot";
-import { animationFrame } from "@odoo/hoot-mock";
-import { Component, markup, xml } from "@odoo/owl";
+import { after, describe, expect, test } from "@insilos/hoot";
+import { animationFrame } from "@insilos/hoot-mock";
+import { Component, markup, xml } from "@insilos/owl";
 import {
     defineParams,
     makeTestApp,
@@ -19,9 +19,9 @@ import { session } from "@web/session";
 const { DateTime } = luxon;
 
 function _t() {
-    odoo.translationContext = "web";
+    insilos.translationContext = "web";
     const translatedTerm = basic_t(...arguments);
-    odoo.translationContext = null;
+    insilos.translationContext = null;
     return translatedTerm;
 }
 

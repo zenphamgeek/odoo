@@ -1,4 +1,4 @@
-import { useProps } from "@odoo/owl";
+import { useProps } from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { useService } from "@web/core/utils/hooks";

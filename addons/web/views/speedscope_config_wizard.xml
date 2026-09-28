@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
     <template id="config_speedscope_index">
         <link rel="stylesheet" href="/web/assets/any/web.assets_web.min.css" />
         <script src="/web/assets/any/web.assets_web.min.js" type="text/javascript"/>
@@ -79,4 +79,4 @@
             </div>
         </div>
     </template>
-</odoo>
+</data>

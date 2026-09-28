@@ -1,7 +1,7 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { after, animationFrame, click, describe, expect, test } from "@odoo/hoot";
-import { Component, signal, t, xml } from "@odoo/owl";
+import { after, animationFrame, click, describe, expect, test } from "@insilos/hoot";
+import { Component, signal, t, xml } from "@insilos/owl";
 import { mountForTest, parseUrl } from "../local_helpers";
 
 import { logger } from "../../core/logger";

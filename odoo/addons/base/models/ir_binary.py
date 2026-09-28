@@ -4,14 +4,14 @@ from mimetypes import guess_extension
 
 import werkzeug.http
 
-from odoo import models
-from odoo.exceptions import MissingError, UserError
-from odoo.http import request
-from odoo.http.stream import Stream
-from odoo.tools import file_open
-from odoo.tools.image import image_guess_size_from_field_name, image_process
-from odoo.tools.mimetypes import get_extension, guess_file_mimetype, guess_mimetype
-from odoo.tools.misc import verify_limited_field_access_token
+from insilos import models
+from insilos.exceptions import MissingError, UserError
+from insilos.http import request
+from insilos.http.stream import Stream
+from insilos.tools import file_open
+from insilos.tools.image import image_guess_size_from_field_name, image_process
+from insilos.tools.mimetypes import get_extension, guess_file_mimetype, guess_mimetype
+from insilos.tools.misc import verify_limited_field_access_token
 
 DEFAULT_PLACEHOLDER_PATH = 'web/static/img/placeholder.png'
 _logger = logging.getLogger(__name__)
@@ -79,7 +79,7 @@ class IrBinary(models.AbstractModel):
         value = record[field_name]
 
         if value and record._fields[field_name].attachment:
-            from odoo.orm.fields_binary import BinaryValueAttachment  # noqa: PLC0415
+            from insilos.orm.fields_binary import BinaryValueAttachment  # noqa: PLC0415
             if isinstance(value, BinaryValueAttachment):
                 field_attachment = value._BinaryValueAttachment__attachment
             else:
@@ -112,7 +112,7 @@ class IrBinary(models.AbstractModel):
         default_mimetype: str = 'application/octet-stream',
     ) -> Stream:
         """
-        Create a :class:odoo.http.stream.Stream: from a record's binary field.
+        Create a :class:insilos.http.stream.Stream: from a record's binary field.
 
         :param record: the record where to load the data from.
         :param field_name: the binary field where to load the data from.
@@ -186,19 +186,19 @@ class IrBinary(models.AbstractModel):
         quality: int = 0,
     ):
         """
-        Create a :class:odoo.http.stream.Stream: from a record's binary
+        Create a :class:insilos.http.stream.Stream: from a record's binary
         field, equivalent of :meth:`~get_stream_from` but for images.
 
         In case the record does not exist or is not accessible, the
         alternative ``placeholder`` path is used instead. If not set,
         a path is determined via
-        :meth:`~odoo.models.BaseModel._get_placeholder_filename` which
+        :meth:`~insilos.models.BaseModel._get_placeholder_filename` which
         ultimately fallbacks on ``web/static/img/placeholder.png``.
 
         In case the arguments ``width``, ``height``, ``crop`` or
         ``quality`` are given, the image will be post-processed and the
         ETags (the unique cache http header) will be updated
-        accordingly. See also :func:`odoo.tools.image.image_process`.
+        accordingly. See also :func:`insilos.tools.image.image_process`.
 
         :param record: the record where to load the data from.
         :param field_name: the binary field where to load the data from.
@@ -214,7 +214,7 @@ class IrBinary(models.AbstractModel):
             couldn't be determined. By default it is
             ``application/octet-stream``.
         :param placeholder: in case the image is not found or
-            unaccessible, the :func:`~odoo.tools.misc.file_path` of an
+            unaccessible, the :func:`~insilos.tools.misc.file_path` of an
             image to use instead. When not set it uses
             :meth:`models.BaseModel._get_placeholder_filename`, and
             fallbacks on using ``web/static/img/placeholder.png``.

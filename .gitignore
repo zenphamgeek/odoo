@@ -18,11 +18,12 @@ __pycache__/
 # hg stuff
 *.orig
 status
-# odoo filestore
-odoo/filestore
+# filestore
+filestore
 # maintenance migration scripts
-odoo/addons/base/maintenance
-# windows installation config file
+addons/base/maintenance
+# installation config file
+/insilos.conf
 /odoo.conf
 
 # generated for windows installer?

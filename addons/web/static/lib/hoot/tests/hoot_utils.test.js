@@ -1,7 +1,7 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { describe, expect, test } from "@odoo/hoot";
-import { queryOne } from "@odoo/hoot-dom";
+import { describe, expect, test } from "@insilos/hoot";
+import { queryOne } from "@insilos/hoot-dom";
 import { isInstanceOf, isIterable } from "@web/../lib/hoot-dom/hoot_dom_utils";
 import {
     deepCopy,

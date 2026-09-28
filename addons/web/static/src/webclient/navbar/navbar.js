@@ -9,7 +9,7 @@ import {
     useListener,
     usePlugin,
     useScope,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownGroup } from "@web/core/dropdown/dropdown_group";

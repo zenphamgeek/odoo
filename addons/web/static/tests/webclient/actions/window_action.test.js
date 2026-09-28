@@ -1,7 +1,7 @@
-import { expect, test } from "@odoo/hoot";
-import { click, queryAllTexts, waitFor } from "@odoo/hoot-dom";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
-import { Component, xml } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { click, queryAllTexts, waitFor } from "@insilos/hoot-dom";
+import { animationFrame, runAllTimers } from "@insilos/hoot-mock";
+import { Component, xml } from "@insilos/owl";
 import {
     MockServer,
     clickSave,
@@ -502,7 +502,7 @@ test("breadcrumb href includes debug param when in debug mode", async () => {
         "Partners",
         "First record",
     ]);
-    expect(".o_control_panel .breadcrumb a").toHaveAttribute("href", "/odoo/action-3?debug=assets");
+    expect(".o_control_panel .breadcrumb a").toHaveAttribute("href", "/insilos/action-3?debug=assets");
 });
 
 test.tags("desktop");
@@ -737,7 +737,7 @@ test("A deleted form view can be shown when history back", async () => {
     await contains(".o_list_view .o_data_row .o_data_cell").click();
     expect(".o_form_view").toHaveCount(1, { message: "The form view should be displayed" });
     expect(".o_last_breadcrumb_item").toHaveText("First record");
-    expect(location.pathname).toBe("/odoo/action-3/1");
+    expect(location.pathname).toBe("/insilos/action-3/1");
 
     // Delete the current record
     await contains(".o_cp_action_menus [data-icon='more_vert']").click();
@@ -747,7 +747,7 @@ test("A deleted form view can be shown when history back", async () => {
     // The form view is automatically switched to the next record
     expect(".o_last_breadcrumb_item").toHaveText("Second record");
     await runAllTimers();
-    expect(location.pathname).toBe("/odoo/action-3/2");
+    expect(location.pathname).toBe("/insilos/action-3/2");
 
     // Go back to the previous (now deleted) record
     browser.history.back();
@@ -755,7 +755,7 @@ test("A deleted form view can be shown when history back", async () => {
 
     expect(".o_form_view").toHaveCount(1, { message: "The form view should be displayed" });
     expect(".o_last_breadcrumb_item").toHaveText("First record");
-    expect(location.pathname).toBe("/odoo/action-3/1");
+    expect(location.pathname).toBe("/insilos/action-3/1");
 
     expect.verifyErrors([
         "It seems the records with IDs 1 cannot be found. They might have been deleted.",
@@ -1933,7 +1933,7 @@ test("current_action doesn't contains _originalAction", async () => {
         return action;
     };
     registry.category("actions").add("myAction", myAction);
-    redirect("/odoo/myAction");
+    redirect("/insilos/myAction");
     await mountWithCleanup(WebClient);
 
     await animationFrame();
@@ -1960,7 +1960,7 @@ test("current_action doesn't contains _originalAction", async () => {
 
 test.tags("desktop");
 test("destroy action with lazy loaded controller", async () => {
-    redirect("/odoo/action-3/2");
+    redirect("/insilos/action-3/2");
 
     await mountWithCleanup(WebClient);
     await animationFrame(); // blank component

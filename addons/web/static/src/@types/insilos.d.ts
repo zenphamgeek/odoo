@@ -53,7 +53,7 @@ type OdooModule = Record<string, any>;
 
 type OdooModuleFactoryFn = (require: (dependency: string) => OdooModule) => OdooModule;
 
-declare const odoo: {
+declare const insilos: {
     csrf_token: string;
     debug: string;
     define: OdooModuleLoader["define"];

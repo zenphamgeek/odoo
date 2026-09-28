@@ -1,5 +1,5 @@
-from odoo import _, api, fields, models
-from odoo.exceptions import AccessError, ValidationError
+from insilos import _, api, fields, models
+from insilos.exceptions import AccessError, ValidationError
 
 
 class PropertiesBaseDefinition(models.Model):

@@ -5,7 +5,7 @@ import { Cache } from "@web/core/utils/cache";
 import { session } from "@web/session";
 import { ensureArray, sortBy } from "./utils/arrays";
 import { cookie } from "@web/core/browser/cookie";
-import { EventBus } from "@odoo/owl";
+import { EventBus } from "@insilos/owl";
 
 // This file exports an object containing user-related information and functions
 // allowing to obtain/alter user-related information from the server.

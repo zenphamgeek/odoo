@@ -1,4 +1,4 @@
-import { Component, onWillStart, proxy, signal, usePlugin, useProps } from "@odoo/owl";
+import { Component, onWillStart, proxy, signal, usePlugin, useProps } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { ModelFieldSelectorPopover } from "@web/core/model_field_selector/model_field_selector_popover";
 import { registry } from "@web/core/registry";

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
     <template id="view_speedscope_index">
         &lt;!DOCTYPE html&gt;
         <html lang="en">
@@ -29,4 +29,4 @@
             </body>
         </html>
     </template>
-</odoo>
+</data>

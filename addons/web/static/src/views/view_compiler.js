@@ -15,7 +15,7 @@ import { toStringExpression, BUTTON_CLICK_PARAMS } from "./utils";
  * @property {boolean} [doNotCopyAttributes]
  */
 
-import { xml } from "@odoo/owl";
+import { xml } from "@insilos/owl";
 
 const BUTTON_STRING_PROPS = ["string", "size", "title", "icon", "icon_class", "id", "disabled"];
 // arch attribute name -> ViewButton prop name, when they differ

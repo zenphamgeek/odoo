@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
     <data>
         <!-- Group's sections -->
         <record id="view_res_groups_privilege_search" model="ir.ui.view">
@@ -246,4 +246,4 @@
             </field>
         </record>
     </data>
-</odoo>
+</data>

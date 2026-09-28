@@ -1,4 +1,4 @@
-import { Component, usePlugin, useProps, useScope } from "@odoo/owl";
+import { Component, usePlugin, useProps, useScope } from "@insilos/owl";
 import { CheckBox } from "@web/core/checkbox/checkbox";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { Dropdown } from "@web/core/dropdown/dropdown";

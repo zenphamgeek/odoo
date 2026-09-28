@@ -1,4 +1,4 @@
-import { asyncComputed, onWillStart, t, useScope } from "@odoo/owl";
+import { asyncComputed, onWillStart, t, useScope } from "@insilos/owl";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";

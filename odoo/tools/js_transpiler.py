@@ -692,7 +692,7 @@ ODOO_MODULE_RE = re.compile(r"""
     \s*                                # starting white space
     \/(\*|\/)                          # /* or //
     .*                                 # any comment in between (optional)
-    @odoo-module                       # '@odoo-module' statement
+    @(odoo|insilos)-module             # '@odoo-module' or '@insilos-module' statement
     (?P<ignore>\s+ignore)?             # module in src | tests which should not be transpiled (optional)
     (\s+alias=(?P<alias>[^\s*]+))?     # alias (e.g. alias=web.Widget, alias=@web/../tests/utils) (optional)
     (\s+default=(?P<default>[\w$]+))?  # no implicit default export (e.g. default=false) (optional)

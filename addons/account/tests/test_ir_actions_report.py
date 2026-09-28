@@ -106,7 +106,7 @@ class TestIrActionsReport(AccountTestInvoicingCommon):
     def test_print_original_bill_with_image_attachment(self):
         bill = self._create_invoice(move_type='in_invoice', post=True)
         bill.message_main_attachment_id = self.env['ir.attachment'].create({
-            'raw': file_open('base/tests/odoo.jpg', 'rb').read(),
+            'raw': file_open('base/tests/insilos.jpg', 'rb').read(),
             'name': 'bill.jpg',
             'mimetype': 'image/jpeg',
         })

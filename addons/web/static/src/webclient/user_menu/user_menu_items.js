@@ -1,4 +1,4 @@
-import { Component, markup, usePlugin, t, useProps } from "@odoo/owl";
+import { Component, markup, usePlugin, t, useProps } from "@insilos/owl";
 import { isDisplayStandalone, isMacOS } from "@web/core/browser/feature_detection";
 import { _t } from "@web/core/l10n/translation";
 import { user } from "@web/core/user";
@@ -122,7 +122,7 @@ function logOutItem() {
         description: _t("Log out"),
         callback: async () => {
             browser.navigator.serviceWorker?.controller?.postMessage("user_logout");
-            const url = await post(route, { csrf_token: odoo.csrf_token }, "url");
+            const url = await post(route, { csrf_token: insilos.csrf_token }, "url");
             redirect(url);
         },
         sequence: 70,

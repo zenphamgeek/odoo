@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import json
 
-from odoo.addons.base.tests.common import HttpCaseWithUserDemo
-from odoo.tests import tagged
-from odoo.tools import mute_logger
+from insilos.addons.base.tests.common import HttpCaseWithUserDemo
+from insilos.tests import tagged
+from insilos.tools import mute_logger
 
 
 @tagged('post_install', '-at_install')
@@ -14,7 +14,7 @@ class DomainTest(HttpCaseWithUserDemo):
     def test_domain_validate(self):
         self.authenticate("demo", "demo")
 
-        with mute_logger('odoo.http'):
+        with mute_logger('insilos.http'):
             resp = self.url_open(
                 '/web/domain/validate',
                 headers={'Content-Type': 'application/json'},

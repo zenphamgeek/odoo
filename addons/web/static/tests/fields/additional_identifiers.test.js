@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { queryAll, queryAllTexts } from "@odoo/hoot-dom";
-import { advanceTime, animationFrame } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { queryAll, queryAllTexts } from "@insilos/hoot-dom";
+import { advanceTime, animationFrame } from "@insilos/hoot-mock";
 
 import {
     contains,

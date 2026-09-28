@@ -1,4 +1,4 @@
-/** @odoo-module */
+/** @insilos-module */
 
 import { isInstanceOf } from "../hoot_dom_utils";
 

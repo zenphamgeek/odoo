@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { runAllTimers } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { runAllTimers } from "@insilos/hoot-mock";
 import {
     clickSave,
     contains,

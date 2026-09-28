@@ -1,4 +1,4 @@
-import { Component, onWillStart, onWillUpdateProps, signal, t, useProps } from "@odoo/owl";
+import { Component, onWillStart, onWillUpdateProps, signal, t, useProps } from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 import { AvatarTag } from "@web/core/tags_list/avatar_tag";
 import { BadgeTag } from "@web/core/tags_list/badge_tag";

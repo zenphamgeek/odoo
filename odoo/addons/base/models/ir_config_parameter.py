@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 """
 Store database-specific configuration parameters
 """
@@ -7,9 +7,9 @@ import uuid
 import logging
 from typing import Any, Literal
 
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
-from odoo.tools import config, mute_logger, str2bool
+from insilos import api, fields, models
+from insilos.exceptions import ValidationError
+from insilos.tools import config, mute_logger, str2bool
 
 _logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class IrConfig_Parameter(models.Model):
         "Key must be unique.",
     )
 
-    @mute_logger('odoo.addons.base.models.ir_config_parameter')
+    @mute_logger('insilos.addons.base.models.ir_config_parameter')
     def init(self, force=False):
         """
         Initializes the parameters listed in _default_parameters.

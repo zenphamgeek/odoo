@@ -2,7 +2,7 @@ import { useSubEnv } from "@web/owl2/utils";
 import { AccordionItem, ACCORDION } from "@web/core/dropdown/accordion_item";
 import { CheckboxItem } from "@web/core/dropdown/checkbox_item";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 
 export class PropertiesGroupByItem extends Component {
     static template = "web.PropertiesGroupByItem";

@@ -1,4 +1,4 @@
-import { Component, onWillStart, usePlugin, t, useProps } from "@odoo/owl";
+import { Component, onWillStart, usePlugin, t, useProps } from "@insilos/owl";
 import { browser } from "@web/core/browser/browser";
 import { Dialog } from "@web/core/dialog/dialog";
 import { _t } from "@web/core/l10n/translation";
@@ -88,7 +88,7 @@ class ClocReport extends Component {
         for (const [groupName, records] of Object.entries(
             Object.groupBy(_records, (r) => r.module)
         )) {
-            const isUserCusto = groupName === "odoo/studio";
+            const isUserCusto = groupName === "insilos/studio";
             const group = {
                 name: groupName,
                 display_name: isUserCusto ? _t("User customization") : groupName,

@@ -1,8 +1,8 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-import odoo
-from odoo import api, fields, models
-from odoo.exceptions import UserError
+import insilos
+from insilos import api, fields, models
+from insilos.exceptions import UserError
 
 
 class BaseModuleUpgrade(models.TransientModel):
@@ -63,7 +63,7 @@ class BaseModuleUpgrade(models.TransientModel):
 
         # terminate transaction before re-creating cursor below
         self.env.cr.commit()
-        odoo.modules.registry.Registry.new(self.env.cr.dbname, update_module=True)
+        insilos.modules.registry.Registry.new(self.env.cr.dbname, update_module=True)
         self.env.cr.rollback()
 
         return {'type': 'ir.actions.act_window_close'}

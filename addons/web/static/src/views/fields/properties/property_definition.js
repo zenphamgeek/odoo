@@ -7,7 +7,7 @@ import {
     t,
     usePlugin,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { CheckBox } from "@web/core/checkbox/checkbox";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { Domain } from "@web/core/domain";

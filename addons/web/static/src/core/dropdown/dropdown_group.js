@@ -1,4 +1,4 @@
-import { Component, onWillDestroy, t, useProps, xml } from "@odoo/owl";
+import { Component, onWillDestroy, t, useProps, xml } from "@insilos/owl";
 import { useSubEnv } from "@web/owl2/utils";
 
 const GROUPS = new Map();

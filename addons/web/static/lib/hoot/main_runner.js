@@ -1,4 +1,4 @@
-/** @odoo-module */
+/** @insilos-module */
 
 /**
  * @typedef {import("./core/runner").Runner} Runner

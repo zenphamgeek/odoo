@@ -14,7 +14,7 @@ import {
     proxy,
     t,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { ConnectionLostError } from "@web/core/network/rpc";
 

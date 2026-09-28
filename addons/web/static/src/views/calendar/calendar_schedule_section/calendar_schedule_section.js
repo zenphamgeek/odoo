@@ -1,4 +1,4 @@
-import { Component, onMounted, signal, t, useProps } from "@odoo/owl";
+import { Component, onMounted, signal, t, useProps } from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 
 export class CalendarScheduleSection extends Component {

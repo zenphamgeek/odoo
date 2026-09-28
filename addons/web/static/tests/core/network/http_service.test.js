@@ -1,5 +1,5 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { mockFetch } from "@odoo/hoot-mock";
+import { describe, expect, test } from "@insilos/hoot";
+import { mockFetch } from "@insilos/hoot-mock";
 
 import { get, post } from "@web/core/network/http_service";
 

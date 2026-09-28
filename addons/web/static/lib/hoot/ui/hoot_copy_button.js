@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, signal, t, useProps, xml } from "@odoo/owl";
+import { Component, signal, t, useProps, xml } from "@insilos/owl";
 import { copy, hasClipboard } from "../hoot_utils";
 
 export class HootCopyButton extends Component {

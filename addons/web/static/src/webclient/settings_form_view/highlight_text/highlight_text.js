@@ -1,4 +1,4 @@
-import { Component, computed, proxy, t, useProps } from "@odoo/owl";
+import { Component, computed, proxy, t, useProps } from "@insilos/owl";
 import { highlightText } from "@web/core/utils/html";
 
 export class HighlightText extends Component {

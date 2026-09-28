@@ -1,4 +1,4 @@
-import { after, beforeEach, expect, runAllTimers, test } from "@odoo/hoot";
+import { after, beforeEach, expect, runAllTimers, test } from "@insilos/hoot";
 import {
     animationFrame,
     click,
@@ -14,8 +14,8 @@ import {
     queryValue,
     resize,
     waitFor,
-} from "@odoo/hoot-dom";
-import { disableAnimations, mockDate, mockTimeZone } from "@odoo/hoot-mock";
+} from "@insilos/hoot-dom";
+import { disableAnimations, mockDate, mockTimeZone } from "@insilos/hoot-mock";
 import { editTime } from "@web/../tests/core/datetime/datetime_test_helpers";
 import { _makeUser, user } from "@web/core/user";
 import { resetDateFieldWidths } from "@web/views/list/column_width_hook";

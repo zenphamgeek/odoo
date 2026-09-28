@@ -5,7 +5,7 @@ from zipfile import ZipFile
 
 from lxml import etree
 
-from odoo.tests.common import HttpCase, tagged
+from insilos.tests.common import HttpCase, tagged
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install

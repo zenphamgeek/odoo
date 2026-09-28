@@ -4,7 +4,7 @@ import { fuzzyLookup } from "@web/core/utils/search";
 import { computeAppsAndMenuItems } from "@web/webclient/menus/menu_helpers";
 import { defaultCommandItemProps } from "@web/core/commands/command_palette";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
-import { Component, usePlugin, t, useProps } from "@odoo/owl";
+import { Component, usePlugin, t, useProps } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 
 class AppIconCommand extends Component {

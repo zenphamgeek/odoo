@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { middleClick, rightClick } from "@odoo/hoot-dom";
-import { Component, useProps, xml } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { middleClick, rightClick } from "@insilos/hoot-dom";
+import { Component, useProps, xml } from "@insilos/owl";
 import { contains, mountWithCleanup } from "@web/../tests/web_test_helpers";
 
 test(`main button click`, async () => {

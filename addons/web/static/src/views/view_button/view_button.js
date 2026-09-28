@@ -1,4 +1,4 @@
-import { Component, t, usePlugin, useProps } from "@odoo/owl";
+import { Component, t, usePlugin, useProps } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { useDropdownCloser } from "@web/core/dropdown/dropdown_hooks";
 import { _t } from "@web/core/l10n/translation";
@@ -24,8 +24,9 @@ const odooToBootstrapClasses = {
 function iconFromString(iconString) {
     const icon = {};
     icon.tag = "i";
-    icon.class = `o_button_icon oi`;
-    icon.name = iconString;
+    const cleanName = iconString.startsWith("ph-") ? iconString : `ph-${iconString}`;
+    icon.class = `o_button_icon ph ${cleanName}`;
+    icon.name = cleanName;
     return icon;
 }
 

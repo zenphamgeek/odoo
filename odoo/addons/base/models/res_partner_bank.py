@@ -1,8 +1,8 @@
 import re
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
-from odoo.tools import clean_context
+from insilos import _, api, fields, models
+from insilos.exceptions import UserError, ValidationError
+from insilos.tools import clean_context
 
 
 def sanitize_account_number(account_number):

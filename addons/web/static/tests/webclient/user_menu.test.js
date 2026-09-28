@@ -1,7 +1,7 @@
-import { beforeEach, describe, expect, test } from "@odoo/hoot";
-import { click, queryAllAttributes, queryAllProperties, queryAllTexts } from "@odoo/hoot-dom";
-import { animationFrame, mockMatchMedia } from "@odoo/hoot-mock";
-import { Component, xml } from "@odoo/owl";
+import { beforeEach, describe, expect, test } from "@insilos/hoot";
+import { click, queryAllAttributes, queryAllProperties, queryAllTexts } from "@insilos/hoot-dom";
+import { animationFrame, mockMatchMedia } from "@insilos/hoot-mock";
+import { Component, xml } from "@insilos/owl";
 import {
     clearRegistry,
     contains,

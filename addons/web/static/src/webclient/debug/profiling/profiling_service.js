@@ -1,4 +1,4 @@
-import { effect, EventBus, proxy, usePlugin } from "@odoo/owl";
+import { effect, EventBus, proxy, usePlugin } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { registry } from "@web/core/registry";
 import { session } from "@web/session";

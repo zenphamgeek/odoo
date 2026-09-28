@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { animationFrame } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { animationFrame } from "@insilos/hoot-mock";
 import {
     contains,
     defineActions,

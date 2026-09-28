@@ -37,8 +37,8 @@ async function main() {
   }
   console.log('Authenticated as uid:', auth.result.uid);
 
-  console.log('2. Navigating to /odoo...');
-  await desktopPage.goto('http://localhost:28069/odoo', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  console.log('2. Navigating to /web...');
+  await desktopPage.goto('http://localhost:28069/web', { waitUntil: 'domcontentloaded', timeout: 60000 });
   console.log('Current URL after goto:', desktopPage.url());
   await desktopPage.waitForTimeout(3000);
   console.log('Current URL after 3s:', desktopPage.url());
@@ -87,8 +87,8 @@ async function main() {
     }
   });
 
-  console.log('2. Navigating to mobile /odoo...');
-  await mobilePage.goto('http://localhost:28069/odoo', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  console.log('2. Navigating to mobile /web...');
+  await mobilePage.goto('http://localhost:28069/web', { waitUntil: 'domcontentloaded', timeout: 60000 });
 
   console.log('3. Waiting for mobile Home Menu...');
   await mobilePage.waitForSelector('.o_home_menu', { timeout: 15000 });
@@ -124,8 +124,8 @@ async function main() {
     barcodeErrors.push(err.stack || err.message);
   });
 
-  console.log('1. Navigating to /odoo/barcode...');
-  await barcodePage.goto('http://localhost:28069/odoo/barcode', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  console.log('1. Navigating to /web/barcode...');
+  await barcodePage.goto('http://localhost:28069/web/barcode', { waitUntil: 'domcontentloaded', timeout: 60000 });
   await barcodePage.waitForTimeout(3000);
   console.log('Current URL:', barcodePage.url());
 

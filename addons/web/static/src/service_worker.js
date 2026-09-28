@@ -1,7 +1,7 @@
-// @odoo-module ignore
+// @insilos-module ignore
 
 /* eslint-disable no-restricted-globals */
-const cacheName = "odoo-sw-cache";
+const cacheName = "insilos-sw-cache";
 const homepageURL = "/insilos";
 const offLineURL = `${homepageURL}/offline`;
 
@@ -19,7 +19,7 @@ self.addEventListener("install", (event) => {
 });
 
 const extractSessionInfo = (htmlContent) => {
-    const match = htmlContent.match(/odoo\.__session_info__\s*=\s*({.*?});/s);
+    const match = htmlContent.match(/insilos\.__session_info__\s*=\s*({.*?});/s);
     return match && match[1] ? match[1] : null;
 };
 
@@ -59,7 +59,7 @@ const readDataOnCache = async (url) => {
     if (url === offLineURL) {
         return response;
     }
-    // if you come from /odoo to project the url is now /odoo/project, but it doesn't exist in cache so use /odoo instead
+    // if you come from /insilos to project the url is now /insilos/project, but it doesn't exist in cache so use /insilos instead
     if (!response) {
         return readDataOnCache(homepageURL);
     }

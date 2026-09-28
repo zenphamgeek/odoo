@@ -6,8 +6,8 @@ import {
     mountView,
     onRpc,
 } from "@web/../tests/web_test_helpers";
-import { expect, test } from "@odoo/hoot";
-import { click, edit } from "@odoo/hoot-dom";
+import { expect, test } from "@insilos/hoot";
+import { click, edit } from "@insilos/hoot-dom";
 
 class Partner extends models.Model {
     float_field = fields.Float({

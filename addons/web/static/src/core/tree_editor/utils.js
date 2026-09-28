@@ -98,7 +98,7 @@ const BOUNDS_DATETIME = DELTAS.map(([k, l, r]) => [
 
 /**
  * Retrieves the appropriate date range syntax for hardcoded options (last 7 days ..)
- * @param {boolean} generateSmartDates - Whether to return human-readable odoo syntax (today + 1d)
+ * @param {boolean} generateSmartDates - Whether to return human-readable insilos syntax (today + 1d)
  * @param {'date'|'datetime'} fieldType - The data type of the field, used to select the syntax
  * @returns {Object[]} An array of bound definition (eg. ["last30Days", "today -30d", "today"])
  */

@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 import { redirect } from "@web/core/utils/urls";
 import {
     defineActions,
@@ -11,7 +11,7 @@ import {
     webModels,
 } from "@web/../tests/web_test_helpers";
 import { browser } from "@web/core/browser/browser";
-import { animationFrame } from "@odoo/hoot-dom";
+import { animationFrame } from "@insilos/hoot-dom";
 import { IndexedDB } from "@web/core/utils/indexed_db";
 
 defineActions([
@@ -76,7 +76,7 @@ test.tags("desktop");
 test(`use stored menus, and don't update on load_menus return (if identical)`, async () => {
     const def = Promise.withResolvers();
     const menuDB = new IndexedDB("webclient_menu");
-    redirect("/odoo/action-666");
+    redirect("/insilos/action-666");
     onRpc("/web/webclient/load_menus", () => def?.promise);
 
     // Initial Stored values
@@ -106,7 +106,7 @@ test.tags("desktop");
 test(`use stored menus, and update on load_menus return`, async () => {
     const def = Promise.withResolvers();
     const menuDB = new IndexedDB("webclient_menu");
-    redirect("/odoo/action-666");
+    redirect("/insilos/action-666");
     onRpc("/web/webclient/load_menus", () => def?.promise);
 
     // Initial Stored values

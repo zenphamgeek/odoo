@@ -1,5 +1,5 @@
-import { Component, useProps, xml } from "@odoo/owl";
-import { expect, test } from "@odoo/hoot";
+import { Component, useProps, xml } from "@insilos/owl";
+import { expect, test } from "@insilos/hoot";
 import {
     contains,
     defineModels,

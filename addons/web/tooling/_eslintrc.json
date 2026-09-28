@@ -48,7 +48,7 @@
     "arrow-body-style": ["error", "as-needed"]
   },
   "globals": {
-    "odoo": "readonly",
+    "insilos": "readonly",
     "$": "readonly",
     "jQuery": "readonly",
     "Chart": "readonly",

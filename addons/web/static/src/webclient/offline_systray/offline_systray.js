@@ -1,4 +1,4 @@
-import { Component, computed, usePlugin } from "@odoo/owl";
+import { Component, computed, usePlugin } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { useService } from "@web/core/utils/hooks";

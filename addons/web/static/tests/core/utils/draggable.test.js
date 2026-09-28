@@ -5,10 +5,10 @@ import {
     queryOne,
     test,
     waitFor,
-} from "@odoo/hoot";
-import { queryFirst, queryRect } from "@odoo/hoot-dom";
-import { animationFrame, mockTouch } from "@odoo/hoot-mock";
-import { Component, proxy, signal, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { queryFirst, queryRect } from "@insilos/hoot-dom";
+import { animationFrame, mockTouch } from "@insilos/hoot-mock";
+import { Component, proxy, signal, xml } from "@insilos/owl";
 import { contains, hideTab, mountWithCleanup } from "@web/../tests/web_test_helpers";
 
 import { useDraggable } from "@web/core/utils/draggable";

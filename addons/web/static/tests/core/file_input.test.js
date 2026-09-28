@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
+import { beforeEach, expect, test } from "@insilos/hoot";
 import {
     contains,
     mockService,
@@ -6,8 +6,8 @@ import {
     patchWithCleanup,
 } from "@web/../tests/web_test_helpers";
 
-import { setInputFiles } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
+import { setInputFiles } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
 import { FileInput } from "@web/core/file_input/file_input";
 import { session } from "@web/session";
 
@@ -30,7 +30,7 @@ async function createFileInput({ mockPost, mockAdd, props }) {
 // -----------------------------------------------------------------------------
 
 beforeEach(() => {
-    patchWithCleanup(odoo, { csrf_token: "dummy" });
+    patchWithCleanup(insilos, { csrf_token: "dummy" });
 });
 
 test("Upload a file: default props", async () => {

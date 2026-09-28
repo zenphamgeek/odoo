@@ -1,5 +1,5 @@
-from odoo.addons.base.tests.test_ir_ui_view import ViewCase
-from odoo.tests import tagged
+from insilos.addons.base.tests.test_ir_ui_view import ViewCase
+from insilos.tests import tagged
 
 
 class FormatAddressCase(ViewCase):

@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, computed, onPatched, onWillPatch, signal, t, usePlugin, xml } from "@odoo/owl";
+import { Component, computed, onPatched, onWillPatch, signal, t, usePlugin, xml } from "@insilos/owl";
 import { getActiveElement } from "@web/../lib/hoot-dom/helpers/dom";
 import { R_REGEX, REGEX_MARKER } from "@web/../lib/hoot-dom/hoot_dom_utils";
 import { Suite } from "../core/suite";

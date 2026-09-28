@@ -1,5 +1,5 @@
-import { queryAll, queryAllTexts, queryOne, queryText } from "@odoo/hoot";
-import { Component, xml } from "@odoo/owl";
+import { queryAll, queryAllTexts, queryOne, queryText } from "@insilos/hoot";
+import { Component, xml } from "@insilos/owl";
 import { WithSearch } from "@web/search/with_search/with_search";
 import { getDefaultConfig } from "@web/views/view";
 import { assignTestEnv } from "./app_test_helpers";

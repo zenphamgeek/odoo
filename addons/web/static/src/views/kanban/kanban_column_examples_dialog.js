@@ -1,7 +1,7 @@
 import { Dialog } from "@web/core/dialog/dialog";
 import { Notebook } from "@web/core/notebook/notebook";
 
-import { Component, signal, t, useProps } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@insilos/owl";
 
 const random = (min, max) => Math.floor(Math.random() * (max - min) + min);
 

@@ -1,5 +1,5 @@
 import { onWillRender } from "@web/owl2/utils";
-import { Component, proxy, signal, t, toRaw, useOnChange, useProps } from "@odoo/owl";
+import { Component, proxy, signal, t, toRaw, useOnChange, useProps } from "@insilos/owl";
 import { browser } from "@web/core/browser/browser";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { useHotkey } from "@web/core/hotkeys/hotkey_hook";

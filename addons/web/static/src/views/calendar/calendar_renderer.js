@@ -3,7 +3,7 @@ import { TOUCH_SELECTION_THRESHOLD } from "@web/views/utils";
 import { CalendarCommonRenderer } from "./calendar_common/calendar_common_renderer";
 import { CalendarYearRenderer } from "./calendar_year/calendar_year_renderer";
 
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 
 export const calendarRendererProps = {
     model: t.object(),

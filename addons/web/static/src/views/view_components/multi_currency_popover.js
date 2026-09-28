@@ -1,4 +1,4 @@
-import { Component, onWillStart, proxy, t, useListener, useProps } from "@odoo/owl";
+import { Component, onWillStart, proxy, t, useListener, useProps } from "@insilos/owl";
 import { getCurrency, getCurrencyRates } from "@web/core/currency";
 import { toLocaleDateString } from "@web/core/l10n/dates";
 import { user } from "@web/core/user";

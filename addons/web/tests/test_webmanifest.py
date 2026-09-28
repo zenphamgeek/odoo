@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo.addons.base.tests.common import HttpCaseWithUserDemo
-from odoo.tests.common import tagged
+from insilos.addons.base.tests.common import HttpCaseWithUserDemo
+from insilos.tests.common import tagged
 
 
 @tagged("-at_install", "post_install")
@@ -28,8 +28,9 @@ class WebManifestRoutesTest(HttpCaseWithUserDemo):
         self.assertEqual(data["theme_color"], "#004455")
         self.assertEqual(data["prefer_related_applications"], False)
         self.assertCountEqual(data["icons"], [
-            {'src': '/web/static/img/odoo-icon-192x192.png', 'sizes': '192x192', 'type': 'image/png'},
-            {'src': '/web/static/img/odoo-icon-512x512.png', 'sizes': '512x512', 'type': 'image/png'}
+            {'src': '/web/static/img/favicon.png', 'sizes': '192x192', 'type': 'image/png'},
+            {'src': '/web/static/img/favicon.png', 'sizes': '512x512', 'type': 'image/png'},
+            {'src': '/web/static/img/insilos-icon.svg', 'sizes': 'any', 'type': 'image/svg+xml'},
         ])
         self.assertGreaterEqual(len(data["shortcuts"]), 0)
         for shortcut in data["shortcuts"]:
@@ -54,8 +55,9 @@ class WebManifestRoutesTest(HttpCaseWithUserDemo):
         self.assertEqual(data["theme_color"], "#004455")
         self.assertEqual(data["prefer_related_applications"], False)
         self.assertCountEqual(data["icons"], [
-            {'src': '/web/static/img/odoo-icon-192x192.png', 'sizes': '192x192', 'type': 'image/png'},
-            {'src': '/web/static/img/odoo-icon-512x512.png', 'sizes': '512x512', 'type': 'image/png'}
+            {'src': '/web/static/img/favicon.png', 'sizes': '192x192', 'type': 'image/png'},
+            {'src': '/web/static/img/favicon.png', 'sizes': '512x512', 'type': 'image/png'},
+            {'src': '/web/static/img/insilos-icon.svg', 'sizes': 'any', 'type': 'image/svg+xml'},
         ])
         self.assertEqual(len(data["shortcuts"]), 0)
 
@@ -72,7 +74,7 @@ class WebManifestRoutesTest(HttpCaseWithUserDemo):
         self.assertEqual(data["theme_color"], "#004455")
         self.assertEqual(data["prefer_related_applications"], False)
         self.assertCountEqual(data["icons"], [
-            {'src': "/web/static/img/odoo-icon-192x192.png", 'sizes': 'any', 'type': 'image/png'}
+            {'src': "/web/static/img/favicon.png", 'sizes': 'any', 'type': 'image/png'}
         ])
         self.assertEqual(len(data["shortcuts"]), 0)
 
@@ -83,13 +85,13 @@ class WebManifestRoutesTest(HttpCaseWithUserDemo):
         response = self.url_open("/web/service-worker.js")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["Content-Type"], "text/javascript")
-        self.assertEqual(response.headers["Service-Worker-Allowed"], "/odoo")
+        self.assertEqual(response.headers["Service-Worker-Allowed"], "/insilos")
 
     def test_offline_url(self):
         """
         This route returns the offline page
         """
-        response = self.url_open("/odoo/offline")
+        response = self.url_open("/insilos/offline")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.headers["Content-Type"], "text/html; charset=utf-8")
 
@@ -99,11 +101,11 @@ class WebManifestRoutesTest(HttpCaseWithUserDemo):
         its presence from the head of the document.
         """
         self.authenticate("demo", "demo")
-        response = self.url_open("/web/static/img/odoo-icon-ios.png")
+        response = self.url_open("/web/static/img/favicon.png")
         self.assertEqual(response.status_code, 200)
 
-        document = self.url_open("/odoo")
+        document = self.url_open("/insilos")
         self.assertIn(
-            '<link rel="apple-touch-icon" href="/web/static/img/odoo-icon-ios.png"/>', document.text,
+            '<link rel="apple-touch-icon" href="/web/static/img/favicon.png"/>', document.text,
             "Icon for iOS is present in the head of the document.",
         )

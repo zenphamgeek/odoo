@@ -9,7 +9,7 @@ import {
     signal,
     useEffect,
     untrack,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { loadBundle } from "@web/core/assets";
 import { isMarkup } from "@web/core/utils/html";
 import { Reactive } from "../utils/reactive";

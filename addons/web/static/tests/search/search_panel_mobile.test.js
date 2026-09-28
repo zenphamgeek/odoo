@@ -1,6 +1,6 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { queryAllTexts } from "@odoo/hoot-dom";
-import { Component, xml } from "@odoo/owl";
+import { describe, expect, test } from "@insilos/hoot";
+import { queryAllTexts } from "@insilos/hoot-dom";
+import { Component, xml } from "@insilos/owl";
 import {
     contains,
     defineModels,

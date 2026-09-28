@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 from datetime import UTC
 from zoneinfo import ZoneInfo
 
@@ -12,15 +12,15 @@ from collections import defaultdict
 from functools import reduce
 from operator import getitem
 
-from odoo import api, fields, models, tools
-from odoo.exceptions import AccessError, MissingError, UserError, ValidationError
-from odoo.fields import Command, Domain
-from odoo.http import request
-from odoo.tools import BinaryBytes, _, frozendict, get_lang
-from odoo.tools.float_utils import float_compare
-from odoo.tools.misc import get_diff, unquote
-from odoo.tools.safe_eval import expr_eval, safe_eval, test_python_expr
-from odoo.tools.json import stringify_keys
+from insilos import api, fields, models, tools
+from insilos.exceptions import AccessError, MissingError, UserError, ValidationError
+from insilos.fields import Command, Domain
+from insilos.http import request
+from insilos.tools import BinaryBytes, _, frozendict, get_lang
+from insilos.tools.float_utils import float_compare
+from insilos.tools.misc import get_diff, unquote
+from insilos.tools.safe_eval import expr_eval, safe_eval, test_python_expr
+from insilos.tools.json import stringify_keys
 
 _logger = logging.getLogger(__name__)
 _server_action_logger = _logger.getChild("server_action_safe_eval")
@@ -549,7 +549,7 @@ class IrActionsServer(models.Model):
     action rules, of manually, by adding the action in the 'More' contextual
     menu.
 
-    Since Odoo 8.0 a button 'Create Menu Action' button is available on the
+    Since Insilos 8.0 a button 'Create Menu Action' button is available on the
     action form view. It creates an entry in the More menu of the base model.
     This allows to create server actions and run them in mass mode easily through
     the interface.

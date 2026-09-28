@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 
 import { CardCompiler } from "@web/views/card/card_compiler";
 

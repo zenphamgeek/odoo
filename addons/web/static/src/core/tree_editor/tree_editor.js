@@ -1,4 +1,4 @@
-import { Component, onWillStart, onWillUpdateProps, t, usePlugin, useProps } from "@odoo/owl";
+import { Component, onWillStart, onWillUpdateProps, t, usePlugin, useProps } from "@insilos/owl";
 import { hasTouch } from "@web/core/browser/feature_detection";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { Dropdown } from "@web/core/dropdown/dropdown";

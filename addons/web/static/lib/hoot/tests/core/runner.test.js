@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { defineTags, describe, expect, test } from "@odoo/hoot";
+import { defineTags, describe, expect, test } from "@insilos/hoot";
 import { makeTestRunner, parseUrl } from "../local_helpers";
 
 import { Suite } from "../../core/suite";

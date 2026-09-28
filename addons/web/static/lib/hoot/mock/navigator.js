@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { t } from "@odoo/owl";
+import { t } from "@insilos/owl";
 import { isInstanceOf } from "../../hoot-dom/hoot_dom_utils";
 import {
     createMock,

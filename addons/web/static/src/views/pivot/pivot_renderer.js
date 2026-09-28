@@ -1,4 +1,4 @@
-import { Component, onWillUpdateProps, signal, useProps } from "@odoo/owl";
+import { Component, onWillUpdateProps, signal, useProps } from "@insilos/owl";
 import { CheckBox } from "@web/core/checkbox/checkbox";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownState } from "@web/core/dropdown/dropdown_hooks";

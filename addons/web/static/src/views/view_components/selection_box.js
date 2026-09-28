@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 
 export class SelectionBox extends Component {

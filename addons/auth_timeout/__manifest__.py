@@ -1,3 +1,5 @@
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+
 {
     "name": "Auth Timeout",
     "summary": "Ask for authentication after user inactivity",
@@ -17,6 +19,7 @@
             "auth_timeout/static/tests/tours/**/*",
         ],
     },
-    "author": "Odoo S.A.",
+    "author": "Insilos Core Team",
+    "website": "https://insilos.com",
     "license": "LGPL-3",
 }

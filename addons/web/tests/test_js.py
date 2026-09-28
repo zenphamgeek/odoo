@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
 import re
 from contextlib import suppress
 
-import odoo.tests
-from odoo.tools.misc import file_open
+import insilos.tests
+from insilos.tools.misc import file_open
 from werkzeug.urls import url_quote_plus
 
 RE_FORBIDDEN_STATEMENTS = re.compile(r'test.*\.(only|debug)\(')
@@ -33,7 +33,7 @@ def _get_filters(test_params):
     return sorted(filters)
 
 
-class HootCommon(odoo.tests.HttpCase):
+class HootCommon(insilos.tests.HttpCase):
     def _check_forbidden_statements(self, bundle):
         # As we currently are not in a request context, we cannot render `web.layout`.
         # We then re-define it as a minimal proxy template.
@@ -112,7 +112,7 @@ class HootCommon(odoo.tests.HttpCase):
         return result
 
 
-@odoo.tests.tagged('post_install', '-at_install')
+@insilos.tests.tagged('post_install', '-at_install')
 class HootSuite(HootCommon):
     def test_check_suite(self):
         self._check_forbidden_statements('web.assets_unit_tests')
@@ -182,15 +182,15 @@ class HootSuite(HootCommon):
         # Note that in theory the file part won't be present in the tag since the test is cross-module,
         # but for the purpose of this test we keep it simple since this class don't inherit from CrossModule
 
-    @odoo.tests.no_retry
+    @insilos.tests.no_retry
     def test_hoot(self):
         # HOOT tests suite
         self.browser_js('/web/static/lib/hoot/tests/index.html?headless&loglevel=2', "", "", login='admin', timeout=1800, success_signal="[HOOT] Test suite succeeded", error_checker=unit_test_error_checker)
 
 
-@odoo.tests.tagged('hoot', 'post_install', '-at_install')
-class WebSuite(HootCommon, odoo.tests.CrossModule):
-    @odoo.tests.no_retry
+@insilos.tests.tagged('hoot', 'post_install', '-at_install')
+class WebSuite(HootCommon, insilos.tests.CrossModule):
+    @insilos.tests.no_retry
     def test_unit_desktop(self, modules):
         # Unit tests suite (desktop)
         addons_from_asset_bundle = self._get_addons_from_asset_bundle('web.assets_unit_tests')
@@ -201,12 +201,12 @@ class WebSuite(HootCommon, odoo.tests.CrossModule):
         self.browser_js(f'/web/tests?&headless&loglevel=2&preset=desktop&timeout=15000{filters}', "", "", login='admin', timeout=timeout, success_signal="[HOOT] Test suite succeeded", error_checker=unit_test_error_checker)
 
 
-@odoo.tests.tagged('hoot', 'post_install', '-at_install')
-class MobileWebSuite(HootCommon, odoo.tests.CrossModule):
+@insilos.tests.tagged('hoot', 'post_install', '-at_install')
+class MobileWebSuite(HootCommon, insilos.tests.CrossModule):
     browser_size = '375x667'
     touch_enabled = True
 
-    @odoo.tests.no_retry
+    @insilos.tests.no_retry
     def test_unit_mobile(self, modules):
         # Unit tests suite (mobile)
         addons_from_asset_bundle = self._get_addons_from_asset_bundle('web.assets_unit_tests')

@@ -15,7 +15,7 @@ import {
     t,
     useListener,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { RPCError } from "@web/core/network/rpc";
 import { extractFieldsFromArchInfo } from "@web/model/relational_model/utils";

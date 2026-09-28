@@ -128,7 +128,7 @@ class TestWebPushNotification(SMSCommon):
                     else:
                         self.assertEqual(payload_value['title'], f'#{channel.name}')
                     icon = (
-                        '/web/static/img/odoo-icon-192x192.png'
+                        '/web/static/img/favicon.png'
                         if sender == self.guest
                         else f'/web/image/res.partner/{self.user_email.partner_id.id}/avatar_128'
                     )

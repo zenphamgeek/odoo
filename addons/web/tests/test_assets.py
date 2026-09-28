@@ -1,21 +1,21 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
 import time
 
-import odoo
-import odoo.tests
+import insilos
+import insilos.tests
 
-from odoo.tests.common import HttpCase
-from odoo.modules.module import get_manifest
-from odoo.tools import mute_logger
+from insilos.tests.common import HttpCase
+from insilos.modules.module import get_manifest
+from insilos.tools import mute_logger
 
 from unittest.mock import patch
 
 _logger = logging.getLogger(__name__)
 
 
-class TestAssetsGenerateTimeCommon(odoo.tests.TransactionCase):
+class TestAssetsGenerateTimeCommon(insilos.tests.TransactionCase):
 
     def generate_bundles(self, unlink=True):
         if unlink:
@@ -28,7 +28,7 @@ class TestAssetsGenerateTimeCommon(odoo.tests.TransactionCase):
         }
 
         for bundle_name in bundles:
-            with mute_logger('odoo.addons.base.models.assetsbundle'):
+            with mute_logger('insilos.addons.base.models.assetsbundle'):
                 for assets_type in 'css', 'js':
                     try:
                         start_t = time.time()
@@ -44,7 +44,7 @@ class TestAssetsGenerateTimeCommon(odoo.tests.TransactionCase):
                         _logger.info('Error detected while generating bundle %r %s', bundle_name, assets_type)
 
 
-@odoo.tests.tagged('post_install', '-at_install', 'assets_bundle')
+@insilos.tests.tagged('post_install', '-at_install', 'assets_bundle')
 class TestLogsAssetsGenerateTime(TestAssetsGenerateTimeCommon):
 
     def test_logs_assets_generate_time(self):
@@ -67,19 +67,19 @@ class TestLogsAssetsGenerateTime(TestAssetsGenerateTimeCommon):
         _logger.info('All bundle checked in %.2fs', duration)
 
 
-@odoo.tests.tagged('post_install', '-at_install', '-standard', 'test_assets')
+@insilos.tests.tagged('post_install', '-at_install', '-standard', 'test_assets')
 class TestPregenerateTime(HttpCase):
 
     def test_logs_pregenerate_time(self):
         self.env['ir.qweb']._pregenerate_assets_bundles()
         start = time.time()
         self.env.transaction.clear()
-        with self.profile(collectors=['sql', odoo.tools.profiler.PeriodicCollector(interval=0.01)], disable_gc=True):
+        with self.profile(collectors=['sql', insilos.tools.profiler.PeriodicCollector(interval=0.01)], disable_gc=True):
             self.env['ir.qweb']._pregenerate_assets_bundles()
         duration = time.time() - start
         _logger.info('All bundle checked in %.2fs', duration)
 
-@odoo.tests.tagged('post_install', '-at_install', '-standard', 'assets_bundle')
+@insilos.tests.tagged('post_install', '-at_install', '-standard', 'assets_bundle')
 class TestAssetsGenerateTime(TestAssetsGenerateTimeCommon):
     """
     This test is meant to be run nightly to ensure bundle generation does not exceed
@@ -96,12 +96,12 @@ class TestAssetsGenerateTime(TestAssetsGenerateTimeCommon):
             threshold = thresholds.get(bundle, 2)
             self.assertLess(duration, threshold, "Bundle %r took more than %s sec" % (bundle, threshold))
 
-@odoo.tests.tagged('post_install', '-at_install')
+@insilos.tests.tagged('post_install', '-at_install')
 class TestLoad(HttpCase):
     def test_assets_already_exists(self):
         self.authenticate('admin', 'admin')
         # TODO xdo adapt this test. url open won't generate attachment anymore even if not pregenerated
-        _save_attachment = odoo.addons.base.models.assetsbundle.AssetsBundle.save_attachment
+        _save_attachment = insilos.addons.base.models.assetsbundle.AssetsBundle.save_attachment
 
         def save_attachment(bundle, extension, content):
             attachment = _save_attachment(bundle, extension, content)
@@ -109,12 +109,12 @@ class TestLoad(HttpCase):
             _logger.error(message)
             return attachment
 
-        with patch('odoo.addons.base.models.assetsbundle.AssetsBundle.save_attachment', save_attachment):
-            self.url_open('/odoo').raise_for_status()
+        with patch('insilos.addons.base.models.assetsbundle.AssetsBundle.save_attachment', save_attachment):
+            self.url_open('/insilos').raise_for_status()
             self.url_open('/').raise_for_status()
 
 
-@odoo.tests.tagged('post_install', '-at_install')
+@insilos.tests.tagged('post_install', '-at_install')
 class TestWebAssetsCursors(HttpCase):
     """
     This tests class tests the specificities of the route /web/assets regarding used connections.
@@ -196,8 +196,8 @@ class TestWebAssetsCursors(HttpCase):
         not reread that freshly created attachment from the readonly cursor.
         """
         generated_attachment_ids = set()
-        original_save_attachment = odoo.addons.base.models.assetsbundle.AssetsBundle.save_attachment
-        original_get_stream_from = odoo.addons.base.models.ir_binary.IrBinary._get_stream_from
+        original_save_attachment = insilos.addons.base.models.assetsbundle.AssetsBundle.save_attachment
+        original_get_stream_from = insilos.addons.base.models.ir_binary.IrBinary._get_stream_from
 
         def save_attachment(bundle, extension, content):
             attachment = original_save_attachment(bundle, extension, content)
@@ -213,7 +213,7 @@ class TestWebAssetsCursors(HttpCase):
                 raise AssertionError("Freshly generated assets should not be streamed from a readonly cursor")
             return original_get_stream_from(binary, record, *args, **kwargs)
 
-        with patch('odoo.addons.base.models.assetsbundle.AssetsBundle.save_attachment', autospec=True, side_effect=save_attachment):
-            with patch('odoo.addons.base.models.ir_binary.IrBinary._get_stream_from', autospec=True, side_effect=get_stream_from):
+        with patch('insilos.addons.base.models.assetsbundle.AssetsBundle.save_attachment', autospec=True, side_effect=save_attachment):
+            with patch('insilos.addons.base.models.ir_binary.IrBinary._get_stream_from', autospec=True, side_effect=get_stream_from):
                 response = self.url_open(f'/web/assets/{self.bundle_version}/{self.bundle_name}.min.css', allow_redirects=False)
                 self.assertEqual(response.status_code, 200)

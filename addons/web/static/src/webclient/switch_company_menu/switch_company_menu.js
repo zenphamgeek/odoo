@@ -4,7 +4,7 @@ import { DropdownGroup } from "@web/core/dropdown/dropdown_group";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { registry } from "@web/core/registry";
 
-import { Component, proxy, signal } from "@odoo/owl";
+import { Component, proxy, signal } from "@insilos/owl";
 import { useCommand } from "@web/core/commands/command_hook";
 import { _t } from "@web/core/l10n/translation";
 import { symmetricalDifference } from "@web/core/utils/arrays";

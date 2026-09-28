@@ -1,6 +1,6 @@
 import { useService } from "@web/core/utils/hooks";
 
-import { Component, onMounted, onPatched, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, onMounted, onPatched, proxy, signal, t, useProps } from "@insilos/owl";
 import { useSortable } from "@web/core/utils/sortable_owl";
 
 export class PropertyDefinitionSelection extends Component {

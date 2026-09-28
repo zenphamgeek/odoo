@@ -1,5 +1,5 @@
-import { describe, expect, getFixture, test } from "@odoo/hoot";
-import { advanceTime } from "@odoo/hoot-mock";
+import { describe, expect, getFixture, test } from "@insilos/hoot";
+import { advanceTime } from "@insilos/hoot-mock";
 
 describe("web/static/src/libs/bootstrap.js", () => {
     test("executeAfterTransition's fallback timer skips its callback once the element has been removed from the DOM", async () => {

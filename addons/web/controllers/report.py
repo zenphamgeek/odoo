@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import json
 import logging
@@ -6,11 +6,11 @@ import logging
 import werkzeug.exceptions
 from werkzeug.urls import url_parse
 
-from odoo.http import Controller, request, route
-from odoo.http.dispatcher import serialize_exception
-from odoo.http.stream import STATIC_CACHE_LONG, content_disposition
-from odoo.tools.misc import html_escape
-from odoo.tools.safe_eval import safe_eval, time
+from insilos.http import Controller, request, route
+from insilos.http.dispatcher import serialize_exception
+from insilos.http.stream import STATIC_CACHE_LONG, content_disposition
+from insilos.tools.misc import html_escape
+from insilos.tools.safe_eval import safe_eval, time
 
 _logger = logging.getLogger(__name__)
 
@@ -152,7 +152,7 @@ class ReportController(Controller):
             se = serialize_exception(e)
             error = {
                 'code': 0,
-                'message': "Odoo Server Error",
+                'message': "Insilos Server Error",
                 'data': se,
             }
             res = request.make_response(html_escape(json.dumps(error)))

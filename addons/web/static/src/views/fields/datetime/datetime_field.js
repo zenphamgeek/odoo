@@ -9,7 +9,7 @@ import {
     untrack,
     useProps,
     useEffect,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { useDateTimePicker } from "@web/core/datetime/datetime_picker_hook";
 import { areDatesEqual, deserializeDate, deserializeDateTime, today } from "@web/core/l10n/dates";
 import { localization } from "@web/core/l10n/localization";

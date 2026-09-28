@@ -1,5 +1,5 @@
-from odoo import api, fields, models
-from odoo.exceptions import ValidationError
+from insilos import api, fields, models
+from insilos.exceptions import ValidationError
 
 
 class ResUsersSettingsEmbeddedAction(models.Model):

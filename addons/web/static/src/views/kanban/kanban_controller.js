@@ -35,7 +35,7 @@ import {
     t,
     useEffect,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { QuickCreateState } from "./kanban_record_quick_create";
 

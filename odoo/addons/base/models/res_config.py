@@ -1,10 +1,10 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import logging
 import re
 from ast import literal_eval
 
-from odoo import api, models, _
-from odoo.exceptions import AccessError, RedirectWarning, UserError
+from insilos import api, models, _
+from insilos.exceptions import AccessError, RedirectWarning, UserError
 
 _logger = logging.getLogger(__name__)
 

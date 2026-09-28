@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 """
 ================
 IrQweb / ir.qweb
@@ -12,7 +12,7 @@ Technical documentation of the python operation of the rendering QWeb engine.
 Templating
 ==========
 
-QWeb is the primary templating engine used by Odoo. It is an XML templating
+QWeb is the primary templating engine used by Insilos. It is an XML templating
 engine and used mostly to generate XML, HTML fragments and pages.
 
 Template directives are specified as XML attributes prefixed with ``t-``,
@@ -24,7 +24,7 @@ which executes its directive but doesn't generate any output in and of
 itself.
 
 To create new XML template, please see :doc:`QWeb Templates documentation
-<https://www.odoo.com/documentation/master/developer/reference/frontend/qweb.html>`
+<https://insilos.com/documentation/master/developer/reference/frontend/qweb.html>`
 
 Rendering process
 =================
@@ -65,7 +65,7 @@ in the IrQweb class.
 
 .. code-block:: rst
 
-    Odoo
+    Insilos
      ┗━► _render (returns MarkupSafe)
         ┗━► _compile (returns function)                                        ◄━━━━━━━━━━┓
            ┗━► _compile_node (returns code string array)                       ◄━━━━━━━━┓ ┃
@@ -184,10 +184,10 @@ Only validate the **input**, the compilation if inside the ``t-if`` directive.
 
 ``t-groups`` (``groups`` is an alias)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-**Values**: name of the allowed odoo user group, or preceded by ``!`` for
+**Values**: name of the allowed insilos user group, or preceded by ``!`` for
 prohibited groups
 
-The generated code uses ``has_group`` Odoo method from ``res.users`` model.
+The generated code uses ``has_group`` Insilos method from ``res.users`` model.
 
 ``t-foreach``
 ~~~~~~~~~~~~~
@@ -384,12 +384,12 @@ from typing import NamedTuple, Literal
 from types import FunctionType
 from urllib.parse import unquote_plus
 
-from odoo import api, models, tools
-from odoo.modules import Manifest
-from odoo.modules.registry import _REGISTRY_CACHES
-from odoo.tools import BinaryValue, config, safe_eval, OrderedSet, frozendict, json
-from odoo.tools.constants import SUPPORTED_DEBUGGER, EXTERNAL_ASSET
-from odoo.tools.safe_eval import (
+from insilos import api, models, tools
+from insilos.modules import Manifest
+from insilos.modules.registry import _REGISTRY_CACHES
+from insilos.tools import BinaryValue, config, safe_eval, OrderedSet, frozendict, json
+from insilos.tools.constants import SUPPORTED_DEBUGGER, EXTERNAL_ASSET
+from insilos.tools.safe_eval import (
     _BLACKLIST,
     _BUILTINS,
     _EXPR_OPCODES,
@@ -397,18 +397,18 @@ from odoo.tools.safe_eval import (
     safe_transform,
     to_opcodes,
 )
-from odoo.tools.lru import LRU
-from odoo.tools.misc import str2bool, file_open, file_path
-from odoo.tools.image import image_data_uri
-from odoo.tools.profiler import ExecutionContext
-from odoo.tools.translate import FORMAT_REGEX
-from odoo.http import request
-from odoo.tools.profiler import QwebTracker
-from odoo.exceptions import UserError, MissingError
+from insilos.tools.lru import LRU
+from insilos.tools.misc import str2bool, file_open, file_path
+from insilos.tools.image import image_data_uri
+from insilos.tools.profiler import ExecutionContext
+from insilos.tools.translate import FORMAT_REGEX
+from insilos.http import request
+from insilos.tools.profiler import QwebTracker
+from insilos.exceptions import UserError, MissingError
 
-from odoo.addons.base.models.assetsbundle import AssetsBundle
-from odoo.addons.base.models.ir_ui_view import MOVABLE_BRANDING
-from odoo.tools.constants import SCRIPT_EXTENSIONS, STYLE_EXTENSIONS, TEMPLATE_EXTENSIONS, FONT_EXTENSIONS
+from insilos.addons.base.models.assetsbundle import AssetsBundle
+from insilos.addons.base.models.ir_ui_view import MOVABLE_BRANDING
+from insilos.tools.constants import SCRIPT_EXTENSIONS, STYLE_EXTENSIONS, TEMPLATE_EXTENSIONS, FONT_EXTENSIONS
 
 _logger = logging.getLogger(__name__)
 
@@ -868,7 +868,7 @@ class IrQweb(models.AbstractModel):
                     error.qweb.ref = frame.params.view_ref
                 qweb_error_info = error.qweb
             elif not isinstance(error, UserError):
-                # If is not an odoo Exception check if the current error is raise from
+                # If is not an insilos Exception check if the current error is raise from
                 # IrQweb (models or computed code). In this case, convert it into an QWebError.
                 isQweb = False
 
@@ -2833,7 +2833,7 @@ class IrQweb(models.AbstractModel):
         elif debugger in SUPPORTED_DEBUGGER:
             warnings.warn(
                 "Using t-debug with an explicit debugger is deprecated "
-                "since Odoo 17.0, keep the value empty and configure the "
+                "since Insilos 17.0, keep the value empty and configure the "
                 "``breakpoint`` builtin instead.",
                 category=DeprecationWarning,
                 stacklevel=2,

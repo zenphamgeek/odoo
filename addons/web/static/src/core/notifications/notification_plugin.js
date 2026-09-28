@@ -1,4 +1,4 @@
-import { Plugin, Resource, types as t, untrack, usePlugin } from "@odoo/owl";
+import { Plugin, Resource, types as t, untrack, usePlugin } from "@insilos/owl";
 import { services } from "@web/core/services";
 import { registry } from "@web/core/registry";
 

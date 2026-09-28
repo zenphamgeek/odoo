@@ -1,5 +1,5 @@
-import { after, describe, expect, test } from "@odoo/hoot";
-import { mockFetch } from "@odoo/hoot-mock";
+import { after, describe, expect, test } from "@insilos/hoot";
+import { mockFetch } from "@insilos/hoot-mock";
 import { allowTranslations } from "@web/../tests/web_test_helpers";
 
 import { download, parse } from "@web/core/network/download";
@@ -31,11 +31,11 @@ test("handles business error from server", async () => {
     const serverError = {
         code: 0,
         data: {
-            name: "odoo.exceptions.RedirectWarning",
+            name: "insilos.exceptions.RedirectWarning",
             arguments: ["Business Error Message", "someArg"],
             message: "Business Error Message",
         },
-        message: "Odoo Server Error",
+        message: "Insilos Server Error",
     };
 
     mockFetch(() => new Blob([JSON.stringify(serverError)], { type: "text/html" }));

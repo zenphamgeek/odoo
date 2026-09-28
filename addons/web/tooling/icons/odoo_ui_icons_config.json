@@ -18,7 +18,7 @@
       },
       "search": [
         "view-pivot",
-        "odoo",
+        "insilos",
         "view",
         "pivot",
         "table",
@@ -101,7 +101,7 @@
     },
     {
       "uid": "1cca02e8a4068211603671b0bb27269a",
-      "css": "odoo",
+      "css": "insilos",
       "code": 59398,
       "src": "custom_icons",
       "selected": true,
@@ -110,7 +110,7 @@
         "width": 1000
       },
       "search": [
-        "odoo",
+        "insilos",
         "brand",
         "logo",
         "erp"
@@ -148,7 +148,7 @@
       },
       "search": [
         "studio",
-        "odoo",
+        "insilos",
         "app",
         "customize",
         "design",
@@ -243,7 +243,7 @@
       },
       "search": [
         "view-cohort",
-        "odoo",
+        "insilos",
         "view",
         "cohort",
         "retention",
@@ -3635,7 +3635,7 @@
       },
       "search": [
         "view-kanban",
-        "odoo",
+        "insilos",
         "view",
         "kanban",
         "board",
@@ -3691,7 +3691,7 @@
       },
       "search": [
         "app_documents",
-        "odoo",
+        "insilos",
         "app",
         "documents",
         "files",

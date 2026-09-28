@@ -37,7 +37,7 @@ const SRC_REPLACERS = [
 ];
 const ATTRIBUTE_PREFIXES = ["", "t-att-", "t-attf-"];
 
-const { loader } = odoo;
+const { loader } = insilos;
 
 //-----------------------------------------------------------------------------
 // Exports

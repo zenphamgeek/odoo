@@ -13,7 +13,7 @@ import { generateImageVariants } from "@web/core/utils/image_library";
 import { FileUploader } from "../file_handler";
 import { standardFieldProps } from "../standard_field_props";
 
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 
 export const fileTypeMagicWordMap = {
     "/": "jpg",

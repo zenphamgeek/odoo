@@ -7,7 +7,7 @@ import {
     signal,
     t,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { _t } from "@web/core/l10n/translation";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";

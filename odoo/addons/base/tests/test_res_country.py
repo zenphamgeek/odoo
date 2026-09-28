@@ -1,4 +1,4 @@
-from odoo.tests import TransactionCase, tagged, Form
+from insilos.tests import TransactionCase, tagged, Form
 
 
 @tagged('-at_install', 'post_install')

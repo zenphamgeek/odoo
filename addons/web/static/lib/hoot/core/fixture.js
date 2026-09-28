@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { animationFrame } from "@odoo/hoot-dom";
+import { animationFrame } from "@insilos/hoot-dom";
 import { getActiveElement, getCurrentDimensions } from "@web/../lib/hoot-dom/helpers/dom";
 import { setupEventActions } from "@web/../lib/hoot-dom/helpers/events";
 import { HootError } from "../hoot_utils";
@@ -8,13 +8,13 @@ import { subscribeToTransitionChange } from "../mock/animation";
 import { getViewPortHeight, getViewPortWidth } from "../mock/window";
 
 /**
- * @typedef {Parameters<typeof import("@odoo/owl").mount>[2] & {
+ * @typedef {Parameters<typeof import("@insilos/owl").mount>[2] & {
  *  className: string | string[];
- *  target?: import("@odoo/hoot-dom").Target;
+ *  target?: import("@insilos/hoot-dom").Target;
  * }} MountOnFixtureOptions
  *
  * @typedef {{
- *  component: import("@odoo/owl").ComponentConstructor;
+ *  component: import("@insilos/owl").ComponentConstructor;
  *  props: unknown;
  * }} TestRootProps
  */

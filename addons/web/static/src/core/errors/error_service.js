@@ -2,7 +2,7 @@ import { browser } from "../browser/browser";
 import { registry } from "../registry";
 import { completeUncaughtError, getErrorTechnicalName } from "./error_utils";
 import { isBrowserFirefox, isBrowserChrome } from "@web/core/browser/feature_detection";
-import { usePlugin, useScope } from "@odoo/owl";
+import { usePlugin, useScope } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 
 export class HTMLElementLoadingError extends Error {

@@ -3,7 +3,7 @@ import { registry } from "@web/core/registry";
 import { standardFieldProps } from "../standard_field_props";
 import { formatJson } from "@web/views/fields/formatters";
 
-import { Component, useProps } from "@odoo/owl";
+import { Component, useProps } from "@insilos/owl";
 
 export class JsonField extends Component {
     static template = "web.JsonField";

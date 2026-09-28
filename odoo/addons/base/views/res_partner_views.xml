@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
     <data>
 
         <!-- PARTNER TREE VIEW + MUTI_EDIT: VISIBLE FIELDS WITH ONCHANGE ON BASE/PARTNER
@@ -621,4 +621,4 @@
             </field>
         </record>
     </data>
-</odoo>
+</data>

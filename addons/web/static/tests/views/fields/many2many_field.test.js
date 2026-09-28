@@ -1,6 +1,6 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { press, queryAllTexts, queryFirst } from "@odoo/hoot-dom";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
+import { describe, expect, test } from "@insilos/hoot";
+import { press, queryAllTexts, queryFirst } from "@insilos/hoot-dom";
+import { animationFrame, runAllTimers } from "@insilos/hoot-mock";
 
 import {
     Command,
@@ -27,7 +27,7 @@ import { useService } from "@web/core/utils/hooks";
 import { X2ManyField, x2ManyField } from "@web/views/fields/x2many/x2many_field";
 import { Many2XAutocomplete, many2XAutocompleteProps } from "@web/views/fields/relational_utils";
 import { cookie } from "@web/core/browser/cookie";
-import { t } from "@odoo/owl";
+import { t } from "@insilos/owl";
 import { ListRenderer } from "@web/views/list/list_renderer";
 
 describe.current.tags("desktop");

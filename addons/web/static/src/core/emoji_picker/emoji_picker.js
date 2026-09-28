@@ -17,7 +17,7 @@ import {
     useListener,
     useProps,
     xml,
-} from "@odoo/owl";
+} from "@insilos/owl";
 
 import { isMobileOS } from "@web/core/browser/feature_detection";
 import { _t } from "@web/core/l10n/translation";
@@ -464,7 +464,7 @@ export class EmojiPicker extends Component {
 }
 
 /**
- * @param {import("@odoo/owl").ComponentConstructor} PickerComponent
+ * @param {import("@insilos/owl").ComponentConstructor} PickerComponent
  * @param {import("@web/core/utils/hooks").Ref} [ref]
  * @param {Object} props
  * @param {() => {}} [props.onSelect] function that is invoked when an item in picker has been selected.

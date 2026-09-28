@@ -1,12 +1,12 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
-
-
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+ 
+ 
 {
     'name': 'Base',
     'version': '1.3',
     'category': 'Hidden',
     'description': """
-The kernel of Odoo, needed for all installation.
+The kernel of Insilos Platform, needed for all installation.
 ===================================================
 """,
     'data': [
@@ -95,6 +95,7 @@ The kernel of Odoo, needed for all installation.
     },
     'auto_install': True,
     'post_init_hook': 'post_init',
-    'author': 'Odoo S.A.',
+    'author': 'Insilos Core Team',
+    'website': 'https://insilos.com',
     'license': 'LGPL-3',
 }

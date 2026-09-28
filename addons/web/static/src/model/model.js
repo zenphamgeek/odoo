@@ -15,7 +15,7 @@ import {
     signal,
     useProps,
     useScope,
-} from "@odoo/owl";
+} from "@insilos/owl";
 
 /**
  * @typedef {import("@web/env").OdooEnv} OdooEnv

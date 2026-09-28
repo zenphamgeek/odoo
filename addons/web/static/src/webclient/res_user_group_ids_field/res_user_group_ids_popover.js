@@ -1,4 +1,4 @@
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 import { omit } from "@web/core/utils/objects";
 

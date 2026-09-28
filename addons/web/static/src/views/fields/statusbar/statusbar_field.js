@@ -1,5 +1,5 @@
 import { onWillRender, render } from "@web/owl2/utils";
-import { Component, signal, t, onMounted, onPatched, useListener, useProps } from "@odoo/owl";
+import { Component, signal, t, onMounted, onPatched, useListener, useProps } from "@insilos/owl";
 import { useCommand } from "@web/core/commands/command_hook";
 import { Domain } from "@web/core/domain";
 import { Dropdown } from "@web/core/dropdown/dropdown";

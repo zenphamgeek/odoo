@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { queryText } from "@odoo/hoot-dom";
+import { expect, test } from "@insilos/hoot";
+import { queryText } from "@insilos/hoot-dom";
 import {
     clickSave,
     contains,

@@ -1,9 +1,9 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo import http, _
-from odoo.fields import Domain
-from odoo.http import Controller, request
-from odoo.exceptions import ValidationError
+from insilos import http, _
+from insilos.fields import Domain
+from insilos.http import Controller, request
+from insilos.exceptions import ValidationError
 
 
 class DomainController(Controller):

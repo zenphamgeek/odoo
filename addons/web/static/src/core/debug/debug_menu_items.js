@@ -4,7 +4,7 @@ import { router } from "@web/core/browser/router";
 import { registry } from "@web/core/registry";
 import { user } from "@web/core/user";
 import { isRPCCacheDisabled } from "@web/core/network/rpc_cache";
-import { usePlugin } from "@odoo/owl";
+import { usePlugin } from "@insilos/owl";
 import { ORM } from "@web/core/orm_plugin";
 
 function activateTestsAssetsDebugging() {

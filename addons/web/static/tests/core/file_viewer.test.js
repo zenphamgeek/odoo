@@ -1,5 +1,5 @@
-import { expect, test, waitFor } from "@odoo/hoot";
-import { click } from "@odoo/hoot-dom";
+import { expect, test, waitFor } from "@insilos/hoot";
+import { click } from "@insilos/hoot-dom";
 import { mountWithCleanup } from "@web/../tests/web_test_helpers";
 
 import { FileModel } from "@web/core/file_viewer/file_model";

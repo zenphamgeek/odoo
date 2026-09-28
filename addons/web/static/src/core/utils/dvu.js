@@ -26,7 +26,7 @@
  * - https://developer.mozilla.org/en-US/docs/Web/API/VirtualKeyboard_API
  */
 
-import { onWillDestroy, Plugin, useListener, usePlugin } from "@odoo/owl";
+import { onWillDestroy, Plugin, useListener, usePlugin } from "@insilos/owl";
 import { browser } from "@web/core/browser/browser";
 import { isVirtualKeyboardSupported } from "@web/core/browser/feature_detection";
 import { services } from "@web/core/services";

@@ -3,7 +3,7 @@
  *
  * @class
  */
-import { Component, onMounted, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, onMounted, proxy, signal, t, useProps } from "@insilos/owl";
 import { useHotkey } from "@web/core/hotkeys/hotkey_hook";
 import { useBackButton } from "@web/core/utils/hooks";
 import { useThrottleForAnimation } from "@web/core/utils/timing";

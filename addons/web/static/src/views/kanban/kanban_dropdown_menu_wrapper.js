@@ -1,4 +1,4 @@
-import { Component, onMounted, onPatched, signal, t, useProps } from "@odoo/owl";
+import { Component, onMounted, onPatched, signal, t, useProps } from "@insilos/owl";
 import { useDropdownCloser } from "@web/core/dropdown/dropdown_hooks";
 
 export class KanbanDropdownMenuWrapper extends Component {

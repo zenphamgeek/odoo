@@ -5,8 +5,8 @@ import {
     beforeEach,
     getCurrent,
     registerDebugInfo,
-} from "@odoo/hoot";
-import { App, Scope } from "@odoo/owl";
+} from "@insilos/hoot";
+import { App, Scope } from "@insilos/owl";
 import { startRouter } from "@web/core/browser/router";
 import { appTranslateFn } from "@web/core/l10n/translation";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";

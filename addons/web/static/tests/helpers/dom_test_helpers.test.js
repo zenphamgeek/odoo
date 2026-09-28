@@ -1,6 +1,6 @@
-import { expect, onError, test } from "@odoo/hoot";
-import { on } from "@odoo/hoot-dom";
-import { Component, signal, xml } from "@odoo/owl";
+import { expect, onError, test } from "@insilos/hoot";
+import { on } from "@insilos/hoot-dom";
+import { Component, signal, xml } from "@insilos/owl";
 import { contains, isSmall, mountWithCleanup } from "@web/../tests/web_test_helpers";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";

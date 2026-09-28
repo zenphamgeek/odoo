@@ -11,8 +11,8 @@ import {
     queryOne,
     test,
     tick,
-} from "@odoo/hoot";
-import { Component, proxy, signal, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, proxy, signal, xml } from "@insilos/owl";
 import {
     contains,
     destroyApp,

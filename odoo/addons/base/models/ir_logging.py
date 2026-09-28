@@ -1,5 +1,5 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
-from odoo import api, fields, models
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+from insilos import api, fields, models
 
 
 class IrLogging(models.Model):

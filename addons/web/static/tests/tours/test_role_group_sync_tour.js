@@ -119,7 +119,7 @@ registry.category("web_tour.tours").add("role_sync_regular_save_light_save_regul
 });
 
 // set the role but never click Save: reload right away and see whether
-// anything at all was persisted (Odoo's edit-discard-on-navigate path,
+// anything at all was persisted (Insilos's edit-discard-on-navigate path,
 // as opposed to an explicit Save click)
 registry.category("web_tour.tours").add("role_sync_set_light_no_save_then_reload", {
     steps: () => [waitForRoleRadio(), setRole("light_user"), ...reloadPage()],

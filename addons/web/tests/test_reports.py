@@ -2,21 +2,21 @@ import io
 import tempfile
 from unittest.mock import Mock, patch
 
-import odoo.tests
-from odoo.exceptions import UserError
-from odoo.http.session import session_store
-from odoo.tests import no_retry, tagged
-from odoo.tools import mute_logger
-from odoo.tools.pdf import PdfReader
+import insilos.tests
+from insilos.exceptions import UserError
+from insilos.http.session import session_store
+from insilos.tests import no_retry, tagged
+from insilos.tools import mute_logger
+from insilos.tools.pdf import PdfReader
 
-from odoo.addons.base.tests.files import PNG_RAW
-from odoo.addons.http_routing.tests.common import MockRequest
+from insilos.addons.base.tests.files import PNG_RAW
+from insilos.addons.http_routing.tests.common import MockRequest
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
-class TestReports(odoo.tests.HttpCase):
+class TestReports(insilos.tests.HttpCase):
     def test_report_session_cookie(self):
-        """ Asserts wkhtmltopdf forwards the user session when requesting resources to Odoo, such as images,
+        """ Asserts wkhtmltopdf forwards the user session when requesting resources to Insilos, such as images,
         and that the resource is correctly returned as expected.
         """
         partner_id = self.env.user.partner_id.id
@@ -141,7 +141,7 @@ class TestReports(odoo.tests.HttpCase):
             "the font loaded, but its ligatures were not applied",
         )
 
-    @mute_logger('odoo.addons.base_report_wkhtmltox.models.ir_actions_report')
+    @mute_logger('insilos.addons.base_report_wkhtmltox.models.ir_actions_report')
     @no_retry
     def test_report_error_cleanup(self):
         admin = self.env.ref('base.user_admin')

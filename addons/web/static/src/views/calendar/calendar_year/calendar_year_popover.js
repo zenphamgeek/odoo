@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { formatDate } from "@web/core/l10n/dates";
 import { useService } from "@web/core/utils/hooks";

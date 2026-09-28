@@ -8,8 +8,8 @@ import {
     onRpc,
     stepAllNetworkCalls,
 } from "../web_test_helpers";
-import { beforeEach, describe, expect, test } from "@odoo/hoot";
-import { queryAllTexts } from "@odoo/hoot-dom";
+import { beforeEach, describe, expect, test } from "@insilos/hoot";
+import { queryAllTexts } from "@insilos/hoot-dom";
 import { registry } from "@web/core/registry";
 
 /** Foo is dummy model to test `action.report` with domain of its field `value`. **/

@@ -1,11 +1,11 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from contextlib import contextmanager
 from unittest.mock import patch, Mock
 
-from odoo import Command, models
-from odoo.tests.common import new_test_user, TransactionCase, HttpCase
-from odoo.tools.mail import email_split_and_format
+from insilos import Command, models
+from insilos.tests.common import new_test_user, TransactionCase, HttpCase
+from insilos.tools.mail import email_split_and_format
 
 DISABLED_MAIL_CREATE_CONTEXT = {
     'mail_create_nolog': True,

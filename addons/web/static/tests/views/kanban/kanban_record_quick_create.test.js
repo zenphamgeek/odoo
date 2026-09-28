@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
+import { beforeEach, expect, test } from "@insilos/hoot";
 import {
     click,
     drag,
@@ -9,8 +9,8 @@ import {
     queryFirst,
     resize,
     unload,
-} from "@odoo/hoot-dom";
-import { animationFrame, mockSendBeacon, runAllTimers } from "@odoo/hoot-mock";
+} from "@insilos/hoot-dom";
+import { animationFrame, mockSendBeacon, runAllTimers } from "@insilos/hoot-mock";
 import {
     clickModalButton,
     contains,
@@ -1731,7 +1731,7 @@ test("quick create record: cancel when modal is opened", async () => {
     // will NOT close the quick create.
     // This can happen when the user clicks out of the input because of a race condition between
     // the focusout of the m2o and the global 'click' handler of the quick create.
-    // Check odoo/odoo#61981 for more details.
+    // Check insilos/insilos#61981 for more details.
     expect(".o_dialog").toHaveCount(1, { message: "modal should be opening after m2o focusout" });
     expect(document.body).toHaveClass("modal-open");
     await click(document.body);

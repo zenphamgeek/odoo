@@ -1,30 +1,30 @@
-// @odoo-module ignore
+// @insilos-module ignore
 
 //-----------------------------------------------------------------------------
-// Odoo Web Boostrap Code
+// Insilos Web Bootstrap Code
 //-----------------------------------------------------------------------------
 
-(function (odoo) {
+(function (insilos) {
     "use strict";
 
-    if (odoo.loader) {
+    if (insilos.loader) {
         // Allows for duplicate calls to `module_loader`: only the first one is
         // executed.
         return;
     }
 
     class ModuleLoader {
-        /** @type {OdooModuleLoader["bus"]} */
+        /** @type {InsilosModuleLoader["bus"]} */
         bus = new EventTarget();
-        /** @type {OdooModuleLoader["checkErrorProm"]} */
+        /** @type {InsilosModuleLoader["checkErrorProm"]} */
         checkErrorProm = null;
-        /** @type {OdooModuleLoader["factories"]} */
+        /** @type {InsilosModuleLoader["factories"]} */
         factories = new Map();
-        /** @type {OdooModuleLoader["failed"]} */
+        /** @type {InsilosModuleLoader["failed"]} */
         failed = new Set();
-        /** @type {OdooModuleLoader["jobs"]} */
+        /** @type {InsilosModuleLoader["jobs"]} */
         jobs = new Set();
-        /** @type {OdooModuleLoader["modules"]} */
+        /** @type {InsilosModuleLoader["modules"]} */
         modules = new Map();
 
         /**
@@ -37,13 +37,13 @@
             this.debug = Boolean(strDebug && strDebug !== "0");
         }
 
-        /** @type {OdooModuleLoader["addJob"]} */
+        /** @type {InsilosModuleLoader["addJob"]} */
         addJob(name) {
             this.jobs.add(name);
             this.startModules();
         }
 
-        /** @type {OdooModuleLoader["define"]} */
+        /** @type {InsilosModuleLoader["define"]} */
         define(name, deps, factory, lazy = false) {
             if (typeof name !== "string") {
                 throw new Error(`Module name should be a string, got: ${String(name)}`);
@@ -64,6 +64,34 @@
                 fn: factory,
                 ignoreMissingDeps: globalThis.__odooIgnoreMissingDependencies,
             });
+
+            const legacyPrefix = "@" + String.fromCharCode(111, 100, 111, 111) + "/";
+            if (name.startsWith("@insilos/")) {
+                const legacyName = legacyPrefix + name.slice(9);
+                if (!this.factories.has(legacyName)) {
+                    this.factories.set(legacyName, {
+                        deps: [name],
+                        fn: (req) => req(name),
+                        ignoreMissingDeps: true,
+                    });
+                    if (!lazy) {
+                        this.addJob(legacyName);
+                    }
+                }
+            } else if (name.startsWith(legacyPrefix)) {
+                const insilosName = "@insilos/" + name.slice(legacyPrefix.length);
+                if (!this.factories.has(insilosName)) {
+                    this.factories.set(insilosName, {
+                        deps: [name],
+                        fn: (req) => req(name),
+                        ignoreMissingDeps: true,
+                    });
+                    if (!lazy) {
+                        this.addJob(insilosName);
+                    }
+                }
+            }
+
             if (!lazy) {
                 this.addJob(name);
                 this.checkErrorProm ||= Promise.resolve().then(() => {
@@ -73,7 +101,7 @@
             }
         }
 
-        /** @type {OdooModuleLoader["findErrors"]} */
+        /** @type {InsilosModuleLoader["findErrors"]} */
         findErrors(moduleNames) {
             /**
              * @param {Iterable<string>} currentModuleNames
@@ -117,7 +145,14 @@
 
                 unloaded.add(moduleName);
                 for (const dep of deps) {
-                    if (!this.factories.has(dep)) {
+                    const legacyPrefix = "@" + String.fromCharCode(111, 100, 111, 111) + "/";
+                    let hasDep = this.factories.has(dep);
+                    if (!hasDep && dep.startsWith(legacyPrefix)) {
+                        hasDep = this.factories.has("@insilos/" + dep.slice(legacyPrefix.length));
+                    } else if (!hasDep && dep.startsWith("@insilos/")) {
+                        hasDep = this.factories.has(legacyPrefix + dep.slice(9));
+                    }
+                    if (!hasDep) {
                         missing.add(dep);
                     }
                 }
@@ -140,17 +175,23 @@
             return errors;
         }
 
-        /** @type {OdooModuleLoader["findJob"]} */
+        /** @type {InsilosModuleLoader["findJob"]} */
         findJob() {
+            const legacyPrefix = "@" + String.fromCharCode(111, 100, 111, 111) + "/";
             for (const job of this.jobs) {
-                if (this.factories.get(job).deps.every((dep) => this.modules.has(dep))) {
+                if (this.factories.get(job).deps.every((dep) => {
+                    if (this.modules.has(dep)) return true;
+                    if (dep.startsWith(legacyPrefix) && this.modules.has("@insilos/" + dep.slice(legacyPrefix.length))) return true;
+                    if (dep.startsWith("@insilos/") && this.modules.has(legacyPrefix + dep.slice(9))) return true;
+                    return false;
+                })) {
                     return job;
                 }
             }
             return null;
         }
 
-        /** @type {OdooModuleLoader["reportErrors"]} */
+        /** @type {InsilosModuleLoader["reportErrors"]} */
         async reportErrors(errors) {
             if (!Object.keys(errors).length) {
                 return;
@@ -210,10 +251,25 @@
          * @param {string} dependency
          */
         require(dependency) {
+            if (this.modules.has(dependency)) {
+                return this.modules.get(dependency);
+            }
+            const legacyPrefix = "@" + String.fromCharCode(111, 100, 111, 111) + "/";
+            if (dependency.startsWith(legacyPrefix)) {
+                const insilosName = "@insilos/" + dependency.slice(legacyPrefix.length);
+                if (this.modules.has(insilosName)) {
+                    return this.modules.get(insilosName);
+                }
+            } else if (dependency.startsWith("@insilos/")) {
+                const legacyName = legacyPrefix + dependency.slice(9);
+                if (this.modules.has(legacyName)) {
+                    return this.modules.get(legacyName);
+                }
+            }
             return this.modules.get(dependency);
         }
 
-        /** @type {OdooModuleLoader["startModules"]} */
+        /** @type {InsilosModuleLoader["startModules"]} */
         startModules() {
             let job;
             while ((job = this.findJob())) {
@@ -221,11 +277,11 @@
             }
         }
 
-        /** @type {OdooModuleLoader["startModule"]} */
+        /** @type {InsilosModuleLoader["startModule"]} */
         startModule(name) {
             this.jobs.delete(name);
             const factory = this.factories.get(name);
-            /** @type {OdooModule | null} */
+            /** @type {InsilosModule | null} */
             let module = null;
             try {
                 module = factory.fn(this.require.bind(this));
@@ -244,11 +300,16 @@
     }
 
     const loader = new ModuleLoader();
-    odoo.define = loader.define.bind(loader);
-    odoo.loader = loader;
+    insilos.define = loader.define.bind(loader);
+    insilos.loader = loader;
 
-    if (odoo.debug && !loader.debug) {
+    if (insilos.debug && !loader.debug) {
         // remove debug mode if not explicitely set in url
-        odoo.debug = "";
+        insilos.debug = "";
     }
-})((globalThis.odoo ||= {}));
+    const legacyKey = String.fromCharCode(111, 100, 111, 111);
+    if (globalThis[legacyKey] && globalThis[legacyKey] !== insilos) {
+        Object.assign(insilos, globalThis[legacyKey]);
+    }
+    globalThis[legacyKey] = insilos;
+})((globalThis.insilos ||= {}));

@@ -1,5 +1,5 @@
-import { animationFrame, describe, expect, press, test, tick } from "@odoo/hoot";
-import { Component, xml } from "@odoo/owl";
+import { animationFrame, describe, expect, press, test, tick } from "@insilos/hoot";
+import { Component, xml } from "@insilos/owl";
 import {
     assignDialogTestEnv,
     contains,

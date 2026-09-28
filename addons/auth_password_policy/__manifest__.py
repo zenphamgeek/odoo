@@ -1,3 +1,5 @@
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+
 {
     'name': "Password Policy",
     "summary": "Implement basic password policy configuration & check",
@@ -18,6 +20,7 @@
             'auth_password_policy/static/src/password_policy.js',
         ],
     },
-    'author': 'Odoo S.A.',
+    'author': 'Insilos Core Team',
+    'website': 'https://insilos.com',
     'license': 'LGPL-3',
 }

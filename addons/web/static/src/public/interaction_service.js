@@ -1,4 +1,4 @@
-import { Scope, useApp, useScope } from "@odoo/owl";
+import { Scope, useApp, useScope } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import { addLoadingEffect, isClickable } from "@web/core/utils/ui";
 import { Colibri } from "./colibri";

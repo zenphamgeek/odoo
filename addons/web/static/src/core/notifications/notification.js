@@ -1,4 +1,4 @@
-import { Component, useEffect, useProps, signal, applyDefaults } from "@odoo/owl";
+import { Component, useEffect, useProps, signal, applyDefaults } from "@insilos/owl";
 import { NotificationSchema } from "./notification_plugin";
 import { useTimer } from "@web/core/utils/timing";
 

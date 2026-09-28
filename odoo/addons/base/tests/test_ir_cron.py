@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 # ruff: noqa: E201, E241, E272, E301, E306
 
@@ -12,11 +12,11 @@ from unittest.mock import patch
 
 import freezegun
 
-from odoo import fields
-from odoo.tests.common import RecordCapturer, TransactionCase, tagged, freeze_time
-from odoo.tools import mute_logger
+from insilos import fields
+from insilos.tests.common import RecordCapturer, TransactionCase, tagged, freeze_time
+from insilos.tools import mute_logger
 
-from odoo.addons.base.models.ir_cron import (
+from insilos.addons.base.models.ir_cron import (
     MIN_DELTA_BEFORE_DEACTIVATION,
     MIN_FAILURE_COUNT_BEFORE_DEACTIVATION,
     MIN_TIME_PER_JOB,
@@ -119,7 +119,7 @@ class TestIrCron(TransactionCase, CronMixinCase):
         self.cron.code = textwrap.dedent("raise UserError('oops')")
         with (
             self.enter_registry_test_mode(),
-            self.assertLogs('odoo.addons.base.models.ir_cron', 40),  # logging.ERROR
+            self.assertLogs('insilos.addons.base.models.ir_cron', 40),  # logging.ERROR
             self.registry.cursor() as cron_cr,
         ):
             action = self.cron.with_env(self.env(cr=cron_cr)).method_direct_trigger()
@@ -334,7 +334,7 @@ class TestIrCron(TransactionCase, CronMixinCase):
                 self.env.flush_all()
                 with self.enter_registry_test_mode():
                     cb, state = cb(self.cron)
-                    with mute_logger('odoo.addons.base.models.ir_cron'),\
+                    with mute_logger('insilos.addons.base.models.ir_cron'),\
                             patch.object(self.registry['ir.actions.server'], 'run', cb),\
                             self.registry.cursor() as cr:
                         self.registry['ir.cron']._process_job(
@@ -453,7 +453,7 @@ class TestIrCron(TransactionCase, CronMixinCase):
             with (
                 patch.object(self.registry['ir.cron'], '_callback', side_effect=Exception),
                 patch.object(self.registry['ir.cron'], '_notify_admin') as notify,
-                mute_logger('odoo.addons.base.models.ir_cron'),
+                mute_logger('insilos.addons.base.models.ir_cron'),
                 self.registry.cursor() as cr,
             ):
                 self.registry['ir.cron']._process_job(
@@ -474,7 +474,7 @@ class TestIrCron(TransactionCase, CronMixinCase):
             self.enter_registry_test_mode(),
             patch.object(self.registry['ir.cron'], '_callback', side_effect=Exception),
             patch.object(self.registry['ir.cron'], '_notify_admin') as notify,
-            mute_logger('odoo.addons.base.models.ir_cron'),
+            mute_logger('insilos.addons.base.models.ir_cron'),
             self.registry.cursor() as cr,
         ):
             self.registry['ir.cron']._process_job(
@@ -496,7 +496,7 @@ class TestIrCron(TransactionCase, CronMixinCase):
             self.enter_registry_test_mode(),
             patch.object(self.registry['ir.cron'], '_callback', side_effect=Exception),
             patch.object(self.registry['ir.cron'], '_notify_admin') as notify,
-            mute_logger('odoo.addons.base.models.ir_cron'),
+            mute_logger('insilos.addons.base.models.ir_cron'),
             self.registry.cursor() as cr,
         ):
             self.registry['ir.cron']._process_job(
@@ -518,7 +518,7 @@ class TestIrCron(TransactionCase, CronMixinCase):
             self.enter_registry_test_mode(),
             patch.object(self.registry['ir.cron'], '_callback', side_effect=Exception),
             patch.object(self.registry['ir.cron'], '_notify_admin') as notify,
-            mute_logger('odoo.addons.base.models.ir_cron'),
+            mute_logger('insilos.addons.base.models.ir_cron'),
             self.registry.cursor() as cr,
         ):
             self.registry['ir.cron']._process_job(
@@ -540,7 +540,7 @@ class TestIrCron(TransactionCase, CronMixinCase):
             self.enter_registry_test_mode(),
             patch.object(self.registry['ir.cron'], '_callback', side_effect=Exception),
             patch.object(self.registry['ir.cron'], '_notify_admin') as notify,
-            mute_logger('odoo.addons.base.models.ir_cron'),
+            mute_logger('insilos.addons.base.models.ir_cron'),
             self.registry.cursor() as cr,
         ):
             self.registry['ir.cron']._process_job(
@@ -562,7 +562,7 @@ class TestIrCron(TransactionCase, CronMixinCase):
                 'timed_out_counter': 3,
         }])
         self.env.flush_all()
-        with self.enter_registry_test_mode(), mute_logger('odoo.addons.base.models.ir_cron'), self.registry.cursor() as cr:
+        with self.enter_registry_test_mode(), mute_logger('insilos.addons.base.models.ir_cron'), self.registry.cursor() as cr:
             self.registry['ir.cron']._process_job(
                 cr,
                 {**progress.read(fields=['done', 'remaining', 'timed_out_counter'], load=None)[0], 'progress_id': progress.id, **self.cron.read(load=None)[0]}
@@ -591,7 +591,7 @@ class TestIrCron(TransactionCase, CronMixinCase):
                 'timed_out_counter': 3,
         }])
         self.env.flush_all()
-        with self.enter_registry_test_mode(), mute_logger('odoo.addons.base.models.ir_cron'), self.registry.cursor() as cr:
+        with self.enter_registry_test_mode(), mute_logger('insilos.addons.base.models.ir_cron'), self.registry.cursor() as cr:
             self.registry['ir.cron']._process_job(
                 cr,
                 {**progress.read(fields=['done', 'remaining', 'timed_out_counter'], load=None)[0], 'progress_id': progress.id, **self.cron.read(load=None)[0]}

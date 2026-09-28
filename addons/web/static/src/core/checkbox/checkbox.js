@@ -1,6 +1,6 @@
 import { useHotkey } from "../hotkeys/hotkey_hook";
 
-import { Component, signal, t, useProps } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@insilos/owl";
 
 /**
  * Custom checkbox

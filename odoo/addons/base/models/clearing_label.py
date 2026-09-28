@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from insilos import api, fields, models
 
 
 class ClearingLabel(models.Model):

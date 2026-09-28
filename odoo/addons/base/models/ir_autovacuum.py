@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import collections
 import inspect
@@ -6,10 +6,10 @@ import logging
 import random
 import time
 
-from odoo import api, models
-from odoo.exceptions import AccessDenied
-from odoo.modules.registry import _CACHES_BY_KEY
-from odoo.tools import SQL
+from insilos import api, models
+from insilos.exceptions import AccessDenied
+from insilos.modules.registry import _CACHES_BY_KEY
+from insilos.tools import SQL
 
 _logger = logging.getLogger(__name__)
 

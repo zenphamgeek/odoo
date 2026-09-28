@@ -10,7 +10,7 @@ import {
     usePlugin,
     useEffect,
     useListener,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { memoize } from "@web/core/utils/functions";
 import { Record } from "@web/model/record";

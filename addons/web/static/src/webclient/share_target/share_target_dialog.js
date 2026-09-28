@@ -1,4 +1,4 @@
-import { Component, onWillDestroy, onWillStart, proxy, t, useProps } from "@odoo/owl";
+import { Component, onWillDestroy, onWillStart, proxy, t, useProps } from "@insilos/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { generatePdfThumbnail } from "@web/core/utils/pdfjs";
 import { ShareTargetItem } from "@web/webclient/share_target/share_target_item";

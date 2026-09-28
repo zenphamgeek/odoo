@@ -1,4 +1,4 @@
-import { markRaw } from "@odoo/owl";
+import { markRaw } from "@insilos/owl";
 import { Reactive } from "@web/core/utils/reactive";
 import { getId } from "./utils";
 

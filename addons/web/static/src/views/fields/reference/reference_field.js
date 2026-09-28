@@ -1,4 +1,4 @@
-import { Component, computed, proxy, t, untrack, useEffect, useProps } from "@odoo/owl";
+import { Component, computed, proxy, t, untrack, useEffect, useProps } from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useRecordObserver } from "@web/model/relational_model/utils";
@@ -48,7 +48,7 @@ export class ReferenceField extends Component {
 
     isCharField = computed(() => this.props.record.fields[this.props.name].type === "char");
 
-    /** @type {import("@odoo/owl").ReactiveValue<ReferenceValue>} */
+    /** @type {import("@insilos/owl").ReactiveValue<ReferenceValue>} */
     getValue = computed(() =>
         this.isCharField() ? this.state.formattedCharValue : this.props.record.data[this.props.name]
     );

@@ -1,6 +1,6 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo import models
+from insilos import models
 
 
 class IrUiView(models.Model):
@@ -21,11 +21,11 @@ class IrUiView(models.Model):
 
     def _get_view_info(self):
         return {
-            'list': {'icon': 'reorder'},
-            'form': {'icon': 'contact_mail', 'multi_record': False},
-            'graph': {'icon': 'bar_chart'},
-            'pivot': {'icon': 'oi_view-pivot'},
-            'kanban': {'icon': 'oi_view-kanban'},
-            'calendar': {'icon': 'calendar_today'},
-            'search': {'icon': 'search'},
+            'list': {'icon': 'list-dashes'},
+            'form': {'icon': 'identification-card', 'multi_record': False},
+            'graph': {'icon': 'chart-bar'},
+            'pivot': {'icon': 'table'},
+            'kanban': {'icon': 'kanban'},
+            'calendar': {'icon': 'calendar'},
+            'search': {'icon': 'magnifying-glass'},
         }

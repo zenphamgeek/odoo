@@ -1,7 +1,7 @@
 import { ConnectionLostError } from "@web/core/network/rpc";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 
-import { animationFrame, expect, test } from "@odoo/hoot";
+import { animationFrame, expect, test } from "@insilos/hoot";
 import { getService, makeTestApp } from "@web/../tests/web_test_helpers";
 
 test("ConnectionLostError handler", async () => {

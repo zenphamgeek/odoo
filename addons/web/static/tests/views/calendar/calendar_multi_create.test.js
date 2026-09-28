@@ -1,12 +1,12 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
-import { click, edit, keyDown, keyUp, queryAllTexts, queryAll } from "@odoo/hoot-dom";
+import { beforeEach, expect, test } from "@insilos/hoot";
+import { click, edit, keyDown, keyUp, queryAllTexts, queryAll } from "@insilos/hoot-dom";
 import {
     advanceTime,
     animationFrame,
     disableAnimations,
     mockTimeZone,
     runAllTimers,
-} from "@odoo/hoot-mock";
+} from "@insilos/hoot-mock";
 import {
     contains,
     defineModels,

@@ -1,12 +1,12 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
 from os.path import join as opj
 import re
 
-from odoo import api, fields, models
-from odoo.http import request
-from odoo.tools import BinaryBytes, file_open
+from insilos import api, fields, models
+from insilos.http import request
+from insilos.tools import BinaryBytes, file_open
 
 MENU_ITEM_SEPARATOR = "/"
 NUMBER_PARENS = re.compile(r"\(([0-9]+)\)")

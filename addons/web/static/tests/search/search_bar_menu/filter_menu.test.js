@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { queryAll, queryAllTexts, queryFirst, queryOne } from "@odoo/hoot-dom";
-import { animationFrame, mockDate } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { queryAll, queryAllTexts, queryFirst, queryOne } from "@insilos/hoot-dom";
+import { animationFrame, mockDate } from "@insilos/hoot-mock";
 import {
     addNewRule,
     clickOnButtonAddBranch,

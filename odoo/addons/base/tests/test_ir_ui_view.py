@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import logging
 import re
 import time
@@ -12,11 +12,11 @@ from lxml.builder import E
 from psycopg2 import IntegrityError
 from psycopg2.extras import Json
 
-from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tests import common, tagged
-from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
-from odoo.tools import mute_logger, view_validation, safe_eval
-from odoo.addons.base.models import ir_ui_view
+from insilos.exceptions import AccessError, UserError, ValidationError
+from insilos.tests import common, tagged
+from insilos.addons.base.tests.common import TransactionCaseWithUserDemo
+from insilos.tools import mute_logger, view_validation, safe_eval
+from insilos.addons.base.models import ir_ui_view
 
 _logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ class ViewCase(TransactionCaseWithUserDemo):
         })
 
     def assertInvalid(self, arch, expected_message=None, name='invalid view', inherit_id=False, model='ir.ui.view'):
-        with mute_logger('odoo.addons.base.models.ir_ui_view'):
+        with mute_logger('insilos.addons.base.models.ir_ui_view'):
             with self.assertRaises(ValidationError) as catcher:
                 self.View.create({
                     'name': name,
@@ -61,7 +61,7 @@ class ViewCase(TransactionCaseWithUserDemo):
             _logger.warning(message)
 
     def assertWarning(self, arch, expected_message=None, name='invalid view', model='ir.ui.view'):
-        with self.assertLogs('odoo.addons.base.models.ir_ui_view', level="WARNING") as log_catcher:
+        with self.assertLogs('insilos.addons.base.models.ir_ui_view', level="WARNING") as log_catcher:
             self.View.create({
                 'name': name,
                 'model': model,
@@ -321,7 +321,7 @@ class TestViewInheritance(ViewCase):
             self.view_ids['A'].get_combined_arch()
 
     def test_view_validate_button_action_query_count(self):
-        from odoo.orm.cache import get_cache_key_counter  # noqa: PLC0415
+        from insilos.orm.cache import get_cache_key_counter  # noqa: PLC0415
         _, _, counter = get_cache_key_counter(self.env['ir.model.data']._xmlid_lookup, 'base.action_ui_view')
         hit, miss = counter.hit, counter.miss
 
@@ -347,7 +347,7 @@ class TestViewInheritance(ViewCase):
         self.assertEqual(counter.miss, miss + 2)
 
     def test_view_validate_attrs_groups_query_count(self):
-        from odoo.orm.cache import get_cache_key_counter  # noqa: PLC0415
+        from insilos.orm.cache import get_cache_key_counter  # noqa: PLC0415
         _, _, counter = get_cache_key_counter(self.env['ir.model.data']._xmlid_lookup, 'base.group_system')
         hit, miss = counter.hit, counter.miss
 
@@ -781,7 +781,7 @@ class TestApplyInheritanceSpecs(ViewCase):
                     name="target"),
                 string="Title"))
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_invalid_position(self):
         spec = E.field(
                 E.field(name="whoops"),
@@ -790,7 +790,7 @@ class TestApplyInheritanceSpecs(ViewCase):
         with self.assertRaises(ValueError):
             self.View.apply_inheritance_specs(self.base_arch, spec)
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_incorrect_version(self):
         # Version ignored on //field elements, so use something else
         arch = E.form(E.element(foo="42"))
@@ -801,7 +801,7 @@ class TestApplyInheritanceSpecs(ViewCase):
         with self.assertRaises(ValueError):
             self.View.apply_inheritance_specs(arch, spec)
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_target_not_found(self):
         spec = E.field(name="targut")
 
@@ -998,7 +998,7 @@ class TestApplyInheritanceMoveSpecs(ViewCase):
             )
         )
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_incorrect_move_1(self):
         # cannot move an inexisting element
         spec = E.xpath(
@@ -1008,7 +1008,7 @@ class TestApplyInheritanceMoveSpecs(ViewCase):
         with self.assertRaises(ValueError):
             self.apply_spec(self.base_arch, spec)
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_incorrect_move_2(self):
         # move xpath cannot contain any children
         spec = E.xpath(
@@ -3132,7 +3132,7 @@ class TestViews(ViewCase):
             </form>
         """, model='ir.attachment', field='access_token', valid=True)
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_attrs_missing_field(self):
         user = self.env['res.users'].create({
             'name': 'A User',
@@ -3670,7 +3670,7 @@ Forbidden owl directive used in arch (t-out).""",
 Forbidden owl directive used in arch (t-on-click).""",
         )
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_forbidden_owl_directives_in_kanban(self):
         arch = "<kanban><templates><t t-name='card'>%s</t></templates></kanban>"
         self.assertValid(arch % ('<span t-out="record.resId"/>'))
@@ -3684,7 +3684,7 @@ Forbidden owl directive used in arch (t-on-click).""",
 Forbidden owl directive used in arch (t-on-click).""",
         )
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_forbidden_data_tooltip_attributes_in_form(self):
         arch = "<form>%s</form>"
 
@@ -3696,7 +3696,7 @@ Forbidden owl directive used in arch (t-on-click).""",
 Forbidden attribute used in arch (data-tooltip-template)."""
         )
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_forbidden_data_tooltip_attributes_in_kanban(self):
         arch = "<kanban><templates><t t-name='card'>%s</t></templates></kanban>"
 
@@ -3716,7 +3716,7 @@ Forbidden attribute used in arch (data-tooltip-template)."""
 Forbidden attribute used in arch (t-attf-data-tooltip-template)."""
         )
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_forbidden_use_of___comp___in_kanban(self):
         arch = "<kanban><templates><t t-name='card'>%s</t></templates></kanban>"
         self.assertInvalid(
@@ -3727,7 +3727,7 @@ Forbidden attribute used in arch (t-attf-data-tooltip-template)."""
 Forbidden use of `__comp__` in arch."""
         )
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_check_primary_when_update_siblins_inherited_tree(self):
         # P: primary, E: extension
         #
@@ -4021,7 +4021,7 @@ class ViewModeField(ViewCase):
         view2.write({'inherit_id': view.id})
         self.assertEqual(view2.mode, 'extension')
 
-    @mute_logger('odoo.sql_db')
+    @mute_logger('insilos.sql_db')
     def testModeExplicit(self):
         view = self.View.create({
             'inherit_id': None,
@@ -4042,7 +4042,7 @@ class ViewModeField(ViewCase):
                 'arch': '<qweb/>'
             })
 
-    @mute_logger('odoo.sql_db')
+    @mute_logger('insilos.sql_db')
     def testPurePrimaryToExtension(self):
         """
         A primary view with inherit_id=None can't be converted to extension
@@ -5236,7 +5236,7 @@ class CompRegexTest(common.TransactionCase):
 @common.tagged('at_install', '-post_install', 'modifiers')
 class ViewModifiers(ViewCase):
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_01_modifiers(self):
         def _test_modifiers(what, expected_vnames):
             if isinstance(what, dict):
@@ -5330,7 +5330,7 @@ class ViewModifiers(ViewCase):
         _test_modifiers({"invisible": str_true}, set())
         _test_modifiers({"invisible": False}, set())
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_03_modifier_attribute_is_boolean(self):
         arch = """
             <form string="View">
@@ -5378,7 +5378,7 @@ class ViewModifiers(ViewCase):
             result = safe_eval.safe_eval(result, {'context': context, 'type': type_value})
             self.assertEqual(bool(result), expected, f"With context: {context}")
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_10_raise_for_old_attributes(self):
         arch = """
             <form string="View">
@@ -5398,7 +5398,7 @@ class ViewModifiers(ViewCase):
         """
         self.assertInvalid(arch, """no longer used""")
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_11_attrs_field(self):
         arch = """
             <form string="View">
@@ -5415,7 +5415,7 @@ class ViewModifiers(ViewCase):
         view_arch = view.get_views([(view.id, 'form')])['views']['form']['arch']
         self.assertTrue(etree.fromstring(view_arch).xpath('//field[@name="model"][@invisible][@readonly]'))
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_12_invalid_syntax(self):
         arch = """
             <form string="View">
@@ -5443,7 +5443,7 @@ class ViewModifiers(ViewCase):
             """Invalid modifier 'readonly'""",
         )
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_13_attrs_states_invisible_to_modifier(self):
         view = self.View.create({
             'name': 'foo',
@@ -5473,7 +5473,7 @@ class ViewModifiers(ViewCase):
         invisible = tree.xpath('//field[@name="name"]')[0].get('invisible')
         self.assertEqual(invisible, "name != 'bidule' and category_id != uid and state not in ('draf', 'finished')")
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_14_attrs_subfield(self):
         arch = """
             <form string="View">
@@ -5499,7 +5499,7 @@ class ViewModifiers(ViewCase):
         view_arch = view.get_views([(view.id, 'form')])['views']['form']['arch']
         self.assertTrue(etree.fromstring(view_arch).xpath('//field[@name="model"][@invisible][@readonly]'))
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_15_attrs_subfield_with_parent(self):
         arch = """
             <form string="View">
@@ -5560,7 +5560,7 @@ class ViewModifiers(ViewCase):
         self.assertTrue(tree.xpath('//div[@id="foo"]'))
         self.assertTrue(tree.xpath('//div[@id="bar"]'))
 
-    @mute_logger('odoo.addons.base.models.ir_ui_view')
+    @mute_logger('insilos.addons.base.models.ir_ui_view')
     def test_17_attrs_groups_validation(self):
         test_group = self.env['res.groups'].create({'name': 'test_group'})
         self.env['ir.model.data'].create({

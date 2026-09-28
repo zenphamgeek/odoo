@@ -9,7 +9,7 @@ import {
     useEffect,
     useProps,
     xml,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { hasTouch } from "@web/core/browser/feature_detection";
 import { useDropdownGroup } from "@web/core/dropdown/_behaviours/dropdown_group_hook";
 import { useDropdownNesting } from "@web/core/dropdown/_behaviours/dropdown_nesting";

@@ -15,7 +15,7 @@ import { renderToMarkup } from "@web/core/utils/render";
 import { useChart } from "@web/core/utils/chart_hook";
 import { useService } from "@web/core/utils/hooks";
 
-import { Component, markup, signal, t, useProps } from "@odoo/owl";
+import { Component, markup, signal, t, useProps } from "@insilos/owl";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { cookie } from "@web/core/browser/cookie";

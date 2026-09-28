@@ -1,6 +1,6 @@
 import { startInteractions, setupInteractionWhiteList } from "@web/../tests/public/helpers";
-import { describe, expect, test } from "@odoo/hoot";
-import { click, queryOne } from "@odoo/hoot-dom";
+import { describe, expect, test } from "@insilos/hoot";
+import { click, queryOne } from "@insilos/hoot-dom";
 
 setupInteractionWhiteList("web.show_password");
 

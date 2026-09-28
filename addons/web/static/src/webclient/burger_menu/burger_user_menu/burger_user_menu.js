@@ -1,4 +1,4 @@
-import { t, useProps } from "@odoo/owl";
+import { t, useProps } from "@insilos/owl";
 import { UserMenu, userMenuProps } from "@web/webclient/user_menu/user_menu";
 
 export class BurgerUserMenu extends UserMenu {

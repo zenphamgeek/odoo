@@ -41,7 +41,7 @@ import {
     useProps,
     xml,
     useScope,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { downloadReport, getReportUrl } from "./reports/utils";
 import { zip } from "@web/core/utils/arrays";
 import { isHtmlEmpty } from "@web/core/utils/html";
@@ -376,7 +376,7 @@ export function useActionManager(router = _router) {
                 } catch (error) {
                     if (
                         error.exceptionName ===
-                        "odoo.addons.web.controllers.action.MissingActionError"
+                        "insilos.addons.web.controllers.action.MissingActionError"
                     ) {
                         action = null;
                     } else {
@@ -1884,7 +1884,7 @@ export function useActionManager(router = _router) {
                 await doAction(actionRequest, options);
             } catch (error) {
                 if (
-                    error.exceptionName === "odoo.addons.web.controllers.action.MissingActionError"
+                    error.exceptionName === "insilos.addons.web.controllers.action.MissingActionError"
                 ) {
                     if (state.actionStack.length > 1) {
                         const newState = {

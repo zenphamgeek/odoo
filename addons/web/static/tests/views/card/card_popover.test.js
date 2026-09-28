@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { click } from "@odoo/hoot-dom";
-import { Component, t, useProps, xml } from "@odoo/owl";
+import { expect, test } from "@insilos/hoot";
+import { click } from "@insilos/hoot-dom";
+import { Component, t, useProps, xml } from "@insilos/owl";
 import { defineModels, fields, models, mountWithCleanup } from "@web/../tests/web_test_helpers";
 
 import { parseXML } from "@web/core/utils/xml";

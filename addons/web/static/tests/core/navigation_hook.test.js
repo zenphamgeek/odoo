@@ -9,8 +9,8 @@ import {
     queryAllTexts,
     queryOne,
     test,
-} from "@odoo/hoot";
-import { Component, onMounted, proxy, signal, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, onMounted, proxy, signal, xml } from "@insilos/owl";
 import { destroyApp, mountWithCleanup, patchWithCleanup } from "@web/../tests/web_test_helpers";
 import { ACTIVE_ELEMENT_CLASS, Navigator, useNavigation } from "@web/core/navigation/navigation";
 import { useAutofocus } from "@web/core/utils/hooks";

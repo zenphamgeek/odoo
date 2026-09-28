@@ -1,5 +1,5 @@
-from odoo.tests.common import TransactionCase, tagged
-from odoo.exceptions import ValidationError
+from insilos.tests.common import TransactionCase, tagged
+from insilos.exceptions import ValidationError
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install

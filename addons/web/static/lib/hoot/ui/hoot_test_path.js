@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, t, usePlugin, useProps, xml } from "@odoo/owl";
+import { Component, t, usePlugin, useProps, xml } from "@insilos/owl";
 import { Test } from "../core/test";
 import { HootCopyButton } from "./hoot_copy_button";
 import { HootLink } from "./hoot_link";

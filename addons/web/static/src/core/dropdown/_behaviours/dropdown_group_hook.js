@@ -1,4 +1,4 @@
-import { useEffect } from "@odoo/owl";
+import { useEffect } from "@insilos/owl";
 import { DROPDOWN_GROUP } from "@web/core/dropdown/dropdown_group";
 import { useEnv } from "@web/owl2/utils";
 

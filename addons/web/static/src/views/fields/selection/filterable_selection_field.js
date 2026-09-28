@@ -1,4 +1,4 @@
-import { t, useProps } from "@odoo/owl";
+import { t, useProps } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import {
     SelectionField,

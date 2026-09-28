@@ -1,5 +1,5 @@
 import { onWillRender } from "@web/owl2/utils";
-import { Component, onWillStart, proxy, signal, t, useEffect, useProps } from "@odoo/owl";
+import { Component, onWillStart, proxy, signal, t, useEffect, useProps } from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 import { sortBy } from "@web/core/utils/arrays";
 import { KeepLast } from "@web/core/utils/concurrency";

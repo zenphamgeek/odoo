@@ -1,4 +1,4 @@
-import { assertType, Plugin, types as t, usePlugin } from "@odoo/owl";
+import { assertType, Plugin, types as t, usePlugin } from "@insilos/owl";
 import { services } from "@web/core/services";
 import { registry } from "@web/core/registry";
 import { rpc } from "@web/core/network/rpc";

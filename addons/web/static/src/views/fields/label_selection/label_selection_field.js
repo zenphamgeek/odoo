@@ -3,7 +3,7 @@ import { _t } from "@web/core/l10n/translation";
 import { standardFieldProps } from "../standard_field_props";
 import { formatSelection } from "../formatters";
 
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 
 export class LabelSelectionField extends Component {
     static template = "web.LabelSelectionField";

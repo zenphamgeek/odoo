@@ -10,8 +10,8 @@ import {
     queryOne,
     queryText,
     test,
-} from "@odoo/hoot";
-import { Component, onWillStart, useProps, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, onWillStart, useProps, xml } from "@insilos/owl";
 import {
     contains,
     defineModels,

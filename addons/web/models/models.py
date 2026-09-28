@@ -12,19 +12,19 @@ import babel
 import babel.dates
 import psycopg2
 
-from odoo import api, models
-from odoo.fields import Command, Date, Domain
-from odoo.api import NewId
-from odoo.models import regex_order, READ_GROUP_DISPLAY_FORMAT, READ_GROUP_NUMBER_GRANULARITY, READ_GROUP_TIME_GRANULARITY, BaseModel
-from odoo.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, BinaryBytes, BinaryValue, date_utils, get_lang, unique, OrderedSet
-from odoo.exceptions import AccessError, UserError, ValidationError
-from odoo.tools.date_utils import all_timezones
-from odoo.tools.misc import LazyDict
-from odoo.tools.translate import LazyTranslate
+from insilos import api, models
+from insilos.fields import Command, Date, Domain
+from insilos.api import NewId
+from insilos.models import regex_order, READ_GROUP_DISPLAY_FORMAT, READ_GROUP_NUMBER_GRANULARITY, READ_GROUP_TIME_GRANULARITY, BaseModel
+from insilos.tools import DEFAULT_SERVER_DATE_FORMAT, DEFAULT_SERVER_DATETIME_FORMAT, BinaryBytes, BinaryValue, date_utils, get_lang, unique, OrderedSet
+from insilos.exceptions import AccessError, UserError, ValidationError
+from insilos.tools.date_utils import all_timezones
+from insilos.tools.misc import LazyDict
+from insilos.tools.translate import LazyTranslate
 
 if typing.TYPE_CHECKING:
     from collections.abc import Sequence
-    from odoo.api import DomainType, ValuesType
+    from insilos.api import DomainType, ValuesType
 
 _lt = LazyTranslate(__name__)
 SEARCH_PANEL_ERROR_MESSAGE = _lt("Too many items to display.")

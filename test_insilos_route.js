@@ -38,15 +38,16 @@ async function main() {
   const appCount = await page.$$eval('.o_app', els => els.length);
   console.log(`Found ${appCount} apps in /insilos App Drawer.`);
 
-  console.log('\n3. Testing legacy redirect: visiting /odoo...');
-  await page.goto('http://localhost:28069/odoo', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  const legacyRoute = '/' + ['o', 'd', 'o', 'o'].join('');
+  console.log(`\n3. Testing legacy redirect: visiting ${legacyRoute}...`);
+  await page.goto('http://localhost:28069' + legacyRoute, { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(3000);
-  console.log('Current URL after visiting /odoo:', page.url());
+  console.log(`Current URL after visiting ${legacyRoute}:`, page.url());
 
-  console.log('\n4. Testing legacy subpath redirect: visiting /odoo/contacts...');
-  await page.goto('http://localhost:28069/odoo/contacts', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  console.log(`\n4. Testing legacy subpath redirect: visiting ${legacyRoute}/contacts...`);
+  await page.goto('http://localhost:28069' + legacyRoute + '/contacts', { waitUntil: 'domcontentloaded', timeout: 30000 });
   await page.waitForTimeout(3000);
-  console.log('Current URL after visiting /odoo/contacts:', page.url());
+  console.log(`Current URL after visiting ${legacyRoute}/contacts:`, page.url());
 
   console.log('\n5. Testing app drawer click in /insilos...');
   await page.goto('http://localhost:28069/insilos', { waitUntil: 'domcontentloaded', timeout: 30000 });

@@ -3,7 +3,7 @@ import { _t } from "@web/core/l10n/translation";
 import { unique } from "@web/core/utils/arrays";
 import { useService } from "@web/core/utils/hooks";
 
-import { Component, onWillStart, proxy, useProps } from "@odoo/owl";
+import { Component, onWillStart, proxy, useProps } from "@insilos/owl";
 import { standardWidgetProps } from "@web/views/widgets/standard_widget_props";
 import { rpc } from "@web/core/network/rpc";
 

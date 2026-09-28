@@ -4979,7 +4979,7 @@ ${issueStrings}`);
     version: App.version,
     date: "2026-09-08T12:24:10.035Z",
     hash: "ca618ce1",
-    url: "https://github.com/odoo/owl"
+    url: "https://github.com/insilos/owl"
   };
 
   // ../owl-compiler/dist/owl-compiler.es.js

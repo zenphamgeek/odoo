@@ -1,4 +1,4 @@
-import { Component, onWillDestroy, proxy, t, useProps } from "@odoo/owl";
+import { Component, onWillDestroy, proxy, t, useProps } from "@insilos/owl";
 import { user } from "@web/core/user";
 import { useService } from "@web/core/utils/hooks";
 import { checkFileSize } from "@web/core/utils/files";
@@ -167,7 +167,7 @@ export class ShareTargetItem extends Component {
 
     async uploadAttachments() {
         const params = {
-            csrf_token: odoo.csrf_token,
+            csrf_token: insilos.csrf_token,
             ufile: this.getFiles(),
             model: this.modelName,
             id: 0,

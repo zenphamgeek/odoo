@@ -13,7 +13,7 @@ define("ace/mode/qweb_highlight_rules", ["require", "exports", "module", "ace/li
             const attrRegx = options.readonlyAttributes.join("|");
             attributes_display_custom.push({
                 regex: `(${attrRegx})(=)(\\s*)(")([^"]*)(")`,
-                token: ["entity.other.attribute-name.xml.odoo_attr_readonly", "keyword.operator.attribute-equals.xml.odoo_attr_readonly", "text.odoo_attr_readonly", "string.attribute-value.xml.start.odoo_attr_readonly", "string.attribute-value.xml.code.odoo_attr_readonly", "string.attribute-value.xml.end.odoo_attr_readonly"],
+                token: ["entity.other.attribute-name.xml.insilos_attr_readonly", "keyword.operator.attribute-equals.xml.insilos_attr_readonly", "text.odoo_attr_readonly", "string.attribute-value.xml.start.odoo_attr_readonly", "string.attribute-value.xml.code.odoo_attr_readonly", "string.attribute-value.xml.end.odoo_attr_readonly"],
             })
         }
 
@@ -25,7 +25,7 @@ define("ace/mode/qweb_highlight_rules", ["require", "exports", "module", "ace/li
                 attributes: [{
                     include: "attributes_display_custom",
                 }, {
-                    include: "attributes_odoo",
+                    include: "attributes_insilos",
                 }, {
                     include: "attributes_qweb",
                 }, {
@@ -36,11 +36,11 @@ define("ace/mode/qweb_highlight_rules", ["require", "exports", "module", "ace/li
 
                 attributes_display_custom,
 
-                attributes_odoo: [{
-                    token: ["entity.other.attribute-name.xml.odoo", "keyword.operator.attribute-equals.xml", "text", "string.attribute-value.xml.start", "string.attribute-value.xml.code", "string.attribute-value.xml.end"],
+                attributes_insilos: [{
+                    token: ["entity.other.attribute-name.xml.insilos", "keyword.operator.attribute-equals.xml", "text", "string.attribute-value.xml.start", "string.attribute-value.xml.code", "string.attribute-value.xml.end"],
                     regex: '(domain|attrs|options)(=)(\\s*)(")([^"]*)(")',
                 }, {
-                    token: ["entity.other.attribute-name.xml.odoo", "keyword.operator.attribute-equals.xml", "text", "string.attribute-value.xml.start", "string.attribute-value.xml.code", "string.attribute-value.xml.end"],
+                    token: ["entity.other.attribute-name.xml.insilos", "keyword.operator.attribute-equals.xml", "text", "string.attribute-value.xml.start", "string.attribute-value.xml.code", "string.attribute-value.xml.end"],
                     regex: "(domain|attrs|options)(=)(\\s*)(')([^']*)(')",
                 }],
 

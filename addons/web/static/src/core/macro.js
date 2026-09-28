@@ -1,4 +1,4 @@
-import { assertType, t } from "@odoo/owl";
+import { assertType, t } from "@insilos/owl";
 import { isVisible } from "@web/core/utils/ui";
 import { delay } from "@web/core/utils/concurrency";
 

@@ -15,18 +15,18 @@ import psycopg2
 import psycopg2.errors
 from dateutil.relativedelta import relativedelta
 
-from odoo import api, fields, models, sql_db
-from odoo.exceptions import LockError, UserError
-from odoo.http.dispatcher import serialize_exception
-from odoo.modules import Manifest
-from odoo.tools import SQL, config
-from odoo.tools.constants import GC_UNLINK_LIMIT
-from odoo.tools.func import deprecated
+from insilos import api, fields, models, sql_db
+from insilos.exceptions import LockError, UserError
+from insilos.http.dispatcher import serialize_exception
+from insilos.modules import Manifest
+from insilos.tools import SQL, config
+from insilos.tools.constants import GC_UNLINK_LIMIT
+from insilos.tools.func import deprecated
 
 if typing.TYPE_CHECKING:
     from collections.abc import Iterable
 
-    from odoo.sql_db import BaseCursor
+    from insilos.sql_db import BaseCursor
 
 _logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ class IrCron(models.Model):
     # TODO: perhaps in the future we could consider a flag on ir.cron jobs
     # that would cause database wake-up even if the database has not been
     # loaded yet or was already unloaded (e.g. 'force_db_wakeup' or something)
-    # See also odoo.cron
+    # See also insilos.cron
     _name = 'ir.cron'
     _order = 'cron_name, id'
     _description = 'Scheduled Action'
@@ -175,7 +175,7 @@ class IrCron(models.Model):
             e.__cause__ = exception
             error = {
                 'code': 0,  # we don't care of this code
-                'message': "Odoo Server Error",
+                'message': "Insilos Server Error",
                 'data': serialize_exception(e),
             }
             return {
@@ -204,7 +204,7 @@ class IrCron(models.Model):
         except BadModuleState:
             _logger.warning('Skipping database %s because of modules to install/upgrade/remove.', db_name)
         except psycopg2.errors.UndefinedTable:
-            # The table ir_cron does not exist; this is probably not an OpenERP database.
+            # The table ir_cron does not exist; this is probably not an Insilos database.
             _logger.warning('Tried to poll an undefined table on database %s.', db_name)
         except psycopg2.ProgrammingError:
             raise
@@ -279,7 +279,7 @@ class IrCron(models.Model):
         # per minute for 5h) in which case we assume that the crons are stuck
         # because the db has zombie states and we force a call to
         # reset_module_states.
-        from odoo.modules.loading import reset_modules_state  # noqa: PLC0415
+        from insilos.modules.loading import reset_modules_state  # noqa: PLC0415
         reset_modules_state(cr)
         cr.commit()
 
@@ -892,7 +892,7 @@ class IrCron(models.Model):
         :return: remaining time (seconds) for the cron run
         """
         # Typical use case:
-        # https://www.odoo.com/documentation/master/developer/reference/backend/actions.html#writing-cron-functions
+        # https://insilos.com/documentation/master/developer/reference/backend/actions.html#writing-cron-functions
         ctx = self.env.context
         progress = self.env['ir.cron.progress'].sudo().browse(ctx.get('ir_cron_progress_id'))
         if not progress:

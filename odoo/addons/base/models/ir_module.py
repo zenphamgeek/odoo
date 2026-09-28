@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import functools
 import logging
 import os
@@ -16,17 +16,17 @@ from docutils.transforms import Transform, writer_aux
 from docutils.writers.html4css1 import Writer
 from markupsafe import Markup
 
-import odoo
-from odoo import _, api, fields, models, modules, tools
-from odoo.exceptions import AccessDenied, UserError, ValidationError
-from odoo.fields import Domain
-from odoo.http import request
-from odoo.modules.module import Manifest, MissingDependency
-from odoo.tools import SQL, BinaryBytes, config
-from odoo.tools.business_data import get_flag
-from odoo.tools.misc import file_open, topological_sort
-from odoo.tools.parse_version import parse_version
-from odoo.tools.translate import (
+import insilos
+from insilos import _, api, fields, models, modules, tools
+from insilos.exceptions import AccessDenied, UserError, ValidationError
+from insilos.fields import Domain
+from insilos.http import request
+from insilos.modules.module import Manifest, MissingDependency
+from insilos.tools import SQL, BinaryBytes, config
+from insilos.tools.business_data import get_flag
+from insilos.tools.misc import file_open, topological_sort
+from insilos.tools.parse_version import parse_version
+from insilos.tools.translate import (
     TranslationImporter,
     get_datafile_translation_path,
     get_po_paths,
@@ -317,8 +317,8 @@ class IrModuleModule(models.Model):
         ('AGPL-3', 'Affero GPL-3'),
         ('LGPL-3', 'LGPL Version 3'),
         ('Other OSI approved licence', 'Other OSI Approved License'),
-        ('OEEL-1', 'Odoo Enterprise Edition License v1.0'),
-        ('OPL-1', 'Odoo Proprietary License v1.0'),
+        ('OEEL-1', 'Insilos Enterprise Edition License v1.0'),
+        ('OPL-1', 'Insilos Proprietary License v1.0'),
         ('Other proprietary', 'Other Proprietary')
     ], string='License', default='LGPL-3', readonly=True)
     menus_by_module = fields.Text(string='Menus', compute='_get_views', store=True)
@@ -561,7 +561,7 @@ class IrModuleModule(models.Model):
             return self
         if known_deps is not None:
             warnings.warn(
-                "The `known_deps` parameter is deprecated since Odoo 20.",
+                "The `known_deps` parameter is deprecated since Insilos 20.",
                 category=DeprecationWarning,
                 stacklevel=2,
             )
@@ -602,7 +602,7 @@ class IrModuleModule(models.Model):
         return {
             'type': 'ir.actions.act_url',
             'target': 'self',
-            'url': '/odoo',
+            'url': '/insilos',
         }
 
     def _button_immediate_function(self, function):
@@ -675,7 +675,7 @@ class IrModuleModule(models.Model):
     @assert_log_admin_access
     def button_uninstall(self):
         un_installable_modules = set(self.mapped('name')) & (
-            set(tools.config['server_wide_modules']) | set(odoo.modules.loading._FORCED_MODULES)
+            set(tools.config['server_wide_modules']) | set(insilos.modules.loading._FORCED_MODULES)
         )
         if un_installable_modules:
             raise UserError(_("Those modules cannot be uninstalled: %s", ', '.join(un_installable_modules)))

@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 import {
     click,
     edit,
@@ -8,8 +8,8 @@ import {
     queryFirst,
     setInputFiles,
     waitFor,
-} from "@odoo/hoot-dom";
-import { animationFrame, mockUserAgent, runAllTimers } from "@odoo/hoot-mock";
+} from "@insilos/hoot-dom";
+import { animationFrame, mockUserAgent, runAllTimers } from "@insilos/hoot-mock";
 import {
     clickSave,
     defineModels,

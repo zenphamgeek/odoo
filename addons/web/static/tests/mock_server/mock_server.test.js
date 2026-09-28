@@ -1,5 +1,5 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { mockTimeZone } from "@odoo/hoot-mock";
+import { describe, expect, test } from "@insilos/hoot";
+import { mockTimeZone } from "@insilos/hoot-mock";
 import {
     defineModels,
     fields,

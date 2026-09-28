@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 import {
     defineModels,
     fields,
@@ -10,8 +10,8 @@ import {
     onRpc,
 } from "@web/../tests/web_test_helpers";
 
-import { animationFrame } from "@odoo/hoot-mock";
-import { Component, proxy, xml } from "@odoo/owl";
+import { animationFrame } from "@insilos/hoot-mock";
+import { Component, proxy, xml } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 
 /**

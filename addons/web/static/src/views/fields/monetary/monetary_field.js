@@ -7,7 +7,7 @@ import { useNumpadDecimal } from "../numpad_decimal_hook";
 import { standardFieldProps } from "../standard_field_props";
 import { nbsp } from "@web/core/utils/strings";
 
-import { Component, proxy, signal, t, onMounted, onPatched, useProps } from "@odoo/owl";
+import { Component, proxy, signal, t, onMounted, onPatched, useProps } from "@insilos/owl";
 import { getCurrency } from "@web/core/currency";
 
 export const monetaryFieldProps = {

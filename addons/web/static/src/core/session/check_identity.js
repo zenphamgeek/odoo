@@ -1,4 +1,4 @@
-import { Component, onWillStart, proxy, t, useProps } from "@odoo/owl";
+import { Component, onWillStart, proxy, t, useProps } from "@insilos/owl";
 import { Dialog } from "@web/core/dialog/dialog";
 import { rpc, RPCError } from "@web/core/network/rpc";
 import { registry } from "@web/core/registry";
@@ -141,7 +141,7 @@ export class CheckIdentityDialog extends Component {
             close: this.props.close,
         };
         this.env.dialogData.dismiss = async () => {
-            const url = await post("/web/session/logout", { csrf_token: odoo.csrf_token }, "url");
+            const url = await post("/web/session/logout", { csrf_token: insilos.csrf_token }, "url");
             redirect(url);
         };
     }
@@ -310,7 +310,7 @@ export class CheckIdentity {
 
     verifyUserErrorHandler(env, error, originalError) {
         if (originalError instanceof RPCError) {
-            if (originalError.data.name === "odoo.http.session.CheckIdentityException") {
+            if (originalError.data.name === "insilos.http.session.CheckIdentityException") {
                 this.run();
                 return true;
             }
@@ -354,8 +354,8 @@ rpc._originalRpc = originalRpc;
 rpc._rpc = function (...args) {
     const originalPromise = originalRpc(...args);
     const promise = originalPromise.catch((error) => {
-        if (error.data?.name === "odoo.http.session.CheckIdentityException") {
-            return odoo.__WOWL_DEBUG__.root.env.services["check_identity"]
+        if (error.data?.name === "insilos.http.session.CheckIdentityException") {
+            return insilos.__WOWL_DEBUG__.root.env.services["check_identity"]
                 .checkIdentity()
                 .then(() => originalRpc(...args));
         }

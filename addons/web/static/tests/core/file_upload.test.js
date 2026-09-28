@@ -1,4 +1,4 @@
-import { expect, test, waitFor } from "@odoo/hoot";
+import { expect, test, waitFor } from "@insilos/hoot";
 import {
     contains,
     getService,
@@ -7,12 +7,12 @@ import {
     onRpc,
 } from "@web/../tests/web_test_helpers";
 
-import { animationFrame } from "@odoo/hoot-mock";
+import { animationFrame } from "@insilos/hoot-mock";
 import { FileUploadProgressContainer } from "@web/core/file_upload/file_upload_progress_container";
 import { FileUploadProgressRecord } from "@web/core/file_upload/file_upload_progress_record";
 import { useService } from "@web/core/utils/hooks";
 
-import { Component, useProps, xml } from "@odoo/owl";
+import { Component, useProps, xml } from "@insilos/owl";
 
 class FileUploadProgressTestRecord extends FileUploadProgressRecord {
     static template = xml`
@@ -156,17 +156,17 @@ test("handles jsonrpc error", async () => {
     await waitFor(".o_notification:has(.bg-danger):contains(Boom JSON)");
 });
 
-test("handles Odoo's jsonrpc error", async () => {
+test("handles Insilos's jsonrpc error", async () => {
     await mountWithCleanup(Parent);
     onRpc("/test/", () => ({
         error: {
             data: {
                 name: "ValidationError",
-                message: "Boom Odoo",
+                message: "Boom Insilos",
             },
         },
     }));
     const fileUploadService = await getService("file_upload");
     fileUploadService.upload("/test/", []);
-    await waitFor(".o_notification:has(.bg-danger):contains(ValidationError: Boom Odoo)");
+    await waitFor(".o_notification:has(.bg-danger):contains(ValidationError: Boom Insilos)");
 });

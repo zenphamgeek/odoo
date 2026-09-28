@@ -4,7 +4,7 @@ import { registry } from "@web/core/registry";
 import { Many2XBinary } from "../many2x_binary/many2x_binary";
 import { standardFieldProps } from "../standard_field_props";
 
-import { Component, t, usePlugin, useProps } from "@odoo/owl";
+import { Component, t, usePlugin, useProps } from "@insilos/owl";
 
 export class Many2OneBinaryField extends Component {
     static template = "web.Many2OneBinaryField";

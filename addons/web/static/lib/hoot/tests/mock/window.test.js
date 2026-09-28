@@ -1,8 +1,8 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { after, describe, expect, test, watchListeners } from "@odoo/hoot";
-import { queryOne } from "@odoo/hoot-dom";
-import { EventBus } from "@odoo/owl";
+import { after, describe, expect, test, watchListeners } from "@insilos/hoot";
+import { queryOne } from "@insilos/hoot-dom";
+import { EventBus } from "@insilos/owl";
 import { mountForTest, parseUrl } from "../local_helpers";
 
 describe(parseUrl(import.meta.url), () => {

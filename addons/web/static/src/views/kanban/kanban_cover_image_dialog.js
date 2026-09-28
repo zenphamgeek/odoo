@@ -2,7 +2,7 @@ import { Dialog } from "@web/core/dialog/dialog";
 import { FileInput } from "@web/core/file_input/file_input";
 import { useService } from "@web/core/utils/hooks";
 
-import { Component, onWillStart, proxy, t, useProps } from "@odoo/owl";
+import { Component, onWillStart, proxy, t, useProps } from "@insilos/owl";
 
 let nextDialogId = 1;
 

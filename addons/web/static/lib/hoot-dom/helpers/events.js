@@ -1,4 +1,4 @@
-/** @odoo-module */
+/** @insilos-module */
 
 import { getColorHex, getTag, isFirefox, isInstanceOf, isIterable } from "../hoot_dom_utils";
 import {

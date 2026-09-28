@@ -1,6 +1,6 @@
 import { Dialog } from "../dialog/dialog";
 import { _t } from "@web/core/l10n/translation";
-import { Component, signal, t, useProps } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@insilos/owl";
 
 export const deleteConfirmationMessage = _t(
     `Ready to make your record disappear into thin air? Are you sure? It will be gone forever!

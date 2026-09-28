@@ -1,4 +1,4 @@
-import { onMounted, onWillUnmount } from "@odoo/owl";
+import { onMounted, onWillUnmount } from "@insilos/owl";
 import { useService } from "@web/core/utils/hooks";
 
 /**

@@ -1,5 +1,5 @@
 import { useLayoutEffect } from "@web/owl2/utils";
-import { Component, computed, proxy, signal, t, useOnChange, useProps } from "@odoo/owl";
+import { Component, computed, proxy, signal, t, useOnChange, useProps } from "@insilos/owl";
 import { KeepLast } from "@web/core/utils/concurrency";
 
 /**

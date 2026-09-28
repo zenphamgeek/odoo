@@ -1,4 +1,4 @@
-import { Component, onWillUpdateProps, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, onWillUpdateProps, proxy, signal, t, useProps } from "@insilos/owl";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { useDropdownState } from "@web/core/dropdown/dropdown_hooks";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";

@@ -1,4 +1,4 @@
-import { animationFrame, expect, mockDate, queryAllTexts, test } from "@odoo/hoot";
+import { animationFrame, expect, mockDate, queryAllTexts, test } from "@insilos/hoot";
 import {
     contains,
     defineModels,
@@ -43,7 +43,7 @@ import {
     setupChartJsForTests,
 } from "./graph_test_helpers";
 
-import { onPatched } from "@odoo/owl";
+import { onPatched } from "@insilos/owl";
 import { DEFAULT_BG, getBorderWhite, getColors, lightenColor } from "@web/core/colors/colors";
 import { Domain } from "@web/core/domain";
 import { SampleServer } from "@web/model/sample_server";

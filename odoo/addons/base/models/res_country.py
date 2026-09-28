@@ -1,10 +1,10 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import re
 import logging
-from odoo import api, fields, models
-from odoo.exceptions import UserError
-from odoo.fields import Domain
+from insilos import api, fields, models
+from insilos.exceptions import UserError
+from insilos.fields import Domain
 
 _logger = logging.getLogger(__name__)
 
@@ -242,7 +242,7 @@ class ResCountryState(models.Model):
     def name_search(self, name='', domain=None, operator='ilike', limit=100):
         result = []
         domain = Domain(domain or Domain.TRUE)
-        # accepting 'in' as operator (see odoo/addons/base/tests/test_res_country.py)
+        # accepting 'in' as operator (see addons/base/tests/test_res_country.py)
         if operator == 'in':
             if limit is None:
                 limit = 100  # force a limit

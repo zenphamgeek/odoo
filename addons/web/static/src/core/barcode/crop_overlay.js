@@ -1,4 +1,4 @@
-import { Component, onPatched, signal, t, useProps } from "@odoo/owl";
+import { Component, onPatched, signal, t, useProps } from "@insilos/owl";
 import { browser } from "@web/core/browser/browser";
 import { isIOS } from "@web/core/browser/feature_detection";
 import { clamp } from "@web/core/utils/numbers";

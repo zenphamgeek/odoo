@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 import { defineModels, fields, models, mountView } from "@web/../tests/web_test_helpers";
 
 class Product extends models.Model {

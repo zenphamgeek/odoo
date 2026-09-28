@@ -1,4 +1,4 @@
-import { beforeEach, expect, queryFirst, test } from "@odoo/hoot";
+import { beforeEach, expect, queryFirst, test } from "@insilos/hoot";
 import {
     animationFrame,
     click,
@@ -7,9 +7,9 @@ import {
     queryAll,
     queryAllTexts,
     runAllTimers,
-} from "@odoo/hoot-dom";
-import { mockDate } from "@odoo/hoot-mock";
-import { Component, proxy, xml } from "@odoo/owl";
+} from "@insilos/hoot-dom";
+import { mockDate } from "@insilos/hoot-mock";
+import { Component, proxy, xml } from "@insilos/owl";
 import { defineParams, isSmall, mountWithCleanup } from "@web/../tests/web_test_helpers";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { TimePicker } from "@web/core/time_picker/time_picker";

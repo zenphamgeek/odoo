@@ -1,15 +1,15 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from contextlib import contextmanager
 from unittest.mock import patch
 
-from odoo import Command, models
-from odoo.addons.base.models.ir_mail_server import extract_rfc2822_addresses
-from odoo.addons.base.models.res_partner import ResPartner
-from odoo.addons.base.tests.common import TransactionCaseWithUserDemo
-from odoo.exceptions import AccessError, RedirectWarning, UserError, ValidationError
-from odoo.tests import Form
-from odoo.tests.common import new_test_user, tagged, TransactionCase, users, warmup
+from insilos import Command, models
+from insilos.addons.base.models.ir_mail_server import extract_rfc2822_addresses
+from insilos.addons.base.models.res_partner import ResPartner
+from insilos.addons.base.tests.common import TransactionCaseWithUserDemo
+from insilos.exceptions import AccessError, RedirectWarning, UserError, ValidationError
+from insilos.tests import Form
+from insilos.tests.common import new_test_user, tagged, TransactionCase, users, warmup
 
 # samples use effective TLDs from the Mozilla public suffix
 # list at http://publicsuffix.org
@@ -61,7 +61,7 @@ class TestPartner(TransactionCaseWithUserDemo):
     def test_archive_internal_partners(self):
         test_partner = self.env['res.partner'].create({'name':'test partner'})
         test_user = self.env['res.users'].create({
-                                'login': 'test@odoo.com',
+                                'login': 'test@insilos.com',
                                 'partner_id': test_partner.id,
                                 })
         # Cannot archive the partner
@@ -473,7 +473,7 @@ class TestPartnerAddressCompany(TransactionCase):
             {
                 'code': 'OD',
                 'country_id': cls.env.ref('base.be').id,
-                'name': 'Odoo Province',
+                'name': 'Insilos Province',
             },
         ])
         cls.test_industries = cls.env['res.partner.industry'].create([

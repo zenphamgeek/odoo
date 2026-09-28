@@ -1,7 +1,7 @@
 import { browser } from "@web/core/browser/browser";
 import { formatInteger, formatMonetary } from "@web/views/fields/formatters";
 
-import { Component, onWillUnmount, onWillUpdateProps, proxy, t, useProps } from "@odoo/owl";
+import { Component, onWillUnmount, onWillUpdateProps, proxy, t, useProps } from "@insilos/owl";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { user } from "@web/core/user";
 import { MultiCurrencyPopover } from "@web/views/view_components/multi_currency_popover";

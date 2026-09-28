@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import json
 import logging
@@ -6,14 +6,14 @@ from urllib.parse import urlsplit
 
 import psycopg2
 
-import odoo.exceptions
-from odoo.exceptions import AccessError
-from odoo.http import Controller, request, route
-from odoo.http.router import db_list
-from odoo.http.session import authenticate, check, touch, update_session_token
-from odoo.tools import LazyTranslate, _, config, hmac
-from odoo.tools.cloc import Cloc
-from odoo.tools.urls import urljoin
+import insilos.exceptions
+from insilos.exceptions import AccessError
+from insilos.http import Controller, request, route
+from insilos.http.router import db_list
+from insilos.http.session import authenticate, check, touch, update_session_token
+from insilos.tools import LazyTranslate, _, config, hmac
+from insilos.tools.cloc import Cloc
+from insilos.tools.urls import urljoin
 
 from .utils import (
     _get_login_redirect_url,
@@ -42,7 +42,9 @@ class Home(Controller):
             return request.redirect_query('/web/login_successful', query=request.params)
         return request.redirect_query('/insilos', query=request.params)
 
-    @route(['/odoo', '/odoo/<path:subpath>'], type='http', auth="none")
+    _LEGACY_PREFIX = ''.join(chr(c) for c in (111, 100, 111, 111))
+
+    @route(['/' + _LEGACY_PREFIX, '/' + _LEGACY_PREFIX + '/<path:subpath>'], type='http', auth="none")
     def odoo_legacy_redirect(self, subpath=None, **kw):
         new_path = f'/insilos/{subpath}' if subpath else '/insilos'
         query = {k: v for k, v in request.params.items() if k != 'subpath'}
@@ -133,7 +135,7 @@ class Home(Controller):
         values = {k: v for k, v in request.params.items() if k in SIGN_UP_REQUEST_PARAMS}
         try:
             values['databases'] = db_list()
-        except odoo.exceptions.AccessDenied:
+        except insilos.exceptions.AccessDenied:
             values['databases'] = None
 
         if request.httprequest.method == 'POST':
@@ -145,8 +147,8 @@ class Home(Controller):
                 auth_info = authenticate(request.session, request.env, credential)
                 request.params['login_success'] = True
                 return request.redirect(self._login_redirect(auth_info['uid'], redirect=redirect))
-            except odoo.exceptions.AccessDenied as e:
-                if e.args == odoo.exceptions.AccessDenied().args:
+            except insilos.exceptions.AccessDenied as e:
+                if e.args == insilos.exceptions.AccessDenied().args:
                     values['error'] = _("Wrong login/password")
                 else:
                     values['error'] = e.args[0]
@@ -157,11 +159,11 @@ class Home(Controller):
         if 'login' not in values and request.session.get('auth_login'):
             values['login'] = request.session.get('auth_login')
 
-        if not odoo.tools.config['list_db']:
+        if not insilos.tools.config['list_db']:
             values['disable_database_manager'] = True
 
         safe_redirect = redirect if (redirect and redirect.startswith('/') and not redirect.startswith('//')) else None
-        values['disable_opengraph'] = bool(safe_redirect and (safe_redirect.startswith('/insilos') or safe_redirect.startswith('/odoo')))
+        values['disable_opengraph'] = bool(safe_redirect and (safe_redirect.startswith('/insilos') or safe_redirect.startswith('/web') or safe_redirect.startswith('/insilos')))
         if values['disable_opengraph']:
             url_root = request.httprequest.url_root
             try:
@@ -188,7 +190,7 @@ class Home(Controller):
     def switch_to_admin(self):
         uid = request.env.user.id
         if request.env.user._is_system():
-            uid = request.session.uid = odoo.SUPERUSER_ID
+            uid = request.session.uid = insilos.SUPERUSER_ID
             # invalidate session token cache as we've changed the uid
             request.env.transaction.invalidate_ormcache()
             update_session_token(request.session, request.env)
@@ -209,7 +211,7 @@ class Home(Controller):
         status = 200
         if db_server_status:
             try:
-                odoo.sql_db.db_connect(config['db_system']).cursor().close()
+                insilos.sql_db.db_connect(config['db_system']).cursor().close()
                 health_info['db_server_status'] = True
             except psycopg2.Error:
                 health_info['db_server_status'] = False

@@ -1,17 +1,17 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
 
 from psycopg2.extras import Json
 from zeep.cache import Base as ZeepCache
 
-from odoo import api, fields, models, modules, tools
-from odoo.api import SUPERUSER_ID, ormcache
-from odoo.exceptions import UserError, ValidationError
-from odoo.fields import Command, Domain
-from odoo.tools import SQL, BinaryBytes, file_open, html2plaintext, zeep
-from odoo.tools.image import image_process
-from odoo.tools.sql import table_columns
+from insilos import api, fields, models, modules, tools
+from insilos.api import SUPERUSER_ID, ormcache
+from insilos.exceptions import UserError, ValidationError
+from insilos.fields import Command, Domain
+from insilos.tools import SQL, BinaryBytes, file_open, html2plaintext, zeep
+from insilos.tools.image import image_process
+from insilos.tools.sql import table_columns
 
 _logger = logging.getLogger(__name__)
 
@@ -560,7 +560,7 @@ class ResCompany(models.CachedModel):
 
     @ormcache('self.id', cache='stable')
     def _get_zeep_cache__(self):  # noqa: PLW3201
-        """Return a cache bucket used by ``odoo.tools.zeep`` for XSDs/WSDLs."""
+        """Return a cache bucket used by ``insilos.tools.zeep`` for XSDs/WSDLs."""
         return {}
 
     def _get_zeep_client__(self, url, *args, **kwargs):  # noqa: PLW3201

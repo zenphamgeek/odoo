@@ -1,4 +1,4 @@
-import { Component, onMounted, onPatched, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, onMounted, onPatched, proxy, signal, t, useProps } from "@insilos/owl";
 
 export class SettingsApp extends Component {
     static template = "web.SettingsApp";

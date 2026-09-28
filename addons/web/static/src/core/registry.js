@@ -1,4 +1,4 @@
-import { assertType, EventBus } from "@odoo/owl";
+import { assertType, EventBus } from "@insilos/owl";
 
 // -----------------------------------------------------------------------------
 // Errors
@@ -12,7 +12,7 @@ export class DuplicatedKeyError extends Error {}
 // -----------------------------------------------------------------------------
 
 const validateSchema = (name, key, value, schema) => {
-    if (!odoo.debug) {
+    if (!insilos.debug) {
         return;
     }
     assertType(value, schema, `Validation error for key "${key}" in registry "${name}"`);

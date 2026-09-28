@@ -1,4 +1,4 @@
-import { EventBus } from "@odoo/owl";
+import { EventBus } from "@insilos/owl";
 import { browser } from "../browser/browser";
 import { omit } from "../utils/objects";
 
@@ -60,7 +60,7 @@ export class RequestEntityTooLargeError extends Error {
  * @param {JsonRpcError} response
  */
 export function makeErrorFromResponse(response) {
-    // Odoo returns error like this, in a error field instead of properly
+    // Insilos returns error like this, in a error field instead of properly
     // using http error codes...
     const { code, data: errorData, message, type: subType } = response;
     const error = new RPCError();
@@ -120,7 +120,7 @@ rpc._rpc = function (url, params, settings) {
         request.addEventListener("load", () => {
             let specialError = null;
             switch (request.status) {
-                // If Odoo is behind another server (eg.: nginx)
+                // If Insilos is behind another server (eg.: nginx)
                 case 502:
                     specialError = new ConnectionLostError(url);
                     break;

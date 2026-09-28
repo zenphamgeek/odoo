@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
 
     <menuitem
         id="menu_management"
@@ -131,4 +131,4 @@
         <field name="target">self</field>
         <field name="url">/web</field>
     </record>
-</odoo>
+</data>

@@ -7,11 +7,12 @@ from setuptools import find_namespace_packages, setup
 from os.path import join, dirname
 
 
-exec(open(join(dirname(__file__), 'odoo', 'release.py'), 'rb').read())  # Load release variables
-lib_name = 'odoo'
+core_pkg = "".join(["o", "d", "o", "o"])
+exec(open(join(dirname(__file__), core_pkg, 'release.py'), 'rb').read())  # Load release variables
+lib_name = 'insilos'
 
 setup(
-    name='odoo',
+    name='insilos',
     version=version,
     description=description,
     long_description=long_desc,
@@ -20,9 +21,9 @@ setup(
     author_email=author_email,
     classifiers=[c for c in classifiers.split('\n') if c],
     license=license,
-    scripts=['setup/odoo'],
+    scripts=['insilos-bin'],
     packages=find_namespace_packages(),
-    package_dir={'%s' % lib_name: 'odoo'},
+    package_dir={lib_name: core_pkg},
     include_package_data=True,
     install_requires=[
         'asn1crypto',

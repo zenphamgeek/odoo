@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, t, useProps, xml } from "@odoo/owl";
+import { Component, t, useProps, xml } from "@insilos/owl";
 import { Job } from "../core/job";
 import { Test } from "../core/test";
 import { HootLink } from "./hoot_link";

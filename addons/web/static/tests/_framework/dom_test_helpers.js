@@ -25,19 +25,19 @@ import {
     select,
     uncheck,
     waitFor,
-} from "@odoo/hoot";
+} from "@insilos/hoot";
 import { hasTouch } from "@web/core/browser/feature_detection";
 
 /**
- * @typedef {import("@odoo/hoot").DragHelpers} DragHelpers
- * @typedef {import("@odoo/hoot").DragOptions} DragOptions
- * @typedef {import("@odoo/hoot").FillOptions} FillOptions
- * @typedef {import("@odoo/hoot").InputValue} InputValue
- * @typedef {import("@odoo/hoot").KeyStrokes} KeyStrokes
- * @typedef {import("@odoo/hoot").PointerOptions} PointerOptions
- * @typedef {import("@odoo/hoot").Position} Position
- * @typedef {import("@odoo/hoot").QueryOptions} QueryOptions
- * @typedef {import("@odoo/hoot").Target} Target
+ * @typedef {import("@insilos/hoot").DragHelpers} DragHelpers
+ * @typedef {import("@insilos/hoot").DragOptions} DragOptions
+ * @typedef {import("@insilos/hoot").FillOptions} FillOptions
+ * @typedef {import("@insilos/hoot").InputValue} InputValue
+ * @typedef {import("@insilos/hoot").KeyStrokes} KeyStrokes
+ * @typedef {import("@insilos/hoot").PointerOptions} PointerOptions
+ * @typedef {import("@insilos/hoot").Position} Position
+ * @typedef {import("@insilos/hoot").QueryOptions} QueryOptions
+ * @typedef {import("@insilos/hoot").Target} Target
  *
  * @typedef {DragOptions & {
  *  initialPointerMoveDistance?: number;

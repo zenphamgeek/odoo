@@ -1,8 +1,8 @@
 import { render } from "@web/owl2/utils";
-import { beforeEach, expect, test } from "@odoo/hoot";
-import { click, edit, press, queryAllTexts, queryOne } from "@odoo/hoot-dom";
-import { animationFrame, mockDate } from "@odoo/hoot-mock";
-import { Component, xml } from "@odoo/owl";
+import { beforeEach, expect, test } from "@insilos/hoot";
+import { click, edit, press, queryAllTexts, queryOne } from "@insilos/hoot-dom";
+import { animationFrame, mockDate } from "@insilos/hoot-mock";
+import { Component, xml } from "@insilos/owl";
 import {
     addNewRule,
     clearNotSupported,

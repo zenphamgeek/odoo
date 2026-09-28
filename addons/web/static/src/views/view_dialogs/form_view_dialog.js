@@ -3,7 +3,7 @@ import { useService } from "@web/core/utils/hooks";
 import { CallbackRecorder } from "@web/search/action_hook";
 import { View } from "@web/views/view";
 
-import { Component, signal, t, useProps } from "@odoo/owl";
+import { Component, signal, t, useProps } from "@insilos/owl";
 
 export const formViewDialogProps = {
     close: t.function(),

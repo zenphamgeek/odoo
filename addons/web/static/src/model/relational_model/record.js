@@ -1,4 +1,4 @@
-import { markRaw, markup, toRaw } from "@odoo/owl";
+import { markRaw, markup, toRaw } from "@insilos/owl";
 import { serializeDate, serializeDateTime } from "@web/core/l10n/dates";
 import { _t } from "@web/core/l10n/translation";
 import { ConnectionLostError, RPCError } from "@web/core/network/rpc";

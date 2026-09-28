@@ -3,7 +3,7 @@
  * temporary - to remove when all service are converted
  */
 
-import { onWillDestroy, onWillStart, Plugin, t, useScope } from "@odoo/owl";
+import { onWillDestroy, onWillStart, Plugin, t, useScope } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import { services } from "@web/core/services";
 import { SERVICES_METADATA } from "@web/core/utils/hooks";

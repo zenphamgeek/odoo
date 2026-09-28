@@ -1,4 +1,4 @@
-import { test, expect, describe } from "@odoo/hoot";
+import { test, expect, describe } from "@insilos/hoot";
 import { _makeUser, user } from "@web/core/user";
 import { makeTestApp, onRpc, patchWithCleanup, serverState } from "@web/../tests/web_test_helpers";
 import { cookie } from "@web/core/browser/cookie";

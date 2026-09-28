@@ -1,4 +1,4 @@
-import { animationFrame, beforeEach, expect, test } from "@odoo/hoot";
+import { animationFrame, beforeEach, expect, test } from "@insilos/hoot";
 import { browser } from "@web/core/browser/browser";
 import { WebClient } from "@web/webclient/webclient";
 import {
@@ -11,7 +11,7 @@ import {
     patchWithCleanup,
     serverState,
 } from "@web/../tests/web_test_helpers";
-import { Component, xml } from "@odoo/owl";
+import { Component, xml } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 
 class TestClientAction extends Component {
@@ -78,7 +78,7 @@ beforeEach(() => {
 test("can execute act_window actions from db ID in a new window", async () => {
     await mountWithCleanup(WebClient);
     await getService("action").doAction(1, { newWindow: true });
-    expect.verifySteps(["open: /odoo/action-1"]);
+    expect.verifySteps(["open: /insilos/action-1"]);
 });
 
 test("debug flag is copied from current state", async () => {
@@ -89,7 +89,7 @@ test("debug flag is copied from current state", async () => {
     await animationFrame();
 
     await getService("action").doAction(1, { newWindow: true });
-    expect.verifySteps(["open: /odoo/action-1?debug=assets"]);
+    expect.verifySteps(["open: /insilos/action-1?debug=assets"]);
 });
 
 test("'CLEAR-UNCOMMITTED-CHANGES' is not triggered for window action", async () => {
@@ -99,7 +99,7 @@ test("'CLEAR-UNCOMMITTED-CHANGES' is not triggered for window action", async () 
     });
 
     await getService("action").doAction(1, { newWindow: true });
-    expect.verifySteps(["open: /odoo/action-1"]);
+    expect.verifySteps(["open: /insilos/action-1"]);
 });
 
 test("'CLEAR-UNCOMMITTED-CHANGES' is not triggered for client actions", async () => {
@@ -114,7 +114,7 @@ test("'CLEAR-UNCOMMITTED-CHANGES' is not triggered for client actions", async ()
     });
 
     await getService("action").doAction("my_action", { newWindow: true });
-    expect.verifySteps(["open: /odoo/my_action"]);
+    expect.verifySteps(["open: /insilos/my_action"]);
 });
 
 test("'CLEAR-UNCOMMITTED-CHANGES' is not triggered for switchView", async () => {
@@ -127,7 +127,7 @@ test("'CLEAR-UNCOMMITTED-CHANGES' is not triggered for switchView", async () => 
     await getService("action").switchView("kanban", {}, { newWindow: true });
     expect.verifySteps([
         "CLEAR-UNCOMMITTED-CHANGES", // The first do action clear uncommitted changes as expected. The second one doesn't
-        "open: /odoo/action-1",
+        "open: /insilos/action-1",
     ]);
 });
 
@@ -145,7 +145,7 @@ test("can execute dynamic act_window actions in a new window", async () => {
             newWindow: true,
         }
     );
-    expect.verifySteps(["open: /odoo/m-partner/22"]);
+    expect.verifySteps(["open: /insilos/m-partner/22"]);
 });
 
 test("can execute an actions in a new window and preserve the breadcrumb", async () => {
@@ -163,7 +163,7 @@ test("can execute an actions in a new window and preserve the breadcrumb", async
             newWindow: true,
         }
     );
-    expect.verifySteps(["open: /odoo/action-1/m-partner/22"]);
+    expect.verifySteps(["open: /insilos/action-1/m-partner/22"]);
 });
 
 test("can execute client actions in a new window", async () => {
@@ -180,5 +180,5 @@ test("can execute client actions in a new window", async () => {
             newWindow: true,
         }
     );
-    expect.verifySteps(["open: /odoo/__test__client__action__"]);
+    expect.verifySteps(["open: /insilos/__test__client__action__"]);
 });

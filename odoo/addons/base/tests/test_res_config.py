@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
 from lxml import etree
 import logging
 
-from odoo import exceptions, Command
-from odoo.tests import Form, TransactionCase, tagged
+from insilos import exceptions, Command
+from insilos.tests import Form, TransactionCase, tagged
 
 _logger = logging.getLogger(__name__)
 

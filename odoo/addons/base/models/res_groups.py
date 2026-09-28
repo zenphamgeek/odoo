@@ -1,11 +1,11 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
 
-from odoo import _, api, fields, models
-from odoo.exceptions import UserError, ValidationError
-from odoo.fields import Command, Domain
-from odoo.tools import SetDefinitions
+from insilos import _, api, fields, models
+from insilos.exceptions import UserError, ValidationError
+from insilos.fields import Command, Domain
+from insilos.tools import SetDefinitions
 
 
 REGULAR_VALUE = object()
@@ -533,7 +533,7 @@ class ResGroups(models.Model):
     @api.model
     @api.ormcache(cache='groups')
     def _get_group_definitions(self):
-        """ Return the definition of all the groups as a :class:`~odoo.tools.SetDefinitions`. """
+        """ Return the definition of all the groups as a :class:`~insilos.tools.SetDefinitions`. """
         groups = self.sudo().search([], order='id')
         id_to_refs = groups._get_external_ids()
         data = {

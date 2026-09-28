@@ -1,8 +1,8 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { describe, expect, makeExpect, test } from "@odoo/hoot";
-import { check, manuallyDispatchProgrammaticEvent, tick, waitFor } from "@odoo/hoot-dom";
-import { Component, xml } from "@odoo/owl";
+import { describe, expect, makeExpect, test } from "@insilos/hoot";
+import { check, manuallyDispatchProgrammaticEvent, tick, waitFor } from "@insilos/hoot-dom";
+import { Component, xml } from "@insilos/owl";
 import { mountForTest, parseUrl } from "../local_helpers";
 
 import { Test } from "../../core/test";

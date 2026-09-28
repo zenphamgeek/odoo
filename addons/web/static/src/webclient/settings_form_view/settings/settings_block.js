@@ -1,7 +1,7 @@
 import { useLayoutEffect, useSubEnv } from "@web/owl2/utils";
 import { HighlightText } from "../highlight_text/highlight_text";
 
-import { Component, computed, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, computed, proxy, signal, t, useProps } from "@insilos/owl";
 import { normalize } from "@web/core/l10n/utils";
 
 export class SettingsBlock extends Component {

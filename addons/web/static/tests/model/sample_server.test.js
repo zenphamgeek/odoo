@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@odoo/hoot";
+import { describe, expect, test } from "@insilos/hoot";
 import { range } from "@web/core/utils/numbers";
 import { SampleServer } from "@web/model/sample_server";
 

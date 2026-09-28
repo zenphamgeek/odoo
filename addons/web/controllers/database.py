@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import csv
 import datetime
@@ -13,18 +13,18 @@ from lxml import html
 from werkzeug.exceptions import UnprocessableEntity
 from werkzeug.utils import send_file
 
-import odoo
-import odoo.modules.db
-import odoo.modules.registry
-from odoo import release
-from odoo.http import Controller, Response, request, route
-from odoo.http.router import db_list
-from odoo.http.session import authenticate, logout, save_session
-from odoo.sql_db import db_connect
-from odoo.tools.misc import file_open, str2bool
-from odoo.tools.translate import _
+import insilos
+import insilos.modules.db
+import insilos.modules.registry
+from insilos import release
+from insilos.http import Controller, Response, request, route
+from insilos.http.router import db_list
+from insilos.http.session import authenticate, logout, save_session
+from insilos.sql_db import db_connect
+from insilos.tools.misc import file_open, str2bool
+from insilos.tools.translate import _
 
-from odoo.addons.base.models.ir_qweb import render as qweb_render
+from insilos.addons.base.models.ir_qweb import render as qweb_render
 
 _logger = logging.getLogger(__name__)
 
@@ -32,7 +32,7 @@ _logger = logging.getLogger(__name__)
 def list_db_incompatible(databases: Iterable[str]) -> list[str]:
     """
     Check a list of databases if they are compatible with this version
-    of Odoo.
+    of Insilos.
 
     :param databases: A list of existing Postgresql databases.
     :returns: A sub-list of incompatible databases.
@@ -40,7 +40,7 @@ def list_db_incompatible(databases: Iterable[str]) -> list[str]:
     incompatible_databases = []
     for database_name in databases:
         with db_connect(database_name, readonly=True).cursor() as cr:
-            if odoo.tools.sql.table_exists(cr, 'ir_module_module'):
+            if insilos.tools.sql.table_exists(cr, 'ir_module_module'):
                 cr.execute("SELECT latest_version FROM ir_module_module WHERE name=%s", ('base',))
                 base_version = cr.fetchone()
                 if not base_version or not base_version[0]:
@@ -54,13 +54,13 @@ def list_db_incompatible(databases: Iterable[str]) -> list[str]:
                 incompatible_databases.append(database_name)
     for database_name in incompatible_databases:
         # don't fill the pool with connections to incompatible databases
-        odoo.sql_db.close_db(database_name)
+        insilos.sql_db.close_db(database_name)
     return incompatible_databases
 
 
 def list_countries():
     list_countries = []
-    root = ET.parse(os.path.join(odoo.tools.config.root_path, 'addons/base/data/res_country_data.xml')).getroot()
+    root = ET.parse(os.path.join(insilos.tools.config.root_path, 'addons/base/data/res_country_data.xml')).getroot()
     for country in root.find('data').findall('record[@model="res.country"]'):
         name = country.find('field[@name="name"]').text
         code = country.find('field[@name="code"]').text
@@ -89,20 +89,20 @@ def scan_languages() -> list[tuple[str, str]]:
 
 def _render_template(**d):
     d.setdefault('manage', True)
-    d['insecure'] = odoo.tools.config.verify_admin_password('admin')
-    d['list_db'] = odoo.tools.config['list_db']
+    d['insecure'] = insilos.tools.config.verify_admin_password('admin')
+    d['list_db'] = insilos.tools.config['list_db']
     try:
         d['langs'] = scan_languages()
     except Exception:
         _logger.exception("Could not read res.lang.csv")
         d['langs'] = []
     d['countries'] = list_countries()
-    d['pattern'] = odoo.modules.db.DB_NAME_RE.pattern
+    d['pattern'] = insilos.modules.db.DB_NAME_RE.pattern
     # databases list
     try:
         d['databases'] = db_list()
         d['incompatible_databases'] = list_db_incompatible(d['databases'])
-    except odoo.exceptions.AccessDenied:
+    except insilos.exceptions.AccessDenied:
         d['databases'] = [request.db] if request.db else []
 
     templates = {}
@@ -130,14 +130,14 @@ def _render_exception(exception, **d):
 
 
 def verify_access(master_pwd):
-    odoo.modules.db.verify_db_management_enabled()
-    insecure = odoo.tools.config.verify_admin_password('admin')
+    insilos.modules.db.verify_db_management_enabled()
+    insecure = insilos.tools.config.verify_admin_password('admin')
     if insecure and master_pwd:
         # if the .odoorc admin password is "admin", use the provided
         # master_pwd as new password.
-        odoo.tools.config.set_admin_password(master_pwd)
-        odoo.tools.config.save(['admin_passwd'])
-    odoo.modules.db.verify_admin_password(master_pwd)
+        insilos.tools.config.set_admin_password(master_pwd)
+        insilos.tools.config.save(['admin_passwd'])
+    insilos.modules.db.verify_admin_password(master_pwd)
 
 
 class Database(Controller):
@@ -155,13 +155,13 @@ class Database(Controller):
 
     @route('/web/database/create', type='http', auth="none", methods=['POST'], csrf=False)
     def create(self, master_pwd, name, lang, password, **post):
-        if not odoo.modules.db.DB_NAME_RE.fullmatch(name):
+        if not insilos.modules.db.DB_NAME_RE.fullmatch(name):
             e = _("Houston, we have a database naming issue! Make sure you only use letters, numbers, underscores, hyphens, or dots in the database name, and you'll be golden.")
             res = Response(_render_template(error=e), UnprocessableEntity.code)
             raise UnprocessableEntity(response=res)
         try:
             verify_access(master_pwd)
-            odoo.modules.db.create(
+            insilos.modules.db.create(
                 name,
                 demo=str2bool(post.get('demo', False)),
                 user_login=post['login'],
@@ -172,25 +172,25 @@ class Database(Controller):
             )
             # log the current user in the new database
             credential = {'login': post['login'], 'password': password, 'type': 'password'}
-            with odoo.modules.registry.Registry(name).cursor() as cr:
-                env = odoo.api.Environment(cr, None, {})
+            with insilos.modules.registry.Registry(name).cursor() as cr:
+                env = insilos.api.Environment(cr, None, {})
                 authenticate(request.session, env, credential)
                 save_session(request, env)
                 request.session.db = name
-            return request.redirect('/odoo')
+            return request.redirect('/insilos')
         except Exception as e:
             e.error_response = _render_exception(e)
             raise
 
     @route('/web/database/duplicate', type='http', auth="none", methods=['POST'], csrf=False)
     def duplicate(self, master_pwd, name, new_name, neutralize_database=False):
-        if not odoo.modules.db.DB_NAME_RE.fullmatch(name):
+        if not insilos.modules.db.DB_NAME_RE.fullmatch(name):
             e = _("Houston, we have a database naming issue! Make sure you only use letters, numbers, underscores, hyphens, or dots in the database name, and you'll be golden.")
             res = Response(_render_template(error=e), UnprocessableEntity.code)
             raise UnprocessableEntity(response=res)
         try:
             verify_access(master_pwd)
-            odoo.modules.db.duplicate(
+            insilos.modules.db.duplicate(
                 name,
                 new_name,
                 neutralize_database=str2bool(neutralize_database),
@@ -206,7 +206,7 @@ class Database(Controller):
     def drop(self, master_pwd, name):
         try:
             verify_access(master_pwd)
-            odoo.modules.db.drop(name)
+            insilos.modules.db.drop(name)
             if request.session.db == name:
                 logout(request.session)
             return request.redirect('/web/database/manager')
@@ -216,13 +216,13 @@ class Database(Controller):
 
     @route('/web/database/rename', type='http', auth="none", methods=['POST'], csrf=False)
     def rename(self, master_pwd, name, new_name):
-        if not odoo.modules.db.DB_NAME_RE.fullmatch(name):
+        if not insilos.modules.db.DB_NAME_RE.fullmatch(name):
             e = _("Houston, we have a database naming issue! Make sure you only use letters, numbers, underscores, hyphens, or dots in the database name, and you'll be golden.")
             res = Response(_render_template(error=e), UnprocessableEntity.code)
             raise UnprocessableEntity(response=res)
         try:
             verify_access(master_pwd)
-            odoo.modules.db.rename(
+            insilos.modules.db.rename(
                 name,
                 new_name,
             )
@@ -240,7 +240,7 @@ class Database(Controller):
             verify_access(master_pwd)
             dump_file = tempfile.TemporaryFile()  # noqa: SIM115
 
-            odoo.modules.db.dump(
+            insilos.modules.db.dump(
                 name,
                 dump_file,
                 backup_format=backup_format,
@@ -269,7 +269,7 @@ class Database(Controller):
             verify_access(master_pwd)
             with tempfile.NamedTemporaryFile(delete=False) as data_file:
                 backup_file.save(data_file)
-            odoo.modules.db.restore(
+            insilos.modules.db.restore(
                 name,
                 data_file.name,
                 copy=str2bool(copy),
@@ -286,9 +286,9 @@ class Database(Controller):
     @route('/web/database/change_password', type='http', auth="none", methods=['POST'], csrf=False)
     def change_password(self, master_pwd, master_pwd_new):
         try:
-            odoo.modules.db.verify_admin_password(master_pwd)
-            odoo.tools.config.set_admin_password(master_pwd_new)
-            odoo.tools.config.save(['admin_passwd'])
+            insilos.modules.db.verify_admin_password(master_pwd)
+            insilos.tools.config.set_admin_password(master_pwd_new)
+            insilos.tools.config.save(['admin_passwd'])
             return request.redirect('/web/database/manager')
         except Exception as e:
             e.error_response = _render_exception(e)

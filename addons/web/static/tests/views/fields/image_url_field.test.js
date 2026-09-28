@@ -1,6 +1,6 @@
-import { expect, test } from "@odoo/hoot";
-import { click, edit } from "@odoo/hoot-dom";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
+import { expect, test } from "@insilos/hoot";
+import { click, edit } from "@insilos/hoot-dom";
+import { animationFrame, runAllTimers } from "@insilos/hoot-mock";
 import {
     defineModels,
     fields,

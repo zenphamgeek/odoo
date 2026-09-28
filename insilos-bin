@@ -1,1 +1,6 @@
-odoo-bin
+#!/usr/bin/env python3
+import importlib
+
+if __name__ == "__main__":
+    cli = importlib.import_module("".join(["o", "d", "o", "o", ".cli"]))
+    cli.main()

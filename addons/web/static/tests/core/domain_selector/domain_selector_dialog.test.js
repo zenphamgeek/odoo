@@ -1,7 +1,7 @@
-import { describe, expect, test } from "@odoo/hoot";
-import { queryOne } from "@odoo/hoot-dom";
-import { animationFrame } from "@odoo/hoot-mock";
-import { Component, xml } from "@odoo/owl";
+import { describe, expect, test } from "@insilos/hoot";
+import { queryOne } from "@insilos/hoot-dom";
+import { animationFrame } from "@insilos/hoot-mock";
+import { Component, xml } from "@insilos/owl";
 import {
     Country,
     Partner,

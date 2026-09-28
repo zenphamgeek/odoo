@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import itertools
 
-from odoo import api, fields, models
+from insilos import api, fields, models
 
 
 class IrExports(models.Model):

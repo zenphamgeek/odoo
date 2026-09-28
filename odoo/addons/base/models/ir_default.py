@@ -1,13 +1,13 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import json
 from datetime import date
 
-from odoo import api, fields, models
-from odoo.api import SUPERUSER_ID
-from odoo.exceptions import ValidationError
-from odoo.fields import Domain
-from odoo.tools import SQL
+from insilos import api, fields, models
+from insilos.api import SUPERUSER_ID
+from insilos.exceptions import ValidationError
+from insilos.fields import Domain
+from insilos.tools import SQL
 
 
 class IrDefault(models.Model):

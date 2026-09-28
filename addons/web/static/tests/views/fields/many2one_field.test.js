@@ -1,4 +1,4 @@
-import { describe, expect, getFixture, test } from "@odoo/hoot";
+import { describe, expect, getFixture, test } from "@insilos/hoot";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import {
     click,
@@ -8,9 +8,9 @@ import {
     queryAllTexts,
     queryOne,
     scroll,
-} from "@odoo/hoot-dom";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
-import { Component, useProps, xml } from "@odoo/owl";
+} from "@insilos/hoot-dom";
+import { animationFrame, runAllTimers } from "@insilos/hoot-mock";
+import { Component, useProps, xml } from "@insilos/owl";
 import {
     clickFieldDropdown,
     clickFieldDropdownItem,
@@ -1175,8 +1175,8 @@ test("many2one in non edit mode (with value)", async () => {
     });
 
     expect("a.o_form_uri").toHaveCount(2);
-    expect("div[name=res_trululu] a.o_form_uri").toHaveAttribute("href", "/odoo/res.partner/1");
-    expect("div[name=trululu] a.o_form_uri").toHaveAttribute("href", "/odoo/m-partner/4");
+    expect("div[name=res_trululu] a.o_form_uri").toHaveAttribute("href", "/insilos/res.partner/1");
+    expect("div[name=trululu] a.o_form_uri").toHaveAttribute("href", "/insilos/m-partner/4");
 });
 
 test("many2one in non edit mode (without value)", async () => {

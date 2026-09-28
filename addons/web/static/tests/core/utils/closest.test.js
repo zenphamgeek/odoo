@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 import { closest } from "@web/core/utils/ui";
 
 test("Closest function works correctly with nested elements", () => {

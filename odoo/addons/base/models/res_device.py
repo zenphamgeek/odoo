@@ -1,11 +1,11 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
 from datetime import datetime, timedelta
 
-from odoo import api, fields, models, tools
-from odoo.http import request
-from odoo.http.session import (
+from insilos import api, fields, models, tools
+from insilos.http import request
+from insilos.http.session import (
     STORED_SESSION_BYTES,
     collapse_ip_address,
     get_session_max_inactivity,
@@ -13,10 +13,10 @@ from odoo.http.session import (
     session_store,
     update_device,
 )
-from odoo.modules import module
-from odoo.tools import SQL
-from odoo.tools._vendor.useragents import UserAgent
-from odoo.tools.translate import _
+from insilos.modules import module
+from insilos.tools import SQL
+from insilos.tools._vendor.useragents import UserAgent
+from insilos.tools.translate import _
 
 from .res_users import check_identity
 

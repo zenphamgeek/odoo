@@ -1,4 +1,4 @@
-import { usePlugin } from "@odoo/owl";
+import { usePlugin } from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { rpcBus } from "@web/core/network/rpc";
 import { UPDATE_METHODS } from "@web/core/orm_plugin";

@@ -99,14 +99,14 @@ export function makeServerError({
     return makeErrorFromResponse({
         code: code || 0,
         data: {
-            name: errorName || `odoo.exceptions.${type || "UserError"}`,
+            name: errorName || `insilos.exceptions.${type || "UserError"}`,
             debug: "traceback",
             arguments: args || [],
             context: context || {},
             subType,
             message: description || message,
         },
-        message: message || "Odoo Server Error",
+        message: message || "Insilos Server Error",
         type: "server",
     });
 }

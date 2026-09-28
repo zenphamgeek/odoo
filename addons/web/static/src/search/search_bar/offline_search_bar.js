@@ -1,6 +1,6 @@
 import { onWillRender } from "@web/owl2/utils";
 import { useAutofocus, useService } from "@web/core/utils/hooks";
-import { Component, onWillStart, usePlugin, proxy, signal, t, useProps } from "@odoo/owl";
+import { Component, onWillStart, usePlugin, proxy, signal, t, useProps } from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { Dropdown } from "@web/core/dropdown/dropdown";
 import { useDropdownState } from "@web/core/dropdown/dropdown_hooks";

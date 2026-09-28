@@ -1,5 +1,5 @@
-from odoo.tests.common import tagged, TransactionCase
-from odoo.addons.web.controllers.utils import get_action, get_action_triples, og_title_from_path
+from insilos.tests.common import tagged, TransactionCase
+from insilos.addons.web.controllers.utils import get_action, get_action_triples, og_title_from_path
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -87,30 +87,30 @@ class TestWebRouter(TransactionCase):
 
 class TestOgTitleFromPath(TransactionCase):
     def test_empty(self):
-        self.assertEqual(og_title_from_path(self.env, ''), 'Odoo')
-        self.assertEqual(og_title_from_path(self.env, None), 'Odoo')
+        self.assertEqual(og_title_from_path(self.env, ''), 'Insilos')
+        self.assertEqual(og_title_from_path(self.env, None), 'Insilos')
 
     def test_unknown_path(self):
-        self.assertEqual(og_title_from_path(self.env, '/42'), 'Odoo')
-        self.assertEqual(og_title_from_path(self.env, '/odoo/42'), 'Odoo')
-        self.assertEqual(og_title_from_path(self.env, '/odoo/action-999999999'), 'Odoo')
-        self.assertEqual(og_title_from_path(self.env, '/odoo/idontexist'), 'Odoo')
+        self.assertEqual(og_title_from_path(self.env, '/42'), 'Insilos')
+        self.assertEqual(og_title_from_path(self.env, '/insilos/42'), 'Insilos')
+        self.assertEqual(og_title_from_path(self.env, '/insilos/action-999999999'), 'Insilos')
+        self.assertEqual(og_title_from_path(self.env, '/insilos/idontexist'), 'Insilos')
 
     def test_known_action_by_path(self):
-        self.assertEqual(og_title_from_path(self.env, '/odoo/crons'), 'Scheduled Actions')
-        self.assertEqual(og_title_from_path(self.env, '/odoo/users'), 'Users')
+        self.assertEqual(og_title_from_path(self.env, '/insilos/crons'), 'Scheduled Actions')
+        self.assertEqual(og_title_from_path(self.env, '/insilos/users'), 'Users')
 
     def test_known_action_by_xmlid(self):
-        self.assertEqual(og_title_from_path(self.env, '/odoo/action-base.ir_cron_act'), 'Scheduled Actions')
+        self.assertEqual(og_title_from_path(self.env, '/insilos/action-base.ir_cron_act'), 'Scheduled Actions')
 
     def test_known_action_by_model(self):
         ir_cron_act = self.env['ir.actions.act_window'].sudo().search(
             [('res_model', '=', 'ir.cron')], limit=1)
-        self.assertEqual(og_title_from_path(self.env, '/odoo/ir.cron'), ir_cron_act.name)
+        self.assertEqual(og_title_from_path(self.env, '/insilos/ir.cron'), ir_cron_act.name)
         partner_action = self.env['ir.actions.act_window'].sudo().search(
             [('res_model', '=', 'res.partner')], limit=1)
-        self.assertEqual(og_title_from_path(self.env, '/odoo/res.partner'), partner_action.name)
+        self.assertEqual(og_title_from_path(self.env, '/insilos/res.partner'), partner_action.name)
 
     def test_record_id_stripped(self):
-        self.assertEqual(og_title_from_path(self.env, '/odoo/crons/42'), 'Scheduled Actions')
-        self.assertEqual(og_title_from_path(self.env, '/odoo/users/42'), 'Users')
+        self.assertEqual(og_title_from_path(self.env, '/insilos/crons/42'), 'Scheduled Actions')
+        self.assertEqual(og_title_from_path(self.env, '/insilos/users/42'), 'Users')

@@ -23,7 +23,7 @@ import { ListRenderer } from "@web/views/list/list_renderer";
 import { computeViewClassName } from "@web/views/utils";
 import { ViewButton } from "@web/views/view_button/view_button";
 
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 
 export const x2ManyFieldProps = {
     ...standardFieldProps,

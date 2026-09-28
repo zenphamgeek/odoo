@@ -9,7 +9,7 @@ import { getFormattedValue } from "../utils";
 import { CARD_ATTRIBUTE } from "./card_arch_parser";
 import { CardCompiler } from "./card_compiler";
 
-import { Component, computed, onWillUpdateProps, usePlugin, proxy, t, useProps } from "@odoo/owl";
+import { Component, computed, onWillUpdateProps, usePlugin, proxy, t, useProps } from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 
 const formatters = registry.category("formatters");

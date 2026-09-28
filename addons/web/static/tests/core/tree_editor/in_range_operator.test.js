@@ -1,5 +1,5 @@
-import { describe, expect, queryFirst, test } from "@odoo/hoot";
-import { mockDate } from "@odoo/hoot-mock";
+import { describe, expect, queryFirst, test } from "@insilos/hoot";
+import { mockDate } from "@insilos/hoot-mock";
 
 import { makeTestApp, mountWithCleanup } from "@web/../tests/web_test_helpers";
 

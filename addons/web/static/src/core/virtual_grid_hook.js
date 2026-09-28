@@ -1,4 +1,4 @@
-import { computed, signal, types as t, untrack, useListener, useOnChange } from "@odoo/owl";
+import { computed, signal, types as t, untrack, useListener, useOnChange } from "@insilos/owl";
 import { useThrottleForAnimation } from "@web/core/utils/timing";
 
 /**
@@ -79,7 +79,7 @@ const DEFAULT_BUFFER_COEFFICIENT = 1;
  * to the scrollable element.
  *
  * @param {Object} params
- * @param {import("@odoo/owl").ReactiveValue<HTMLElement>} params.scrollableRef signal
+ * @param {import("@insilos/owl").ReactiveValue<HTMLElement>} params.scrollableRef signal
  * @param {number[]} [params.rowHeights] initial row heights
  * @param {number[]} [params.columnWidths] initial column widths
  *  pointing to the scrollable element. It is optional, as this hook can spawn a

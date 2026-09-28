@@ -1,7 +1,7 @@
 import { WebClient } from "@web/webclient/webclient";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 
-import { animationFrame, expect, queryAllTexts, runAllTimers, test } from "@odoo/hoot";
+import { animationFrame, expect, queryAllTexts, runAllTimers, test } from "@insilos/hoot";
 import {
     contains,
     getService,
@@ -131,7 +131,7 @@ test("scheduledORM", async () => {
                 actionId: 33,
                 actionName: "CRM",
                 viewType: "kanban_quick_create",
-                changes: { name: "Harold Bohy", email: "hab@odoo.com" },
+                changes: { name: "Harold Bohy", email: "hab@insilos.com" },
                 displayName: "Harold Bohy",
                 timeStamp: 30,
             },
@@ -235,7 +235,7 @@ test("scheduledORM: inError", async () => {
                 actionId: 33,
                 actionName: "CRM",
                 viewType: "kanban_quick_create",
-                changes: { name: "Cedric Lards Ennais", email: "cla@odoo.com" },
+                changes: { name: "Cedric Lards Ennais", email: "cla@insilos.com" },
                 displayName: "Cedric Lards Ennais",
                 timeStamp: 40,
                 error: "This is an error message",
@@ -324,7 +324,7 @@ test("scheduledORM: mobile", async () => {
                 actionId: 33,
                 actionName: "CRM",
                 viewType: "kanban_quick_create",
-                changes: { name: "Harold Bohy", email: "hab@odoo.com" },
+                changes: { name: "Harold Bohy", email: "hab@insilos.com" },
                 displayName: "Harold Bohy",
                 timeStamp: 30,
             },
@@ -430,7 +430,7 @@ test("scheduledORM: inError mobile", async () => {
                 actionId: 33,
                 actionName: "CRM",
                 viewType: "kanban_quick_create",
-                changes: { name: "Cedric Lards Ennais", email: "cla@odoo.com" },
+                changes: { name: "Cedric Lards Ennais", email: "cla@insilos.com" },
                 displayName: "Cedric Lards Ennais",
                 timeStamp: 40,
                 error: true,

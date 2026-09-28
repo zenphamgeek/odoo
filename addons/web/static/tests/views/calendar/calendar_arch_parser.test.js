@@ -1,4 +1,4 @@
-import { describe, expect, test } from "@odoo/hoot";
+import { describe, expect, test } from "@insilos/hoot";
 import { FAKE_FIELDS } from "./calendar_test_helpers";
 
 import { parseXML } from "@web/core/utils/xml";

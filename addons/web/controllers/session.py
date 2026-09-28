@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import json
 import logging
@@ -8,13 +8,13 @@ from http import HTTPStatus
 from werkzeug.exceptions import Forbidden
 from werkzeug.urls import url_encode
 
-import odoo
-import odoo.modules.registry
-from odoo.exceptions import AccessError
-from odoo.http import Controller, request, route
-from odoo.http.response import Response
-from odoo.http.router import db_filter
-from odoo.http.session import (
+import insilos
+import insilos.modules.registry
+from insilos.exceptions import AccessError
+from insilos.http import Controller, request, route
+from insilos.http.response import Response
+from insilos.http.router import db_filter
+from insilos.http.session import (
     authenticate,
     logout,
     save_session,
@@ -29,7 +29,7 @@ class Session(Controller):
 
     @route('/web/session/get_session_info', type='jsonrpc', auth='user', readonly=True)
     def get_session_info(self):
-        # Crapy workaround for unupdatable Odoo Mobile App iOS (Thanks Apple :@)
+        # Crapy workaround for unupdatable Insilos Mobile App iOS (Thanks Apple :@)
         touch(request.session)
         return request.env['ir.http'].session_info()
 
@@ -43,15 +43,15 @@ class Session(Controller):
             if not request.db or request.db != db:
                 # Use a new env only when no db on the request, which means the env was not set on in through `serve_db`
                 # or the db is different than the request db
-                cr = stack.enter_context(odoo.modules.registry.Registry(db).cursor())
-                env = odoo.api.Environment(cr, None, {})
+                cr = stack.enter_context(insilos.modules.registry.Registry(db).cursor())
+                env = insilos.api.Environment(cr, None, {})
             else:
                 env = request.env
 
             credential = {'login': login, 'password': password, 'type': 'password'}
             auth_info = authenticate(request.session, env, credential)
             if auth_info['uid'] != request.session.uid:
-                # Crapy workaround for unupdatable Odoo Mobile App iOS (Thanks Apple :@) and Android
+                # Crapy workaround for unupdatable Insilos Mobile App iOS (Thanks Apple :@) and Android
                 # Correct behavior should be to raise AccessError("Renewing an expired session for user that has multi-factor-authentication is not supported. Please use /web/login instead.")
                 return {'uid': None}
 
@@ -78,14 +78,15 @@ class Session(Controller):
             'state': json.dumps({'d': request.db, 'u': ICP.get_str('web.base.url')}),
             'scope': 'userinfo',
         }
-        return 'https://accounts.odoo.com/oauth2/auth?' + url_encode(params)
+        oauth_endpoint = ICP.get_param('insilos.account_oauth_endpoint', default='/insilos/auth/oauth')
+        return f"{oauth_endpoint}?{url_encode(params)}"
 
     @route('/web/session/destroy', type='jsonrpc', auth='user', readonly=True)
     def destroy(self):
         logout(request.session)
 
     @route('/web/session/logout', type='http', auth='none', methods=['POST'], readonly=True)
-    def logout(self, redirect='/odoo'):
+    def logout(self, redirect='/insilos'):
         logout(request.session, keep_db=True)
         return request.redirect(redirect, 303)
 

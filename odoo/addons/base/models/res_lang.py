@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import ast
 import locale
@@ -7,9 +7,9 @@ import re
 from collections.abc import Mapping
 from typing import Any, Literal
 
-from odoo import api, fields, models, tools, _
-from odoo.exceptions import UserError, ValidationError
-from odoo.tools.translate import mark_as_copy
+from insilos import api, fields, models, tools, _
+from insilos.exceptions import UserError, ValidationError
+from insilos.tools.translate import mark_as_copy
 
 _logger = logging.getLogger(__name__)
 
@@ -282,7 +282,7 @@ class ResLang(models.CachedModel):
     def install_lang(self):
         """
 
-        This method is called from odoo/addons/base/data/res_lang_data.xml to load
+        This method is called from addons/base/data/res_lang_data.xml to load
         some language and set it as the default for every partners. The
         language is set via tools.config by the '_initialize_db' method on the
         'db' object. This is a fragile solution and something else should be

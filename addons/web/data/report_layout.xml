@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<data>
     <data>
 
         <record id="report_layout_standard" model="report.layout">
@@ -60,4 +60,4 @@
         </record>
 
     </data>
-</odoo>
+</data>

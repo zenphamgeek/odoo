@@ -1,10 +1,10 @@
 // ! WARNING: this module cannot depend on modules not ending with ".hoot" (except libs) !
 
-import { after, before, beforeEach, createJobScopedGetter } from "@odoo/hoot";
-import { types as t, validateType } from "@odoo/owl";
+import { after, before, beforeEach, createJobScopedGetter } from "@insilos/hoot";
+import { types as t, validateType } from "@insilos/owl";
 
-const { view_info } = odoo.__session_info__ || {};
-delete odoo.__session_info__;
+const { view_info } = insilos.__session_info__ || {};
+delete insilos.__session_info__;
 
 const { Settings } = luxon;
 
@@ -106,9 +106,9 @@ const getServerStateValues = createJobScopedGetter(
 /** @type {Map<any, (state: ServerState) => any>} */
 const subscriptions = new Map([
     [
-        odoo,
+        insilos,
         ({ db, debug, serverVersion }) => ({
-            ...odoo,
+            ...insilos,
             debug,
             info: {
                 db,

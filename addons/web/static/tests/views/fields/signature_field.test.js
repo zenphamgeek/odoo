@@ -1,8 +1,8 @@
 import { NameAndSignature } from "@web/core/signature/name_and_signature";
 
-import { expect, queryOne, test } from "@odoo/hoot";
-import { animationFrame, runAllTimers } from "@odoo/hoot-mock";
-import { click, drag, edit, queryFirst, waitFor } from "@odoo/hoot-dom";
+import { expect, queryOne, test } from "@insilos/hoot";
+import { animationFrame, runAllTimers } from "@insilos/hoot-mock";
+import { click, drag, edit, queryFirst, waitFor } from "@insilos/hoot-dom";
 import {
     clickSave,
     defineModels,

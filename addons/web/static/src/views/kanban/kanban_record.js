@@ -1,5 +1,5 @@
 import { browser } from "@web/core/browser/browser";
-import { signal, t, useProps } from "@odoo/owl";
+import { signal, t, useProps } from "@insilos/owl";
 import { ColorList } from "@web/core/colorlist/colorlist";
 import { ConfirmationDialog } from "@web/core/confirmation_dialog/confirmation_dialog";
 import { Dropdown } from "@web/core/dropdown/dropdown";

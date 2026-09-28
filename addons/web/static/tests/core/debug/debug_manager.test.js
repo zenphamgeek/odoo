@@ -10,8 +10,8 @@ import {
     queryOne,
     queryText,
     test,
-} from "@odoo/hoot";
-import { Component, xml } from "@odoo/owl";
+} from "@insilos/hoot";
+import { Component, xml } from "@insilos/owl";
 import {
     assignDialogTestEnv,
     clearRegistry,
@@ -224,7 +224,7 @@ describe("DebugMenu", () => {
     });
 
     test("can disable the rpc cache", async () => {
-        redirect("/odoo");
+        redirect("/insilos");
         patchWithCleanup(location, {
             reload: () => expect.step("reloadPage"),
         });
@@ -242,7 +242,7 @@ describe("DebugMenu", () => {
     });
 
     test("can re-enable the rpc cache", async () => {
-        redirect("/odoo?cache=0");
+        redirect("/insilos?cache=0");
         patchWithCleanup(location, {
             reload: () => expect.step("reloadPage"),
         });

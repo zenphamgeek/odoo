@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 MISC_HTML_SOURCE = u"""
 <font size="2" style="color: rgb(31, 31, 31); font-family: monospace; font-variant: normal; line-height: normal; ">test1</font>
@@ -73,9 +73,9 @@ QUOTE_BLOCKQUOTE = u"""<html>
     </div>
     <blockquote
 cite="mid:CAEJSRZvWvud8c6Qp=wfNG6O1+wK3i_jb33qVrF7XyrgPNjnyUA@mail.gmail.com"
-      type="cite"><base href="https://www.odoo.com">
+      type="cite"><base href="https://insilos.com">
       <div dir="ltr">Yep Dominique that is true, as Postgres was the
-        base of all same as Odoo and MySQL etc came much later.Â 
+        base of all same as Insilos and MySQL etc came much later.Â 
         <div><br>
         </div>
         <div>Unfortunately many customers who ask for and ERP are with
@@ -89,7 +89,7 @@ cite="mid:CAEJSRZvWvud8c6Qp=wfNG6O1+wK3i_jb33qVrF7XyrgPNjnyUA@mail.gmail.com"
     </blockquote>
     <br>
     I don't care how much you are highlighting the advantages of Erpnext
-    on this Odoo mailinglist, but when you start implying that Postgres
+    on this Insilos mailinglist, but when you start implying that Postgres
     is not well documented it really hurts.<br>
     <br>
     <pre class="moz-signature" cols="72">-- 
@@ -418,24 +418,24 @@ GMAIL_3_IN = [
 
 HOTMAIL_1 = u"""<div>
     <div dir="ltr"><br>
-        I have an amazing company, i'm learning OpenERP, it is a small company yet, but plannig to grow up quickly.
+        I have an amazing company, i'm learning InsilosERP, it is a small company yet, but plannig to grow up quickly.
         <br><br>Kindest regards,<br>xxx<br>
         <div>
             <div id="SkyDrivePlaceholder">
             </div>
             <hr id="stopSpelling">
-            Subject: Re: your OpenERP.com registration<br>From: xxx@xxx.xxx<br>To: xxx@xxx.xxx<br>Date: Wed, 27 Mar 2013 17:12:12 +0000
+            Subject: Re: your Insilos.com registration<br>From: xxx@xxx.xxx<br>To: xxx@xxx.xxx<br>Date: Wed, 27 Mar 2013 17:12:12 +0000
             <br><br>
             Hello xxx,
             <br>
-            I noticed you recently created an OpenERP.com account to access OpenERP Apps.
+            I noticed you recently created an Insilos.com account to access InsilosERP Apps.
             <br>
-            You indicated that you wish to use OpenERP in your own company.
+            You indicated that you wish to use InsilosERP in your own company.
             We would like to know more about your your business needs and requirements, and see how
             we can help you. When would you be available to discuss your project?<br>
             Best regards,<br>
             <pre>
-                <a href="http://openerp.com" target="_blank">http://openerp.com</a>
+                <a href="https://insilos.com" target="_blank">https://insilos.com</a>
                 Belgium: +32.81.81.37.00
                 U.S.: +1 (650) 307-6736
                 India: +91 (79) 40 500 100
@@ -444,12 +444,12 @@ HOTMAIL_1 = u"""<div>
     </div>
 </div>"""
 HOTMAIL_1_IN = [u"""<div dir="ltr"><br>
-        I have an amazing company, i'm learning OpenERP, it is a small company yet, but plannig to grow up quickly.
+        I have an amazing company, i'm learning InsilosERP, it is a small company yet, but plannig to grow up quickly.
         <br><br>Kindest regards,<br>xxx<br>"""]
 HOTMAIL_1_OUT = [
     u"""<hr id="stopSpelling" data-o-mail-quote="1">""",
     u"""<pre data-o-mail-quote="1">
-                <a href="http://openerp.com" target="_blank" data-o-mail-quote="1">http://openerp.com</a>
+                <a href="https://insilos.com" target="_blank" data-o-mail-quote="1">https://insilos.com</a>
                 Belgium: +32.81.81.37.00
                 U.S.: +1 (650) 307-6736
                 India: +91 (79) 40 500 100
@@ -469,7 +469,7 @@ MSOFFICE_1 = u"""
         <p class="MsoNormal">
             <span style="font-size:11.0pt;font-family:&quot;Calibri&quot;,&quot;sans-serif&quot;;color:#1F497D">
                 I’ll install on a windows server and run a very limited trial to see how it works.
-                If we adopt OpenERP we will probably move to Linux or look for a hosted SaaS option.
+                If we adopt InsilosERP we will probably move to Linux or look for a hosted SaaS option.
             </span>
         </p>
         <p></p>
@@ -521,8 +521,8 @@ MSOFFICE_1 = u"""
                         From:
                     </span></b>
                     <span style="font-size:10.0pt;font-family:&quot;Tahoma&quot;,&quot;sans-serif&quot;">
-                        OpenERP Enterprise [mailto:sales@openerp.com]
-                        <br><b>Sent:</b> Monday, 11 March, 2013 14:47<br><b>To:</b> Alan Widmer<br><b>Subject:</b> Re: your OpenERP.com registration
+                        InsilosERP Enterprise [mailto:sales@Insilos.com]
+                        <br><b>Sent:</b> Monday, 11 March, 2013 14:47<br><b>To:</b> Alan Widmer<br><b>Subject:</b> Re: your Insilos.com registration
                     </span>
                 </p>
                 <p></p>
@@ -533,14 +533,14 @@ MSOFFICE_1 = u"""
         <p>&nbsp;</p>
         <p>Hello Alan Widmer, </p>
         <p></p>
-        <p>I noticed you recently downloaded OpenERP. </p>
+        <p>I noticed you recently downloaded InsilosERP. </p>
         <p></p>
         <p>
-            Uou mentioned you wish to use OpenERP in your own company. Please let me more about your
+            Uou mentioned you wish to use InsilosERP in your own company. Please let me more about your
             business needs and requirements? When will you be available to discuss about your project?
         </p>
         <p></p>
-        <p>Thanks for your interest in OpenERP, </p>
+        <p>Thanks for your interest in InsilosERP, </p>
         <p></p>
         <p>Feel free to contact me if you have any questions, </p>
         <p></p>
@@ -549,7 +549,7 @@ MSOFFICE_1 = u"""
         <pre><p>&nbsp;</p></pre>
         <pre>--<p></p></pre>
         <pre>Nicolas<p></p></pre>
-        <pre><a href="http://openerp.com">http://openerp.com</a><p></p></pre>
+        <pre><a href="https://insilos.com">https://insilos.com</a><p></p></pre>
         <pre>Belgium: +32.81.81.37.00<p></p></pre>
         <pre>U.S.: +1 (650) 307-6736<p></p></pre>
         <pre>India: +91 (79) 40 500 100<p></p></pre>
@@ -558,7 +558,7 @@ MSOFFICE_1 = u"""
 </div>"""
 
 MSOFFICE_1_IN = [u'Our requirements are simple. Just looking to replace some spreadsheets for tracking quotes and possibly using the timecard module.']
-MSOFFICE_1_OUT = [u'I noticed you recently downloaded OpenERP.', 'Uou mentioned you wish to use OpenERP in your own company.', 'Belgium: +32.81.81.37.00']
+MSOFFICE_1_OUT = [u'I noticed you recently downloaded InsilosERP.', 'Uou mentioned you wish to use InsilosERP in your own company.', 'Belgium: +32.81.81.37.00']
 
 
 # ------------------------------------------------------------
@@ -599,11 +599,11 @@ Regards,
 -- 
 Olivier Laurent
 Migration Manager
-OpenERP SA
+InsilosERP SA
 Chaussée de Namur, 40
 B-1367 Gérompont
 Tel: +32.81.81.37.00
-Web: http://www.openerp.com</pre>"""
+Web: https://insilos.com</pre>"""
 
 BUG_1_IN = [
     u'Hi Migration Team',
@@ -613,27 +613,27 @@ BUG_1_OUT = [u"""
 -- 
 Olivier Laurent
 Migration Manager
-OpenERP SA
+InsilosERP SA
 Chaussée de Namur, 40
 B-1367 Gérompont
 Tel: +32.81.81.37.00
-Web: http://www.openerp.com"""]
+Web: https://insilos.com"""]
 
 
 REMOVE_CLASS = u"""
 <div style="FONT-SIZE: 12pt; FONT-FAMILY: 'Times New Roman'; COLOR: #000000">
     <div>Hello</div>
-    <div>I have just installed Odoo 9 and I've got the following error:</div>
+    <div>I have just installed Insilos 9 and I've got the following error:</div>
     <div>&nbsp;</div>
-    <div class="openerp openerp_webclient_container oe_webclient">
+    <div class="insilos openerp_webclient_container oe_webclient">
         <div class="oe_loading" style="DISPLAY: none">&nbsp;</div>
     </div>
     <div class="modal-backdrop in"></div>
     <div role="dialog" tabindex="-1" aria-hidden="false" class="modal in" style="DISPLAY: block" data-backdrop="static">
         <div class="modal-dialog modal-lg">
-            <div class="modal-content openerp">
+            <div class="modal-content insilos">
                 <div class="modal-header"> 
-                    <h4 class="modal-title">Odoo Error<span class="o_subtitle text-muted"></span></h4>
+                    <h4 class="modal-title">Insilos Error<span class="o_subtitle text-muted"></span></h4>
                 </div>
                 <div class="o_error_detail modal-body">
                     <pre>An error occurred in a modal and I will send you back the html to try opening one on your end</pre>
@@ -648,5 +648,5 @@ REMOVE_CLASS_IN = [
     u'An error occurred in a modal and I will send you back the html to try opening one on your end']
 REMOVE_CLASS_OUT = [
     u'<div class="modal-backdrop in">',
-    u'<div class="modal-content openerp">',
+    u'<div class="modal-content insilos">',
     u'<div class="modal-header">']

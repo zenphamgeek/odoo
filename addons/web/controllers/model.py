@@ -1,7 +1,7 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from json import loads, dumps
-from odoo.http import Controller, request, route
+from insilos.http import Controller, request, route
 
 
 class Model(Controller):

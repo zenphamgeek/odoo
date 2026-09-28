@@ -1,5 +1,5 @@
 import { registry } from "@web/core/registry";
-import { computed, Plugin, signal, useListener, usePlugin } from "@odoo/owl";
+import { computed, Plugin, signal, useListener, usePlugin } from "@insilos/owl";
 import { services } from "@web/core/services";
 
 const STORAGE_KEY = "web.emoji.frequent";

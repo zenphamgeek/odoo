@@ -1,5 +1,5 @@
-import { describe, expect, test, beforeEach } from "@odoo/hoot";
-import { queryAllTexts, waitFor } from "@odoo/hoot-dom";
+import { describe, expect, test, beforeEach } from "@insilos/hoot";
+import { queryAllTexts, waitFor } from "@insilos/hoot-dom";
 import {
     contains,
     defineActions,
@@ -15,7 +15,7 @@ import {
     getKwArgs,
 } from "@web/../tests/web_test_helpers";
 
-import { animationFrame, mockTouch, runAllTimers } from "@odoo/hoot-mock";
+import { animationFrame, mockTouch, runAllTimers } from "@insilos/hoot-mock";
 import { location } from "@web/core/browser/browser";
 import { router, routerBus } from "@web/core/browser/router";
 import { rpcBus } from "@web/core/network/rpc";
@@ -419,17 +419,17 @@ test("breadcrumbs are updated when clicking on embeddeds", async () => {
     ).click();
     expect(".o_control_panel .breadcrumb-item").toHaveCount(0);
     expect(".o_control_panel .o_breadcrumb .active").toHaveText("Partners Action 1");
-    expect(location.href).toBe("https://www.hoot.test/odoo/action-1");
+    expect(location.href).toBe("https://www.hoot.test/insilos/action-1");
     await contains(".o_embedded_actions > button > span:contains('Embedded Action 2')").click();
     await runAllTimers();
-    expect(location.href).toBe("https://www.hoot.test/odoo/action-3");
+    expect(location.href).toBe("https://www.hoot.test/insilos/action-3");
     expect(router.current.action).toBe(3, {
         message: "the current action should be the one of the embedded action previously clicked",
     });
     expect(queryAllTexts(".breadcrumb-item, .o_breadcrumb .active")).toEqual(["Favorite Ponies"]);
     await contains(".o_embedded_actions > button > span:contains('Embedded Action 3')").click();
     await runAllTimers();
-    expect(location.href).toBe("https://www.hoot.test/odoo/action-4");
+    expect(location.href).toBe("https://www.hoot.test/insilos/action-4");
     expect(router.current.action).toBe(4, {
         message: "the current action should be the one of the embedded action previously clicked",
     });

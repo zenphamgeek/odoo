@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import ast
 import collections
@@ -16,17 +16,17 @@ from markupsafe import Markup
 from contextlib import suppress
 from collections.abc import Sequence
 
-from odoo import api, fields, models, tools
-from odoo.exceptions import ValidationError, AccessError, UserError, MissingError
-from odoo.fields import Domain
-from odoo.http import request
-from odoo.modules.module import get_resource_from_path
-from odoo.tools import _, config, frozendict, partition, unique, SQL
-from odoo.tools.convert import _fix_multiple_roots
-from odoo.tools.misc import file_path, get_diff, ConstantMapping
-from odoo.tools.template_inheritance import apply_inheritance_specs, locate_node
-from odoo.tools.translate import xml_translate, TRANSLATED_ATTRS, StoredTranslations
-from odoo.tools.view_validation import valid_view, get_domain_value_names, get_expression_field_names, get_dict_asts
+from insilos import api, fields, models, tools
+from insilos.exceptions import ValidationError, AccessError, UserError, MissingError
+from insilos.fields import Domain
+from insilos.http import request
+from insilos.modules.module import get_resource_from_path
+from insilos.tools import _, config, frozendict, partition, unique, SQL
+from insilos.tools.convert import _fix_multiple_roots
+from insilos.tools.misc import file_path, get_diff, ConstantMapping
+from insilos.tools.template_inheritance import apply_inheritance_specs, locate_node
+from insilos.tools.translate import xml_translate, TRANSLATED_ATTRS, StoredTranslations
+from insilos.tools.view_validation import valid_view, get_domain_value_names, get_expression_field_names, get_dict_asts
 
 _logger = logging.getLogger(__name__)
 
@@ -1143,7 +1143,7 @@ actual arch.
         ``_view`` may be provided as a shortcut to avoid resolving
         ``id_or_xmlid`` again. Passing an empty recordset means the template is
         known to be missing and results in ``info['error']`` being a
-        :class:`odoo.exceptions.MissingError`.
+        :class:`insilos.exceptions.MissingError`.
 
         ``_view`` is intentionally not part of the cache key: when provided and
         correct, it is equivalent to the view resolved from ``id_or_xmlid`` and

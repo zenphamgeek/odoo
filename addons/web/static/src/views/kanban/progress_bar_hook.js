@@ -1,4 +1,4 @@
-import { proxy } from "@odoo/owl";
+import { proxy } from "@insilos/owl";
 import { Domain } from "@web/core/domain";
 import { _t } from "@web/core/l10n/translation";
 import { ConnectionLostError } from "@web/core/network/rpc";

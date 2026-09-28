@@ -1,4 +1,4 @@
-import { after, beforeEach, expect, getFixture, test } from "@odoo/hoot";
+import { after, beforeEach, expect, getFixture, test } from "@insilos/hoot";
 import {
     click,
     edit,
@@ -8,8 +8,8 @@ import {
     queryFirst,
     resize,
     unload,
-} from "@odoo/hoot-dom";
-import { animationFrame, mockSendBeacon, runAllTimers } from "@odoo/hoot-mock";
+} from "@insilos/hoot-dom";
+import { animationFrame, mockSendBeacon, runAllTimers } from "@insilos/hoot-mock";
 import {
     clickModalButton,
     clickSave,
@@ -122,7 +122,7 @@ test("change setting on nav bar click in base settings on desktop", async () => 
                         </setting>
                     </block>
                     <block title="Title of group Foo">
-                        <setting help="this is foo help" info="this is foo info" documentation="https://www.odoo.com/documentation/1.0/applications/technical/web/settings/this_is_another_test.html">
+                        <setting help="this is foo help" info="this is foo info" documentation="https://www.insilos.com/documentation/1.0/applications/technical/web/settings/this_is_another_test.html">
                             <field name="foo"/>
                         </setting>
                         <setting string="Personalize setting" help="this is full personalize setting">
@@ -167,11 +167,11 @@ test("change setting on nav bar click in base settings on desktop", async () => 
     expect(".o_setting_box span.oi:eq(1)").toHaveAttribute("title", "this is foo info");
     expect(".o_setting_box a:eq(0)").toHaveAttribute(
         "href",
-        "https://www.odoo.com/documentation/1.0/applications/technical/web/settings/this_is_a_test.html"
+        "https://www.insilos.com/documentation/1.0/applications/technical/web/settings/this_is_a_test.html"
     );
     expect(".o_setting_box a:eq(1)").toHaveAttribute(
         "href",
-        "https://www.odoo.com/documentation/1.0/applications/technical/web/settings/this_is_another_test.html"
+        "https://www.insilos.com/documentation/1.0/applications/technical/web/settings/this_is_another_test.html"
     );
 
     await editSearch("Hello there");
@@ -302,7 +302,7 @@ test("change setting on nav bar click in base settings on mobile", async () => {
                         </setting>
                     </block>
                     <block title="Title of group Foo">
-                        <setting help="this is foo" info="this is foo info" documentation="https://www.odoo.com/documentation/1.0/applications/technical/web/settings/this_is_another_test.html">
+                        <setting help="this is foo" info="this is foo info" documentation="https://www.insilos.com/documentation/1.0/applications/technical/web/settings/this_is_another_test.html">
                             <field name="foo"/>
                         </setting>
                         <setting string="Personalize setting" help="this is full personalize setting">
@@ -346,11 +346,11 @@ test("change setting on nav bar click in base settings on mobile", async () => {
     expect(".o_setting_box span.oi:eq(1)").toHaveAttribute("title", "this is foo info");
     expect(".o_setting_box a:eq(0)").toHaveAttribute(
         "href",
-        "https://www.odoo.com/documentation/1.0/applications/technical/web/settings/this_is_a_test.html"
+        "https://www.insilos.com/documentation/1.0/applications/technical/web/settings/this_is_a_test.html"
     );
     expect(".o_setting_box a:eq(1)").toHaveAttribute(
         "href",
-        "https://www.odoo.com/documentation/1.0/applications/technical/web/settings/this_is_another_test.html"
+        "https://www.insilos.com/documentation/1.0/applications/technical/web/settings/this_is_another_test.html"
     );
 
     await editSearch("Hello there");
@@ -975,7 +975,7 @@ test("settings views does not write the id on the url", async () => {
 
     await getService("action").doAction(1);
     await runAllTimers();
-    expect(location.pathname).toBe("/odoo/settings");
+    expect(location.pathname).toBe("/insilos/settings");
     expect(".o_field_boolean input").toHaveProperty("disabled", false);
     await click(".o_field_boolean input");
     await animationFrame();
@@ -984,7 +984,7 @@ test("settings views does not write the id on the url", async () => {
 
     await animationFrame();
     expect(router.current.resId).toBe(undefined);
-    expect(location.pathname).toBe("/odoo/settings");
+    expect(location.pathname).toBe("/insilos/settings");
 });
 
 test.tags("desktop");
@@ -1647,7 +1647,7 @@ test("settings view change app - desktop", async () => {
     await animationFrame();
 
     expect(queryAllTexts(".tab.selected")).toEqual(["Other App"]);
-    expect(location.href).toBe("https://www.hoot.test/odoo/settings#otherapp");
+    expect(location.href).toBe("https://www.hoot.test/insilos/settings#otherapp");
 });
 
 test.tags("mobile");
@@ -1695,7 +1695,7 @@ test("settings view change app - mobile", async () => {
     await animationFrame();
 
     expect(queryAllTexts(".settings_tab")).toEqual(["Other App"]);
-    expect(location.href).toBe("https://www.hoot.test/odoo/settings#otherapp");
+    expect(location.href).toBe("https://www.hoot.test/insilos/settings#otherapp");
 });
 
 test("settings view shows a message if there are changes", async () => {
@@ -2235,7 +2235,7 @@ test("Open settings from url, with app anchor - Desktop", async () => {
         </form>
     `;
 
-    redirect("/odoo/settings#crm");
+    redirect("/insilos/settings#crm");
     await mountWithCleanup(WebClient);
     await animationFrame();
     expect(".selected").toHaveAttribute("data-key", "crm", { message: "crm setting selected" });
@@ -2272,7 +2272,7 @@ test("Open settings from url, with app anchor - mobile", async () => {
         </form>
     `;
 
-    redirect("/odoo/settings#crm");
+    redirect("/insilos/settings#crm");
     await mountWithCleanup(WebClient);
     await animationFrame();
     expect(queryAllTexts(".settings_tab")).toEqual(["CRM"], { message: "crm setting selected" });
@@ -2309,7 +2309,7 @@ test("Open settings from url, with setting id anchor", async () => {
         </form>
     `;
 
-    redirect("/odoo/settings#setting_id");
+    redirect("/insilos/settings#setting_id");
     await mountWebClient();
     expect(".selected").toHaveAttribute("data-key", "crm", { message: "crm setting selected" });
     expect(queryAllTexts(".settings .o_settings_container .o_form_label")).toEqual(["Foo"]);
@@ -2349,7 +2349,7 @@ test("Open settings from url, with setting id anchor - mobile", async () => {
         </form>
     `;
 
-    redirect("/odoo/settings#setting_id");
+    redirect("/insilos/settings#setting_id");
     await mountWebClient();
     expect(queryAllTexts(".settings_tab")).toEqual(["CRM"], { message: "crm setting selected" });
     expect(queryAllTexts(".settings .o_settings_container .o_form_label")).toEqual(["Foo"]);

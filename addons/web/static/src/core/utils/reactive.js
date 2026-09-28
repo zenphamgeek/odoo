@@ -1,4 +1,4 @@
-import { effect as owlEffect, proxy } from "@odoo/owl";
+import { effect as owlEffect, proxy } from "@insilos/owl";
 
 export function effect(fn, deps) {
     if (deps && deps.length) {

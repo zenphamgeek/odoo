@@ -1,10 +1,10 @@
 export const FACET_ICONS = {
-    filter: "filter_alt",
-    relative: "filter_alt",
-    groupBy: "stacks",
+    filter: "funnel",
+    relative: "funnel",
+    groupBy: "stack",
     favorite: "star",
-    groupByAsc: "arrow_upward",
-    groupByDesc: "arrow_downward",
+    groupByAsc: "arrow-up",
+    groupByDesc: "arrow-down",
 };
 
 export const FACET_COLORS = {

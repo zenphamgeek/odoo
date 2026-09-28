@@ -1,6 +1,6 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { Component, computed, signal, t, useEffect, usePlugin, useProps, xml } from "@odoo/owl";
+import { Component, computed, signal, t, useEffect, usePlugin, useProps, xml } from "@insilos/owl";
 import { Suite } from "../core/suite";
 import { createUrlFromId } from "../core/url";
 import { lookup, parseQuery, T_NULL, TestReporting } from "../hoot_utils";

@@ -1,13 +1,13 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
 import operator
 from tempfile import TemporaryFile
 from os.path import splitext
 
-from odoo import fields, models, tools
-from odoo.exceptions import UserError
-from odoo.tools.translate import TranslationImporter
+from insilos import fields, models, tools
+from insilos.exceptions import UserError
+from insilos.tools.translate import TranslationImporter
 
 _logger = logging.getLogger(__name__)
 

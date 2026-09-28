@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, test } from "@odoo/hoot";
+import { beforeEach, describe, expect, test } from "@insilos/hoot";
 import {
     patchWithCleanup,
     defineParams,

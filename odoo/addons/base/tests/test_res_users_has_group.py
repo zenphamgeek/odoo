@@ -1,8 +1,8 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo.tests.common import tagged, TransactionCase
-from odoo.exceptions import AccessError, ValidationError
-from odoo import Command
+from insilos.tests.common import tagged, TransactionCase
+from insilos.exceptions import AccessError, ValidationError
+from insilos import Command
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -339,7 +339,7 @@ class TestHasGroup(TransactionCase):
         self.test_user.has_group('test_user_has_group.group0')
         check_cache(True)
         # _clear_caches is called in res.groups.write to invalidate cache before
-        #  calling its parent class method (`odoo.models.Model.write`) as
+        #  calling its parent class method (`insilos.models.Model.write`) as
         #  explain in the `res.group.write` comment.
         # This verifies that calling `_clear_caches()` invalidates the ormcache
         # of method `user._has_group()`

@@ -1,5 +1,5 @@
-import { expect, test } from "@odoo/hoot";
-import { click, queryAllTexts } from "@odoo/hoot-dom";
+import { expect, test } from "@insilos/hoot";
+import { click, queryAllTexts } from "@insilos/hoot-dom";
 import {
     clickSave,
     defineModels,

@@ -1,11 +1,11 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo import api, fields, models, release
-from odoo.http import request
-from odoo.http.requestlib import DEFAULT_MAX_CONTENT_LENGTH
-from odoo.tools import config
-from odoo.tools.func import deprecated
-from odoo.tools.misc import hmac, str2bool
+from insilos import api, fields, models, release
+from insilos.http import request
+from insilos.http.requestlib import DEFAULT_MAX_CONTENT_LENGTH
+from insilos.tools import config
+from insilos.tools.func import deprecated
+from insilos.tools.misc import hmac, str2bool
 
 
 class IrHttp(models.AbstractModel):

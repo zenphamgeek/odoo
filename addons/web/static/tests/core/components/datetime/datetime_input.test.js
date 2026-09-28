@@ -1,11 +1,11 @@
-import { test, expect, describe } from "@odoo/hoot";
-import { Component, useProps, xml } from "@odoo/owl";
+import { test, expect, describe } from "@insilos/hoot";
+import { Component, useProps, xml } from "@insilos/owl";
 import {
     assertDateTimePicker,
     editTime,
     getPickerCell,
 } from "../../datetime/datetime_test_helpers";
-import { animationFrame } from "@odoo/hoot-mock";
+import { animationFrame } from "@insilos/hoot-mock";
 import { DateTimeInput } from "@web/core/datetime/datetime_input";
 import {
     contains,
@@ -14,7 +14,7 @@ import {
     mountWithCleanup,
     serverState,
 } from "@web/../tests/web_test_helpers";
-import { click, edit, queryFirst } from "@odoo/hoot-dom";
+import { click, edit, queryFirst } from "@insilos/hoot-dom";
 
 const { DateTime } = luxon;
 

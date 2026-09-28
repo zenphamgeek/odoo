@@ -1,4 +1,4 @@
-import { markRaw, t, Plugin, usePlugin, assertType } from "@odoo/owl";
+import { markRaw, t, Plugin, usePlugin, assertType } from "@insilos/owl";
 import { Popover } from "@web/core/popover/popover";
 import { registry } from "@web/core/registry";
 import { OverlayPlugin } from "@web/core/overlay/overlay_plugin";
@@ -31,7 +31,7 @@ export class PopoverPlugin extends Plugin {
      * Signals the manager to add a popover.
      *
      * @param {HTMLElement} target
-     * @param {typeof import("@odoo/owl").Component} component
+     * @param {typeof import("@insilos/owl").Component} component
      * @param {object} [props]
      * @param {PopoverOptionSchema} [options]
      * @returns {() => void}

@@ -1,9 +1,9 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
-from odoo.fields import Command
-from odoo.tests import TransactionCase
-from odoo.addons.base.tests.common import HttpCaseWithUserDemo
-from odoo.tests.common import tagged
+from insilos.fields import Command
+from insilos.tests import TransactionCase
+from insilos.addons.base.tests.common import HttpCaseWithUserDemo
+from insilos.tests.common import tagged
 
 
 @tagged('at_install', '-post_install')  # LEGACY at_install
@@ -52,7 +52,7 @@ class TestResUsers(TransactionCase):
 @tagged('post_install', '-at_install')
 class TestUserSettings(HttpCaseWithUserDemo):
     def test_user_group_settings(self):
-        self.start_tour('/odoo/settings?debug=assets,tests', 'test_user_group_settings', login='admin')
+        self.start_tour('/insilos/settings?debug=assets,tests', 'test_user_group_settings', login='admin')
 
 
 @tagged('post_install', '-at_install')
@@ -108,13 +108,13 @@ class TestUserRoleGroupSync(HttpCaseWithUserDemo):
         self.test_user.invalidate_recordset()
 
     def _user_url(self):
-        # Not /odoo/res.users/<id>: with hr installed, that bare model URL
+        # Not /insilos/res.users/<id>: with hr installed, that bare model URL
         # resolves to the *simplified* HR form (base.view_users_simple_form,
         # no Access Rights notebook, no role field) instead of the real
         # Settings > Users form (base.view_users_form) that
         # base.action_res_users explicitly uses -- going through the
         # action's own path is what makes the correct view get picked.
-        return f"/odoo/users/{self.test_user.id}?debug=1"
+        return f"/insilos/users/{self.test_user.id}?debug=1"
 
     def _assert_state(self, role, marker_expected, msg):
         self.test_user.invalidate_recordset()
@@ -182,7 +182,7 @@ class TestUserRoleGroupSync(HttpCaseWithUserDemo):
     def test_role_toggle_reload_relies_on_autosave(self):
         """ light -> [no explicit Save] -> reload -> regular -> [no
         explicit Save] -> reload. Sanity check: an unsaved role change
-        must not survive a reload (Odoo doesn't auto-save on unload). Not
+        must not survive a reload (Insilos doesn't auto-save on unload). Not
         expected to reproduce the bug, but rules out a different save
         code path being involved. """
         self.start_tour(

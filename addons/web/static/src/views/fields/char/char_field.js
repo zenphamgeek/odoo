@@ -7,7 +7,7 @@ import { useInputField } from "../input_field_hook";
 import { standardFieldProps } from "../standard_field_props";
 import { TranslationButton } from "../translation/translation";
 
-import { Component, onMounted, onPatched, signal, t, useListener, useProps } from "@odoo/owl";
+import { Component, onMounted, onPatched, signal, t, useListener, useProps } from "@insilos/owl";
 
 export const charFieldProps = {
     ...standardFieldProps,

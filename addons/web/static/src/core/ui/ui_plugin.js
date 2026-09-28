@@ -6,7 +6,7 @@ import { isFocusable } from "@web/core/utils/ui";
 import { getActiveHotkey } from "../hotkeys/hotkey_utils";
 import { getFirstAndLastTabableElements, refreshMedias, utils } from "./ui_utils";
 
-import { computed, EventBus, Plugin, signal, untrack, useListener, usePlugin } from "@odoo/owl";
+import { computed, EventBus, Plugin, signal, untrack, useListener, usePlugin } from "@insilos/owl";
 
 /**
  * This hook will set the UI active element

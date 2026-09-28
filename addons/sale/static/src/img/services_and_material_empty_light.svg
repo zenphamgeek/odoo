@@ -116,25 +116,25 @@
 @keyframes kf_Save-button_fill_0 {
   0% {
     animation-timing-function: step-end;
-    fill: #714B67;
+    fill: #FF8000;
   }
   43.769% {
     animation-timing-function: step-end;
-    fill: #714B67;
+    fill: #FF8000;
   }
   43.917% {
     animation-timing-function: step-end;
-    fill: #855C7A;
+    fill: #FFA033;
   }
   46.884% {
     animation-timing-function: linear;
-    fill: #593852;
+    fill: #EA580C;
   }
   49.11% {
-    fill: #714B67;
+    fill: #FF8000;
   }
   100% {
-    fill: #714B67;
+    fill: #FF8000;
   }
 }
 #Save-button {
@@ -664,11 +664,11 @@
 </g>
 <g id="Checkbox_Checked" opacity="0" transform="translate(5.5 4.5)">
 <g clip-path="url(#clip5_197_35)">
-<rect width="3.5" height="3.5" rx="1" id="Checkbox_Checked_bg_0" fill="#017E84">
+<rect width="3.5" height="3.5" rx="1" id="Checkbox_Checked_bg_0" fill="#FF8000">
 </rect>
 <path id="Vector__Stroke_" transform="translate(1.00003 1.17503)" d="M2.35983 0.109835C2.50628 -0.0366116 2.74366 -0.0366116 2.89011 0.109835C3.03655 0.256282 3.03655 0.493662 2.89011 0.640108L1.39011 2.14011C1.24366 2.28655 1.00628 2.28655 0.859835 2.14011L0.109835 1.39011C-0.0366116 1.24366 -0.0366117 1.00628 0.109835 0.859835C0.256282 0.713388 0.493662 0.713388 0.640108 0.859835L1.12497 1.3447L2.35983 0.109835Z" fill="white"/>
 </g>
-<rect x="0.125" y="0.125" width="3.25" height="3.25" rx="0.875" stroke="#017E84" stroke-width="0.25"/>
+<rect x="0.125" y="0.125" width="3.25" height="3.25" rx="0.875" stroke="#FF8000" stroke-width="0.25"/>
 </g>
 </g>
 <rect x="0.125" y="0.125" width="309.75" height="9.75" stroke="#E3E3E3" stroke-width="0.25"/>
@@ -772,7 +772,7 @@
 <g id="Button-and-title">
 <g id="Buttons" opacity="0">
 <g id="Save-button" opacity="0">
-<rect width="16" height="9" rx="1" id="Save-button_bg_0" fill="#714B67">
+<rect width="16" height="9" rx="1" id="Save-button_bg_0" fill="#FF8000">
 </rect>
 <text id="Save" transform="translate(3 2)" fill="white" style="white-space: pre" xml:space="preserve" font-family="Inter" font-size="4" font-weight="600" letter-spacing="0em"><tspan x="0.291016" y="3.95455">Save</tspan></text>
 </g>
@@ -784,15 +784,15 @@
 </g>
 <g id="Group_6">
 <g id="New-button">
-<rect width="15" height="9" rx="1" id="New-button_bg_0" fill="#714B67">
+<rect width="15" height="9" rx="1" id="New-button_bg_0" fill="#FF8000">
 </rect>
 <text id="New" transform="translate(3 2)" fill="white" style="white-space: pre" xml:space="preserve" font-family="Inter" font-size="4" font-weight="600" letter-spacing="0em"><tspan x="0.164062" y="3.95455">New</tspan></text>
 </g>
 <g id="New-button-active" opacity="0">
 <rect x="0.125" y="0.125" width="14.75" height="8.75" rx="0.875" id="New-button-active_bg_0" fill="#F1EDF0">
 </rect>
-<rect x="0.125" y="0.125" width="14.75" height="8.75" rx="0.875" stroke="#714B67" stroke-width="0.25"/>
-<text id="New_2" transform="translate(3 2)" fill="#714B67" style="white-space: pre" xml:space="preserve" font-family="Inter" font-size="4" font-weight="600" letter-spacing="0em"><tspan x="0.164062" y="3.95455">New</tspan></text>
+<rect x="0.125" y="0.125" width="14.75" height="8.75" rx="0.875" stroke="#FF8000" stroke-width="0.25"/>
+<text id="New_2" transform="translate(3 2)" fill="#FF8000" style="white-space: pre" xml:space="preserve" font-family="Inter" font-size="4" font-weight="600" letter-spacing="0em"><tspan x="0.164062" y="3.95455">New</tspan></text>
 </g>
 </g>
 <g id="Frame_6_2" transform="translate(17 2)">

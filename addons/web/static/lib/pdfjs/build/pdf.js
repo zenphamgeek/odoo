@@ -500,7 +500,7 @@ function isLittleEndian() {
   const view32 = new Uint32Array(buffer8.buffer, 0, 1);
   return view32[0] === 1;
 }
-// Odoo: don't support scripting
+// Insilos: don't support scripting
 function isEvalSupported() {
   return false;
 }

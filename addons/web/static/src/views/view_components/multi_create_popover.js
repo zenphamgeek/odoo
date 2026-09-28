@@ -1,4 +1,4 @@
-import { Component, t, useProps } from "@odoo/owl";
+import { Component, t, useProps } from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 import { TimePicker } from "@web/core/time_picker/time_picker";
 import { useService } from "@web/core/utils/hooks";

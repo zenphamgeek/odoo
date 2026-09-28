@@ -3,7 +3,7 @@ import {
     IndexedDB as MockedIndexedDB,
 } from "@web/core/utils/indexed_db";
 
-import { describe, expect, onError, test } from "@odoo/hoot";
+import { describe, expect, onError, test } from "@insilos/hoot";
 
 describe.current.tags("headless");
 

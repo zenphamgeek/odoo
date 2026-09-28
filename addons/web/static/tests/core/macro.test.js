@@ -1,4 +1,4 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
+import { beforeEach, expect, test } from "@insilos/hoot";
 import {
     advanceTime,
     animationFrame,
@@ -7,8 +7,8 @@ import {
     queryOne,
     queryText,
     waitUntil,
-} from "@odoo/hoot-dom";
-import { Component, proxy, xml } from "@odoo/owl";
+} from "@insilos/hoot-dom";
+import { Component, proxy, xml } from "@insilos/owl";
 import { mountWithCleanup, patchWithCleanup } from "@web/../tests/web_test_helpers";
 
 import { Macro } from "@web/core/macro";

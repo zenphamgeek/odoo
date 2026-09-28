@@ -1,4 +1,4 @@
-import { Component, proxy, signal, status, t, usePlugin, useProps } from "@odoo/owl";
+import { Component, proxy, signal, status, t, usePlugin, useProps } from "@insilos/owl";
 import { hasTouch } from "@web/core/browser/feature_detection";
 import { Domain } from "@web/core/domain";
 import { useDropdownState } from "@web/core/dropdown/dropdown_hooks";

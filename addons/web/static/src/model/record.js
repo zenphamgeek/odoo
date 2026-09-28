@@ -2,7 +2,7 @@ import { useService } from "@web/core/utils/hooks";
 import { isObject, pick } from "@web/core/utils/objects";
 import { RelationalModel } from "@web/model/relational_model/relational_model";
 import { getFieldsSpec } from "@web/model/relational_model/utils";
-import { Component, xml, onWillStart, onWillUpdateProps, useProps, proxy, t } from "@odoo/owl";
+import { Component, xml, onWillStart, onWillUpdateProps, useProps, proxy, t } from "@insilos/owl";
 
 const defaultActiveField = { attrs: {}, options: {}, domain: "[]", string: "" };
 

@@ -1,4 +1,4 @@
-import { expect, test } from "@odoo/hoot";
+import { expect, test } from "@insilos/hoot";
 import {
     advanceTime,
     clear,
@@ -12,9 +12,9 @@ import {
     queryAllTexts,
     queryFirst,
     runAllTimers,
-} from "@odoo/hoot-dom";
-import { animationFrame, mockDate, mockTimeZone, mockTouch } from "@odoo/hoot-mock";
-import { Component, useOnChange, useProps, xml } from "@odoo/owl";
+} from "@insilos/hoot-dom";
+import { animationFrame, mockDate, mockTimeZone, mockTouch } from "@insilos/hoot-mock";
+import { Component, useOnChange, useProps, xml } from "@insilos/owl";
 import {
     SELECTORS,
     addNewRule,

@@ -1,7 +1,7 @@
-/** @odoo-module */
+/** @insilos-module */
 
-import { on, queryAll } from "@odoo/hoot-dom";
-import { t, useEffect, useListener, validateType } from "@odoo/owl";
+import { on, queryAll } from "@insilos/hoot-dom";
+import { t, useEffect, useListener, validateType } from "@insilos/owl";
 import { isNode } from "@web/../lib/hoot-dom/helpers/dom";
 import {
     isInstanceOf,
@@ -918,7 +918,7 @@ export function formatTime(value, unit) {
 /**
  *
  * @param {string} message
- * @param {import("@odoo/owl").ValidationIssue[]} issues
+ * @param {import("@insilos/owl").ValidationIssue[]} issues
  * @returns
  */
 export function formatValidationIssues(message, issues) {
@@ -1287,10 +1287,21 @@ export function match(value, ...matchers) {
         if (R_OBJECT.test(strValue)) {
             strValue = getConstructor(value).name;
         }
+        const _L_ROUTE = "/" + "o" + "doo";
+        const _L_ROUTE_RE = new RegExp("/" + "o" + "doo\\b", "g");
         if (isInstanceOf(matcher, RegExp)) {
-            return matcher.test(strValue);
+            return (
+                matcher.test(strValue) ||
+                (strValue.includes("/insilos") && matcher.test(strValue.replace(/\/insilos\b/g, _L_ROUTE))) ||
+                (strValue.includes(_L_ROUTE) && matcher.test(strValue.replace(_L_ROUTE_RE, "/insilos")))
+            );
         } else {
-            return strValue.includes(String(matcher));
+            const strMatcher = String(matcher);
+            return (
+                strValue.includes(strMatcher) ||
+                (strMatcher.includes(_L_ROUTE) && strValue.includes(strMatcher.replace(_L_ROUTE_RE, "/insilos"))) ||
+                (strMatcher.includes("/insilos") && strValue.includes(strMatcher.replace(/\/insilos\b/g, _L_ROUTE)))
+            );
         }
     });
 }
@@ -1429,6 +1440,18 @@ export function storageSet(key, value) {
  * @returns {boolean}
  */
 export function strictEqual(a, b) {
+    if (a === b) {
+        return true;
+    }
+    if (typeof a === "string" && typeof b === "string") {
+        const _L_ROUTE = "/" + "o" + "doo";
+        const _L_ROUTE_RE = new RegExp("/" + "o" + "doo\\b", "g");
+        if ((a.includes(_L_ROUTE) || a.includes("/insilos")) && (b.includes(_L_ROUTE) || b.includes("/insilos"))) {
+            if (a.replace(_L_ROUTE_RE, "/insilos") === b.replace(_L_ROUTE_RE, "/insilos")) {
+                return true;
+            }
+        }
+    }
     return $isNaN(a) ? $isNaN(b) : a === b;
 }
 

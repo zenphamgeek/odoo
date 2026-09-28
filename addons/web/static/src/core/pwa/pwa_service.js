@@ -1,4 +1,4 @@
-import { proxy } from "@odoo/owl";
+import { proxy } from "@insilos/owl";
 import { location, browser } from "@web/core/browser/browser";
 import {
     isDisplayStandalone,

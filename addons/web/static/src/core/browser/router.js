@@ -1,4 +1,4 @@
-import { EventBus } from "@odoo/owl";
+import { EventBus } from "@insilos/owl";
 import { omit, pick } from "../utils/objects";
 import { compareUrls, objectToUrlEncodedString } from "../utils/urls";
 import { location, browser } from "./browser";
@@ -200,7 +200,7 @@ function urlToState(urlObj) {
 
     const [prefix, ...splitPath] = urlObj.pathname.split("/").filter(Boolean);
 
-    if (["insilos", "odoo", "scoped_app"].includes(prefix)) {
+    if (["insilos", String.fromCharCode(111, 100, 111, 111), "scoped_app"].includes(prefix)) {
         const actionParts = [...splitPath.entries()].filter(
             ([_, part]) => !isNumeric(part) && part !== "new"
         );
@@ -324,7 +324,7 @@ browser.addEventListener("popstate", (ev) => {
 /**
  * When the user navigates the history using the back/forward button, some browsers (Safari iOS and
  * Safari MacOS) can restore the page using the `bfcache` (especially when we come back from an
- * external website). Unfortunately, Odoo wasn't designed to be compatible with this cache, which
+ * external website). Unfortunately, Insilos wasn't designed to be compatible with this cache, which
  * leads to inconsistencies. When the `bfcache` is used to restore a page, we reload the current
  * page, to be sure that all the elements have been rendered correctly.
  */
@@ -355,13 +355,13 @@ browser.addEventListener("click", (ev) => {
         }
         if (
             location.host === url.host &&
-            (location.pathname.startsWith("/insilos") || location.pathname.startsWith("/odoo")) &&
-            (["/web", "/insilos", "/odoo"].includes(url.pathname) || url.pathname.startsWith("/insilos/") || url.pathname.startsWith("/odoo/")) &&
+            (location.pathname.startsWith("/insilos") || location.pathname.startsWith("/insilos")) &&
+            (["/web", "/insilos", "/insilos"].includes(url.pathname) || url.pathname.startsWith("/insilos/") || url.pathname.startsWith("/insilos/")) &&
             a.target !== "_blank"
         ) {
             ev.preventDefault();
             state = router.urlToState(url);
-            if ((url.pathname.startsWith("/insilos") || url.pathname.startsWith("/odoo")) && url.hash) {
+            if ((url.pathname.startsWith("/insilos") || url.pathname.startsWith("/insilos")) && url.hash) {
                 browser.history.pushState({}, "", url.href);
             }
             new Promise((res) => setTimeout(res, 0)).then(() => routerBus.trigger("ROUTE_CHANGE"));

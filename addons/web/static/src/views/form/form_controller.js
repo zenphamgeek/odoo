@@ -48,7 +48,7 @@ import {
     t,
     usePlugin,
     useProps,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { FetchRecordError } from "@web/model/relational_model/errors";
 
@@ -233,7 +233,7 @@ export class FormController extends Component {
         onError((error) => {
             const suggestedCompany = error.data?.context?.suggested_company;
             if (
-                error.data?.name === "odoo.exceptions.AccessError" &&
+                error.data?.name === "insilos.exceptions.AccessError" &&
                 suggestedCompany &&
                 !this.env.inDialog
             ) {
@@ -479,7 +479,7 @@ export class FormController extends Component {
         const suggestedCompany = error.data?.context?.suggested_company;
         const activeCompanyIds = user.activeCompanies.map((c) => c.id);
         if (
-            error.data?.name === "odoo.exceptions.AccessError" &&
+            error.data?.name === "insilos.exceptions.AccessError" &&
             suggestedCompany &&
             !activeCompanyIds.includes(suggestedCompany.id)
         ) {

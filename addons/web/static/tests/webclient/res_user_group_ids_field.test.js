@@ -1,5 +1,5 @@
-import { beforeEach, expect, test } from "@odoo/hoot";
-import { hover, queryAllTexts, queryAllValues, queryFirst, runAllTimers } from "@odoo/hoot-dom";
+import { beforeEach, expect, test } from "@insilos/hoot";
+import { hover, queryAllTexts, queryAllValues, queryFirst, runAllTimers } from "@insilos/hoot-dom";
 import {
     contains,
     defineModels,

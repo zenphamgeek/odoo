@@ -1,4 +1,4 @@
-import { useListener, useProps } from "@odoo/owl";
+import { useListener, useProps } from "@insilos/owl";
 import { makeDraggableHook } from "@web/core/utils/draggable_hook_builder_owl";
 import { shallowEqual } from "@web/core/utils/objects";
 import { closest } from "@web/core/utils/ui";

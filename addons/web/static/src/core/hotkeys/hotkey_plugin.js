@@ -1,7 +1,7 @@
 import { registry } from "../registry";
 import { browser } from "../browser/browser";
 import { getVisibleElements } from "../utils/ui";
-import { onWillDestroy, Plugin, usePlugin } from "@odoo/owl";
+import { onWillDestroy, Plugin, usePlugin } from "@insilos/owl";
 import { services } from "@web/core/services";
 import { UIPlugin } from "@web/core/ui/ui_plugin";
 import { AUTHORIZED_KEYS, getActiveHotkey, MODIFIERS } from "./hotkey_utils";
@@ -42,7 +42,7 @@ export class HotkeyPlugin extends Plugin {
     nextToken = 0;
     /** @private */
     overlaysVisible = false;
-    // Be aware that all odoo hotkeys are designed with this modifier in mind, so
+    // Be aware that all insilos hotkeys are designed with this modifier in mind, so
     // changing the overlay modifier may conflict with some shortcuts.
     overlayModifier = "alt";
     /** @private @type {[EventTarget, string, Function][]} */

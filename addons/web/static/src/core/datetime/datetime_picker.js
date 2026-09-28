@@ -1,4 +1,4 @@
-import { Component, computed, onWillUpdateProps, proxy, t, useProps } from "@odoo/owl";
+import { Component, computed, onWillUpdateProps, proxy, t, useProps } from "@insilos/owl";
 import { _t } from "@web/core/l10n/translation";
 import { MAX_VALID_DATE, MIN_VALID_DATE, clampDate, isInRange, today } from "../l10n/dates";
 import { localization } from "../l10n/localization";

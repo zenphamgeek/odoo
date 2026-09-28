@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import collections
 import logging
@@ -9,10 +9,10 @@ import werkzeug
 import werkzeug.exceptions
 from werkzeug.urls import iri_to_uri
 
-from odoo.http import request, router
-from odoo.http.session import get_default_session, session_store
-from odoo.tools.misc import file_open
-from odoo.tools.translate import JAVASCRIPT_TRANSLATION_COMMENT
+from insilos.http import request, router
+from insilos.http.session import get_default_session, session_store
+from insilos.tools.misc import file_open
+from insilos.tools.translate import JAVASCRIPT_TRANSLATION_COMMENT
 
 _logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ _logger = logging.getLogger(__name__)
 def og_title_from_path(env, path):
     if not path:
         return "Insilos"
-    odoo_path = urlsplit(path).path.removeprefix('/insilos').removeprefix('/odoo')
+    odoo_path = urlsplit(path).path.removeprefix('/insilos').removeprefix('/insilos')
     if not odoo_path or odoo_path == '/':
         return "Insilos"
     try:
@@ -160,7 +160,7 @@ def generate_views(action):
 def get_action(env, path_part):
     """
     Get a ir.actions.actions() given an action typically found in a
-    "/odoo"-like url.
+    "/insilos"-like url.
 
     The action can take one of the following forms:
     * "action-" followed by a record id
@@ -204,7 +204,7 @@ def get_action(env, path_part):
 
 def get_action_triples(env, path, *, start_pos=0):
     """
-    Extract the triples (active_id, action, record_id) from a "/odoo"-like path.
+    Extract the triples (active_id, action, record_id) from a "/insilos"-like path.
 
     >>> env = ...
     >>> list(get_action_triples(env, "/all-tasks/5/project.project/1/tasks"))

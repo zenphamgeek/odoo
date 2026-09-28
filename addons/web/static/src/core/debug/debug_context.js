@@ -6,7 +6,7 @@ import {
     useConfig,
     usePlugin,
     useScope,
-} from "@odoo/owl";
+} from "@insilos/owl";
 import { DebugModePlugin } from "@web/core/debug_mode_plugin";
 import { registry } from "@web/core/registry";
 import { services } from "@web/core/services";

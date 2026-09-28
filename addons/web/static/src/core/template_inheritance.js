@@ -110,7 +110,7 @@ const CLASS_CONTAINS_REGEX = /contains\(@class.*\)/g;
  */
 function getXpath(operation) {
     const xpath = operation.getAttribute("expr");
-    if (odoo.debug) {
+    if (insilos.debug) {
         if (CLASS_CONTAINS_REGEX.test(xpath)) {
             const parent = operation.closest("t[t-inherit]");
             const templateName = parent.getAttribute("t-name") || parent.getAttribute("t-inherit");
@@ -328,7 +328,7 @@ export function applyInheritance(root, operations, url = "") {
         const target = getElement(root, operation);
         const position = operation.getAttribute("position") || "inside";
 
-        if (odoo.debug && url) {
+        if (insilos.debug && url) {
             const attributes = [...operation.attributes].map(
                 ({ name, value }) =>
                     `${name}=${JSON.stringify(name === "position" ? position : value)}`

@@ -7,14 +7,14 @@ import psycopg2
 from collections import defaultdict, deque
 
 enterprise_dir = '/home/zen/O20/enterprise'
-community_dir = '/home/zen/O20/odoo/addons'
+community_dir = '/home/zen/O20/addons'
 addons_dir = '/home/zen/O20/addons'
-conf_path = '/home/zen/O20/odoo.conf'
+conf_path = '/home/zen/O20/insilos.conf'
 python_bin = '/home/zen/O20/.venv/bin/python'
-odoo_bin = '/home/zen/O20/odoo-bin'
+insilos_bin = '/home/zen/O20/insilos-bin'
 
 def get_db_installed():
-    conn = psycopg2.connect(host='127.0.0.1', port=5434, user='odoo', password='1NN0R1@2026', dbname='odoo20_dev')
+    conn = psycopg2.connect(host='127.0.0.1', port=5434, user='insilos', password='1NN0R1@2026', dbname='odoo20_dev')
     cur = conn.cursor()
     cur.execute("SELECT name, state FROM ir_module_module WHERE state = 'installed';")
     installed = set(r[0] for r in cur.fetchall())
@@ -82,7 +82,7 @@ def get_ordered_to_install():
     return ordered
 
 def run_install(module_names):
-    cmd = [python_bin, odoo_bin, '-c', conf_path, '-d', 'odoo20_dev', '-i', ','.join(module_names), '--stop-after-init']
+    cmd = [python_bin, insilos_bin, '-c', conf_path, '-d', 'odoo20_dev', '-i', ','.join(module_names), '--stop-after-init']
     res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=600)
     return res.returncode == 0, res.stdout
 

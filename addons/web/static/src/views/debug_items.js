@@ -9,7 +9,7 @@ import { useService } from "@web/core/utils/hooks";
 import { formatMany2one } from "@web/views/fields/formatters";
 import { FormViewDialog } from "@web/views/view_dialogs/form_view_dialog";
 
-import { Component, onWillStart, usePlugin, proxy, t, useProps, xml } from "@odoo/owl";
+import { Component, onWillStart, usePlugin, proxy, t, useProps, xml } from "@insilos/owl";
 import { serializeDate, serializeDateTime } from "../core/l10n/dates";
 import { ORM } from "@web/core/orm_plugin";
 

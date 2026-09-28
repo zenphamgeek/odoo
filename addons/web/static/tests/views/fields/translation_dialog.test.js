@@ -1,5 +1,5 @@
-import { expect, test, waitFor } from "@odoo/hoot";
-import { signal } from "@odoo/owl";
+import { expect, test, waitFor } from "@insilos/hoot";
+import { signal } from "@insilos/owl";
 import {
     mountWithCleanup,
     onRpc,

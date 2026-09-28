@@ -1,7 +1,7 @@
 import { Dialog } from "@web/core/dialog/dialog";
 import { NameAndSignature } from "./name_and_signature";
 
-import { Component, proxy, t, useProps } from "@odoo/owl";
+import { Component, proxy, t, useProps } from "@insilos/owl";
 
 export class SignatureDialog extends Component {
     static template = "web.SignatureDialog";
