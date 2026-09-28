@@ -206,13 +206,13 @@
                 border-bottom-color: $border-color;
 
                 &.active {
-                    --#{$prefix}nav-tabs-link-active-color: var(--historyDialog__link-color--active, #{$o-brand-odoo});
+                    --#{$prefix}nav-tabs-link-active-color: var(--historyDialog__link-color--active, #{$o-brand-primary});
                     border-bottom-color: $o-view-background-color;
 
                     &::after {
                         @include o-position-absolute($top: -$border-width, $right: -$border-width, $left: -$border-width);
                         height: $border-width * 3;
-                        background-color: var(--historyDialog__link-border-top-color--active, #{$o-brand-odoo});
+                        background-color: var(--historyDialog__link-border-top-color--active, #{$o-brand-primary});
                         content: '';
                     }
                 }
