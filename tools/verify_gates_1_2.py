@@ -86,8 +86,22 @@ def run_gate2():
         return True
 
 if __name__ == '__main__':
-    g1 = run_gate1()
-    g2 = run_gate2()
-    if not (g1 and g2):
+    import argparse
+    parser = argparse.ArgumentParser(description="Verification Ladder Gates 1 & 2")
+    parser.add_argument('--gate', choices=['1', '2', 'both'], default='both', help="Select Gate 1 (Python AST) or Gate 2 (XML well-formedness)")
+    args = parser.parse_args()
+
+    success = True
+    if args.gate in ('1', 'both'):
+        if not run_gate1():
+            success = False
+    if args.gate in ('2', 'both'):
+        if not run_gate2():
+            success = False
+
+    if not success:
         sys.exit(1)
-    print("\nGATES 1 & 2 PASSED COMPLETELY! ✓✓")
+    if args.gate == 'both':
+        print("\nGATES 1 & 2 PASSED COMPLETELY! ✓✓")
+    else:
+        print(f"\nGATE {args.gate} PASSED COMPLETELY! ✓")

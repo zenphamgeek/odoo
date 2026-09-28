@@ -1,0 +1,257 @@
+{
+  "timestamp": "2026-09-28T16:37:57.934Z",
+  "tests": {
+    "launchpad": [
+      {
+        "name": "160x160px Tile Geometry Standard",
+        "passed": false,
+        "details": {
+          "totalApps": 72,
+          "valid160Count": 0,
+          "sample": [
+            {
+              "name": "Discuss",
+              "width": 141,
+              "height": 136,
+              "cssWidth": "141.328px",
+              "cssHeight": "135.5px",
+              "cssMinHeight": "0px",
+              "pillText": null,
+              "pillClass": null,
+              "pillColor": null,
+              "pillBg": null,
+              "pillBorder": null,
+              "pillWeight": null,
+              "domainText": null,
+              "domainColor": null,
+              "domainSize": null
+            },
+            {
+              "name": "Meeting Rooms",
+              "width": 141,
+              "height": 136,
+              "cssWidth": "141.328px",
+              "cssHeight": "135.5px",
+              "cssMinHeight": "0px",
+              "pillText": null,
+              "pillClass": null,
+              "pillColor": null,
+              "pillBg": null,
+              "pillBorder": null,
+              "pillWeight": null,
+              "domainText": null,
+              "domainColor": null,
+              "domainSize": null
+            },
+            {
+              "name": "Calendar",
+              "width": 141,
+              "height": 136,
+              "cssWidth": "141.328px",
+              "cssHeight": "135.5px",
+              "cssMinHeight": "0px",
+              "pillText": null,
+              "pillClass": null,
+              "pillColor": null,
+              "pillBg": null,
+              "pillBorder": null,
+              "pillWeight": null,
+              "domainText": null,
+              "domainColor": null,
+              "domainSize": null
+            }
+          ]
+        }
+      },
+      {
+        "name": "SAP Functional Space Acronym Pills (BP, SD, MM, MM-IM, FI/CO, PP, BI)",
+        "passed": true,
+        "details": {
+          "totalPills": 16,
+          "distinctAcronyms": [
+            "BP",
+            "SD",
+            "BI",
+            "FI/CO",
+            "MM",
+            "MM-IM",
+            "PP"
+          ],
+          "missing": []
+        }
+      },
+      {
+        "name": "SAP Domain Subtitles (#94A3B8, font-weight 500)",
+        "passed": false,
+        "details": {
+          "totalDomains": 16,
+          "sampleDomainText": "Master Data",
+          "sampleColor": "#ff8000"
+        }
+      }
+    ],
+    "kpi_cards": [
+      {
+        "name": ".oe_stat_button: Value on top (order 1, 1.25rem [20px], bold >=700, #0F172A)",
+        "passed": true,
+        "details": {
+          "order": 1,
+          "fontSize": "20px",
+          "fontWeight": 700,
+          "color": "#0f172a"
+        }
+      },
+      {
+        "name": ".oe_stat_button: Label on bottom (order 2, 0.7rem [~11.2px], uppercase, #64748B)",
+        "passed": true,
+        "details": {
+          "order": 2,
+          "fontSize": "11.2px",
+          "textTransform": "uppercase",
+          "color": "#64748b"
+        }
+      },
+      {
+        "name": ".o_kpi_trend: 3-State Micro-Trend Colors (pos: #107E3E, neg: #BB0000, neu: #64748B)",
+        "passed": false,
+        "details": {
+          "positive": "",
+          "negative": "",
+          "neutral": ""
+        }
+      },
+      {
+        "name": ".oe_stat_button Container: Min-Height >= 48px, Border-Radius >= 8px",
+        "passed": false,
+        "details": {
+          "minHeight": "48px",
+          "borderRadius": "4px 0px 0px 4px",
+          "border": "1px solid rgb(226, 232, 240)"
+        }
+      }
+    ],
+    "semantic_badges": [
+      {
+        "name": "1. Positive / Success State Badge (#107E3E on #E7F6ED)",
+        "passed": true,
+        "details": {
+          "color": "#107e3e",
+          "backgroundColor": "#e7f6ed",
+          "borderRadius": "9999px"
+        }
+      },
+      {
+        "name": "2. Critical / Error State Badge (#BB0000 on #FBEEED)",
+        "passed": true,
+        "details": {
+          "color": "#bb0000",
+          "backgroundColor": "#fbeeed",
+          "borderRadius": "9999px"
+        }
+      },
+      {
+        "name": "3. Warning / Alert State Badge (#E9730C on #FEF0E6)",
+        "passed": true,
+        "details": {
+          "color": "#e9730c",
+          "backgroundColor": "#fef0e6",
+          "borderRadius": "9999px"
+        }
+      },
+      {
+        "name": "4. Information State Badge (#0070F2 on #E8F2FE)",
+        "passed": true,
+        "details": {
+          "color": "#0070f2",
+          "backgroundColor": "#e8f2fe",
+          "borderRadius": "9999px"
+        }
+      },
+      {
+        "name": "Statusbar Active Workflow Step (#0070F2)",
+        "passed": true,
+        "details": {
+          "backgroundColor": "#0070f2"
+        }
+      }
+    ],
+    "table_ergonomics": [
+      {
+        "name": "Control Panel Streamlined Standard (min-height: 44px)",
+        "passed": true,
+        "details": {
+          "measuredHeight": "56px",
+          "cssMinHeight": "44px",
+          "searchBorderRadius": "9999px"
+        }
+      },
+      {
+        "name": "Sticky Table Headers (position: sticky, top: 0, bg: #F8FAFC)",
+        "passed": true,
+        "details": {
+          "position": "sticky",
+          "top": "0px",
+          "background": "#f8fafc",
+          "color": "#334155",
+          "borderBottom": "1px solid rgba(226, 232, 240, 0.85)"
+        }
+      },
+      {
+        "name": "High-Density Table Rows (Target 32px–34px, tolerance [30px–36px])",
+        "passed": false,
+        "details": {
+          "averageHeight": "45px",
+          "measuredRows": [
+            45,
+            45
+          ],
+          "cssHeight": "44.5781px",
+          "cssMinHeight": "32px",
+          "tdPadding": "5.6px / 5.6px"
+        }
+      }
+    ],
+    "icon_bindings": [
+      {
+        "name": "Zero legacy fa-plus icons in rendered DOM",
+        "passed": true,
+        "details": {
+          "count": 0
+        }
+      },
+      {
+        "name": "Navbar Home Launcher bound to Phosphor (ph-squares-four)",
+        "passed": false,
+        "details": {
+          "iconClass": null
+        }
+      },
+      {
+        "name": "Navbar Sections More Dropdown bound to Phosphor (ph-plus)",
+        "passed": true,
+        "details": {
+          "iconClass": null
+        }
+      },
+      {
+        "name": "Phosphor Duotone & regular icon presence on active web client",
+        "passed": true,
+        "details": {
+          "activePhosphorCount": 13,
+          "sample": [
+            "o_searchview_icon ph ph-magnifying-glass me-2",
+            "ph ph-fw ph-funnel",
+            "ph ph-pencil-simple ph-fw",
+            "o_facet_remove ph ph-x btn btn-link d-flex align-items-center px-1 py-0 text-danger d-print-none fs-5",
+            "ph ph-caret-left ph-fw"
+          ]
+        }
+      }
+    ]
+  },
+  "summary": {
+    "total": 19,
+    "passed": 13,
+    "failed": 6
+  }
+}

@@ -1,0 +1,426 @@
+{
+  "timestamp": "2026-09-28T16:45:02Z",
+  "modules": {
+    "MasterData": {
+      "passed": 22,
+      "failed": 2,
+      "checks": {
+        "res_partner_description": {
+          "status": "PASS",
+          "details": "Got: Business Partner (BP)"
+        },
+        "bp_field_name": {
+          "status": "PASS",
+          "details": "Got: Business Partner Name"
+        },
+        "bp_field_ref": {
+          "status": "PASS",
+          "details": "Got: BP Number / Search Term"
+        },
+        "bp_field_role": {
+          "status": "PASS",
+          "details": "Got: BP Role"
+        },
+        "bp_role_initial_general": {
+          "status": "PASS",
+          "details": "Role: general"
+        },
+        "bp_role_set_customer": {
+          "status": "PASS",
+          "details": "cust_rank=1, supp_rank=0, role=customer"
+        },
+        "bp_role_set_vendor": {
+          "status": "PASS",
+          "details": "cust_rank=0, supp_rank=1, role=vendor"
+        },
+        "bp_role_set_both": {
+          "status": "PASS",
+          "details": "cust_rank=1, supp_rank=1, role=both"
+        },
+        "bp_role_revert_general": {
+          "status": "PASS",
+          "details": "cust_rank=0, supp_rank=0, role=general"
+        },
+        "bp_role_direct_method_equals": {
+          "status": "PASS",
+          "details": "gen=[('customer_rank', '<=', 0), ('supplier_rank', '<=', 0)], cust=[('customer_rank', '>', 0), ('supplier_rank', '<=', 0)]"
+        },
+        "bp_role_search_domain_orm": {
+          "status": "FAIL",
+          "details": "s_gen=True, s_cust=True (Bug: _search_bp_role drops 'in' operator)"
+        },
+        "is_bp_customer_search_orm": {
+          "status": "FAIL",
+          "details": "s_is_cust=True (Bug: _search_bp_customer defaults to <= 0 on 'in' operator)"
+        },
+        "product_template_description": {
+          "status": "PASS",
+          "details": "Got: Material Master (MM)"
+        },
+        "mm_field_name": {
+          "status": "PASS",
+          "details": "Got: Material Description"
+        },
+        "mm_field_code": {
+          "status": "PASS",
+          "details": "Got: Material Number (MATNR)"
+        },
+        "mm_field_type": {
+          "status": "PASS",
+          "details": "Got: Material Type (MTART)"
+        },
+        "mm_type_ROH_creation": {
+          "status": "PASS",
+          "details": "tmpl=ROH, var=ROH"
+        },
+        "mm_type_HALB_creation": {
+          "status": "PASS",
+          "details": "tmpl=HALB, var=HALB"
+        },
+        "mm_type_FERT_creation": {
+          "status": "PASS",
+          "details": "tmpl=FERT, var=FERT"
+        },
+        "mm_type_HAWA_creation": {
+          "status": "PASS",
+          "details": "tmpl=HAWA, var=HAWA"
+        },
+        "mm_type_DIEN_creation": {
+          "status": "PASS",
+          "details": "tmpl=DIEN, var=DIEN"
+        },
+        "org_company_code_desc": {
+          "status": "PASS",
+          "details": "Got: Company Code (Bukrs)"
+        },
+        "org_plant_desc": {
+          "status": "PASS",
+          "details": "Got: Plant / Distribution Center"
+        },
+        "org_sloc_desc": {
+          "status": "PASS",
+          "details": "Got: Storage Location (SLoc / LGORT)"
+        }
+      }
+    },
+    "SupplyChainSD": {
+      "passed": 11,
+      "failed": 0,
+      "checks": {
+        "sale_order_description": {
+          "status": "PASS",
+          "details": "Got: Sales Order (SD)"
+        },
+        "so_field_sold_to": {
+          "status": "PASS",
+          "details": "Got: Sold-to Party (BP)"
+        },
+        "so_field_bill_to": {
+          "status": "PASS",
+          "details": "Got: Bill-to Party / Payer (BP)"
+        },
+        "so_field_ship_to": {
+          "status": "PASS",
+          "details": "Got: Ship-to Party (BP)"
+        },
+        "so_party_roles_assigned": {
+          "status": "PASS",
+          "details": "sold=263, bill=264, ship=265"
+        },
+        "so_state_quotation": {
+          "status": "PASS",
+          "details": "Doc type: SD Quotation / Sales Inquiry"
+        },
+        "so_state_standard_order": {
+          "status": "PASS",
+          "details": "Doc type: SD Standard Sales Order"
+        },
+        "so_state_completed_order": {
+          "status": "PASS",
+          "details": "Doc type: SD Completed Sales Order"
+        },
+        "so_state_cancelled_order": {
+          "status": "PASS",
+          "details": "Doc type: SD Cancelled Sales Order"
+        },
+        "billing_doc_f2": {
+          "status": "PASS",
+          "details": "Got: Customer Billing Document (F2)"
+        },
+        "billing_credit_memo_re": {
+          "status": "PASS",
+          "details": "Got: Customer Credit Memo (RE)"
+        }
+      }
+    },
+    "SupplyChainMM": {
+      "passed": 18,
+      "failed": 1,
+      "checks": {
+        "purchase_order_description": {
+          "status": "PASS",
+          "details": "Got: MM Purchase Order"
+        },
+        "po_state_rfq": {
+          "status": "PASS",
+          "details": "Got: Vendor Request for Quotation (RFQ)"
+        },
+        "po_state_confirmed": {
+          "status": "PASS",
+          "details": "Got: MM Purchase Order"
+        },
+        "stock_picking_description": {
+          "status": "PASS",
+          "details": "Got: Goods Movement / Delivery"
+        },
+        "movement_type_601_pgi": {
+          "status": "PASS",
+          "details": "bwart=601, desc=Movement Type 601 (Goods Issue for Outbound Delivery), deliv=Outbound Delivery / Post Goods Issue"
+        },
+        "movement_type_101_gr": {
+          "status": "PASS",
+          "details": "bwart=101, desc=Movement Type 101 (Goods Receipt for Purchase Order), deliv=Inbound Delivery / Goods Receipt"
+        },
+        "movement_type_311_transfer": {
+          "status": "PASS",
+          "details": "bwart=311, desc=Movement Type 311 (Transfer Posting SLoc to SLoc), deliv=Transfer Posting (SLoc / Plant)"
+        },
+        "stock_quant_description": {
+          "status": "PASS",
+          "details": "Got: Physical Inventory Adjustment (MI01/MI07)"
+        },
+        "mm_roh_is_storable_flag": {
+          "status": "FAIL",
+          "details": "is_storable=False (Note: Odoo 20 requires is_storable=True for inventory tracking)"
+        },
+        "physical_inv_701_surplus": {
+          "status": "PASS",
+          "details": "diff=5.0, bwart=701"
+        },
+        "physical_inv_702_deficit": {
+          "status": "PASS",
+          "details": "diff=-10.0, bwart=702"
+        },
+        "movement_matrix_101_exists": {
+          "status": "PASS",
+          "details": "found=True, category=GR, tcode=MIGO / VL31N"
+        },
+        "movement_matrix_102_exists": {
+          "status": "PASS",
+          "details": "found=True, category=GR, tcode=MIGO"
+        },
+        "movement_matrix_261_exists": {
+          "status": "PASS",
+          "details": "found=True, category=GI, tcode=MIGO / MB1A"
+        },
+        "movement_matrix_301_exists": {
+          "status": "PASS",
+          "details": "found=True, category=TP, tcode=MIGO / MB1B"
+        },
+        "movement_matrix_311_exists": {
+          "status": "PASS",
+          "details": "found=True, category=TP, tcode=MIGO / MB1B"
+        },
+        "movement_matrix_601_exists": {
+          "status": "PASS",
+          "details": "found=True, category=GI, tcode=VL01N / VL02N"
+        },
+        "movement_matrix_701_exists": {
+          "status": "PASS",
+          "details": "found=True, category=PI, tcode=MI07"
+        },
+        "movement_matrix_702_exists": {
+          "status": "PASS",
+          "details": "found=True, category=PI, tcode=MI07"
+        }
+      }
+    },
+    "FinanceControlling": {
+      "passed": 16,
+      "failed": 0,
+      "checks": {
+        "bkpf_model_description": {
+          "status": "PASS",
+          "details": "Got: FI Accounting Document (BKPF)"
+        },
+        "bseg_model_description": {
+          "status": "PASS",
+          "details": "Got: FI Document Line Item (BSEG)"
+        },
+        "bkpf_field_budat": {
+          "status": "PASS",
+          "details": "Got: Posting Date in General Ledger (BUDAT)"
+        },
+        "bkpf_field_xblnr": {
+          "status": "PASS",
+          "details": "Got: Reference Document (XBLNR)"
+        },
+        "bseg_field_hkont": {
+          "status": "PASS",
+          "details": "Got: G/L Account Number (HKONT)"
+        },
+        "bseg_field_soll": {
+          "status": "PASS",
+          "details": "Got: Debit Amount (Soll)"
+        },
+        "bseg_field_haben": {
+          "status": "PASS",
+          "details": "Got: Credit Amount (Haben)"
+        },
+        "chart_of_accounts_desc": {
+          "status": "PASS",
+          "details": "Got: Chart of Accounts / G/L Accounts"
+        },
+        "gl_account_field_saknr": {
+          "status": "PASS",
+          "details": "Got: G/L Account Number (SAKNR)"
+        },
+        "analytic_account_desc": {
+          "status": "PASS",
+          "details": "Got: Cost Center / Profit Center"
+        },
+        "analytic_plan_kokrs_desc": {
+          "status": "PASS",
+          "details": "Got: Controlling Area Plan (KOKRS)"
+        },
+        "cost_center_kostl_flags": {
+          "status": "PASS",
+          "details": "is_cc=True, is_pc=False"
+        },
+        "profit_center_prctr_flags": {
+          "status": "PASS",
+          "details": "is_cc=False, is_pc=True"
+        },
+        "cost_center_search": {
+          "status": "PASS",
+          "details": "Found: [95]"
+        },
+        "report_bs_s_alr_87012284": {
+          "status": "PASS",
+          "details": "Got: Balance Sheet (S_ALR_87012284)"
+        },
+        "report_pl_s_alr_87012284": {
+          "status": "PASS",
+          "details": "Got: Profit and Loss Statement (S_ALR_87012284)"
+        }
+      }
+    },
+    "ProductionPlanning": {
+      "passed": 10,
+      "failed": 0,
+      "checks": {
+        "mrp_production_description": {
+          "status": "PASS",
+          "details": "Got: Production Order (PP/CO01)"
+        },
+        "mrp_field_aufnr": {
+          "status": "PASS",
+          "details": "Got: Production Order Number (AUFNR)"
+        },
+        "mrp_field_resb": {
+          "status": "PASS",
+          "details": "Got: Component Reservations (RESB)"
+        },
+        "mrp_field_bwart_261": {
+          "status": "PASS",
+          "details": "Got: Movement Type - Issue (BWART 261)"
+        },
+        "mrp_field_bwart_101": {
+          "status": "PASS",
+          "details": "Got: Movement Type - Receipt (BWART 101)"
+        },
+        "mrp_order_movement_defaults": {
+          "status": "PASS",
+          "details": "issue=261, receipt=101"
+        },
+        "bom_model_description": {
+          "status": "PASS",
+          "details": "Got: Production BOM (CS01)"
+        },
+        "workcenter_model_description": {
+          "status": "PASS",
+          "details": "Got: Work Center / Routing Resource (CR01)"
+        },
+        "wc_field_arbpl": {
+          "status": "PASS",
+          "details": "Got: Work Center Code (ARBPL)"
+        },
+        "wc_field_ruezt": {
+          "status": "PASS",
+          "details": "Got: Standard Setup Time (RUEZT)"
+        }
+      }
+    },
+    "AdversarialStress": {
+      "passed": 11,
+      "failed": 0,
+      "checks": {
+        "view_metadata_sale_order": {
+          "status": "PASS",
+          "details": "desc=Sales Order (SD), partner_field=Sold-to Party (BP)"
+        },
+        "view_metadata_partner": {
+          "status": "PASS",
+          "details": "desc=Business Partner (BP), ref_field=BP Number / Search Term"
+        },
+        "edge_picking_not_null_enforced": {
+          "status": "PASS",
+          "details": "PostgreSQL correctly enforces NOT NULL on picking_type_id"
+        },
+        "edge_picking_custom_fallback": {
+          "status": "PASS",
+          "details": "bwart=N/A, delivery_type=Goods Movement / Delivery"
+        },
+        "edge_quant_zero_diff": {
+          "status": "PASS",
+          "details": "diff=0.0, bwart=701"
+        },
+        "menu_contacts.menu_contacts": {
+          "status": "PASS",
+          "details": "Got: Business Partner (BP) (Expected: Business Partner (BP))"
+        },
+        "menu_sale.sale_menu_root": {
+          "status": "PASS",
+          "details": "Got: Sales & Distribution (SD) (Expected: Sales & Distribution (SD))"
+        },
+        "menu_purchase.menu_purchase_root": {
+          "status": "PASS",
+          "details": "Got: Materials Management (MM) (Expected: Materials Management (MM))"
+        },
+        "menu_stock.menu_stock_root": {
+          "status": "PASS",
+          "details": "Got: Logistics & Inventory (MM-IM) (Expected: Logistics & Inventory (MM-IM))"
+        },
+        "menu_account.menu_finance": {
+          "status": "PASS",
+          "details": "Got: Financials & Controlling (FI/CO) (Expected: Financials & Controlling (FI/CO))"
+        },
+        "menu_mrp.menu_mrp_root": {
+          "status": "PASS",
+          "details": "Got: Production Planning (PP) (Expected: Production Planning (PP))"
+        }
+      }
+    }
+  },
+  "total_checks": 91,
+  "passed_checks": 88,
+  "failed_checks": 3,
+  "failures": [
+    {
+      "module": "MasterData",
+      "check": "bp_role_search_domain_orm",
+      "details": "s_gen=True, s_cust=True (Bug: _search_bp_role drops 'in' operator)"
+    },
+    {
+      "module": "MasterData",
+      "check": "is_bp_customer_search_orm",
+      "details": "s_is_cust=True (Bug: _search_bp_customer defaults to <= 0 on 'in' operator)"
+    },
+    {
+      "module": "SupplyChainMM",
+      "check": "mm_roh_is_storable_flag",
+      "details": "is_storable=False (Note: Odoo 20 requires is_storable=True for inventory tracking)"
+    }
+  ],
+  "verdict": "FAIL"
+}

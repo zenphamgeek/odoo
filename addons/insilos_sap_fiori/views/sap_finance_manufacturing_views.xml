@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- ======================================================================= -->
+    <!-- Controlling (CO) — Cost Center & Profit Center Views                   -->
+    <!-- ======================================================================= -->
+    <record id="view_account_analytic_account_form_sap_co" model="ir.ui.view">
+        <field name="name">account.analytic.account.form.sap.co</field>
+        <field name="model">account.analytic.account</field>
+        <field name="inherit_id" ref="analytic.view_account_analytic_account_form"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='code']" position="after">
+                <field name="co_type" widget="radio" options="{'horizontal': true}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_analytic_account_list_sap_co" model="ir.ui.view">
+        <field name="name">account.analytic.account.list.sap.co</field>
+        <field name="model">account.analytic.account</field>
+        <field name="inherit_id" ref="analytic.view_account_analytic_account_list"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='code']" position="after">
+                <field name="co_type" widget="badge" optional="show" decoration-info="co_type == 'cost_center'" decoration-success="co_type == 'profit_center'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_analytic_account_search_sap_co" model="ir.ui.view">
+        <field name="name">account.analytic.account.search.sap.co</field>
+        <field name="model">account.analytic.account</field>
+        <field name="inherit_id" ref="analytic.view_account_analytic_account_search"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='inactive']" position="before">
+                <filter string="Cost Centers (KOSTL)" name="filter_cost_center" domain="[('co_type', '=', 'cost_center')]"/>
+                <filter string="Profit Centers (PRCTR)" name="filter_profit_center" domain="[('co_type', '=', 'profit_center')]"/>
+                <separator/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter string="CO Category" name="group_by_co_type" context="{'group_by': 'co_type'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ======================================================================= -->
+    <!-- Production Planning (PP) — Production Order Views                      -->
+    <!-- ======================================================================= -->
+    <record id="mrp_production_form_view_sap_pp" model="ir.ui.view">
+        <field name="name">mrp.production.form.sap.pp</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='bom_div']" position="after">
+                <field name="movement_type_issue" readonly="1" widget="badge" decoration-warning="1"/>
+                <field name="movement_type_receipt" readonly="1" widget="badge" decoration-success="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mrp_production_tree_view_sap_pp" model="ir.ui.view">
+        <field name="name">mrp.production.list.sap.pp</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="movement_type_issue" optional="hide" widget="badge" decoration-warning="1"/>
+                <field name="movement_type_receipt" optional="hide" widget="badge" decoration-success="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ======================================================================= -->
+    <!-- Production Planning (PP) — Work Center Views                           -->
+    <!-- ======================================================================= -->
+    <record id="mrp_workcenter_tree_view_sap_pp" model="ir.ui.view">
+        <field name="name">mrp.workcenter.list.sap.pp</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_tree_view"/>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='oee_target']" position="after">
+                <field name="oee" optional="show" widget="percentage"/>
+            </xpath>
+        </field>
+    </record>
+</data>

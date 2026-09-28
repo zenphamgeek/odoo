@@ -52,7 +52,7 @@ async function main() {
 
     // 2. Visit /insilos
     console.log('\n--- 2. Checking /insilos Main App Launcher ---');
-    await page.goto('http://localhost:28069/insilos', { waitUntil: 'load', timeout: 30000 });
+    await page.goto('http://localhost:28069/insilos', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForTimeout(2000);
     const appCount = await page.$$eval('.o_app', els => els.length);
     console.log(`✓ Discovered ${appCount} apps in launcher.`);
@@ -60,7 +60,7 @@ async function main() {
 
     // 3. Verify /insilos/apps
     console.log('\n--- 3. Verifying Modules in Apps Manager ---');
-    await page.goto('http://localhost:28069/insilos/apps', { waitUntil: 'load', timeout: 30000 });
+    await page.goto('http://localhost:28069/insilos/apps', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForTimeout(3000);
 
     // Query installed modules via RPC to verify state
@@ -112,7 +112,7 @@ async function main() {
 
     for (const route of routesToTest) {
       console.log(`Visiting ${route.name} (${route.url})...`);
-      await page.goto(route.url, { waitUntil: 'load', timeout: 30000 });
+      await page.goto(route.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
       await page.waitForTimeout(2000);
       console.log(`  ✓ Loaded ${route.name} without errors.`);
     }

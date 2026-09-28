@@ -25,10 +25,29 @@ Insilos Enterprise SAP Lexicon & Fiori Horizon Design System
     'author': 'Insilos Core Team',
     'website': 'https://insilos.com',
     'license': 'LGPL-3',
-    'depends': ['base', 'web'],
-    'data': [
-        'data/sap_menu_data.xml',
+    'depends': [
+        'base',
+        'web',
+        'contacts',
+        'product',
+        'sale',
+        'purchase',
+        'purchase_requisition',
+        'stock',
+        'account',
+        'analytic',
+        'account_reports',
+        'mrp',
     ],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/sap_menu_data.xml',
+        'data/sap_financial_reports.xml',
+        'views/sap_master_data_views.xml',
+        'views/sap_supply_chain_views.xml',
+        'views/sap_finance_manufacturing_views.xml',
+    ],
+
     'assets': {
         'web.assets_backend': [
             'insilos_sap_fiori/static/src/scss/fiori_horizon.scss',

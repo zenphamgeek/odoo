@@ -60,7 +60,7 @@ async function testSingleApp(page, app, results) {
   try {
     // Navigate to app
     await page.goto(`http://localhost:28069${app.href}`, { waitUntil: 'domcontentloaded', timeout: 45000 });
-    await page.waitForTimeout(2500);
+    await page.waitForTimeout(1000);
 
     // Check for error dialog safely
     try {
@@ -109,7 +109,7 @@ async function main() {
   console.log(`Session authenticated. Launching parallel validation (Concurrency: 4)...\n`);
 
   const results = {};
-  const CONCURRENCY = 4;
+  const CONCURRENCY = 6;
   const queue = [...apps];
 
   async function worker() {

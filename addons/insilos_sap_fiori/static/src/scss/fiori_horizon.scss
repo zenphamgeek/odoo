@@ -3,7 +3,7 @@
 // Insilos Enterprise Platform
 // =============================================================================
 
-// High-Density Compact Data Tables (Fiori Grid Standard)
+// High-Density Compact Data Tables (Fiori Grid Standard: 32px–34px Row Height)
 .o_list_renderer {
     .o_list_table {
         font-size: 0.875rem !important;
@@ -14,29 +14,38 @@
             z-index: 2;
 
             th {
+                position: sticky;
+                top: 0;
+                z-index: 2;
                 background: #F8FAFC !important;
                 border-bottom: 2px solid #CBD5E1 !important;
                 color: #334155 !important;
                 font-weight: 600 !important;
                 letter-spacing: 0.02em;
-                padding: 0.45rem 0.65rem !important;
+                padding: 0.35rem 0.65rem !important;
                 text-transform: uppercase;
                 font-size: 0.75rem !important;
+                line-height: 1.35 !important;
+                vertical-align: middle;
             }
         }
 
         tbody {
             tr {
                 transition: background-color 0.12s ease;
+                height: 32px;
+                min-height: 32px;
 
                 &:hover {
                     background-color: rgba(255, 128, 0, 0.04) !important;
                 }
 
                 td {
-                    padding: 0.4rem 0.65rem !important;
+                    padding: 0.35rem 0.65rem !important;
                     vertical-align: middle;
                     border-bottom: 1px solid #E2E8F0;
+                    line-height: 1.35 !important;
+                    font-size: 0.875rem !important;
                 }
             }
         }
@@ -77,11 +86,14 @@
     }
 }
 
-// Search and Control Panel (Fiori Horizon Filter Bar)
+// Search and Control Panel (Streamlined 44px Fiori Horizon Filter Bar)
 .o_control_panel {
+    min-height: 44px !important;
     background-color: #FFFFFF !important;
     border-bottom: 1px solid #E2E8F0 !important;
-    padding: 0.65rem 1.25rem !important;
+    padding: 0.25rem 1.25rem !important;
+    display: flex;
+    align-items: center;
 
     .o_breadcrumb {
         font-weight: 600;
@@ -89,10 +101,26 @@
     }
 
     .o_searchview {
-        border-radius: 8px !important;
+        border-radius: 9999px !important;
         border: 1px solid #CBD5E1 !important;
-        padding: 0.2rem 0.5rem !important;
+        padding: 0.2rem 0.75rem !important;
         background-color: #FFFFFF !important;
+
+        .o_searchview_facet {
+            border-radius: 9999px !important;
+            background-color: #F1F5F9 !important;
+            border: 1px solid #CBD5E1 !important;
+            padding: 0.1rem 0.5rem !important;
+            margin: 1px 3px 1px 0 !important;
+
+            .o_searchview_facet_label {
+                background-color: #E2E8F0 !important;
+                color: #334155 !important;
+                border-radius: 9999px 0 0 9999px !important;
+                font-size: 0.75rem !important;
+                padding: 0 0.4rem !important;
+            }
+        }
 
         &:focus-within {
             border-color: #FF8000 !important;

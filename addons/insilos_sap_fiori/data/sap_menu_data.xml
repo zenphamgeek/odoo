@@ -1,4 +1,294 @@
 <?xml version="1.0" encoding="utf-8"?>
 <data>
-    <function model="ir.ui.menu" name="update_sap_menus"/>
+    <!-- =================================================================== -->
+    <!-- Master Data (BP, MM, Plant/SLoc, Company Code) Menus & Actions      -->
+    <!-- =================================================================== -->
+    <record id="contacts.menu_contacts" model="ir.ui.menu">
+        <field name="name">Business Partner (BP)</field>
+    </record>
+    <record id="contacts.res_partner_menu_contacts" model="ir.ui.menu">
+        <field name="name">Business Partners (BP)</field>
+    </record>
+    <record id="contacts.action_contacts" model="ir.actions.act_window">
+        <field name="name">Business Partners (BP)</field>
+    </record>
+
+    <record id="product.product_template_action" model="ir.actions.act_window">
+        <field name="name">Material Master (MM)</field>
+    </record>
+    <record id="product.product_normal_action" model="ir.actions.act_window">
+        <field name="name">Material Variants</field>
+    </record>
+
+    <record id="base.menu_action_res_company_form" model="ir.ui.menu">
+        <field name="name">Company Codes (Bukrs)</field>
+    </record>
+    <record id="base.action_res_company_form" model="ir.actions.act_window">
+        <field name="name">Company Codes (Bukrs)</field>
+    </record>
+
+    <record id="stock.menu_stock_root" model="ir.ui.menu">
+        <field name="name">Logistics &amp; Inventory (MM-IM)</field>
+    </record>
+    <record id="stock.menu_warehouse_config" model="ir.ui.menu">
+        <field name="name">Plant &amp; Storage Location Structure</field>
+    </record>
+    <record id="stock.menu_action_warehouse_form" model="ir.ui.menu">
+        <field name="name">Plants / Distribution Centers</field>
+    </record>
+    <record id="stock.action_warehouse_form" model="ir.actions.act_window">
+        <field name="name">Plants / Distribution Centers</field>
+    </record>
+    <record id="stock.menu_action_location_form" model="ir.ui.menu">
+        <field name="name">Storage Locations (SLoc)</field>
+    </record>
+    <record id="stock.action_location_form" model="ir.actions.act_window">
+        <field name="name">Storage Locations (SLoc)</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- Sales & Distribution (SD) Menus & Actions                           -->
+    <!-- =================================================================== -->
+    <record id="sale.sale_menu_root" model="ir.ui.menu">
+        <field name="name">Sales &amp; Distribution (SD)</field>
+    </record>
+    <record id="sale.sale_order_menu" model="ir.ui.menu">
+        <field name="name">Sales Documents (SD)</field>
+    </record>
+    <record id="sale.menu_sale_quotations" model="ir.ui.menu">
+        <field name="name">SD Quotations / Inquiries</field>
+    </record>
+    <record id="sale.menu_sale_order" model="ir.ui.menu">
+        <field name="name">SD Sales Orders</field>
+    </record>
+    <record id="sale.action_quotations_with_onboarding" model="ir.actions.act_window">
+        <field name="name">SD Quotations</field>
+    </record>
+    <record id="sale.action_orders" model="ir.actions.act_window">
+        <field name="name">SD Sales Orders</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- Materials Management (MM) Menus & Actions                           -->
+    <!-- =================================================================== -->
+    <record id="purchase.menu_purchase_root" model="ir.ui.menu">
+        <field name="name">Materials Management (MM)</field>
+    </record>
+    <record id="purchase.menu_procurement_management" model="ir.ui.menu">
+        <field name="name">Purchasing Documents (MM-PUR)</field>
+    </record>
+    <record id="purchase.menu_purchase_rfq" model="ir.ui.menu">
+        <field name="name">Vendor Requests for Quotation (RFQs)</field>
+    </record>
+    <record id="purchase.menu_purchase_form_action" model="ir.ui.menu">
+        <field name="name">MM Purchase Orders</field>
+    </record>
+    <record id="purchase.purchase_rfq" model="ir.actions.act_window">
+        <field name="name">Vendor Requests for Quotation (RFQs)</field>
+    </record>
+    <record id="purchase.purchase_form_action" model="ir.actions.act_window">
+        <field name="name">MM Purchase Orders</field>
+    </record>
+
+    <!-- Customer Credit Memos & Billing Documents -->
+    <record id="account.action_move_out_refund_type_non_legacy" model="ir.actions.act_window">
+        <field name="name">Customer Credit Memos</field>
+    </record>
+    <record id="account.menu_action_move_out_refund_type" model="ir.ui.menu">
+        <field name="name">Customer Credit Memos</field>
+    </record>
+
+    <!-- Logistics Deliveries & Goods Movements -->
+    <record id="stock.in_picking" model="ir.ui.menu">
+        <field name="name">Inbound Deliveries / Goods Receipts</field>
+    </record>
+    <record id="stock.out_picking" model="ir.ui.menu">
+        <field name="name">Outbound Deliveries / Post Goods Issues</field>
+    </record>
+    <record id="stock.int_picking" model="ir.ui.menu">
+        <field name="name">Transfer Postings (SLoc / Plant)</field>
+    </record>
+    <record id="stock.menu_stock_transfers" model="ir.ui.menu">
+        <field name="name">Goods Deliveries &amp; Movements</field>
+    </record>
+    <record id="stock.action_picking_tree_incoming" model="ir.actions.act_window">
+        <field name="name">Inbound Deliveries / Goods Receipts</field>
+    </record>
+    <record id="stock.action_picking_tree_outgoing" model="ir.actions.act_window">
+        <field name="name">Outbound Deliveries / Post Goods Issues</field>
+    </record>
+    <record id="stock.action_picking_tree_all" model="ir.actions.act_window">
+        <field name="name">Goods Deliveries &amp; Movements</field>
+    </record>
+
+    <!-- Purchase Requisitions & Outline Agreements -->
+    <record id="purchase_requisition.action_purchase_requisition" model="ir.actions.act_window">
+        <field name="name">Purchase Requisitions &amp; Outline Agreements</field>
+    </record>
+    <record id="purchase_requisition.menu_purchase_requisition_pro_mgt" model="ir.ui.menu">
+        <field name="name">Purchase Requisitions &amp; Agreements</field>
+    </record>
+
+    <!-- Physical Inventory Adjustments (stock.quant) -->
+    <record id="stock.action_view_inventory_tree" model="ir.actions.server">
+        <field name="name">Physical Inventory Adjustments (MI01/MI07)</field>
+    </record>
+    <record id="stock.menu_action_inventory_tree" model="ir.ui.menu">
+        <field name="name">Physical Inventory Adjustments (MI01/MI07)</field>
+    </record>
+    <record id="stock.menu_stock_adjustments" model="ir.ui.menu">
+        <field name="name">Physical Inventory &amp; Adjustments</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- SAP Movement Types Matrix Data Records (BWART)                      -->
+    <!-- =================================================================== -->
+    <record id="sap_bwart_101" model="sap.movement.type">
+        <field name="code">101</field>
+        <field name="name">Goods Receipt for Purchase Order into Unrestricted Stock</field>
+        <field name="process_category">GR</field>
+        <field name="source_location_desc">Vendor / Supplier BP</field>
+        <field name="dest_location_desc">Storage Location (SLoc / Internal)</field>
+        <field name="sap_tcode">MIGO / VL31N</field>
+        <field name="description">Standard goods receipt posting for purchase orders into unrestricted-use inventory. Increases book inventory.</field>
+    </record>
+
+    <record id="sap_bwart_102" model="sap.movement.type">
+        <field name="code">102</field>
+        <field name="name">Return Delivery to Vendor / Goods Receipt Reversal</field>
+        <field name="process_category">GR</field>
+        <field name="source_location_desc">Storage Location (SLoc / Internal)</field>
+        <field name="dest_location_desc">Vendor / Supplier BP</field>
+        <field name="sap_tcode">MIGO</field>
+        <field name="description">Reversal of goods receipt for purchase order or return delivery to vendor.</field>
+    </record>
+
+    <record id="sap_bwart_261" model="sap.movement.type">
+        <field name="code">261</field>
+        <field name="name">Goods Issue for Production Order Reservation</field>
+        <field name="process_category">GI</field>
+        <field name="source_location_desc">Storage Location (SLoc / Internal)</field>
+        <field name="dest_location_desc">Production Order (RESB / CO01)</field>
+        <field name="sap_tcode">MIGO / MB1A</field>
+        <field name="description">Consumption of raw materials or components for manufacturing production orders.</field>
+    </record>
+
+    <record id="sap_bwart_301" model="sap.movement.type">
+        <field name="code">301</field>
+        <field name="name">Transfer Posting Plant to Plant (One-Step)</field>
+        <field name="process_category">TP</field>
+        <field name="source_location_desc">Issuing Plant (Werks A)</field>
+        <field name="dest_location_desc">Receiving Plant (Werks B)</field>
+        <field name="sap_tcode">MIGO / MB1B</field>
+        <field name="description">One-step stock transfer posting between two distinct plants within the company.</field>
+    </record>
+
+    <record id="sap_bwart_311" model="sap.movement.type">
+        <field name="code">311</field>
+        <field name="name">Transfer Posting Storage Location to Storage Location</field>
+        <field name="process_category">TP</field>
+        <field name="source_location_desc">Source Storage Location (SLoc 1)</field>
+        <field name="dest_location_desc">Destination Storage Location (SLoc 2)</field>
+        <field name="sap_tcode">MIGO / MB1B</field>
+        <field name="description">Transfer posting of materials between two storage locations within the same plant.</field>
+    </record>
+
+    <record id="sap_bwart_601" model="sap.movement.type">
+        <field name="code">601</field>
+        <field name="name">Goods Issue for Outbound Delivery (Post Goods Issue)</field>
+        <field name="process_category">GI</field>
+        <field name="source_location_desc">Storage Location (SLoc / Internal)</field>
+        <field name="dest_location_desc">Customer / Sold-to Party</field>
+        <field name="sap_tcode">VL01N / VL02N</field>
+        <field name="description">Post Goods Issue (PGI) reducing inventory balance and transferring ownership to customer on outbound delivery.</field>
+    </record>
+
+    <record id="sap_bwart_701" model="sap.movement.type">
+        <field name="code">701</field>
+        <field name="name">Physical Inventory Difference: Book Surplus Posting (Gain)</field>
+        <field name="process_category">PI</field>
+        <field name="source_location_desc">Inventory Difference (Inventory Loss)</field>
+        <field name="dest_location_desc">Storage Location (SLoc / Internal)</field>
+        <field name="sap_tcode">MI07</field>
+        <field name="description">Physical inventory adjustment posting for surplus counted quantity exceeding book stock.</field>
+    </record>
+
+    <record id="sap_bwart_702" model="sap.movement.type">
+        <field name="code">702</field>
+        <field name="name">Physical Inventory Difference: Book Deficit Posting (Loss)</field>
+        <field name="process_category">PI</field>
+        <field name="source_location_desc">Storage Location (SLoc / Internal)</field>
+        <field name="dest_location_desc">Inventory Difference (Inventory Loss)</field>
+        <field name="sap_tcode">MI07</field>
+        <field name="description">Physical inventory adjustment posting for deficit counted quantity below book stock.</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- Financials & Controlling (FI/CO) Menus & Actions                     -->
+    <!-- =================================================================== -->
+    <record id="account.menu_finance" model="ir.ui.menu">
+        <field name="name">Financials &amp; Controlling (FI/CO)</field>
+    </record>
+    <record id="account.menu_finance_entries" model="ir.ui.menu">
+        <field name="name">General Ledger (FI-GL)</field>
+    </record>
+    <record id="account.menu_action_move_journal_line_form" model="ir.ui.menu">
+        <field name="name">FI Accounting Documents</field>
+    </record>
+    <record id="account.menu_action_move_out_invoice_type" model="ir.ui.menu">
+        <field name="name">Customer Billing Documents</field>
+    </record>
+    <record id="account.menu_action_move_in_invoice_type" model="ir.ui.menu">
+        <field name="name">Vendor Invoices (LIV)</field>
+    </record>
+    <record id="account.action_move_journal_line" model="ir.actions.act_window">
+        <field name="name">FI Accounting Documents</field>
+    </record>
+    <record id="account.action_move_out_invoice" model="ir.actions.act_window">
+        <field name="name">Customer Billing Documents</field>
+    </record>
+    <record id="account.menu_action_account_form" model="ir.ui.menu">
+        <field name="name">Chart of Accounts / G/L Accounts</field>
+    </record>
+    <record id="account.action_account_form" model="ir.actions.act_window">
+        <field name="name">Chart of Accounts (G/L Accounts)</field>
+    </record>
+    <record id="account.menu_analytic_accounting" model="ir.ui.menu">
+        <field name="name">Controlling &amp; Cost Center Accounting (CO)</field>
+    </record>
+    <record id="analytic.action_account_analytic_account_form" model="ir.actions.act_window">
+        <field name="name">Cost Centers &amp; Profit Centers</field>
+    </record>
+    <record id="analytic.account_analytic_plan_action" model="ir.actions.act_window">
+        <field name="name">Controlling Area Plans (KOKRS)</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- Production Planning (PP) Menus & Actions                            -->
+    <!-- =================================================================== -->
+    <record id="mrp.menu_mrp_root" model="ir.ui.menu">
+        <field name="name">Production Planning (PP)</field>
+    </record>
+    <record id="mrp.menu_mrp_manufacturing" model="ir.ui.menu">
+        <field name="name">Shop Floor Execution &amp; Production Orders</field>
+    </record>
+    <record id="mrp.menu_mrp_production_action" model="ir.ui.menu">
+        <field name="name">PP Production Orders</field>
+    </record>
+    <record id="mrp.menu_mrp_bom_form_action" model="ir.ui.menu">
+        <field name="name">Production Bills of Materials</field>
+    </record>
+    <record id="mrp.menu_view_resource_search_mrp" model="ir.ui.menu">
+        <field name="name">Work Centers / Routing Resources</field>
+    </record>
+    <record id="mrp.mrp_production_action" model="ir.actions.act_window">
+        <field name="name">PP Production Orders</field>
+    </record>
+    <record id="mrp.mrp_bom_form_action" model="ir.actions.act_window">
+        <field name="name">Production Bills of Materials</field>
+    </record>
+    <record id="mrp.mrp_workcenter_action" model="ir.actions.act_window">
+        <field name="name">Work Centers / Routing Resources</field>
+    </record>
 </data>
+

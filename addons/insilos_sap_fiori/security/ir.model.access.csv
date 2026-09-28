@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_sap_movement_type_user,sap.movement.type.user,model_sap_movement_type,base.group_user,1,0,0,0
+access_sap_movement_type_manager,sap.movement.type.manager,model_sap_movement_type,stock.group_stock_manager,1,1,1,1

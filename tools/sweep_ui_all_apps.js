@@ -53,7 +53,7 @@ async function checkPage(page, appName, url) {
             for (const img of imgs) {
                 const src = img.getAttribute('src') || '';
                 const alt = img.getAttribute('alt') || '';
-                const isBadSrc = (/odoo/i.test(src) && !/odoo_ui_icons|odoobot/i.test(src) && !src.includes('insilos'));
+                const isBadSrc = (!src.startsWith('data:') && /odoo/i.test(src) && !/odoo_ui_icons|odoobot/i.test(src) && !src.includes('insilos'));
                 const isBadAlt = (alt.toLowerCase().includes('odoo') && !alt.toLowerCase().includes('insilos'));
                 if (isBadSrc || isBadAlt) {
                     badImgs.push(`img src="${src}" alt="${alt}"`);

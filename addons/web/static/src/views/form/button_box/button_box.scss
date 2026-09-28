@@ -19,16 +19,22 @@
 
     %-stat-button-text {
         @include o-text-overflow(block);
-        order: 1;
-        font-size: $o-font-size-base-smaller;
+        order: 2;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #64748B;
         line-height: $line-height-sm;
     }
 
     %-stat-button-value {
-        order: 2;
-        font-weight: $font-weight-bold;
-        color: var(--o-stat-text-color, #{$o-brand-primary});
-        font-size: $o-font-size-base-smaller;
+        order: 1;
+        font-weight: 700;
+        color: var(--o-stat-text-color, #0F172A);
+        font-size: 1.25rem;
+        line-height: 1.2;
+        font-variant-numeric: tabular-nums;
     }
 
     %-stat-button-figure-offset {
@@ -40,12 +46,22 @@
         flex-direction: row;
         align-items: center;
         flex-grow: 1;
-        padding-top: 0;
-        padding-bottom: 0;
+        padding: 0.35rem 0.75rem;
         min-width: 0;
+        border: 1px solid #E2E8F0;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+        &:hover {
+            border-color: #CBD5E1;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+            transform: translateY(-1px);
+        }
 
         @include media-breakpoint-up(md) {
-            height: $-stat-button-height;
+            min-height: 48px;
+            height: auto;
             min-width: 7.5em; // Arbitrary
         }
 
@@ -80,6 +96,29 @@
 
             .o_stat_value {
                 @extend %-stat-button-value;
+            }
+
+            .o_kpi_trend {
+                order: 3;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.25rem;
+                font-size: 0.75rem;
+                font-weight: 600;
+                line-height: 1;
+                margin-top: 0.2rem;
+
+                &.positive {
+                    color: #107E3E;
+                }
+
+                &.negative {
+                    color: #BB0000;
+                }
+
+                &.neutral {
+                    color: #64748B;
+                }
             }
         }
 

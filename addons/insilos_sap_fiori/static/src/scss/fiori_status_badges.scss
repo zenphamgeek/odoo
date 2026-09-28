@@ -3,8 +3,13 @@
 // Insilos Enterprise Platform
 // =============================================================================
 
-// Standard Semantic Pills
-.badge, .o_tag, .o_field_badge {
+// Standard Semantic Badges & Tags across Form, List, and Kanban
+.badge, .o_tag, .o_field_badge,
+.o_list_renderer .o_data_cell .badge,
+.o_form_view .badge,
+.o_kanban_view .badge,
+.o_kanban_record .badge,
+.o_kanban_record .o_tag {
     border-radius: 9999px !important;
     font-weight: 600 !important;
     font-size: 0.75rem !important;
@@ -13,40 +18,70 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
+    line-height: 1.2 !important;
 
-    // Positive / Success (Fiori Standard Green)
-    &.text-bg-success, &.bg-success, &.o_tag_color_10 {
+    // 1. Positive / Success (Fiori Standard Green)
+    &.text-bg-success, &.bg-success, &.o_tag_color_10,
+    &.badge-positive, &.badge-success, &.state-positive, &.o_status_positive {
         background-color: #E7F6ED !important;
         color: #107E3E !important;
         border: 1px solid rgba(16, 126, 62, 0.25) !important;
     }
 
-    // Critical / Error (Fiori Standard Red)
-    &.text-bg-danger, &.bg-danger, &.o_tag_color_1 {
+    // 2. Critical / Error (Fiori Standard Red)
+    &.text-bg-danger, &.bg-danger, &.o_tag_color_1,
+    &.badge-critical, &.badge-danger, &.badge-error, &.state-critical, &.o_status_critical {
         background-color: #FBEEED !important;
         color: #BB0000 !important;
         border: 1px solid rgba(187, 0, 0, 0.25) !important;
     }
 
-    // Warning / Alert (Fiori Standard Amber)
-    &.text-bg-warning, &.bg-warning, &.o_tag_color_2, &.o_tag_color_3 {
+    // 3. Warning / Alert (Fiori Standard Amber)
+    &.text-bg-warning, &.bg-warning, &.o_tag_color_2, &.o_tag_color_3,
+    &.badge-warning, &.badge-alert, &.state-warning, &.o_status_warning {
         background-color: #FEF0E6 !important;
         color: #E9730C !important;
         border: 1px solid rgba(233, 115, 12, 0.25) !important;
     }
 
-    // Information / Neutral (Fiori Standard Blue / Insilos Slate)
-    &.text-bg-info, &.bg-info, &.text-bg-primary, &.bg-primary, &.o_tag_color_4 {
+    // 4. Information / Neutral (Fiori Standard Blue / Insilos Slate)
+    &.text-bg-info, &.bg-info, &.text-bg-primary, &.bg-primary, &.o_tag_color_4,
+    &.badge-information, &.badge-info, &.state-info, &.o_status_info {
         background-color: #E8F2FE !important;
         color: #0070F2 !important;
         border: 1px solid rgba(0, 112, 242, 0.25) !important;
     }
 
     // Neutral / Inactive (Muted Gray)
-    &.text-bg-secondary, &.bg-secondary, &.o_tag_color_0 {
+    &.text-bg-secondary, &.bg-secondary, &.o_tag_color_0,
+    &.badge-neutral, &.badge-secondary, &.state-neutral, &.o_status_neutral {
         background-color: #F1F5F9 !important;
         color: #475569 !important;
         border: 1px solid #CBD5E1 !important;
+    }
+}
+
+// List View Specific Cell Badges & Row State Overrides
+.o_list_renderer .o_list_table {
+    .o_badge_cell {
+        vertical-align: middle;
+    }
+
+    // Field-level decoration classes inside list cells
+    .text-success {
+        color: #107E3E !important;
+    }
+    .text-danger {
+        color: #BB0000 !important;
+    }
+    .text-warning {
+        color: #E9730C !important;
+    }
+    .text-info {
+        color: #0070F2 !important;
+    }
+    .text-muted {
+        color: #64748B !important;
     }
 }
 

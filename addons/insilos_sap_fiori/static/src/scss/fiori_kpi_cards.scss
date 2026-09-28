@@ -86,3 +86,86 @@
         margin-bottom: 0.5rem;
     }
 }
+
+// SAP Fiori Horizon Smart Buttons / Stat Info Top-Down KPI Cards
+.o-form-buttonbox, .oe_button_box {
+    gap: 0.5rem !important;
+
+    .oe_stat_button {
+        background: #FFFFFF !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 8px !important;
+        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+        padding: 0.45rem 0.85rem !important;
+        min-height: 48px !important;
+        display: inline-flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease !important;
+
+        &:hover {
+            background-color: #F8FAFC !important;
+            border-color: #CBD5E1 !important;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+            transform: translateY(-1px) !important;
+        }
+
+        .o_button_icon {
+            font-size: 1.5rem !important;
+            color: #FF8000 !important;
+            margin-right: 0.5rem !important;
+        }
+
+        .o_stat_info, .o_field_statinfo {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            text-align: left !important;
+
+            // Value on top (1.25rem bold, #0F172A)
+            .o_stat_value {
+                order: 1 !important;
+                font-size: 1.25rem !important;
+                font-weight: 700 !important;
+                color: #0F172A !important;
+                line-height: 1.2 !important;
+                font-variant-numeric: tabular-nums !important;
+            }
+
+            // Uppercase label on bottom (0.7rem, #64748B)
+            .o_stat_text {
+                order: 2 !important;
+                font-size: 0.7rem !important;
+                font-weight: 600 !important;
+                text-transform: uppercase !important;
+                letter-spacing: 0.03em !important;
+                color: #64748B !important;
+                line-height: 1.2 !important;
+            }
+
+            // Micro-trend indicator support
+            .o_kpi_trend {
+                order: 3 !important;
+                display: inline-flex !important;
+                align-items: center !important;
+                gap: 0.25rem !important;
+                font-size: 0.75rem !important;
+                font-weight: 600 !important;
+                line-height: 1 !important;
+                margin-top: 0.2rem !important;
+
+                &.positive {
+                    color: #107E3E !important;
+                }
+
+                &.negative {
+                    color: #BB0000 !important;
+                }
+
+                &.neutral {
+                    color: #64748B !important;
+                }
+            }
+        }
+    }
+}

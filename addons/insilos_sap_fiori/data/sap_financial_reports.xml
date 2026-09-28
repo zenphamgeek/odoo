@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+        <!-- =============================================================== -->
+        <!-- S_ALR_87012284 Statutory Financial Reports Standard             -->
+        <!-- =============================================================== -->
+
+        <!-- Actions -->
+        <record id="account_reports.action_account_report_bs" model="ir.actions.client">
+            <field name="name">Balance Sheet (S_ALR_87012284)</field>
+        </record>
+
+        <record id="account_reports.action_account_report_pl" model="ir.actions.client">
+            <field name="name">Profit and Loss Statement (S_ALR_87012284)</field>
+        </record>
+
+        <record id="account_reports.action_account_report_coa" model="ir.actions.client">
+            <field name="name">Trial Balance (S_ALR_87012301)</field>
+        </record>
+
+        <record id="account_reports.action_account_report_general_ledger" model="ir.actions.client">
+            <field name="name">General Ledger (S_ALR_87012277)</field>
+        </record>
+
+        <!-- Menus -->
+        <record id="account_reports.menu_action_account_report_balance_sheet" model="ir.ui.menu">
+            <field name="name">Balance Sheet (S_ALR_87012284)</field>
+        </record>
+
+        <record id="account_reports.menu_action_account_report_profit_and_loss" model="ir.ui.menu">
+            <field name="name">Profit and Loss Statement (S_ALR_87012284)</field>
+        </record>
+
+        <record id="account_reports.menu_action_account_report_coa" model="ir.ui.menu">
+            <field name="name">Trial Balance (S_ALR_87012301)</field>
+        </record>
+
+        <record id="account_reports.menu_action_account_report_general_ledger" model="ir.ui.menu">
+            <field name="name">General Ledger (S_ALR_87012277)</field>
+        </record>
+
+        <!-- Account Report Definitions -->
+        <record id="account_reports.balance_sheet" model="account.report">
+            <field name="name">Balance Sheet (S_ALR_87012284)</field>
+        </record>
+
+        <record id="account_reports.profit_and_loss" model="account.report">
+            <field name="name">Profit and Loss Statement (S_ALR_87012284)</field>
+        </record>
+
+        <record id="account_reports.trial_balance_report" model="account.report">
+            <field name="name">Trial Balance (S_ALR_87012301)</field>
+        </record>
+
+        <record id="account_reports.general_ledger_report" model="account.report">
+            <field name="name">General Ledger (S_ALR_87012277)</field>
+        </record>
+
+        <!-- Balance Sheet S_ALR_87012284 Standard Report Lines -->
+        <record id="account_reports.account_financial_report_total_assets0" model="account.report.line">
+            <field name="name">Aktiva / Total Assets</field>
+        </record>
+
+        <record id="account_reports.account_financial_report_current_assets_view0" model="account.report.line">
+            <field name="name">Umlaufvermögen / Current Assets</field>
+        </record>
+
+        <record id="account_reports.account_financial_report_fixed_assets_view0" model="account.report.line">
+            <field name="name">Anlagevermögen / Fixed Assets</field>
+        </record>
+
+        <record id="account_reports.account_financial_report_liabilities_view0" model="account.report.line">
+            <field name="name">Passiva / Total Liabilities &amp; Equity</field>
+        </record>
+
+        <record id="account_reports.account_financial_report_equity0" model="account.report.line">
+            <field name="name">Eigenkapital / Equity</field>
+        </record>
+
+        <!-- Profit and Loss S_ALR_87012284 Standard Report Lines -->
+        <record id="account_reports.account_financial_report_revenue0" model="account.report.line">
+            <field name="name">Umsatzerlöse / Operating Revenue</field>
+        </record>
+
+        <record id="account_reports.account_financial_report_cost_sales0" model="account.report.line">
+            <field name="name">Herstellungskosten / Cost of Goods Sold (COGS)</field>
+        </record>
+
+        <record id="account_reports.account_financial_report_operating_income0" model="account.report.line">
+            <field name="name">Betriebsergebnis / Operating Profit (EBIT)</field>
+        </record>
+    </data>

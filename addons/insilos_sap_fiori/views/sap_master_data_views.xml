@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- ======================================================================= -->
+    <!-- Business Partner (BP) Views                                            -->
+    <!-- ======================================================================= -->
+    <record id="view_partner_form_sap_bp" model="ir.ui.view">
+        <field name="name">res.partner.form.sap.bp</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='category_id']" position="after">
+                <field name="bp_role" widget="badge" decoration-info="bp_role == 'general'" decoration-success="bp_role == 'customer'" decoration-warning="bp_role == 'vendor'" decoration-primary="bp_role == 'both'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_partner_tree_sap_bp" model="ir.ui.view">
+        <field name="name">res.partner.tree.sap.bp</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_tree"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='display_name']" position="after">
+                <field name="bp_role" widget="badge" optional="show" decoration-info="bp_role == 'general'" decoration-success="bp_role == 'customer'" decoration-warning="bp_role == 'vendor'" decoration-primary="bp_role == 'both'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_res_partner_filter_sap_bp" model="ir.ui.view">
+        <field name="name">res.partner.select.sap.bp</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_res_partner_filter"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_vat_set']" position="before">
+                <filter string="General BP (000000)" name="filter_bp_general" domain="[('is_bp_general', '=', True)]"/>
+                <filter string="Customer Role (FLCU00)" name="filter_bp_customer" domain="[('customer_rank', '>', 0)]"/>
+                <filter string="Vendor Role (FLVN00)" name="filter_bp_vendor" domain="[('supplier_rank', '>', 0)]"/>
+                <separator/>
+            </xpath>
+            <xpath expr="//group" position="inside">
+                <filter string="BP Role" name="group_by_bp_role" context="{'group_by': 'bp_role'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- ======================================================================= -->
+    <!-- Material Master (MM) Views                                             -->
+    <!-- ======================================================================= -->
+    <record id="product_template_form_view_sap_mm" model="ir.ui.view">
+        <field name="name">product.template.form.sap.mm</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='type']" position="before">
+                <field name="sap_material_type" widget="selection"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_tree_view_sap_mm" model="ir.ui.view">
+        <field name="name">product.template.tree.sap.mm</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="sap_material_type" widget="badge" optional="show" decoration-info="sap_material_type == 'ROH'" decoration-warning="sap_material_type == 'HALB'" decoration-success="sap_material_type == 'FERT'" decoration-primary="sap_material_type == 'HAWA'"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="product_template_search_view_sap_mm" model="ir.ui.view">
+        <field name="name">product.template.search.sap.mm</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='filter_to_sell']" position="before">
+                <filter string="Raw Materials (ROH)" name="filter_mat_roh" domain="[('sap_material_type', '=', 'ROH')]"/>
+                <filter string="Semifinished (HALB)" name="filter_mat_halb" domain="[('sap_material_type', '=', 'HALB')]"/>
+                <filter string="Finished Goods (FERT)" name="filter_mat_fert" domain="[('sap_material_type', '=', 'FERT')]"/>
+                <filter string="Trading Goods (HAWA)" name="filter_mat_hawa" domain="[('sap_material_type', '=', 'HAWA')]"/>
+                <filter string="Services (DIEN)" name="filter_mat_dien" domain="[('sap_material_type', '=', 'DIEN')]"/>
+                <separator/>
+            </xpath>
+            <xpath expr="//filter[@name='group_by_type']" position="before">
+                <filter string="Material Type (MTART)" name="group_by_sap_material_type" context="{'group_by': 'sap_material_type'}"/>
+            </xpath>
+        </field>
+    </record>
+</data>
