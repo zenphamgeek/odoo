@@ -124,12 +124,18 @@ class Base(models.AbstractModel):
 
     @api.model
     def get_views(self, views, options=None):
-        """Harmonize model description in view metadata to SAP conventions."""
+        """Harmonize model description and field strings in view metadata to SAP conventions."""
         res = super().get_views(views, options=options)
         sap_desc = SAP_MODEL_DESCRIPTIONS.get(self._name)
         if sap_desc and isinstance(res, dict) and 'models' in res:
             if self._name in res['models'] and isinstance(res['models'][self._name], dict):
                 res['models'][self._name]['description'] = sap_desc
+                model_overrides = SAP_FIELD_STRINGS.get(self._name)
+                if model_overrides and 'fields' in res['models'][self._name]:
+                    fields_dict = res['models'][self._name]['fields']
+                    for field_name, new_string in model_overrides.items():
+                        if field_name in fields_dict and isinstance(fields_dict[field_name], dict):
+                            fields_dict[field_name]['string'] = new_string
         return res
 
 
