@@ -1,9 +1,9 @@
 {
-  "timestamp": "2026-09-28T16:45:02Z",
+  "timestamp": "2026-09-28T16:57:42Z",
   "modules": {
     "MasterData": {
-      "passed": 22,
-      "failed": 2,
+      "passed": 24,
+      "failed": 0,
       "checks": {
         "res_partner_description": {
           "status": "PASS",
@@ -46,12 +46,12 @@
           "details": "gen=[('customer_rank', '<=', 0), ('supplier_rank', '<=', 0)], cust=[('customer_rank', '>', 0), ('supplier_rank', '<=', 0)]"
         },
         "bp_role_search_domain_orm": {
-          "status": "FAIL",
-          "details": "s_gen=True, s_cust=True (Bug: _search_bp_role drops 'in' operator)"
+          "status": "PASS",
+          "details": "s_gen=True, s_cust=False (Bug: _search_bp_role drops 'in' operator)"
         },
         "is_bp_customer_search_orm": {
-          "status": "FAIL",
-          "details": "s_is_cust=True (Bug: _search_bp_customer defaults to <= 0 on 'in' operator)"
+          "status": "PASS",
+          "details": "s_is_cust=False (Bug: _search_bp_customer defaults to <= 0 on 'in' operator)"
         },
         "product_template_description": {
           "status": "PASS",
@@ -125,7 +125,7 @@
         },
         "so_party_roles_assigned": {
           "status": "PASS",
-          "details": "sold=263, bill=264, ship=265"
+          "details": "sold=293, bill=294, ship=295"
         },
         "so_state_quotation": {
           "status": "PASS",
@@ -154,8 +154,8 @@
       }
     },
     "SupplyChainMM": {
-      "passed": 18,
-      "failed": 1,
+      "passed": 19,
+      "failed": 0,
       "checks": {
         "purchase_order_description": {
           "status": "PASS",
@@ -190,8 +190,8 @@
           "details": "Got: Physical Inventory Adjustment (MI01/MI07)"
         },
         "mm_roh_is_storable_flag": {
-          "status": "FAIL",
-          "details": "is_storable=False (Note: Odoo 20 requires is_storable=True for inventory tracking)"
+          "status": "PASS",
+          "details": "is_storable=True (Note: Odoo 20 requires is_storable=True for inventory tracking)"
         },
         "physical_inv_701_surplus": {
           "status": "PASS",
@@ -293,7 +293,7 @@
         },
         "cost_center_search": {
           "status": "PASS",
-          "details": "Found: [95]"
+          "details": "Found: [99]"
         },
         "report_bs_s_alr_87012284": {
           "status": "PASS",
@@ -403,24 +403,8 @@
     }
   },
   "total_checks": 91,
-  "passed_checks": 88,
-  "failed_checks": 3,
-  "failures": [
-    {
-      "module": "MasterData",
-      "check": "bp_role_search_domain_orm",
-      "details": "s_gen=True, s_cust=True (Bug: _search_bp_role drops 'in' operator)"
-    },
-    {
-      "module": "MasterData",
-      "check": "is_bp_customer_search_orm",
-      "details": "s_is_cust=True (Bug: _search_bp_customer defaults to <= 0 on 'in' operator)"
-    },
-    {
-      "module": "SupplyChainMM",
-      "check": "mm_roh_is_storable_flag",
-      "details": "is_storable=False (Note: Odoo 20 requires is_storable=True for inventory tracking)"
-    }
-  ],
-  "verdict": "FAIL"
+  "passed_checks": 91,
+  "failed_checks": 0,
+  "failures": [],
+  "verdict": "PASS"
 }
