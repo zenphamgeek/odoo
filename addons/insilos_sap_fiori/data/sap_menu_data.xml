@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <function model="ir.ui.menu" name="update_sap_menus"/>
+</data>
