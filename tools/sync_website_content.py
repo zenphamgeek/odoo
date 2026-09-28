@@ -132,7 +132,7 @@ def fetch_local_website_payload(local_conn):
     # 2. Views
     cur.execute("""
         SELECT v.id, v.key, v.name, v.type, v.mode, v.priority, v.active, v.arch_db::text,
-               parent.key as inherit_key
+               parent.key as inherit_key, COALESCE(v.visibility, 'public') as visibility
         FROM ir_ui_view v
         LEFT JOIN ir_ui_view parent ON v.inherit_id = parent.id
         WHERE v.key IS NOT NULL AND (
@@ -164,6 +164,7 @@ def fetch_local_website_payload(local_conn):
             'active': r[6],
             'arch_db': r[7],
             'inherit_key': r[8],
+            'visibility': r[9] or 'public',
         })
 
     # 3. Pages
@@ -464,16 +465,17 @@ try:
             cur.execute('''
                 UPDATE ir_ui_view 
                 SET name = %s, type = %s, mode = %s, priority = %s, active = %s,
+                    visibility = %s,
                     arch_db = %s::jsonb, inherit_id = COALESCE(%s, inherit_id),
                     write_date = NOW()
                 WHERE id = %s
-            ''', [v['name'], v['type'], v['mode'], v['priority'], v['active'], arch_json, inherit_id, existing[0]])
+            ''', [v['name'], v['type'], v['mode'], v['priority'], v['active'], v.get('visibility', 'public') or 'public', arch_json, inherit_id, existing[0]])
             stats['views_updated'] += 1
         else:
             cur.execute('''
-                INSERT INTO ir_ui_view (name, key, type, mode, priority, active, arch_db, inherit_id, create_date, write_date)
-                VALUES (%s, %s, %s, %s, %s, %s, %s::jsonb, %s, NOW(), NOW())
-            ''', [v['name'], key, v['type'], v['mode'], v['priority'], v['active'], arch_json, inherit_id])
+                INSERT INTO ir_ui_view (name, key, type, mode, priority, active, visibility, arch_db, inherit_id, create_date, write_date)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s, NOW(), NOW())
+            ''', [v['name'], key, v['type'], v['mode'], v['priority'], v['active'], v.get('visibility', 'public') or 'public', arch_json, inherit_id])
             stats['views_inserted'] += 1
 
     # --- 3. SYNC WEBSITE PAGES ---

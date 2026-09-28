@@ -138,7 +138,7 @@ export function shareUrlMenuItem() {
         description: markup`
             <div class="d-flex align-items-center justify-content-between w-100">
                 <span>${_t("Share")}</span>
-                <span class="oi" data-icon="family_history"></span>
+                <span class="ph ph-share-network"></span>
             </div>`,
         callback: router.shareUrl,
         sequence: 25,
@@ -153,4 +153,4 @@ registry
     .add("preferences", preferencesItem)
     .add("install_pwa", installPWAItem)
     .add("log_out", logOutItem)
-    .add("share_url", shareUrlMenuItem);
+    .add("share_url", shareUrlMenuItem, { force: true });

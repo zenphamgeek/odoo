@@ -20,7 +20,7 @@
               <span class="o_burger_menu_username px-2"><t t-out="this.user.name"/></span>
             </small>
             <div class="d-flex align-items-center h-100 bg-transparent">
-                <button t-if="this.router.shareUrl and this.isDisplayStandalone" class="o_sidebar_share oi btn border-0 fs-5 text-reset" data-icon="family_history" aria-label="Share URL" title="Share URL" t-on-click.stop="() => this._shareUrl()"/>
+                <button t-if="this.router.shareUrl and this.isDisplayStandalone" class="o_sidebar_share ph ph-share-network btn border-0 fs-5 text-reset" aria-label="Share URL" title="Share URL" t-on-click.stop="() => this._shareUrl()"/>
                 <button class="o_sidebar_close oi btn border-0 fs-3 text-reset" data-icon="close_small" aria-label="Close menu" title="Close menu" t-on-click.stop="() => this._closeBurger()"/>
             </div>
         </div>
