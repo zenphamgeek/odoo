@@ -118,6 +118,13 @@ def run_simulation(env):
             'allocated_quota_kg': 100000.0,
             'warning_threshold_pct': 15.0,
         })
+    elif quota.remaining_quota_kg < 20000.0:
+        env.cr.execute(
+            "UPDATE is_chemical_permit_quota SET allocated_quota_kg = allocated_quota_kg + 100000.0 WHERE id = %s",
+            [quota.id]
+        )
+        quota.invalidate_recordset(['allocated_quota_kg', 'remaining_quota_kg', 'remaining_percentage', 'is_quota_exhausted'])
+        quota._compute_quota_metrics()
     print(f"  ✓ Active Import Quota: {quota.allocated_quota_kg:,.0f} kg [Permit: {permit.permit_number}]")
     print(f"    - Previously Consumed: {quota.consumed_quota_kg:,.0f} kg")
     print(f"    - Remaining Before: {quota.remaining_quota_kg:,.0f} kg ({quota.remaining_percentage:.1f}%)")

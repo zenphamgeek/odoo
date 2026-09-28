@@ -175,10 +175,8 @@ $oi-fw-ratio: 1.28571429; // Matches .fa-fw
 
 // ============================================================================
 // PHOSPHOR ICONS INTEGRATION & BACKWARD-COMPATIBILITY SHIM
+// Phosphor fonts, CSS and shim are declared directly in web.phosphor_icons bundle
 // ============================================================================
-
-@import "../../lib/phosphor/phosphor_icons";
-@import "../../lib/phosphor/phosphor_shim";
 
 .ph {
     font-family: 'Phosphor' !important;

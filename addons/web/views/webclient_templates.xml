@@ -43,6 +43,7 @@
       <xpath expr="//head/link[last()]" position="after">
         <t t-call-assets="web.material_symbols_outlined" t-binary="True"/>
         <t t-call-assets="web.odoo_ui_icons" t-binary="True"/>
+        <t t-call-assets="web.phosphor_icons" t-binary="True"/>
         <t t-call-assets="web.assets_frontend" t-js="false"/>
       </xpath>
       <xpath expr="//head/script[@id='web.layout.odooscript']" position="after">

@@ -548,11 +548,19 @@ This module provides the core of the Insilos Web Client.
         'web.odoo_ui_icons': [
             ('include', 'web.insilos_icons'),
         ],
+        'web.phosphor_icons': [
+            '/web/static/lib/phosphor/phosphor.woff2',
+            '/web/static/lib/phosphor/phosphor-bold.woff2',
+            '/web/static/lib/phosphor/phosphor-duotone.woff2',
+            '/web/static/lib/phosphor/phosphor.css',
+            '/web/static/lib/phosphor/phosphor_shim.css',
+        ],
         'web.icons_fonts': [
             ('include', 'web.material_symbols_outlined'),
             ('include', 'web.material_symbols_rounded'),
             ('include', 'web.material_symbols_sharp'),
             ('include', 'web.insilos_icons'),
+            ('include', 'web.phosphor_icons'),
             'web/static/src/webclient/icons_mappings/**',
             'web/static/src/webclient/icons.scss',
         ],

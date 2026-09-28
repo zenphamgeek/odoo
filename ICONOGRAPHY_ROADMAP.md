@@ -37,8 +37,9 @@ Insilos Iconography Subsystem
  │    ├── addons/web/static/lib/phosphor/phosphor.woff2 (Regular)
  │    ├── addons/web/static/lib/phosphor/phosphor-bold.woff2 (Bold)
  │    ├── addons/web/static/lib/phosphor/phosphor-duotone.woff2 (Duotone)
- │    ├── addons/web/static/lib/phosphor/_phosphor_icons.scss (Glyph mapping)
- │    └── addons/web/static/lib/phosphor/_phosphor_shim.scss (Backward shim)
+ │    ├── addons/web/static/lib/phosphor/phosphor.css (Glyph mapping & web fonts)
+ │    └── addons/web/static/lib/phosphor/phosphor_shim.css (Backward shim)
+ │    └── Declared natively via 'web.phosphor_icons' asset bundle in addons/web/__manifest__.py
  │
  ├── SVG Vector Sprite Tier (Symbol Groups: <use href="...#ph-*"/>)
  │    └── enterprise/insilos_website/static/src/icons/phosphor-duotone.svg (1,515 symbols)
@@ -77,12 +78,25 @@ Consistent sizing tokens integrated directly into SCSS:
 - `.ph-spin`: Smooth 2s continuous linear rotation for loading states.
 - `.ph-pulse`: 8-step stepped animation for discrete progress indicators.
 
-### 3.4 SCSS Integration Snippet
+### 3.4 Asset Bundle Integration
+```python
+# addons/web/__manifest__.py
+'web.phosphor_icons': [
+    '/web/static/lib/phosphor/phosphor.woff2',
+    '/web/static/lib/phosphor/phosphor-bold.woff2',
+    '/web/static/lib/phosphor/phosphor-duotone.woff2',
+    '/web/static/lib/phosphor/phosphor.css',
+    '/web/static/lib/phosphor/phosphor_shim.css',
+],
+'web.icons_fonts': [
+    ...
+    ('include', 'web.phosphor_icons'),
+    'web/static/src/webclient/icons.scss',
+],
+```
+In `icons.scss`:
 ```scss
 // addons/web/static/src/webclient/icons.scss
-@import "../../lib/phosphor/phosphor_icons";
-@import "../../lib/phosphor/phosphor_shim";
-
 .ph {
     font-family: 'Phosphor' !important;
     speak: never;
