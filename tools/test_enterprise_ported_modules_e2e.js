@@ -53,7 +53,7 @@ async function main() {
     // 2. Visit /insilos
     console.log('\n--- 2. Checking /insilos Main App Launcher ---');
     await page.goto('http://localhost:28069/insilos', { waitUntil: 'domcontentloaded', timeout: 45000 });
-    await page.waitForTimeout(2000);
+    await page.waitForSelector('.o_app', { timeout: 20000 });
     const appCount = await page.$$eval('.o_app', els => els.length);
     console.log(`✓ Discovered ${appCount} apps in launcher.`);
     if (appCount === 0) throw new Error('No apps found on /insilos launcher');

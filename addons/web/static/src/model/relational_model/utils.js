@@ -797,6 +797,7 @@ export async function resequence({
     orm,
     fieldName,
     movedIds,
+    movedId,
     targetId,
     asc = true,
     getSequence = (record) => record[fieldName],
@@ -820,7 +821,7 @@ export async function resequence({
     }
 
     // Move the records/groups after the target (or first), keeping their relative order
-    const idsToMove = new Set(movedIds);
+    const idsToMove = new Set(movedIds || (movedId !== undefined ? [movedId] : []));
     const movedRecords = records.filter((d) => idsToMove.has(d.id));
     const otherRecords = records.filter((d) => !idsToMove.has(d.id));
     const insertIndex = (targetId ? otherRecords.findIndex((d) => d.id === targetId) : -1) + 1;

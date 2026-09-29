@@ -3,8 +3,8 @@ const { chromium } = require('playwright');
 async function checkPage(page, appName, url) {
     console.log(`Checking [${appName}] at ${url}...`);
     try {
-        const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        await page.waitForTimeout(2000);
+        const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        await page.waitForTimeout(1000);
 
         const status = response ? response.status() : 0;
         if (status >= 400) {
@@ -88,10 +88,11 @@ async function main() {
         args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
-    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    let totalLeaks = 0;
+    const leakDetails = [];
 
-    // 1. Check unauthenticated public pages first
-    console.log('=== CHECKING UNAUTHENTICATED PUBLIC PAGES ===');
+    // 1. Check unauthenticated public pages first in parallel
+    console.log('=== CHECKING UNAUTHENTICATED PUBLIC PAGES (Parallel) ===');
     const publicRoutes = [
         ['Public Login', 'http://localhost:28069/web/login'],
         ['Public Reset Password', 'http://localhost:28069/web/reset_password'],
@@ -100,25 +101,29 @@ async function main() {
         ['Public Jobs / Careers', 'http://localhost:28069/jobs'],
     ];
 
-    let totalLeaks = 0;
-    const leakDetails = [];
-
+    const publicContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     for (const [name, url] of publicRoutes) {
-        const res = await checkPage(page, name, url);
+        const p = await publicContext.newPage();
+        const res = await checkPage(p, name, url);
         if (res) {
-            totalLeaks += (res.leaks.length + res.imgLeaks.length);
             leakDetails.push(res);
         }
+        await p.close().catch(() => {});
     }
+    await publicContext.close().catch(() => {});
 
-    // 2. Authenticate as admin
+    // 2. Authenticate as admin and extract storageState
     console.log('\n=== AUTHENTICATING AS ADMIN ===');
-    await page.request.post('http://localhost:28069/web/session/authenticate', {
+    const authContext = await browser.newContext();
+    const authPage = await authContext.newPage();
+    await authPage.request.post('http://localhost:28069/web/session/authenticate', {
         data: { jsonrpc: '2.0', params: { db: 'odoo20_dev', login: 'admin', password: 'admin' } }
     });
+    const storageState = await authContext.storageState();
+    await authContext.close().catch(() => {});
 
-    // 3. Check authenticated apps and menus
-    console.log('\n=== CHECKING AUTHENTICATED CORE APPS ===');
+    // 3. Check authenticated apps and menus with parallel worker pool
+    console.log('\n=== CHECKING AUTHENTICATED CORE APPS (Parallel Concurrency: 3) ===');
     const authRoutes = [
         ['App Drawer', 'http://localhost:28069/insilos'],
         ['Apps Store', 'http://localhost:28069/insilos/apps'],
@@ -150,15 +155,48 @@ async function main() {
         ['Maintenance', 'http://localhost:28069/insilos/maintenance'],
     ];
 
-    for (const [name, url] of authRoutes) {
-        const res = await checkPage(page, name, url);
-        if (res) {
-            totalLeaks += (res.leaks.length + res.imgLeaks.length);
-            leakDetails.push(res);
+    const CONCURRENCY = 3;
+    const queue = [...authRoutes];
+
+    async function worker() {
+        const ctx = await browser.newContext({ storageState, viewport: { width: 1440, height: 900 } });
+        const p = await ctx.newPage();
+        while (queue.length > 0) {
+            const item = queue.shift();
+            if (!item) break;
+            const [name, url] = item;
+            const res = await checkPage(p, name, url);
+            if (res) {
+                leakDetails.push(res);
+            }
         }
+        await ctx.close().catch(() => {});
+    }
+
+    await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
+
+    // 4. Retry any timed-out routes sequentially to rule out server concurrency contention
+    const timedOutRoutes = leakDetails.filter(d => d.leaks.some(l => l.includes('Timeout') || l.includes('page.goto')));
+    if (timedOutRoutes.length > 0) {
+        console.log(`\nRetrying ${timedOutRoutes.length} timed-out routes sequentially to eliminate parallel contention...`);
+        const retryContext = await browser.newContext({ storageState, viewport: { width: 1440, height: 900 } });
+        const retryPage = await retryContext.newPage();
+        for (const item of timedOutRoutes) {
+            console.log(`Retrying [${item.appName}]...`);
+            const retryRes = await checkPage(retryPage, item.appName, item.url);
+            const idx = leakDetails.indexOf(item);
+            if (!retryRes) {
+                leakDetails.splice(idx, 1);
+            } else {
+                leakDetails[idx] = retryRes;
+            }
+        }
+        await retryContext.close().catch(() => {});
     }
 
     await browser.close();
+
+    totalLeaks = leakDetails.reduce((acc, cur) => acc + cur.leaks.length + cur.imgLeaks.length, 0);
 
     console.log(`\n===========================================`);
     console.log(`Comprehensive Scan Finished. Total Leaks: ${totalLeaks}`);

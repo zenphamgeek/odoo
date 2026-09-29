@@ -37,7 +37,19 @@ import { useDeleteRecords, useExportRecords } from "@web/views/view_hook";
 import { ListCogMenu } from "./list_cog_menu";
 import { ListConfirmationDialog } from "./list_confirmation_dialog";
 
-// -----------------------------------------------------------------------------
+export const listControllerProps = {
+    ...standardViewProps,
+    allowSelectors: t.boolean().optional(true),
+    onSelectionChanged: t.function().optional(),
+    readonly: t.boolean().optional(),
+    allowOpenAction: t.boolean().optional(true),
+    Model: t.function(),
+    Renderer: t.function(),
+    buttonTemplate: t.string(),
+    archInfo: t.object(),
+    createRecord: t.function().optional(() => () => {}),
+    selectRecord: t.function().optional(() => () => {}),
+};
 
 export class ListController extends Component {
     static template = `web.ListView`;
@@ -53,19 +65,7 @@ export class ListController extends Component {
         DropdownItem,
         SelectionBox,
     };
-    props = useProps({
-        ...standardViewProps,
-        allowSelectors: t.boolean().optional(true),
-        onSelectionChanged: t.function().optional(),
-        readonly: t.boolean().optional(),
-        allowOpenAction: t.boolean().optional(true),
-        Model: t.function(),
-        Renderer: t.function(),
-        buttonTemplate: t.string(),
-        archInfo: t.object(),
-        createRecord: t.function().optional(() => () => {}),
-        selectRecord: t.function().optional(() => () => {}),
-    });
+    props = useProps(listControllerProps);
 
     rootRef = signal.ref();
 

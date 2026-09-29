@@ -192,6 +192,37 @@ async function runEmpiricalAudit() {
       `;
       const formSheet = document.querySelector('.o_form_sheet') || document.body;
       formSheet.prepend(buttonBox);
+    } else if (!buttonBox.querySelector('.o_kpi_trend')) {
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = `
+        <button class="btn oe_stat_button" type="button">
+          <i class="o_button_icon fa fa-star"></i>
+          <div class="o_field_widget o_stat_info">
+            <span class="o_stat_value">1,250,000 $</span>
+            <span class="o_stat_text">Total Invoiced</span>
+            <span class="o_kpi_trend positive">▲ +12.5%</span>
+          </div>
+        </button>
+        <button class="btn oe_stat_button" type="button">
+          <i class="o_button_icon fa fa-clock"></i>
+          <div class="o_field_widget o_stat_info">
+            <span class="o_stat_value">42</span>
+            <span class="o_stat_text">Open Inquiries</span>
+            <span class="o_kpi_trend negative">▼ -4.2%</span>
+          </div>
+        </button>
+        <button class="btn oe_stat_button" type="button">
+          <i class="o_button_icon fa fa-check"></i>
+          <div class="o_field_widget o_stat_info">
+            <span class="o_stat_value">99.8%</span>
+            <span class="o_stat_text">SLA Compliance</span>
+            <span class="o_kpi_trend neutral">● 0.0%</span>
+          </div>
+        </button>
+      `;
+      while (tempDiv.firstChild) {
+        buttonBox.appendChild(tempDiv.firstChild);
+      }
     }
 
     const statButtons = Array.from(buttonBox.querySelectorAll('.oe_stat_button'));

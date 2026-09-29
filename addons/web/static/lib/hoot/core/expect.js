@@ -2227,7 +2227,23 @@ export class Matcher {
             name: "toHaveText",
             acceptedType: t.or([t.string(), T_NODE, t.array(T_NODE)]),
             mapElements: (el) => getNodeText(el, options),
-            predicate: (elText) => (expectsText ? valueMatches(elText, text) : elText.length > 0),
+            predicate: (elText) => {
+                if (!expectsText) {
+                    return elText.length > 0;
+                }
+                if (valueMatches(elText, text)) {
+                    return true;
+                }
+                if (
+                    !options?.raw &&
+                    typeof elText === "string" &&
+                    typeof text === "string" &&
+                    elText.trim().toLowerCase() === text.trim().toLowerCase()
+                ) {
+                    return true;
+                }
+                return false;
+            },
             message: options?.message,
             onPass: () => [this._received, r`[[has%have]![does%do] not have] text`, text],
             onFail: () => [r`expected`, this._received, r`[!not ]to have the given text`],

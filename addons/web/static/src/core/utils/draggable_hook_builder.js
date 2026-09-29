@@ -548,10 +548,11 @@ export function makeDraggableHook(hookParams) {
              * that are tolerated from the initial pointer position.
              */
             const canStartDrag = () => {
-                const {
-                    pointer,
-                    current: { initialPosition },
-                } = ctx;
+                const { pointer, current } = ctx;
+                const initialPosition = current?.initialPosition;
+                if (!initialPosition || !pointer) {
+                    return false;
+                }
                 return (
                     !ctx.tolerance ||
                     Math.hypot(pointer.x - initialPosition.x, pointer.y - initialPosition.y) >=
@@ -1178,7 +1179,7 @@ export function makeDraggableHook(hookParams) {
                         return cleanup;
                     }
                 },
-                () => [typeof ctx.ref === "function" ? untrack(ctx.ref) : ctx.ref?.el]
+                () => [typeof ctx.ref === "function" ? ctx.ref() : ctx.ref?.el]
             );
 
             setupHooks.setup(

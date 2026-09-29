@@ -106,3 +106,15 @@ export const runAllTimers = interactor("time", time.runAllTimers);
 
 // Debug
 export { exposeHelpers } from "./hoot_dom_utils";
+
+export class Deferred extends Promise {
+    constructor() {
+        let res, rej;
+        super((resolve, reject) => {
+            res = resolve;
+            rej = reject;
+        });
+        this.resolve = res;
+        this.reject = rej;
+    }
+}

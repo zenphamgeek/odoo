@@ -151,17 +151,21 @@ const EMBEDDED_ACTIONS_CTX_KEYS = [
 // only register this template once for all dynamic classes ControllerComponent
 const ControllerComponentTemplate = xml`<t t-component="this.Component" t-props="this.componentProps"/>`;
 
-export function useActionManager(router = _router) {
+export function makeActionManager(env, router = _router) {
+    return useActionManager(router, env);
+}
+
+export function useActionManager(router = _router, customEnv = null) {
     const scope = useScope();
+    const env = customEnv || useEnv();
     const debugMode = usePlugin(DebugModePlugin);
     const offlinePlugin = usePlugin(OfflinePlugin);
-    const bus = usePlugin(GlobalBusPlugin).bus;
-    const dialogService = usePlugin(DialogPlugin);
-    const effectService = usePlugin(EffectPlugin);
-    const notification = usePlugin(NotificationPlugin);
-    const title = usePlugin(TitlePlugin);
-    const ui = usePlugin(UIPlugin);
-    const env = useEnv();
+    const bus = env?.bus || usePlugin(GlobalBusPlugin).bus;
+    const dialogService = env?.services?.dialog || usePlugin(DialogPlugin);
+    const effectService = env?.services?.effect || usePlugin(EffectPlugin);
+    const notification = env?.services?.notification || usePlugin(NotificationPlugin);
+    const title = env?.services?.title || usePlugin(TitlePlugin);
+    const ui = env?.services?.ui || usePlugin(UIPlugin);
 
     const breadcrumbCache = {};
     const keepLast = new KeepLast();
@@ -181,13 +185,16 @@ export function useActionManager(router = _router) {
         ) {
             rpcBus.trigger("CLEAR-CACHES", "/web/action/load");
             const virtualStack = await _controllersFromState(router.current);
-            const nextStack = [...virtualStack, controllerStack[controllerStack.length - 1]];
-            nextStack[nextStack.length - 1].config.breadcrumbs.splice(
-                0,
-                nextStack[nextStack.length - 1].config.breadcrumbs.length,
-                ..._getBreadcrumbs(nextStack)
-            );
-            controllerStack = nextStack;
+            const lastController = controllerStack[controllerStack.length - 1];
+            if (lastController?.config?.breadcrumbs) {
+                const nextStack = [...virtualStack, lastController];
+                lastController.config.breadcrumbs.splice(
+                    0,
+                    lastController.config.breadcrumbs.length,
+                    ..._getBreadcrumbs(nextStack)
+                );
+                controllerStack = nextStack;
+            }
         }
     });
 
@@ -1094,10 +1101,13 @@ export function useActionManager(router = _router) {
                 controller.isMounted = false;
             }
             get componentProps() {
-                const componentProps = { ...this.props };
+                const rawProps = typeof this.props === "function" ? this.props() : this.props;
+                const componentProps = { ...controller.props, ...rawProps };
                 const updateActionState = componentProps.updateActionState;
-                componentProps.updateActionState = (newState) =>
-                    updateActionState(controller, newState);
+                if (updateActionState) {
+                    componentProps.updateActionState = (newState) =>
+                        updateActionState(controller, newState);
+                }
                 if (this.constructor.Component === View) {
                     componentProps.__beforeLeave__ = this.__beforeLeave__;
                     componentProps.__getGlobalState__ = this.__getGlobalState__;
@@ -1201,7 +1211,7 @@ export function useActionManager(router = _router) {
             componentProps: controller.props,
         };
         if (!options.keepDialogs) {
-            dialogService.closeAll({ noReload: true });
+            dialogService?.closeAll?.({ noReload: true });
         }
         bus.trigger("ACTION_MANAGER:UPDATE", controller.__info__);
         await currentActionProm;
@@ -1301,7 +1311,8 @@ export function useActionManager(router = _router) {
         }
 
         let view = (options.viewType && views.find((v) => v.type === options.viewType)) || views[0];
-        if (ui.isSmall()) {
+        const isSmall = typeof ui.isSmall === "function" ? ui.isSmall() : Boolean(ui.isSmall);
+        if (isSmall) {
             view = _findView(views, view.multiRecord, action.mobile_view_mode) || view;
         }
         if (

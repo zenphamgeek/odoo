@@ -2109,7 +2109,8 @@ export class Model extends Array {
     get_record_default_action(id) {
         return {
             res_id: Array.isArray(id) ? id[0] : id,
-            res_model: this.name,
+            res_model: this._name,
+            target: "current",
             type: "ir.actions.act_window",
             views: [[false, "form"]],
         };

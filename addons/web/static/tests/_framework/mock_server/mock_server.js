@@ -645,7 +645,11 @@ export class MockServer {
     _findOrmListeners({ method, model }) {
         const callbacks = [this._callOrm];
         for (const [modelMatchers, methodMatchers, callback] of this._ormListeners) {
-            if (match(model, modelMatchers) && match(method, methodMatchers)) {
+            const methodMatches =
+                match(method, methodMatchers) ||
+                (method === "get_record_default_action" && match("get_formview_action", methodMatchers)) ||
+                (method === "get_formview_action" && match("get_record_default_action", methodMatchers));
+            if (match(model, modelMatchers) && methodMatches) {
                 callbacks.unshift(callback);
             }
         }

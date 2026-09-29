@@ -124,6 +124,28 @@ export function sortBy(iterable, criterion, order = "asc") {
 }
 
 /**
+ * Groups elements of an iterable by a given criterion.
+ *
+ * @template T
+ * @template {string | number | symbol} K
+ * @param {Iterable<T>} iterable
+ * @param {Criterion<T, K>} criterion
+ * @returns {Record<string, T[]>}
+ */
+export function groupBy(iterable, criterion) {
+    const extract = _getExtractorFrom(criterion);
+    const groups = {};
+    for (const item of iterable) {
+        const key = extract(item);
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+        groups[key].push(item);
+    }
+    return groups;
+}
+
+/**
  * Returns an array containing all the elements of arrayA
  * that are not in arrayB and vice-versa.
  *

@@ -6,7 +6,7 @@ import { isFocusable } from "@web/core/utils/ui";
 import { getActiveHotkey } from "../hotkeys/hotkey_utils";
 import { getFirstAndLastTabableElements, refreshMedias, utils } from "./ui_utils";
 
-import { computed, EventBus, Plugin, signal, untrack, useListener, usePlugin } from "@insilos/owl";
+import { computed, EventBus, Plugin, signal, untrack, useListener, usePlugin, useRef } from "@insilos/owl";
 
 /**
  * This hook will set the UI active element
@@ -24,6 +24,8 @@ export function useActiveElement(ref) {
         throw new Error("ref not given to useActiveElement");
     }
     const uiService = usePlugin(UIPlugin);
+    const resolvedRef = typeof ref === "string" ? useRef(ref) : ref;
+    const getEl = typeof resolvedRef === "function" ? resolvedRef : () => resolvedRef?.el || (resolvedRef instanceof Element ? resolvedRef : null);
 
     function trapFocus(e) {
         const hotkey = getActiveHotkey(e);
@@ -102,7 +104,7 @@ export function useActiveElement(ref) {
                 };
             }
         },
-        () => [untrack(ref)]
+        () => [getEl()]
     );
 }
 

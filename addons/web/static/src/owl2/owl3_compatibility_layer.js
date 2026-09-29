@@ -78,8 +78,18 @@ Object.defineProperty(owl.Component, "props", {
     },
     configurable: true,
 });
-owl.reactive = owl.proxy;
-owl.useState = owl.proxy;
+function safeReactive(target, callback) {
+    if (!target || typeof target !== "object") {
+        return target;
+    }
+    try {
+        return owl.proxy(target);
+    } catch {
+        return target;
+    }
+}
+owl.reactive = safeReactive;
+owl.useState = safeReactive;
 
 /**
  * Owl 2 useRef hook compatibility shim.
@@ -103,6 +113,14 @@ function useRef(name) {
         node.__owl_refs__[name] = owl.signal.ref();
     }
     const signalRef = node.__owl_refs__[name];
+    if (comp) {
+        if (!comp[name]) {
+            comp[name] = signalRef;
+        }
+        if (!comp[name + "Ref"]) {
+            comp[name + "Ref"] = signalRef;
+        }
+    }
     if (!Object.prototype.hasOwnProperty.call(signalRef, "el")) {
         Object.defineProperty(signalRef, "el", {
             get() {
@@ -200,6 +218,38 @@ owl.useLayoutEffect = function useLayoutEffect(effect, computeDependencies = () 
         }
     });
     owl.onWillUnmount(() => cleanup && cleanup());
+};
+
+const nativeUseEffect = owl.useEffect;
+/**
+ * @param {Function} effect
+ * @param {() => any[]} [computeDependencies]
+ */
+owl.useEffect = function useEffect(effect, computeDependencies) {
+    if (typeof computeDependencies === "function") {
+        /** @type {Function} */
+        let cleanup;
+        /** @type {any[]} */
+        let dependencies;
+        owl.onMounted(() => {
+            dependencies = computeDependencies();
+            cleanup = effect(...dependencies);
+        });
+        owl.onPatched(() => {
+            const newDeps = computeDependencies();
+            const shouldReapply = !dependencies || newDeps.some((val, i) => val !== dependencies[i]);
+            if (shouldReapply) {
+                dependencies = newDeps;
+                if (cleanup && typeof cleanup === "function") {
+                    cleanup();
+                }
+                cleanup = effect(...dependencies);
+            }
+        });
+        owl.onWillUnmount(() => cleanup && typeof cleanup === "function" && cleanup());
+        return;
+    }
+    return nativeUseEffect(effect);
 };
 
 class EnvPlugin extends owl.Plugin {

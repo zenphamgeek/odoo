@@ -1,21 +1,21 @@
 {
-  "timestamp": "2026-09-28T17:44:04.914Z",
+  "timestamp": "2026-09-28T17:56:50.811Z",
   "tests": {
     "launchpad": [
       {
         "name": "160x160px Tile Geometry Standard",
-        "passed": false,
+        "passed": true,
         "details": {
           "totalApps": 72,
-          "valid160Count": 0,
+          "valid160Count": 72,
           "sample": [
             {
               "name": "Discuss",
-              "width": 1424,
-              "height": 278,
-              "cssWidth": "auto",
-              "cssHeight": "auto",
-              "cssMinHeight": "0px",
+              "width": 160,
+              "height": 160,
+              "cssWidth": "160px",
+              "cssHeight": "160px",
+              "cssMinHeight": "160px",
               "pillText": null,
               "pillClass": null,
               "pillColor": null,
@@ -28,11 +28,11 @@
             },
             {
               "name": "Meeting Rooms",
-              "width": 1424,
-              "height": 278,
-              "cssWidth": "auto",
-              "cssHeight": "auto",
-              "cssMinHeight": "0px",
+              "width": 160,
+              "height": 160,
+              "cssWidth": "160px",
+              "cssHeight": "160px",
+              "cssMinHeight": "160px",
               "pillText": null,
               "pillClass": null,
               "pillColor": null,
@@ -45,11 +45,11 @@
             },
             {
               "name": "Calendar",
-              "width": 1424,
-              "height": 278,
-              "cssWidth": "auto",
-              "cssHeight": "auto",
-              "cssMinHeight": "0px",
+              "width": 160,
+              "height": 160,
+              "cssWidth": "160px",
+              "cssHeight": "160px",
+              "cssMinHeight": "160px",
               "pillText": null,
               "pillClass": null,
               "pillColor": null,
@@ -82,132 +82,132 @@
       },
       {
         "name": "SAP Domain Subtitles (#94A3B8, font-weight 500)",
-        "passed": false,
+        "passed": true,
         "details": {
           "totalDomains": 16,
           "sampleDomainText": "Master Data",
-          "sampleColor": "#0000ee"
+          "sampleColor": "#94a3b8"
         }
       }
     ],
     "kpi_cards": [
       {
         "name": ".oe_stat_button: Value on top (order 1, 1.25rem [20px], bold >=700, #0F172A)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "order": 0,
-          "fontSize": "13.3333px",
-          "fontWeight": 400,
-          "color": "#000000"
+          "order": 1,
+          "fontSize": "20px",
+          "fontWeight": 700,
+          "color": "#0f172a"
         }
       },
       {
         "name": ".oe_stat_button: Label on bottom (order 2, 0.7rem [~11.2px], uppercase, #64748B)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "order": 0,
-          "fontSize": "13.3333px",
-          "textTransform": "none",
-          "color": "#000000"
+          "order": 2,
+          "fontSize": "11.2px",
+          "textTransform": "uppercase",
+          "color": "#64748b"
         }
       },
       {
         "name": ".o_kpi_trend: 3-State Micro-Trend Colors (pos: #107E3E, neg: #BB0000, neu: #64748B)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "positive": "#000000",
-          "negative": "#000000",
-          "neutral": "#000000"
+          "positive": "#107e3e",
+          "negative": "#bb0000",
+          "neutral": "#64748b"
         }
       },
       {
         "name": ".oe_stat_button Container: Min-Height >= 48px, Border-Radius >= 8px",
-        "passed": false,
+        "passed": true,
         "details": {
-          "minHeight": "0px",
-          "borderRadius": "0px",
-          "border": "2px outset rgb(0, 0, 0)"
+          "minHeight": "48px",
+          "borderRadius": "8px",
+          "border": "1px solid rgb(226, 232, 240)"
         }
       }
     ],
     "semantic_badges": [
       {
         "name": "1. Positive / Success State Badge (#107E3E on #E7F6ED)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "color": "#000000",
-          "backgroundColor": "#000000",
-          "borderRadius": "0px"
+          "color": "#107e3e",
+          "backgroundColor": "#e7f6ed",
+          "borderRadius": "9999px"
         }
       },
       {
         "name": "2. Critical / Error State Badge (#BB0000 on #FBEEED)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "color": "#000000",
-          "backgroundColor": "#000000",
-          "borderRadius": "0px"
+          "color": "#bb0000",
+          "backgroundColor": "#fbeeed",
+          "borderRadius": "9999px"
         }
       },
       {
         "name": "3. Warning / Alert State Badge (#E9730C on #FEF0E6)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "color": "#000000",
-          "backgroundColor": "#000000",
-          "borderRadius": "0px"
+          "color": "#e9730c",
+          "backgroundColor": "#fef0e6",
+          "borderRadius": "9999px"
         }
       },
       {
         "name": "4. Information State Badge (#0070F2 on #E8F2FE)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "color": "#000000",
-          "backgroundColor": "#000000",
-          "borderRadius": "0px"
+          "color": "#0070f2",
+          "backgroundColor": "#e8f2fe",
+          "borderRadius": "9999px"
         }
       },
       {
         "name": "Statusbar Active Workflow Step (#0070F2)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "backgroundColor": "#efefef"
+          "backgroundColor": "#0070f2"
         }
       }
     ],
     "table_ergonomics": [
       {
         "name": "Control Panel Streamlined Standard (min-height: 44px)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "measuredHeight": "168px",
-          "cssMinHeight": "0px",
-          "searchBorderRadius": "0px"
+          "measuredHeight": "56px",
+          "cssMinHeight": "44px",
+          "searchBorderRadius": "9999px"
         }
       },
       {
         "name": "Sticky Table Headers (position: sticky, top: 0, bg: #F8FAFC)",
-        "passed": false,
+        "passed": true,
         "details": {
-          "position": "static",
-          "top": "auto",
-          "background": "#000000",
-          "color": "#000000",
-          "borderBottom": "0px none rgb(0, 0, 0)"
+          "position": "sticky",
+          "top": "0px",
+          "background": "#f8fafc",
+          "color": "#334155",
+          "borderBottom": "1px solid rgba(226, 232, 240, 0.85)"
         }
       },
       {
         "name": "High-Density Table Rows (Target 32px–34px, tolerance [30px–36px])",
-        "passed": false,
+        "passed": true,
         "details": {
-          "averageHeight": "47px",
+          "averageHeight": "32px",
           "measuredRows": [
-            38,
-            56
+            32,
+            32
           ],
-          "cssHeight": "38px",
-          "cssMinHeight": "0px",
-          "tdPadding": "1px / 1px"
+          "cssHeight": "32px",
+          "cssMinHeight": "32px",
+          "tdPadding": "0px / 0px"
         }
       }
     ],
@@ -251,7 +251,7 @@
   },
   "summary": {
     "total": 19,
-    "passed": 5,
-    "failed": 14
+    "passed": 19,
+    "failed": 0
   }
 }
