@@ -10,7 +10,8 @@ from odoo.tools import config
 from odoo.orm.registry import Registry
 import odoo
 
-config.parse_config(['-c', '/home/zen/O20/odoo.conf', '-d', 'odoo20_dev'])
+conf_file = '/home/zen/O20/insilos.conf' if Path('/home/zen/O20/insilos.conf').exists() else '/home/zen/O20/odoo.conf'
+config.parse_config(['-c', conf_file, '-d', 'odoo20_dev'])
 registry = Registry('odoo20_dev')
 
 # Test candidates across key ported enterprise modules

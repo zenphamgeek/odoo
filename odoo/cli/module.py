@@ -85,14 +85,14 @@ class Module(Command):
             'modules', nargs='+', metavar='MODULE',
             help="names of the modules to be installed. For data modules (.zip), use the path instead")
         install_parser.epilog = textwrap.dedent("""\
-            Before installing modules, an Odoo database needs to be created and initialized
+            Before installing modules, a database needs to be created and initialized
             on your PostgreSQL instance, using the `db init` command:
 
-            $ odoo-bin db init <db_name>
+            $ insilos-bin db init <db_name>
 
             To get help on its parameters, see:
 
-            $ odoo-bin db init --help
+            $ insilos-bin db init --help
         """)
         uninstall_parser.add_argument(
             'modules', nargs='+', metavar='MODULE',

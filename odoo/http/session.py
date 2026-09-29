@@ -56,7 +56,8 @@ The default duration before a session is rotated, changing the session
 id (also on the cookie) but keeping the same content.
 """
 
-SESSION_ROTATION_INTERVAL_HEADER_SKIP = "X-Odoo-Skip-Session-Rotation-Interval"
+SESSION_ROTATION_INTERVAL_HEADER_SKIP = "X-Insilos-Skip-Session-Rotation-Interval"
+SESSION_ROTATION_INTERVAL_HEADER_SKIP_LEGACY = "X-Odoo-Skip-Session-Rotation-Interval"
 """ The header to pass in a request to skip the soft session rotation. """
 
 SESSION_DELETION_TIMER = 120
@@ -678,7 +679,10 @@ def save_session(request: Request, env: Environment | None = None) -> None:
         sess.uid
         and time.time() >= sess['create_time'] + SESSION_ROTATION_INTERVAL
         and request.httprequest.path not in SESSION_ROTATION_EXCLUDED_PATHS
-        and not request.httprequest.headers.get(SESSION_ROTATION_INTERVAL_HEADER_SKIP)
+        and not (
+            request.httprequest.headers.get(SESSION_ROTATION_INTERVAL_HEADER_SKIP)
+            or request.httprequest.headers.get(SESSION_ROTATION_INTERVAL_HEADER_SKIP_LEGACY)
+        )
     ):
         session_store().rotate(sess, env, soft=True)
     elif sess.is_dirty:

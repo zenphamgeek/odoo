@@ -195,7 +195,7 @@ class FSWatcherInotify(FSWatcherBase):
 
     def start(self):
         self.started = True
-        self.thread = threading.Thread(target=self.run, name="odoo.service.autoreload.watcher")
+        self.thread = threading.Thread(target=self.run, name="insilos.service.autoreload.watcher")
         self.thread.daemon = True
         self.thread.start()
 
@@ -432,7 +432,7 @@ class ThreadedServer(CommonServer):
 
         """
         for i in range(config['max_cron_threads']):
-            t = threading.Thread(target=self.cron_thread, args=(i,), name=f"odoo.service.cron.cron{i}", daemon=True)
+            t = threading.Thread(target=self.cron_thread, args=(i,), name=f"insilos.service.cron.cron{i}", daemon=True)
             t.type = 'cron'
             t.start()
 
@@ -457,7 +457,7 @@ class ThreadedServer(CommonServer):
         try:
             thread_pool = ThreadPoolExecutor(
                 max_workers=config.max_http_threads,
-                thread_name_prefix='odoo.service.http.request',
+                thread_name_prefix='insilos.service.http.request',
             )
 
             if config.http_socket_activation:
@@ -506,7 +506,7 @@ class ThreadedServer(CommonServer):
         threading.Thread(
             target=self.http_server_thread,
             args=(self.stop_event,),
-            name="odoo.service.httpd",
+            name="insilos.service.httpd",
             daemon=True,
         ).start()
 
@@ -1159,7 +1159,7 @@ class Worker:
         self.logger = _logger.getChild(self.__class__.__name__)
 
     def setproctitle(self, title=""):
-        setproctitle('odoo: %s %s %s' % (self.__class__.__name__, self.pid, title))
+        setproctitle('insilos: %s %s %s' % (self.__class__.__name__, self.pid, title))
 
     def close(self):
         os.close(self.watchdog_pipe[0])

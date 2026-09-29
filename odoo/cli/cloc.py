@@ -8,17 +8,16 @@ class Cloc(Command):
     """ Count lines of code per modules """
 
     description = """
-        Odoo cloc is a tool to count the number of relevant lines written
-        in Python, Javascript or XML. This can be used as rough metric for
-        pricing maintenance of customizations.
+        Count the number of relevant lines written in Python, Javascript or XML.
+        This can be used as a metric for pricing maintenance of customizations.
 
         It has two modes of operation, either by providing a path:
 
-            odoo-bin cloc -p module_path
+            insilos-bin cloc -p module_path
 
         Or by providing the name of a database:
 
-            odoo-bin --addons-path=dirs cloc -d database
+            insilos-bin --addons-path=dirs cloc -d database
 
         In the latter mode, only the custom code is accounted for.
     """

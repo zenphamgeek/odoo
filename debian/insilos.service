@@ -1,0 +1,15 @@
+[Unit]
+Description=Insilos Enterprise Sovereign AI & Industrial Platform
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=insilos
+Group=insilos
+ExecStart=/usr/bin/insilos --config /etc/insilos/insilos.conf --logfile /var/log/insilos/insilos-server.log
+KillMode=mixed
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

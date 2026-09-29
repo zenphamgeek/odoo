@@ -112,35 +112,44 @@ def get_version(detailed_version=False):
     return version
 
 
+def get_conf_path() -> Path:
+    """Get path to primary configuration file (insilos.conf with fallback to odoo.conf)."""
+    insilos_path = path_file("insilos.conf")
+    if insilos_path.exists():
+        return insilos_path
+    return path_file("odoo.conf")
+
+
 def update_conf(values: dict, section: str = "iot.box"):
-    """Update odoo.conf with the given key and value.
+    """Update configuration with the given key and value.
 
     :param values: key-value pairs to update the config with.
     :param section: The section to update the key-value pairs in (Default: `iot.box`).
     """
-    _logger.debug("Updating odoo.conf with values: %s", values)
+    conf_path = get_conf_path()
+    _logger.debug("Updating %s with values: %s", conf_path.name, values)
     conf = get_conf()
 
     if not conf.has_section(section):
-        _logger.debug("Creating new section '%s' in odoo.conf", section)
+        _logger.debug("Creating new section '%s' in %s", section, conf_path.name)
         conf.add_section(section)
 
     for key, value in values.items():
         conf.set(section, key, value) if value else conf.remove_option(section, key)
 
-    with open(path_file("odoo.conf"), "w", encoding='utf-8') as f:
+    with open(conf_path, "w", encoding='utf-8') as f:
         conf.write(f)
 
 
 def get_conf(key: str | None = None, section: str = "iot.box"):
-    """Get the value of the given key from odoo.conf, or the full config if no key is provided.
+    """Get the value of the given key from configuration, or the full config if no key is provided.
 
     :param key: The key to get the value of.
     :param section: The section to get the key from (Default: `iot.box`).
     :return: The value of the key provided or `None` if it doesn't exist, or full conf object if no key is provided.
     """
     conf = configparser.RawConfigParser()
-    conf.read(path_file("odoo.conf"))
+    conf.read(get_conf_path())
 
     return conf.get(section, key, fallback=None) if key else conf  # Return the key's value or the configparser object
 

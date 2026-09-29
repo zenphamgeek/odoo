@@ -33,7 +33,8 @@ def sync_avatars():
     from odoo.modules.registry import Registry
     from odoo import api
 
-    odoo.tools.config.parse_config(['-c', os.path.join(REPO_ROOT, 'odoo.conf'), '-d', 'odoo20_dev'])
+    conf_name = 'insilos.conf' if os.path.exists(os.path.join(REPO_ROOT, 'insilos.conf')) else 'odoo.conf'
+    odoo.tools.config.parse_config(['-c', os.path.join(REPO_ROOT, conf_name), '-d', 'odoo20_dev'])
     registry = Registry('odoo20_dev')
 
     with registry.cursor() as cr:

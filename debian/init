@@ -17,7 +17,13 @@ PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 DAEMON=/usr/bin/odoo
 NAME=odoo
 DESC=odoo
-CONFIG=/etc/odoo/odoo.conf
+if [ -f /etc/insilos/insilos.conf ]; then
+    CONFIG=/etc/insilos/insilos.conf
+elif [ -f /etc/odoo/insilos.conf ]; then
+    CONFIG=/etc/odoo/insilos.conf
+else
+    CONFIG=/etc/odoo/odoo.conf
+fi
 LOGFILE=/var/log/odoo/odoo-server.log
 PIDFILE=/var/run/${NAME}.pid
 USER=odoo

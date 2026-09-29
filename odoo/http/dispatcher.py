@@ -385,7 +385,7 @@ class JsonRPCDispatcher(Dispatcher):
         """
         error = {
             'code': 0,  # we don't care of this code
-            'message': "Odoo Server Error",
+            'message': "Insilos Platform Error",
             'data': serialize_exception(exc),
         }
         if isinstance(exc, NotFound):
@@ -393,7 +393,7 @@ class JsonRPCDispatcher(Dispatcher):
             error['message'] = "404: Not Found"
         elif isinstance(exc, SessionExpiredException):
             error['code'] = 100
-            error['message'] = "Odoo Session Expired"
+            error['message'] = "Insilos Session Expired"
 
         return self._response(error=error)
 

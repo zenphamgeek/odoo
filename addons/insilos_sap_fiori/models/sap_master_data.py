@@ -205,9 +205,10 @@ class ProductTemplate(models.Model):
             ('DIEN', 'Services (DIEN)'),
         ],
         string="Material Type (MTART)",
-        default='FERT',
-        index=True,
-        tracking=True,
+        compute='_compute_sap_material_type',
+        inverse='_inverse_sap_material_type',
+        search='_search_sap_material_type',
+        store=False,
         help="SAP Material Master Type classification:\n"
              "- ROH: Raw Materials (purchased externally, not sold)\n"
              "- HALB: Semifinished Products (manufactured internally, assembled into finished)\n"
@@ -216,12 +217,70 @@ class ProductTemplate(models.Model):
              "- DIEN: Services (non-physical work or consulting)",
     )
 
+    @api.depends('type', 'is_storable', 'purchase_ok', 'sale_ok')
+    def _compute_sap_material_type(self):
+        for tmpl in self:
+            if tmpl.type == 'service':
+                tmpl.sap_material_type = 'DIEN'
+            elif tmpl.purchase_ok and not tmpl.sale_ok:
+                tmpl.sap_material_type = 'ROH'
+            elif not tmpl.purchase_ok and not tmpl.sale_ok:
+                tmpl.sap_material_type = 'HALB'
+            elif not tmpl.purchase_ok and tmpl.sale_ok:
+                tmpl.sap_material_type = 'FERT'
+            elif tmpl.purchase_ok and tmpl.sale_ok:
+                tmpl.sap_material_type = 'HAWA'
+            else:
+                tmpl.sap_material_type = 'FERT'
+
+    def _inverse_sap_material_type(self):
+        for tmpl in self:
+            if tmpl.sap_material_type:
+                defaults = self._get_sap_material_type_defaults(tmpl.sap_material_type)
+                for k, v in defaults.items():
+                    setattr(tmpl, k, v)
+
+    def _search_sap_material_type(self, operator, value):
+        if operator not in ('=', '!=', 'in', 'not in'):
+            return []
+
+        type_domains = {
+            'DIEN': [('type', '=', 'service')],
+            'ROH': [('type', '!=', 'service'), ('purchase_ok', '=', True), ('sale_ok', '=', False)],
+            'HALB': [('type', '!=', 'service'), ('purchase_ok', '=', False), ('sale_ok', '=', False)],
+            'FERT': [('type', '!=', 'service'), ('purchase_ok', '=', False), ('sale_ok', '=', True)],
+            'HAWA': [('type', '!=', 'service'), ('purchase_ok', '=', True), ('sale_ok', '=', True)],
+        }
+        all_types = set(type_domains.keys())
+
+        if isinstance(value, Iterable) and not isinstance(value, (str, bytes)):
+            values = set(value)
+        elif value:
+            values = {value}
+        else:
+            values = set()
+
+        if operator in ('!=', 'not in'):
+            target_types = all_types - values
+        else:
+            target_types = values & all_types
+
+        if not target_types:
+            return [('id', '=', False)]
+        if target_types == all_types:
+            return []
+        if len(target_types) == 1:
+            return type_domains[next(iter(target_types))]
+        return list(Domain.OR([type_domains[t] for t in target_types]))
+
     @classmethod
     def _get_sap_material_type_defaults(cls, material_type):
         if material_type == 'DIEN':
             return {
                 'type': 'service',
                 'is_storable': False,
+                'purchase_ok': False,
+                'sale_ok': True,
             }
         elif material_type == 'ROH':
             return {
@@ -234,7 +293,7 @@ class ProductTemplate(models.Model):
             return {
                 'type': 'consu',
                 'is_storable': True,
-                'purchase_ok': True,
+                'purchase_ok': False,
                 'sale_ok': False,
             }
         elif material_type == 'FERT':
@@ -285,11 +344,39 @@ class ProductProduct(models.Model):
     default_code = fields.Char(string="Material Number (MATNR)")
     standard_price = fields.Float(string="Moving Avg / Standard Cost")
     sap_material_type = fields.Selection(
-        related='product_tmpl_id.sap_material_type',
+        selection=[
+            ('ROH', 'Raw Materials (ROH)'),
+            ('HALB', 'Semifinished Products (HALB)'),
+            ('FERT', 'Finished Products (FERT)'),
+            ('HAWA', 'Trading Goods (HAWA)'),
+            ('DIEN', 'Services (DIEN)'),
+        ],
         string="Material Type (MTART)",
-        readonly=False,
-        store=True,
+        compute='_compute_sap_material_type',
+        inverse='_inverse_sap_material_type',
+        search='_search_sap_material_type',
+        store=False,
     )
+
+    @api.depends('product_tmpl_id.sap_material_type')
+    def _compute_sap_material_type(self):
+        for prod in self:
+            prod.sap_material_type = prod.product_tmpl_id.sap_material_type or 'FERT'
+
+    def _inverse_sap_material_type(self):
+        for prod in self:
+            if prod.product_tmpl_id:
+                prod.product_tmpl_id.sap_material_type = prod.sap_material_type
+
+    def _search_sap_material_type(self, operator, value):
+        tmpl_domain = self.env['product.template']._search_sap_material_type(operator, value)
+        res = []
+        for leaf in tmpl_domain:
+            if isinstance(leaf, tuple) and len(leaf) == 3:
+                res.append(('product_tmpl_id.' + leaf[0], leaf[1], leaf[2]))
+            else:
+                res.append(leaf)
+        return res
 
 
 class ResCompany(models.Model):

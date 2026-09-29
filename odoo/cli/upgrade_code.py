@@ -50,8 +50,8 @@ try:
     from odoo.modules import initialize_sys_path
     from odoo.tools import config, parse_version
 except ImportError:
-    # Assume the script is directy executed (by opposition to be
-    # executed via odoo-bin), happily release/parse_version are
+    # Assume the script is directly executed (by opposition to being
+    # executed via insilos-bin / odoo-bin), happily release/parse_version are
     # standalone so we can hack our way there without importing odoo
     sys.path.insert(0, str(ROOT))
     sys.path.insert(0, str(ROOT / 'tools'))

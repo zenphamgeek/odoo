@@ -133,7 +133,7 @@ class _OdooOption(optparse.Option):
                 self.config.optional_options[opt] = self
         if env_name is None and is_new_option and self.file_loadable and self.dest:
             # generate an env_name for file_loadable settings that are in the index
-            self.env_name = 'ODOO_' + self.dest.upper()
+            self.env_name = 'INSILOS_' + self.dest.upper()
         elif env_name and not is_new_option:
             raise ValueError(f"cannot set env_name to an option that is not indexed: {self}")
 
@@ -243,10 +243,10 @@ class configmanager:
 
         # Server startup config
         group = optparse.OptionGroup(parser, "Common options")
-        group.add_option("-c", "--config", dest="config", type='path', file_loadable=False, env_name='ODOO_RC',
-                         help="specify alternate config file")
+        group.add_option("-c", "--config", dest="config", type='path', file_loadable=False, env_name='INSILOS_RC',
+                         help="specify alternate config file (default: insilos.conf)")
         group.add_option("--save", action="store_true", dest="save", my_default=False, file_loadable=False,
-                         help="save configuration to ~/.odoorc (or to ~/.openerp_serverrc if it exists)")
+                         help="save configuration to ~/.insilos.conf (or to ~/.odoorc if it exists)")
         group.add_option("-i", "--init", dest="init", type='comma', metavar="MODULE,...", my_default=[], file_loadable=False,
                          help="install one or more modules (comma-separated list, use \"all\" for all modules), requires -d")
         group.add_option("-u", "--update", dest="update", type='comma', metavar="MODULE,...", my_default=[], file_loadable=False,
@@ -456,7 +456,7 @@ class configmanager:
 
         # Advanced options
         group = optparse.OptionGroup(parser, "Advanced options")
-        group.add_option('--dev', dest='dev_mode', type='comma', metavar="FEATURE,...", my_default=[], file_exportable=False, env_name='ODOO_DEV',
+        group.add_option('--dev', dest='dev_mode', type='comma', metavar="FEATURE,...", my_default=[], file_exportable=False, env_name='INSILOS_DEV',
                          # optparse uses a fixed 55 chars to print the help no matter the
                          # terminal size, abuse that to align the features
                          help="Enable developer features (comma-separated list, use   "
@@ -555,22 +555,66 @@ class configmanager:
         )
 
         default_config_dir = (
-            appdirs.user_config_dir(release.product_name, release.author)
-            if os.path.isdir(os.path.expanduser('~')) else
-            appdirs.site_config_dir(release.product_name, release.author)
+            os.environ.get('INSILOS_CONFIG_DIR') or
+            os.environ.get('ODOO_CONFIG_DIR') or
+            (
+                appdirs.user_config_dir(release.product_name, release.author)
+                if os.path.isdir(os.path.expanduser('~')) else
+                appdirs.site_config_dir(release.product_name, release.author)
+            )
         )
-        default_config_file = os.path.join(default_config_dir, 'odoo.conf')
 
-        if os.path.isfile(default_config_file):
-            rcfilepath = default_config_file
-        elif os.name == 'nt':
-            rcfilepath = os.path.join(os.path.abspath(os.path.dirname(sys.argv[0])), 'odoo.conf')
-        elif os.path.isfile(rcfilepath := os.path.expanduser('~/.odoorc')):
-            pass
-        elif os.path.isfile(rcfilepath := os.path.expanduser('~/.openerp_serverrc')):
-            self._warn("Since ages ago, the ~/.openerp_serverrc file has been replaced by ~/.odoorc", DeprecationWarning)
-        else:
-            rcfilepath = default_config_file
+        # Build candidate discovery list in priority order:
+        candidates = []
+
+        # 1. Local invocation context (cwd, argv[0] directory, repo root)
+        exec_dir = os.path.abspath(os.path.dirname(sys.argv[0])) if sys.argv and sys.argv[0] else None
+        cwd = os.getcwd()
+        repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+        search_dirs = [d for d in [cwd, exec_dir, repo_root] if d and os.path.isdir(d)]
+
+        # Check local insilos.conf first across search dirs
+        for d in search_dirs:
+            candidates.append(os.path.join(d, 'insilos.conf'))
+        # Check local odoo.conf fallback across search dirs
+        for d in search_dirs:
+            candidates.append(os.path.join(d, 'odoo.conf'))
+
+        # 2. User / Site config directory
+        candidates.append(os.path.join(default_config_dir, 'insilos.conf'))
+        candidates.append(os.path.join(default_config_dir, 'odoo.conf'))
+
+        # 3. User home directory dotfiles
+        user_home = os.path.expanduser('~')
+        if os.path.isdir(user_home):
+            candidates.append(os.path.join(user_home, '.insilos.conf'))
+            candidates.append(os.path.join(user_home, '.insilosrc'))
+            candidates.append(os.path.join(user_home, '.odoorc'))
+            candidates.append(os.path.join(user_home, '.openerp_serverrc'))
+
+        # 4. System-wide configuration
+        candidates.append('/etc/insilos/insilos.conf')
+        candidates.append('/etc/odoo/odoo.conf')
+
+        # Deduplicate candidates while preserving order
+        seen = set()
+        rcfilepath = None
+        for candidate in candidates:
+            norm_c = os.path.normpath(candidate)
+            if norm_c in seen:
+                continue
+            seen.add(norm_c)
+            if os.path.isfile(norm_c):
+                rcfilepath = norm_c
+                if norm_c.endswith('.openerp_serverrc'):
+                    self._warn("Since ages ago, the ~/.openerp_serverrc file has been replaced by ~/.insilos.conf", DeprecationWarning)
+                elif norm_c.endswith('.odoorc'):
+                    self._warn("The ~/.odoorc file is deprecated; please migrate to ~/.insilos.conf or insilos.conf", DeprecationWarning)
+                break
+
+        if not rcfilepath:
+            rcfilepath = os.path.join(default_config_dir, 'insilos.conf')
+
         self._default_options['config'] = self._normalize(rcfilepath)
 
     _log_entries = []   # helpers for log() and warn(), accumulate messages
@@ -667,11 +711,31 @@ class configmanager:
         self._env_options.clear()
         environ = os.environ
         for option_name, option in self.options_index.items():
-            env_name = option.env_name
-            if env_name and env_name in environ:
-                self._env_options[option_name] = self.parse(option_name, environ[env_name])
+            val = None
+            # 1. Primary Insilos environment variables
+            if option_name == 'config':
+                val = environ.get('INSILOS_RC') or environ.get('INSILOS_CONFIG')
+            elif option_name == 'dev_mode':
+                val = environ.get('INSILOS_DEV') or environ.get('INSILOS_DEV_MODE')
+            elif option.dest:
+                val = environ.get(f'INSILOS_{option.dest.upper()}')
+
+            # 2. Fallback to legacy ODOO_* conventions or explicit option.env_name
+            if val is None:
+                if option_name == 'config':
+                    val = environ.get('ODOO_RC') or environ.get('OPENERP_SERVER')
+                elif option_name == 'dev_mode':
+                    val = environ.get('ODOO_DEV')
+                elif option.dest and f'ODOO_{option.dest.upper()}' in environ:
+                    val = environ[f'ODOO_{option.dest.upper()}']
+                elif option.env_name and option.env_name in environ:
+                    val = environ[option.env_name]
+
+            if val is not None:
+                self._env_options[option_name] = self.parse(option_name, val)
+
         if environ.get('OPENERP_SERVER'):
-            self._warn("Since ages ago, the OPENERP_SERVER environment variable has been replaced by ODOO_RC", DeprecationWarning)
+            self._warn("Since ages ago, the OPENERP_SERVER environment variable has been replaced by INSILOS_RC", DeprecationWarning)
 
     def _load_cli_options(self, opt):
         # odoo.cli.command.main parses the config twice, the second time
@@ -711,14 +775,14 @@ class configmanager:
             for handler in logging.getLogger().handlers
         )}
 
-        if color := os.getenv('ODOO_PY_COLORS'):
+        if color := os.getenv('INSILOS_PY_COLORS') or os.getenv('ODOO_PY_COLORS'):
             try:
                 value = color2bool[color]
             except KeyError:
                 try:
                     value = self._check_bool(..., ..., color)  # backward compat
                 except optparse.OptionValueError:
-                    e = f"environ['ODOO_PY_COLORS'] is not always/never/auto: {color!r}"
+                    e = f"environ['INSILOS_PY_COLORS'] or environ['ODOO_PY_COLORS'] is not always/never/auto: {color!r}"
                     raise optparse.OptionValueError(e) from None
 
             self.colors = dict.fromkeys(DEFAULT_COLOR_SPEC, value)
@@ -1160,9 +1224,9 @@ class configmanager:
 
     @property
     def max_http_threads(self):
-        mht = os.getenv('ODOO_MAX_HTTP_THREADS', str(2 * os.cpu_count() + 1))
+        mht = os.getenv('INSILOS_MAX_HTTP_THREADS') or os.getenv('ODOO_MAX_HTTP_THREADS', str(2 * os.cpu_count() + 1))
         if not (mht.isdecimal() and mht.isascii()):
-            e = f"ODOO_MAX_HTTP_THREADS={mht} but it is not a positive integer"
+            e = f"INSILOS_MAX_HTTP_THREADS / ODOO_MAX_HTTP_THREADS={mht} but it is not a positive integer"
             raise ValueError(e)
         return int(mht)
 

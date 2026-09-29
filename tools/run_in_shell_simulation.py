@@ -268,8 +268,10 @@ def run_simulation(env):
     print("================================================================================")
 
 if __name__ == '__main__':
+    import os
     import odoo
-    odoo.tools.config.parse_config(['-c', '/home/zen/O20/odoo.conf', '-d', 'odoo20_dev'])
+    conf_file = '/home/zen/O20/insilos.conf' if os.path.exists('/home/zen/O20/insilos.conf') else '/home/zen/O20/odoo.conf'
+    odoo.tools.config.parse_config(['-c', conf_file, '-d', 'odoo20_dev'])
     registry = odoo.modules.registry.Registry('odoo20_dev')
     with registry.cursor() as cr:
         env = odoo.api.Environment(cr, odoo.SUPERUSER_ID, {})

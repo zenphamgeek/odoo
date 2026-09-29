@@ -202,7 +202,8 @@ def update_database_branding():
     from odoo.modules.registry import Registry
     from odoo.orm.fields_binary import BinaryBytes
 
-    config_path = os.path.join(REPO_ROOT, 'odoo.conf')
+    conf_name = 'insilos.conf' if os.path.exists(os.path.join(REPO_ROOT, 'insilos.conf')) else 'odoo.conf'
+    config_path = os.path.join(REPO_ROOT, conf_name)
     odoo.tools.config.parse_config(['-c', config_path, '-d', 'odoo20_dev'])
     
     with Registry('odoo20_dev').cursor() as cr:

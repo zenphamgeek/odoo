@@ -14,7 +14,8 @@ import odoo
 from odoo.tools import config
 from odoo.modules.registry import Registry
 
-config.parse_config(['-c', '/home/zen/O20/odoo.conf', '-d', 'odoo20_dev'])
+conf_file = '/home/zen/O20/insilos.conf' if os.path.exists('/home/zen/O20/insilos.conf') else '/home/zen/O20/odoo.conf'
+config.parse_config(['-c', conf_file, '-d', 'odoo20_dev'])
 
 WAVES = [
     # Wave 1: Foundations

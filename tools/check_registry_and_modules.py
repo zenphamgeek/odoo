@@ -13,7 +13,8 @@ sys.path.insert(0, '/home/zen/O20')
 import odoo
 from odoo.tools import config
 
-config.parse_config(['-c', '/home/zen/O20/odoo.conf', '-d', 'odoo20_dev'])
+conf_file = '/home/zen/O20/insilos.conf' if os.path.exists('/home/zen/O20/insilos.conf') else '/home/zen/O20/odoo.conf'
+config.parse_config(['-c', conf_file, '-d', 'odoo20_dev'])
 
 TARGET_MODULES = [
     'insilos_hs_sync', 'insilos_hse_compliance', 'insilos_knowledge_graph',

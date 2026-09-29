@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-09-28T17:34:15Z",
+  "timestamp": "2026-09-29T09:17:40Z",
   "server_boot": {
-    "registry_load_time_seconds": 6.567,
-    "registry_under_20s": true,
+    "registry_load_time_seconds": 23.272,
+    "registry_under_20s": false,
     "installed_modules_count": 700,
     "modules_count_gte_697": true
   },
@@ -23,17 +23,17 @@
   "asset_bundles": {
     "web.assets_backend": {
       "status": "PASS",
-      "duration_sec": 4.629,
+      "duration_sec": 9.826,
       "css_generated": true
     },
     "web.assets_frontend": {
       "status": "PASS",
-      "duration_sec": 3.681,
+      "duration_sec": 0.775,
       "css_generated": true
     },
     "web.assets_web": {
       "status": "PASS",
-      "duration_sec": 0.699,
+      "duration_sec": 2.508,
       "css_generated": true
     }
   },
@@ -86,5 +86,5 @@
       "tokens_found": true
     }
   },
-  "verdict": "APPROVE"
+  "verdict": "FAIL"
 }

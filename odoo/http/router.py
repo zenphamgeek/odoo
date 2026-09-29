@@ -523,12 +523,13 @@ def _set_session_and_dbname(request: Request) -> None:
 
     dbname = None
     host = request.httprequest.environ['HTTP_HOST']
-    header_dbname = request.httprequest.headers.get('X-Odoo-Database')
+    header_dbname = request.httprequest.headers.get('X-Insilos-Database') or request.httprequest.headers.get('X-Odoo-Database')
     if session.db and db_filter([session.db], host=host):
         dbname = session.db
         if header_dbname and header_dbname != dbname:
+            header_name = 'x-insilos-database' if request.httprequest.headers.get('X-Insilos-Database') else 'x-odoo-database'
             e = ("Cannot use both the session_id cookie and the "
-                    "x-odoo-database header.")
+                 f"{header_name} header.")
             raise Forbidden(e)
     elif header_dbname:
         session.can_save = False  # stateless

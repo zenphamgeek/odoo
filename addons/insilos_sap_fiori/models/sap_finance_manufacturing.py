@@ -47,6 +47,9 @@ class AccountAccount(models.Model):
 # Controlling (CO)
 # ==============================================================================
 
+_CO_TYPE_CACHE = {}
+
+
 class AccountAnalyticAccount(models.Model):
     _inherit = 'account.analytic.account'
     _description = "Cost Center / Profit Center"
@@ -61,26 +64,45 @@ class AccountAnalyticAccount(models.Model):
             ('profit_center', 'Profit Center (PRCTR)'),
         ],
         string="CO Category",
-        default='cost_center',
-        index=True,
-        tracking=True,
+        compute='_compute_co_type',
+        inverse='_inverse_co_type',
+        search='_search_co_type',
+        store=False,
         help="Controlling (CO) classification: Cost Center (KOSTL) or Profit Center (PRCTR).",
     )
 
     is_cost_center = fields.Boolean(
         string="Cost Center (KOSTL)",
         compute='_compute_co_flags',
-        store=True,
-        index=True,
+        search='_search_is_cost_center',
+        store=False,
         help="Indicates whether this account serves as a Cost Center (KOSTL).",
     )
     is_profit_center = fields.Boolean(
         string="Profit Center (PRCTR)",
         compute='_compute_co_flags',
-        store=True,
-        index=True,
+        search='_search_is_profit_center',
+        store=False,
         help="Indicates whether this account serves as a Profit Center (PRCTR).",
     )
+
+    @api.depends('code', 'name')
+    def _compute_co_type(self):
+        for acc in self:
+            cached = _CO_TYPE_CACHE.get(acc.id)
+            if cached:
+                acc.co_type = cached
+            elif acc.code and any(k in acc.code.upper() for k in ('PRCTR', 'PROFIT')):
+                acc.co_type = 'profit_center'
+            elif acc.name and any(k in str(acc.name).upper() for k in ('PROFIT', 'PRCTR')):
+                acc.co_type = 'profit_center'
+            else:
+                acc.co_type = 'cost_center'
+
+    def _inverse_co_type(self):
+        for acc in self:
+            if acc.co_type:
+                _CO_TYPE_CACHE[acc.id] = acc.co_type
 
     @api.depends('co_type')
     def _compute_co_flags(self):
@@ -88,6 +110,58 @@ class AccountAnalyticAccount(models.Model):
             acc.is_cost_center = (acc.co_type == 'cost_center')
             acc.is_profit_center = (acc.co_type == 'profit_center')
 
+    @api.model_create_multi
+    def create(self, vals_list):
+        co_types = [vals.pop('co_type', None) for vals in vals_list]
+        recs = super().create(vals_list)
+        for rec, ct in zip(recs, co_types):
+            if ct:
+                _CO_TYPE_CACHE[rec.id] = ct
+                rec.co_type = ct
+        return recs
+
+    def write(self, vals):
+        ct = vals.pop('co_type', None)
+        res = super().write(vals)
+        if ct:
+            for rec in self:
+                _CO_TYPE_CACHE[rec.id] = ct
+        return res
+
+    def _search_co_type(self, operator, value):
+        if value == 'profit_center':
+            return self._search_is_profit_center(operator, True)
+        elif value == 'cost_center':
+            return self._search_is_cost_center(operator, True)
+        return []
+
+    def _search_is_cost_center(self, operator, value):
+        is_true = (value if operator in ('=', 'in') else not value)
+        pc_ids = {rid for rid, c in _CO_TYPE_CACHE.items() if c == 'profit_center'}
+        try:
+            self.env.cr.execute("SELECT id FROM account_analytic_account WHERE (code ILIKE '%PRCTR%' OR name::text ILIKE '%profit%')")
+            pc_ids.update(r[0] for r in self.env.cr.fetchall())
+        except Exception:
+            pass
+
+        if is_true:
+            return [('id', 'not in', list(pc_ids))] if pc_ids else []
+        else:
+            return [('id', 'in', list(pc_ids))] if pc_ids else [('id', '=', False)]
+
+    def _search_is_profit_center(self, operator, value):
+        is_true = (value if operator in ('=', 'in') else not value)
+        pc_ids = {rid for rid, c in _CO_TYPE_CACHE.items() if c == 'profit_center'}
+        try:
+            self.env.cr.execute("SELECT id FROM account_analytic_account WHERE (code ILIKE '%PRCTR%' OR name::text ILIKE '%profit%')")
+            pc_ids.update(r[0] for r in self.env.cr.fetchall())
+        except Exception:
+            pass
+
+        if is_true:
+            return [('id', 'in', list(pc_ids))] if pc_ids else [('id', '=', False)]
+        else:
+            return [('id', 'not in', list(pc_ids))] if pc_ids else []
 
 
 class AccountAnalyticPlan(models.Model):
@@ -112,16 +186,35 @@ class MrpProduction(models.Model):
 
     movement_type_issue = fields.Char(
         string="Movement Type - Issue (BWART 261)",
-        default="261",
+        compute='_compute_movement_types',
+        search='_search_movement_type_issue',
+        store=False,
         readonly=True,
         help="SAP Movement Type 261: Goods issue for production order reservation.",
     )
     movement_type_receipt = fields.Char(
         string="Movement Type - Receipt (BWART 101)",
-        default="101",
+        compute='_compute_movement_types',
+        search='_search_movement_type_receipt',
+        store=False,
         readonly=True,
         help="SAP Movement Type 101: Goods receipt from production order into unrestricted stock.",
     )
+
+    def _compute_movement_types(self):
+        for prod in self:
+            prod.movement_type_issue = "261"
+            prod.movement_type_receipt = "101"
+
+    def _search_movement_type_issue(self, operator, value):
+        if (operator in ('=', 'ilike', 'like') and '261' in str(value)) or (operator in ('!=', 'not ilike') and '261' not in str(value)):
+            return [('id', '!=', False)]
+        return [('id', '=', False)]
+
+    def _search_movement_type_receipt(self, operator, value):
+        if (operator in ('=', 'ilike', 'like') and '101' in str(value)) or (operator in ('!=', 'not ilike') and '101' not in str(value)):
+            return [('id', '!=', False)]
+        return [('id', '=', False)]
 
 
 class StockMove(models.Model):
@@ -130,8 +223,8 @@ class StockMove(models.Model):
     sap_bwart = fields.Char(
         string="SAP Movement Type (BWART)",
         compute="_compute_sap_bwart",
-        store=True,
-        index=True,
+        search="_search_sap_bwart",
+        store=False,
         help="SAP Inventory Movement Type: 261 (Goods Issue for Order), 101 (Goods Receipt from Production / PO), 601 (Outbound Delivery), etc."
     )
 
@@ -147,7 +240,22 @@ class StockMove(models.Model):
             elif hasattr(move, 'sale_line_id') and move.sale_line_id:
                 move.sap_bwart = '601'
             else:
-                move.sap_bwart = move.sap_bwart or False
+                move.sap_bwart = False
+
+    def _search_sap_bwart(self, operator, value):
+        val_str = str(value)
+        if '261' in val_str:
+            target = [('raw_material_production_id', '!=', False)]
+        elif '101' in val_str:
+            target = ['|', ('production_id', '!=', False), ('purchase_line_id', '!=', False)]
+        elif '601' in val_str:
+            target = [('sale_line_id', '!=', False)]
+        else:
+            target = [('id', '!=', False)]
+
+        if operator in ('!=', 'not in', 'not ilike'):
+            return ['!'] + target
+        return target
 
 
 class MrpBom(models.Model):

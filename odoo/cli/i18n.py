@@ -67,9 +67,9 @@ class I18n(Command):
                     $ psql -d <dbname> -c "SELECT iso_code FROM res_lang ORDER BY iso_code"
 
                 Examples:
-                    odoo-bin i18n loadlang -l en         # English (U.S.)
-                    odoo-bin i18n loadlang -l es es_AR   # Spanish (Spain, Argentina)
-                    odoo-bin i18n loadlang -l sr@latin   # Serbian (Latin)
+                    insilos-bin i18n loadlang -l en         # English (U.S.)
+                    insilos-bin i18n loadlang -l es es_AR   # Spanish (Spain, Argentina)
+                    insilos-bin i18n loadlang -l sr@latin   # Serbian (Latin)
             """)
 
         self.import_parser.add_argument(

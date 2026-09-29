@@ -9,11 +9,6 @@ class TestSapMasterData(TransactionCase):
 
     @classmethod
     def setUpClass(cls):
-        import odoo
-        if not odoo.tools.config.get('db_name'):
-            odoo.tools.config.parse_config(['-c', 'insilos.conf', '-d', 'odoo20_dev'])
-        if 'odoo20_dev' not in odoo.modules.registry.Registry.registries:
-            odoo.modules.registry.Registry.new('odoo20_dev')
         super().setUpClass()
 
     def test_01_business_partner_lexicon_and_roles(self):
