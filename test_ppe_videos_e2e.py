@@ -71,6 +71,28 @@ def main():
         close_btn.click()
         time.sleep(1)
 
+        # Verify 4 CCTV Angles including Angle 4 (Factory Engineer PPE)
+        angle4_btn = page.locator("button[data-camera-angle='factory_engineer']").first
+        angle4_btn.scroll_into_view_if_needed()
+        assert angle4_btn.is_visible(), "Angle 4 (Factory Engineer PPE) button not visible!"
+        angle4_btn.click()
+        time.sleep(1)
+
+        # Check video player switches to cctv_cam01_factory_engineer.mp4
+        cctv_player = page.locator(".s_insilos_cctv_ai_camera .ins-cctv-video").first
+        cctv_src = cctv_player.locator("source").get_attribute("src")
+        assert "cctv_cam01_factory_engineer.mp4" in cctv_src, f"Expected factory engineer video in CCTV player, got: {cctv_src}"
+        print(f"✓ Verified: Angle 4 (Factory Engineer PPE) switches to {cctv_src}")
+
+        # Check CAM-04 title and boxes rendered
+        cam_title = page.locator(".ins-cctv-cam-title").first.inner_text()
+        assert "CAM-04" in cam_title, f"Expected CAM-04 in title, got: {cam_title}"
+        print(f"✓ Verified: CCTV Title updated to '{cam_title}'")
+
+        # Take screenshot of Angle 4 CCTV playback
+        page.screenshot(path=f"{artifacts_dir}/ppe_cctv_angle4_factory_engineer.png")
+        print(f"✓ Saved screenshot: {artifacts_dir}/ppe_cctv_angle4_factory_engineer.png")
+
         # -------------------------------------------------------------
         # TEST 2: Resources Page (/resources)
         # -------------------------------------------------------------
