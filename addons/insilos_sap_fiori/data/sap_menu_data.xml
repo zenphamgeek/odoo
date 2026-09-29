@@ -141,89 +141,6 @@
     </record>
 
     <!-- =================================================================== -->
-    <!-- SAP Movement Types Matrix Data Records (BWART)                      -->
-    <!-- =================================================================== -->
-    <record id="sap_bwart_101" model="sap.movement.type">
-        <field name="code">101</field>
-        <field name="name">Goods Receipt for Purchase Order into Unrestricted Stock</field>
-        <field name="process_category">GR</field>
-        <field name="source_location_desc">Vendor / Supplier BP</field>
-        <field name="dest_location_desc">Storage Location (SLoc / Internal)</field>
-        <field name="sap_tcode">MIGO / VL31N</field>
-        <field name="description">Standard goods receipt posting for purchase orders into unrestricted-use inventory. Increases book inventory.</field>
-    </record>
-
-    <record id="sap_bwart_102" model="sap.movement.type">
-        <field name="code">102</field>
-        <field name="name">Return Delivery to Vendor / Goods Receipt Reversal</field>
-        <field name="process_category">GR</field>
-        <field name="source_location_desc">Storage Location (SLoc / Internal)</field>
-        <field name="dest_location_desc">Vendor / Supplier BP</field>
-        <field name="sap_tcode">MIGO</field>
-        <field name="description">Reversal of goods receipt for purchase order or return delivery to vendor.</field>
-    </record>
-
-    <record id="sap_bwart_261" model="sap.movement.type">
-        <field name="code">261</field>
-        <field name="name">Goods Issue for Production Order Reservation</field>
-        <field name="process_category">GI</field>
-        <field name="source_location_desc">Storage Location (SLoc / Internal)</field>
-        <field name="dest_location_desc">Production Order (RESB / CO01)</field>
-        <field name="sap_tcode">MIGO / MB1A</field>
-        <field name="description">Consumption of raw materials or components for manufacturing production orders.</field>
-    </record>
-
-    <record id="sap_bwart_301" model="sap.movement.type">
-        <field name="code">301</field>
-        <field name="name">Transfer Posting Plant to Plant (One-Step)</field>
-        <field name="process_category">TP</field>
-        <field name="source_location_desc">Issuing Plant (Werks A)</field>
-        <field name="dest_location_desc">Receiving Plant (Werks B)</field>
-        <field name="sap_tcode">MIGO / MB1B</field>
-        <field name="description">One-step stock transfer posting between two distinct plants within the company.</field>
-    </record>
-
-    <record id="sap_bwart_311" model="sap.movement.type">
-        <field name="code">311</field>
-        <field name="name">Transfer Posting Storage Location to Storage Location</field>
-        <field name="process_category">TP</field>
-        <field name="source_location_desc">Source Storage Location (SLoc 1)</field>
-        <field name="dest_location_desc">Destination Storage Location (SLoc 2)</field>
-        <field name="sap_tcode">MIGO / MB1B</field>
-        <field name="description">Transfer posting of materials between two storage locations within the same plant.</field>
-    </record>
-
-    <record id="sap_bwart_601" model="sap.movement.type">
-        <field name="code">601</field>
-        <field name="name">Goods Issue for Outbound Delivery (Post Goods Issue)</field>
-        <field name="process_category">GI</field>
-        <field name="source_location_desc">Storage Location (SLoc / Internal)</field>
-        <field name="dest_location_desc">Customer / Sold-to Party</field>
-        <field name="sap_tcode">VL01N / VL02N</field>
-        <field name="description">Post Goods Issue (PGI) reducing inventory balance and transferring ownership to customer on outbound delivery.</field>
-    </record>
-
-    <record id="sap_bwart_701" model="sap.movement.type">
-        <field name="code">701</field>
-        <field name="name">Physical Inventory Difference: Book Surplus Posting (Gain)</field>
-        <field name="process_category">PI</field>
-        <field name="source_location_desc">Inventory Difference (Inventory Loss)</field>
-        <field name="dest_location_desc">Storage Location (SLoc / Internal)</field>
-        <field name="sap_tcode">MI07</field>
-        <field name="description">Physical inventory adjustment posting for surplus counted quantity exceeding book stock.</field>
-    </record>
-
-    <record id="sap_bwart_702" model="sap.movement.type">
-        <field name="code">702</field>
-        <field name="name">Physical Inventory Difference: Book Deficit Posting (Loss)</field>
-        <field name="process_category">PI</field>
-        <field name="source_location_desc">Storage Location (SLoc / Internal)</field>
-        <field name="dest_location_desc">Inventory Difference (Inventory Loss)</field>
-        <field name="sap_tcode">MI07</field>
-        <field name="description">Physical inventory adjustment posting for deficit counted quantity below book stock.</field>
-    </record>
-
-    <!-- =================================================================== -->
     <!-- Financials & Controlling (FI/CO) Menus & Actions                     -->
     <!-- =================================================================== -->
     <record id="account.menu_finance" model="ir.ui.menu">
@@ -289,6 +206,167 @@
     </record>
     <record id="mrp.mrp_workcenter_action" model="ir.actions.act_window">
         <field name="name">Work Centers / Routing Resources</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- Human Resources & SuccessFactors (HCM) Menus & Actions              -->
+    <!-- =================================================================== -->
+    <record id="hr.menu_hr_root" model="ir.ui.menu">
+        <field name="name">Human Resources &amp; SuccessFactors (HCM)</field>
+    </record>
+    <record id="hr.menu_hr_main" model="ir.ui.menu">
+        <field name="name">Personnel Administration (PA)</field>
+    </record>
+    <record id="hr.menu_hr_employee_payroll" model="ir.ui.menu">
+        <field name="name">Personnel Master Records</field>
+    </record>
+    <record id="hr.menu_hr_employee" model="ir.ui.menu">
+        <field name="name">Personnel Directory</field>
+    </record>
+    <record id="hr.menu_hr_department_kanban" model="ir.ui.menu">
+        <field name="name">Organizational Units (OrgUnits)</field>
+    </record>
+    <record id="hr.menu_view_hr_job" model="ir.ui.menu">
+        <field name="name">Positions &amp; Job Roles</field>
+    </record>
+    <record id="hr.menu_hr_employee_contract_templates" model="ir.ui.menu">
+        <field name="name">Personnel Contract Templates</field>
+    </record>
+    <record id="hr.menu_config_working_times" model="ir.ui.menu">
+        <field name="name">Time Management (PT)</field>
+    </record>
+    <record id="hr_payroll.menu_hr_payroll_dashboard_root" model="ir.ui.menu">
+        <field name="name">HCM Payroll Cockpit</field>
+    </record>
+    <record id="hr_payroll.menu_hr_payroll_payslips" model="ir.ui.menu">
+        <field name="name">Remuneration Statements / Payslips</field>
+    </record>
+    <record id="hr_payroll.menu_hr_payslip_run" model="ir.ui.menu">
+        <field name="name">Payroll Execution Runs</field>
+    </record>
+    <record id="hr_payroll.hr_menu_versions" model="ir.ui.menu">
+        <field name="name">Personnel Contracts &amp; Agreements</field>
+    </record>
+    <record id="hr_recruitment.menu_hr_recruitment_root" model="ir.ui.menu">
+        <field name="name">E-Recruiting &amp; Talent Acquisition</field>
+    </record>
+
+    <record id="hr.open_view_employee_list_my" model="ir.actions.act_window">
+        <field name="name">Personnel Master / Employees</field>
+    </record>
+    <record id="hr.hr_department_kanban_action" model="ir.actions.act_window">
+        <field name="name">Organizational Units (OrgUnits)</field>
+    </record>
+    <record id="hr.action_hr_job" model="ir.actions.act_window">
+        <field name="name">Positions / Job Roles</field>
+    </record>
+    <record id="hr.action_hr_version" model="ir.actions.act_window">
+        <field name="name">Personnel Contracts / Work Agreements</field>
+    </record>
+    <record id="hr.action_hr_contract_templates" model="ir.actions.act_window">
+        <field name="name">Personnel Contract Templates</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- Plant Maintenance (SAP PM) Menus & Actions                          -->
+    <!-- =================================================================== -->
+    <record id="maintenance.menu_maintenance_title" model="ir.ui.menu">
+        <field name="name">Plant Maintenance (SAP PM)</field>
+    </record>
+    <record id="maintenance.menu_m_request" model="ir.ui.menu">
+        <field name="name">PM Maintenance Orders &amp; Notifications</field>
+    </record>
+    <record id="maintenance.menu_m_request_form" model="ir.ui.menu">
+        <field name="name">PM Maintenance Orders (IW31)</field>
+    </record>
+    <record id="maintenance.menu_equipment_form" model="ir.ui.menu">
+        <field name="name">Technical Equipment / Functional Locations (IE01)</field>
+    </record>
+    <record id="maintenance.menu_maintenance_teams" model="ir.ui.menu">
+        <field name="name">Maintenance Planner Groups / Work Centers</field>
+    </record>
+    <record id="maintenance.menu_maintenance_cat" model="ir.ui.menu">
+        <field name="name">Equipment Classes / Technical Categories</field>
+    </record>
+
+    <record id="maintenance.hr_equipment_action" model="ir.actions.act_window">
+        <field name="name">Technical Equipment / Functional Locations</field>
+    </record>
+    <record id="maintenance.hr_equipment_request_action" model="ir.actions.act_window">
+        <field name="name">PM Maintenance Orders / Notifications</field>
+    </record>
+    <record id="maintenance.maintenance_team_action_settings" model="ir.actions.act_window">
+        <field name="name">Maintenance Planner Groups / Work Centers</field>
+    </record>
+    <record id="maintenance.hr_equipment_category_action" model="ir.actions.act_window">
+        <field name="name">Equipment Classes / Technical Categories</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- Project Systems (SAP PS) Menus & Actions                            -->
+    <!-- =================================================================== -->
+    <record id="project.menu_main_pm" model="ir.ui.menu">
+        <field name="name">Project Systems (SAP PS)</field>
+    </record>
+    <record id="project.menu_projects" model="ir.ui.menu">
+        <field name="name">PS Project Definitions / WBS Headers</field>
+    </record>
+    <record id="project.menu_project_management" model="ir.ui.menu">
+        <field name="name">WBS Elements &amp; Network Activities</field>
+    </record>
+    <record id="project.menu_project_management_my_tasks" model="ir.ui.menu">
+        <field name="name">My WBS Elements / Activities</field>
+    </record>
+    <record id="project.menu_project_management_all_tasks" model="ir.ui.menu">
+        <field name="name">All WBS Elements / Network Activities</field>
+    </record>
+
+    <record id="project.open_view_project_all" model="ir.actions.act_window">
+        <field name="name">PS Project Definitions / WBS Headers</field>
+    </record>
+    <record id="project.open_view_project_all_group_stage" model="ir.actions.act_window">
+        <field name="name">PS Project Definitions by Stage</field>
+    </record>
+    <record id="project.action_view_my_task" model="ir.actions.act_window">
+        <field name="name">My WBS Elements / Activities</field>
+    </record>
+    <record id="project.action_view_all_task" model="ir.actions.act_window">
+        <field name="name">WBS Elements / Network Activities</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- Quality Management (SAP QM) Menus & Actions                         -->
+    <!-- =================================================================== -->
+    <record id="quality_control.menu_quality_root" model="ir.ui.menu">
+        <field name="name">Quality Management (SAP QM)</field>
+    </record>
+    <record id="quality_control.menu_quality_control" model="ir.ui.menu">
+        <field name="name">Quality Inspection &amp; Assurance (QM-QC)</field>
+    </record>
+    <record id="quality_control.menu_quality_control_points" model="ir.ui.menu">
+        <field name="name">Inspection Plans / Characteristics (QP01)</field>
+    </record>
+    <record id="quality_control.menu_quality_checks" model="ir.ui.menu">
+        <field name="name">Quality Inspection Lots (QA01/QE01)</field>
+    </record>
+    <record id="quality_control.menu_quality_alert" model="ir.ui.menu">
+        <field name="name">Quality Notifications / Defect Reports (QM01)</field>
+    </record>
+    <record id="quality_control.menu_quality_config_alert_team" model="ir.ui.menu">
+        <field name="name">Quality Planner Groups / Inspection Teams</field>
+    </record>
+
+    <record id="quality_control.quality_point_action" model="ir.actions.act_window">
+        <field name="name">Inspection Plans / Characteristics (QP01)</field>
+    </record>
+    <record id="quality_control.quality_check_action_main" model="ir.actions.act_window">
+        <field name="name">Quality Inspection Lots (QA01/QE01)</field>
+    </record>
+    <record id="quality_control.quality_alert_action_check" model="ir.actions.act_window">
+        <field name="name">Quality Notifications / Defect Reports (QM01)</field>
+    </record>
+    <record id="quality_control.quality_alert_team_action_config" model="ir.actions.act_window">
+        <field name="name">Quality Planner Groups / Inspection Teams</field>
     </record>
 </data>
 

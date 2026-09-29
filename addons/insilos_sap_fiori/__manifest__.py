@@ -38,6 +38,13 @@ Insilos Enterprise SAP Lexicon & Fiori Horizon Design System
         'analytic',
         'account_reports',
         'mrp',
+        'hr',
+        'hr_payroll',
+        'hr_recruitment',
+        'maintenance',
+        'project',
+        'quality',
+        'quality_control',
     ],
     'data': [
         'security/ir.model.access.csv',
