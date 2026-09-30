@@ -1,0 +1,102 @@
+{
+  "overall_passed": true,
+  "recordings_count": 12,
+  "results": [
+    {
+      "code": "VID_01_CRM",
+      "duration": 46.82,
+      "events_count": 39,
+      "max_gap": 3.11,
+      "ids": 8.329773601025202,
+      "passed": true
+    },
+    {
+      "code": "VID_02_PUR",
+      "duration": 45.73,
+      "events_count": 35,
+      "max_gap": 3.28,
+      "ids": 7.653619068445222,
+      "passed": true
+    },
+    {
+      "code": "VID_03_INV",
+      "duration": 48.29,
+      "events_count": 37,
+      "max_gap": 3.6,
+      "ids": 7.662041830606751,
+      "passed": true
+    },
+    {
+      "code": "VID_04_BOM",
+      "duration": 47.84,
+      "events_count": 36,
+      "max_gap": 3.18,
+      "ids": 7.525083612040133,
+      "passed": true
+    },
+    {
+      "code": "VID_05_PLN",
+      "duration": 48.45,
+      "events_count": 44,
+      "max_gap": 3.23,
+      "ids": 9.081527347781218,
+      "passed": true
+    },
+    {
+      "code": "VID_06_SFL",
+      "duration": 49.56,
+      "events_count": 26,
+      "max_gap": 3.7200000000000024,
+      "ids": 5.2461662631154145,
+      "passed": true
+    },
+    {
+      "code": "VID_07_FLT",
+      "duration": 47.52,
+      "events_count": 28,
+      "max_gap": 3.900000000000002,
+      "ids": 5.892255892255892,
+      "passed": true
+    },
+    {
+      "code": "VID_08_FUL",
+      "duration": 48.11,
+      "events_count": 42,
+      "max_gap": 3.12,
+      "ids": 8.729993764290167,
+      "passed": true
+    },
+    {
+      "code": "VID_09_LOG",
+      "duration": 48.27,
+      "events_count": 32,
+      "max_gap": 3.41,
+      "ids": 6.629376424280091,
+      "passed": true
+    },
+    {
+      "code": "VID_10_SAL",
+      "duration": 47.76,
+      "events_count": 35,
+      "max_gap": 3.74,
+      "ids": 7.328308207705193,
+      "passed": true
+    },
+    {
+      "code": "VID_11_ACC",
+      "duration": 47.72,
+      "events_count": 36,
+      "max_gap": 3.09,
+      "ids": 7.5440067057837386,
+      "passed": true
+    },
+    {
+      "code": "VID_12_MKT",
+      "duration": 47.41,
+      "events_count": 43,
+      "max_gap": 3.67,
+      "ids": 9.069816494410464,
+      "passed": true
+    }
+  ]
+}
