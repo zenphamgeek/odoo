@@ -11,8 +11,9 @@
       "id": 1,
       "doc_name": "Đơn bán hàng #VN-SO2026-001",
       "state": "draft",
-      "amount": 2295000000.0,
+      "amount": 18675000000.0,
       "partner": "Tổng Công ty Tân Cảng Sài Gòn (Saigon Newport - SNP)",
+      "partner_vat": "0300481234",
       "deep_link": "http://localhost:28069/web#id=1&model=sale.order&view_type=form&action=561",
       "domain": "CRM & Bidding",
       "stakeholder": "Sales Director of SAP"
@@ -27,6 +28,7 @@
       "state": "purchase",
       "amount": 537000000.0,
       "partner": "Công ty CP Tập đoàn Hòa Phát - Chi nhánh Thép & Ống thép Hưng Yên",
+      "partner_vat": "0900234567",
       "deep_link": "http://localhost:28069/web#id=1&model=purchase.order&view_type=form&action=758",
       "domain": "Procurement",
       "stakeholder": "TCO Expert of IBM"
@@ -41,6 +43,7 @@
       "state": "assigned",
       "amount": null,
       "partner": "Công ty CP Dây cáp điện Việt Nam (CADIVI)",
+      "partner_vat": "0300381567",
       "deep_link": "http://localhost:28069/web#id=2&model=stock.picking&view_type=form&action=258",
       "domain": "Inventory & Barcode",
       "stakeholder": "Logistics Dept Head"
@@ -55,6 +58,7 @@
       "state": "progress",
       "amount": null,
       "partner": "N/A",
+      "partner_vat": "N/A",
       "deep_link": "http://localhost:28069/web#id=10&model=mrp.production&view_type=form&action=367",
       "domain": "Manufacturing & BOM",
       "stakeholder": "Giám đốc Sản xuất"
@@ -69,6 +73,7 @@
       "state": "progress",
       "amount": null,
       "partner": "N/A",
+      "partner_vat": "N/A",
       "deep_link": "http://localhost:28069/web#id=10&model=mrp.production&view_type=form&action=367",
       "domain": "Planning & Gantt",
       "stakeholder": "Giám đốc Sản xuất"
@@ -83,6 +88,7 @@
       "state": "progress",
       "amount": null,
       "partner": "N/A",
+      "partner_vat": "N/A",
       "deep_link": "http://localhost:28069/web#id=10&model=mrp.production&view_type=form&action=367",
       "domain": "MES & Shop Floor",
       "stakeholder": "Giám đốc Sản xuất"
@@ -97,6 +103,7 @@
       "state": "N/A",
       "amount": null,
       "partner": "N/A",
+      "partner_vat": "N/A",
       "deep_link": "http://localhost:28069/web#id=6&model=fleet.vehicle&view_type=form&action=738",
       "domain": "Fleet & Fuel",
       "stakeholder": "Logistics Dept Head"
@@ -111,6 +118,7 @@
       "state": "N/A",
       "amount": null,
       "partner": "N/A",
+      "partner_vat": "N/A",
       "deep_link": "http://localhost:28069/web#id=8&model=fleet.vehicle&view_type=form&action=738",
       "domain": "Safety & Compliance",
       "stakeholder": "VCCI Head Việt Nam"
@@ -125,6 +133,7 @@
       "state": "sale",
       "amount": 1452500000.0,
       "partner": "Công ty CP Gemadept Logistics",
+      "partner_vat": "0303126789",
       "deep_link": "http://localhost:28069/web#id=2&model=sale.order&view_type=form&action=561",
       "domain": "Port Logistics",
       "stakeholder": "Logistics Dept Head"
@@ -139,6 +148,7 @@
       "state": "posted",
       "amount": 1050500000.0,
       "partner": "Tổng Công ty Tân Cảng Sài Gòn (Saigon Newport - SNP)",
+      "partner_vat": "0300481234",
       "deep_link": "http://localhost:28069/web#id=12&model=account.move&view_type=form&action=476",
       "domain": "E-Invoice Circular 78",
       "stakeholder": "VCCI Head Việt Nam"
@@ -153,6 +163,7 @@
       "state": "posted",
       "amount": 429550000.0,
       "partner": "Công ty CP Tập đoàn Hòa Phát - Chi nhánh Thép & Ống thép Hưng Yên",
+      "partner_vat": "0900234567",
       "deep_link": "http://localhost:28069/web#id=15&model=account.move&view_type=form&action=479",
       "domain": "Cost Accounting TT 200",
       "stakeholder": "VCCI Head Việt Nam"
@@ -167,6 +178,7 @@
       "state": "posted",
       "amount": 1050500000.0,
       "partner": "Tổng Công ty Tân Cảng Sài Gòn (Saigon Newport - SNP)",
+      "partner_vat": "0300481234",
       "deep_link": "http://localhost:28069/web#id=12&model=account.move&view_type=form&action=476",
       "domain": "Executive Financials",
       "stakeholder": "TCO Expert of IBM"
@@ -181,6 +193,7 @@
       "state": "done",
       "amount": null,
       "partner": "N/A",
+      "partner_vat": "N/A",
       "deep_link": "http://localhost:28069/web#id=6&model=fleet.vehicle.log.services&view_type=form&action=746",
       "domain": "Computer Vision HSE",
       "stakeholder": "Marketing Director of Google"
