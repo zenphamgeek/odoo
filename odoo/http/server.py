@@ -7,7 +7,6 @@ from contextlib import suppress
 from http import HTTPStatus
 from urllib.parse import unquote
 from wsgiref.handlers import format_date_time
-from wsgiref.simple_server import sys_version
 
 import h11
 from werkzeug.exceptions import RequestTimeout
@@ -47,13 +46,8 @@ RECV_SIZE = 16384
 # case it never grows bigger than MAX_INCOMPLETE_EVENT_SIZE + RECV_SIZE.
 MAX_INCOMPLETE_EVENT_SIZE = 16384
 
-# No need to conceal the server agent as Odoo MUST run behind a web
-# server (apache/nginx/...), which is gonna replace it with its own.
-SERVER_SOFTWARE = ' '.join((
-    f'insilos/{odoo.release.series}',
-    h11.PRODUCT_ID,
-    sys_version,
-))
+# Server agent header for Insilos HTTP server
+SERVER_SOFTWARE = 'Insilos'
 SERVER_AGENT = SERVER_SOFTWARE.encode()
 
 
@@ -62,7 +56,7 @@ def _verify_target(target: bytes):
     # 1. Clients MUST use origin-form when talking to origin servers.
     # 2. Proxies MUST convert absolute-form to origin-from + Host.
     # 3. Servers MUST convert absolute-form to origin-from + Host
-    # We ignore this third point as Odoo MUST be deployed behind a
+    # We ignore this third point as Insilos MUST be deployed behind a
     # proxy and both the clients and proxies MUST NOT send
     # absolute-form request targets. If we receive an absolute-form
     # it likely is a rogue client.
@@ -163,7 +157,7 @@ class HTTPSocket:
         if environ['wsgi.multithread'] or odoo.evented:
             # cannot use websocket in prefork HTTP workers
             environ['socket'] = self.sock
-            environ['odoo.trailing_data'] = lambda: self.conn.trailing_data
+            environ['insilos.trailing_data'] = environ['odoo.trailing_data'] = lambda: self.conn.trailing_data
 
         # do like gunicorn: ignore headers with _ and merge those with
         # an identic name

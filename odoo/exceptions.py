@@ -1,4 +1,6 @@
-"""The Odoo Exceptions module defines a few core exception types.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
+
+"""The Insilos Exceptions module defines a few core exception types.
 
 Those types are understood by the RPC layer.
 Any other exception type bubbling until the RPC layer will be
@@ -110,7 +112,7 @@ class ConcurrencyError(Exception):
     Signal that two concurrent transactions tried to commit something
     that violates some constraint. Signal that the transaction that
     failed should be retried after a short delay, see
-    :func:`~odoo.service.model.retrying`.
+    :func:`~insilos.service.model.retrying`.
 
     This exception is low-level and has very few use cases, it should
     only be used if all alternatives are deemed worse.

@@ -1,13 +1,11 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 """
-OpenERP - Server
-OpenERP is an ERP+CRM program for small and medium businesses.
+Insilos Platform Server
+Insilos is an enterprise-grade sovereign industrial AI and ERP platform.
 
 The whole source code is distributed under the terms of the
-GNU Public Licence.
-
-(c) 2003-TODAY, Fabien Pinckaers - OpenERP SA
+GNU Lesser General Public License v3.
 """
 
 import atexit
@@ -17,15 +15,15 @@ import sys
 
 from psycopg2.errors import InsufficientPrivilege
 
-from odoo.release import author as __author__  # noqa: F401
-from odoo.release import version as __version__  # noqa: F401
-from odoo.service import server
-from odoo.tools import config
+from ..release import author as __author__  # noqa: F401
+from ..release import version as __version__  # noqa: F401
+from ..service import server
+from ..tools import config
 
 from . import Command
 
-# Also use the `odoo` logger for the main script.
-_logger = logging.getLogger('odoo')
+# Also use the `insilos` logger for the main script.
+_logger = logging.getLogger('insilos')
 
 
 def check_root_user():
@@ -48,12 +46,12 @@ def report_configuration():
 
     This function assumes the configuration has been initialized.
     """
-    import odoo.addons  # noqa: PLC0415
-    import odoo.release  # noqa: PLC0415
-    _logger.info("Insilos Enterprise (core %s)", odoo.release.version)
+    from .. import addons  # noqa: PLC0415
+    from .. import release  # noqa: PLC0415
+    _logger.info('Insilos Platform Server v%s', release.version)
     if os.path.isfile(config['config']):
         _logger.info("Using configuration file at %s", config['config'])
-    _logger.info('addons paths: %s', odoo.addons.__path__)
+    _logger.info('addons paths: %s', addons.__path__)
     if config.get('upgrade_path'):
         _logger.info('upgrade path: %s', config['upgrade_path'])
     if config.get('pre_upgrade_scripts'):
@@ -66,10 +64,10 @@ def report_configuration():
     replica_port = config['db_replica_port']
     if replica_host or replica_port or 'replica' in config['dev_mode']:
         _logger.info('replica database: %s@%s:%s', user, replica_host or 'default', replica_port or 'default')
-    if sys.version_info[:2] > odoo.release.MAX_PY_VERSION:
+    if sys.version_info[:2] > release.MAX_PY_VERSION:
         _logger.warning("Python %s is not officially supported, please use Python %s instead",
             '.'.join(map(str, sys.version_info[:2])),
-            '.'.join(map(str, odoo.release.MAX_PY_VERSION))
+            '.'.join(map(str, release.MAX_PY_VERSION))
         )
 
 def rm_pid_file(main_pid):
@@ -84,8 +82,8 @@ def setup_pid_file():
 
     This function assumes the configuration has been initialized.
     """
-    import odoo  # for evented  # noqa: PLC0415
-    if not odoo.evented and config['pidfile']:
+    from .. import evented  # noqa: PLC0415
+    if not evented and config['pidfile']:
         pid = os.getpid()
         with open(config['pidfile'], 'w') as fd:
             fd.write(str(pid))
@@ -99,7 +97,7 @@ def main(args):
     report_configuration()
 
     for db_name in config['db_name']:
-        from odoo.modules import db  # noqa: PLC0415
+        from ..modules import db  # noqa: PLC0415
         try:
             db._create_empty_database(db_name)
             config['init']['base'] = True
@@ -120,7 +118,7 @@ def main(args):
 
 
 class Server(Command):
-    """Start the odoo server (default command)"""
+    """Start the insilos server (default command)"""
 
     def run(self, args):
         config.parser.prog = self.prog

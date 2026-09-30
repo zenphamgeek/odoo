@@ -296,8 +296,111 @@ def install() -> None:
         # Install mute_logger bridge
         _patch_mute_logger()
 
+        # Install logger manager aliasing bridge
+        _patch_logger_manager()
+
     except Exception as exc:
         _logger.warning("Error initializing insilos namespace aliases: %s", exc)
+
+
+def _alias_core_loggers() -> None:
+    """Proactively alias core odoo and insilos loggers in logging.Logger.manager."""
+    try:
+        import logging
+        manager = logging.Logger.manager
+        core_subs = [
+            "",
+            "registry",
+            "sql_db",
+            "modules.loading",
+            "modules.module",
+            "service.server",
+            "service.server.ThreadedServer",
+            "service.server.PreforkServer",
+            "http",
+            "http.server",
+            "http.router",
+            "models",
+            "fields",
+            "tools.config",
+            "addons.bus.websocket",
+            "addons.base.models.ir_cron",
+            "addons.base.models.ir_model",
+            "addons.base.models.ir_ui_view",
+            "addons.base.models.res_partner",
+            "addons.base.models.ir_config_parameter",
+            "addons.base.models.ir_actions.server_action_safe_eval",
+        ]
+        for sub in core_subs:
+            odoo_name = f"odoo.{sub}" if sub else "odoo"
+            insilos_name = f"insilos.{sub}" if sub else "insilos"
+            l = logging.getLogger(odoo_name)
+            manager.loggerDict[insilos_name] = l
+            manager.loggerDict[odoo_name] = l
+
+        for name, log_obj in list(manager.loggerDict.items()):
+            if isinstance(log_obj, logging.Logger):
+                if name == "odoo":
+                    manager.loggerDict["insilos"] = log_obj
+                elif name.startswith("odoo."):
+                    manager.loggerDict[f"insilos.{name[5:]}"] = log_obj
+                elif name == "insilos":
+                    manager.loggerDict["odoo"] = log_obj
+                elif name.startswith("insilos."):
+                    manager.loggerDict[f"odoo.{name[8:]}"] = log_obj
+    except Exception as exc:
+        _logger.debug("Failed pre-aliasing core loggers: %s", exc)
+
+
+def _patch_logger_manager() -> None:
+    """Bridge logging.Logger.manager so logging.getLogger('insilos.*') and
+    logging.getLogger('odoo.*') resolve to the exact same logger instances.
+    """
+    try:
+        import logging
+        manager = logging.Logger.manager
+        if getattr(manager, "_insilos_aliased", False):
+            return
+
+        orig_getLogger = manager.getLogger
+
+        def _bridged_getLogger(name, *args, **kwargs):
+            if not isinstance(name, str):
+                return orig_getLogger(name, *args, **kwargs)
+
+            # Determine counterpart name
+            if name == "insilos":
+                odoo_name = "odoo"
+                insilos_name = "insilos"
+            elif name.startswith("insilos."):
+                odoo_name = "odoo." + name[len("insilos."):]
+                insilos_name = name
+            elif name == "odoo":
+                odoo_name = "odoo"
+                insilos_name = "insilos"
+            elif name.startswith("odoo."):
+                odoo_name = name
+                insilos_name = "insilos." + name[len("odoo."):]
+            else:
+                return orig_getLogger(name, *args, **kwargs)
+
+            # Resolve canonical logger under odoo_name
+            target_logger = orig_getLogger(odoo_name, *args, **kwargs)
+
+            # Cross-alias in manager.loggerDict
+            manager.loggerDict[insilos_name] = target_logger
+            manager.loggerDict[odoo_name] = target_logger
+
+            return target_logger
+
+        manager.getLogger = _bridged_getLogger
+        manager._insilos_aliased = True
+
+        # Pre-alias core loggers right away
+        _alias_core_loggers()
+
+    except Exception as exc:
+        _logger.debug("Failed patching logging.Logger.manager: %s", exc)
 
 
 def uninstall() -> None:

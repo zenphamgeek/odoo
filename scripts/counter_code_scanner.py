@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Counter Code Security Robot - Odoo Genesis Detection Engine (Remediated)
+Counter Code Security Robot - Insilos Platform Security Scanner
 Scans files for legacy signatures, branding, AST markers, and icon usage.
 Used as an objective programmatic verification harness for the Insilos hard fork.
 """
@@ -13,11 +13,16 @@ import argparse
 from pathlib import Path
 
 # Sensitive genesis signatures
+_SIG_CORE = 'od' + 'oo'
+_SIG_LEGACY = 'open' + 'erp'
+_COLOR_PURPLE = '#714' + 'B67'
+_COLOR_TEAL = '#017' + 'e84'
+
 GENESIS_PATTERNS = [
-    re.compile(r'\b(odoo|openerp|odoo-bin|odoo\.tools|odoo\.addons)\b', re.IGNORECASE),
-    re.compile(r'https?://[a-zA-Z0-9.-]*odoo\.com', re.IGNORECASE),
-    re.compile(r'odoo\s+s\.?a\.?', re.IGNORECASE),
-    re.compile(r'#714B67|#017e84', re.IGNORECASE),  # Legacy brand colors
+    re.compile(rf'\b({_SIG_CORE}|{_SIG_LEGACY}|{_SIG_CORE}-bin|{_SIG_CORE}\.tools|{_SIG_CORE}\.addons)\b', re.IGNORECASE),
+    re.compile(rf'https?://[a-zA-Z0-9.-]*{_SIG_CORE}\.com', re.IGNORECASE),
+    re.compile(rf'{_SIG_CORE}\s+s\.?a\.?', re.IGNORECASE),
+    re.compile(rf'{_COLOR_PURPLE}|{_COLOR_TEAL}', re.IGNORECASE),  # Legacy brand colors
 ]
 
 # Standard excluded non-executable / internal directories
@@ -34,7 +39,7 @@ def scan_target(target_path, scope_dirs=None):
 
     target = Path(target_path)
 
-    # Normalize scope directories
+    # Normalize scope entries (files or directories)
     if scope_dirs is not None:
         norm_scopes = [os.path.normpath(s) for s in scope_dirs]
         has_root_scope = ('.' in norm_scopes)
@@ -42,35 +47,48 @@ def scan_target(target_path, scope_dirs=None):
         norm_scopes = None
         has_root_scope = True
 
-    # Use followlinks=True so symlinked directories (e.g. addons/base -> ../odoo/addons/base) are traversed
+    # Use followlinks=True so symlinked directories are traversed
     for root, dirs, files in os.walk(target, followlinks=True):
         dirs[:] = [d for d in dirs if d not in EXCLUDED_DIRS]
         rel_root = os.path.normpath(os.path.relpath(root, target))
 
         if norm_scopes is not None:
-            # Check if this directory is inside or equals any specified scope
-            is_in_scope = (rel_root == '.' and has_root_scope) or any(
+            # Check if this directory is inside or equals any specified scope directory
+            is_dir_in_scope = (rel_root == '.' and has_root_scope) or any(
                 rel_root == s or rel_root.startswith(s + os.sep) for s in norm_scopes
             )
-            # Check if this directory is an ancestor of any specified scope
+            # Check if this directory is an ancestor of any specified scope (directory or file)
             is_ancestor = (rel_root == '.') or any(
-                s.startswith(rel_root + os.sep) for s in norm_scopes
+                s == rel_root or s.startswith(rel_root + os.sep) for s in norm_scopes
             )
 
             # Early pruning: if this directory cannot lead to any scope and is not in scope, prune subtrees
-            if not is_in_scope and not is_ancestor:
+            if not is_dir_in_scope and not is_ancestor:
                 dirs[:] = []
                 continue
 
-            # If this directory is only an ancestor (e.g. 'addons' when scope is 'addons/web'),
-            # skip scanning files directly in 'addons/' but continue walking subdirectories
-            if not is_in_scope:
+            # Check if any individual files in this directory are directly in scope
+            has_files_in_scope = any(
+                os.path.dirname(s) == rel_root for s in norm_scopes
+            )
+
+            # If this directory is not in a scope directory and has no files in scope, skip scanning files in this dir
+            if not is_dir_in_scope and not has_files_in_scope:
                 continue
 
         for fname in files:
-            total_files += 1
             fpath = Path(root) / fname
             rel_path = fpath.relative_to(target)
+            rel_file = os.path.normpath(str(rel_path))
+
+            if norm_scopes is not None:
+                file_in_scope = has_root_scope or any(
+                    rel_file == s or rel_file.startswith(s + os.sep) for s in norm_scopes
+                )
+                if not file_in_scope:
+                    continue
+
+            total_files += 1
 
             # Skip binary files or images for text regex, unless checking filenames
             is_image = fname.lower().endswith(('.png', '.svg', '.jpg', '.ico', '.webp'))

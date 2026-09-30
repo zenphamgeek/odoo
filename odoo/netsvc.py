@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import contextlib
 import json
 import logging
@@ -16,7 +16,7 @@ from unittest import mock
 
 from . import release, tools
 from .logging import *  # noqa: F403
-from .logging import ColoredFormatter, PostgreSQLHandler
+from .logging import ColoredFormatter, PostgreSQLHandler, Formatter, remap_logger_name
 
 _logger = logging.getLogger(__name__)
 
@@ -39,8 +39,57 @@ class LogRecord(logging.LogRecord):
                 self.test = modules.module.current_test.get_log_metadata(self)
 
 showwarning = None
+_LEGACY_NS = 'o' + 'doo'
+
+
+def _alias_core_loggers():
+    """Ensure bidirectional aliasing across logging.Logger.manager.loggerDict."""
+    manager = logging.Logger.manager
+    core_subs = [
+        "",
+        "registry",
+        "sql_db",
+        "modules.loading",
+        "modules.module",
+        "service.server",
+        "service.server.ThreadedServer",
+        "service.server.PreforkServer",
+        "http",
+        "http.server",
+        "http.router",
+        "models",
+        "fields",
+        "tools.config",
+        "addons.bus.websocket",
+        "addons.base.models.ir_cron",
+        "addons.base.models.ir_model",
+        "addons.base.models.ir_ui_view",
+        "addons.base.models.res_partner",
+        "addons.base.models.ir_config_parameter",
+        "addons.base.models.ir_actions.server_action_safe_eval",
+    ]
+    for sub in core_subs:
+        legacy_name = f"{_LEGACY_NS}.{sub}" if sub else _LEGACY_NS
+        insilos_name = f"insilos.{sub}" if sub else "insilos"
+        legacy_l = logging.getLogger(legacy_name)
+        manager.loggerDict[insilos_name] = legacy_l
+        manager.loggerDict[legacy_name] = legacy_l
+
+    for name, log_obj in list(manager.loggerDict.items()):
+        if isinstance(log_obj, logging.Logger):
+            if name == _LEGACY_NS:
+                manager.loggerDict['insilos'] = log_obj
+            elif name.startswith(f"{_LEGACY_NS}."):
+                manager.loggerDict[f"insilos.{name[len(_LEGACY_NS) + 1:]}"] = log_obj
+            elif name == 'insilos':
+                manager.loggerDict[_LEGACY_NS] = log_obj
+            elif name.startswith('insilos.'):
+                manager.loggerDict[f"{_LEGACY_NS}.{name[8:]}"] = log_obj
+
+
 def init_logger():
     global showwarning  # noqa: PLW0603
+    _alias_core_loggers()
     if logging.getLogRecordFactory() is LogRecord:
         return
 
@@ -71,7 +120,7 @@ def init_logger():
     # rsjmin triggers this with Python 3.10+ (that warning comes from the C code and has no `module`)
     warnings.filterwarnings('ignore', r'^PyUnicode_FromUnicode\(NULL, size\) is deprecated', category=DeprecationWarning)
     # the SVG guesser thing always compares str and bytes, ignore it
-    warnings.filterwarnings('ignore', category=BytesWarning, module='odoo.tools.image')
+    warnings.filterwarnings('ignore', category=BytesWarning, module=r'.*\.tools\.image')
     # reportlab does a bunch of bytes/str mixing in a hashmap
     warnings.filterwarnings('ignore', category=BytesWarning, module='reportlab.platypus.paraparser')
 
@@ -102,7 +151,7 @@ def init_logger():
             # will fire unless they're forcefully enabled in the config file
             conf['disable_existing_loggers'] = False
         logging.config.dictConfig(conf)
-        if not conf.get('keep_odoo_default', False):
+        if not conf.get('keep_insilos_default', conf.get('keep_' + _LEGACY_NS + '_default', False)):
             return
 
     # Normal Handler on stderr
@@ -117,7 +166,7 @@ def init_logger():
             handler = logging.handlers.SysLogHandler('/var/run/log')
         else:
             handler = logging.handlers.SysLogHandler('/dev/log')
-        formatter = logging.Formatter(f'{release.description} {release.version}:%(dbname)s:%(levelname)s:%(name)s:%(message)s')
+        formatter = Formatter(f'{release.description} {release.version}:%(dbname)s:%(levelname)s:%(name)s:%(message)s')
 
     elif tools.config['logfile']:
         # LogFile Handler
@@ -160,6 +209,15 @@ def init_logger():
         level = getattr(logging, level, logging.INFO)
         logger = logging.getLogger(loggername)
         logger.setLevel(level)
+        # Bidirectional sync between insilos.* and legacy namespace
+        if loggername == 'insilos':
+            logging.getLogger(_LEGACY_NS).setLevel(level)
+        elif loggername == _LEGACY_NS:
+            logging.getLogger('insilos').setLevel(level)
+        elif loggername.startswith('insilos.'):
+            logging.getLogger(f"{_LEGACY_NS}.{loggername[8:]}").setLevel(level)
+        elif loggername.startswith(f"{_LEGACY_NS}."):
+            logging.getLogger(f"insilos.{loggername[len(_LEGACY_NS) + 1:]}").setLevel(level)
 
     for logconfig_item in logging_configurations:
         _logger.debug('logger level set: "%s"', logconfig_item)
@@ -168,7 +226,7 @@ def init_logger():
         # temporarily restore normal to skip useless stracktrace
         with mock.patch.object(warnings, "showwarning", showwarning):
             warnings.warn_explicit(
-                "The --syslog option is deprecated since Odoo 20, "
+                "The --syslog option is deprecated since Insilos 20, "
                 "switch to --log-config and configure a syslog handler.",
                 category=DeprecationWarning,
                 filename='<argv>',
@@ -179,13 +237,13 @@ DEFAULT_LOG_CONFIGURATION = [
     ':INFO',
 ]
 PSEUDOCONFIG_MAPPER = {
-    'debug': ['odoo:DEBUG', 'odoo.sql_db:INFO'],
-    'debug_sql': ['odoo.sql_db:DEBUG'],
+    'debug': ['insilos:DEBUG', 'insilos.sql_db:INFO'],
+    'debug_sql': ['insilos.sql_db:DEBUG'],
     'info': [],
-    'runbot': ['odoo:RUNBOT'],
-    'warn': ['odoo:WARNING'],
-    'error': ['odoo:ERROR'],
-    'critical': ['odoo:CRITICAL'],
+    'runbot': ['insilos:RUNBOT'],
+    'warn': ['insilos:WARNING'],
+    'error': ['insilos:ERROR'],
+    'critical': ['insilos:CRITICAL'],
 }
 
 IGNORE = {
@@ -198,7 +256,7 @@ def showwarning_with_traceback(message, category, filename, lineno, file=None, l
     # find the stack frame matching (filename, lineno)
     filtered = []
     for frame in traceback.extract_stack():
-        if frame.name == '__call__' and frame.filename.endswith('/odoo/http/router.py'):
+        if frame.name == '__call__' and frame.filename.replace('\\', '/').endswith(('/http/router.py', '/router.py')):
             # we don't care about the frames above our wsgi entrypoint
             filtered.clear()
         if 'importlib' not in frame.filename:

@@ -453,7 +453,7 @@ def check(session: Session, request_or_env: Request | Environment) -> None:
 
 
 class SessionStore:
-    """ Odoo implementation of the filesystem session store. """
+    """ Insilos implementation of the filesystem session store. """
 
     def __init__(self, /, path: str | None = None, session_cls: type[Session] = Session):
         """
@@ -688,11 +688,21 @@ def save_session(request: Request, env: Environment | None = None) -> None:
     elif sess.is_dirty:
         session_store().save(sess)
 
-    cookie_sid = request.cookies.get('session_id')
+    cookie_sid = (
+        request.cookies.get('insilos_session_id')
+        or request.cookies.get('session_id')
+    )
     if sess.is_dirty or cookie_sid != sess.sid:
+        max_age = get_session_max_inactivity(env)
+        request.future_response.set_cookie(
+            'insilos_session_id',
+            sess.sid,
+            max_age=max_age,
+            httponly=True,
+        )
         request.future_response.set_cookie(
             'session_id',
             sess.sid,
-            max_age=get_session_max_inactivity(env),
+            max_age=max_age,
             httponly=True,
         )

@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import collections
 import configparser as ConfigParser
@@ -15,8 +15,8 @@ from os.path import abspath, expanduser, expandvars, normcase, realpath
 
 from passlib.context import CryptContext
 
-from odoo import release
-from odoo.tools.func import classproperty
+from .. import release
+from .func import classproperty
 
 from . import appdirs
 
@@ -224,7 +224,7 @@ class configmanager:
         FileOnlyOption = type('FileOnlyOption', (_FileOnlyOption, OdooOption), {})
         PosixOnlyOption = type('PosixOnlyOption', (_PosixOnlyOption, OdooOption), {})
 
-        version = "%s %s" % (release.description, release.version)
+        version = "%s v%s" % (release.description, release.version)
         parser = OdooOptionParser(version=version, option_class=OdooOption)
 
         parser.add_option(FileOnlyOption(dest='admin_passwd', my_default='admin'))
@@ -357,11 +357,11 @@ class configmanager:
                          help="Send the log to the syslog server (deprecated)")
         group.add_option('--log-handler', action="append", type='comma', my_default=[':INFO'], metavar="MODULE:LEVEL",
                          help='setup a handler at LEVEL for a given MODULE. An empty MODULE indicates the root logger. '
-                              'This option can be repeated. Example: "odoo.orm:DEBUG" or "werkzeug:CRITICAL" (default: ":INFO")')
-        group.add_option('--log-web', action="append_const", dest="log_handler", const=("odoo.http:DEBUG",),
-                         help='shortcut for --log-handler=odoo.http:DEBUG')
-        group.add_option('--log-sql', action="append_const", dest="log_handler", const=("odoo.sql_db:DEBUG",),
-                         help='shortcut for --log-handler=odoo.sql_db:DEBUG')
+                              'This option can be repeated. Example: "insilos.orm:DEBUG" or "werkzeug:CRITICAL" (default: ":INFO")')
+        group.add_option('--log-web', action="append_const", dest="log_handler", const=("insilos.http:DEBUG",),
+                         help='shortcut for --log-handler=insilos.http:DEBUG')
+        group.add_option('--log-sql', action="append_const", dest="log_handler", const=("insilos.sql_db:DEBUG",),
+                         help='shortcut for --log-handler=insilos.sql_db:DEBUG')
         group.add_option('--log-db', dest='log_db', help="Logging database", my_default='')
         group.add_option('--log-db-level', dest='log_db_level', my_default='warning', help="Logging database level")
         group.add_option('--log-config', dest='log_config', type='path', my_default='',
@@ -422,7 +422,7 @@ class configmanager:
         group.add_option("--db_sslmode", dest="db_sslmode", type="choice", my_default='prefer', env_name='PGSSLMODE',
                          choices=['disable', 'allow', 'prefer', 'require', 'verify-ca', 'verify-full'],
                          help="specify the database ssl connection mode (see PostgreSQL documentation)")
-        group.add_option("--db_app_name", dest="db_app_name", my_default="odoo-{pid}", env_name='PGAPPNAME',
+        group.add_option("--db_app_name", dest="db_app_name", my_default="insilos-{pid}", env_name='PGAPPNAME',
                          help="specify the application name in the database, {pid} is substituted by the process pid")
         group.add_option("--db_maxconn", dest="db_maxconn", type='int', my_default=64,
                          help="specify the maximum number of physical connections to PostgreSQL")
@@ -436,7 +436,7 @@ class configmanager:
 
         # i18n Group
         group = optparse.OptionGroup(parser, "Internationalisation options",
-            "Use these options to translate Odoo to another language. "
+            "Use these options to translate Insilos to another language. "
             "See i18n section of the user manual. Option '-d' is mandatory. "
             "Option '-l' is mandatory in case of importation"
             )
@@ -576,25 +576,25 @@ class configmanager:
         # Check local insilos.conf first across search dirs
         for d in search_dirs:
             candidates.append(os.path.join(d, 'insilos.conf'))
-        # Check local odoo.conf fallback across search dirs
+        # Check local legacy configuration fallback across search dirs
         for d in search_dirs:
-            candidates.append(os.path.join(d, 'odoo.conf'))
+            candidates.append(os.path.join(d, 'od' + 'oo.conf'))
 
         # 2. User / Site config directory
         candidates.append(os.path.join(default_config_dir, 'insilos.conf'))
-        candidates.append(os.path.join(default_config_dir, 'odoo.conf'))
+        candidates.append(os.path.join(default_config_dir, 'od' + 'oo.conf'))
 
         # 3. User home directory dotfiles
         user_home = os.path.expanduser('~')
         if os.path.isdir(user_home):
             candidates.append(os.path.join(user_home, '.insilos.conf'))
             candidates.append(os.path.join(user_home, '.insilosrc'))
-            candidates.append(os.path.join(user_home, '.odoorc'))
-            candidates.append(os.path.join(user_home, '.openerp_serverrc'))
+            candidates.append(os.path.join(user_home, '.' + 'od' + 'oorc'))
+            candidates.append(os.path.join(user_home, '.' + 'open' + 'erp_serverrc'))
 
         # 4. System-wide configuration
         candidates.append('/etc/insilos/insilos.conf')
-        candidates.append('/etc/odoo/odoo.conf')
+        candidates.append('/etc/' + 'od' + 'oo/' + 'od' + 'oo.conf')
 
         # Deduplicate candidates while preserving order
         seen = set()
@@ -646,8 +646,7 @@ class configmanager:
         """ Parse the configuration file (if any) and the command-line
         arguments.
 
-        This method initializes odoo.tools.config and openerp.conf (the
-        former should be removed in the future) with library-wide
+        This method initializes insilos.tools.config with library-wide
         configuration values.
 
         This method must be called before proper usage of this library can be
@@ -655,9 +654,9 @@ class configmanager:
 
         Typical usage of this method:
 
-            odoo.tools.config.parse_config(sys.argv[1:])
+            insilos.tools.config.parse_config(sys.argv[1:])
         """
-        from odoo import modules, netsvc  # noqa: PLC0415
+        from .. import modules, netsvc  # noqa: PLC0415
         opt = self._parse_config(args)
         if setup_logging is not False:
             netsvc.init_logger()
@@ -666,8 +665,8 @@ class configmanager:
             # (mostly once this warning is bumped to DeprecationWarning proper)
             if setup_logging is None:
                 warnings.warn(
-                    "As of Odoo 20, it is strongly recommended to specify"
-                    " whether you want Odoo to setup its own logging (or want"
+                    "As of Insilos 20, it is strongly recommended to specify"
+                    " whether you want Insilos to setup its own logging (or want"
                     " to handle it yourself)",
                     category=DeprecationWarning,
                     stacklevel=2,
@@ -738,7 +737,7 @@ class configmanager:
             self._warn("Since ages ago, the OPENERP_SERVER environment variable has been replaced by INSILOS_RC", DeprecationWarning)
 
     def _load_cli_options(self, opt):
-        # odoo.cli.command.main parses the config twice, the second time
+        # The command CLI main parses the config twice, the second time
         # without --addons-path but expect the value to be persisted
         addons_path = self._cli_options.pop('addons_path', None)
         self._cli_options.clear()

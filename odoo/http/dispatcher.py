@@ -53,12 +53,10 @@ SAFE_HTTP_METHODS = ('GET', 'HEAD', 'OPTIONS', 'TRACE')
 MISSING_CSRF_WARNING = """\
 No CSRF validation token provided for path %r
 
-Odoo URLs are CSRF-protected by default (when accessed with unsafe
-HTTP methods). See
-https://www.odoo.com/documentation/master/developer/reference/addons/http.html#csrf
-for more details.
+Insilos URLs are CSRF-protected by default (when accessed with unsafe
+HTTP methods).
 
-* if this endpoint is accessed through Odoo via py-QWeb form, embed a CSRF
+* if this endpoint is accessed through Insilos via py-QWeb form, embed a CSRF
   token in the form, Tokens are available via `request.csrf_token()`
   can be provided through a hidden input and must be POST-ed named
   `csrf_token` e.g. in your form add:
@@ -238,7 +236,7 @@ class HttpDispatcher(Dispatcher):
         body and query-string and checking cors/csrf while dispatching a
         request to a ``type='http'`` route.
 
-        See :meth:`~odoo.http.Response.load` method for the compatible
+        See Response.load method for the compatible
         endpoint return types.
         """
         self.request.params = dict(self.request.get_http_params(), **args)
@@ -292,10 +290,17 @@ class HttpDispatcher(Dispatcher):
                 'redirect': self.request.httprequest.full_path})
             if was_connected:
                 session_store().rotate(session, self.request.env)
+                max_age = get_session_max_inactivity(self.request.env)
+                response.set_cookie(
+                    'insilos_session_id',
+                    session.sid,
+                    max_age=max_age,
+                    httponly=True,
+                )
                 response.set_cookie(
                     'session_id',
                     session.sid,
-                    max_age=get_session_max_inactivity(self.request.env),
+                    max_age=max_age,
                     httponly=True,
                 )
             return response
@@ -385,7 +390,7 @@ class JsonRPCDispatcher(Dispatcher):
         """
         error = {
             'code': 0,  # we don't care of this code
-            'message': "Insilos Platform Error",
+            'message': "Insilos Enterprise Server Error",
             'data': serialize_exception(exc),
         }
         if isinstance(exc, NotFound):

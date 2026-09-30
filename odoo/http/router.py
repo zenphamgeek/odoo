@@ -133,7 +133,7 @@ def db_filter(dbs: Iterable[str], host: str | None = None) -> list[str]:
         return [db for db in dbs if dbfilter_re.match(db)]
 
     if config['db_name']:
-        # In case --db-filter is not provided and --database is passed, Odoo will
+        # In case --db-filter is not provided and --database is passed, the server will
         # use the value of --database as a comma separated list of exposed databases.
         return sorted(set(config['db_name']).intersection(dbs))
 
@@ -173,7 +173,7 @@ class RegistryError(RuntimeError):
 
 
 class Application:
-    """ Odoo WSGI application """
+    """ Insilos WSGI application """
     # See also: https://www.python.org/dev/peps/pep-3333
 
     def initialize(self) -> None:
@@ -251,6 +251,7 @@ class Application:
     def set_csp(self, response: Response) -> None:
         headers = response.headers
         headers['X-Content-Type-Options'] = 'nosniff'
+        headers.setdefault('Server', 'Insilos')
 
         if 'Content-Security-Policy' in headers:
             return
@@ -513,7 +514,10 @@ def _get_profiler_context_manager(request: Request) -> typing.ContextManager:
 
 
 def _set_session_and_dbname(request: Request) -> None:
-    sid = request.httprequest.cookies.get('session_id', '')
+    sid = (
+        request.httprequest.cookies.get('insilos_session_id')
+        or request.httprequest.cookies.get('session_id', '')
+    )
     session = session_store().get(sid, keep_sid=True)
 
     for key, val in get_default_session().items():
@@ -528,7 +532,8 @@ def _set_session_and_dbname(request: Request) -> None:
         dbname = session.db
         if header_dbname and header_dbname != dbname:
             header_name = 'x-insilos-database' if request.httprequest.headers.get('X-Insilos-Database') else 'x-odoo-database'
-            e = ("Cannot use both the session_id cookie and the "
+            cookie_name = 'insilos_session_id' if request.httprequest.cookies.get('insilos_session_id') else 'session_id'
+            e = (f"Cannot use both the {cookie_name} cookie and the "
                  f"{header_name} header.")
             raise Forbidden(e)
     elif header_dbname:

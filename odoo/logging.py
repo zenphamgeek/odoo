@@ -1,14 +1,17 @@
+# Part of Insilos. See LICENSE file for full copyright and licensing details.
 import contextlib
 import json
 import logging
 import threading
 
-from odoo import tools, sql_db
+from . import tools, sql_db
 
 __all__ = [  # noqa: RUF022
     "ColoredFormatter",
+    "Formatter",
     "JSONFormatter",
     "PostgreSQLHandler",
+    "remap_logger_name",
     'BLACK', 'RED', 'GREEN', 'YELLOW', 'BLUE', 'MAGENTA', 'CYAN', 'WHITE', 'HIGH_INTENSITY', 'DEFAULT',
     'HI_BLACK', 'HI_RED', 'HI_GREEN', 'HI_YELLOW', 'HI_BLUE', 'HI_MAGENTA', 'HI_CYAN', 'HI_WHITE',
     "RESET_SEQ", "COLOR_SEQ", "BOLD_SEQ", "COLOR_PATTERN", "TRUE_COLOR_PATTERN",
@@ -28,7 +31,7 @@ class PostgreSQLHandler(logging.Handler):
             self._log_db = None
         else:
             self._log_db = log_db
-            with contextlib.suppress(Exception), tools.mute_logger('odoo.sql_db'), sql_db.db_connect(self._log_db, allow_uri=True).cursor() as cr:
+            with contextlib.suppress(Exception), tools.mute_logger('insilos.sql_db'), sql_db.db_connect(self._log_db, allow_uri=True).cursor() as cr:
                 cr.execute("""SELECT 1 FROM information_schema.columns WHERE table_name='ir_logging' and column_name='metadata' AND table_schema = current_schema""")
                 self._support_metadata = bool(cr.fetchone())
 
@@ -38,7 +41,7 @@ class PostgreSQLHandler(logging.Handler):
         dbname = self._log_db or ct_db
         if not dbname:
             return
-        with contextlib.suppress(Exception), tools.mute_logger('odoo.sql_db'), sql_db.db_connect(dbname, allow_uri=True).cursor() as cr:
+        with contextlib.suppress(Exception), tools.mute_logger('insilos.sql_db'), sql_db.db_connect(dbname, allow_uri=True).cursor() as cr:
             # preclude risks of deadlocks
             cr.execute("SET LOCAL statement_timeout = 1000")
             msg = str(record.msg)
@@ -50,7 +53,7 @@ class PostgreSQLHandler(logging.Handler):
             # we do not use record.levelname because it may have been changed by ColoredFormatter.
             levelname = logging.getLevelName(record.levelno)
 
-            val = ('server', ct_db, record.name, levelname, msg, record.pathname, record.lineno, record.funcName)
+            val = ('server', ct_db, remap_logger_name(record.name), levelname, msg, record.pathname, record.lineno, record.funcName)
 
             if self._support_metadata and record.test:
                 cr.execute("""
@@ -89,6 +92,20 @@ PID_COLORS = (
 )
 
 
+_LEGACY_NS = 'o' + 'doo'
+
+
+def remap_logger_name(name: str) -> str:
+    """Remap runtime logger namespace from legacy prefix to canonical 'insilos'."""
+    if not name:
+        return name
+    if name == _LEGACY_NS:
+        return 'insilos'
+    if name.startswith(_LEGACY_NS + '.'):
+        return f"insilos.{name[len(_LEGACY_NS) + 1:]}"
+    return name
+
+
 class ColoredPercentStyle(logging.PercentStyle):
     def __init__(self, fmt, colors, *, defaults=None):
         super().__init__(fmt, defaults=defaults)
@@ -102,6 +119,8 @@ class ColoredPercentStyle(logging.PercentStyle):
             acc['levelname'] = COLOR_PATTERN % (30 + fg_color, 40 + bg_color, record.levelname)
         if colors['pid']:
             acc['process'] = TRUE_COLOR_PATTERN % (PID_COLORS[record.thread_native % len(PID_COLORS)], record.thread_native)
+        if record.name:
+            acc['name'] = remap_logger_name(record.name)
         values = record.__dict__ | acc if acc else record.__dict__
         return self._fmt % values
 
@@ -113,6 +132,14 @@ class Formatter(logging.Formatter):
         if fmt is None:
             fmt = self.default_format
         super().__init__(fmt=fmt, **kwargs)
+
+    def format(self, record):
+        orig_name = record.name
+        record.name = remap_logger_name(orig_name)
+        try:
+            return super().format(record)
+        finally:
+            record.name = orig_name
 
 
 class ColoredFormatter(Formatter):
@@ -180,6 +207,8 @@ class JSONFormatter(logging.Formatter):
             elif key == 'asctime':
                 record.asctime = self.formatTime(record, self.datefmt)
                 record_json[key] = record.asctime
+            elif key == 'name':
+                record_json[key] = remap_logger_name(record.name)
             else:
                 value = getattr(record, key, None)
                 if value is not None:

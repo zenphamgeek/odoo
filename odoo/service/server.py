@@ -54,14 +54,14 @@ except ImportError:
     def setproctitle(x):
         return None
 
-from odoo import api, sql_db
-from odoo.http.server import HTTPSocket
-from odoo.modules.registry import Registry
-from odoo.orm.cache import log_ormcache_stats
-from odoo.release import nt_service_name
-from odoo.tools import OrderedSet, config, gc, osutil, profiler
-from odoo.tools.misc import dumpstacks, mute_logger, stripped_sys_argv
-from odoo.tools.osutil import memory_info
+from .. import api, sql_db
+from ..http.server import HTTPSocket
+from ..modules.registry import Registry
+from ..orm.cache import log_ormcache_stats
+from ..release import nt_service_name
+from ..tools import OrderedSet, config, gc, osutil, profiler
+from ..tools.misc import dumpstacks, mute_logger, stripped_sys_argv
+from ..tools.osutil import memory_info
 
 _logger = logging.getLogger(__name__)
 
@@ -73,8 +73,8 @@ def set_limit_memory_hard():
     if platform.system() != 'Linux':
         return
     limit_memory_hard = config['limit_memory_hard']
-    import odoo  # for eventd  # noqa: PLC0415
-    if odoo.evented and config['limit_memory_hard_gevent']:
+    from .. import evented  # for evented  # noqa: PLC0415
+    if evented and config['limit_memory_hard_gevent']:
         limit_memory_hard = config['limit_memory_hard_gevent']
     if limit_memory_hard:
         rlimit = resource.RLIMIT_AS
@@ -110,7 +110,7 @@ def empty_pipe(fd):
 
 
 def cron_database_list():
-    from odoo.modules.db import list_dbs  # noqa: PLC0415
+    from ..modules.db import list_dbs  # noqa: PLC0415
     return config['db_name'] or list_dbs(force=True)
 
 
@@ -140,8 +140,8 @@ class FSWatcherBase:
 class FSWatcherWatchdog(FSWatcherBase):
     def __init__(self):
         self.observer = Observer()
-        import odoo.addons  # noqa: PLC0415
-        for path in odoo.addons.__path__:
+        from .. import addons as addons_pkg  # noqa: PLC0415
+        for path in addons_pkg.__path__:
             _logger.info('Watching addons folder %s', path)
             self.observer.schedule(self, path, recursive=True)
 
@@ -167,8 +167,8 @@ class FSWatcherInotify(FSWatcherBase):
         inotify.adapters._LOGGER.setLevel(logging.ERROR)
         # recreate a list as InotifyTrees' __init__ deletes the list's items
         paths_to_watch = []
-        import odoo.addons  # noqa: PLC0415
-        for path in odoo.addons.__path__:
+        from .. import addons as addons_pkg  # noqa: PLC0415
+        for path in addons_pkg.__path__:
             paths_to_watch.append(path)
             _logger.info('Watching addons folder %s', path)
         self.watcher = InotifyTrees(paths_to_watch, mask=INOTIFY_LISTEN_EVENTS, block_duration_s=.5)
@@ -352,7 +352,7 @@ class ThreadedServer(CommonServer):
         # just a bit prevents they all poll the database at the exact
         # same time. This is known as the thundering herd effect.
 
-        from odoo.addons.base.models.ir_cron import IrCron  # noqa: PLC0415
+        from ..addons.base.models.ir_cron import IrCron  # noqa: PLC0415
 
         cron_logger = self.logger.getChild(f'cron{number}')
         cron_logger.info("Alive")
@@ -511,6 +511,7 @@ class ThreadedServer(CommonServer):
         ).start()
 
     def start(self, stop=False):
+        setproctitle("insilos: master")
         self.logger.debug("setting signal handlers")
         set_limit_memory_hard()
         if os.name == 'posix':
@@ -588,7 +589,7 @@ class ThreadedServer(CommonServer):
 
         if stop:
             if config['test_enable']:
-                from odoo.tests.result import _logger as logger  # noqa: PLC0415
+                from ..tests.result import _logger as logger  # noqa: PLC0415
                 with Registry.registries._lock:
                     for db, registry in Registry.registries.items():
                         report = registry._assertion_report
@@ -945,6 +946,7 @@ class PreforkServer(CommonServer):
                 raise
 
     def start(self):
+        setproctitle("insilos: master")
         # wakeup pipe, python doesn't throw EINTR when a syscall is interrupted
         # by a signal simulating a pseudo SA_RESTART. We write to a pipe in the
         # signal handler to overcome this behaviour
@@ -961,9 +963,12 @@ class PreforkServer(CommonServer):
         signal.signal(signal.SIGUSR2, log_ormcache_stats)
 
         if config['http_enable']:
-            if os.environ.get('ODOO_HTTP_SOCKET_FD'):
+            socket_fd = os.environ.get('INSILOS_HTTP_SOCKET_FD') or os.environ.get('ODOO_HTTP_SOCKET_FD')
+            if socket_fd:
                 # reload
-                self.socket = socket.socket(fileno=int(os.environ.pop('ODOO_HTTP_SOCKET_FD')))
+                os.environ.pop('INSILOS_HTTP_SOCKET_FD', None)
+                os.environ.pop('ODOO_HTTP_SOCKET_FD', None)
+                self.socket = socket.socket(fileno=int(socket_fd))
             elif config.http_socket_activation:
                 # socket activation
                 SD_LISTEN_FDS_START = 3
@@ -998,8 +1003,8 @@ class PreforkServer(CommonServer):
             http_socket_fileno = self.socket.fileno()
             flags = fcntl.fcntl(http_socket_fileno, fcntl.F_GETFD)
             fcntl.fcntl(http_socket_fileno, fcntl.F_SETFD, flags & ~fcntl.FD_CLOEXEC)
-            os.environ['ODOO_HTTP_SOCKET_FD'] = str(http_socket_fileno)
-            os.environ['ODOO_READY_SIGHUP_PID'] = str(pid)
+            os.environ['INSILOS_HTTP_SOCKET_FD'] = os.environ['ODOO_HTTP_SOCKET_FD'] = str(http_socket_fileno)
+            os.environ['INSILOS_READY_SIGHUP_PID'] = os.environ['ODOO_READY_SIGHUP_PID'] = str(pid)
 
             if not hasattr(socket, 'SO_REUSEPORT'):
                 # The new GeventServer won't be able to spawn if the address is in use
@@ -1114,8 +1119,11 @@ class PreforkServer(CommonServer):
         # Empty the cursor pool, we dont want them to be shared among forked workers.
         sql_db.close_all()
 
-        if os.environ.get('ODOO_READY_SIGHUP_PID'):
-            os.kill(int(os.environ.pop('ODOO_READY_SIGHUP_PID')), signal.SIGHUP)
+        sighup_pid = os.environ.get('INSILOS_READY_SIGHUP_PID') or os.environ.get('ODOO_READY_SIGHUP_PID')
+        if sighup_pid:
+            os.environ.pop('INSILOS_READY_SIGHUP_PID', None)
+            os.environ.pop('ODOO_READY_SIGHUP_PID', None)
+            os.kill(int(sighup_pid), signal.SIGHUP)
 
         self.logger.debug("starting")
         while True:
@@ -1159,7 +1167,8 @@ class Worker:
         self.logger = _logger.getChild(self.__class__.__name__)
 
     def setproctitle(self, title=""):
-        setproctitle('insilos: %s %s %s' % (self.__class__.__name__, self.pid, title))
+        title_suffix = f" {title}" if title else ""
+        setproctitle(f"insilos: worker {self.pid}{title_suffix}")
 
     def close(self):
         os.close(self.watchdog_pipe[0])
@@ -1273,15 +1282,19 @@ class Worker:
 
 class WorkerHTTP(Worker):
     """ HTTP Request workers """
+    def setproctitle(self, title=""):
+        title_suffix = f" {title}" if title else ""
+        setproctitle(f"insilos: worker {self.pid}{title_suffix}")
+
     def __init__(self, multi):
         super().__init__(multi)
 
-        # The ODOO_HTTP_SOCKET_TIMEOUT environment variable allows to control socket timeout for
+        # The INSILOS_HTTP_SOCKET_TIMEOUT / ODOO_HTTP_SOCKET_TIMEOUT environment variable allows to control socket timeout for
         # extreme latency situations. It's generally better to use a good buffering reverse proxy
         # to quickly free workers rather than increasing this timeout to accommodate high network
         # latencies & b/w saturation. This timeout is also essential to protect against accidental
         # DoS due to idle HTTP connections.
-        sock_timeout = os.environ.get("ODOO_HTTP_SOCKET_TIMEOUT")
+        sock_timeout = os.environ.get("INSILOS_HTTP_SOCKET_TIMEOUT") or os.environ.get("ODOO_HTTP_SOCKET_TIMEOUT")
         self.sock_timeout = float(sock_timeout) if sock_timeout else 2
 
     def process_request(self, client, addr):
@@ -1308,6 +1321,10 @@ class WorkerHTTP(Worker):
 
 class WorkerCron(Worker):
     """ Cron workers """
+
+    def setproctitle(self, title=""):
+        title_suffix = f" {title}" if title else ""
+        setproctitle(f"insilos: cron {self.pid}{title_suffix}")
 
     def __init__(self, multi):
         super().__init__(multi)
@@ -1366,7 +1383,7 @@ class WorkerCron(Worker):
         db_name = self.db_queue.popleft()
         self.setproctitle(db_name)
 
-        from odoo.addons.base.models.ir_cron import IrCron  # noqa: PLC0415
+        from ..addons.base.models.ir_cron import IrCron  # noqa: PLC0415
         contextvars.Context().run(IrCron._process_jobs, db_name)
 
         # dont keep cursors in multi database mode
@@ -1386,7 +1403,7 @@ class WorkerCron(Worker):
         super().start()
         if self.multi.socket:
             self.multi.socket.close()
-        if registries_size := os.environ.get('ODOO_REGISTRY_LRU_SIZE_CRON'):
+        if registries_size := (os.environ.get('INSILOS_REGISTRY_LRU_SIZE_CRON') or os.environ.get('ODOO_REGISTRY_LRU_SIZE_CRON')):
             Registry.registries.count = int(registries_size)
 
         dbconn = sql_db.db_connect(config['db_system'])
@@ -1415,7 +1432,7 @@ server_phoenix = False
 
 
 def load_server_wide_modules():
-    from odoo.modules.module import load_openerp_module  # noqa: PLC0415
+    from ..modules.module import load_openerp_module  # noqa: PLC0415
     with gc.disabling_gc():
         for m in config['server_wide_modules']:
             try:
@@ -1424,7 +1441,7 @@ def load_server_wide_modules():
                 msg = ''
                 if m == 'web':
                     msg = """
-    The `web` module is provided by the addons found in the `openerp-web` project.
+    The `web` module is provided by the addons found in the `web` project.
     Maybe you forgot to add those addons in your addons_path configuration."""
                 _logger.exception('Failed to load server-wide module `%s`.%s', m, msg)
 
@@ -1433,7 +1450,7 @@ _RELOAD_EXIT_CODE = 75  # EX_TEMPFAIL from sysexits.h: child asks supervisor to 
 
 
 def _reexec(updated_modules=None):
-    """reexecute openerp-server process with (nearly) the same arguments.
+    """reexecute insilos-server process with (nearly) the same arguments.
 
     Uses `os.execve` by default for pycharm environments. For debugpy
     environments, use a supervisor/subprocess design to respawn the server
@@ -1451,18 +1468,18 @@ def _reexec(updated_modules=None):
     # debugpy sets this environment variable at the start of debug sessions.
     # We can use that to make sure we are in that environment
     if os.environ.get('DEBUGPY_RUNNING') == 'true':
-        import odoo  # noqa: PLC0415
-        if not odoo.evented:
+        from .. import evented  # noqa: PLC0415
+        if not evented:
             # Subprocess: kill on reload to trigger a respawn by the supervisor.
-            if os.environ.get('ODOO_RELOAD_CHILD'):
+            if os.environ.get('INSILOS_RELOAD_CHILD') or os.environ.get('ODOO_RELOAD_CHILD'):
                 os._exit(_RELOAD_EXIT_CODE)
             # First generation: become a supervisor that respawns the actual
             # server on each reload. Each supervised child runs as a debugger
             # sub-session via debugpy's subProcess hook.
-            sock_fd = os.environ.get('ODOO_HTTP_SOCKET_FD')
+            sock_fd = os.environ.get('INSILOS_HTTP_SOCKET_FD') or os.environ.get('ODOO_HTTP_SOCKET_FD')
             pass_fds = (int(sock_fd),) if sock_fd else ()
             env = os.environ.copy()
-            env['ODOO_RELOAD_CHILD'] = '1'
+            env['INSILOS_RELOAD_CHILD'] = env['ODOO_RELOAD_CHILD'] = '1'
             rc = _RELOAD_EXIT_CODE
             while rc == _RELOAD_EXIT_CODE:
                 rc = subprocess.Popen(args, env=env, pass_fds=pass_fds).wait()
@@ -1487,7 +1504,7 @@ def preload_registries(dbnames):
 
     preload_profiler = contextlib.nullcontext()
 
-    registries_size = int(os.environ.get('ODOO_REGISTRY_LRU_SIZE') or 0)
+    registries_size = int((os.environ.get('INSILOS_REGISTRY_LRU_SIZE') or os.environ.get('ODOO_REGISTRY_LRU_SIZE')) or 0)
     if not registries_size and os.name == 'posix':
         # Size the LRU depending of the memory limits
         # A registry takes 10MB of memory on average, so we reserve
@@ -1502,14 +1519,14 @@ def preload_registries(dbnames):
     if registries_size:
         Registry.registries.count = registries_size
 
-    if registry_idle_timeout := os.environ.get("ODOO_REGISTRY_MAX_IDLE_TIMEOUT"):
+    if registry_idle_timeout := (os.environ.get("INSILOS_REGISTRY_MAX_IDLE_TIMEOUT") or os.environ.get("ODOO_REGISTRY_MAX_IDLE_TIMEOUT")):
         Registry.idle_timeout = int(registry_idle_timeout)
 
     for dbname in dbnames:
-        if os.environ.get('ODOO_PROFILE_PRELOAD'):
-            interval = float(os.environ.get('ODOO_PROFILE_PRELOAD_INTERVAL', '0.1'))
+        if os.environ.get('INSILOS_PROFILE_PRELOAD') or os.environ.get('ODOO_PROFILE_PRELOAD'):
+            interval = float(os.environ.get('INSILOS_PROFILE_PRELOAD_INTERVAL') or os.environ.get('ODOO_PROFILE_PRELOAD_INTERVAL', '0.1'))
             collectors = [profiler.PeriodicCollector(interval=interval)]
-            if os.environ.get('ODOO_PROFILE_PRELOAD_SQL'):
+            if os.environ.get('INSILOS_PROFILE_PRELOAD_SQL') or os.environ.get('ODOO_PROFILE_PRELOAD_SQL'):
                 collectors.append('sql')
             preload_profiler = profiler.Profiler(db=dbname, collectors=collectors)
         try:
@@ -1521,7 +1538,7 @@ def preload_registries(dbnames):
 
                 # run post-install tests
                 if config['test_enable']:
-                    from odoo.tests import loader  # noqa: PLC0415
+                    from ..tests import loader  # noqa: PLC0415
                     t0 = time.time()
                     t0_sql = sql_db.sql_counter
                     module_names = sorted(registry.updated_modules if update_module else
@@ -1551,15 +1568,15 @@ def preload_registries(dbnames):
 
 
 def start(preload=None, stop=False):
-    """ Start the odoo http server and cron processor.
+    """ Start the Insilos http server and cron processor.
     """
     global server  # noqa: PLW0603
 
     load_server_wide_modules()
-    import odoo  # noqa: PLC0415
-    from odoo.http.router import root  # noqa: PLC0415
+    from .. import evented  # noqa: PLC0415
+    from ..http.router import root  # noqa: PLC0415
 
-    if odoo.evented:
+    if evented:
         server = GeventServer(root)
     elif config['workers']:
         if config['test_enable']:
@@ -1573,7 +1590,7 @@ def start(preload=None, stop=False):
             # would be using malloc() concurrently [2].
             # Due to the python's GIL, this optimization have no effect on multithreaded python programs.
             # Unfortunately, a downside of creating one arena per cpu core is the increase of virtual memory
-            # which Odoo is based upon in order to limit the memory usage for threaded workers.
+            # which Insilos is based upon in order to limit the memory usage for threaded workers.
             # On 32bit systems the default size of an arena is 512K while on 64bit systems it's 64M [3],
             # hence a threaded worker will quickly reach it's default memory soft limit upon concurrent requests.
             # We therefore set the maximum arenas allowed to 2 unless the MALLOC_ARENA_MAX env variable is set.
@@ -1592,7 +1609,7 @@ def start(preload=None, stop=False):
         server = ThreadedServer(root)
 
     watcher = None
-    if 'reload' in config['dev_mode'] and not odoo.evented:
+    if 'reload' in config['dev_mode'] and not evented:
         if inotify:
             watcher = FSWatcherInotify()
             watcher.start()
