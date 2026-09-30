@@ -62,7 +62,9 @@
             this.factories.set(name, {
                 deps,
                 fn: factory,
-                ignoreMissingDeps: globalThis.__odooIgnoreMissingDependencies,
+                ignoreMissingDeps:
+                    globalThis.__insilosIgnoreMissingDependencies ??
+                    globalThis.__odooIgnoreMissingDependencies,
             });
 
             const legacyPrefix = "@" + String.fromCharCode(111, 100, 111, 111) + "/";

@@ -505,4 +505,5 @@ async function mount(C, target, config = {}) {
 }
 owl.mount = mount;
 
+owl.__INSILOS_COMPATIBILITY_LAYER_ADDED__ = true;
 owl.__ODOO_COMPATIBILITY_LAYER_ADDED__ = true;

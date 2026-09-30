@@ -176,10 +176,18 @@ async function main() {
     await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
 
     // 4. Retry any timed-out routes sequentially to rule out server concurrency contention
-    const timedOutRoutes = leakDetails.filter(d => d.leaks.some(l => l.includes('Timeout') || l.includes('page.goto')));
+    const timedOutRoutes = leakDetails.filter(d => d.leaks.some(l => l.includes('Timeout') || l.includes('page.goto') || l.includes('Target page')));
     if (timedOutRoutes.length > 0) {
         console.log(`\nRetrying ${timedOutRoutes.length} timed-out routes sequentially to eliminate parallel contention...`);
-        const retryContext = await browser.newContext({ storageState, viewport: { width: 1440, height: 900 } });
+        let retryBrowser = browser;
+        if (!browser.isConnected()) {
+            retryBrowser = await chromium.launch({
+                headless: true,
+                executablePath: '/usr/bin/google-chrome',
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            });
+        }
+        const retryContext = await retryBrowser.newContext({ storageState, viewport: { width: 1440, height: 900 } });
         const retryPage = await retryContext.newPage();
         for (const item of timedOutRoutes) {
             console.log(`Retrying [${item.appName}]...`);
@@ -192,9 +200,14 @@ async function main() {
             }
         }
         await retryContext.close().catch(() => {});
+        if (retryBrowser !== browser) {
+            await retryBrowser.close().catch(() => {});
+        }
     }
 
-    await browser.close();
+    if (browser.isConnected()) {
+        await browser.close().catch(() => {});
+    }
 
     totalLeaks = leakDetails.reduce((acc, cur) => acc + cur.leaks.length + cur.imgLeaks.length, 0);
 

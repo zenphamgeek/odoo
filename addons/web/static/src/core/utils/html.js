@@ -209,15 +209,15 @@ export function isMarkup(content) {
  * @param {string | Markup} text
  * @returns {string | Markup} the formatted text
  */
-export function odoomark(text) {
+export function insilosmark(text) {
     /**
-     * Mapping of patterns - replacer functions to apply to odoomarked strings.
+     * Mapping of patterns - replacer functions to apply to marked strings.
      *
      * For the content passed directly to `markup` (e.g. **bold** or ``tagged``):
      * the content is considered safe, as it directly comes from {@link htmlReplaceAll}
      * which uses {@link htmlEscape}.
      *
-     * Note: this list is declared inline in the `odoomark` function to avoid other
+     * Note: this list is declared inline in the `insilosmark` function to avoid other
      * functions using the marked-up replacers for injection.
      */
     const replacers = [
@@ -245,6 +245,8 @@ export function odoomark(text) {
     }
     return text;
 }
+
+export const odoomark = insilosmark;
 
 /**
  * Safely sets content on element. If content was flagged as safe HTML using `markup` it is set as

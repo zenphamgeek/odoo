@@ -110,11 +110,19 @@ const serveShareTarget = (event) => {
     event.waitUntil(
         (async () => {
             // The page sends this message to tell the service worker it's ready to receive the file.
-            await waitingMessage("odoo_share_target");
+            await Promise.race([
+                waitingMessage("insilos_share_target"),
+                waitingMessage("odoo_share_target"),
+            ]);
             const client = await self.clients.get(event.resultingClientId || event.clientId);
             const data = await event.request.formData();
+            const shared_files = data.getAll("externalMedia") || [];
             client.postMessage({
-                shared_files: data.getAll("externalMedia") || [],
+                shared_files,
+                action: "insilos_share_target_ack",
+            });
+            client.postMessage({
+                shared_files,
                 action: "odoo_share_target_ack",
             });
         })()

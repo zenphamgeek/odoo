@@ -1,24 +1,32 @@
-interface OdooModuleErrors {
+interface InsilosModuleErrors {
     cycle?: string | null;
     failed?: Set<string>;
     missing?: Set<string>;
     unloaded?: Set<string>;
 }
+type OdooModuleErrors = InsilosModuleErrors;
 
-interface OdooModuleFactory {
+interface InsilosModuleFactory {
     deps: string[];
-    fn: OdooModuleFactoryFn;
+    fn: InsilosModuleFactoryFn;
     ignoreMissingDeps: boolean;
 }
+type OdooModuleFactory = InsilosModuleFactory;
 
-class OdooModuleLoader {
+type InsilosModule = Record<string, any>;
+type OdooModule = InsilosModule;
+
+type InsilosModuleFactoryFn = (require: (dependency: string) => InsilosModule) => InsilosModule;
+type OdooModuleFactoryFn = InsilosModuleFactoryFn;
+
+class InsilosModuleLoader {
     bus: EventTarget;
     checkErrorProm: Promise<void> | null;
     debug: boolean;
     /**
      * Mapping [name => factory]
      */
-    factories: Map<string, OdooModuleFactory>;
+    factories: Map<string, InsilosModuleFactory>;
     /**
      * Names of failed modules
      */
@@ -30,33 +38,30 @@ class OdooModuleLoader {
     /**
      * Mapping [name => module]
      */
-    modules: Map<string, OdooModule>;
+    modules: Map<string, InsilosModule>;
 
     constructor(root?: HTMLElement);
     addJob: (name: string) => void;
     define: (
         name: string,
         deps: string[],
-        factory: OdooModuleFactoryFn,
+        factory: InsilosModuleFactoryFn,
         lazy?: boolean
-    ) => OdooModule;
-    findErrors: (jobs?: Iterable<string>) => OdooModuleErrors;
+    ) => InsilosModule;
+    findErrors: (jobs?: Iterable<string>) => InsilosModuleErrors;
     findJob: () => string | null;
-    reportErrors: (errors: OdooModuleErrors) => Promise<void>;
-    require: (dependency: string) => OdooModule;
+    reportErrors: (errors: InsilosModuleErrors) => Promise<void>;
+    require: (dependency: string) => InsilosModule;
     sortFactories: () => void;
-    startModule: (name: string) => OdooModule;
+    startModule: (name: string) => InsilosModule;
     startModules: () => void;
 }
-
-type OdooModule = Record<string, any>;
-
-type OdooModuleFactoryFn = (require: (dependency: string) => OdooModule) => OdooModule;
+type OdooModuleLoader = InsilosModuleLoader;
 
 declare const insilos: {
     csrf_token: string;
     debug: string;
-    define: OdooModuleLoader["define"];
-    loader: OdooModuleLoader;
+    define: InsilosModuleLoader["define"];
+    loader: InsilosModuleLoader;
     translationContext?: string;
 };

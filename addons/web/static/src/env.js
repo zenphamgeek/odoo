@@ -7,7 +7,8 @@ import { getTemplate } from "@web/core/templates";
 import { session } from "@web/session";
 
 /**
- * @typedef {{}} OdooEnv
+ * @typedef {{}} InsilosEnv
+ * @typedef {InsilosEnv} OdooEnv
  */
 
 // Keys that used to be on the env and are now provided elsewhere. Reading one
@@ -27,7 +28,7 @@ const REMOVED_KEYS = {
 /**
  * Return a value Insilos Env object
  *
- * @returns {OdooEnv}
+ * @returns {InsilosEnv}
  */
 export function makeEnv() {
     // `bus` is set by `EnvBusBridgePlugin` once the app's plugins start.

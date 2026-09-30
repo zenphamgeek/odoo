@@ -49,7 +49,7 @@ import { _t } from "@web/core/l10n/translation";
 import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { usePopover } from "@web/core/popover/popover_hook";
 import { user } from "@web/core/user";
-import { odoomark } from "@web/core/utils/html";
+import { insilosmark, odoomark } from "@web/core/utils/html";
 import { exprToBoolean } from "@web/core/utils/strings";
 import { MOVABLE_RECORD_TYPES } from "@web/model/relational_model/dynamic_group_list";
 import { ActionHelper } from "@web/views/action_helper";
@@ -193,6 +193,7 @@ export class ListRenderer extends Component {
         const onGlobalClick = this.onGlobalClick.bind(this);
         onMounted(() => window.addEventListener("click", onGlobalClick, { capture: true }));
         onWillUnmount(() => window.removeEventListener("click", onGlobalClick, { capture: true }));
+        this.insilosmark = insilosmark;
         this.odoomark = odoomark;
 
         this.longTouchTimer = null;
