@@ -24,17 +24,21 @@ MODULE_SEARCH_PATHS = [
 SPECIAL_TARGETS = {
     'base.menu_management': [
         os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'modules.svg'),
+        os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'modules.png'),
     ],
     'base.menu_administration': [
         os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'settings.svg'),
+        os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'settings.png'),
     ],
     'hr_timesheet': [
         os.path.join(REPO_ROOT, 'addons', 'hr_timesheet', 'static', 'description', 'icon.svg'),
         os.path.join(REPO_ROOT, 'addons', 'hr_timesheet', 'static', 'description', 'icon_timesheet.svg'),
+        os.path.join(REPO_ROOT, 'addons', 'hr_timesheet', 'static', 'description', 'icon_timesheet.png'),
     ],
     'mrp_workorder': [
         os.path.join(REPO_ROOT, 'enterprise', 'mrp_workorder', 'static', 'description', 'icon.svg'),
         os.path.join(REPO_ROOT, 'enterprise', 'mrp_workorder', 'static', 'description', 'mrp_display_icon.svg'),
+        os.path.join(REPO_ROOT, 'enterprise', 'mrp_workorder', 'static', 'description', 'mrp_display_icon.png'),
     ],
 }
 
@@ -123,19 +127,27 @@ def full_check():
                 errors.append(f"Target icon missing: {os.path.relpath(target, REPO_ROOT)}")
                 continue
 
-            with open(target, 'r', encoding='utf-8') as f:
-                content = f.read()
+            if target.endswith('.png'):
+                with open(target, 'rb') as f:
+                    png_header = f.read(8)
+                if not png_header.startswith(b'\x89PNG\r\n\x1a\n'):
+                    errors.append(f"Target is not a valid PNG binary: {os.path.relpath(target, REPO_ROOT)}")
+                if os.path.getsize(target) < 500:
+                    errors.append(f"Target PNG file too small (<500B): {os.path.relpath(target, REPO_ROOT)}")
+            else:
+                with open(target, 'r', encoding='utf-8') as f:
+                    content = f.read()
 
-            if '<svg' not in content:
-                errors.append(f"Target is not an SVG: {os.path.relpath(target, REPO_ROOT)}")
-            if 'viewBox="0 0 256 256"' not in content:
-                errors.append(f"Invalid viewBox in {os.path.relpath(target, REPO_ROOT)}")
-            if '#0B2E64' not in content and 'currentColor' not in content:
-                errors.append(f"Invalid color in {os.path.relpath(target, REPO_ROOT)}, must be #0B2E64")
-            if 'opacity="0.2"' not in content:
-                errors.append(f"Missing duotone layer opacity='0.2' in {os.path.relpath(target, REPO_ROOT)}")
-            if '<image ' in content or 'data:image/' in content:
-                errors.append(f"Embedded raster detected in vector launcher: {os.path.relpath(target, REPO_ROOT)}")
+                if '<svg' not in content:
+                    errors.append(f"Target is not an SVG: {os.path.relpath(target, REPO_ROOT)}")
+                if 'viewBox="0 0 256 256"' not in content:
+                    errors.append(f"Invalid viewBox in {os.path.relpath(target, REPO_ROOT)}")
+                if '#0B2E64' not in content and 'currentColor' not in content:
+                    errors.append(f"Invalid color in {os.path.relpath(target, REPO_ROOT)}, must be #0B2E64")
+                if 'opacity="0.2"' not in content:
+                    errors.append(f"Missing duotone layer opacity='0.2' in {os.path.relpath(target, REPO_ROOT)}")
+                if '<image ' in content or 'data:image/' in content:
+                    errors.append(f"Embedded raster detected in vector launcher: {os.path.relpath(target, REPO_ROOT)}")
 
     if errors:
         print(f"\n[FAIL] Integrity check failed with {len(errors)} errors:")

@@ -15,7 +15,11 @@ import os
 import re
 import shutil
 import sys
-import cairosvg
+try:
+    import cairosvg
+except ImportError:
+    cairosvg = None
+import subprocess
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 PRIMARY_CANONICAL_DIR = os.path.join(REPO_ROOT, 'tools', 'phosphor_duotone')
@@ -124,6 +128,12 @@ SPECIAL_TARGETS = {
     'base': [
         (os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'icon.svg'), 'svg'),
         (os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'icon.png'), 'png'),
+        (os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'exception.svg'), 'svg'),
+        (os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'exception.png'), 'png'),
+    ],
+    'base.menu_tests': [
+        (os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'exception.svg'), 'svg'),
+        (os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'exception.png'), 'png'),
     ],
     'board': [
         (os.path.join(REPO_ROOT, 'odoo', 'addons', 'base', 'static', 'description', 'board.svg'), 'svg'),
@@ -133,12 +143,15 @@ SPECIAL_TARGETS = {
         (os.path.join(REPO_ROOT, 'addons', 'hr_timesheet', 'static', 'description', 'icon.svg'), 'svg'),
         (os.path.join(REPO_ROOT, 'addons', 'hr_timesheet', 'static', 'description', 'icon.png'), 'png'),
         (os.path.join(REPO_ROOT, 'addons', 'hr_timesheet', 'static', 'description', 'icon_timesheet.svg'), 'svg'),
+        (os.path.join(REPO_ROOT, 'addons', 'hr_timesheet', 'static', 'description', 'icon_timesheet.png'), 'png'),
         (os.path.join(REPO_ROOT, 'enterprise', 'hr_timesheet', 'static', 'description', 'icon_timesheet.svg'), 'svg'),
+        (os.path.join(REPO_ROOT, 'enterprise', 'hr_timesheet', 'static', 'description', 'icon_timesheet.png'), 'png'),
     ],
     'mrp_workorder': [
         (os.path.join(REPO_ROOT, 'enterprise', 'mrp_workorder', 'static', 'description', 'icon.svg'), 'svg'),
         (os.path.join(REPO_ROOT, 'enterprise', 'mrp_workorder', 'static', 'description', 'icon.png'), 'png'),
         (os.path.join(REPO_ROOT, 'enterprise', 'mrp_workorder', 'static', 'description', 'mrp_display_icon.svg'), 'svg'),
+        (os.path.join(REPO_ROOT, 'enterprise', 'mrp_workorder', 'static', 'description', 'mrp_display_icon.png'), 'png'),
     ],
     'l10n': [
         (os.path.join(REPO_ROOT, 'addons', 'account', 'static', 'description', 'l10n.svg'), 'svg'),
@@ -215,7 +228,12 @@ def compile_duotone_svg(src_svg_path):
 
 def compile_png(compiled_svg):
     """Render genuine 256x256 PNG bytes from compiled SVG."""
-    return cairosvg.svg2png(bytestring=compiled_svg.encode('utf-8'), output_width=256, output_height=256)
+    if cairosvg is not None:
+        return cairosvg.svg2png(bytestring=compiled_svg.encode('utf-8'), output_width=256, output_height=256)
+    cairosvg_bin = shutil.which('cairosvg') or '/home/zen/.local/bin/cairosvg'
+    cmd = [cairosvg_bin, '-', '-f', 'png', '-o', '-', '-W', '256', '-H', '256']
+    p = subprocess.run(cmd, input=compiled_svg.encode('utf-8'), stdout=subprocess.PIPE, check=True)
+    return p.stdout
 
 def find_all_modules():
     """Discover all modules with a __manifest__.py in search paths."""
