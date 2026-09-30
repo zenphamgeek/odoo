@@ -1,8 +1,11 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "platform": "Insilos Enterprise Platform",
   "target_base_url": "http://localhost:28069",
-  "generated_at": "2026-09-30T00:27:30.401396",
+  "generated_at": "2026-09-30T00:40:04.229157",
+  "seed_data_matrix_file": "footage_dossier/SEED_DATA_MATRIX.md",
+  "screen_recording_standards_file": "footage_dossier/SCREEN_RECORDING_STANDARDS.md",
+  "dossier_index_file": "footage_dossier/DOSSIER_INDEX.md",
   "council_stakeholders": [
     "Sales Director of SAP",
     "Marketing Director of Google",
@@ -15,30 +18,40 @@
   "dossiers": [
     {
       "id": "VID_01_CRM",
+      "standard_id": "VID_01_CRM",
+      "canonical_id": "VID_01_CRM",
+      "standard_filename": "DOSSIER_VID_01_CRM.md",
+      "canonical_filename": "DOSSIER_VID_01_CRM.md",
       "code": "VID-01",
       "title": "Quản Trị Bán Hàng Dự Án & Đấu Thầu Cảng Biển Quốc Tế",
-      "domain": "CRM & Bidding",
+      "domain": "CRM & Bidding (SAP SD/CRM)",
       "stakeholder_lead": "Sales Director of SAP",
       "video_file": "INSILOS_VID_01_CRM_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_01_CRM_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "sale.order",
       "record_id": 1,
       "action_id": 561,
       "deep_link": "http://localhost:28069/web#id=1&model=sale.order&view_type=form&action=561",
       "seed_data": {
+        "partner": "Tổng Công ty Tân Cảng Sài Gòn (Saigon Newport - SNP)",
         "customer": "Tổng Công ty Tân Cảng Sài Gòn (Saigon Newport - SNP)",
         "vat": "0300481234",
         "address": "Cảng Cát Lái, Đường Nguyễn Thị Định, TP Thủ Đức, TP Hồ Chí Minh",
         "tender_package": "Gói Thầu Mua Sắm Thiết Bị Xe Kéo Điện Cảng & Trạm Sạc Siêu Nhanh 2026",
         "quote_ref": "#VN-SO2026-001",
+        "document_numbers": "Báo giá #VN-SO2026-001 / Hợp đồng kinh tế #HĐ-SNP-2026-09",
         "total_value_vnd": 2295000000,
         "total_value_formatted": "2,295,000,000 ₫",
+        "contract_value_vnd": 2295000000,
+        "contract_value_formatted": "2,295,000,000 ₫",
         "tender_potential_vnd": 18675000000,
         "tender_potential_formatted": "18,675,000,000 ₫",
         "line_items": [
           {
             "product": "Xe kéo điện chuyên dụng cảng biển V-LIFT 2500E (40 tấn)",
+            "specs": "Tải trọng kéo 40 tấn, Động cơ AC 45kW, Pin Lithium LFP 80V/600Ah",
             "qty": 5,
             "uom": "Chiếc",
             "unit_price": 385000000,
@@ -46,6 +59,7 @@
           },
           {
             "product": "Trạm sạc nhanh công nghiệp Dual-Gun DC 180kW",
+            "specs": "Công suất 180kW, Chuẩn sạc CCS2 công nghiệp, 2 cổng sạc đồng thời",
             "qty": 2,
             "uom": "Bộ",
             "unit_price": 185000000,
@@ -113,36 +127,54 @@
         "manufacturing_dir": "Lệnh bán hàng tự động đẩy nhu cầu sản xuất sang phân hệ Sản xuất (PP) mà không cần nhập liệu thủ công lại."
       },
       "impact_metrics": {
-        "tco_savings_annual": "2,029,050,000 ₫ / Năm",
-        "roi_payback": "6.2 Tháng",
-        "win_rate_boost": "+28.4% Tỷ lệ thắng thầu",
+        "tco_savings_annual": "₫2,029,050,000 / Năm (Tiết kiệm từ tự động hóa cấu hình BOM và loại bỏ chi phí tích hợp phần mềm rời rạc)",
+        "roi_payback": "6.2 Tháng (Thu hồi vốn đầu tư chuyển đổi số nền tảng)",
+        "oee_benchmark": "Tăng 18.5% hiệu quả khai thác thiết bị cảng biển (Fleet OEE)",
+        "lead_time_metric": "15 Giây tạo báo giá phức tạp (Rút ngắn 99.7% từ 7.5 ngày thủ công)",
+        "win_rate_and_compliance": "+28.4% Tăng tỷ lệ thắng thầu dự án (Đạt 95% tỷ lệ chốt thầu thành công)",
         "quote_turnaround": "15 Giây (từ 7.5 Ngày)",
-        "margin_assurance": "100% Khóa biên lãi >= 24%"
-      }
+        "margin_assurance": "100% Khóa biên lãi >= 24.5%"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_01_CRM.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_01_CRM.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_01_CRM.md",
+        "footage_dossier/chapters/DOSSIER_VID_01_CRM.md"
+      ]
     },
     {
-      "id": "VID_02_PUR",
+      "id": "VID_02_PURCHASE",
+      "standard_id": "VID_02_PURCHASE",
+      "canonical_id": "VID_02_PUR",
+      "standard_filename": "DOSSIER_VID_02_PURCHASE.md",
+      "canonical_filename": "DOSSIER_VID_02_PUR.md",
       "code": "VID-02",
       "title": "PO Thép Tấm Tiêu Chuẩn 20 Tấn & Đối Soát Đơn Giá #VN-PO2026-001",
-      "domain": "Procurement",
+      "domain": "Procurement & Materials Management (SAP MM)",
       "stakeholder_lead": "TCO Expert of IBM",
       "video_file": "INSILOS_VID_02_PUR_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_02_PUR_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "purchase.order",
       "record_id": 1,
       "action_id": 758,
       "deep_link": "http://localhost:28069/web#id=1&model=purchase.order&view_type=form&action=758",
       "seed_data": {
+        "partner": "Công ty CP Tập đoàn Hòa Phát - Chi nhánh Thép & Ống thép Hưng Yên",
         "vendor": "Công ty CP Tập đoàn Hòa Phát - Chi nhánh Thép & Ống thép Hưng Yên",
         "vat": "0900234567",
         "address": "KCN Phố Nối A, Xã Giai Phạm, Huyện Yên Mỹ, Tỉnh Hưng Yên",
         "po_ref": "#VN-PO2026-001",
+        "document_numbers": "Đơn mua hàng #VN-PO2026-001 / Hợp đồng khung #PO-HP-2026-08",
         "total_value_vnd": 537000000,
         "total_value_formatted": "537,000,000 ₫",
+        "contract_value_vnd": 537000000,
+        "contract_value_formatted": "537,000,000 ₫",
         "line_items": [
           {
             "product": "Thép tấm kết cấu SS400 (Dày 12mm x Rộng 1500mm x Dài 6000mm)",
+            "specs": "Tiêu chuẩn JIS G3101 SS400, Dung sai chiều dày ±0.3mm, Chứng chỉ Mill Test Certificate Form A",
             "qty": 20000,
             "uom": "kg",
             "unit_price": 24500,
@@ -150,6 +182,10 @@
           },
           {
             "product": "Thuế GTGT (VAT 10% / Giảm trừ theo Nghị quyết)",
+            "specs": "Thuế suất giá trị gia tăng hàng sản xuất công nghiệp",
+            "qty": 1,
+            "uom": "Gói",
+            "unit_price": 47000000,
             "subtotal": 47000000
           }
         ],
@@ -214,34 +250,55 @@
         "manufacturing_dir": "Đảm bảo đúng chủng loại thép SS400 tiêu chuẩn JIS G3101 cho trạm cắt laser fiber."
       },
       "impact_metrics": {
-        "procurement_cycle": "Rút ngắn 65% thời gian tạo PO",
-        "price_variance": "0% Chênh lệch đơn giá thu mua",
+        "tco_savings_annual": "₫345,600,000 / Năm (Tiết kiệm từ khóa cứng đơn giá hợp đồng khung và zero chênh lệch thị trường)",
+        "roi_payback": "5.8 Tháng (Thời gian hoàn vốn giải pháp mua hàng tự động)",
+        "oee_benchmark": "Tăng 4.8% OEE trạm cắt CNC nhờ cung ứng vật tư thép SS400 chuẩn quy cách đúng hạn JIT",
+        "lead_time_metric": "Rút ngắn 65% thời gian phát hành PO (từ 4 ngày xuống 1.5 giờ)",
+        "win_rate_and_compliance": "100% Tuân thủ hợp đồng khung và chỉ tiêu thu mua doanh nghiệp",
+        "price_variance": "0.0% Chênh lệch đơn giá thu mua so với hợp đồng khung",
         "material_availability": "99.8% Sẵn sàng vật tư trước giờ cắt"
-      }
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_02_PURCHASE.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_02_PUR.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_02_PUR.md",
+        "footage_dossier/chapters/DOSSIER_VID_02_PUR.md"
+      ]
     },
     {
-      "id": "VID_03_INV",
+      "id": "VID_03_INVENTORY",
+      "standard_id": "VID_03_INVENTORY",
+      "canonical_id": "VID_03_INV",
+      "standard_filename": "DOSSIER_VID_03_INVENTORY.md",
+      "canonical_filename": "DOSSIER_VID_03_INV.md",
       "code": "VID-03",
       "title": "Kiểm Kê Cáp Điện Tiêu Chuẩn 3.500m & Quét Barcode Truy Vết Lô",
-      "domain": "Inventory & Barcode",
+      "domain": "Inventory & Barcode (SAP IM/WM)",
       "stakeholder_lead": "Logistics Dept Head",
       "video_file": "INSILOS_VID_03_INV_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_03_INV_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "stock.picking",
       "record_id": 2,
       "action_id": 258,
       "deep_link": "http://localhost:28069/web#id=2&model=stock.picking&view_type=form&action=258",
       "seed_data": {
-        "picking_ref": "WH/IN/00002",
         "partner": "Công ty CP Dây cáp điện Việt Nam (CADIVI)",
+        "vat": "0300987654",
+        "address": "70-72 Nam Kỳ Khởi Nghĩa, Phường Bến Thành, Quận 1, TP Hồ Chí Minh",
+        "picking_ref": "WH/IN/00002",
+        "document_numbers": "Phiếu nhập kho WH/IN/00002 / Lô hàng LOT-202609-CAD-001",
         "product": "Cáp điện đồng công nghiệp Cadivi 3x10+1x6 mm2 (Cu/PVC/PVC 0.6/1kV)",
+        "specs": "Tiêu chuẩn TCVN 5935-1 / IEC 60502-1, Lõi đồng cấp 2, Cách điện PVC, Vỏ bọc bảo vệ chịu dầu",
         "quantity_ordered": 3500,
         "quantity_done": 3500,
         "uom": "Mét (m)",
         "lot_number": "LOT-202609-CAD-001",
         "warehouse": "Kho Vật Tư Điện & Thiết Bị Tân Cảng (WH/Stock)",
-        "barcode_scanned": "8935001234567"
+        "barcode_scanned": "8935001234567",
+        "contract_value_vnd": 420000000,
+        "contract_value_formatted": "420,000,000 ₫"
       },
       "audio_metrics": {
         "integrated_loudness": "-14.7 LUFS",
@@ -301,44 +358,67 @@
         "manufacturing_dir": "Vật tư điện về kho được chuyển trạng thái sẵn sàng ngay lập tức cho tổ lắp ráp tủ điện điều khiển."
       },
       "impact_metrics": {
-        "inventory_accuracy": "99.98% Độ chính xác kiểm kê",
-        "receiving_time": "Giảm 75% thời gian tiếp nhận vật tư",
-        "paperless_rate": "100% Loại bỏ phiếu giấy"
-      }
+        "tco_savings_annual": "₫186,000,000 / Năm (Tiết kiệm từ loại bỏ hao hụt mét cáp và chi phí đền bù xuất nhầm quy cách)",
+        "roi_payback": "4.5 Tháng (Thời gian hoàn vốn máy quét barcode và module WMS)",
+        "oee_benchmark": "Duy trì 92.5% OEE dây chuyền lắp ráp nhờ nguyên liệu sẵn sàng tại kho",
+        "lead_time_metric": "Giảm 75% thời gian tiếp nhận và phân loại vật tư (từ 4 giờ xuống 45 phút)",
+        "win_rate_and_compliance": "99.98% Độ chính xác số dư tồn kho kiểm kê thực tế",
+        "paperless_rate": "100% Loại bỏ phiếu giấy trong kho"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_03_INVENTORY.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_03_INV.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_03_INV.md",
+        "footage_dossier/chapters/DOSSIER_VID_03_INV.md"
+      ]
     },
     {
       "id": "VID_04_BOM",
+      "standard_id": "VID_04_BOM",
+      "canonical_id": "VID_04_BOM",
+      "standard_filename": "DOSSIER_VID_04_BOM.md",
+      "canonical_filename": "DOSSIER_VID_04_BOM.md",
       "code": "VID-04",
       "title": "BOM Đa Tầng Xe Kéo V-LIFT 2500E & Lệnh Cắt Laser WH/MO/00010",
-      "domain": "Manufacturing & BOM",
-      "stakeholder_lead": "Giám đốc Sản xuất",
+      "domain": "Manufacturing & BOM (SAP PP)",
+      "stakeholder_lead": "Giám đốc Sản xuất (Manufacturing Director)",
       "video_file": "INSILOS_VID_04_BOM_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_04_BOM_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "mrp.production",
       "record_id": 10,
       "action_id": 367,
       "deep_link": "http://localhost:28069/web#id=10&model=mrp.production&view_type=form&action=367",
       "seed_data": {
+        "partner": "Công ty Chế Tạo Máy & Thiết Bị Cảng V-LIFT",
+        "vat": "0312456789",
+        "address": "Khu Công Nghệ Cao TP.HCM, Phường Long Thạnh Mỹ, TP Thủ Đức, TP Hồ Chí Minh",
         "mo_ref": "WH/MO/00010",
+        "document_numbers": "Lệnh sản xuất WH/MO/00010 / Định mức kỹ thuật BOM-CHASSIS-25E-V1",
         "product": "Cụm Khung gầm Chassis hàn gia công (V-LIFT Frame)",
         "product_code": "SF-CHASSIS-25E",
         "bom_code": "BOM-CHASSIS-25E-V1",
         "quantity": 4,
         "uom": "Cụm",
+        "contract_value_vnd": 850000000,
+        "contract_value_formatted": "850,000,000 ₫",
         "components": [
           {
             "item": "Thép tấm SS400 12mm x 1500mm x 6000mm",
+            "specs": "JIS G3101 SS400, cắt CNC Laser độ chính xác cao",
             "qty": 1800,
             "uom": "kg"
           },
           {
             "item": "Bulong cường độ cao M20x80 cấp bền 8.8",
+            "specs": "ISO 4014 / DIN 931 thép hợp kim tôi nhiệt",
             "qty": 96,
             "uom": "Cái"
           },
           {
             "item": "Que hàn / Dây hàn CO2 ER70S-6",
+            "specs": "AWS A5.18 ER70S-6 đường kính 1.2mm",
             "qty": 72,
             "uom": "kg"
           }
@@ -403,27 +483,48 @@
         "manufacturing_dir": "Cho phép thay thế linh kiện tương đương linh hoạt mà không làm gián đoạn kế hoạch sản xuất chính."
       },
       "impact_metrics": {
+        "tco_savings_annual": "₫412,000,000 / Năm (Tiết kiệm từ giảm phế phẩm thép và tối ưu hóa nesting phôi cắt)",
+        "roi_payback": "5.2 Tháng (Thời gian hoàn vốn đầu tư số hóa BOM và MRP)",
+        "oee_benchmark": "Nâng OEE trạm cắt Laser CNC lên 92.8% nhờ tính sẵn sàng 100% của phôi thép",
+        "lead_time_metric": "Tạo và phê duyệt BOM đa tầng nhanh gấp 4 lần (từ 5 ngày xuống 1 ngày)",
+        "win_rate_and_compliance": "99.2% Tỷ lệ chi tiết cơ khí đạt kiểm định chất lượng lần đầu (First-pass yield)",
         "scrap_reduction": "Giảm 94% phế phẩm do lỗi BOM",
-        "bom_accuracy": "100% Khớp định mức kỹ thuật",
-        "engineering_turnaround": "Tạo BOM đa tầng nhanh gấp 4 lần"
-      }
+        "bom_accuracy": "100% Khớp định mức kỹ thuật"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_04_BOM.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_04_BOM.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_04_BOM.md",
+        "footage_dossier/chapters/DOSSIER_VID_04_BOM.md"
+      ]
     },
     {
-      "id": "VID_05_PLN",
+      "id": "VID_05_PLANNING",
+      "standard_id": "VID_05_PLANNING",
+      "canonical_id": "VID_05_PLN",
+      "standard_filename": "DOSSIER_VID_05_PLANNING.md",
+      "canonical_filename": "DOSSIER_VID_05_PLN.md",
       "code": "VID-05",
       "title": "Điều Độ Kế Hoạch Sản Xuất Gantt & Cân Bằng Phụ Tải Máy",
-      "domain": "Planning & Gantt",
-      "stakeholder_lead": "Giám đốc Sản xuất",
+      "domain": "Planning & Gantt (SAP PP/DS)",
+      "stakeholder_lead": "Giám đốc Sản xuất (Manufacturing Director)",
       "video_file": "INSILOS_VID_05_PLN_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_05_PLN_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "mrp.production",
       "record_id": 10,
       "action_id": 367,
       "deep_link": "http://localhost:28069/web#id=10&model=mrp.production&view_type=form&action=367",
       "seed_data": {
+        "partner": "Xưởng Cơ Khí Chế Tạo Máy V-LIFT (Hệ sinh thái Tân Cảng)",
+        "vat": "0312456789",
+        "address": "Khu Công Nghệ Cao TP.HCM, Phường Long Thạnh Mỹ, TP Thủ Đức, TP Hồ Chí Minh",
         "planning_horizon": "Tháng 10/2026",
         "mps_target": "50 Xe kéo V-LIFT & 20 Khung gầm Chassis",
+        "document_numbers": "Kế hoạch MPS-2026-10 / Lệnh điều độ GANTT-PP-1024",
+        "contract_value_vnd": 18675000000,
+        "contract_value_formatted": "18,675,000,000 ₫",
         "workcenters": [
           "Trạm Cắt Laser CNC 12kW",
           "Trạm Robot Hàn SS400",
@@ -491,28 +592,48 @@
         "manufacturing_dir": "Giúp quản đốc phân xưởng nhìn thấy trước nguy cơ thiếu hụt máy trước 2 tuần để chủ động bố trí nhân lực."
       },
       "impact_metrics": {
-        "on_time_delivery": "99.4% Giao hàng đúng hạn",
-        "capacity_utilization": "+22% Tối ưu hiệu suất máy",
-        "planning_hours": "Giảm từ 2 ngày xuống 30 phút"
-      }
+        "tco_savings_annual": "₫528,000,000 / Năm (Tiết kiệm từ tránh đầu tư thêm máy móc CapEx và phạt chậm tiến độ)",
+        "roi_payback": "5.0 Tháng (Thu hồi vốn phần mềm lập kế hoạch nâng cao)",
+        "oee_benchmark": "Tăng 22.4% hiệu suất phụ tải máy móc toàn xưởng (Cân bằng từ 112% nghẽn về 88% tối ưu)",
+        "lead_time_metric": "Rút ngắn chu kỳ lập kế hoạch điều độ từ 2 ngày xuống 30 phút",
+        "win_rate_and_compliance": "99.4% Giao hàng đúng hạn cam kết hợp đồng (On-Time Delivery)",
+        "capacity_utilization": "+22% Tối ưu hóa công suất thiết bị"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_05_PLANNING.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_05_PLN.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_05_PLN.md",
+        "footage_dossier/chapters/DOSSIER_VID_05_PLN.md"
+      ]
     },
     {
-      "id": "VID_06_SFL",
+      "id": "VID_06_SHOPFLOOR",
+      "standard_id": "VID_06_SHOPFLOOR",
+      "canonical_id": "VID_06_SFL",
+      "standard_filename": "DOSSIER_VID_06_SHOPFLOOR.md",
+      "canonical_filename": "DOSSIER_VID_06_SFL.md",
       "code": "VID-06",
       "title": "Shop Floor Tablet Xưởng Cơ Khí & Đo OEE Thời Gian Thực",
-      "domain": "MES & Shop Floor",
-      "stakeholder_lead": "Giám đốc Sản xuất",
+      "domain": "MES & Shop Floor (SAP DMC)",
+      "stakeholder_lead": "Giám đốc Sản xuất (Manufacturing Director)",
       "video_file": "INSILOS_VID_06_SFL_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_06_SFL_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "mrp.production",
       "record_id": 10,
       "action_id": 367,
       "deep_link": "http://localhost:28069/web#id=10&model=mrp.production&view_type=form&action=367",
       "seed_data": {
+        "partner": "Phân Xưởng Cơ Khí Chính Xác V-LIFT",
+        "vat": "0312456789",
+        "address": "Khu Công Nghệ Cao TP.HCM, Phường Long Thạnh Mỹ, TP Thủ Đức, TP Hồ Chí Minh",
         "tablet_station": "Máy tính bảng cảm ứng công nghiệp Trạm Cắt Laser CNC-01",
         "operator": "Kỹ thuật viên Nguyễn Văn Hùng (Mã NV: INS-ENG-089)",
         "workorder": "WO/00024 - Cắt phôi chi tiết thân xe kéo SS400 12mm",
+        "document_numbers": "Lệnh công tác WO/00024 / Phiếu nghiệm thu QC-MES-2026-092",
+        "contract_value_vnd": 420000000,
+        "contract_value_formatted": "420,000,000 ₫",
         "target_oee": 92.5,
         "availability": 94.2,
         "performance": 98.1,
@@ -578,33 +699,53 @@
         "manufacturing_dir": "Công cụ đắc lực nhất cho quản đốc: nhìn thấy ngay máy nào đang dừng và lý do dừng để can thiệp trong vòng 3 phút."
       },
       "impact_metrics": {
-        "oee_benchmark": "92.5% OEE Thực tế (Chuẩn Gold)",
-        "downtime_reduction": "Giảm 45% thời gian dừng máy chờ việc",
+        "tco_savings_annual": "₫380,000,000 / Năm (Tiết kiệm từ giảm giờ máy dừng không tải và loại bỏ sai lỗi ghi chép giấy)",
+        "roi_payback": "4.8 Tháng (Thời gian hoàn vốn hệ thống MES Shop Floor)",
+        "oee_benchmark": "92.5% OEE Thực Tế Chuẩn Gold (Khả dụng: 94.2%, Hiệu suất: 98.1%, Chất lượng: 99.8%)",
+        "lead_time_metric": "Giảm 45% thời gian máy dừng chờ việc và bóc tách bản vẽ",
+        "win_rate_and_compliance": "99.8% Tỷ lệ chi tiết cơ khí đạt chuẩn dung sai ngay từ lần đầu",
         "paperless_shopfloor": "100% Loại bỏ lệnh sản xuất giấy"
-      }
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_06_SHOPFLOOR.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_06_SFL.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_06_SFL.md",
+        "footage_dossier/chapters/DOSSIER_VID_06_SFL.md"
+      ]
     },
     {
-      "id": "VID_07_FLT",
+      "id": "VID_07_FLEET",
+      "standard_id": "VID_07_FLEET",
+      "canonical_id": "VID_07_FLT",
+      "standard_filename": "DOSSIER_VID_07_FLEET.md",
+      "canonical_filename": "DOSSIER_VID_07_FLT.md",
       "code": "VID-07",
       "title": "Giám Sát Đầu Kéo 51C-982.45, ODO 142.500km & Định Mức Dầu PVOIL",
-      "domain": "Fleet & Fuel",
+      "domain": "Fleet & Fuel (SAP TM)",
       "stakeholder_lead": "Logistics Dept Head",
       "video_file": "INSILOS_VID_07_FLT_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_07_FLT_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "fleet.vehicle",
       "record_id": 6,
       "action_id": 738,
       "deep_link": "http://localhost:28069/web#id=6&model=fleet.vehicle&view_type=form&action=738",
       "seed_data": {
+        "partner": "Tổng Công ty Dầu Việt Nam (PVOIL)",
+        "vat": "0305795054",
+        "address": "Tầng 14, Tòa nhà PetroVietnam Tower, 1-5 Lê Duẩn, Bến Nghé, Quận 1, TP Hồ Chí Minh",
         "license_plate": "51C-982.45",
+        "document_numbers": "Hồ sơ xe 51C-982.45 / Phiếu dịch vụ FLT-SRV-2026-006",
         "vehicle_type": "Hyundai Xcient GT 440PS Prime Mover (Đầu kéo 6x4)",
         "driver": "Tài xế Nguyễn Tuấn Anh (GPLX Hạng FC)",
         "odometer_km": 142500,
         "fuel_card": "PVOIL Easy #PV-8924-0012",
         "fuel_norm": "32.0 Lít / 100km (Kèm tải 35 tấn)",
         "fuel_actual": "31.4 Lít / 100km (Tiết kiệm 1.87%)",
-        "fuel_cost_month_vnd": 86450000
+        "fuel_cost_month_vnd": 86450000,
+        "contract_value_vnd": 1037400000,
+        "contract_value_formatted": "1,037,400,000 ₫ / Năm"
       },
       "audio_metrics": {
         "integrated_loudness": "-14.8 LUFS",
@@ -664,32 +805,52 @@
         "manufacturing_dir": "Đảm bảo đội xe luôn trong tình trạng kỹ thuật hoàn hảo để vận chuyển hàng hóa xuất khẩu đúng giờ."
       },
       "impact_metrics": {
-        "fuel_cost_savings": "Cắt giảm 8.4% chi phí nhiên liệu",
-        "fleet_uptime": "98.5% Tỷ lệ xe sẵn sàng hoạt động",
-        "maintenance_compliance": "100% Bảo dưỡng đúng lịch ODO"
-      }
+        "tco_savings_annual": "₫340,500,000 / Năm (Tiết kiệm từ cắt giảm 8.4% chi phí nhiên liệu thất thoát trên đoàn 10 xe)",
+        "roi_payback": "3.9 Tháng (Thời gian hoàn vốn hệ thống quản lý đội xe)",
+        "oee_benchmark": "98.5% Hệ số sẵn sàng vận hành của phương tiện (Fleet Availability Uptime)",
+        "lead_time_metric": "Tự động hóa đối soát hóa đơn đổ dầu PVOIL Easy trong 30 giây",
+        "win_rate_and_compliance": "100% Tuân thủ bảo dưỡng đúng lịch ODO thực tế",
+        "fuel_cost_savings": "Cắt giảm 8.4% chi phí nhiên liệu"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_07_FLEET.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_07_FLT.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_07_FLT.md",
+        "footage_dossier/chapters/DOSSIER_VID_07_FLT.md"
+      ]
     },
     {
-      "id": "VID_08_FUL",
+      "id": "VID_08_FULFILLMENT",
+      "standard_id": "VID_08_FULFILLMENT",
+      "canonical_id": "VID_08_FUL",
+      "standard_filename": "DOSSIER_VID_08_FULFILLMENT.md",
+      "canonical_filename": "DOSSIER_VID_08_FUL.md",
       "code": "VID-08",
       "title": "Khóa Chốt An Toàn Đăng Kiểm Rơ-moóc 51R-089.34 & Tự Động Phê Duyệt",
-      "domain": "Safety & Compliance",
+      "domain": "Safety & Compliance (SAP QM/EHS)",
       "stakeholder_lead": "VCCI Head Việt Nam",
       "video_file": "INSILOS_VID_08_FUL_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_08_FUL_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "fleet.vehicle",
       "record_id": 8,
       "action_id": 738,
       "deep_link": "http://localhost:28069/web#id=8&model=fleet.vehicle&view_type=form&action=738",
       "seed_data": {
+        "partner": "Chi Cục Đăng Kiểm Số 6 & Cục Đăng Kiểm Việt Nam",
+        "vat": "0100109106",
+        "address": "Số 18 Phạm Hùng, Mỹ Đình, Nam Từ Liêm, Hà Nội",
         "license_plate": "51R-089.34",
+        "document_numbers": "Giấy chứng nhận đăng kiểm 0892/2026 / Lệnh xuất bến DSP-2026-089",
         "vehicle_type": "CIMC Trailers / Sơ mi rơ moóc xương 3 trục 40ft (Container Chassis)",
         "chassis_vin": "CIMC-VN-2023-98214",
         "registry_cert": "Số GCN 0892/2026/GĐK-KV2",
         "registry_expiry": "2026-12-15",
         "safety_status": "Khóa Chốt Container Twistlock: ĐẠT CHUẨN TCVN",
-        "brake_test": "Hệ thống phanh khí nén WABCO ABS: ĐẠT"
+        "brake_test": "Hệ thống phanh khí nén WABCO ABS: ĐẠT",
+        "contract_value_vnd": 380000000,
+        "contract_value_formatted": "380,000,000 ₫ (Giá trị tài sản rơ-moóc)"
       },
       "audio_metrics": {
         "integrated_loudness": "-14.8 LUFS",
@@ -749,27 +910,45 @@
         "manufacturing_dir": "Kết cấu thép dầm chịu lực của rơ-moóc được theo dõi định kỳ để phát hiện vết nứt mỏi sớm."
       },
       "impact_metrics": {
-        "regulatory_compliance": "100% Đúng hạn đăng kiểm TCVN",
-        "accident_prevention": "0 Sự cố bung chốt container",
-        "dispatch_clearance": "Phê duyệt xe xuất bến trong 60 giây"
-      }
+        "tco_savings_annual": "₫195,000,000 / Năm (Tiết kiệm từ ngăn ngừa tiền phạt hành chính, giam giữ phương tiện và đền bù tai nạn)",
+        "roi_payback": "3.5 Tháng (Thu hồi vốn phần mềm kiểm soát đăng kiểm)",
+        "oee_benchmark": "99.2% Hệ số an toàn kỹ thuật phương tiện tham gia giao thông",
+        "lead_time_metric": "Phê duyệt lệnh xe xuất bến điện tử trong 60 giây (từ 2 giờ ký duyệt giấy)",
+        "win_rate_and_compliance": "100% Đúng hạn đăng kiểm TCVN và Thông tư 16/2021/TT-BGTVT",
+        "accident_prevention": "0 Sự cố bung chốt container trên tuyến"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_08_FULFILLMENT.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_08_FUL.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_08_FUL.md",
+        "footage_dossier/chapters/DOSSIER_VID_08_FUL.md"
+      ]
     },
     {
-      "id": "VID_09_LOG",
+      "id": "VID_09_LOGISTICS",
+      "standard_id": "VID_09_LOGISTICS",
+      "canonical_id": "VID_09_LOG",
+      "standard_filename": "DOSSIER_VID_09_LOGISTICS.md",
+      "canonical_filename": "DOSSIER_VID_09_LOG.md",
       "code": "VID-09",
       "title": "Điều Xe Drayage Liên Cảng Tân Cảng - Cái Mép & Cảnh Báo DET/DEM",
-      "domain": "Port Logistics",
+      "domain": "Port Logistics & Drayage (SAP Yard Logistics)",
       "stakeholder_lead": "Logistics Dept Head",
       "video_file": "INSILOS_VID_09_LOG_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_09_LOG_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "sale.order",
       "record_id": 2,
       "action_id": 561,
       "deep_link": "http://localhost:28069/web#id=2&model=sale.order&view_type=form&action=561",
       "seed_data": {
-        "order_ref": "Đơn bán hàng #VN-SO2026-002",
+        "partner": "Công ty CP Gemadept Logistics",
         "client": "Công ty CP Gemadept Logistics",
+        "vat": "0301193396",
+        "address": "Tòa nhà Gemadept, 6 Lê Thánh Tôn, Bến Nghé, Quận 1, TP Hồ Chí Minh",
+        "order_ref": "Đơn bán hàng #VN-SO2026-002",
+        "document_numbers": "Đơn hàng vận tải #VN-SO2026-002 / Phiếu giao nhận e-EIR #EIR-SNP-2026-891",
         "route": "Tân Cảng Cát Lái (HCM) <--> Cảng Quốc Tế Gemalink Cái Mép (Bà Rịa - Vũng Tàu)",
         "contract_value_vnd": 1452500000,
         "contract_value_formatted": "1,452,500,000 ₫",
@@ -835,34 +1014,55 @@
         "manufacturing_dir": "Bảo đảm nguyên liệu nhập khẩu cập cảng được vận chuyển thẳng về phân xưởng sản xuất không bị đọng bãi."
       },
       "impact_metrics": {
+        "tco_savings_annual": "₫480,000,000 / Năm (Tiết kiệm từ xóa bỏ 100% tiền phạt lưu bãi DET/DEM và tối ưu hóa nhiên liệu vận tải)",
+        "roi_payback": "4.2 Tháng (Thu hồi vốn hệ thống điều phối liên cảng)",
+        "oee_benchmark": "Tăng 31.5% hiệu suất khai thác tải trọng đoàn xe hai chiều",
+        "lead_time_metric": "Rút ngắn 35% thời gian hạ container và hoàn tất thủ tục e-EIR tại cổng cảng",
+        "win_rate_and_compliance": "100% Đúng hạn cắt máng hãng tàu Maersk/CMA CGM (Zero Detention Penalty)",
         "dem_det_penalties": "0 Đồng phạt DET/DEM phát sinh",
-        "turnaround_time": "Rút ngắn 35% thời gian hạ container",
         "fleet_empty_miles": "Giảm 28% tỷ lệ chạy rỗng"
-      }
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_09_LOGISTICS.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_09_LOG.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_09_LOG.md",
+        "footage_dossier/chapters/DOSSIER_VID_09_LOG.md"
+      ]
     },
     {
-      "id": "VID_10_SAL",
+      "id": "VID_10_EINVOICE",
+      "standard_id": "VID_10_EINVOICE",
+      "canonical_id": "VID_10_SAL",
+      "standard_filename": "DOSSIER_VID_10_EINVOICE.md",
+      "canonical_filename": "DOSSIER_VID_10_SAL.md",
       "code": "VID-10",
       "title": "Phát Hành Hóa Đơn Điện Tử Viettel S-Invoice Thông Tư 78 Tức Thì",
-      "domain": "E-Invoice Circular 78",
+      "domain": "E-Invoice Circular 78 (SAP DRC / Localization)",
       "stakeholder_lead": "VCCI Head Việt Nam",
       "video_file": "INSILOS_VID_10_SAL_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_10_SAL_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "account.move",
       "record_id": 12,
       "action_id": 476,
       "deep_link": "http://localhost:28069/web#id=12&model=account.move&view_type=form&action=476",
       "seed_data": {
-        "invoice_no": "INV/2026/00001",
-        "invoice_symbol": "1C26TAA",
-        "invoice_template": "Mẫu số 1/001 - Hóa đơn GTGT điện tử có mã của Cơ quan Thuế",
+        "partner": "Tổng Công ty Tân Cảng Sài Gòn (Saigon Newport - SNP)",
         "customer": "Tổng Công ty Tân Cảng Sài Gòn (Saigon Newport - SNP)",
         "customer_vat": "0300481234",
+        "vat": "0300481234",
+        "address": "Cảng Cát Lái, Đường Nguyễn Thị Định, TP Thủ Đức, TP Hồ Chí Minh",
+        "invoice_no": "INV/2026/00001",
+        "document_numbers": "Hóa đơn GTGT INV/2026/00001 / Mã cơ quan thuế TCT-8921-99234-VN",
+        "invoice_symbol": "1C26TAA",
+        "invoice_template": "Mẫu số 1/001 - Hóa đơn GTGT điện tử có mã của Cơ quan Thuế",
         "total_before_tax": 955000000,
         "vat_amount": 95500000,
         "total_with_tax": 1050500000,
         "total_with_tax_formatted": "1,050,500,000 ₫",
+        "contract_value_vnd": 1050500000,
+        "contract_value_formatted": "1,050,500,000 ₫",
         "tax_authority_code": "TCT-8921-99234-VN",
         "einvoice_provider": "Viettel S-Invoice Cloud API v2.0"
       },
@@ -924,31 +1124,51 @@
         "manufacturing_dir": "Doanh thu được ghi nhận chính xác theo từng đơn hàng gia công cơ khí hoàn thành."
       },
       "impact_metrics": {
-        "tax_compliance": "100% Chuẩn Thông tư 78 / NĐ 123",
-        "issuance_speed": "2 Giây nhận mã cơ quan thuế",
-        "cash_collection_cycle": "Rút ngắn 14 ngày chu kỳ thanh toán"
-      }
+        "tco_savings_annual": "₫215,000,000 / Năm (Tiết kiệm từ tự động hóa phát hành hóa đơn và đối soát thuế điện tử)",
+        "roi_payback": "3.8 Tháng (Thời gian hoàn vốn giải pháp Viettel S-Invoice Connector)",
+        "oee_benchmark": "Tăng 25% năng suất xử lý nghiệp vụ bộ phận kế toán thanh toán",
+        "lead_time_metric": "2 Giây nhận mã cơ quan thuế qua HSM (Rút ngắn 99.9% từ 3 ngày ký giấy)",
+        "win_rate_and_compliance": "100% Chuẩn Thông tư 78/2021/TT-BTC và Nghị định 123/2020/NĐ-CP",
+        "cash_collection_cycle": "Rút ngắn 14 ngày chu kỳ thu hồi công nợ khách hàng"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_10_EINVOICE.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_10_SAL.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_10_SAL.md",
+        "footage_dossier/chapters/DOSSIER_VID_10_SAL.md"
+      ]
     },
     {
-      "id": "VID_11_ACC",
+      "id": "VID_11_ACCOUNTING",
+      "standard_id": "VID_11_ACCOUNTING",
+      "canonical_id": "VID_11_ACC",
+      "standard_filename": "DOSSIER_VID_11_ACCOUNTING.md",
+      "canonical_filename": "DOSSIER_VID_11_ACC.md",
       "code": "VID-11",
       "title": "Đối Soát 3 Chiều & Hạch Toán Chi Phí Phân Xưởng Thông Tư 200",
-      "domain": "Cost Accounting TT 200",
+      "domain": "Cost Accounting TT 200 (SAP FI/CO)",
       "stakeholder_lead": "VCCI Head Việt Nam",
       "video_file": "INSILOS_VID_11_ACC_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_11_ACC_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "account.move",
       "record_id": 15,
       "action_id": 479,
       "deep_link": "http://localhost:28069/web#id=15&model=account.move&view_type=form&action=479",
       "seed_data": {
-        "bill_ref": "BILL/2026/09/0001",
+        "partner": "Công ty CP Tập đoàn Hòa Phát - Chi nhánh Thép & Ống thép Hưng Yên",
         "vendor": "Công ty CP Tập đoàn Hòa Phát - Chi nhánh Thép & Ống thép Hưng Yên",
+        "vat": "0900234567",
+        "address": "KCN Phố Nối A, Xã Giai Phạm, Huyện Yên Mỹ, Tỉnh Hưng Yên",
+        "bill_ref": "BILL/2026/09/0001",
+        "document_numbers": "Hóa đơn nhà cung cấp BILL/2026/09/0001 / Bút toán hạch toán BNK1/2026/0015",
         "po_linked": "#VN-PO2026-001",
         "receipt_linked": "WH/IN/00002",
         "total_amount_vnd": 429550000,
         "total_amount_formatted": "429,550,000 ₫",
+        "contract_value_vnd": 429550000,
+        "contract_value_formatted": "429,550,000 ₫",
         "accounts_mapped": {
           "621": "Chi phí nguyên liệu, vật liệu trực tiếp (Thép tấm SS400)",
           "622": "Chi phí nhân công trực tiếp phân xưởng CNC",
@@ -1016,30 +1236,53 @@
         "manufacturing_dir": "Giúp giám đốc sản xuất nắm rõ chi phí giá thành thực tế của từng cụm khung gầm xe kéo sau khi rời chuyền."
       },
       "impact_metrics": {
-        "closing_time": "Rút ngắn từ 12 ngày xuống 1.5 ngày",
-        "audit_compliance": "100% Chuẩn Thông tư 200/2014/TT-BTC",
-        "three_way_match_rate": "100% Tự động hóa đối soát"
-      }
+        "tco_savings_annual": "₫260,000,000 / Năm (Tiết kiệm từ tự động hóa đối soát 3 chiều và giảm giờ kiểm toán cuối năm)",
+        "roi_payback": "4.0 Tháng (Thu hồi vốn module phân bổ giá thành Thông tư 200)",
+        "oee_benchmark": "Đảm bảo luồng tiền lưu chuyển liên tục cho sản xuất với độ chính xác chi phí 100%",
+        "lead_time_metric": "Rút ngắn thời gian chốt sổ tài chính cuối tháng từ 12 ngày xuống 1.5 ngày",
+        "win_rate_and_compliance": "100% Chuẩn mực kiểm toán tài chính theo Thông tư 200/2014/TT-BTC",
+        "three_way_match_rate": "100% Tự động hóa đối soát PO - GR - Bill không sai lệch"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_11_ACCOUNTING.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_11_ACC.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_11_ACC.md",
+        "footage_dossier/chapters/DOSSIER_VID_11_ACC.md"
+      ]
     },
     {
       "id": "VID_12_MKT",
+      "standard_id": "VID_12_MKT",
+      "canonical_id": "VID_12_MKT",
+      "standard_filename": "DOSSIER_VID_12_MKT.md",
+      "canonical_filename": "DOSSIER_VID_12_MKT.md",
       "code": "VID-12",
       "title": "Bảng Cân Đối B01-DN, Báo Cáo KQKD B02-DN & C-Level EBITDA",
-      "domain": "Executive Financials",
+      "domain": "Executive Financials & BI (SAP Group Reporting)",
       "stakeholder_lead": "TCO Expert of IBM",
       "video_file": "INSILOS_VID_12_MKT_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_VID_12_MKT_GOLD_MASTER_poster.webp",
       "duration": 60,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "account.move",
       "record_id": 12,
       "action_id": 476,
       "deep_link": "http://localhost:28069/web#id=12&model=account.move&view_type=form&action=476",
       "seed_data": {
+        "partner": "Tập Đoàn Công Nghiệp Insilos Holdings (Đối tác SNP, Hòa Phát, V-LIFT)",
+        "vat": "0317894561",
+        "address": "Tầng 36, Tòa nhà Landmark 81, 720A Điện Biên Phủ, Phường 22, Bình Thạnh, TP Hồ Chí Minh",
         "financial_period": "Niên độ Tài chính 2026",
+        "document_numbers": "Báo cáo tài chính hợp nhất B01-DN / B02-DN Q3/2026",
         "revenue_annual_vnd": 185000000000,
+        "revenue_annual_formatted": "185,000,000,000 ₫",
+        "contract_value_vnd": 185000000000,
+        "contract_value_formatted": "185,000,000,000 ₫",
         "ebitda_margin": "18.6%",
         "net_profit_vnd": 24800000000,
+        "net_profit_formatted": "24,800,000,000 ₫",
         "tco_savings_annual_vnd": 2029050000,
+        "tco_savings_annual_formatted": "2,029,050,000 ₫ / Năm",
         "reports_available": [
           "Bảng Cân Đối Kế Toán (Mẫu số B01-DN)",
           "Báo Cáo Kết Quả Hoạt Động Kinh Doanh (Mẫu số B02-DN)",
@@ -1105,27 +1348,47 @@
         "manufacturing_dir": "Giúp ban giám đốc nhìn thấy rõ tỷ suất sinh lời trên vốn đầu tư thiết bị (ROIC) của các xưởng cơ khí."
       },
       "impact_metrics": {
-        "financial_visibility": "100% Dữ liệu thời gian thực (Zero Lag)",
-        "tco_annual_savings": "₫2,029,050,000 / Năm",
-        "ebitda_optimization": "+3.4% Biên độ lợi nhuận EBITDA"
-      }
+        "tco_savings_annual": "₫2,029,050,000 / Năm (Tổng mức cắt giảm TCO toàn doanh nghiệp được chứng thực)",
+        "roi_payback": "6.0 Tháng (Thu hồi vốn đầu tư chuyển đổi số toàn diện)",
+        "oee_benchmark": "Tối ưu hóa vốn lưu động và tăng 3.4% biên lợi nhuận EBITDA",
+        "lead_time_metric": "100% Báo cáo tài chính thời gian thực Zero-Lag (Loại bỏ độ trễ 30 ngày)",
+        "win_rate_and_compliance": "100% Chuẩn mực báo cáo kế toán Việt Nam (VAS) và kiểm toán Big 4",
+        "financial_visibility": "Truy xuất tức thì dòng tiền và khả năng thanh toán nợ nhanh (Quick Ratio 1.85)"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_VID_12_MKT.md",
+      "canonical_file": "footage_dossier/DOSSIER_VID_12_MKT.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_VID_12_MKT.md",
+        "footage_dossier/chapters/DOSSIER_VID_12_MKT.md"
+      ]
     },
     {
       "id": "HSE_01_AI_VISION",
+      "standard_id": "HSE_01_AI_VISION",
+      "canonical_id": "HSE_01_AI_VISION",
+      "standard_filename": "DOSSIER_HSE_01_AI_VISION.md",
+      "canonical_filename": "DOSSIER_HSE_01_AI_VISION.md",
       "code": "HSE-01",
       "title": "CCTV Giám Sát An Toàn Thị Giác AI & Cảnh Báo Vi Phạm PPE Thời Gian Thực",
-      "domain": "Computer Vision HSE",
+      "domain": "Computer Vision HSE (AI Vision & GRC)",
       "stakeholder_lead": "Marketing Director of Google",
       "video_file": "INSILOS_HSE_AI_VISION_75S_GOLD_MASTER.mp4",
       "poster_file": "INSILOS_HSE_AI_VISION_75S_poster.webp",
       "duration": 75,
+      "resolution": "1920x1080 Full HD @ 60 FPS",
       "model": "fleet.vehicle.log.services",
       "record_id": 6,
       "action_id": 746,
       "deep_link": "http://localhost:28069/web#id=6&model=fleet.vehicle.log.services&view_type=form&action=746",
       "seed_data": {
+        "partner": "Khu Vực Phân Xưởng Kết Cấu Thép & Bãi Container Tân Cảng Cát Lái",
+        "vat": "0300481234",
+        "address": "Cảng Cát Lái, Đường Nguyễn Thị Định, TP Thủ Đức, TP Hồ Chí Minh",
         "stream_name": "CCTV-CAM-02 // Robot Hàn Thép Tấm SS400 Phân Xưởng Kết Cấu",
+        "document_numbers": "Giấy phép an toàn e-PTW-2026-0921 / Phiếu sự cố an toàn INC-2026-HSE-004",
         "ai_vision_model": "YOLOv11 Industrial Safety Edition (4K Sub-14ms Inference)",
+        "contract_value_vnd": 650000000,
+        "contract_value_formatted": "650,000,000 ₫ (Gói bảo hộ và camera AI thông minh)",
         "safety_criteria": [
           "Mũ bảo hộ tiêu chuẩn ANSI Z89.1",
           "Áo phản quang EN ISO 20471",
@@ -1190,10 +1453,19 @@
         "manufacturing_dir": "Giúp xưởng trưởng kiểm soát 100% việc tuân thủ mặt nạ hàn và kính bảo hộ chống tia bức xạ hồ quang."
       },
       "impact_metrics": {
-        "ppe_compliance_rate": "99.8% Tuân thủ bảo hộ lao động",
-        "incident_response_time": "Dưới 2 giây cảnh báo loa",
-        "lost_time_injuries": "0 Sự cố thương tật mất ngày công"
-      }
+        "tco_savings_annual": "₫850,000,000 / Năm (Tiết kiệm từ loại bỏ rủi ro tai nạn lao động, đình chỉ sản xuất và bồi thường)",
+        "roi_payback": "3.2 Tháng (Thời gian hoàn vốn camera AI và hệ thống loa cảnh báo)",
+        "oee_benchmark": "Bảo toàn 95% OEE phân xưởng nhờ loại bỏ thời gian gián đoạn do sự cố tai nạn",
+        "lead_time_metric": "Dưới 2 giây phát hiện vi phạm và kích hoạt loa báo động còi hú hiện trường",
+        "win_rate_and_compliance": "99.8% Tỷ lệ tuân thủ trang bị BHLĐ (PPE Compliance Rate) theo chuẩn ISO 45001:2018",
+        "lost_time_injuries": "0 Sự cố thương tật mất ngày công (Zero Lost-Time Injury)"
+      },
+      "dossier_file": "footage_dossier/DOSSIER_HSE_01_AI_VISION.md",
+      "canonical_file": "footage_dossier/DOSSIER_HSE_01_AI_VISION.md",
+      "aliases": [
+        "footage_dossier/DOSSIER_HSE_01_AI_VISION.md",
+        "footage_dossier/chapters/DOSSIER_HSE_01_AI_VISION.md"
+      ]
     }
   ]
 }
