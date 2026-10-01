@@ -1,6 +1,6 @@
 // =============================================================================
 // SAP Fiori Horizon Semantic Status Badges & Indicators
-// Insilos Enterprise Platform
+// Insilos Enterprise Platform — Full Light & Dark Mode Responsive
 // =============================================================================
 
 // Standard Semantic Badges & Tags across Form, List, and Kanban
@@ -10,11 +10,11 @@
 .o_kanban_view .badge,
 .o_kanban_record .badge,
 .o_kanban_record .o_tag {
-    border-radius: 9999px !important;
+    border-radius: var(--insilos-radius-xs, 2px) !important;
     font-weight: 600 !important;
-    font-size: 0.75rem !important;
+    font-size: 0.72rem !important;
     letter-spacing: 0.02em;
-    padding: 0.25rem 0.65rem !important;
+    padding: 0.2rem 0.55rem !important;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
@@ -23,41 +23,41 @@
     // 1. Positive / Success (Fiori Standard Green)
     &.text-bg-success, &.bg-success, &.o_tag_color_10,
     &.badge-positive, &.badge-success, &.state-positive, &.o_status_positive {
-        background-color: #E7F6ED !important;
-        color: #107E3E !important;
-        border: 1px solid rgba(16, 126, 62, 0.25) !important;
+        background-color: var(--insilos-positive-bg, #e7f6ed) !important;
+        color: var(--insilos-positive, #107e3e) !important;
+        border: 1px solid var(--insilos-positive-border, rgba(16, 126, 62, 0.3)) !important;
     }
 
     // 2. Critical / Error (Fiori Standard Red)
     &.text-bg-danger, &.bg-danger, &.o_tag_color_1,
     &.badge-critical, &.badge-danger, &.badge-error, &.state-critical, &.o_status_critical {
-        background-color: #FBEEED !important;
-        color: #BB0000 !important;
-        border: 1px solid rgba(187, 0, 0, 0.25) !important;
+        background-color: var(--insilos-critical-bg, #fbeeed) !important;
+        color: var(--insilos-critical, #bb0000) !important;
+        border: 1px solid var(--insilos-critical-border, rgba(187, 0, 0, 0.3)) !important;
     }
 
     // 3. Warning / Alert (Fiori Standard Amber)
     &.text-bg-warning, &.bg-warning, &.o_tag_color_2, &.o_tag_color_3,
     &.badge-warning, &.badge-alert, &.state-warning, &.o_status_warning {
-        background-color: #FEF0E6 !important;
-        color: #E9730C !important;
-        border: 1px solid rgba(233, 115, 12, 0.25) !important;
+        background-color: var(--insilos-warning-bg, #fef0e6) !important;
+        color: var(--insilos-warning, #e9730c) !important;
+        border: 1px solid var(--insilos-warning-border, rgba(233, 115, 12, 0.3)) !important;
     }
 
     // 4. Information / Neutral (Fiori Standard Blue / Insilos Slate)
     &.text-bg-info, &.bg-info, &.text-bg-primary, &.bg-primary, &.o_tag_color_4,
     &.badge-information, &.badge-info, &.state-info, &.o_status_info {
-        background-color: #E8F2FE !important;
-        color: #0070F2 !important;
-        border: 1px solid rgba(0, 112, 242, 0.25) !important;
+        background-color: var(--insilos-information-bg, #e8f2fe) !important;
+        color: var(--insilos-information, #0070f2) !important;
+        border: 1px solid var(--insilos-information-border, rgba(0, 112, 242, 0.3)) !important;
     }
 
     // Neutral / Inactive (Muted Gray)
     &.text-bg-secondary, &.bg-secondary, &.o_tag_color_0,
     &.badge-neutral, &.badge-secondary, &.state-neutral, &.o_status_neutral {
-        background-color: #F1F5F9 !important;
-        color: #475569 !important;
-        border: 1px solid #CBD5E1 !important;
+        background-color: var(--insilos-neutral-bg, #f1f5f9) !important;
+        color: var(--insilos-neutral, #475569) !important;
+        border: 1px solid var(--insilos-neutral-border, #cbd5e1) !important;
     }
 }
 
@@ -69,37 +69,18 @@
 
     // Field-level decoration classes inside list cells
     .text-success {
-        color: #107E3E !important;
+        color: var(--insilos-positive, #107e3e) !important;
     }
     .text-danger {
-        color: #BB0000 !important;
+        color: var(--insilos-critical, #bb0000) !important;
     }
     .text-warning {
-        color: #E9730C !important;
+        color: var(--insilos-warning, #e9730c) !important;
     }
     .text-info {
-        color: #0070F2 !important;
+        color: var(--insilos-information, #0070f2) !important;
     }
     .text-muted {
-        color: #64748B !important;
-    }
-}
-
-// Statusbar Pipeline Widget (Form View State Pills)
-.o_statusbar_status {
-    .o_arrow_button {
-        font-size: 0.8rem !important;
-        font-weight: 500 !important;
-        padding: 0.35rem 0.85rem !important;
-
-        &.btn-primary, &.disabled.btn-primary {
-            background-color: #0070F2 !important;
-            border-color: #0070F2 !important;
-            color: #FFFFFF !important;
-        }
-
-        &.btn-secondary {
-            color: #64748B !important;
-        }
+        color: var(--insilos-text-secondary, #64748b) !important;
     }
 }

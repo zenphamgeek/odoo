@@ -1,20 +1,21 @@
 // =============================================================================
 // SAP Fiori Horizon KPI Cards & Executive Micro-Widgets
-// Insilos Enterprise Platform
+// Insilos Enterprise Platform — Full Light & Dark Mode Responsive
 // =============================================================================
 
-// KPI Card Container
-.o_fiori_kpi_card, .o_kanban_view .o_kanban_record {
-    background: #FFFFFF !important;
-    border: 1px solid #E2E8F0 !important;
-    border-radius: 10px !important;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+// KPI Card Container & Kanban Card
+.o_fiori_kpi_card,
+.o_kanban_view .o_kanban_record {
+    background-color: var(--insilos-bg-card, #ffffff) !important;
+    border: 1px solid var(--insilos-border-subtle, #e2e8f0) !important;
+    border-radius: var(--insilos-radius-sm, 4px) !important;
+    box-shadow: var(--insilos-shadow-card, 0 1px 3px rgba(15, 23, 42, 0.04)) !important;
     padding: 1rem 1.25rem !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease !important;
+    transition: transform var(--insilos-transition-fast), box-shadow var(--insilos-transition-fast), border-color var(--insilos-transition-fast) !important;
 
     &:hover {
-        border-color: #CBD5E1 !important;
-        box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08) !important;
+        border-color: var(--insilos-primary, #0b2e64) !important;
+        box-shadow: var(--insilos-shadow-hover, 0 4px 14px rgba(15, 23, 42, 0.08)) !important;
         transform: translateY(-2px) !important;
     }
 
@@ -26,23 +27,25 @@
         margin-bottom: 0.5rem;
 
         .o_kpi_title {
-            color: #64748B;
-            font-size: 0.75rem;
-            font-weight: 600;
-            letter-spacing: 0.03em;
+            color: var(--insilos-text-secondary, #64748b);
+            font-size: 0.72rem;
+            font-weight: 650;
+            letter-spacing: 0.05em;
             text-transform: uppercase;
         }
 
         .o_kpi_icon {
             font-size: 1.25rem;
-            color: #FF8000;
+            color: var(--insilos-primary, #0b2e64);
         }
     }
 
     // KPI Value
     .o_kpi_value {
-        color: #0F172A;
-        font-size: 1.75rem;
+        color: var(--insilos-text-primary, #0f172a);
+        font-family: var(--insilos-font-mono) !important;
+        font-variant-numeric: tabular-nums !important;
+        font-size: 1.6rem;
         font-weight: 700;
         line-height: 1.2;
         letter-spacing: -0.02em;
@@ -53,93 +56,97 @@
         display: inline-flex;
         align-items: center;
         gap: 0.25rem;
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 600;
         margin-top: 0.35rem;
 
         &.positive {
-            color: #107E3E;
+            color: var(--insilos-positive, #107e3e);
         }
 
         &.negative {
-            color: #BB0000;
+            color: var(--insilos-critical, #bb0000);
         }
 
         &.neutral {
-            color: #64748B;
+            color: var(--insilos-neutral, #64748b);
         }
     }
 }
 
 // Kanban High-Density Column Header
 .o_kanban_view .o_kanban_group {
-    background-color: #F8FAFC !important;
-    border-radius: 8px;
+    background-color: var(--insilos-bg-subtle, #f8fafc) !important;
+    border-radius: var(--insilos-radius-sm, 4px);
     padding: 0.5rem;
+    border: 1px solid var(--insilos-border-subtle, #e2e8f0);
 
     .o_kanban_header {
-        font-weight: 600;
-        font-size: 0.85rem;
-        color: #1E293B;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #E2E8F0;
+        font-weight: 650;
+        font-size: 0.8125rem;
+        color: var(--insilos-text-primary, #1e293b);
+        padding-bottom: 0.4rem;
+        border-bottom: 1px solid var(--insilos-border-subtle, #e2e8f0);
         margin-bottom: 0.5rem;
     }
 }
 
 // SAP Fiori Horizon Smart Buttons / Stat Info Top-Down KPI Cards
-.o-form-buttonbox, .oe_button_box {
-    gap: 0.5rem !important;
+.o-form-buttonbox,
+.oe_button_box {
+    gap: 0.4rem !important;
 
     .oe_stat_button {
-        background: #FFFFFF !important;
-        border: 1px solid #E2E8F0 !important;
-        border-radius: 8px !important;
-        box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
-        padding: 0.45rem 0.85rem !important;
-        min-height: 48px !important;
+        background-color: var(--insilos-bg-subtle, #f8fafc) !important;
+        border: 1px solid var(--insilos-border-subtle, #e2e8f0) !important;
+        border-radius: var(--insilos-radius-sm, 4px) !important;
+        box-shadow: var(--insilos-shadow-sm, 0 1px 2px rgba(15, 23, 42, 0.04)) !important;
+        padding: 0.4rem 0.75rem !important;
+        min-height: 46px !important;
         display: inline-flex !important;
         flex-direction: row !important;
         align-items: center !important;
-        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease !important;
+        transition: transform var(--insilos-transition-fast), box-shadow var(--insilos-transition-fast), border-color var(--insilos-transition-fast) !important;
 
         &:hover {
-            background-color: #F8FAFC !important;
-            border-color: #CBD5E1 !important;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+            background-color: var(--insilos-bg-hover, #f1f5f9) !important;
+            border-color: var(--insilos-border-medium, #cbd5e1) !important;
+            box-shadow: var(--insilos-shadow-card, 0 2px 6px rgba(15, 23, 42, 0.06)) !important;
             transform: translateY(-1px) !important;
         }
 
         .o_button_icon {
-            font-size: 1.5rem !important;
-            color: #FF8000 !important;
+            font-size: 1.35rem !important;
+            color: var(--insilos-primary, #0b2e64) !important;
             margin-right: 0.5rem !important;
         }
 
-        .o_stat_info, .o_field_statinfo {
+        .o_stat_info,
+        .o_field_statinfo {
             display: flex !important;
             flex-direction: column !important;
             justify-content: center !important;
             text-align: left !important;
 
-            // Value on top (1.25rem bold, #0F172A)
+            // Value on top (1.25rem bold)
             .o_stat_value {
                 order: 1 !important;
-                font-size: 1.25rem !important;
+                font-family: var(--insilos-font-mono) !important;
+                font-size: 1.15rem !important;
                 font-weight: 700 !important;
-                color: #0F172A !important;
+                color: var(--insilos-text-primary, #0f172a) !important;
                 line-height: 1.2 !important;
                 font-variant-numeric: tabular-nums !important;
             }
 
-            // Uppercase label on bottom (0.7rem, #64748B)
+            // Uppercase label on bottom
             .o_stat_text {
                 order: 2 !important;
-                font-size: 0.7rem !important;
-                font-weight: 600 !important;
+                font-size: 0.68rem !important;
+                font-weight: 650 !important;
                 text-transform: uppercase !important;
-                letter-spacing: 0.03em !important;
-                color: #64748B !important;
+                letter-spacing: 0.04em !important;
+                color: var(--insilos-text-secondary, #64748b) !important;
                 line-height: 1.2 !important;
             }
 
@@ -149,21 +156,21 @@
                 display: inline-flex !important;
                 align-items: center !important;
                 gap: 0.25rem !important;
-                font-size: 0.75rem !important;
+                font-size: 0.72rem !important;
                 font-weight: 600 !important;
                 line-height: 1 !important;
-                margin-top: 0.2rem !important;
+                margin-top: 0.15rem !important;
 
                 &.positive {
-                    color: #107E3E !important;
+                    color: var(--insilos-positive, #107e3e) !important;
                 }
 
                 &.negative {
-                    color: #BB0000 !important;
+                    color: var(--insilos-critical, #bb0000) !important;
                 }
 
                 &.neutral {
-                    color: #64748B !important;
+                    color: var(--insilos-neutral, #64748b) !important;
                 }
             }
         }
