@@ -1,0 +1,2657 @@
+{
+  "timestamp": "2026-10-01T11:49:37.080Z",
+  "baselineTests": [
+    {
+      "viewport": "Desktop_1600x950",
+      "width": 1600,
+      "module": "Materials Management (Purchase)",
+      "pass": true,
+      "model": "purchase.order",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1043.328125,
+          "width": 1043.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1045.328125,
+          "right": 1600,
+          "width": 554.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 98.328125,
+          "width": 74.328125,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1061.328125,
+          "right": 1169.953125,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1600x950",
+      "width": 1600,
+      "module": "Sales & Distribution (Sale)",
+      "pass": true,
+      "model": "sale.order",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 100.25,
+          "bottom": 148.25,
+          "left": 0,
+          "right": 1043.328125,
+          "width": 1043.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 100.25,
+          "bottom": 148.25,
+          "left": 1045.328125,
+          "right": 1600,
+          "width": 554.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 107.75,
+          "bottom": 139.75,
+          "left": 24,
+          "right": 82.5,
+          "width": 58.5,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 107.75,
+          "bottom": 139.75,
+          "left": 1061.328125,
+          "right": 1169.953125,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": null,
+        "borderRadius": null
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1600x950",
+      "width": 1600,
+      "module": "Inventory & Logistics (Stock)",
+      "pass": true,
+      "model": "stock.picking",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1043.328125,
+          "width": 1043.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1045.328125,
+          "right": 1600,
+          "width": 554.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 99.953125,
+          "width": 75.953125,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1061.328125,
+          "right": 1169.953125,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1600x950",
+      "width": 1600,
+      "module": "Manufacturing (MRP)",
+      "pass": true,
+      "model": "mrp.production",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1043.328125,
+          "width": 1043.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1045.328125,
+          "right": 1600,
+          "width": 554.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 100.796875,
+          "width": 76.796875,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1061.328125,
+          "right": 1169.953125,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1600x950",
+      "width": 1600,
+      "module": "Financials & Accounting (Account Invoice)",
+      "pass": true,
+      "model": "account.move",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1043.328125,
+          "width": 1043.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1045.328125,
+          "right": 1600,
+          "width": 554.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 82.5,
+          "width": 58.5,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1061.328125,
+          "right": 1169.953125,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1600x950",
+      "width": 1600,
+      "module": "Human Capital Management (HR Employee)",
+      "pass": true,
+      "model": "hr.employee",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1043.328125,
+          "width": 1043.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1045.328125,
+          "right": 1600,
+          "width": 554.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 85.265625,
+          "width": 61.265625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1061.328125,
+          "right": 1169.953125,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1920x1080",
+      "width": 1920,
+      "module": "Materials Management (Purchase)",
+      "pass": true,
+      "model": "purchase.order",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1256.671875,
+          "width": 1256.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1258.671875,
+          "right": 1920,
+          "width": 661.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 98.328125,
+          "width": 74.328125,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1274.671875,
+          "right": 1383.296875,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1920x1080",
+      "width": 1920,
+      "module": "Sales & Distribution (Sale)",
+      "pass": true,
+      "model": "sale.order",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 100.25,
+          "bottom": 148.25,
+          "left": 0,
+          "right": 1256.671875,
+          "width": 1256.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 100.25,
+          "bottom": 148.25,
+          "left": 1258.671875,
+          "right": 1920,
+          "width": 661.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 107.75,
+          "bottom": 139.75,
+          "left": 24,
+          "right": 82.5,
+          "width": 58.5,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 107.75,
+          "bottom": 139.75,
+          "left": 1274.671875,
+          "right": 1383.296875,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": null,
+        "borderRadius": null
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1920x1080",
+      "width": 1920,
+      "module": "Inventory & Logistics (Stock)",
+      "pass": true,
+      "model": "stock.picking",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1256.671875,
+          "width": 1256.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1258.671875,
+          "right": 1920,
+          "width": 661.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 99.953125,
+          "width": 75.953125,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1274.671875,
+          "right": 1383.296875,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1920x1080",
+      "width": 1920,
+      "module": "Manufacturing (MRP)",
+      "pass": true,
+      "model": "mrp.production",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1256.671875,
+          "width": 1256.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1258.671875,
+          "right": 1920,
+          "width": 661.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 100.796875,
+          "width": 76.796875,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1274.671875,
+          "right": 1383.296875,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1920x1080",
+      "width": 1920,
+      "module": "Financials & Accounting (Account Invoice)",
+      "pass": true,
+      "model": "account.move",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1256.671875,
+          "width": 1256.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1258.671875,
+          "right": 1920,
+          "width": 661.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 82.5,
+          "width": 58.5,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1274.671875,
+          "right": 1383.296875,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1920x1080",
+      "width": 1920,
+      "module": "Human Capital Management (HR Employee)",
+      "pass": true,
+      "model": "hr.employee",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1256.671875,
+          "width": 1256.671875,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 1258.671875,
+          "right": 1920,
+          "width": 661.328125,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 85.265625,
+          "width": 61.265625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 1274.671875,
+          "right": 1383.296875,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1440x900",
+      "width": 1440,
+      "module": "Materials Management (Purchase)",
+      "pass": true,
+      "model": "purchase.order",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 910,
+          "width": 910,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 912,
+          "right": 1440,
+          "width": 528,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 98.328125,
+          "width": 74.328125,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 928,
+          "right": 1036.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1440x900",
+      "width": 1440,
+      "module": "Sales & Distribution (Sale)",
+      "pass": true,
+      "model": "sale.order",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 100.25,
+          "bottom": 148.25,
+          "left": 0,
+          "right": 910,
+          "width": 910,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 100.25,
+          "bottom": 148.25,
+          "left": 912,
+          "right": 1440,
+          "width": 528,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 107.75,
+          "bottom": 139.75,
+          "left": 24,
+          "right": 82.5,
+          "width": 58.5,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 107.75,
+          "bottom": 139.75,
+          "left": 928,
+          "right": 1036.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": null,
+        "borderRadius": null
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1440x900",
+      "width": 1440,
+      "module": "Inventory & Logistics (Stock)",
+      "pass": true,
+      "model": "stock.picking",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 910,
+          "width": 910,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 912,
+          "right": 1440,
+          "width": 528,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 99.953125,
+          "width": 75.953125,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 928,
+          "right": 1036.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1440x900",
+      "width": 1440,
+      "module": "Manufacturing (MRP)",
+      "pass": true,
+      "model": "mrp.production",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 910,
+          "width": 910,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 912,
+          "right": 1440,
+          "width": 528,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 100.796875,
+          "width": 76.796875,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 928,
+          "right": 1036.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1440x900",
+      "width": 1440,
+      "module": "Financials & Accounting (Account Invoice)",
+      "pass": true,
+      "model": "account.move",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 910,
+          "width": 910,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 912,
+          "right": 1440,
+          "width": 528,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 82.5,
+          "width": 58.5,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 928,
+          "right": 1036.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1440x900",
+      "width": 1440,
+      "module": "Human Capital Management (HR Employee)",
+      "pass": true,
+      "model": "hr.employee",
+      "isAside": true,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 910,
+          "width": 910,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 912,
+          "right": 1440,
+          "width": 528,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 85.265625,
+          "width": 61.265625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 928,
+          "right": 1036.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1280x800",
+      "width": 1280,
+      "module": "Materials Management (Purchase)",
+      "pass": true,
+      "model": "purchase.order",
+      "isAside": false,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 1079.25,
+          "bottom": 1127.25,
+          "left": 2,
+          "right": 1280,
+          "width": 1278,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 98.328125,
+          "width": 74.328125,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 1086.75,
+          "bottom": 1118.75,
+          "left": 18,
+          "right": 126.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": -970.25,
+      "diffButtonTop": -970.25,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1280x800",
+      "width": 1280,
+      "module": "Sales & Distribution (Sale)",
+      "pass": true,
+      "model": "sale.order",
+      "isAside": false,
+      "statusbar": {
+        "rect": {
+          "top": 100.25,
+          "bottom": 148.25,
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 1312.953125,
+          "bottom": 1360.953125,
+          "left": 2,
+          "right": 1280,
+          "width": 1278,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 107.75,
+          "bottom": 139.75,
+          "left": 24,
+          "right": 82.5,
+          "width": 58.5,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 1320.453125,
+          "bottom": 1352.453125,
+          "left": 18,
+          "right": 126.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": null,
+        "borderRadius": null
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": -1212.703125,
+      "diffButtonTop": -1212.703125,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1280x800",
+      "width": 1280,
+      "module": "Inventory & Logistics (Stock)",
+      "pass": true,
+      "model": "stock.picking",
+      "isAside": false,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 887.953125,
+          "bottom": 935.953125,
+          "left": 2,
+          "right": 1280,
+          "width": 1278,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 99.953125,
+          "width": 75.953125,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 895.453125,
+          "bottom": 927.453125,
+          "left": 18,
+          "right": 126.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": -778.953125,
+      "diffButtonTop": -778.953125,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1280x800",
+      "width": 1280,
+      "module": "Manufacturing (MRP)",
+      "pass": true,
+      "model": "mrp.production",
+      "isAside": false,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 972.390625,
+          "bottom": 1020.390625,
+          "left": 2,
+          "right": 1280,
+          "width": 1278,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 100.796875,
+          "width": 76.796875,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 979.890625,
+          "bottom": 1011.890625,
+          "left": 18,
+          "right": 126.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": -863.390625,
+      "diffButtonTop": -863.390625,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1280x800",
+      "width": 1280,
+      "module": "Financials & Accounting (Account Invoice)",
+      "pass": true,
+      "model": "account.move",
+      "isAside": false,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 1268.25,
+          "bottom": 1316.25,
+          "left": 2,
+          "right": 1280,
+          "width": 1278,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 82.5,
+          "width": 58.5,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 1275.75,
+          "bottom": 1307.75,
+          "left": 18,
+          "right": 126.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": -1159.25,
+      "diffButtonTop": -1159.25,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    },
+    {
+      "viewport": "Desktop_1280x800",
+      "width": 1280,
+      "module": "Human Capital Management (HR Employee)",
+      "pass": true,
+      "model": "hr.employee",
+      "isAside": false,
+      "statusbar": {
+        "rect": {
+          "top": 109,
+          "bottom": 157,
+          "left": 0,
+          "right": 1280,
+          "width": 1280,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "chatterTopbar": {
+        "rect": {
+          "top": 1152.390625,
+          "bottom": 1200.390625,
+          "left": 2,
+          "right": 1280,
+          "width": 1278,
+          "height": 48
+        },
+        "height": 48,
+        "styleHeight": "48px"
+      },
+      "statusbarButton": {
+        "rect": {
+          "top": 116.5,
+          "bottom": 148.5,
+          "left": 24,
+          "right": 85.265625,
+          "width": 61.265625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "chatterButton": {
+        "rect": {
+          "top": 1159.890625,
+          "bottom": 1191.890625,
+          "left": 18,
+          "right": 126.625,
+          "width": 108.625,
+          "height": 32
+        },
+        "height": 32,
+        "fontSize": "12.5px",
+        "fontWeight": "600",
+        "borderRadius": "4px"
+      },
+      "statButton": {
+        "height": "48px",
+        "borderRadius": "4px"
+      },
+      "titleH1": {
+        "fontSize": "22px",
+        "fontWeight": "700"
+      },
+      "diffToolbarTop": -1043.390625,
+      "diffButtonTop": -1043.390625,
+      "statusbarButtonsWrap": "nowrap",
+      "statusbarButtonsOverflowX": "auto"
+    }
+  ],
+  "buttonStressTests": [
+    {
+      "pass": true,
+      "extraCount": 0,
+      "totalButtons": 7,
+      "flexWrap": "nowrap",
+      "overflowX": "auto",
+      "overflowY": "hidden",
+      "sbButtonsHeight": "32px",
+      "statusbarHeight": 48,
+      "scrollWidth": 612,
+      "clientWidth": 545,
+      "isScrollWidthLarger": true,
+      "canScrollHorizontally": true,
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "firstBtnTop": 116.5,
+      "lastBtnTop": 116.5,
+      "isWrapped": false,
+      "scrolledDiffButtonTop": 0
+    },
+    {
+      "pass": true,
+      "extraCount": 5,
+      "totalButtons": 12,
+      "flexWrap": "nowrap",
+      "overflowX": "auto",
+      "overflowY": "hidden",
+      "sbButtonsHeight": "32px",
+      "statusbarHeight": 48,
+      "scrollWidth": 1258,
+      "clientWidth": 681,
+      "isScrollWidthLarger": true,
+      "canScrollHorizontally": true,
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "firstBtnTop": 116.5,
+      "lastBtnTop": 116.5,
+      "isWrapped": false,
+      "scrolledDiffButtonTop": 0
+    },
+    {
+      "pass": true,
+      "extraCount": 10,
+      "totalButtons": 17,
+      "flexWrap": "nowrap",
+      "overflowX": "auto",
+      "overflowY": "hidden",
+      "sbButtonsHeight": "32px",
+      "statusbarHeight": 48,
+      "scrollWidth": 1912,
+      "clientWidth": 727,
+      "isScrollWidthLarger": true,
+      "canScrollHorizontally": true,
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "firstBtnTop": 116.5,
+      "lastBtnTop": 116.5,
+      "isWrapped": false,
+      "scrolledDiffButtonTop": 0
+    },
+    {
+      "pass": true,
+      "extraCount": 15,
+      "totalButtons": 22,
+      "flexWrap": "nowrap",
+      "overflowX": "auto",
+      "overflowY": "hidden",
+      "sbButtonsHeight": "32px",
+      "statusbarHeight": 48,
+      "scrollWidth": 2595,
+      "clientWidth": 739,
+      "isScrollWidthLarger": true,
+      "canScrollHorizontally": true,
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "firstBtnTop": 116.5,
+      "lastBtnTop": 116.5,
+      "isWrapped": false,
+      "scrolledDiffButtonTop": 0
+    },
+    {
+      "pass": true,
+      "extraCount": 25,
+      "totalButtons": 32,
+      "flexWrap": "nowrap",
+      "overflowX": "auto",
+      "overflowY": "hidden",
+      "sbButtonsHeight": "32px",
+      "statusbarHeight": 48,
+      "scrollWidth": 3960,
+      "clientWidth": 739,
+      "isScrollWidthLarger": true,
+      "canScrollHorizontally": true,
+      "diffToolbarTop": 0,
+      "diffButtonTop": 0,
+      "firstBtnTop": 116.5,
+      "lastBtnTop": 116.5,
+      "isWrapped": false,
+      "scrolledDiffButtonTop": 0
+    },
+    {
+      "pass": true,
+      "viewport": "1280x800",
+      "totalButtons": 32,
+      "isWrapped": false,
+      "flexWrap": "nowrap",
+      "statusbarHeight": 48,
+      "isAside": false,
+      "diffButtonTop": null,
+      "scrollWidth": 3960,
+      "clientWidth": 976
+    }
+  ],
+  "wizardTests": [
+    {
+      "name": "account.move.reversal",
+      "title": "Reverse Journal Entry",
+      "pass": true,
+      "checks": {
+        "headerHeightPass": {
+          "pass": true,
+          "height": 48,
+          "expected": 48
+        },
+        "footerHeightPass": {
+          "pass": true,
+          "height": 48,
+          "expected": 48
+        },
+        "footerStickyPass": {
+          "pass": true,
+          "position": "sticky",
+          "bottom": "0px"
+        },
+        "bodyPaddingPass": {
+          "pass": true,
+          "padding": "20px 24px 20px 24px",
+          "expected": "20px 24px 20px 24px"
+        },
+        "clearance": {
+          "clearanceLeft": 41,
+          "clearanceRight": 41,
+          "clearanceTop": 44
+        },
+        "noHorizontalScrollbarPass": {
+          "pass": true,
+          "overflowX": "hidden",
+          "scrollWidth": 978,
+          "clientWidth": 978
+        },
+        "buttonsPass": {
+          "pass": true,
+          "buttons": [
+            {
+              "text": "Reverse",
+              "height": 32,
+              "radius": "4px",
+              "fontSize": "12.5px"
+            },
+            {
+              "text": "Reverse and Create Invoice",
+              "height": 32,
+              "radius": "4px",
+              "fontSize": "12.5px"
+            },
+            {
+              "text": "Discard",
+              "height": 32,
+              "radius": "4px",
+              "fontSize": "12.5px"
+            }
+          ]
+        }
+      },
+      "raw": {
+        "header": {
+          "rect": {
+            "x": 311,
+            "y": 293.5,
+            "width": 978,
+            "height": 48,
+            "top": 293.5,
+            "bottom": 341.5,
+            "left": 311,
+            "right": 1289
+          },
+          "styles": {
+            "height": "48px",
+            "padding": "0px 20px 0px 20px",
+            "paddingTop": 0,
+            "paddingRight": 20,
+            "paddingBottom": 0,
+            "paddingLeft": 20,
+            "overflowX": "visible",
+            "overflowY": "visible",
+            "position": "static",
+            "bottom": "auto",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "borderRadius": "5px 5px 0px 0px",
+            "borderWidth": "0px",
+            "boxSizing": "border-box"
+          }
+        },
+        "title": {
+          "rect": {
+            "x": 331,
+            "y": 307.40625,
+            "width": 910,
+            "height": 19.1875,
+            "top": 307.40625,
+            "bottom": 326.59375,
+            "left": 331,
+            "right": 1241
+          },
+          "styles": {
+            "height": "19.1875px",
+            "padding": "0px 0px 0px 0px",
+            "paddingTop": 0,
+            "paddingRight": 0,
+            "paddingBottom": 0,
+            "paddingLeft": 0,
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "position": "static",
+            "bottom": "auto",
+            "fontSize": "16px",
+            "fontWeight": "700",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "boxSizing": "border-box"
+          }
+        },
+        "body": {
+          "rect": {
+            "x": 311,
+            "y": 341.5,
+            "width": 978,
+            "height": 323,
+            "top": 341.5,
+            "bottom": 664.5,
+            "left": 311,
+            "right": 1289
+          },
+          "styles": {
+            "height": "323px",
+            "padding": "20px 24px 20px 24px",
+            "paddingTop": 20,
+            "paddingRight": 24,
+            "paddingBottom": 20,
+            "paddingLeft": 24,
+            "overflowX": "hidden",
+            "overflowY": "auto",
+            "position": "relative",
+            "bottom": "0px",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "boxSizing": "border-box"
+          },
+          "scrollWidth": 978,
+          "clientWidth": 978,
+          "scrollHeight": 323,
+          "clientHeight": 323,
+          "hasHorizontalScrollbar": false
+        },
+        "footer": {
+          "rect": {
+            "x": 311,
+            "y": 664.5,
+            "width": 978,
+            "height": 48,
+            "top": 664.5,
+            "bottom": 712.5,
+            "left": 311,
+            "right": 1289
+          },
+          "styles": {
+            "height": "48px",
+            "padding": "0px 20px 0px 20px",
+            "paddingTop": 0,
+            "paddingRight": 20,
+            "paddingBottom": 0,
+            "paddingLeft": 20,
+            "overflowX": "visible",
+            "overflowY": "visible",
+            "position": "sticky",
+            "bottom": "0px",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "borderRadius": "0px 0px 5px 5px",
+            "borderWidth": "1px",
+            "boxSizing": "border-box"
+          }
+        },
+        "clearance": {
+          "clearanceLeft": 41,
+          "clearanceRight": 41,
+          "clearanceTop": 44
+        },
+        "buttons": [
+          {
+            "text": "Reverse",
+            "rect": {
+              "x": 921.9375,
+              "y": 673,
+              "width": 75.40625,
+              "height": 32,
+              "top": 673,
+              "bottom": 705,
+              "left": 921.9375,
+              "right": 997.34375
+            },
+            "styles": {
+              "height": "32px",
+              "padding": "0px 14px 0px 14px",
+              "paddingTop": 0,
+              "paddingRight": 14,
+              "paddingBottom": 0,
+              "paddingLeft": 14,
+              "overflowX": "visible",
+              "overflowY": "visible",
+              "position": "static",
+              "bottom": "auto",
+              "fontSize": "12.5px",
+              "fontWeight": "600",
+              "borderRadius": "4px",
+              "borderWidth": "1px",
+              "boxSizing": "border-box"
+            }
+          },
+          {
+            "text": "Reverse and Create Invoice",
+            "rect": {
+              "x": 1005.34375,
+              "y": 673,
+              "width": 183.078125,
+              "height": 32,
+              "top": 673,
+              "bottom": 705,
+              "left": 1005.34375,
+              "right": 1188.421875
+            },
+            "styles": {
+              "height": "32px",
+              "padding": "0px 14px 0px 14px",
+              "paddingTop": 0,
+              "paddingRight": 14,
+              "paddingBottom": 0,
+              "paddingLeft": 14,
+              "overflowX": "visible",
+              "overflowY": "visible",
+              "position": "static",
+              "bottom": "auto",
+              "fontSize": "12.5px",
+              "fontWeight": "600",
+              "borderRadius": "4px",
+              "borderWidth": "1px",
+              "boxSizing": "border-box"
+            }
+          },
+          {
+            "text": "Discard",
+            "rect": {
+              "x": 1196.421875,
+              "y": 673,
+              "width": 72.578125,
+              "height": 32,
+              "top": 673,
+              "bottom": 705,
+              "left": 1196.421875,
+              "right": 1269
+            },
+            "styles": {
+              "height": "32px",
+              "padding": "0px 14px 0px 14px",
+              "paddingTop": 0,
+              "paddingRight": 14,
+              "paddingBottom": 0,
+              "paddingLeft": 14,
+              "overflowX": "visible",
+              "overflowY": "visible",
+              "position": "static",
+              "bottom": "auto",
+              "fontSize": "12.5px",
+              "fontWeight": "600",
+              "borderRadius": "4px",
+              "borderWidth": "1px",
+              "boxSizing": "border-box"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "account.payment.register",
+      "title": "Register Payment",
+      "pass": true,
+      "checks": {
+        "headerHeightPass": {
+          "pass": true,
+          "height": 48,
+          "expected": 48
+        },
+        "footerHeightPass": {
+          "pass": true,
+          "height": 48,
+          "expected": 48
+        },
+        "footerStickyPass": {
+          "pass": true,
+          "position": "sticky",
+          "bottom": "0px"
+        },
+        "bodyPaddingPass": {
+          "pass": true,
+          "padding": "20px 24px 20px 24px",
+          "expected": "20px 24px 20px 24px"
+        },
+        "clearance": {
+          "clearanceLeft": 41,
+          "clearanceRight": 41,
+          "clearanceTop": 44
+        },
+        "noHorizontalScrollbarPass": {
+          "pass": true,
+          "overflowX": "hidden",
+          "scrollWidth": 978,
+          "clientWidth": 978
+        },
+        "buttonsPass": {
+          "pass": true,
+          "buttons": [
+            {
+              "text": "Create Payment",
+              "height": 32,
+              "radius": "4px",
+              "fontSize": "12.5px"
+            },
+            {
+              "text": "Discard",
+              "height": 32,
+              "radius": "4px",
+              "fontSize": "12.5px"
+            }
+          ]
+        }
+      },
+      "raw": {
+        "header": {
+          "rect": {
+            "x": 311,
+            "y": 344,
+            "width": 978,
+            "height": 48,
+            "top": 344,
+            "bottom": 392,
+            "left": 311,
+            "right": 1289
+          },
+          "styles": {
+            "height": "48px",
+            "padding": "0px 20px 0px 20px",
+            "paddingTop": 0,
+            "paddingRight": 20,
+            "paddingBottom": 0,
+            "paddingLeft": 20,
+            "overflowX": "visible",
+            "overflowY": "visible",
+            "position": "static",
+            "bottom": "auto",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "borderRadius": "5px 5px 0px 0px",
+            "borderWidth": "0px",
+            "boxSizing": "border-box"
+          }
+        },
+        "title": {
+          "rect": {
+            "x": 331,
+            "y": 357.90625,
+            "width": 910,
+            "height": 19.1875,
+            "top": 357.90625,
+            "bottom": 377.09375,
+            "left": 331,
+            "right": 1241
+          },
+          "styles": {
+            "height": "19.1875px",
+            "padding": "0px 0px 0px 0px",
+            "paddingTop": 0,
+            "paddingRight": 0,
+            "paddingBottom": 0,
+            "paddingLeft": 0,
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "position": "static",
+            "bottom": "auto",
+            "fontSize": "16px",
+            "fontWeight": "700",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "boxSizing": "border-box"
+          }
+        },
+        "body": {
+          "rect": {
+            "x": 311,
+            "y": 392,
+            "width": 978,
+            "height": 222,
+            "top": 392,
+            "bottom": 614,
+            "left": 311,
+            "right": 1289
+          },
+          "styles": {
+            "height": "222px",
+            "padding": "20px 24px 20px 24px",
+            "paddingTop": 20,
+            "paddingRight": 24,
+            "paddingBottom": 20,
+            "paddingLeft": 24,
+            "overflowX": "hidden",
+            "overflowY": "auto",
+            "position": "relative",
+            "bottom": "0px",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "boxSizing": "border-box"
+          },
+          "scrollWidth": 978,
+          "clientWidth": 978,
+          "scrollHeight": 222,
+          "clientHeight": 222,
+          "hasHorizontalScrollbar": false
+        },
+        "footer": {
+          "rect": {
+            "x": 311,
+            "y": 614,
+            "width": 978,
+            "height": 48,
+            "top": 614,
+            "bottom": 662,
+            "left": 311,
+            "right": 1289
+          },
+          "styles": {
+            "height": "48px",
+            "padding": "0px 20px 0px 20px",
+            "paddingTop": 0,
+            "paddingRight": 20,
+            "paddingBottom": 0,
+            "paddingLeft": 20,
+            "overflowX": "visible",
+            "overflowY": "visible",
+            "position": "sticky",
+            "bottom": "0px",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "borderRadius": "0px 0px 5px 5px",
+            "borderWidth": "1px",
+            "boxSizing": "border-box"
+          }
+        },
+        "clearance": {
+          "clearanceLeft": 41,
+          "clearanceRight": 41,
+          "clearanceTop": 44
+        },
+        "buttons": [
+          {
+            "text": "Create Payment",
+            "rect": {
+              "x": 1068.5625,
+              "y": 622.5,
+              "width": 119.859375,
+              "height": 32,
+              "top": 622.5,
+              "bottom": 654.5,
+              "left": 1068.5625,
+              "right": 1188.421875
+            },
+            "styles": {
+              "height": "32px",
+              "padding": "0px 14px 0px 14px",
+              "paddingTop": 0,
+              "paddingRight": 14,
+              "paddingBottom": 0,
+              "paddingLeft": 14,
+              "overflowX": "visible",
+              "overflowY": "visible",
+              "position": "static",
+              "bottom": "auto",
+              "fontSize": "12.5px",
+              "fontWeight": "600",
+              "borderRadius": "4px",
+              "borderWidth": "1px",
+              "boxSizing": "border-box"
+            }
+          },
+          {
+            "text": "Discard",
+            "rect": {
+              "x": 1196.421875,
+              "y": 622.5,
+              "width": 72.578125,
+              "height": 32,
+              "top": 622.5,
+              "bottom": 654.5,
+              "left": 1196.421875,
+              "right": 1269
+            },
+            "styles": {
+              "height": "32px",
+              "padding": "0px 14px 0px 14px",
+              "paddingTop": 0,
+              "paddingRight": 14,
+              "paddingBottom": 0,
+              "paddingLeft": 14,
+              "overflowX": "visible",
+              "overflowY": "visible",
+              "position": "static",
+              "bottom": "auto",
+              "fontSize": "12.5px",
+              "fontWeight": "600",
+              "borderRadius": "4px",
+              "borderWidth": "1px",
+              "boxSizing": "border-box"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "stock.backorder.confirmation",
+      "title": "Backorder Creation",
+      "pass": true,
+      "checks": {
+        "headerHeightPass": {
+          "pass": true,
+          "height": 48,
+          "expected": 48
+        },
+        "footerHeightPass": {
+          "pass": true,
+          "height": 48,
+          "expected": 48
+        },
+        "footerStickyPass": {
+          "pass": true,
+          "position": "sticky",
+          "bottom": "0px"
+        },
+        "bodyPaddingPass": {
+          "pass": true,
+          "padding": "20px 24px 20px 24px",
+          "expected": "20px 24px 20px 24px"
+        },
+        "clearance": {
+          "clearanceLeft": 41,
+          "clearanceRight": 41,
+          "clearanceTop": 44
+        },
+        "noHorizontalScrollbarPass": {
+          "pass": true,
+          "overflowX": "hidden",
+          "scrollWidth": 978,
+          "clientWidth": 978
+        },
+        "buttonsPass": {
+          "pass": true,
+          "buttons": [
+            {
+              "text": "Create Backorder",
+              "height": 32,
+              "radius": "4px",
+              "fontSize": "12.5px"
+            },
+            {
+              "text": "No Backorder",
+              "height": 32,
+              "radius": "4px",
+              "fontSize": "12.5px"
+            },
+            {
+              "text": "Discard",
+              "height": 32,
+              "radius": "4px",
+              "fontSize": "12.5px"
+            }
+          ]
+        }
+      },
+      "raw": {
+        "header": {
+          "rect": {
+            "x": 311,
+            "y": 363.5,
+            "width": 978,
+            "height": 48,
+            "top": 363.5,
+            "bottom": 411.5,
+            "left": 311,
+            "right": 1289
+          },
+          "styles": {
+            "height": "48px",
+            "padding": "0px 20px 0px 20px",
+            "paddingTop": 0,
+            "paddingRight": 20,
+            "paddingBottom": 0,
+            "paddingLeft": 20,
+            "overflowX": "visible",
+            "overflowY": "visible",
+            "position": "static",
+            "bottom": "auto",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "borderRadius": "5px 5px 0px 0px",
+            "borderWidth": "0px",
+            "boxSizing": "border-box"
+          }
+        },
+        "title": {
+          "rect": {
+            "x": 331,
+            "y": 377.40625,
+            "width": 910,
+            "height": 19.1875,
+            "top": 377.40625,
+            "bottom": 396.59375,
+            "left": 331,
+            "right": 1241
+          },
+          "styles": {
+            "height": "19.1875px",
+            "padding": "0px 0px 0px 0px",
+            "paddingTop": 0,
+            "paddingRight": 0,
+            "paddingBottom": 0,
+            "paddingLeft": 0,
+            "overflowX": "hidden",
+            "overflowY": "hidden",
+            "position": "static",
+            "bottom": "auto",
+            "fontSize": "16px",
+            "fontWeight": "700",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "boxSizing": "border-box"
+          }
+        },
+        "body": {
+          "rect": {
+            "x": 311,
+            "y": 411.5,
+            "width": 978,
+            "height": 183,
+            "top": 411.5,
+            "bottom": 594.5,
+            "left": 311,
+            "right": 1289
+          },
+          "styles": {
+            "height": "183px",
+            "padding": "20px 24px 20px 24px",
+            "paddingTop": 20,
+            "paddingRight": 24,
+            "paddingBottom": 20,
+            "paddingLeft": 24,
+            "overflowX": "hidden",
+            "overflowY": "auto",
+            "position": "relative",
+            "bottom": "0px",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "borderRadius": "0px",
+            "borderWidth": "0px",
+            "boxSizing": "border-box"
+          },
+          "scrollWidth": 978,
+          "clientWidth": 978,
+          "scrollHeight": 183,
+          "clientHeight": 183,
+          "hasHorizontalScrollbar": false
+        },
+        "footer": {
+          "rect": {
+            "x": 311,
+            "y": 594.5,
+            "width": 978,
+            "height": 48,
+            "top": 594.5,
+            "bottom": 642.5,
+            "left": 311,
+            "right": 1289
+          },
+          "styles": {
+            "height": "48px",
+            "padding": "0px 20px 0px 20px",
+            "paddingTop": 0,
+            "paddingRight": 20,
+            "paddingBottom": 0,
+            "paddingLeft": 20,
+            "overflowX": "visible",
+            "overflowY": "visible",
+            "position": "sticky",
+            "bottom": "0px",
+            "fontSize": "14px",
+            "fontWeight": "400",
+            "borderRadius": "0px 0px 5px 5px",
+            "borderWidth": "1px",
+            "boxSizing": "border-box"
+          }
+        },
+        "clearance": {
+          "clearanceLeft": 41,
+          "clearanceRight": 41,
+          "clearanceTop": 44
+        },
+        "buttons": [
+          {
+            "text": "Create Backorder",
+            "rect": {
+              "x": 945.734375,
+              "y": 603,
+              "width": 127.921875,
+              "height": 32,
+              "top": 603,
+              "bottom": 635,
+              "left": 945.734375,
+              "right": 1073.65625
+            },
+            "styles": {
+              "height": "32px",
+              "padding": "0px 14px 0px 14px",
+              "paddingTop": 0,
+              "paddingRight": 14,
+              "paddingBottom": 0,
+              "paddingLeft": 14,
+              "overflowX": "visible",
+              "overflowY": "visible",
+              "position": "static",
+              "bottom": "auto",
+              "fontSize": "12.5px",
+              "fontWeight": "600",
+              "borderRadius": "4px",
+              "borderWidth": "1px",
+              "boxSizing": "border-box"
+            }
+          },
+          {
+            "text": "No Backorder",
+            "rect": {
+              "x": 1081.65625,
+              "y": 603,
+              "width": 106.765625,
+              "height": 32,
+              "top": 603,
+              "bottom": 635,
+              "left": 1081.65625,
+              "right": 1188.421875
+            },
+            "styles": {
+              "height": "32px",
+              "padding": "0px 14px 0px 14px",
+              "paddingTop": 0,
+              "paddingRight": 14,
+              "paddingBottom": 0,
+              "paddingLeft": 14,
+              "overflowX": "visible",
+              "overflowY": "visible",
+              "position": "static",
+              "bottom": "auto",
+              "fontSize": "12.5px",
+              "fontWeight": "600",
+              "borderRadius": "4px",
+              "borderWidth": "1px",
+              "boxSizing": "border-box"
+            }
+          },
+          {
+            "text": "Discard",
+            "rect": {
+              "x": 1196.421875,
+              "y": 603,
+              "width": 72.578125,
+              "height": 32,
+              "top": 603,
+              "bottom": 635,
+              "left": 1196.421875,
+              "right": 1269
+            },
+            "styles": {
+              "height": "32px",
+              "padding": "0px 14px 0px 14px",
+              "paddingTop": 0,
+              "paddingRight": 14,
+              "paddingBottom": 0,
+              "paddingLeft": 14,
+              "overflowX": "visible",
+              "overflowY": "visible",
+              "position": "static",
+              "bottom": "auto",
+              "fontSize": "12.5px",
+              "fontWeight": "600",
+              "borderRadius": "4px",
+              "borderWidth": "1px",
+              "boxSizing": "border-box"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "verdict": "CONFIRM_CORRECTNESS"
+}

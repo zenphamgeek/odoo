@@ -82,7 +82,7 @@ async function runInspection() {
       const navStyle = navbar ? window.getComputedStyle(navbar) : null;
 
       const waffleBtn = document.querySelector('.o_menu_toggle');
-      const waffleIcon = waffleBtn ? waffleBtn.querySelector('.ph-squares-four') : null;
+      const waffleIcon = waffleBtn ? (waffleBtn.querySelector('.ph-squares-four') || waffleBtn.querySelector('.o_insilos_launcher_icon')) : null;
 
       const companyChip = document.querySelector('.o_switch_company_menu');
       const chipRect = companyChip ? companyChip.getBoundingClientRect() : null;

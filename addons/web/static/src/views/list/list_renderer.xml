@@ -32,6 +32,8 @@
                                 tabindex="-1">
                                 <t t-if="column.hasLabel and column.widget !== 'handle'">
                                     <div class="d-flex align-items-center"
+                                        t-att-class="{'justify-content-end text-end': isNumeric}"
+                                        t-att-style="isNumeric ? 'justify-content: flex-end !important; text-align: right;' : undefined"
                                         t-att-data-tooltip-template="this.debugMode.isActive() ? 'web.FieldTooltip' : 'web.ListHeaderTooltip'"
                                         t-att-data-tooltip-info="this.makeTooltip(column)">
                                         <span class="d-block min-w-0 text-truncate flex-grow-1 flex-shrink-1" t-att-class="isNumeric ? 'o_list_number_th' : ''"
@@ -52,7 +54,9 @@
                                 t-on-keydown="(ev) => this.onCellKeydown(ev)"
                                 tabindex="-1">
                                 <t t-if="column.hasLabel">
-                                    <div class="d-flex align-items-center">
+                                    <div class="d-flex align-items-center"
+                                        t-att-class="{'justify-content-end text-end': isNumeric}"
+                                        t-att-style="isNumeric ? 'justify-content: flex-end !important; text-align: right;' : undefined">
                                         <span class="d-block min-w-0 text-truncate flex-grow-1 flex-shrink-1" t-att-class="isNumeric ? 'o_list_number_th' : ''" t-out="column.label"/>
                                         <div class="o_list_header_label_spacer"/>
                                     </div>
