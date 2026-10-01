@@ -1,0 +1,186 @@
+{
+  "timestamp": "2026-10-01T07:05:58.178Z",
+  "suites": {
+    "ShellBar": [
+      {
+        "testName": "1.1 ShellBar Height is exactly 48px",
+        "passed": true,
+        "details": {
+          "height": 48
+        }
+      },
+      {
+        "testName": "1.2 Phosphor Duotone Waffle Launcher (ph-squares-four)",
+        "passed": true,
+        "details": {}
+      },
+      {
+        "testName": "1.3 Architectural Tenant Chip (height: 30px, radius: 4px)",
+        "passed": true,
+        "details": {
+          "height": 30,
+          "radius": "4px"
+        }
+      },
+      {
+        "testName": "1.4 Live Status Indicator Dot on Tenant Chip",
+        "passed": true,
+        "details": {}
+      },
+      {
+        "testName": "1.5 Carbon Shell Toolbar: 32px Square Tool Icons",
+        "passed": true,
+        "details": {
+          "count": 5,
+          "sample": [
+            {
+              "width": 32,
+              "height": 32,
+              "className": "o_nav_entry"
+            },
+            {
+              "width": 32,
+              "height": 32,
+              "className": "btn d-flex justify-content-center align-items-center o_nav_entry"
+            },
+            {
+              "width": 32,
+              "height": 32,
+              "className": "o-mail-DiscussSystray-class o-dropdown dropdown-toggle dropdown"
+            },
+            {
+              "width": 32,
+              "height": 32,
+              "className": "o-dropdown dropdown-toggle dropdown"
+            },
+            {
+              "width": 32,
+              "height": 32,
+              "className": "o_nav_entry"
+            }
+          ]
+        }
+      }
+    ],
+    "SmartFilterBar": [
+      {
+        "testName": "2.1 Control Panel Compact Height (44px-46px)",
+        "passed": true,
+        "details": {
+          "height": 47
+        }
+      },
+      {
+        "testName": "2.2 Smart FilterBar Search Container (height: 32px, radius: 4px)",
+        "passed": true,
+        "details": {
+          "height": 32
+        }
+      },
+      {
+        "testName": "2.3 IBM Carbon Content Switcher Segmented Control",
+        "passed": true,
+        "details": {
+          "buttonCount": 5
+        }
+      }
+    ],
+    "StructuredTable": [
+      {
+        "testName": "3.1 Sticky Table Header (36px, uppercase, 11px)",
+        "passed": true,
+        "details": {
+          "height": 36,
+          "transform": "uppercase",
+          "fontSize": "11px"
+        }
+      },
+      {
+        "testName": "3.2 High-Density Table Rows: Exactly 34px Height",
+        "passed": true,
+        "details": {
+          "measuredRows": [
+            34,
+            34,
+            34,
+            34,
+            34
+          ]
+        }
+      },
+      {
+        "testName": "3.3 Tabular Figures / Monospace Numeric Formatting",
+        "passed": true,
+        "details": {}
+      },
+      {
+        "testName": "3.4 Bulk Selection Displays Contextual Action Bar",
+        "passed": true,
+        "details": {}
+      }
+    ],
+    "ObjectPage": [
+      {
+        "testName": "4.1 Sequential Chevron Process Flow Statusbar",
+        "passed": true,
+        "details": {
+          "activeStage": "Cancelled",
+          "bg": "rgb(11, 46, 100)",
+          "color": "rgb(255, 255, 255)"
+        }
+      },
+      {
+        "testName": "4.2 IBM Carbon Flat Tabs (height: 40px, radius: 0px)",
+        "passed": true,
+        "details": {
+          "height": 40,
+          "radius": "0px"
+        }
+      },
+      {
+        "testName": "4.3 Active Tab Primary Accent Highlighting",
+        "passed": true,
+        "details": {
+          "activeTab": "Products",
+          "color": "rgb(11, 46, 100)"
+        }
+      }
+    ],
+    "DarkMode": [
+      {
+        "testName": "5.1 Tech Cyan Focus Token (--insilos-border-focus: #00F2FE)",
+        "passed": true,
+        "details": {
+          "focusBorder": "#00f2fe"
+        }
+      },
+      {
+        "testName": "5.2 Tech Cyan Primary Accent Token (--insilos-primary: #00F2FE)",
+        "passed": true,
+        "details": {
+          "primaryToken": "#00f2fe"
+        }
+      },
+      {
+        "testName": "5.3 Active Chevron Statusbar Cyan Highlight & High-Contrast Text",
+        "passed": true,
+        "details": {
+          "stageBg": "rgb(0, 242, 254)",
+          "stageText": "rgb(5, 16, 30)"
+        }
+      },
+      {
+        "testName": "5.4 Active Tab Tech Cyan Underline & Indicator",
+        "passed": true,
+        "details": {
+          "tabColor": "rgb(0, 242, 254)"
+        }
+      }
+    ]
+  },
+  "summary": {
+    "total": 19,
+    "passed": 19,
+    "failed": 0
+  }
+}

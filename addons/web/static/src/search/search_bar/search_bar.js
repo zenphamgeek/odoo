@@ -647,6 +647,15 @@ export class SearchBar extends Component {
         this.removeFacet(facet);
     }
 
+    /**
+     * Clear all active search facets in one click.
+     */
+    clearAllFacets() {
+        for (const facet of [...this.env.searchModel.facets]) {
+            this.onFacetRemove(facet);
+        }
+    }
+
     onSearchClick() {
         if (!hasTouch()) {
             if (!this.inputRef().value.length) {

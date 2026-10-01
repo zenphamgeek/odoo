@@ -4,7 +4,9 @@ import { DropdownGroup } from "@web/core/dropdown/dropdown_group";
 import { DropdownItem } from "@web/core/dropdown/dropdown_item";
 import { registry } from "@web/core/registry";
 
-import { Component, proxy, signal } from "@insilos/owl";
+import { Component, proxy, signal, usePlugin, useListener } from "@insilos/owl";
+import { browser } from "@web/core/browser/browser";
+import { OfflinePlugin } from "@web/core/offline/offline_plugin";
 import { useCommand } from "@web/core/commands/command_hook";
 import { _t } from "@web/core/l10n/translation";
 import { symmetricalDifference } from "@web/core/utils/arrays";
@@ -195,6 +197,7 @@ export class SwitchCompanyMenu extends Component {
     setup() {
         this.dropdown = useDropdownState();
         this.user = user;
+        this.offlinePlugin = usePlugin(OfflinePlugin);
         const actionService = useService("action");
 
         this.companySelector = proxy(
@@ -202,7 +205,15 @@ export class SwitchCompanyMenu extends Component {
         );
         useSubEnv({ companySelector: this.companySelector });
 
-        this.state = proxy({});
+        this.state = proxy({
+            isOffline: typeof navigator !== "undefined" ? !navigator.onLine : false,
+        });
+        useListener(browser, "offline", () => {
+            this.state.isOffline = true;
+        });
+        useListener(browser, "online", () => {
+            this.state.isOffline = false;
+        });
         this.resetState();
 
         useHotkey("control+enter", () => this.confirm(), {
@@ -346,6 +357,10 @@ export class SwitchCompanyMenu extends Component {
 
     get isSingleCompany() {
         return user.allowedCompaniesWithAncestors.length === 1;
+    }
+
+    get isOffline() {
+        return Boolean(this.state?.isOffline || this.offlinePlugin?.isOffline?.());
     }
 }
 

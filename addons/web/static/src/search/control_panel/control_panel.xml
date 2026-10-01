@@ -93,17 +93,18 @@
                                 </t>
                             </Dropdown>
                         </div>
-                        <nav t-else="" class="o_cp_switch_buttons d-print-none d-inline-flex btn-group">
+                        <nav t-else="" class="o_cp_switch_buttons o_carbon_content_switcher d-print-none d-inline-flex" role="toolbar" aria-label="View Switcher">
                             <t t-foreach="this.env.config.viewSwitcherEntries" t-as="view" t-key="view.type">
-                                <button class="btn btn-secondary o_switch_view "
+                                <button class="btn o_switch_view"
                                     t-att-class="{ 'active': view.active }"
                                     t-attf-class="o_{{view.type}}"
                                     t-att-data-available-offline="this.isViewAvailable(view)"
-                                    t-att-data-tooltip="view.name"
+                                    t-att-data-tooltip="view.name + ' (Alt+Shift+V)'"
                                     t-custom-click="(ev, isMiddleClick) => this.switchView(view.type, isMiddleClick)"
                                     t-att-aria-label="view.name + ' View'"
                                 >
                                     <i class="ph ph-fw" t-attf-class="ph-{{ view.icon }}"/>
+                                    <span class="d-none d-xxl-inline-block ms-1 small fw-medium" t-out="view.name"/>
                                 </button>
                             </t>
                         </nav>

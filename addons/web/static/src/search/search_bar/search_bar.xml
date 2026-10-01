@@ -35,7 +35,7 @@
     </t>
 
     <t t-name="web.SearchBar.NormalFacetIcon">
-        <div class="o_searchview_facet_label d-flex align-items-center position-relative rounded-2 p-1 small"
+        <div class="o_searchview_facet_label d-flex align-items-center position-relative rounded-start-2 p-1 small"
             t-att-role="facet.domain ? 'button' : 'img'"
             t-att-class="{
                 'o_facet_groupby': facet.type == 'groupBy',
@@ -44,7 +44,7 @@
             }"
             >
             <i t-if="facet.icon" class="ph ph-fw" t-attf-class="ph-{{ facet.icon }}" t-att-data-icon="facet.icon" role="image"/>
-            <small t-else="" class="px-1 lh-1 fw-bold" t-out="facet.title"/>
+            <small t-else="" class="px-1 lh-1 fw-bold text-uppercase" style="font-size: 11px;" t-out="facet.title"/>
 
             <!-- Editable facets' overlay -->
             <span t-if="facet.domain"
@@ -113,7 +113,7 @@
     </t>
 
     <t t-name="web.SearchBar">
-        <div t-if="this.visibilityState.showSearchBar" class="o_cp_searchview d-flex input-group rounded-pill h-lg-100" role="search" t-ref="this.root">
+        <div t-if="this.visibilityState.showSearchBar" class="o_cp_searchview o_smart_filterbar d-flex align-items-center h-lg-100" role="search" t-ref="this.root">
             <SearchBarDropdown
                 state="this.inputDropdownState"
                 manual="true"
@@ -126,9 +126,9 @@
                 bottomSheet="false"
                 popoverWillCloseOnClickAway="this.popoverWillCloseOnClickAway"
             >
-                <div class="o_searchview form-control d-print-contents d-flex align-items-center py-1 bg-view"
+                <div class="o_searchview form-control border-0 shadow-none d-print-contents d-flex align-items-center py-1 bg-transparent"
                     role="search" aria-autocomplete="list">
-                    <button class="d-print-none btn border-0 p-0"
+                    <button class="d-print-none btn border-0 p-0 text-muted"
                         aria-label="Search..."
                         title="Search..."
                         t-on-click="this.onClickSearchIcon"
@@ -149,6 +149,12 @@
                             t-on-input="this.onSearchInput"
                             t-on-compositionend="this.onCompositionEnd"
                         />
+                        <button t-if="this.env.searchModel.facets.length"
+                                class="o_facet_clear_all btn btn-link p-0 text-muted ms-auto me-1 d-flex align-items-center"
+                                title="Clear all filters"
+                                t-on-click.stop="() => this.clearAllFacets()">
+                            <i class="ph ph-x-circle fs-5"/>
+                        </button>
                     </div>
                 </div>
                 <t t-set-slot="content">

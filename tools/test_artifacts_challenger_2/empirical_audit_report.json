@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-09-28T17:56:50.811Z",
+  "timestamp": "2026-10-01T05:26:36.699Z",
   "tests": {
     "launchpad": [
       {
@@ -10,7 +10,7 @@
           "valid160Count": 72,
           "sample": [
             {
-              "name": "Discuss",
+              "name": "Enterprise Collaboration",
               "width": 160,
               "height": 160,
               "cssWidth": "160px",
@@ -93,38 +93,38 @@
     "kpi_cards": [
       {
         "name": ".oe_stat_button: Value on top (order 1, 1.25rem [20px], bold >=700, #0F172A)",
-        "passed": true,
+        "passed": false,
         "details": {
           "order": 1,
-          "fontSize": "20px",
+          "fontSize": "18.4px",
           "fontWeight": 700,
           "color": "#0f172a"
         }
       },
       {
         "name": ".oe_stat_button: Label on bottom (order 2, 0.7rem [~11.2px], uppercase, #64748B)",
-        "passed": true,
+        "passed": false,
         "details": {
           "order": 2,
-          "fontSize": "11.2px",
+          "fontSize": "10.88px",
           "textTransform": "uppercase",
-          "color": "#64748b"
+          "color": "#475569"
         }
       },
       {
         "name": ".o_kpi_trend: 3-State Micro-Trend Colors (pos: #107E3E, neg: #BB0000, neu: #64748B)",
-        "passed": true,
+        "passed": false,
         "details": {
           "positive": "#107e3e",
           "negative": "#bb0000",
-          "neutral": "#64748b"
+          "neutral": "#475569"
         }
       },
       {
         "name": ".oe_stat_button Container: Min-Height >= 48px, Border-Radius >= 8px",
-        "passed": true,
+        "passed": false,
         "details": {
-          "minHeight": "48px",
+          "minHeight": "46px",
           "borderRadius": "8px",
           "border": "1px solid rgb(226, 232, 240)"
         }
@@ -137,7 +137,7 @@
         "details": {
           "color": "#107e3e",
           "backgroundColor": "#e7f6ed",
-          "borderRadius": "9999px"
+          "borderRadius": "2px"
         }
       },
       {
@@ -146,7 +146,7 @@
         "details": {
           "color": "#bb0000",
           "backgroundColor": "#fbeeed",
-          "borderRadius": "9999px"
+          "borderRadius": "2px"
         }
       },
       {
@@ -155,7 +155,7 @@
         "details": {
           "color": "#e9730c",
           "backgroundColor": "#fef0e6",
-          "borderRadius": "9999px"
+          "borderRadius": "2px"
         }
       },
       {
@@ -164,14 +164,14 @@
         "details": {
           "color": "#0070f2",
           "backgroundColor": "#e8f2fe",
-          "borderRadius": "9999px"
+          "borderRadius": "2px"
         }
       },
       {
         "name": "Statusbar Active Workflow Step (#0070F2)",
-        "passed": true,
+        "passed": false,
         "details": {
-          "backgroundColor": "#0070f2"
+          "backgroundColor": "#ff8000"
         }
       }
     ],
@@ -180,9 +180,9 @@
         "name": "Control Panel Streamlined Standard (min-height: 44px)",
         "passed": true,
         "details": {
-          "measuredHeight": "56px",
+          "measuredHeight": "46px",
           "cssMinHeight": "44px",
-          "searchBorderRadius": "9999px"
+          "searchBorderRadius": "4px"
         }
       },
       {
@@ -192,21 +192,21 @@
           "position": "sticky",
           "top": "0px",
           "background": "#f8fafc",
-          "color": "#334155",
-          "borderBottom": "1px solid rgba(226, 232, 240, 0.85)"
+          "color": "#475569",
+          "borderBottom": "2px solid rgb(203, 213, 225)"
         }
       },
       {
         "name": "High-Density Table Rows (Target 32px–34px, tolerance [30px–36px])",
         "passed": true,
         "details": {
-          "averageHeight": "32px",
+          "averageHeight": "34px",
           "measuredRows": [
-            32,
-            32
+            34,
+            34
           ],
-          "cssHeight": "32px",
-          "cssMinHeight": "32px",
+          "cssHeight": "34px",
+          "cssMinHeight": "34px",
           "tdPadding": "0px / 0px"
         }
       }
@@ -251,7 +251,7 @@
   },
   "summary": {
     "total": 19,
-    "passed": 19,
-    "failed": 0
+    "passed": 14,
+    "failed": 5
   }
 }

@@ -10,11 +10,12 @@
                 popoverWillCloseOnClickAway="this.props.popoverWillCloseOnClickAway"
             >
             <button
-                class="o_searchview_dropdown_toggler d-print-none btn btn-outline-secondary o-dropdown-caret bg-view"
-                t-att-class="{ 'o-dropdown-no-caret': !this.hasTouch }"
+                class="o_searchview_dropdown_toggler d-print-none btn btn-outline-secondary o-dropdown-no-caret border-0 p-1 bg-transparent d-flex align-items-center justify-content-center"
                 data-hotkey="shift+q"
                 title="Toggle Search Panel"
+                aria-label="Toggle Search Panel"
             >
+                <i class="ph ph-funnel fs-6 text-muted" role="img"/>
             </button>
             <t t-set-slot="content">
                 <!-- Filter -->

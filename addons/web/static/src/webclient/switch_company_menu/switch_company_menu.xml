@@ -12,7 +12,8 @@
             menuClass="'o_switch_company_menu_dropdown'"
             disabled="this.isSingleCompany"
         >
-            <button data-hotkey="shift+u" t-att-disabled="this.isSingleCompany" t-att-title="this.user.activeCompany.name" class="o_switch_company_menu d-none d-md-flex">
+            <button data-hotkey="shift+u" t-att-disabled="this.isSingleCompany" t-att-title="this.user.activeCompany.name" class="o_switch_company_menu d-none d-md-flex align-items-center">
+                <span class="o_live_status_dot" t-att-class="{'o_status_live': !this.isOffline, 'o_status_offline': this.isOffline}" t-att-title="this.isOffline ? 'Offline' : 'Live Tenant Connection'"/>
                 <i class="oi d-lg-none" data-icon="business"/>
                 <span class="oe_topbar_name d-none d-lg-block text-truncate" t-out="this.user.activeCompany.name"/>
             </button>
