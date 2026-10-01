@@ -7,7 +7,7 @@
         </t>
         <t t-call="web.layout"
             html_data="{'style': 'height: 100%;'}"
-            title.translate="Odoo Runtime Doc"
+            title.translate="Insilos Runtime Doc"
             head="head"/>
     </template>
 </odoo>

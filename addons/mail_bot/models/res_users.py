@@ -19,7 +19,7 @@ class ResUsers(models.Model):
             ('idle', 'Idle'),
             ('disabled', 'Disabled'),
         ], string="InsilosBot Status", readonly=True, required=False)  # keep track of the state: correspond to the code of the last message sent
-    odoobot_failed = fields.Boolean(readonly=True)
+    odoobot_failed = fields.Boolean(string="InsilosBot Failed", readonly=True)
 
     def _on_webclient_bootstrap(self):
         super()._on_webclient_bootstrap()
