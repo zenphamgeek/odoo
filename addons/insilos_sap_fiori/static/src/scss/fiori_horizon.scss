@@ -205,23 +205,45 @@
 
         .o_statusbar_status {
             display: flex !important;
-            flex-flow: row-reverse wrap-reverse !important;
+            flex-flow: row-reverse nowrap !important;
             align-items: center !important;
             border: none !important;
             background: transparent !important;
-            gap: 2px !important;
+            gap: 0 !important;
             margin-left: auto !important;
 
+            .o_arrow_button_wrap {
+                display: inline-flex;
+                align-items: center;
+                position: relative;
+                height: 30px !important;
+
+                &.d-none {
+                    display: none !important;
+                }
+
+                & + .o_arrow_button_wrap::after {
+                    content: '›' !important;
+                    font-size: 15px !important;
+                    font-weight: 700 !important;
+                    color: var(--insilos-border-strong, #94a3b8) !important;
+                    margin: 0 8px !important;
+                    line-height: 1 !important;
+                    display: inline-block !important;
+                    pointer-events: none;
+                }
+            }
+
             .btn.o_arrow_button:not(.d-none) {
-                height: 32px !important;
-                line-height: 32px !important;
-                padding: 0 16px 0 22px !important;
+                height: 30px !important;
+                line-height: 28px !important;
+                padding: 0 12px !important;
                 font-size: 12px !important;
                 font-weight: 600 !important;
-                border: none !important;
-                border-radius: 0 !important;
-                margin-left: -10px !important;
-                clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%, 10px 50%) !important;
+                border: 1px solid var(--insilos-border-subtle, #e2e8f0) !important;
+                border-radius: 15px !important;
+                margin: 0 !important;
+                clip-path: none !important;
                 background-color: var(--insilos-bg-subtle, #f8fafc) !important;
                 color: var(--insilos-text-secondary, #475569) !important;
                 display: inline-flex !important;
@@ -230,33 +252,22 @@
                 transition: all var(--insilos-transition-fast);
                 position: relative !important;
 
-                &.o_last {
-                    clip-path: polygon(0% 0%, calc(100% - 10px) 0%, 100% 50%, calc(100% - 10px) 100%, 0% 100%) !important;
-                    margin-left: 0 !important;
-                    padding-left: 14px !important;
-                    border-top-left-radius: var(--insilos-radius-xs, 2px) !important;
-                    border-bottom-left-radius: var(--insilos-radius-xs, 2px) !important;
-                }
-
+                &.o_last,
                 &.o_first {
-                    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 10px 50%) !important;
-                    padding-right: 14px !important;
-                    border-top-right-radius: var(--insilos-radius-xs, 2px) !important;
-                    border-bottom-right-radius: var(--insilos-radius-xs, 2px) !important;
-                }
-
-                &.o_first.o_last {
                     clip-path: none !important;
-                    border-radius: var(--insilos-radius-xs, 2px) !important;
+                    margin: 0 !important;
+                    border-radius: 15px !important;
+                    padding: 0 12px !important;
                 }
 
                 &.btn-primary,
                 &.o_arrow_button_current {
-                    background-color: var(--insilos-primary, #0b2e64) !important;
-                    color: #ffffff !important;
+                    background-color: var(--insilos-primary-subtle, rgba(11, 46, 100, 0.08)) !important;
+                    border-color: var(--insilos-primary, #0b2e64) !important;
+                    color: var(--insilos-primary, #0b2e64) !important;
                     font-weight: 700 !important;
                     z-index: 2 !important;
-                    box-shadow: 0 1px 3px rgba(11, 46, 100, 0.25) !important;
+                    box-shadow: none !important;
                 }
 
                 &:not(.o_arrow_button_current):not(.btn-primary) {
