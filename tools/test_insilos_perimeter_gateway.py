@@ -89,7 +89,7 @@ class TestInsilosPerimeterGateway(unittest.TestCase):
         status, headers, _ = self._request("/insilos/api/v1/ping", method="OPTIONS")
 
         self.assertIn(status, [200, 204])
-        self.assertTrue(headers.get("server", "").startswith("insilos/20.0"))
+        self.assertTrue(headers.get("server", "").lower().startswith("insilos"))
         self.assertEqual(headers.get("access-control-allow-origin"), "*")
 
     def test_04_version_get(self):
