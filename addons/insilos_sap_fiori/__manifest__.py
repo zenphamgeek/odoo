@@ -49,6 +49,7 @@ Insilos Enterprise SAP Lexicon & Fiori Horizon Design System
     'data': [
         'security/ir.model.access.csv',
         'data/sap_assets.xml',
+        'views/sap_control_tower_views.xml',
         'data/sap_menu_data.xml',
         'data/sap_financial_reports.xml',
         'views/sap_master_data_views.xml',
@@ -62,6 +63,7 @@ Insilos Enterprise SAP Lexicon & Fiori Horizon Design System
             'insilos_sap_fiori/static/src/scss/fiori_status_badges.scss',
             'insilos_sap_fiori/static/src/scss/fiori_kpi_cards.scss',
             'insilos_sap_fiori/static/src/js/sap_lexicon_service.js',
+            'insilos_sap_fiori/static/src/executive_control_tower/**/*',
         ],
     },
     'installable': True,

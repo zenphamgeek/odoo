@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="insilos_sap_fiori.TimeframeFilterBar">
+        <header class="o_timeframe_bar o_timeframe_filter_bar o_dashboard_timeframe_selector ins_timeframe_filter cds--row align-items-center justify-content-between p-3 mb-3">
+            <!-- Left: Title, Live Status Indicator, Domain Filter Pills -->
+            <div class="d-flex align-items-center flex-wrap gap-2 cds--col-lg-10 cds--col-md-8 cds--col-sm-4">
+                <div class="d-flex align-items-center me-3">
+                    <span class="o_live_status_dot me-2" t-att-class="{ 'o_status_syncing': props.isLoading, 'o_status_live': !props.isLoading }"></span>
+                    <span class="text-uppercase fw-bold text-muted small letter-spacing-1">Executive Control Tower</span>
+                </div>
+                
+                <!-- Domain Filter Pills -->
+                <div class="o_domain_filter_group d-inline-flex flex-wrap gap-1" role="group" aria-label="Business Domain Filters">
+                    <t t-foreach="domains" t-as="dom" t-key="dom.id">
+                        <button type="button"
+                                class="btn btn-sm o_domain_filter_pill"
+                                t-att-class="{ 'active': props.activeDomain === dom.id, 'btn-primary': props.activeDomain === dom.id, 'btn-outline-secondary': props.activeDomain !== dom.id }"
+                                t-att-aria-pressed="props.activeDomain === dom.id ? 'true' : 'false'"
+                                t-on-click="() => this.selectDomain(dom.id)">
+                            <i t-attf-class="ph #{dom.icon} me-1"></i>
+                            <span t-esc="dom.label"></span>
+                        </button>
+                    </t>
+                </div>
+            </div>
+
+            <!-- Right: Carbon Segmented Timeframe Switcher -->
+            <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0 cds--col-lg-6 cds--col-md-8 cds--col-sm-4 justify-content-lg-end">
+                <div class="cds--content-switcher o_timeframe_switcher btn-group" role="tablist" aria-label="Timeframe Switcher">
+                    <t t-foreach="timeframes" t-as="tf" t-key="tf.id">
+                        <button type="button"
+                                class="btn o_timeframe_item cds--content-switcher-btn"
+                                t-att-class="{ 'active': props.activeTimeframe === tf.id, 'btn-primary': props.activeTimeframe === tf.id, 'btn-outline-secondary': props.activeTimeframe !== tf.id }"
+                                t-att-aria-pressed="props.activeTimeframe === tf.id ? 'true' : 'false'"
+                                t-att-data-timeframe="tf.id"
+                                t-on-click="() => this.selectTimeframe(tf.id)">
+                            <i t-attf-class="ph #{tf.icon} me-1 d-none d-xl-inline"></i>
+                            <span class="fw-semibold" t-esc="tf.label"></span>
+                        </button>
+                    </t>
+                </div>
+                <div t-if="props.lastUpdated" class="text-muted small ms-2 d-none d-xxl-inline">
+                    <span>Cập nhật: <t t-esc="props.lastUpdated"/></span>
+                </div>
+            </div>
+        </header>
+    </t>
+</templates>

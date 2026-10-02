@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="insilos_sap_fiori.MesOeeCard">
+        <div class="o_control_tower_card cds--card o_card o_card_oee o_smart_factory_card o_mes_oee_card p-4 border rounded shadow-sm h-100"
+             data-card="oee"
+             role="region"
+             aria-label="Smart Factory MES OEE Hub"
+             style="background-color: var(--insilos-bg-card, #ffffff); border-color: var(--insilos-border-subtle, #e2e8f0); color: var(--insilos-text-primary, #0f172a);">
+            <!-- Card Header: Title, Subtitle, and Benchmark Target Badge -->
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: var(--insilos-border-subtle, #e2e8f0) !important;">
+                <div class="d-flex align-items-center cursor-pointer" role="button" tabindex="0" t-on-click="openOeeDrilldown">
+                    <i class="ph ph-gauge text-primary fs-4 me-2"></i>
+                    <div>
+                        <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1" style="color: var(--insilos-text-primary, #0f172a);">Smart Factory MES OEE Hub</h4>
+                        <span class="text-muted small">Hiệu suất thiết bị tổng thể OEE &amp; Trạng thái trạm gia công CNC SS400</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 font-monospace" style="font-size: 0.75rem;">
+                        <i class="ph ph-trophy me-1"></i>World-Class Benchmark &gt;= <t t-esc="benchmarkTarget"/>%
+                    </span>
+                </div>
+            </div>
+
+            <!-- Composite Radial / Segmented SVG Gauge & 3 Pillars -->
+            <div class="row align-items-center mb-3">
+                <!-- Left: Composite OEE Radial Gauge -->
+                <div class="col-12 col-md-5 text-center mb-3 mb-md-0">
+                    <div class="o_gauge_container d-inline-block position-relative cursor-pointer"
+                         role="button"
+                         tabindex="0"
+                         t-on-click="openOeeDrilldown"
+                         title="Xem phân tích chi tiết OEE &amp; Hiệu suất nhà máy">
+                        <svg class="o_oee_gauge oee_circle oee_radial_gauge"
+                             viewBox="0 0 140 140"
+                             style="width: 140px; height: 140px;"
+                             aria-label="Composite OEE Radial Gauge">
+                            <defs>
+                                <linearGradient id="oee_gauge_gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#00F2FE"/>
+                                    <stop offset="100%" stop-color="#10B981"/>
+                                </linearGradient>
+                                <linearGradient id="oee_benchmark_gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#F59E0B"/>
+                                    <stop offset="100%" stop-color="#D97706"/>
+                                </linearGradient>
+                            </defs>
+
+                            <!-- Base Inactive Background Track -->
+                            <circle cx="70" cy="70" r="54"
+                                    fill="none"
+                                    stroke="var(--insilos-border-subtle, #223354)"
+                                    stroke-width="11"
+                                    opacity="0.35"/>
+
+                            <!-- Segmented Benchmark Arc (85.0% World-Class Target) -->
+                            <circle cx="70" cy="70" r="54"
+                                    fill="none"
+                                    stroke="url(#oee_benchmark_gradient)"
+                                    stroke-width="11"
+                                    t-att-stroke-dasharray="gaugeData.circumference"
+                                    t-att-stroke-dashoffset="gaugeData.benchmarkOffset"
+                                    stroke-linecap="round"
+                                    opacity="0.35"
+                                    transform="rotate(-90 70 70)"/>
+
+                            <!-- Actual OEE Radial Progress Arc (92.5%) -->
+                            <circle cx="70" cy="70" r="54"
+                                    fill="none"
+                                    stroke="url(#oee_gauge_gradient)"
+                                    stroke-width="11"
+                                    t-att-stroke-dasharray="gaugeData.circumference"
+                                    t-att-stroke-dashoffset="gaugeData.strokeDashoffset"
+                                    stroke-linecap="round"
+                                    transform="rotate(-90 70 70)"/>
+                        </svg>
+
+                        <!-- Center Gauge Content -->
+                        <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
+                            <span class="fs-4 fw-bold font-monospace d-block"
+                                  style="color: var(--insilos-text-primary, #0f172a); font-variant-numeric: tabular-nums; line-height: 1.1;"
+                                  t-esc="oeeComposite + '%'"/>
+                            <span class="badge bg-primary text-white x-small text-uppercase px-2 py-0 my-1" style="font-size: 0.65rem;">
+                                OEE OVERALL
+                            </span>
+                            <span class="d-block text-success x-small fw-bold font-monospace" style="font-size: 0.72rem;">
+                                <t t-esc="oeeDelta"/>% vs Benchmark
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: 3 Underlying Pillars (Availability, Performance, Quality) -->
+                <div class="col-12 col-md-7">
+                    <div class="d-flex flex-column gap-3">
+                        <!-- Availability Pillar -->
+                        <div class="o_oee_pillar oee_pillar_item"
+                             data-pillar="availability"
+                             role="button"
+                             tabindex="0"
+                             t-on-click="openOeeDrilldown">
+                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                <span class="fw-semibold d-flex align-items-center" style="color: var(--insilos-text-primary, #0f172a);">
+                                    <i class="ph ph-clock-clockwise text-success me-1"></i>
+                                    Availability (Tính sẵn sàng)
+                                </span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="font-monospace text-success fw-bold" style="font-variant-numeric: tabular-nums;">
+                                        <t t-esc="pillars.availability.actual"/>%
+                                    </span>
+                                    <span class="text-muted x-small">(&gt;= <t t-esc="pillars.availability.threshold"/>%)</span>
+                                    <span class="badge bg-success-subtle text-success p-1 ms-1" title="Passed Threshold">
+                                        <i class="ph ph-check-circle"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="progress" style="height: 7px; background-color: var(--insilos-border-subtle, #e2e8f0);" title="Availability Progress">
+                                <div class="progress-bar bg-success"
+                                     role="progressbar"
+                                     t-att-style="'width: ' + pillars.availability.progressWidth + ';'"
+                                     t-att-aria-valuenow="pillars.availability.actual"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"/>
+                            </div>
+                            <span class="text-muted x-small d-block mt-1" style="font-size: 0.7rem;" t-esc="pillars.availability.description"/>
+                        </div>
+
+                        <!-- Performance Pillar -->
+                        <div class="o_oee_pillar oee_pillar_item"
+                             data-pillar="performance"
+                             role="button"
+                             tabindex="0"
+                             t-on-click="openOeeDrilldown">
+                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                <span class="fw-semibold d-flex align-items-center" style="color: var(--insilos-text-primary, #0f172a);">
+                                    <i class="ph ph-speedometer text-primary me-1"></i>
+                                    Performance (Hiệu suất vận hành)
+                                </span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="font-monospace text-primary fw-bold" style="font-variant-numeric: tabular-nums;">
+                                        <t t-esc="pillars.performance.actual"/>%
+                                    </span>
+                                    <span class="text-muted x-small">(&gt;= <t t-esc="pillars.performance.threshold"/>%)</span>
+                                    <span class="badge bg-success-subtle text-success p-1 ms-1" title="Passed Threshold">
+                                        <i class="ph ph-check-circle"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="progress" style="height: 7px; background-color: var(--insilos-border-subtle, #e2e8f0);" title="Performance Progress">
+                                <div class="progress-bar bg-primary"
+                                     role="progressbar"
+                                     t-att-style="'width: ' + pillars.performance.progressWidth + ';'"
+                                     t-att-aria-valuenow="pillars.performance.actual"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"/>
+                            </div>
+                            <span class="text-muted x-small d-block mt-1" style="font-size: 0.7rem;" t-esc="pillars.performance.description"/>
+                        </div>
+
+                        <!-- Quality Pillar -->
+                        <div class="o_oee_pillar oee_pillar_item"
+                             data-pillar="quality"
+                             role="button"
+                             tabindex="0"
+                             t-on-click="openOeeDrilldown">
+                            <div class="d-flex justify-content-between align-items-center small mb-1">
+                                <span class="fw-semibold d-flex align-items-center" style="color: var(--insilos-text-primary, #0f172a);">
+                                    <i class="ph ph-seal-check text-info me-1"></i>
+                                    Quality (Chất lượng sản phẩm)
+                                </span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <span class="font-monospace text-info fw-bold" style="font-variant-numeric: tabular-nums;">
+                                        <t t-esc="pillars.quality.actual"/>%
+                                    </span>
+                                    <span class="text-muted x-small">(&gt;= <t t-esc="pillars.quality.threshold"/>%)</span>
+                                    <span class="badge bg-success-subtle text-success p-1 ms-1" title="Passed Threshold">
+                                        <i class="ph ph-check-circle"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="progress" style="height: 7px; background-color: var(--insilos-border-subtle, #e2e8f0);" title="Quality Progress">
+                                <div class="progress-bar bg-info"
+                                     role="progressbar"
+                                     t-att-style="'width: ' + pillars.quality.progressWidth + ';'"
+                                     t-att-aria-valuenow="pillars.quality.actual"
+                                     aria-valuemin="0"
+                                     aria-valuemax="100"/>
+                            </div>
+                            <span class="text-muted x-small d-block mt-1" style="font-size: 0.7rem;" t-esc="pillars.quality.description"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Machine & Station Telemetry Section -->
+            <div class="o_station_roster border-top pt-3" style="border-color: var(--insilos-border-subtle, #e2e8f0) !important;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-uppercase x-small text-muted fw-bold d-flex align-items-center">
+                        <i class="ph ph-cpu me-1"></i>Trạng thái trạm máy sản xuất thời gian thực
+                    </span>
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle x-small font-monospace">
+                        <i class="ph ph-lightning me-1"></i>Tổng Tiêu Thụ: <t t-esc="totalEnergyKwh"/> kWh / Ca
+                    </span>
+                </div>
+
+                <!-- Station Items List -->
+                <div class="d-flex flex-column gap-2">
+                    <t t-foreach="workcenters" t-as="wc" t-key="wc.code">
+                        <div class="o_workcenter_status o_station_telemetry p-2 rounded border d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 cursor-pointer transition-all"
+                             t-att-data-station="wc.code"
+                             role="button"
+                             tabindex="0"
+                             t-on-click="() => this.openStation(wc)"
+                             style="background-color: var(--insilos-bg-subtle, rgba(15, 23, 42, 0.04)); border-color: var(--insilos-border-subtle, #e2e8f0) !important;"
+                             title="Nhấn để mở chi tiết trạm máy &amp; Lệnh sản xuất">
+                            <!-- Left: Status dot, Name, Code -->
+                            <div class="d-flex align-items-center">
+                                <span class="o_station_dot me-2 rounded-circle flex-shrink-0"
+                                      t-att-class="{ 'bg-success': wc.status === 'running', 'bg-warning': wc.status === 'standby' }"
+                                      style="width: 10px; height: 10px; display: inline-block; box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);"
+                                      t-att-title="wc.status === 'running' ? 'Đang hoạt động' : 'Chờ nạp phôi'"/>
+                                <div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <span class="fw-bold small" style="color: var(--insilos-text-primary, #0f172a);" t-esc="wc.name"/>
+                                        <span class="text-muted small font-monospace" t-esc="'(' + wc.code + ')'"/>
+                                    </div>
+                                    <span class="text-muted x-small d-block" t-esc="wc.active_workorder"/>
+                                </div>
+                            </div>
+
+                            <!-- Right: Telemetry metrics, Energy kWh, OEE % -->
+                            <div class="d-flex align-items-center gap-2 justify-content-between justify-content-sm-end">
+                                <span class="text-muted x-small d-none d-md-inline" t-esc="wc.telemetry"/>
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle font-monospace x-small" title="Mức tiêu thụ điện năng">
+                                    <i class="ph ph-lightning me-1"></i><t t-esc="wc.energy_kwh || wc.energy_consumption_kwh"/> kWh
+                                </span>
+                                <span class="badge bg-secondary-subtle text-secondary font-monospace" title="Hiệu suất OEE trạm">
+                                    <t t-esc="(wc.actual_oee || 0) + '%'"/>
+                                </span>
+                                <i class="ph ph-arrow-square-out text-muted ms-1" style="font-size: 0.85rem;"/>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

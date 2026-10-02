@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="insilos_sap_fiori.KPISummaryTile">
+        <div class="ins-kpi-summary-tile o_kpi_summary_tile o_fiori_kpi_card o_control_tower_kpi"
+             t-att-data-kpi-id="props.kpi.id"
+             role="button"
+             tabindex="0"
+             t-on-click="onTileClick"
+             t-on-keydown="onKeyDown"
+             t-att-aria-label="(props.kpi.label || 'KPI') + ': ' + (props.kpi.value_formatted || '')">
+            
+            <!-- Tile Header: Icon, Label, and Subtitle -->
+            <div class="ins-kpi-tile-header d-flex align-items-center justify-content-between mb-2">
+                <div class="ins-kpi-title-group text-truncate">
+                    <span class="ins-kpi-label o_kpi_title o_stat_text text-truncate d-block" t-esc="props.kpi.label"/>
+                    <span t-if="props.kpi.lexicon" class="ins-kpi-lexicon text-truncate d-block" t-esc="props.kpi.lexicon"/>
+                </div>
+                <div class="ins-kpi-icon-wrapper flex-shrink-0 ms-2">
+                    <i t-att-class="'ins-kpi-icon ph ' + (props.kpi.icon || 'ph-chart-line-up')"/>
+                </div>
+            </div>
+
+            <!-- Tile Body: Main Numeric Metric & Sparkline Micro-Visualization -->
+            <div class="ins-kpi-tile-body d-flex align-items-baseline justify-content-between my-2">
+                <!-- Large Tabular Numeric Metric Value -->
+                <div class="ins-kpi-metric-value-wrap">
+                    <span class="ins-kpi-value o_kpi_value o_stat_value tabular-nums"
+                          style="font-variant-numeric: tabular-nums; font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;"
+                          t-esc="props.kpi.value_formatted"/>
+                </div>
+
+                <!-- Pure Mathematical SVG Sparkline (120x36) -->
+                <div class="ins-kpi-sparkline-wrap flex-shrink-0 ms-3" t-if="sparklineData">
+                    <svg class="ins-sparkline-svg o_kpi_sparkline"
+                         viewBox="0 0 120 36"
+                         width="120"
+                         height="36"
+                         preserveAspectRatio="none"
+                         aria-hidden="true">
+                        <defs>
+                            <linearGradient t-att-id="gradientId" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" t-att-stop-color="sparklineData.stroke_color" stop-opacity="0.35"/>
+                                <stop offset="100%" t-att-stop-color="sparklineData.stroke_color" stop-opacity="0.0"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- Shaded Area Gradient -->
+                        <path t-att-d="sparklineData.area_d"
+                              t-att-fill="'url(#' + gradientId + ')'"
+                              class="ins-sparkline-area"/>
+                        <!-- Precision Trend Line -->
+                        <path t-att-d="sparklineData.line_d"
+                              fill="none"
+                              t-att-stroke="sparklineData.stroke_color"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                              class="ins-sparkline-line"/>
+                        <!-- Live Indicator Endpoint Dot -->
+                        <circle t-if="sparklineData.endpoint"
+                                t-att-cx="sparklineData.endpoint.cx"
+                                t-att-cy="sparklineData.endpoint.cy"
+                                r="3.2"
+                                t-att-fill="sparklineData.stroke_color"
+                                class="ins-sparkline-endpoint-dot"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Tile Footer: Semantic Delta Badge & Target/Secondary Info -->
+            <div class="ins-kpi-tile-footer d-flex align-items-center justify-content-between pt-2 mt-auto border-top border-dark-subtle">
+                <!-- Semantic Delta Badge (+/- % with direction arrow) -->
+                <div t-att-class="'o_kpi_delta o_kpi_trend badge ' + deltaBadgeClass" t-if="props.kpi.delta_percent !== undefined">
+                    <span class="ins-delta-arrow me-1" t-esc="deltaArrow"/>
+                    <span class="ins-delta-value tabular-nums" t-esc="deltaFormatted"/>
+                </div>
+
+                <!-- Secondary Context / Target / Compliance Info -->
+                <div class="ins-kpi-secondary-info text-truncate text-end ms-2">
+                    <span t-if="props.kpi.target_formatted" class="ins-kpi-target-text">
+                        Mục tiêu: <strong t-esc="props.kpi.target_formatted"/>
+                    </span>
+                    <span t-elif="props.kpi.tco_savings_annual_formatted" class="ins-kpi-target-text ins-tco-highlight">
+                        <strong t-esc="props.kpi.tco_savings_annual_formatted"/>
+                    </span>
+                    <span t-elif="props.kpi.ppe_compliance_formatted" class="ins-kpi-target-text">
+                        PPE: <strong t-esc="props.kpi.ppe_compliance_formatted"/>
+                    </span>
+                    <span t-elif="props.kpi.threshold_formatted" class="ins-kpi-target-text">
+                        Chuẩn: <strong t-esc="props.kpi.threshold_formatted"/>
+                    </span>
+                    <span t-elif="props.kpi.pipeline_formatted" class="ins-kpi-target-text">
+                        Phễu: <strong t-esc="props.kpi.pipeline_formatted"/>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </t>
+</templates>

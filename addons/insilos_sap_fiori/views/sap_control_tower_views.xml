@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- =================================================================== -->
+    <!-- Executive Control Tower Client Action                               -->
+    <!-- =================================================================== -->
+    <record id="action_insilos_executive_control_tower" model="ir.actions.client">
+        <field name="name">Executive Control Tower</field>
+        <field name="tag">insilos_executive_control_tower</field>
+        <field name="target">main</field>
+    </record>
+</data>

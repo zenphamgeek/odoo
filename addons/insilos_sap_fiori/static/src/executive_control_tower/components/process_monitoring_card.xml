@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="insilos_sap_fiori.ProcessMonitoringCard">
+        <section class="o_control_tower_card cds--card o_card o_process_monitoring_card p-4 mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <div class="d-flex align-items-center">
+                    <i class="ph ph-flow-arrow text-primary fs-4 me-2"></i>
+                    <div>
+                        <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1">End-to-End Enterprise Process Monitoring</h4>
+                        <span class="text-muted small">Tiến độ quy trình liên chuỗi Lead-to-Cash, Procure-to-Pay, Order-to-Delivery</span>
+                    </div>
+                </div>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                    <i class="ph ph-activity me-1"></i>Live Value Stream
+                </span>
+            </div>
+
+            <!-- 3 Chevron Pipelines -->
+            <div class="o_pipelines_container d-flex flex-column gap-3">
+                <t t-foreach="Object.entries(pipelineData)" t-as="entry" t-key="entry[0]">
+                    <div class="o_pipeline_row p-2 rounded bg-light-subtle border">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="d-flex align-items-center">
+                                <i t-attf-class="ph #{entry[1].icon} text-secondary me-2"></i>
+                                <span class="fw-bold small text-uppercase" t-esc="entry[1].title"></span>
+                                <span class="text-muted small ms-2 d-none d-md-inline">— <t t-esc="entry[1].description"/></span>
+                            </div>
+                            <span class="badge bg-secondary-subtle text-secondary font-monospace" t-esc="entry[1].code"></span>
+                        </div>
+
+                        <!-- Chevron Steps -->
+                        <div class="o_chevron_track d-flex flex-wrap gap-1" role="list">
+                            <t t-foreach="entry[1].stages" t-as="stage" t-key="stage.id">
+                                <div class="o_chevron_step flex-fill d-flex align-items-center justify-content-between px-3 py-2 border rounded"
+                                     role="listitem"
+                                     tabindex="0"
+                                     t-attf-class="o_chevron_status_#{stage.status}"
+                                     t-on-click="() => this.handleStageClick(entry[0], stage)"
+                                     t-on-keydown="(ev) => ev.key === 'Enter' and this.handleStageClick(entry[0], stage)"
+                                     title="Click để xem danh sách chứng từ">
+                                    <span class="o_stage_name fw-semibold small text-truncate me-2" t-esc="stage.name"></span>
+                                    <span class="o_stage_count badge bg-white text-dark shadow-sm border font-monospace" t-esc="stage.count"></span>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </section>
+    </t>
+</templates>

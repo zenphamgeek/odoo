@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="insilos_sap_fiori.LogisticsHubCard">
+        <div class="o_control_tower_card cds--card o_card o_card_logistics o_drayage_fleet_card o_logistics_hub_card p-4 border rounded shadow-sm h-100"
+             data-card="logistics"
+             role="region"
+             aria-label="Logistics Drayage &amp; Port Depot Hub"
+             style="background-color: var(--insilos-bg-card, #ffffff); border-color: var(--insilos-border-subtle, #e2e8f0); color: var(--insilos-text-primary, #0f172a);">
+            <!-- Card Header: Title, Subtitle, and DET/DEM SLA Urgency Countdown Pill -->
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: var(--insilos-border-subtle, #e2e8f0) !important;">
+                <div class="d-flex align-items-center cursor-pointer" role="button" tabindex="0" t-on-click="openFleetManagement">
+                    <i class="ph ph-truck text-warning fs-4 me-2"></i>
+                    <div>
+                        <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1" style="color: var(--insilos-text-primary, #0f172a);">Logistics Drayage &amp; Port Depot Hub</h4>
+                        <span class="text-muted small">Đội xe đầu kéo Hyundai Xcient &amp; Cảnh báo hạn chót phí phạt lưu bãi/vỏ Cát Lái - Cái Mép</span>
+                    </div>
+                </div>
+
+                <!-- Real-time DET/DEM Urgency Pill -->
+                <div class="d-flex align-items-center gap-2">
+                    <span class="o_det_dem_warning o_det_dem_countdown badge bg-warning text-dark px-2 py-1 font-monospace cursor-pointer shadow-sm"
+                          data-warning="det_dem"
+                          role="button"
+                          tabindex="0"
+                          t-on-click="openDetDemDetails"
+                          title="Hạn chót thời gian miễn phí lưu bãi/lưu vỏ DET/DEM">
+                        <i class="ph ph-warning me-1"></i>Hạn DET/DEM: <t t-esc="containerMoves.countdownFormatted"/> (Đệm: <t t-esc="containerMoves.bufferFormatted"/>)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Fleet Filter Tabs & Status Overview -->
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                <span class="text-uppercase x-small text-muted fw-bold d-flex align-items-center">
+                    <i class="ph ph-navigation-arrow me-1"></i>Đội xe đầu kéo container liên bãi (Cát Lái &lt;-&gt; Cái Mép)
+                </span>
+                <!-- Segmented Filter Pills -->
+                <div class="btn-group btn-group-sm" role="group" aria-label="Fleet Filters">
+                    <button type="button"
+                            class="btn btn-sm py-0 px-2"
+                            t-att-class="state.activeTab === 'all' ? 'btn-primary' : 'btn-outline-secondary'"
+                            t-on-click="() => this.setTab('all')">
+                        Tất cả (<t t-esc="fleet.length"/>)
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm py-0 px-2"
+                            t-att-class="state.activeTab === 'in_transit' ? 'btn-primary' : 'btn-outline-secondary'"
+                            t-on-click="() => this.setTab('in_transit')">
+                        Đang chạy
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm py-0 px-2"
+                            t-att-class="state.activeTab === 'coupled' ? 'btn-primary' : 'btn-outline-secondary'"
+                            t-on-click="() => this.setTab('coupled')">
+                        Đã nối vỏ
+                    </button>
+                    <button type="button"
+                            class="btn btn-sm py-0 px-2"
+                            t-att-class="state.activeTab === 'standby' ? 'btn-primary' : 'btn-outline-secondary'"
+                            t-on-click="() => this.setTab('standby')">
+                        Chờ lệnh
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tractor Fleet Dispatch Cards Grid -->
+            <div class="row g-2 mb-3">
+                <t t-foreach="filteredFleet" t-as="truck" t-key="truck.plate">
+                    <div class="col-12 col-md-6">
+                        <div class="o_fleet_vehicle o_drayage_truck p-2 rounded border d-flex flex-column justify-content-between h-100 cursor-pointer transition-all"
+                             t-att-data-vehicle="truck.plate"
+                             role="button"
+                             tabindex="0"
+                             t-on-click="() => this.openVehicle(truck)"
+                             style="background-color: var(--insilos-bg-subtle, rgba(15, 23, 42, 0.04)); border-color: var(--insilos-border-subtle, #e2e8f0) !important;"
+                             title="Nhấn để xem hồ sơ kỹ thuật &amp; Hành trình phương tiện">
+                            <!-- Top: Plate, Model, Status Badge -->
+                            <div class="d-flex align-items-start justify-content-between mb-1">
+                                <div>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <i t-attf-class="ph #{truck.icon || 'ph-truck'} text-primary fs-6 me-1"></i>
+                                        <span class="fw-bold small font-monospace" style="color: var(--insilos-text-primary, #0f172a);" t-esc="truck.plate"/>
+                                    </div>
+                                    <span class="text-muted x-small d-block text-truncate" style="max-width: 200px;" t-esc="truck.model"/>
+                                </div>
+                                <span class="badge font-monospace x-small"
+                                      t-att-class="truck.status_badge"
+                                      t-esc="truck.status_label"/>
+                            </div>
+
+                            <!-- Route / Location & Driver -->
+                            <div class="x-small text-muted mb-1 text-truncate">
+                                <i class="ph ph-map-pin me-1 text-danger"></i>
+                                <span t-esc="truck.location || truck.route"/>
+                            </div>
+
+                            <!-- Bottom Metrics: Odometer & Fuel Quota -->
+                            <div class="d-flex align-items-center justify-content-between pt-1 border-top mt-1 x-small font-monospace" style="border-color: var(--insilos-border-subtle, #e2e8f0) !important;">
+                                <span class="text-muted" title="Chỉ số đồng hồ đo quãng đường (Odometer)">
+                                    <i class="ph ph-gauge me-1"></i><t t-esc="truck.odometer_formatted"/>
+                                </span>
+                                <span class="badge bg-secondary-subtle text-secondary" title="Định mức tiêu hao nhiên liệu">
+                                    <i class="ph ph-gas-pump me-1"></i><t t-esc="truck.fuel_consumption"/>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+
+            <!-- DET/DEM Free-Time SLA Early Warning Cockpit Box -->
+            <div class="o_demurrage_alert p-3 rounded bg-warning-subtle border border-warning-subtle"
+                 data-warning="det_dem"
+                 role="alert">
+                <!-- Top Row: Warning summary & 1-Click Escalation Button -->
+                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2 mb-2">
+                    <div class="d-flex align-items-start">
+                        <i class="ph ph-shield-warning text-warning fs-3 me-2 flex-shrink-0"></i>
+                        <div>
+                            <span class="fw-bold text-dark d-block">Phòng ngừa 100% rủi ro phạt lưu bãi/lưu vỏ DET/DEM</span>
+                            <span class="text-muted small">
+                                <t t-esc="containerMoves.trackedContainers"/> • <t t-esc="containerMoves.orderRef"/>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- 1-Click Dispatch Escalation Button -->
+                    <div class="flex-shrink-0">
+                        <button type="button"
+                                class="btn btn-sm btn-warning text-dark fw-bold d-inline-flex align-items-center shadow-sm"
+                                t-on-click="onEscalateDispatch"
+                                title="Kích hoạt lệnh dispatch ưu tiên thông quan hạ bãi ngay lập tức">
+                            <i class="ph ph-lightning me-1"></i>
+                            <t t-if="state.isEscalated">Đã Kích Hoạt Khẩn</t>
+                            <t t-else="">Điều Phối Giao Ngay (1-Click)</t>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Free-Time SLA Countdown Progress Bar -->
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between align-items-center x-small font-monospace mb-1">
+                        <span class="text-dark fw-semibold">
+                            <i class="ph ph-hourglass-high me-1 text-warning"></i>
+                            Hạn Free-Time Còn Lại: <strong><t t-esc="containerMoves.countdownFormatted"/></strong> / 72.0h SLA
+                        </span>
+                        <span class="badge bg-success text-white">
+                            <i class="ph ph-shield-check me-1"></i>Đệm an toàn: +<t t-esc="containerMoves.bufferFormatted"/>
+                        </span>
+                    </div>
+                    <div class="progress" style="height: 6px; background-color: rgba(0, 0, 0, 0.08);" title="Tiến độ thời gian Free-Time DET/DEM">
+                        <div class="progress-bar bg-warning"
+                             role="progressbar"
+                             t-att-style="'width: ' + containerMoves.timeRemainingPercent + ';'"
+                             t-att-aria-valuenow="containerMoves.countdownHours"
+                             aria-valuemin="0"
+                             aria-valuemax="72"/>
+                    </div>
+                </div>
+
+                <!-- Bottom Telemetry: Penalty Avoidance Stat -->
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top border-warning-subtle x-small">
+                    <span class="text-muted">
+                        <i class="ph ph-check-circle text-success me-1"></i>18/18 container đã thông quan an toàn
+                    </span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace fw-bold"
+                          title="Chi phí phạt DET/DEM đã phòng ngừa thành công">
+                        <i class="ph ph-coins me-1"></i>Tiết Kiệm Phạt: <t t-esc="containerMoves.penaltyFormatted"/> Averted
+                    </span>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>

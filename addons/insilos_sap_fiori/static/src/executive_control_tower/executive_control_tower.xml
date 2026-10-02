@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="insilos_sap_fiori.ExecutiveControlTower">
+        <div class="o_executive_control_tower cds--grid o_control_tower_grid o_fiori_ovp_grid p-3 p-lg-4">
+            <!-- Global Timeframe & Domain Filter Bar -->
+            <TimeframeFilterBar activeTimeframe="state.timeframe"
+                                activeDomain="state.domain"
+                                onTimeframeChange.bind="onTimeframeChange"
+                                onDomainChange.bind="onDomainChange"
+                                lastUpdated="state.lastUpdated"
+                                isLoading="state.isLoading"/>
+
+            <!-- ========================================================= -->
+            <!-- ROW 1: PRIMARY EXECUTIVE KPI TILES (16 Columns Total)      -->
+            <!-- 4 Tiles x 4 Columns = 16 Columns                           -->
+            <!-- ========================================================= -->
+            <div class="cds--row g-3 mb-3">
+                <!-- Net Revenue Tile (SD) -->
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                    <t t-if="getComponent('KpiSummaryTile')">
+                        <t t-component="getComponent('KpiSummaryTile')" kpi="state.kpis.net_revenue" timeframe="state.timeframe"/>
+                    </t>
+                    <t t-else="">
+                        <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
+                             role="button"
+                             tabindex="0"
+                             t-on-click="() => this.openModelView(state.kpis.net_revenue.res_model, 'list', [], 'Doanh Thu Thuần')">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.net_revenue.title"></span>
+                                <i t-attf-class="ph #{state.kpis.net_revenue.icon} text-primary fs-5"></i>
+                            </div>
+                            <div class="d-flex align-items-baseline justify-content-between my-1">
+                                <span class="o_kpi_value fs-3 fw-bold font-monospace letter-spacing-tight" style="font-variant-numeric: tabular-nums;" t-esc="state.kpis.net_revenue.value_formatted"></span>
+                                <span class="o_kpi_trend o_kpi_delta badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center">
+                                    <i class="ph ph-arrow-up-right me-1"></i>+<t t-esc="state.kpis.net_revenue.delta_percent"/>%
+                                </span>
+                            </div>
+                            <div class="o_sparkline_container mt-2">
+                                <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
+                                    <defs>
+                                        <linearGradient id="grad_rev" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#00F2FE" stop-opacity="0.4"/>
+                                            <stop offset="100%" stop-color="#00F2FE" stop-opacity="0.0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path t-att-d="state.kpis.net_revenue.sparkline.area_d" fill="url(#grad_rev)"/>
+                                    <path t-att-d="state.kpis.net_revenue.sparkline.line_d" fill="none" stroke="#00F2FE" stroke-width="2"/>
+                                    <circle t-att-cx="state.kpis.net_revenue.sparkline.endX" t-att-cy="state.kpis.net_revenue.sparkline.endY" r="3" fill="#00F2FE"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Procurement & TCO Savings Tile (MM) -->
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                    <t t-if="getComponent('KpiSummaryTile')">
+                        <t t-component="getComponent('KpiSummaryTile')" kpi="state.kpis.procurement_tco" timeframe="state.timeframe"/>
+                    </t>
+                    <t t-else="">
+                        <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
+                             role="button"
+                             tabindex="0"
+                             t-on-click="() => this.openModelView(state.kpis.procurement_tco.res_model, 'list', [], 'Mua Sắm &amp; TCO')">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.procurement_tco.title"></span>
+                                <i t-attf-class="ph #{state.kpis.procurement_tco.icon} text-info fs-5"></i>
+                            </div>
+                            <div class="d-flex align-items-baseline justify-content-between my-1">
+                                <span class="o_kpi_value fs-3 fw-bold font-monospace letter-spacing-tight" style="font-variant-numeric: tabular-nums;" t-esc="state.kpis.procurement_tco.value_formatted"></span>
+                                <span class="o_kpi_trend o_kpi_delta badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center">
+                                    <i class="ph ph-arrow-down-right me-1"></i><t t-esc="state.kpis.procurement_tco.delta_percent"/>%
+                                </span>
+                            </div>
+                            <div class="o_sparkline_container mt-2">
+                                <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
+                                    <defs>
+                                        <linearGradient id="grad_spend" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#10B981" stop-opacity="0.4"/>
+                                            <stop offset="100%" stop-color="#10B981" stop-opacity="0.0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path t-att-d="state.kpis.procurement_tco.sparkline.area_d" fill="url(#grad_spend)"/>
+                                    <path t-att-d="state.kpis.procurement_tco.sparkline.line_d" fill="none" stroke="#10B981" stroke-width="2"/>
+                                    <circle t-att-cx="state.kpis.procurement_tco.sparkline.endX" t-att-cy="state.kpis.procurement_tco.sparkline.endY" r="3" fill="#10B981"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- OTIF Delivery Rate (LE) -->
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                    <t t-if="getComponent('KpiSummaryTile')">
+                        <t t-component="getComponent('KpiSummaryTile')" kpi="state.kpis.otif_delivery" timeframe="state.timeframe"/>
+                    </t>
+                    <t t-else="">
+                        <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
+                             role="button"
+                             tabindex="0"
+                             t-on-click="() => this.openModelView(state.kpis.otif_delivery.res_model, 'list', [], 'Giao Hàng OTIF')">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.otif_delivery.title"></span>
+                                <i t-attf-class="ph #{state.kpis.otif_delivery.icon} text-warning fs-5"></i>
+                            </div>
+                            <div class="d-flex align-items-baseline justify-content-between my-1">
+                                <span class="o_kpi_value fs-3 fw-bold font-monospace letter-spacing-tight" style="font-variant-numeric: tabular-nums;" t-esc="state.kpis.otif_delivery.value_formatted"></span>
+                                <span class="o_kpi_trend o_kpi_delta badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center">
+                                    <i class="ph ph-arrow-up-right me-1"></i>+<t t-esc="state.kpis.otif_delivery.delta_percent"/>%
+                                </span>
+                            </div>
+                            <div class="o_sparkline_container mt-2">
+                                <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
+                                    <defs>
+                                        <linearGradient id="grad_otif" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.4"/>
+                                            <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path t-att-d="state.kpis.otif_delivery.sparkline.area_d" fill="url(#grad_otif)"/>
+                                    <path t-att-d="state.kpis.otif_delivery.sparkline.line_d" fill="none" stroke="#F59E0B" stroke-width="2"/>
+                                    <circle t-att-cx="state.kpis.otif_delivery.sparkline.endX" t-att-cy="state.kpis.otif_delivery.sparkline.endY" r="3" fill="#F59E0B"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Days of Inventory on Hand DOH (LE) -->
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                    <t t-if="getComponent('KpiSummaryTile')">
+                        <t t-component="getComponent('KpiSummaryTile')" kpi="state.kpis.days_on_hand" timeframe="state.timeframe"/>
+                    </t>
+                    <t t-else="">
+                        <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
+                             role="button"
+                             tabindex="0"
+                             t-on-click="() => this.openModelView(state.kpis.days_on_hand.res_model, 'list', [], 'Tồn Kho DOH')">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.days_on_hand.title"></span>
+                                <i t-attf-class="ph #{state.kpis.days_on_hand.icon} text-secondary fs-5"></i>
+                            </div>
+                            <div class="d-flex align-items-baseline justify-content-between my-1">
+                                <span class="o_kpi_value fs-3 fw-bold font-monospace letter-spacing-tight" style="font-variant-numeric: tabular-nums;" t-esc="state.kpis.days_on_hand.value_formatted"></span>
+                                <span class="o_kpi_trend o_kpi_delta badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center">
+                                    <i class="ph ph-arrow-down-right me-1"></i><t t-esc="state.kpis.days_on_hand.delta_percent"/>%
+                                </span>
+                            </div>
+                            <div class="o_sparkline_container mt-2">
+                                <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
+                                    <defs>
+                                        <linearGradient id="grad_doh" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.4"/>
+                                            <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <path t-att-d="state.kpis.days_on_hand.sparkline.area_d" fill="url(#grad_doh)"/>
+                                    <path t-att-d="state.kpis.days_on_hand.sparkline.line_d" fill="none" stroke="#3B82F6" stroke-width="2"/>
+                                    <circle t-att-cx="state.kpis.days_on_hand.sparkline.endX" t-att-cy="state.kpis.days_on_hand.sparkline.endY" r="3" fill="#3B82F6"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- ROW 2: SECONDARY OPERATIONAL KPI TILES (16 Columns Total) -->
+            <!-- 4 Tiles x 4 Columns = 16 Columns                           -->
+            <!-- ========================================================= -->
+            <div class="cds--row g-3 mb-3">
+                <!-- Zero-Incident Safety Index (HSE) -->
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                    <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
+                         role="button"
+                         tabindex="0"
+                         t-on-click="() => this.openModelView(state.kpis.safety_index.res_model, 'list', [], 'An Toàn Lao Động')">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.safety_index.title"></span>
+                            <i t-attf-class="ph #{state.kpis.safety_index.icon} text-success fs-5"></i>
+                        </div>
+                        <div class="d-flex align-items-baseline justify-content-between my-1">
+                            <span class="o_kpi_value fs-3 fw-bold font-monospace letter-spacing-tight" style="font-variant-numeric: tabular-nums;" t-esc="state.kpis.safety_index.value_formatted"></span>
+                            <span class="o_kpi_trend o_kpi_delta badge bg-success text-white d-inline-flex align-items-center">
+                                <i class="ph ph-check me-1"></i>Zero Incident
+                            </span>
+                        </div>
+                        <div class="o_sparkline_container mt-2">
+                            <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
+                                <defs>
+                                    <linearGradient id="grad_safe" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#10B981" stop-opacity="0.4"/>
+                                        <stop offset="100%" stop-color="#10B981" stop-opacity="0.0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path t-att-d="state.kpis.safety_index.sparkline.area_d" fill="url(#grad_safe)"/>
+                                <path t-att-d="state.kpis.safety_index.sparkline.line_d" fill="none" stroke="#10B981" stroke-width="2"/>
+                                <circle t-att-cx="state.kpis.safety_index.sparkline.endX" t-att-cy="state.kpis.safety_index.sparkline.endY" r="3" fill="#10B981"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Operating Cash Flow OCF (FI) -->
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                    <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
+                         role="button"
+                         tabindex="0"
+                         t-on-click="() => this.openModelView(state.kpis.operating_cash_flow.res_model, 'list', [], 'Dòng Tiền Thuần')">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.operating_cash_flow.title"></span>
+                            <i t-attf-class="ph #{state.kpis.operating_cash_flow.icon} text-success fs-5"></i>
+                        </div>
+                        <div class="d-flex align-items-baseline justify-content-between my-1">
+                            <span class="o_kpi_value fs-3 fw-bold font-monospace letter-spacing-tight" style="font-variant-numeric: tabular-nums;" t-esc="state.kpis.operating_cash_flow.value_formatted"></span>
+                            <span class="o_kpi_trend o_kpi_delta badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center">
+                                <i class="ph ph-arrow-up-right me-1"></i>+<t t-esc="state.kpis.operating_cash_flow.delta_percent"/>%
+                            </span>
+                        </div>
+                        <div class="o_sparkline_container mt-2">
+                            <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
+                                <defs>
+                                    <linearGradient id="grad_ocf" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#00F2FE" stop-opacity="0.4"/>
+                                        <stop offset="100%" stop-color="#00F2FE" stop-opacity="0.0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path t-att-d="state.kpis.operating_cash_flow.sparkline.area_d" fill="url(#grad_ocf)"/>
+                                <path t-att-d="state.kpis.operating_cash_flow.sparkline.line_d" fill="none" stroke="#00F2FE" stroke-width="2"/>
+                                <circle t-att-cx="state.kpis.operating_cash_flow.sparkline.endX" t-att-cy="state.kpis.operating_cash_flow.sparkline.endY" r="3" fill="#00F2FE"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CNC Energy Consumption (PP) -->
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                    <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
+                         role="button"
+                         tabindex="0"
+                         t-on-click="() => this.openModelView(state.kpis.cnc_energy.res_model, 'list', [], 'Năng Lượng CNC')">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.cnc_energy.title"></span>
+                            <i t-attf-class="ph #{state.kpis.cnc_energy.icon} text-warning fs-5"></i>
+                        </div>
+                        <div class="d-flex align-items-baseline justify-content-between my-1">
+                            <span class="o_kpi_value fs-3 fw-bold font-monospace letter-spacing-tight" style="font-variant-numeric: tabular-nums;" t-esc="state.kpis.cnc_energy.value_formatted"></span>
+                            <span class="o_kpi_trend o_kpi_delta badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center">
+                                <i class="ph ph-arrow-down-right me-1"></i><t t-esc="state.kpis.cnc_energy.delta_percent"/>%
+                            </span>
+                        </div>
+                        <div class="o_sparkline_container mt-2">
+                            <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
+                                <defs>
+                                    <linearGradient id="grad_energy" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#F59E0B" stop-opacity="0.4"/>
+                                        <stop offset="100%" stop-color="#F59E0B" stop-opacity="0.0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path t-att-d="state.kpis.cnc_energy.sparkline.area_d" fill="url(#grad_energy)"/>
+                                <path t-att-d="state.kpis.cnc_energy.sparkline.line_d" fill="none" stroke="#F59E0B" stroke-width="2"/>
+                                <circle t-att-cx="state.kpis.cnc_energy.sparkline.endX" t-att-cy="state.kpis.cnc_energy.sparkline.endY" r="3" fill="#F59E0B"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DET/DEM Penalty Avoidance (LE) -->
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                    <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
+                         role="button"
+                         tabindex="0"
+                         t-on-click="() => this.openModelView(state.kpis.det_dem_penalty.res_model, 'list', [], 'Phạt DET/DEM')">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.det_dem_penalty.title"></span>
+                            <i t-attf-class="ph #{state.kpis.det_dem_penalty.icon} text-primary fs-5"></i>
+                        </div>
+                        <div class="d-flex align-items-baseline justify-content-between my-1">
+                            <span class="o_kpi_value fs-3 fw-bold font-monospace letter-spacing-tight" style="font-variant-numeric: tabular-nums;" t-esc="state.kpis.det_dem_penalty.value_formatted"></span>
+                            <span class="o_kpi_trend o_kpi_delta badge bg-success-subtle text-success border border-success-subtle d-inline-flex align-items-center">
+                                <i class="ph ph-shield-check me-1"></i>0 Phạt
+                            </span>
+                        </div>
+                        <div class="o_sparkline_container mt-2">
+                            <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
+                                <defs>
+                                    <linearGradient id="grad_det" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stop-color="#10B981" stop-opacity="0.4"/>
+                                        <stop offset="100%" stop-color="#10B981" stop-opacity="0.0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path t-att-d="state.kpis.det_dem_penalty.sparkline.area_d" fill="url(#grad_det)"/>
+                                <path t-att-d="state.kpis.det_dem_penalty.sparkline.line_d" fill="none" stroke="#10B981" stroke-width="2"/>
+                                <circle t-att-cx="state.kpis.det_dem_penalty.sparkline.endX" t-att-cy="state.kpis.det_dem_penalty.sparkline.endY" r="3" fill="#10B981"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- ROW 3: PROCESS MONITORING (Full 16 Columns)               -->
+            <!-- ========================================================= -->
+            <div class="cds--row g-3 mb-3">
+                <div class="cds--col-lg-16 cds--col-md-8 cds--col-sm-4">
+                    <ProcessMonitoringCard pipelines="state.pipelines" onStageClick.bind="onStageClick"/>
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- ROW 4: OPERATIONAL CARDS (2 Cards x 8 Columns = 16 Cols) -->
+            <!-- ========================================================= -->
+            <div class="cds--row g-3 mb-3">
+                <!-- Smart Factory MES OEE Hub (PP) -->
+                <div class="cds--col-lg-8 cds--col-md-8 cds--col-sm-4">
+                    <t t-if="getComponent('MesOeeCard')">
+                        <t t-component="getComponent('MesOeeCard')" mesData="state.industrial_mes"/>
+                    </t>
+                    <t t-else="">
+                        <div class="o_control_tower_card cds--card o_card o_card_oee o_smart_factory_card o_mes_oee_card p-4 border rounded shadow-sm h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="ph ph-gauge text-primary fs-4 me-2"></i>
+                                    <div>
+                                        <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1">Smart Factory MES OEE Hub</h4>
+                                        <span class="text-muted small">Hiệu suất thiết bị tổng thể OEE &amp; Trạng thái trạm gia công CNC SS400</span>
+                                    </div>
+                                </div>
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 font-monospace">
+                                    World-Class Target &gt;= 85.0%
+                                </span>
+                            </div>
+
+                            <!-- OEE Composite Radial Gauge & 3 Pillars -->
+                            <div class="row align-items-center mb-3">
+                                <div class="col-12 col-md-5 text-center mb-3 mb-md-0">
+                                    <div class="o_gauge_container d-inline-block position-relative">
+                                        <svg class="o_oee_gauge oee_circle oee_radial_gauge" viewBox="0 0 120 120" style="width: 120px; height: 120px;">
+                                            <circle cx="60" cy="60" r="48" fill="none" stroke="#223354" stroke-width="10"/>
+                                            <circle cx="60" cy="60" r="48" fill="none" stroke="#00F2FE" stroke-width="10"
+                                                    stroke-dasharray="301.6" stroke-dashoffset="19.9"
+                                                    stroke-linecap="round"
+                                                    transform="rotate(-90 60 60)"/>
+                                        </svg>
+                                        <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                            <span class="fs-4 fw-bold font-monospace d-block" t-esc="state.industrial_mes.oee_composite + '%' "></span>
+                                            <span class="badge bg-primary text-white x-small">OEE OVERALL</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-7">
+                                    <div class="d-flex flex-column gap-2">
+                                        <!-- Availability Pillar -->
+                                        <div class="o_oee_pillar oee_pillar_item" data-pillar="availability">
+                                            <div class="d-flex justify-content-between small mb-1">
+                                                <span class="fw-semibold">Availability (Sẵn sàng)</span>
+                                                <span class="font-monospace text-success fw-bold">94.2% (&gt;= 92%)</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-success" style="width: 94.2%;"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Performance Pillar -->
+                                        <div class="o_oee_pillar oee_pillar_item" data-pillar="performance">
+                                            <div class="d-flex justify-content-between small mb-1">
+                                                <span class="fw-semibold">Performance (Hiệu suất)</span>
+                                                <span class="font-monospace text-primary fw-bold">96.8% (&gt;= 95%)</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-primary" style="width: 96.8%;"></div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Quality Pillar -->
+                                        <div class="o_oee_pillar oee_pillar_item" data-pillar="quality">
+                                            <div class="d-flex justify-content-between small mb-1">
+                                                <span class="fw-semibold">Quality (Chất lượng)</span>
+                                                <span class="font-monospace text-info fw-bold">99.4% (&gt;= 99%)</span>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar bg-info" style="width: 99.4%;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Live Station Telemetry Roster -->
+                            <div class="o_station_roster border-top pt-2">
+                                <span class="text-uppercase x-small text-muted fw-bold mb-2 d-block">Trạng thái trạm máy sản xuất thời gian thực</span>
+                                <div class="d-flex flex-column gap-2">
+                                    <t t-foreach="state.industrial_mes.workcenters" t-as="wc" t-key="wc.code">
+                                        <div class="o_workcenter_status o_station_telemetry d-flex align-items-center justify-content-between p-2 rounded bg-light-subtle border"
+                                             t-att-data-station="wc.code">
+                                            <div class="d-flex align-items-center">
+                                                <span class="o_station_dot me-2 rounded-circle"
+                                                      t-att-class="{ 'bg-success': wc.status === 'running', 'bg-warning': wc.status === 'standby' }"
+                                                      style="width: 8px; height: 8px; display: inline-block;"></span>
+                                                <span class="fw-bold small me-2" t-esc="wc.name"></span>
+                                                <span class="text-muted small d-none d-sm-inline font-monospace" t-esc="'(' + wc.code + ')'"></span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="text-muted small" t-esc="wc.telemetry"></span>
+                                                <span class="badge bg-secondary-subtle text-secondary font-monospace" t-esc="wc.actual_oee + '%' "></span>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- Logistics Drayage & DET/DEM Warning Cockpit (LE) -->
+                <div class="cds--col-lg-8 cds--col-md-8 cds--col-sm-4">
+                    <t t-if="getComponent('LogisticsHubCard')">
+                        <t t-component="getComponent('LogisticsHubCard')" logisticsData="state.logistics_hub"/>
+                    </t>
+                    <t t-else="">
+                        <div class="o_control_tower_card cds--card o_card o_card_logistics o_drayage_fleet_card o_logistics_hub_card p-4 border rounded shadow-sm h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                                <div class="d-flex align-items-center">
+                                    <i class="ph ph-truck text-warning fs-4 me-2"></i>
+                                    <div>
+                                        <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1">Logistics Drayage &amp; Port Depot Hub</h4>
+                                        <span class="text-muted small">Đội xe đầu kéo Hyundai Xcient &amp; Cảnh báo phí phạt lưu bãi/vỏ DET/DEM</span>
+                                    </div>
+                                </div>
+                                <span class="o_det_dem_warning o_det_dem_countdown badge bg-warning text-dark px-2 py-1 font-monospace" data-warning="det_dem">
+                                    <i class="ph ph-warning me-1"></i>Hạn DET/DEM: 28.0 Giờ
+                                </span>
+                            </div>
+
+                            <!-- Fleet Tracking -->
+                            <div class="mb-3">
+                                <span class="text-uppercase x-small text-muted fw-bold mb-2 d-block">Đội xe đầu kéo container liên bãi (Cát Lái &lt;-&gt; Cái Mép)</span>
+                                <div class="row g-2">
+                                    <t t-foreach="state.logistics_hub.drayage_fleet" t-as="truck" t-key="truck.plate">
+                                        <div class="col-12 col-md-6">
+                                            <div class="o_fleet_vehicle o_drayage_truck p-2 rounded bg-light-subtle border d-flex align-items-center justify-content-between"
+                                                 t-att-data-vehicle="truck.plate">
+                                                <div>
+                                                    <span class="fw-bold small font-monospace d-block" t-esc="truck.plate"></span>
+                                                    <span class="text-muted x-small" t-esc="truck.model + ' • ' + truck.location"></span>
+                                                </div>
+                                                <span class="badge"
+                                                      t-att-class="{ 'bg-success-subtle text-success': truck.status === 'in_transit', 'bg-info-subtle text-info': truck.status === 'coupled', 'bg-secondary-subtle text-secondary': truck.status === 'standby' }"
+                                                      t-esc="truck.status === 'in_transit' ? 'Đang chạy' : truck.status === 'coupled' ? 'Đã nối vỏ' : 'Chờ lệnh'"></span>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </div>
+                            </div>
+
+                            <!-- DET/DEM Free-Time Alert Box -->
+                            <div class="o_demurrage_alert p-3 rounded bg-warning-subtle border border-warning-subtle">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div>
+                                        <span class="fw-bold text-dark d-block">Phòng ngừa 100% rủi ro phạt lưu bãi/lưu vỏ DET/DEM</span>
+                                        <span class="text-muted small">Thời gian đệm an toàn còn 8.5 giờ • 18 container đã thông quan an toàn • Tiết kiệm 48,000,000 ₫</span>
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-warning text-dark fw-bold"
+                                            t-on-click="() => this.openModelView('stock.picking', 'list', [], 'Logistics Dispatch')">
+                                        Điều Phối Giao Ngay
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <!-- ========================================================= -->
+            <!-- ROW 5: PRIORITY ACTION & ANALYTICAL WORKLIST (16 Cols)    -->
+            <!-- 2 Cards x 8 Columns = 16 Columns                           -->
+            <!-- ========================================================= -->
+            <div class="cds--row g-3">
+                <!-- Priority Action Worklist -->
+                <div class="cds--col-lg-8 cds--col-md-8 cds--col-sm-4">
+                    <div class="o_control_tower_card cds--card o_card p-4 border rounded shadow-sm h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                            <div class="d-flex align-items-center">
+                                <i class="ph ph-bell-ringing text-danger fs-4 me-2"></i>
+                                <div>
+                                    <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1">Tác vụ Điều Hành Cần Phê Duyệt Khẩn Cấp</h4>
+                                    <span class="text-muted small">Phê duyệt hóa đơn, đơn mua hàng, cảnh báo tồn kho an toàn &amp; e-PTW</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                                4 Yêu Cầu
+                            </span>
+                        </div>
+
+                        <div class="d-flex flex-column gap-2">
+                            <t t-foreach="state.priority_actions" t-as="item" t-key="item.id">
+                                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light-subtle border cursor-pointer"
+                                     role="button"
+                                     tabindex="0"
+                                     t-on-click="() => this.openModelView(item.model, 'list', [], item.title)">
+                                    <div class="d-flex align-items-center">
+                                        <i class="ph ph-warning-circle text-warning fs-5 me-2"></i>
+                                        <div>
+                                            <span class="fw-semibold small d-block" t-esc="item.title"></span>
+                                            <span class="text-muted x-small" t-esc="item.amount"></span>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="badge bg-primary rounded-pill font-monospace" t-esc="item.count"></span>
+                                        <i class="ph ph-caret-right text-muted"></i>
+                                    </div>
+                                </div>
+                            </t>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Strategic Velocity & TCO Analytical Curves -->
+                <div class="cds--col-lg-8 cds--col-md-8 cds--col-sm-4">
+                    <div class="o_control_tower_card cds--card o_card p-4 border rounded shadow-sm h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                            <div class="d-flex align-items-center">
+                                <i class="ph ph-chart-line text-info fs-4 me-2"></i>
+                                <div>
+                                    <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1">Đường Cong Phụ Tải &amp; Tiết Kiệm TCO</h4>
+                                    <span class="text-muted small">Tối ưu hóa chi phí sở hữu tổng thể và vận tốc xoay vòng vốn lưu động</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                                Q3-Q4 / 2026
+                            </span>
+                        </div>
+
+                        <div class="p-3 rounded bg-light-subtle border mb-2">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="fw-semibold">Tỷ lệ hoàn thành mục tiêu doanh số năm FY2026</span>
+                                <span class="font-monospace text-primary fw-bold">78.4% (Kế hoạch 75%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-primary" style="width: 78.4%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded bg-light-subtle border">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="fw-semibold">Mức tiết kiệm chi phí vật tư và gia công (TCO Reduction)</span>
+                                <span class="font-monospace text-success fw-bold">₫2,029,050,000 / Năm (-8.6%)</span>
+                            </div>
+                            <div class="progress" style="height: 8px;">
+                                <div class="progress-bar bg-success" style="width: 86.0%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+</templates>
