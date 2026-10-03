@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- GPU Worker Kanban View (Stealth Mode Card) -->
+    <record id="view_gpu_worker_kanban" model="ir.ui.view">
+        <field name="name">gpu.worker.kanban</field>
+        <field name="model">gpu.worker</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="state" sample="1">
+                <field name="name"/>
+                <field name="gpu_type"/>
+                <field name="vram_gb"/>
+                <field name="cloud_provider"/>
+                <field name="workspace_id"/>
+                <field name="state"/>
+                <field name="hourly_cost_rate"/>
+                <field name="active_requests"/>
+                <field name="total_completed_tasks"/>
+                <field name="stealth_sync_enabled"/>
+                <field name="stealth_status"/>
+                <field name="next_probe_at"/>
+                <field name="stealth_countdown_display"/>
+                <field name="stealth_quota_display"/>
+                <field name="probe_jitter_minutes"/>
+                <templates>
+                    <t t-name="card" class="flex-column p-3">
+                        <main>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-1">
+                                    <i class="ph ph-cpu fs-5 text-primary"/>
+                                    <strong class="fs-6 text-dark"><field name="name"/></strong>
+                                </div>
+                                <field name="state" widget="badge" decoration-success="state == 'idle'" decoration-info="state == 'running'" decoration-warning="state == 'quarantined'" decoration-muted="state == 'offline'"/>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted mb-2">
+                                <span><field name="gpu_type" widget="badge"/> (<field name="vram_gb"/>GB)</span>
+                                <span>$<field name="hourly_cost_rate"/>/hr</span>
+                            </div>
+                            <div class="small text-muted mb-2">
+                                <i class="ph ph-buildings me-1"/>Workspace: <strong><field name="workspace_id"/></strong>
+                            </div>
+
+                            <!-- Stealth Mode Random Jitter Schedule Card Display -->
+                            <div class="border rounded p-2 bg-light mt-2">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="badge bg-dark d-flex align-items-center gap-1">
+                                        <i class="ph ph-shield-check text-success"/>
+                                        <span>Stealth Probe</span>
+                                    </span>
+                                    <field name="stealth_status" widget="badge" decoration-success="stealth_status == 'scheduled'" decoration-info="stealth_status == 'probing'" decoration-warning="stealth_status == 'cooldown'"/>
+                                </div>
+                                <div class="d-flex justify-content-between small text-muted mt-1">
+                                    <span><i class="ph ph-clock me-1"/><field name="stealth_countdown_display"/></span>
+                                    <span><i class="ph ph-dice-five me-1"/>±<field name="probe_jitter_minutes"/>m jitter</span>
+                                </div>
+                                <div class="small text-muted mt-1 d-flex justify-content-between align-items-center">
+                                    <span><i class="ph ph-gauge me-1"/><field name="stealth_quota_display"/></span>
+                                    <span t-if="record.next_probe_at.value" class="text-secondary font-monospace" style="font-size: 11px;">
+                                        <field name="next_probe_at"/>
+                                    </span>
+                                </div>
+                            </div>
+                        </main>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- GPU Worker List View -->
+    <record id="view_gpu_worker_list" model="ir.ui.view">
+        <field name="name">gpu.worker.list</field>
+        <field name="model">gpu.worker</field>
+        <field name="arch" type="xml">
+            <list string="GPU Workers" decoration-info="state == 'running'" decoration-warning="state == 'quarantined'" decoration-muted="state == 'offline'">
+                <field name="name"/>
+                <field name="gpu_type" widget="badge"/>
+                <field name="vram_gb"/>
+                <field name="cloud_provider"/>
+                <field name="workspace_id"/>
+                <field name="state" widget="badge" decoration-success="state == 'idle'" decoration-info="state == 'running'" decoration-warning="state == 'quarantined'" decoration-muted="state == 'offline'"/>
+                <field name="hourly_cost_rate"/>
+                <field name="active_requests"/>
+                <field name="stealth_sync_enabled" widget="boolean_toggle"/>
+                <field name="stealth_status" widget="badge" decoration-success="stealth_status == 'scheduled'" decoration-info="stealth_status == 'probing'" decoration-warning="stealth_status == 'cooldown'"/>
+                <field name="stealth_countdown_display"/>
+                <field name="next_probe_at"/>
+                <field name="last_probe_at"/>
+                <field name="total_completed_tasks"/>
+                <field name="last_heartbeat"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- GPU Worker Form View -->
+    <record id="view_gpu_worker_form" model="ir.ui.view">
+        <field name="name">gpu.worker.form</field>
+        <field name="model">gpu.worker</field>
+        <field name="arch" type="xml">
+            <form string="GPU Worker">
+                <header>
+                    <button name="action_trigger_stealth_probe" type="object" string="Trigger Stealth Probe" class="btn btn-primary" invisible="not stealth_sync_enabled"/>
+                    <button name="action_quarantine" type="object" string="Quarantine" class="btn btn-warning" invisible="state == 'quarantined'"/>
+                    <button name="action_unquarantine" type="object" string="Release Quarantine" class="btn btn-success" invisible="state != 'quarantined'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. mindful-worker-01"/></h1>
+                    </div>
+                    <group>
+                        <group string="Hardware &amp; Placement">
+                            <field name="gpu_type"/>
+                            <field name="vram_gb"/>
+                            <field name="cloud_provider"/>
+                            <field name="workspace_id"/>
+                            <field name="hourly_cost_rate"/>
+                        </group>
+                        <group string="Operational State &amp; Health">
+                            <field name="active_requests"/>
+                            <field name="consecutive_failures"/>
+                            <field name="quarantine_until"/>
+                            <field name="last_heartbeat"/>
+                            <field name="total_completed_tasks"/>
+                            <field name="total_compute_seconds"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Stealth Mode &amp; Random Jitter Schedule">
+                        <group>
+                            <field name="stealth_sync_enabled"/>
+                            <field name="stealth_status" widget="badge"/>
+                            <field name="stealth_countdown_display"/>
+                            <field name="stealth_quota_display"/>
+                        </group>
+                        <group>
+                            <field name="next_probe_at"/>
+                            <field name="last_probe_at"/>
+                            <field name="probe_jitter_minutes"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Execution Logs" name="task_logs">
+                            <field name="task_log_ids">
+                                <list limit="10">
+                                    <field name="request_id"/>
+                                    <field name="model_template"/>
+                                    <field name="duration_seconds"/>
+                                    <field name="micro_cost"/>
+                                    <field name="status" widget="badge"/>
+                                    <field name="execution_timestamp"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- GPU Worker Search View -->
+    <record id="view_gpu_worker_search" model="ir.ui.view">
+        <field name="name">gpu.worker.search</field>
+        <field name="model">gpu.worker</field>
+        <field name="arch" type="xml">
+            <search string="Search Workers">
+                <field name="name"/>
+                <field name="workspace_id"/>
+                <field name="gpu_type"/>
+                <filter string="Idle" name="idle" domain="[('state', '=', 'idle')]"/>
+                <filter string="Running" name="running" domain="[('state', '=', 'running')]"/>
+                <filter string="Quarantined" name="quarantined" domain="[('state', '=', 'quarantined')]"/>
+                <filter string="Offline" name="offline" domain="[('state', '=', 'offline')]"/>
+                <separator/>
+                <filter string="Stealth Enabled" name="stealth_enabled" domain="[('stealth_sync_enabled', '=', True)]"/>
+                <filter string="Stealth Scheduled" name="stealth_scheduled" domain="[('stealth_status', '=', 'scheduled')]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Workspace" name="group_workspace" context="{'group_by': 'workspace_id'}"/>
+                    <filter string="GPU Tier" name="group_gpu_type" context="{'group_by': 'gpu_type'}"/>
+                    <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Stealth Status" name="group_stealth_status" context="{'group_by': 'stealth_status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- GPU Worker Window Action -->
+    <record id="action_gpu_worker" model="ir.actions.act_window">
+        <field name="name">GPU Workers</field>
+        <field name="res_model">gpu.worker</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Register or monitor GPU compute workers
+            </p>
+        </field>
+    </record>
+</data>

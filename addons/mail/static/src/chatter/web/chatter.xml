@@ -13,8 +13,8 @@
                         'btn-primary': this.state.composerType !== 'note',
                         'btn-secondary': this.state.composerType === 'note',
                         'active': this.state.composerType === 'message',
-                    }" t-att-disabled="!this.state.thread.canPostMessage and this.thread().id" data-hotkey="m" t-on-click="() => this.toggleComposer('message')">
-                        Send message
+                    }" t-att-disabled="!this.state.thread.canPostMessage and this.thread().id" data-hotkey="m" t-on-click="() => this.toggleComposer('message')" title="Send message" aria-label="Send message">
+                        <span class="o-mail-Chatter-sendMessage-text visually-hidden">Send message</span>
                     </button>
                     <button class="o-mail-Chatter-logNote btn text-nowrap" t-att-class="{
                         'btn-primary active': this.state.composerType === 'note',

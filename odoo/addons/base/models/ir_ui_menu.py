@@ -1,6 +1,8 @@
 # Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 from collections import defaultdict
+import hashlib
+import os
 from os.path import join as opj
 import re
 
@@ -54,16 +56,64 @@ class IrUiMenu(models.Model):
         else:
             return self.name
 
+    def _generate_dynamic_app_icon(self, identifier):
+        """Generate a dynamic Horizon-Carbon squircle tile SVG with initial letter."""
+        raw_name = (identifier or 'App').split(',')[0].replace('_', ' ').strip()
+        initial = (raw_name[:1] or 'A').upper()
+        h = sum(ord(c) for c in raw_name)
+        palette = [
+            '#0F62FE',  # Carbon Blue (Sales / SD)
+            '#007D79',  # Teal (Supply Chain / MM)
+            '#8A3FFC',  # Purple (Finance / FI/CO)
+            '#BA4E00',  # Warm Bronze / Amber (Manufacturing / PP)
+            '#198038',  # Green (HCM / Sustainability)
+            '#0072C3',  # Blue Cyan (Collaboration / Portals)
+            '#6929C4',  # Deep Violet (Projects / PS)
+            '#0B2E64',  # Insilos Horizon Dark Navy
+        ]
+        color = palette[h % len(palette)]
+        svg = (
+            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">\n'
+            f'  <rect x="12" y="12" width="232" height="232" rx="48" ry="48" fill="#FFFFFF" stroke="#E2E8F0" stroke-width="2"/>\n'
+            f'  <rect x="44" y="44" width="168" height="168" rx="36" ry="36" fill="{color}" opacity="0.12"/>\n'
+            f'  <text x="128" y="162" font-family="system-ui, -apple-system, sans-serif" font-size="96" font-weight="700" fill="{color}" text-anchor="middle">{initial}</text>\n'
+            f'</svg>'
+        )
+        return BinaryBytes(svg.encode('utf-8'))
+
     def _read_image(self, path):
         if not path:
             return False
         path_info = path.split(',')
-        icon_path = opj(path_info[0], path_info[1])
+        if len(path_info) != 2:
+            return self._generate_dynamic_app_icon(path)
+        module, rel_path = path_info[0].strip(), path_info[1].strip()
+        icon_path = opj(module, rel_path)
         try:
             with file_open(icon_path, 'rb', filter_ext=('.png', '.gif', '.ico', '.jfif', '.jpeg', '.jpg', '.svg', '.webp')) as f:
-                return BinaryBytes(f.read())
-        except FileNotFoundError:
-            return False
+                data = f.read()
+                if data:
+                    return BinaryBytes(data)
+        except Exception:
+            pass
+
+        # Try companion extension (.png <-> .svg)
+        alt_rel_path = None
+        if rel_path.endswith('.png'):
+            alt_rel_path = rel_path[:-4] + '.svg'
+        elif rel_path.endswith('.svg'):
+            alt_rel_path = rel_path[:-4] + '.png'
+        if alt_rel_path:
+            try:
+                with file_open(opj(module, alt_rel_path), 'rb', filter_ext=('.png', '.gif', '.ico', '.jfif', '.jpeg', '.jpg', '.svg', '.webp')) as f:
+                    data = f.read()
+                    if data:
+                        return BinaryBytes(data)
+            except Exception:
+                pass
+
+        # Dynamic initial-letter SVG tile generation fallback for unknown module without icon asset
+        return self._generate_dynamic_app_icon(module)
 
     @api.model
     @api.ormcache('frozenset(self.env.user._get_group_ids())', 'debug')
@@ -168,6 +218,107 @@ class IrUiMenu(models.Model):
         if web_icon and len(web_icon.split(',')) == 2:
             return self._read_image(web_icon)
         return False
+
+    def _register_hook(self):
+        """Self-healing: reconcile root-menu icons with the files shipped on disk.
+
+        ``web_icon_data`` is a snapshot taken at XML-load time. Whenever a DB is
+        created/upgraded from an image whose icons changed (or the snapshot was
+        lost), the webclient silently falls back to the default cube. Running this
+        idempotent reconciliation on every registry load makes that impossible.
+        """
+        super()._register_hook()
+        try:
+            self._insilos_sync_icons()
+        except Exception:  # noqa: BLE001 - never block a registry load on icons
+            import logging
+            logging.getLogger(__name__).warning("Insilos icon reconciliation skipped", exc_info=True)
+
+    @api.model
+    def _insilos_sync_icons(self):
+        """Create/refresh ``web_icon_data`` of root menus whose snapshot is missing, stale, or lost on disk.
+
+        :return: number of menus repaired
+        """
+        menus = self.sudo().with_context(active_test=False).search([
+            ('parent_id', '=', False),
+        ])
+        if not menus:
+            return 0
+
+        # Query attachment metadata including filestore path and database storage flag
+        self.env.cr.execute("""
+            SELECT res_id, checksum, store_fname, (db_datas IS NOT NULL) AS has_db
+              FROM ir_attachment
+             WHERE res_model = 'ir.ui.menu' AND res_field = 'web_icon_data' AND res_id IN %s
+        """, [tuple(menus.ids)])
+        current = {
+            row[0]: {'checksum': row[1], 'store_fname': row[2], 'has_db': row[3]}
+            for row in self.env.cr.fetchall()
+        }
+
+        repaired = 0
+        Attachment = self.env['ir.attachment'].sudo()
+        for menu in menus:
+            data = None
+            if menu.web_icon and len(menu.web_icon.split(',')) == 2:
+                data = self._read_image(menu.web_icon)
+            if not data:
+                data = (
+                    self._read_image('base,static/description/icon.svg') or
+                    self._read_image('base,static/description/icon.png') or
+                    self._generate_dynamic_app_icon(menu.name or 'Insilos')
+                )
+            if not data:
+                continue
+
+            raw = bytes(data)
+            expected_sha1 = hashlib.sha1(raw).hexdigest()
+            mimetype = 'image/svg+xml' if raw.lstrip().startswith(b'<svg') else 'image/png'
+
+            att_info = current.get(menu.id)
+            if att_info and att_info['checksum'] == expected_sha1:
+                if att_info['has_db']:
+                    continue
+                store_fname = att_info['store_fname']
+                if store_fname:
+                    full_path = Attachment._full_path(store_fname)
+                    if os.path.isfile(full_path) and os.path.getsize(full_path) > 0:
+                        continue
+
+            # Reconcile: missing record, stale hash, or missing/empty filestore file
+            existing_atts = Attachment.search([
+                ('res_model', '=', 'ir.ui.menu'),
+                ('res_field', '=', 'web_icon_data'),
+                ('res_id', '=', menu.id),
+            ])
+            if existing_atts:
+                existing_atts.unlink()
+
+            new_att = Attachment.create({
+                'name': f"{(menu.name or 'menu').lower().replace(' ', '_')}_icon",
+                'res_model': 'ir.ui.menu',
+                'res_field': 'web_icon_data',
+                'res_id': menu.id,
+                'type': 'binary',
+                'raw': raw,
+                'mimetype': mimetype,
+            })
+
+            if new_att.store_fname:
+                fpath = Attachment._full_path(new_att.store_fname)
+                if not os.path.isfile(fpath):
+                    os.makedirs(os.path.dirname(fpath), exist_ok=True)
+                    with open(fpath, 'wb') as f:
+                        f.write(raw)
+
+            repaired += 1
+
+        if repaired:
+            self.env['ir.ui.menu'].invalidate_model(['web_icon_data'])
+            import logging
+            logging.getLogger(__name__).info("Insilos icon reconciliation repaired %d menu icon(s)", repaired)
+        return repaired
 
     def unlink(self):
         # Detach children and promote them to top-level, because it would be unwise to
@@ -277,6 +428,61 @@ class IrUiMenu(models.Model):
                 action_model = False
                 action_id = False
 
+            # --- Robust Insilos Icon Resolution (4-Tier Self-Healing) ---
+            icon_b64 = False
+            icon_mimetype = False
+
+            # Tier 1: Check DB attachment payload and validate non-empty
+            if attachment:
+                try:
+                    raw = attachment.raw
+                    if raw:
+                        b64_val = raw.to_base64()
+                        if b64_val:
+                            icon_b64 = b64_val
+                            icon_mimetype = attachment.mimetype
+                except Exception:
+                    icon_b64 = False
+
+            # Tier 2: Seamless disk fallback if attachment is missing, corrupted, or filestore file lost
+            if not icon_b64 and menu.web_icon:
+                try:
+                    disk_icon = self._read_image(menu.web_icon)
+                    if disk_icon:
+                        b64_val = disk_icon.to_base64()
+                        if b64_val:
+                            icon_b64 = b64_val
+                            icon_mimetype = (
+                                'image/svg+xml' if (menu.web_icon or '').endswith('.svg') or bytes(disk_icon).lstrip().startswith(b'<svg') else 'image/png'
+                            )
+                except Exception:
+                    icon_b64 = False
+
+            # Tier 3: Canonical Insilos Horizon-Carbon neutral tile fallback
+            if not icon_b64:
+                try:
+                    neutral_icon = (
+                        self._read_image('base,static/description/icon.svg') or
+                        self._read_image('base,static/description/icon.png')
+                    )
+                    if neutral_icon:
+                        b64_val = neutral_icon.to_base64()
+                        if b64_val:
+                            icon_b64 = b64_val
+                            icon_mimetype = 'image/svg+xml' if bytes(neutral_icon).lstrip().startswith(b'<svg') else 'image/png'
+                except Exception:
+                    icon_b64 = False
+
+            # Tier 4: Dynamic initial-letter squircle tile fallback for unmapped or unknown apps
+            if not icon_b64:
+                try:
+                    dynamic_icon = self._generate_dynamic_app_icon(menu.name or 'Insilos')
+                    if dynamic_icon:
+                        icon_b64 = dynamic_icon.to_base64()
+                        icon_mimetype = 'image/svg+xml'
+                except Exception:
+                    pass
+
             menus_dict[menu_id] = {
                 'id': menu_id,
                 'name': menu.name,
@@ -284,8 +490,8 @@ class IrUiMenu(models.Model):
                 'action_model': action_model,
                 'action_id': action_id,
                 'web_icon': menu.web_icon,
-                'web_icon_data': attachment.raw.to_base64() if attachment else False,
-                'web_icon_data_mimetype': attachment.mimetype if attachment else False,
+                'web_icon_data': icon_b64,
+                'web_icon_data_mimetype': icon_mimetype,
                 'xmlid': xmlids.get(menu_id, ""),
             }
 

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- Top-level GPU Fleet Root Menu -->
+    <menuitem id="menu_gpu_fleet_root"
+              name="GPU Fleet"
+              web_icon="gpu_fleet_manager,static/description/icon.png"
+              sequence="35"/>
+
+    <!-- Operations Submenu -->
+    <menuitem id="menu_gpu_fleet_operations"
+              name="Operations"
+              parent="menu_gpu_fleet_root"
+              sequence="10"/>
+
+    <menuitem id="menu_gpu_workspace"
+              name="Workspaces"
+              parent="menu_gpu_fleet_operations"
+              action="action_gpu_workspace"
+              sequence="10"/>
+
+    <menuitem id="menu_gpu_worker"
+              name="Workers"
+              parent="menu_gpu_fleet_operations"
+              action="action_gpu_worker"
+              sequence="20"/>
+
+    <menuitem id="menu_gpu_task_log"
+              name="Task Logs"
+              parent="menu_gpu_fleet_operations"
+              action="action_gpu_task_log"
+              sequence="30"/>
+
+    <!-- 9Router Routing & Providers Submenu -->
+    <menuitem id="menu_gpu_fleet_routing"
+              name="Routing &amp; Providers"
+              parent="menu_gpu_fleet_root"
+              sequence="20"/>
+
+    <menuitem id="menu_gpu_provider"
+              name="Providers"
+              parent="menu_gpu_fleet_routing"
+              action="action_gpu_provider"
+              sequence="10"/>
+
+    <menuitem id="menu_gpu_service_combo"
+              name="Service Combos"
+              parent="menu_gpu_fleet_routing"
+              action="action_gpu_service_combo"
+              sequence="20"/>
+
+    <!-- Analytics & Metering Submenu -->
+    <menuitem id="menu_gpu_fleet_analytics"
+              name="Analytics &amp; Metering"
+              parent="menu_gpu_fleet_root"
+              sequence="30"/>
+
+    <menuitem id="menu_gpu_usage_daily"
+              name="Daily Usage"
+              parent="menu_gpu_fleet_analytics"
+              action="action_gpu_usage_daily"
+              sequence="10"/>
+
+    <menuitem id="menu_gpu_usage_meter"
+              name="Usage Meters"
+              parent="menu_gpu_fleet_analytics"
+              action="action_gpu_usage_meter"
+              sequence="20"/>
+</data>

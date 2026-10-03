@@ -64,3 +64,7 @@ enterprise/
 
 prod_website_backup_*.json
 backup_prod_website_*.json
+prod_icons_backup_*.json
+tools/artifacts/
+tools/test_artifacts_challenger_media/
+tools/challenger1_stress_results.json

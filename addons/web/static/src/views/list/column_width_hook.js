@@ -93,7 +93,7 @@ export const FIELD_WIDTHS = Object.freeze({
     many2many: [80],
     many2one_reference: [80],
     many2one: [80],
-    monetary: 105,
+    monetary: 140,
     one2many: [80],
     reference: [80],
     selection: [80],

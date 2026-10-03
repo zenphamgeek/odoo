@@ -9,7 +9,7 @@
                         <span
                             class="o_priority_star oi"
                             role="radio"
-                            data-icon="star"
+                            data-icon="bookmark"
                             t-att-class="{'oi-filled': value_index lte this.index}"
                             tabindex="0"
                             t-att-data-tooltip="this.getTooltip(value[0],value[1])"
@@ -21,7 +21,7 @@
                         <button
                             class="o_priority_star btn btn-link btn-link-inline oi p-0"
                             role="radio"
-                            data-icon="star"
+                            data-icon="bookmark"
                             t-att-class="value_index lte this.index ? 'oi-filled' : 'opacity-25 opacity-100-hover'"
                             tabindex="0"
                             t-att-data-tooltip="this.getTooltip(value[0], value[1])"

@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data noupdate="1">
+    <!-- Default GPU Compute Providers -->
+    <record id="provider_local" model="gpu.provider">
+        <field name="name">Local Workstation (ThinkPad P15)</field>
+        <field name="code">local</field>
+        <field name="provider_type">local</field>
+        <field name="base_url">http://localhost:20128</field>
+        <field name="api_prefix">local</field>
+        <field name="priority">0</field>
+        <field name="status">active</field>
+        <field name="description">Local ThinkPad P15 Quadro RTX 5000 16GB VRAM Compute Engine</field>
+    </record>
+
+    <record id="provider_modal" model="gpu.provider">
+        <field name="name">Modal Sovereign Fleet</field>
+        <field name="code">modal</field>
+        <field name="provider_type">modal</field>
+        <field name="base_url">http://localhost:8099</field>
+        <field name="api_prefix">modal</field>
+        <field name="priority">1</field>
+        <field name="status">active</field>
+        <field name="description">20 Sovereign Workspaces with $30/month budget ceiling per workspace</field>
+    </record>
+
+    <record id="provider_thapsang" model="gpu.provider">
+        <field name="name">Thapsang Sovereign AI Engine</field>
+        <field name="code">thapsang</field>
+        <field name="provider_type">custom</field>
+        <field name="base_url">http://localhost:8099/v1</field>
+        <field name="api_prefix">thapsang</field>
+        <field name="priority">10</field>
+        <field name="status">active</field>
+        <field name="description">Thapsang Sovereign AI Platform &amp; Fallback Hub</field>
+    </record>
+
+    <!-- Account 1: just.ask.mr.zen@gmail.com -->
+    <record id="workspace_just_ask_mr_zen" model="gpu.workspace">
+        <field name="name">just-ask-mr-zen</field>
+        <field name="email_account">just.ask.mr.zen@gmail.com</field>
+        <field name="tier">A100-80GB</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="current_usage">25.0</field>
+        <field name="priority">1</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_zenpeace" model="gpu.workspace">
+        <field name="name">zenpeace</field>
+        <field name="email_account">just.ask.mr.zen@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">2</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_mindful" model="gpu.workspace">
+        <field name="name">mindful</field>
+        <field name="email_account">just.ask.mr.zen@gmail.com</field>
+        <field name="tier">A100-80GB</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">3</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_zenguru" model="gpu.workspace">
+        <field name="name">zenguru</field>
+        <field name="email_account">just.ask.mr.zen@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">4</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_zenmaster" model="gpu.workspace">
+        <field name="name">zenmaster</field>
+        <field name="email_account">just.ask.mr.zen@gmail.com</field>
+        <field name="tier">A100-80GB</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">5</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+
+    <!-- Account 2: nhatrophamvu@gmail.com -->
+    <record id="workspace_nhatrophamvu" model="gpu.workspace">
+        <field name="name">nhatrophamvu</field>
+        <field name="email_account">nhatrophamvu@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">6</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_asmr" model="gpu.workspace">
+        <field name="name">asmr</field>
+        <field name="email_account">nhatrophamvu@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">7</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_vi2vi" model="gpu.workspace">
+        <field name="name">vi2vi</field>
+        <field name="email_account">nhatrophamvu@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">8</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_pvvsf" model="gpu.workspace">
+        <field name="name">pvvsf</field>
+        <field name="email_account">nhatrophamvu@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">9</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_phi4" model="gpu.workspace">
+        <field name="name">phi4</field>
+        <field name="email_account">nhatrophamvu@gmail.com</field>
+        <field name="tier">L4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">10</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+
+    <!-- Account 3: mojopham@gmail.com -->
+    <record id="workspace_mojopham" model="gpu.workspace">
+        <field name="name">mojopham</field>
+        <field name="email_account">mojopham@gmail.com</field>
+        <field name="tier">A100-80GB</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">11</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_diatts" model="gpu.workspace">
+        <field name="name">diatts</field>
+        <field name="email_account">mojopham@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">12</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_mvlm" model="gpu.workspace">
+        <field name="name">mvlm</field>
+        <field name="email_account">mojopham@gmail.com</field>
+        <field name="tier">A100-80GB</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">13</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_motion" model="gpu.workspace">
+        <field name="name">motion</field>
+        <field name="email_account">mojopham@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">14</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_vrag" model="gpu.workspace">
+        <field name="name">vrag</field>
+        <field name="email_account">mojopham@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">15</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+
+    <!-- Account 4: zenonmind@gmail.com -->
+    <record id="workspace_lovenovel" model="gpu.workspace">
+        <field name="name">lovenovel</field>
+        <field name="email_account">zenonmind@gmail.com</field>
+        <field name="tier">A100-80GB</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">16</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_vieturbo" model="gpu.workspace">
+        <field name="name">vieturbo</field>
+        <field name="email_account">zenonmind@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">17</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_zenonmind" model="gpu.workspace">
+        <field name="name">zenonmind</field>
+        <field name="email_account">zenonmind@gmail.com</field>
+        <field name="tier">A100-80GB</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">18</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_insimind" model="gpu.workspace">
+        <field name="name">insimind</field>
+        <field name="email_account">zenonmind@gmail.com</field>
+        <field name="tier">L4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">19</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+    <record id="workspace_zenonts" model="gpu.workspace">
+        <field name="name">zenonts</field>
+        <field name="email_account">zenonmind@gmail.com</field>
+        <field name="tier">T4</field>
+        <field name="budget_ceiling">30.0</field>
+        <field name="priority">20</field>
+        <field name="provider_id" ref="provider_modal"/>
+    </record>
+
+    <!-- Standard Failover Service Combos -->
+    <record id="combo_thapsang_s2v" model="gpu.service.combo">
+        <field name="name">Thapsang Wan 2.2 S2V Failover</field>
+        <field name="code">thapsang-s2v</field>
+        <field name="service_type">video_wan22</field>
+        <field name="routing_strategy">failover</field>
+        <field name="timeout_seconds">30.0</field>
+        <field name="max_retries">3</field>
+        <field name="description">Automatic fallback from primary Thapsang Sovereign AI engine to Modal cloud fleet</field>
+    </record>
+
+    <record id="combo_line_thapsang_s2v_1" model="gpu.service.combo.line">
+        <field name="combo_id" ref="combo_thapsang_s2v"/>
+        <field name="sequence">10</field>
+        <field name="target_model">thapsang/wan2.2-s2v</field>
+        <field name="provider_id" ref="provider_thapsang"/>
+        <field name="endpoint">/v1/videos/generations</field>
+        <field name="weight">1</field>
+        <field name="notes">Primary sovereign generation target</field>
+    </record>
+
+    <record id="combo_line_thapsang_s2v_2" model="gpu.service.combo.line">
+        <field name="combo_id" ref="combo_thapsang_s2v"/>
+        <field name="sequence">20</field>
+        <field name="target_model">modal/wan2.2-s2v</field>
+        <field name="provider_id" ref="provider_modal"/>
+        <field name="endpoint">/v1/videos/generations</field>
+        <field name="weight">1</field>
+        <field name="notes">Secondary Modal cloud fallback target</field>
+    </record>
+
+    <record id="combo_modal_fleet" model="gpu.service.combo">
+        <field name="name">Modal Sovereign Multi-Model Pipeline</field>
+        <field name="code">modal-fleet</field>
+        <field name="service_type">composite</field>
+        <field name="routing_strategy">failover</field>
+        <field name="timeout_seconds">45.0</field>
+        <field name="max_retries">3</field>
+        <field name="description">Full multi-modal pipeline spanning Wan 2.2 video, LTX video, Qwen DiT image, and VieNeu TTS</field>
+    </record>
+
+    <record id="combo_line_modal_fleet_1" model="gpu.service.combo.line">
+        <field name="combo_id" ref="combo_modal_fleet"/>
+        <field name="sequence">10</field>
+        <field name="target_model">modal/wan2.2-s2v</field>
+        <field name="provider_id" ref="provider_modal"/>
+        <field name="endpoint">/v1/videos/generations</field>
+        <field name="weight">1</field>
+        <field name="notes">Wan 2.2 S2V video generation</field>
+    </record>
+
+    <record id="combo_line_modal_fleet_2" model="gpu.service.combo.line">
+        <field name="combo_id" ref="combo_modal_fleet"/>
+        <field name="sequence">20</field>
+        <field name="target_model">modal/ltx-video-2.5</field>
+        <field name="provider_id" ref="provider_modal"/>
+        <field name="endpoint">/v1/videos/generations</field>
+        <field name="weight">1</field>
+        <field name="notes">LTX Video 2.5 cinematic video</field>
+    </record>
+
+    <record id="combo_line_modal_fleet_3" model="gpu.service.combo.line">
+        <field name="combo_id" ref="combo_modal_fleet"/>
+        <field name="sequence">30</field>
+        <field name="target_model">modal/qwen-image-2.1</field>
+        <field name="provider_id" ref="provider_modal"/>
+        <field name="endpoint">/v1/images/generations</field>
+        <field name="weight">1</field>
+        <field name="notes">Qwen DiT 2.1 text-to-image</field>
+    </record>
+
+    <record id="combo_line_modal_fleet_4" model="gpu.service.combo.line">
+        <field name="combo_id" ref="combo_modal_fleet"/>
+        <field name="sequence">40</field>
+        <field name="target_model">modal/vieneu-tts-v3</field>
+        <field name="provider_id" ref="provider_modal"/>
+        <field name="endpoint">/v1/audio/speech</field>
+        <field name="weight">1</field>
+        <field name="notes">VieNeu-TTS v3 Turbo speech synthesis</field>
+    </record>
+</data>

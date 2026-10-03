@@ -1,35 +1,43 @@
 <svg width="220" height="80" viewBox="0 0 220 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M10 11C10 10.4477 10.4477 10 11 10H209C209.552 10 210 10.4477 210 11V46H10V11Z" fill="white"/>
-<rect x="22" y="16" width="12" height="3" rx="1" fill="#2B2B33"/>
-<rect x="22" y="26" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="22" y="30" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="22" y="34" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="22" y="38" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="22" y="22" width="40" height="1" fill="#D9D9D9"/>
-<rect x="68" y="16" width="12" height="3" rx="1" fill="#2B2B33"/>
-<rect x="68" y="26" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="68" y="30" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="68" y="34" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="68" y="38" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="68" y="22" width="39" height="1" fill="#D9D9D9"/>
-<rect x="113" y="16" width="12" height="3" rx="1" fill="#2B2B33"/>
-<rect x="113" y="26" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="113" y="30" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="113" y="34" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="113" y="38" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="113" y="22" width="39" height="1" fill="#D9D9D9"/>
-<rect x="158" y="16" width="12" height="3" rx="1" fill="#2B2B33"/>
-<rect x="158" y="26" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="158" y="30" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="158" y="34" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="158" y="38" width="24" height="2" rx="1" fill="#2B2B33"/>
-<rect x="158" y="22" width="40" height="1" fill="#D9D9D9"/>
-<path d="M10 46H210V55C210 55.5523 209.552 56 209 56H11C10.4477 56 10 55.5523 10 55V46Z" fill="#D9D9D9"/>
-<circle cx="95" cy="51" r="2" fill="#2B2B33"/>
-<circle cx="113" cy="51" r="2" fill="#2B2B33"/>
-<circle cx="101" cy="51" r="2" fill="#2B2B33"/>
-<circle cx="119" cy="51" r="2" fill="#2B2B33"/>
-<circle cx="107" cy="51" r="2" fill="#2B2B33"/>
-<circle cx="125" cy="51" r="2" fill="#2B2B33"/>
-<rect x="10" y="59" width="200" height="11" rx="1" fill="white" fill-opacity="0.2"/>
+  <!-- Background Card -->
+  <rect x="5" y="6" width="210" height="68" rx="4" fill="#070B14" stroke="#1E40AF" stroke-width="0.8"/>
+  <!-- Top Navigation Bar -->
+  <rect x="5" y="6" width="210" height="12" rx="4" fill="#0F172A"/>
+  <rect x="15" y="10" width="16" height="4" rx="1" fill="#00F0FF"/>
+  <rect x="37" y="10" width="14" height="4" rx="1" fill="#64748B"/>
+  <rect x="57" y="10" width="14" height="4" rx="1" fill="#64748B"/>
+  <rect x="77" y="10" width="14" height="4" rx="1" fill="#64748B"/>
+
+  <!-- Column 1: Core SCM / Logistics -->
+  <rect x="14" y="24" width="42" height="42" rx="2" fill="#0F172A" stroke="#1E293B" stroke-width="0.5"/>
+  <rect x="18" y="28" width="16" height="3" rx="0.5" fill="#00F0FF"/>
+  <line x1="18" y1="36" x2="48" y2="36" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="18" y1="42" x2="44" y2="42" stroke="#64748B" stroke-width="1" stroke-linecap="round"/>
+  <line x1="18" y1="48" x2="50" y2="48" stroke="#64748B" stroke-width="1" stroke-linecap="round"/>
+  <line x1="18" y1="54" x2="40" y2="54" stroke="#10B981" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Column 2: Manufacturing MES / Production -->
+  <rect x="62" y="24" width="42" height="42" rx="2" fill="#0F172A" stroke="#1E293B" stroke-width="0.5"/>
+  <rect x="66" y="28" width="16" height="3" rx="0.5" fill="#10B981"/>
+  <line x1="66" y1="36" x2="96" y2="36" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="66" y1="42" x2="92" y2="42" stroke="#64748B" stroke-width="1" stroke-linecap="round"/>
+  <line x1="66" y1="48" x2="98" y2="48" stroke="#64748B" stroke-width="1" stroke-linecap="round"/>
+  <line x1="66" y1="54" x2="88" y2="54" stroke="#00F0FF" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Column 3: Finance FI/CO & E-Invoice -->
+  <rect x="110" y="24" width="42" height="42" rx="2" fill="#0F172A" stroke="#1E293B" stroke-width="0.5"/>
+  <rect x="114" y="28" width="16" height="3" rx="0.5" fill="#FFC107"/>
+  <line x1="114" y1="36" x2="144" y2="36" stroke="#94A3B8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="114" y1="42" x2="140" y2="42" stroke="#64748B" stroke-width="1" stroke-linecap="round"/>
+  <line x1="114" y1="48" x2="146" y2="48" stroke="#64748B" stroke-width="1" stroke-linecap="round"/>
+  <line x1="114" y1="54" x2="136" y2="54" stroke="#10B981" stroke-width="1" stroke-linecap="round"/>
+
+  <!-- Column 4: Human Capital HCM & Tech -->
+  <rect x="158" y="24" width="48" height="42" rx="2" fill="#141E33" stroke="#00F0FF" stroke-width="0.75"/>
+  <rect x="163" y="28" width="20" height="3" rx="0.5" fill="#00F0FF"/>
+  <rect x="163" y="35" width="38" height="18" rx="1.5" fill="#070B14" stroke="#1E40AF" stroke-width="0.5"/>
+  <circle cx="172" cy="44" r="3" fill="#00F0FF" fill-opacity="0.3" stroke="#00F0FF" stroke-width="0.7"/>
+  <line x1="178" y1="42" x2="196" y2="42" stroke="#94A3B8" stroke-width="1"/>
+  <line x1="178" y1="46" x2="192" y2="46" stroke="#10B981" stroke-width="1"/>
+  <rect x="163" y="57" width="24" height="4" rx="1" fill="#00F0FF"/>
 </svg>

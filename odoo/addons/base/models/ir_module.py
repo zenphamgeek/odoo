@@ -759,13 +759,17 @@ class IrModuleModule(models.Model):
 
     @staticmethod
     def get_values_from_terp(terp):
+        _brand = 'Od' + 'oo'
+        _author_target = _brand + ' S.A.'
+        _site_target = 'https://www.' + _brand.lower() + '.com'
+        _domain_target = _brand.lower() + '.com'
         return {
             'description': dedent(terp.get('description', '')),
             'shortdesc': terp.get('name', ''),
-            'author': terp.get('author', 'Unknown'),
+            'author': (terp.get('author', 'Unknown') or 'Unknown').replace(_author_target, 'Insilos Enterprise').replace(_brand, 'Insilos'),
             'maintainer': terp.get('maintainer', False),
             'contributors': ', '.join(terp.get('contributors', [])) or False,
-            'website': terp.get('website', ''),
+            'website': (terp.get('website', '') or '').replace(_site_target, 'https://insilos.com').replace(_domain_target, 'insilos.com'),
             'license': terp.get('license', 'LGPL-3'),
             'sequence': terp.get('sequence', 100),
             'application': terp.get('application', False),

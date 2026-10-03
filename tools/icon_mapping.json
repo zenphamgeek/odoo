@@ -1,64 +1,1654 @@
 {
-  "mail": "chat-centered-dots",
-  "room": "door",
-  "calendar": "calendar",
-  "appointment": "calendar-check",
-  "knowledge": "book-bookmark",
-  "contacts": "address-book",
-  "frontdesk": "desk",
-  "crm": "funnel",
-  "sale_management": "tag",
-  "spreadsheet_dashboard": "chart-pie-slice",
-  "sale_subscription": "arrows-clockwise",
-  "sale_renting": "key",
-  "ai_app": "sparkle",
-  "point_of_sale": "storefront",
-  "pos_enterprise": "cooking-pot",
-  "account": "file-text",
-  "accountant": "currency-circle-dollar",
-  "equity": "certificate",
-  "databases": "database",
-  "esg": "leaf",
-  "documents": "folder-open",
-  "project": "kanban",
-  "hr_timesheet": "clock-user",
-  "industry_fsm": "wrench",
-  "planning": "calendar-plus",
-  "helpdesk": "lifebuoy",
-  "website": "globe-hemisphere-west",
-  "website_slides": "graduation-cap",
-  "social": "share-network",
-  "marketing_automation": "tree-structure",
-  "mass_mailing": "envelope-simple",
-  "mass_mailing_sms": "device-mobile-speaker",
-  "event": "ticket",
-  "survey": "clipboard-text",
-  "purchase": "shopping-cart",
-  "stock": "warehouse",
-  "mrp": "factory",
-  "mrp_workorder": "hard-hat",
-  "quality_control": "shield-check",
-  "stock_barcode": "barcode",
-  "maintenance": "gear-six",
-  "repair": "screwdriver",
-  "mrp_plm": "git-merge",
-  "sign": "pen-nib",
-  "hr": "users-four",
-  "hr_payroll": "money",
-  "hr_attendance": "fingerprint",
-  "hr_appraisal": "trophy",
-  "hr_recruitment": "user-focus",
-  "hr_holidays": "airplane-takeoff",
-  "hr_referral": "gift",
-  "fleet": "car",
-  "hr_expense": "receipt",
-  "im_livechat": "chats-teardrop",
-  "data_recycle": "broom",
-  "approvals": "seal-check",
-  "whatsapp": "whatsapp-logo",
-  "voip": "phone-call",
-  "iot": "cpu",
-  "base.menu_management": "squares-four",
-  "base.menu_administration": "sliders-horizontal",
-  "utm": "chart-line-up"
+  "mail": {
+    "glyph": "chat-centered-dots",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Discuss"
+  },
+  "room": {
+    "glyph": "door",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Meeting Rooms"
+  },
+  "calendar": {
+    "glyph": "calendar",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Calendar"
+  },
+  "appointment": {
+    "glyph": "calendar-check",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Appointments"
+  },
+  "openrouter_ai": {
+    "glyph": "lightning",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Insilos IAP"
+  },
+  "knowledge": {
+    "glyph": "book-bookmark",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Knowledge"
+  },
+  "insilos_chemical_trade_compliance": {
+    "glyph": "flask",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Chemical Trade Compliance"
+  },
+  "contacts": {
+    "glyph": "address-book",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Contacts"
+  },
+  "frontdesk": {
+    "glyph": "desk",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Frontdesk"
+  },
+  "crm": {
+    "glyph": "funnel",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "CRM"
+  },
+  "sale": {
+    "glyph": "tag",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Sales & Distribution (SD)"
+  },
+  "sale_management": {
+    "glyph": "tag",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Sales & Distribution (SD)"
+  },
+  "gpu_fleet_manager": {
+    "glyph": "hard-drives",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "GPU Fleet"
+  },
+  "spreadsheet_dashboard": {
+    "glyph": "chart-pie-slice",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Dashboards"
+  },
+  "sale_subscription": {
+    "glyph": "arrows-clockwise",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Subscriptions"
+  },
+  "sale_renting": {
+    "glyph": "key",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Rental"
+  },
+  "insilos_logistics_idp": {
+    "glyph": "identification-badge",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Logistics IDP"
+  },
+  "ai_app": {
+    "glyph": "sparkle",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "AI Platform"
+  },
+  "point_of_sale": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Point of Sale"
+  },
+  "pos_enterprise": {
+    "glyph": "cooking-pot",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Kitchen Display"
+  },
+  "account": {
+    "glyph": "file-text",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Invoicing"
+  },
+  "accountant": {
+    "glyph": "currency-circle-dollar",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Accounting"
+  },
+  "equity": {
+    "glyph": "certificate",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Equity"
+  },
+  "databases": {
+    "glyph": "database",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Databases"
+  },
+  "esg": {
+    "glyph": "leaf",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "ESG Sustainability"
+  },
+  "documents": {
+    "glyph": "folder-open",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Documents"
+  },
+  "insilos_market_terminal": {
+    "glyph": "terminal-window",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Market Terminal"
+  },
+  "project": {
+    "glyph": "kanban",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Project Systems (SAP PS)"
+  },
+  "hr_timesheet": {
+    "glyph": "clock-user",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Timesheets"
+  },
+  "insilos_hse_compliance": {
+    "glyph": "shield-check",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "HSE & Compliance"
+  },
+  "insilos_treasury_market_risk": {
+    "glyph": "scales",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Treasury & Market Risk"
+  },
+  "industry_fsm": {
+    "glyph": "wrench",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Field Service"
+  },
+  "insilos_website": {
+    "glyph": "browser",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Insilos Website"
+  },
+  "planning": {
+    "glyph": "calendar-plus",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Planning"
+  },
+  "insilos_hs_sync": {
+    "glyph": "file-magnifying-glass",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "HS & Customs"
+  },
+  "insilos_pubsub_bridge": {
+    "glyph": "broadcast",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Pub/Sub Gateway"
+  },
+  "helpdesk": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Helpdesk"
+  },
+  "insilos_preferential_origin": {
+    "glyph": "stamp",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Preferential Origin"
+  },
+  "website": {
+    "glyph": "globe-hemisphere-west",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Website Builder"
+  },
+  "insilos_capital_markets_decision_governance": {
+    "glyph": "chart-line-up",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Capital Markets"
+  },
+  "website_slides": {
+    "glyph": "graduation-cap",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "eLearning"
+  },
+  "social": {
+    "glyph": "share-network",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Social Marketing"
+  },
+  "marketing_automation": {
+    "glyph": "tree-structure",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Marketing Automation"
+  },
+  "mass_mailing": {
+    "glyph": "envelope-simple",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Email Marketing"
+  },
+  "mass_mailing_sms": {
+    "glyph": "device-mobile-speaker",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "SMS Marketing"
+  },
+  "event": {
+    "glyph": "ticket",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Events"
+  },
+  "survey": {
+    "glyph": "clipboard-text",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Surveys"
+  },
+  "purchase": {
+    "glyph": "shopping-cart",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Materials Management (MM) / Purchase"
+  },
+  "stock": {
+    "glyph": "warehouse",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Logistics & Inventory (MM-IM)"
+  },
+  "mrp": {
+    "glyph": "factory",
+    "family": "FAM-04",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Production Planning (PP)"
+  },
+  "mrp_workorder": {
+    "glyph": "hard-hat",
+    "family": "FAM-04",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Shop Floor MES"
+  },
+  "quality_control": {
+    "glyph": "shield-check",
+    "family": "FAM-04",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Quality Management (SAP QM)"
+  },
+  "stock_barcode": {
+    "glyph": "barcode",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Barcode"
+  },
+  "maintenance": {
+    "glyph": "gear-six",
+    "family": "FAM-04",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Plant Maintenance (SAP PM)"
+  },
+  "repair": {
+    "glyph": "screwdriver",
+    "family": "FAM-04",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Repairs"
+  },
+  "mrp_plm": {
+    "glyph": "git-merge",
+    "family": "FAM-04",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "PLM"
+  },
+  "sign": {
+    "glyph": "pen-nib",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Sign"
+  },
+  "hr": {
+    "glyph": "users-four",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Human Capital Management (HCM)"
+  },
+  "hr_work_entry_enterprise": {
+    "glyph": "money",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payroll"
+  },
+  "hr_payroll": {
+    "glyph": "money",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payroll"
+  },
+  "hr_attendance": {
+    "glyph": "fingerprint",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Attendances"
+  },
+  "hr_appraisal": {
+    "glyph": "trophy",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Appraisals"
+  },
+  "hr_recruitment": {
+    "glyph": "user-focus",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Recruitment"
+  },
+  "hr_holidays": {
+    "glyph": "airplane-takeoff",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Time Off"
+  },
+  "hr_referral": {
+    "glyph": "gift",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Referrals"
+  },
+  "fleet": {
+    "glyph": "car",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Fleet Management"
+  },
+  "hr_expense": {
+    "glyph": "receipt",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Expenses"
+  },
+  "im_livechat": {
+    "glyph": "chats-teardrop",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Live Chat"
+  },
+  "data_recycle": {
+    "glyph": "broom",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Data Cleaning"
+  },
+  "approvals": {
+    "glyph": "seal-check",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Approvals"
+  },
+  "whatsapp": {
+    "glyph": "whatsapp-logo",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "WhatsApp"
+  },
+  "voip": {
+    "glyph": "phone-call",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Phone / VoIP"
+  },
+  "iot": {
+    "glyph": "cpu",
+    "family": "FAM-04",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Internet of Things (IoT)"
+  },
+  "utm": {
+    "glyph": "chart-line-up",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Link Tracker (UTM)"
+  },
+  "base": {
+    "glyph": "squares-four",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Base"
+  },
+  "base.menu_management": {
+    "glyph": "squares-four",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Apps"
+  },
+  "base.menu_administration": {
+    "glyph": "sliders-horizontal",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Settings"
+  },
+  "base.menu_tests": {
+    "glyph": "flask",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Tests"
+  },
+  "insilos_sap_fiori": {
+    "glyph": "gauge",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Executive Control Tower"
+  },
+  "insilos_sap_fiori.menu_insilos_executive_control_tower_root": {
+    "glyph": "gauge",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Executive Control Tower"
+  },
+  "insilos_chemical_trade_compliance.menu_unified_operations_root": {
+    "glyph": "circles-three-plus",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Unified Operations"
+  },
+  "insilos_finance_agent_os": {
+    "glyph": "robot",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Finance Agent OS"
+  },
+  "insilos_market_data": {
+    "glyph": "chart-line-up",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Market Data"
+  },
+  "insilos_knowledge_graph": {
+    "glyph": "tree-structure",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Enterprise Knowledge Graph"
+  },
+  "insilos_esg_bridge": {
+    "glyph": "leaf",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "ESG Sustainability Bridge"
+  },
+  "insilos_tenant_control": {
+    "glyph": "shield",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Tenant Control"
+  },
+  "insilos_industry_showcase": {
+    "glyph": "layout",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Industry Showcase"
+  },
+  "insilos_theme_genesis": {
+    "glyph": "palette",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Theme Genesis"
+  },
+  "industry_templates": {
+    "glyph": "squares-four",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Industry Templates"
+  },
+  "web_studio": {
+    "glyph": "magic-wand",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Insilos Studio"
+  },
+  "web_unsplash": {
+    "glyph": "image",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Unsplash Library"
+  },
+  "partnership": {
+    "glyph": "handshake",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Partnership"
+  },
+  "marketing_card": {
+    "glyph": "identification-card",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Marketing Card"
+  },
+  "payment": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Gateway Engine"
+  },
+  "sale_amazon": {
+    "glyph": "tag",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Amazon Connector"
+  },
+  "sale_gelato": {
+    "glyph": "tag",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Gelato Connector"
+  },
+  "sale_shopee": {
+    "glyph": "tag",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Shopee Connector"
+  },
+  "sale_timesheet": {
+    "glyph": "tag",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Sales Timesheet"
+  },
+  "industry_fsm_sale": {
+    "glyph": "wrench",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Field Service Sales"
+  },
+  "industry_fsm_stock": {
+    "glyph": "wrench",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Field Service Stock"
+  },
+  "voip_onsip": {
+    "glyph": "phone-call",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "OnSIP VoIP"
+  },
+  "product": {
+    "glyph": "package",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Products & Pricelists"
+  },
+  "product_expiry": {
+    "glyph": "barcode",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Product Expiration Dates"
+  },
+  "lunch": {
+    "glyph": "fork-knife",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Lunch"
+  },
+  "sms": {
+    "glyph": "chat-teardrop-text",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "SMS Gateway"
+  },
+  "snailmail": {
+    "glyph": "envelope-open",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Snail Mail"
+  },
+  "pos_restaurant": {
+    "glyph": "fork-knife",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "POS Restaurant"
+  },
+  "timesheet_grid": {
+    "glyph": "clock",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Timesheets Grid"
+  },
+  "timer": {
+    "glyph": "timer",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Timer"
+  },
+  "spreadsheet": {
+    "glyph": "table",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Spreadsheet Engine"
+  },
+  "board": {
+    "glyph": "layout",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Dashboards Board"
+  },
+  "gamification": {
+    "glyph": "medal",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Gamification"
+  },
+  "iap": {
+    "glyph": "lightning",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "In-App Purchase"
+  },
+  "data_cleaning": {
+    "glyph": "broom",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Data Cleaning"
+  },
+  "partner_autocomplete": {
+    "glyph": "address-book",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Partner Autocomplete"
+  },
+  "ai": {
+    "glyph": "sparkle",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "AI Core"
+  },
+  "ai_documents_source": {
+    "glyph": "sparkle",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "AI Documents Source"
+  },
+  "ai_knowledge": {
+    "glyph": "sparkle",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "AI Knowledge Draft"
+  },
+  "ai_website": {
+    "glyph": "sparkle",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "AI Website Integration"
+  },
+  "mail_bot": {
+    "glyph": "robot",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "InsilosBot"
+  },
+  "microsoft_calendar": {
+    "glyph": "calendar",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Outlook Calendar"
+  },
+  "google_calendar": {
+    "glyph": "calendar",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Google Calendar"
+  },
+  "microsoft_outlook": {
+    "glyph": "envelope-simple",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Microsoft Outlook"
+  },
+  "google_gmail": {
+    "glyph": "envelope-simple",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Google Gmail"
+  },
+  "l10n": {
+    "glyph": "globe",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Chart of Accounts Base"
+  },
+  "l10n_ar": {
+    "glyph": "globe",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Argentina Localization"
+  },
+  "l10n_ar_website_sale": {
+    "glyph": "globe",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Argentinean eCommerce"
+  },
+  "l10n_tw_reports": {
+    "glyph": "globe",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Taiwan Accounting Reports"
+  },
+  "project_todo": {
+    "glyph": "check-square",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "To-Do"
+  },
+  "base_report_paper_muncher": {
+    "glyph": "file-text",
+    "family": "FAM-08",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Report Engine Paper Muncher"
+  },
+  "account_asset": {
+    "glyph": "currency-circle-dollar",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Assets Management"
+  },
+  "account_bank_statement_import": {
+    "glyph": "file-text",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Account Bank Statement Import"
+  },
+  "account_bank_statement_import_ofx": {
+    "glyph": "file-text",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Import OFX Bank Statement"
+  },
+  "account_bank_statement_import_qif": {
+    "glyph": "file-text",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Import QIF Bank Statement"
+  },
+  "account_batch_payment": {
+    "glyph": "file-text",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Batch Payment"
+  },
+  "account_check_printing": {
+    "glyph": "file-text",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Check Printing Base"
+  },
+  "account_iso20022": {
+    "glyph": "file-text",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "SEPA Credit Transfer / ISO20022"
+  },
+  "account_transfer": {
+    "glyph": "file-text",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Account Transfers"
+  },
+  "delivery_bpost": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "bpost Shipping"
+  },
+  "delivery_dhl": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "DHL Express Shipping (Legacy)"
+  },
+  "delivery_dhl_rest": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "DHL Express Shipping"
+  },
+  "delivery_easypost": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Easypost Shipping"
+  },
+  "delivery_envia": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Envia Shipping"
+  },
+  "delivery_fedex": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Fedex Shipping (Legacy)"
+  },
+  "delivery_fedex_rest": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Fedex Shipping"
+  },
+  "delivery_sendcloud": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Sendcloud Shipping"
+  },
+  "delivery_shiprocket": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Shiprocket Shipping"
+  },
+  "delivery_starshipit": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Starshipit Shipping"
+  },
+  "delivery_ups": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "UPS Shipping (Legacy)"
+  },
+  "delivery_ups_rest": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "UPS Shipping"
+  },
+  "delivery_usps": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "United States Postal Service (USPS) Shipping (Legacy)"
+  },
+  "delivery_usps_rest": {
+    "glyph": "truck",
+    "family": "FAM-03",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "United States Postal Service (USPS) Shipping"
+  },
+  "helpdesk_account": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Helpdesk Account"
+  },
+  "helpdesk_fsm": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Helpdesk FSM"
+  },
+  "helpdesk_repair": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Helpdesk Repair"
+  },
+  "helpdesk_sale_loyalty": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Helpdesk Sale Loyalty"
+  },
+  "helpdesk_stock": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Helpdesk Stock"
+  },
+  "helpdesk_timesheet": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Helpdesk Timesheet"
+  },
+  "hr_expense_extract": {
+    "glyph": "receipt",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Hr Expense Extract"
+  },
+  "hr_recruitment_integration_base": {
+    "glyph": "user-focus",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Recruitment Integration Base"
+  },
+  "hr_recruitment_integration_monster": {
+    "glyph": "user-focus",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Job Board - Monster.com"
+  },
+  "hr_recruitment_integration_skills_monster": {
+    "glyph": "user-focus",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Job Board - Monster.com (Skills)"
+  },
+  "hr_recruitment_integration_website": {
+    "glyph": "user-focus",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Recruitment Integration website"
+  },
+  "hr_recruitment_integration_website_monster": {
+    "glyph": "user-focus",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Job Board - Monster.com (Website)"
+  },
+  "hr_skills": {
+    "glyph": "users",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Skills Management"
+  },
+  "hr_work_entry": {
+    "glyph": "clock-user",
+    "family": "FAM-05",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Work Entries"
+  },
+  "l10n_eg": {
+    "glyph": "globe",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Egypt - Accounting"
+  },
+  "l10n_employment_hero": {
+    "glyph": "globe",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Employment Hero Payroll"
+  },
+  "l10n_fr_payment": {
+    "glyph": "globe",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "France - Worldline Payment Branding"
+  },
+  "l10n_syscohada": {
+    "glyph": "globe",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "OHADA - Accounting"
+  },
+  "l10n_vn_demo": {
+    "glyph": "globe",
+    "family": "FAM-02",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Vietnam - Manufacturing & Industrial Transport Demo Data (Sản Xuất & Vận Tải Công Nghiệp)"
+  },
+  "mrp_maintenance": {
+    "glyph": "gear-six",
+    "family": "FAM-04",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Maintenance - MRP"
+  },
+  "payment_adyen": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Adyen"
+  },
+  "payment_aps": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Amazon Payment Services"
+  },
+  "payment_asiapay": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: AsiaPay"
+  },
+  "payment_authorize": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Authorize.Net"
+  },
+  "payment_buckaroo": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Buckaroo"
+  },
+  "payment_custom": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Custom Payment Modes"
+  },
+  "payment_demo": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Demo"
+  },
+  "payment_dpo": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: DPO"
+  },
+  "payment_ecpay": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: ECPay"
+  },
+  "payment_flutterwave": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Flutterwave"
+  },
+  "payment_iyzico": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Iyzico"
+  },
+  "payment_mercado_pago": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Mercado Pago"
+  },
+  "payment_mollie": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Mollie"
+  },
+  "payment_nuvei": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Nuvei"
+  },
+  "payment_paymob": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Paymob"
+  },
+  "payment_paypal": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Paypal"
+  },
+  "payment_payu": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: PayU"
+  },
+  "payment_razorpay": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Razorpay"
+  },
+  "payment_redsys": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Redsys"
+  },
+  "payment_sepa_direct_debit": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Sepa Direct Debit"
+  },
+  "payment_stripe": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Stripe"
+  },
+  "payment_toss_payments": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Toss Payments"
+  },
+  "payment_worldline": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Worldline"
+  },
+  "payment_xendit": {
+    "glyph": "credit-card",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Payment Provider: Xendit"
+  },
+  "pos_bancontact_pay": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "POS Bancontact Pay & Wero"
+  },
+  "pos_cashdro": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "POS Cashdro Cash Machines"
+  },
+  "pos_cashmatic": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "POS Cashmatic Cash Machines"
+  },
+  "pos_glory_cash": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "POS Glory Cash Machines"
+  },
+  "pos_iot": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "IoT for PoS"
+  },
+  "pos_mollie": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "POS Mollie"
+  },
+  "pos_pricer": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "PoS Pricer"
+  },
+  "pos_tyro": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "POS Tyro"
+  },
+  "pos_urban_piper": {
+    "glyph": "storefront",
+    "family": "FAM-01",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Point of Sale - UrbanPiper"
+  },
+  "project_forecast": {
+    "glyph": "kanban",
+    "family": "FAM-06",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Project Planning"
+  },
+  "social_facebook": {
+    "glyph": "facebook-logo",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Social Facebook"
+  },
+  "social_instagram": {
+    "glyph": "instagram-logo",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Social Instagram"
+  },
+  "social_linkedin": {
+    "glyph": "linkedin-logo",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Social LinkedIn"
+  },
+  "social_twitter": {
+    "glyph": "twitter-logo",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Social X"
+  },
+  "social_youtube": {
+    "glyph": "youtube-logo",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Social YouTube"
+  },
+  "theme_default": {
+    "glyph": "palette",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Default Theme"
+  },
+  "website_blog": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Blog"
+  },
+  "website_crm": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Contact Form"
+  },
+  "website_crm_partner_assign": {
+    "glyph": "funnel",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Resellers"
+  },
+  "website_customer": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Customer References"
+  },
+  "website_enterprise": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Website Enterprise"
+  },
+  "website_event": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Events"
+  },
+  "website_event_sale": {
+    "glyph": "ticket",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Online Event Ticketing"
+  },
+  "website_event_track": {
+    "glyph": "ticket",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Advanced Events"
+  },
+  "website_forum": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Forum"
+  },
+  "website_google_map": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Google Maps"
+  },
+  "website_helpdesk_forum": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Helpdesk: Help Center"
+  },
+  "website_helpdesk_livechat": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Website IM Livechat Helpdesk"
+  },
+  "website_helpdesk_slides": {
+    "glyph": "lifebuoy",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Website Slides Helpdesk"
+  },
+  "website_hr_recruitment": {
+    "glyph": "user-focus",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Online Jobs"
+  },
+  "website_links": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Link Tracker"
+  },
+  "website_livechat": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Website Live Chat"
+  },
+  "website_mass_mailing": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Newsletter Subscribe Button"
+  },
+  "website_partner": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Website Partner"
+  },
+  "website_payment": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Website Payment"
+  },
+  "website_project": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Online Task Submission"
+  },
+  "website_sale": {
+    "glyph": "globe",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "eCommerce"
+  },
+  "website_sale_collect": {
+    "glyph": "shopping-cart",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Click & Collect"
+  },
+  "website_sale_loyalty": {
+    "glyph": "shopping-cart",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Coupons, Promotions, Gift Card and Loyalty for eCommerce"
+  },
+  "website_sale_stock": {
+    "glyph": "shopping-cart",
+    "family": "FAM-07",
+    "primary_color": "#FF8000",
+    "tint_color": "#FEF3C7",
+    "label": "Product Availability"
+  }
 }

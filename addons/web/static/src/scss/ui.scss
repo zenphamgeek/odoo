@@ -429,37 +429,57 @@ span.o_force_ltr {
         .settings {
             .settingSearchHeader {
                 background-color: rgba(255, 128, 0, 0.08) !important;
-                border-left: 3px solid #FF8000 !important;
+                border-left: none !important;
                 border-radius: 4px;
                 font-weight: 600;
             }
 
             > .app_settings_block h2 {
-                border-left: 3px solid #FF8000;
-                padding-left: 0.75rem;
+                border-left: none !important;
+                padding-left: 0 !important;
             }
         }
     }
 }
 
 // 4. Universal Public Login Card & Form Modernization
-.oe_website_login_container {
+.insilos_auth_form_pane {
+    .oe_website_login_container {
+        padding: 0 !important;
+        background: transparent !important;
+        display: block !important;
+
+        .oe_login_form, .oe_signup_form, .oe_reset_password_form {
+            max-width: 100% !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+    }
+}
+
+.oe_website_login_container:not(.insilos_auth_form_pane *) {
     padding: 3rem 1rem;
     display: flex;
     justify-content: center;
     align-items: center;
 
     .oe_login_form, .oe_signup_form, .oe_reset_password_form {
-        max-width: 420px !important;
+        max-width: 440px !important;
         width: 100%;
         margin: 20px auto;
         padding: 2.25rem 2rem;
-        background: rgba(13, 21, 39, 0.94) !important;
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 128, 0, 0.25) !important;
-        border-radius: 16px !important;
-        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 35px rgba(255, 128, 0, 0.12) !important;
+        background: rgba(13, 19, 38, 0.94) !important;
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(0, 240, 255, 0.25) !important;
+        border-radius: 20px !important;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 0 35px rgba(0, 240, 255, 0.15) !important;
         color: #F8FAFC !important;
 
         .form-label, label {
@@ -485,9 +505,9 @@ span.o_force_ltr {
             }
 
             &:focus {
-                border-color: #FF8000 !important;
+                border-color: #00F0FF !important;
                 background-color: rgba(15, 23, 42, 0.98) !important;
-                box-shadow: 0 0 0 3px rgba(255, 128, 0, 0.25) !important;
+                box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.25) !important;
                 color: #FFFFFF !important;
             }
         }
@@ -499,33 +519,33 @@ span.o_force_ltr {
                 color: #94A3B8 !important;
 
                 &:hover {
-                    color: #FF8000 !important;
+                    color: #00F0FF !important;
                 }
             }
         }
 
         .oe_login_buttons {
             .btn-primary {
-                background: linear-gradient(135deg, #FFA033 0%, #FF8000 45%, #E66A00 100%) !important;
-                border: 1px solid rgba(255, 255, 255, 0.2) !important;
-                border-radius: 8px !important;
+                background: linear-gradient(135deg, #2481cc 0%, #3390ec 100%) !important;
+                border: none !important;
+                border-radius: 20px !important;
                 color: #FFFFFF !important;
                 font-weight: 600;
                 font-size: 0.95rem;
                 padding: 0.7rem 1.5rem !important;
-                box-shadow: 0 4px 18px rgba(255, 128, 0, 0.35) !important;
+                box-shadow: 0 4px 18px rgba(36, 129, 204, 0.4) !important;
                 transition: transform 0.18s ease, box-shadow 0.18s ease;
 
                 &:hover {
                     transform: translateY(-2px);
-                    box-shadow: 0 8px 25px rgba(255, 128, 0, 0.5) !important;
+                    box-shadow: 0 8px 25px rgba(36, 129, 204, 0.55) !important;
                 }
             }
 
             .btn-link {
                 color: #94A3B8 !important;
                 &:hover {
-                    color: #FF8000 !important;
+                    color: #00F0FF !important;
                 }
             }
         }
@@ -546,6 +566,72 @@ span.o_force_ltr {
                 color: #86EFAC !important;
             }
         }
+    }
+}
+
+// 5. Apps Kanban 5-Column Grid Fallback
+.o_kanban_view.o_modules_kanban {
+    .o_kanban_renderer {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 16px !important;
+
+        @media (max-width: 1100px) {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        }
+        @media (max-width: 900px) {
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        }
+        @media (max-width: 700px) {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        }
+        @media (max-width: 480px) {
+            grid-template-columns: 1fr !important;
+        }
+
+        .o_kanban_ghost,
+        .o_kanban_record.o_kanban_ghost,
+        .o_kanban_record:empty {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            width: 0 !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: none !important;
+        }
+    }
+}
+
+// 6. Universal About Card Square Logo
+.o_about_square_logo,
+.o_about_logo_right img {
+    width: 72px !important;
+    height: 72px !important;
+    max-width: 72px !important;
+    max-height: 72px !important;
+    border-radius: 12px !important;
+    object-fit: contain !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    background: #ffffff !important;
+    padding: 4px !important;
+}
+
+// 7. Settings Form Label & Inline Doc Link (? No Line Wrap)
+.o_base_settings_view {
+    .o_form_label {
+        display: inline-block !important;
+        margin-right: 6px !important;
+        vertical-align: middle !important;
+    }
+    .o_doc_link,
+    a.o_doc_link,
+    .oi-help,
+    .fa-question-circle {
+        display: inline-flex !important;
+        align-items: center !important;
+        vertical-align: middle !important;
     }
 }
 

@@ -181,6 +181,7 @@ This module provides the core of the Insilos Web Client.
             'web/static/src/scss/base_frontend.scss',
             'web/static/src/scss/mimetypes.scss',
             'web/static/src/scss/ui.scss',
+            'web/static/src/scss/insilos_public_auth.scss',
             'web/static/src/views/fields/signature/signature_field.scss',
 
             ('include', 'web.assets_frontend_minimal'),

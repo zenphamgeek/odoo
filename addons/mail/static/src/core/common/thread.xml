@@ -56,9 +56,23 @@
                 <t t-if="this.state.mountedAndLoaded and this.props.showEmptyMessage">
                     <t name="empty-message">
                         <t t-if="this.showStartMessage" t-call="mail.Thread.startMessage"/>
-                        <div t-else="" class="d-flex flex-column align-items-center">
-                            <span class="fs-1" style="filter: grayscale(1);">😶</span>
-                            <span>No messages yet.</span>
+                        <div t-else="" class="d-flex flex-column align-items-center o_insilos_empty_thread py-4">
+                            <div class="o_insilos_empty_icon mb-3 position-relative d-flex align-items-center justify-content-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="56" height="56" fill="none" class="insilos-duotone-chats">
+                                    <circle cx="32" cy="32" r="28" fill="url(#insilos_thread_empty_glow)" opacity="0.6"/>
+                                    <path d="M14 20C14 15.5817 17.5817 12 22 12H42C46.4183 12 50 15.5817 50 20V34C50 38.4183 46.4183 42 42 42H28L18 50V42H22C17.5817 42 14 38.4183 14 34V20Z" fill="#0B2E64" fill-opacity="0.12" stroke="#0B2E64" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="o_insilos_bubble_primary"/>
+                                    <path d="M22 22H38M22 28H32M22 34H28" stroke="#0B2E64" stroke-width="2" stroke-linecap="round" opacity="0.6" class="o_insilos_bubble_lines"/>
+                                    <path d="M38 32H46C49.3137 32 52 34.6863 52 38V46C52 49.3137 49.3137 52 46 52H44V56L39 52H38C34.6863 52 32 49.3137 32 46V44" fill="#00F0FF" fill-opacity="0.2" stroke="#00F0FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="o_insilos_bubble_accent"/>
+                                    <defs>
+                                        <radialGradient id="insilos_thread_empty_glow" cx="50%" cy="50%" r="50%">
+                                            <stop offset="0%" stop-color="#00F0FF" stop-opacity="0.25"/>
+                                            <stop offset="100%" stop-color="#00F0FF" stop-opacity="0"/>
+                                        </radialGradient>
+                                    </defs>
+                                </svg>
+                            </div>
+                            <span class="fw-semibold text-muted fs-6 mb-1">No messages yet.</span>
+                            <span class="small text-muted opacity-75">Start the conversation or drop notes here</span>
                         </div>
                     </t>
                 </t>

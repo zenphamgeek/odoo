@@ -26,14 +26,14 @@
             @extend %o-nocontent-init-image;
             width: 120px;
             height: 140px;
-            background: transparent url(/web/static/img/smiling_face.svg) no-repeat center;
+            background: transparent url(/web/static/img/smiling_face.svg?v=insilos20) no-repeat center;
         }
 
         .o_view_nocontent_neutral_face:before {
             @extend %o-nocontent-init-image;
             width: 120px;
             height: 140px;
-            background: transparent url(/web/static/img/neutral_face.svg) no-repeat center;
+            background: transparent url(/web/static/img/neutral_face.svg?v=insilos20) no-repeat center;
         }
 
         .o_view_nocontent_empty_folder:before {

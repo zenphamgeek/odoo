@@ -112,23 +112,90 @@
         </t>
         <t t-call="web.frontend_layout"
             html_data="{'style': 'height: 100%;'}"
-            body_classname.f="bg-100"
+            body_classname.f="insilos_auth_body"
             no_header="True"
             no_footer="True"
             head="head">
 
-            <div class="container py-5">
-                <div t-attf-class="card border-0 mx-auto bg-100 {{login_card_classes}} o_database_list" style="max-width: 300px;">
-                    <div class="card-body">
-                        <div class="text-center pb-3 border-bottom mb-4" t-if="not res_company.uses_default_logo">
-                            <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}" alt="Logo" style="max-height:120px; max-width: 100%; width:auto"/>
+            <div class="insilos_auth_portal_wrapper d-flex align-items-center justify-content-center">
+                <div t-attf-class="insilos_auth_portal_card d-flex overflow-hidden {{login_card_classes}} o_database_list">
+                    <!-- Left Column: Enterprise Hero Showcase (45%) -->
+                    <div class="insilos_auth_hero_showcase d-flex flex-column justify-content-between p-4 p-lg-5 text-white">
+                        <div class="hero_brand_header mb-4">
+                            <img src="/web/static/img/insilos_logo_dark.svg" alt="Insilos Enterprise Platform" style="height: 38px; width: auto;" class="d-block mb-3"/>
+                            <div class="text-white-50 text-uppercase fw-semibold" style="font-size: 11px; letter-spacing: 0.08em;">Hệ Thống Quản Trị Doanh Nghiệp Toàn Diện</div>
+                            <h2 class="display-6 fw-bold my-3 text-cyan-gradient" style="line-height: 1.2;">
+                                Nền Tảng Quản Trị Doanh Nghiệp
+                            </h2>
+                            <p class="text-white-50 small mb-0" style="line-height: 1.6; font-size: 13.5px;">
+                                Tích hợp và chuẩn hóa quy trình nghiệp vụ cốt lõi: Chuỗi cung ứng (SCM), Quản lý sản xuất (MES/PP), Quản trị tài chính (FI/CO) và Quản trị nguồn nhân lực (HCM).
+                            </p>
                         </div>
-                        <t t-out="0"/>
-                        <div class="text-center small mt-4 pt-3 border-top" t-if="not disable_footer">
-                            <t t-if="not disable_database_manager">
-                                <a class="border-end pe-2 me-1" href="/web/database/manager">Manage Databases</a>
+
+                        <!-- 3 Live Trust Metric Badges -->
+                        <div class="hero_trust_badges my-4 d-flex flex-column gap-3">
+                            <div class="p-3 rounded-3 bg-cyan-subtle border border-white-10 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="pulse-beacon"></span>
+                                    <span class="small fw-semibold text-white">Độ sẵn sàng hệ thống (SLA)</span>
+                                </div>
+                                <span class="badge text-cyan fw-bold font-monospace" style="font-size: 12px;">99.99%</span>
+                            </div>
+                            <div class="p-3 rounded-3 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="oi oi-fw text-cyan" data-icon="shield"></i>
+                                    <span class="small fw-semibold text-white">An toàn &amp; Bảo mật thông tin</span>
+                                </div>
+                                <span class="badge bg-dark text-white-50 border border-white-10" style="font-size: 11px;">ISO/IEC 27001</span>
+                            </div>
+                            <div class="p-3 rounded-3 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="oi oi-fw text-cyan" data-icon="domain"></i>
+                                    <span class="small fw-semibold text-white">Tiêu chuẩn tương thích hệ thống</span>
+                                </div>
+                                <span class="badge bg-dark text-white-50 border border-white-10" style="font-size: 11px;">Chuẩn SAP / IBM</span>
+                            </div>
+                        </div>
+
+                        <div class="hero_brand_footer pt-3 border-top border-white-10 d-flex align-items-center justify-content-between small text-white-50">
+                            <span>Insilos Enterprise Platform v20.0</span>
+                            <span class="font-monospace" style="font-size: 11px;">Vùng dữ liệu bảo mật (Sovereign Enclave)</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Authentication Form Pane (55%) -->
+                    <div class="insilos_auth_form_pane p-4 p-lg-5">
+                        <div class="auth_form_header mb-4">
+                            <div class="d-lg-none mb-3 text-center">
+                                <img src="/web/static/img/insilos_logo.svg" alt="Insilos" style="height: 32px; width: auto;"/>
+                            </div>
+                            <t t-if="'signup' in request.httprequest.path">
+                                <h3 class="auth_title mb-1">Đăng Ký Tài Khoản</h3>
+                                <p class="auth_subtitle mb-0">Tạo thông tin định danh mới trên hệ thống Insilos Enterprise</p>
                             </t>
-                            <a href="https://insilos.com?utm_source=db&amp;utm_medium=auth" target="_blank">Powered by <span>Insilos</span></a>
+                            <t t-elif="'reset_password' in request.httprequest.path">
+                                <h3 class="auth_title mb-1">Đặt Lại Mật Khẩu</h3>
+                                <p class="auth_subtitle mb-0">Nhập địa chỉ email tài khoản để nhận liên kết xác thực đặt lại mật khẩu</p>
+                            </t>
+                            <t t-else="">
+                                <h3 class="auth_title mb-1">Đăng Nhập Hệ Thống</h3>
+                                <p class="auth_subtitle mb-0">Vui lòng nhập thông tin xác thực để truy cập hệ thống</p>
+                            </t>
+                        </div>
+
+                        <div class="auth_form_body">
+                            <t t-out="0"/>
+                        </div>
+
+                        <div class="auth_footer_block mt-4 pt-3 border-top d-flex flex-wrap justify-content-between align-items-center small" t-if="not disable_footer">
+                            <t t-if="not disable_database_manager">
+                                <a class="auth_meta_link" href="/web/database/manager">
+                                    <i class="oi oi-fw me-1" data-icon="database"></i>Quản trị cơ sở dữ liệu
+                                </a>
+                            </t>
+                            <a class="auth_meta_link ms-auto" href="https://insilos.com?utm_source=db&amp;utm_medium=auth" target="_blank">
+                                Nền tảng Quản trị <span>Insilos Enterprise</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -164,28 +231,28 @@
             <h1 class="visually-hidden">Login</h1>
             <div class="oe_structure" id="oe_structure_login_top"/>
             <owl-component t-if="not login" name="web.user_switch" />
-            <form t-attf-class="oe_login_form #{'' if login else 'd-none'}" role="form" t-attf-action="/web/login" method="post" onsubmit="this.action = '/web/login' + location.hash" data-captcha="login">
+            <form class="oe_login_form" role="form" t-attf-action="/web/login" method="post" onsubmit="this.action = '/web/login' + location.hash" data-captcha="login">
                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
                 <div class="mb-3" t-if="databases and len(databases) &gt; 1">
-                    <label for="db" class="col-form-label">Database</label>
+                    <label for="db" class="col-form-label">Cơ sở dữ liệu</label>
                     <div class="input-group">
                         <input type="text" name="db" t-att-value="request.db" id="db" class="form-control" required="required" readonly="readonly"/>
-                        <a role="button" href="/web/database/selector" class="btn border border-start-0">Select <i class="oi" data-icon="database" role="img" aria-label="Database" title="Database"></i></a>
+                        <a role="button" href="/web/database/selector" class="btn border border-start-0">Chọn <i class="oi" data-icon="database" role="img" aria-label="Database" title="Database"></i></a>
                     </div>
                 </div>
 
                 <div class="mb-3 field-login">
-                    <label for="login" class="form-label d-flex justify-content-between">Email</label>
-                    <input type="text" placeholder="Enter your email" name="login" t-att-value="login" id="login" class="form-control" required="required" autocapitalize="off" autocomplete="username"/>
+                    <label for="login" class="form-label d-flex justify-content-between">Tài khoản / Email</label>
+                    <input type="text" placeholder="Nhập email hoặc tên đăng nhập" name="login" t-att-value="login" id="login" class="form-control" required="required" autocapitalize="off" autocomplete="username"/>
                 </div>
 
                 <div class="o_caps_lock_warning">
                     <div class="d-flex justify-content-between align-items-start">
-                        <label for="password" class="form-label">Password</label>
+                        <label for="password" class="form-label">Mật khẩu</label>
                     </div>
                     <div class="input-group mb-1">
-                        <input type="password" placeholder="Enter your password" name="password" id="password" class="form-control" required="required" autocomplete="current-password" t-att-autofocus="'autofocus' if login else None" maxlength="4096"/>
+                        <input type="password" placeholder="Nhập mật khẩu" name="password" id="password" class="form-control" required="required" autocomplete="current-password" t-att-autofocus="'autofocus' if login else None" maxlength="4096"/>
                         <button type="button" class="btn btn-sm border border-start-0 o_show_password">
                             <i class="oi" data-icon="visibility"/>
                         </button>
@@ -200,9 +267,9 @@
                 </p>
 
                 <div class="oe_login_buttons text-center d-grid mb-1 pt-3">
-                    <button type="submit" class="btn btn-primary">Log in</button>
+                    <button type="submit" class="btn btn-primary">Đăng nhập</button>
                     <t t-if="debug">
-                        <button type="submit" name="redirect" value="/web/become" class="btn btn-link btn-sm">Log in as superuser</button>
+                        <button type="submit" name="redirect" value="/web/become" class="btn btn-link btn-sm">Đăng nhập quản trị viên (Superuser)</button>
                     </t>
                     <t t-call="web.login_oauth"/>
                 </div>
@@ -216,17 +283,24 @@
 
     <template id="web.login_successful" name="Login successful">
         <t t-call="web.login_layout">
-            <div class="oe_login_form">
-                <p>
-                    You are logged in.
+            <div class="oe_login_form text-center py-3">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle p-3 mb-3" style="background: rgba(16, 185, 129, 0.12); width: 64px; height: 64px;">
+                    <i class="oi oi-fw text-success" data-icon="check" style="font-size: 28px;"></i>
+                </div>
+                <h4 class="fw-bold mb-1">Đăng Nhập Thành Công</h4>
+                <p class="text-muted small mb-4">
+                    Phiên làm việc bảo mật đã được thiết lập trên hệ thống Insilos.
                 </p>
-                <div t-attf-class="clearfix oe_login_buttons text-center mb-1 pt-3">
-                    <form method="POST" action="/web/session/logout" class="text-center">
+                <div t-attf-class="clearfix oe_login_buttons text-center mb-1 pt-2 d-flex justify-content-center gap-2">
+                    <form method="POST" action="/web/session/logout" class="text-center d-inline-block">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
-                        <button type="submit" class="btn btn-primary">
-                            Logout
+                        <button type="submit" class="btn btn-secondary rounded-pill px-4">
+                            Đăng xuất
                         </button>
                     </form>
+                    <a href="/web" class="btn btn-primary rounded-pill px-4">
+                        Vào hệ thống làm việc
+                    </a>
                 </div>
             </div>
         </t>

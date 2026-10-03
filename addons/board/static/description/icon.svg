@@ -1,1 +1,10 @@
-<svg width="50" height="50" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg"><path d="M4 8a4 4 0 0 1 4-4h17v17a4 4 0 0 1-4 4H4V8Z" fill="#FC868B"/><path d="M4 35a4 4 0 0 1 4-4h11v11a4 4 0 0 1-4 4H4V35Z" fill="#F9464C"/><path d="M25 46h4a4 4 0 0 0 4-4V31h-4a4 4 0 0 0-4 4v11Z" fill="#FBB945"/><path d="M31 17v4a4 4 0 0 0 4 4h11v-4a4 4 0 0 0-4-4H31Z" fill="#088BF5"/><path d="M31 4v4a4 4 0 0 0 4 4h11V8a4 4 0 0 0-4-4H31Z" fill="#2EBCFA"/><path d="M38 46h4a4 4 0 0 0 4-4V31h-4a4 4 0 0 0-4 4v11Z" fill="#F78613"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="100%" height="100%">
+  <g class="insilos-glyph-container" transform="translate(12.8, 12.8) scale(0.9)">
+    <g class="insilos-glyph-tint" opacity="0.2" fill="#FF8000">
+      <path d="M104,104V208H40a8,8,0,0,1-8-8V104Z"/>
+    </g>
+    <g class="insilos-glyph-primary" fill="#FF8000">
+      <path d="M216,40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,16V96H40V56ZM40,112H96v88H40Zm176,88H112V112H216v88Z"/>
+    </g>
+  </g>
+</svg>

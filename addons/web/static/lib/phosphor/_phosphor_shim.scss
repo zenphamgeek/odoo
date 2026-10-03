@@ -1,5 +1,10 @@
 // Backward-Compatible CSS Shim: Legacy Material Symbols & FontAwesome -> Phosphor
-.oi[data-icon="star"]:before, .oi.oi-star:before, i.fa-star:before, span.fa-star:before { font-family: "Phosphor" !important; content: "\e46a" !important; }
+.oi[data-icon="bookmark"]:before, .oi.oi-bookmark:before, i.fa-bookmark:before, span.fa-bookmark:before { font-family: "Phosphor" !important; content: "\e0ea" !important; }
+.oi[data-icon="bookmark"].oi-filled:before, .oi.oi-bookmark.oi-filled:before, i.fa-bookmark.oi-filled:before, span.fa-bookmark.oi-filled:before { font-family: "Phosphor" !important; content: "\e0e8" !important; }
+.o_priority .oi[data-icon="star"]:before, .o_favorite .oi[data-icon="star"]:before, .o_priority_star[data-icon="star"]:before { font-family: "Phosphor" !important; content: "\e0ea" !important; }
+.o_priority .oi[data-icon="star"].oi-filled:before, .o_favorite .oi[data-icon="star"].oi-filled:before, .o_priority_star[data-icon="star"].oi-filled:before { font-family: "Phosphor" !important; content: "\e0e8" !important; }
+.oi[data-icon="star"]:before, .oi.oi-star:before, i.fa-star:before, span.fa-star:before { font-family: "Phosphor" !important; content: "\e0ea" !important; }
+.oi[data-icon="star"].oi-filled:before, .oi.oi-star.oi-filled:before, i.fa-star.oi-filled:before, span.fa-star.oi-filled:before { font-family: "Phosphor" !important; content: "\e0e8" !important; }
 .oi[data-icon="close"]:before, .oi.oi-close:before, i.fa-close:before, span.fa-close:before { font-family: "Phosphor" !important; content: "\e4f6" !important; }
 .oi[data-icon="close_small"]:before, .oi.oi-close_small:before, i.fa-close_small:before, span.fa-close_small:before { font-family: "Phosphor" !important; content: "\e4f6" !important; }
 .oi[data-icon="link_off"]:before, .oi.oi-link_off:before, i.fa-link_off:before, span.fa-link_off:before { font-family: "Phosphor" !important; content: "\e2e4" !important; }
@@ -126,7 +131,9 @@
 .oi[data-icon="oi_view-gantt"]:before, .oi.oi-oi_view-gantt:before, i.fa-oi_view-gantt:before, span.fa-oi_view-gantt:before { font-family: "Phosphor" !important; content: "\e152" !important; }
 .oi[data-icon="oi_view-grid"]:before, .oi.oi-oi_view-grid:before, i.fa-oi_view-grid:before, span.fa-oi_view-grid:before { font-family: "Phosphor" !important; content: "\e296" !important; }
 .oi[data-icon="oi_odoo"]:before, .oi.oi-oi_odoo:before, i.fa-oi_odoo:before, span.fa-oi_odoo:before { font-family: "Phosphor" !important; content: "\e1da" !important; }
-.oi[data-icon="oi_studio"]:before, .oi.oi-oi_studio:before, i.fa-oi_studio:before, span.fa-oi_studio:before { font-family: "Phosphor" !important; content: "\e5d4" !important; }
+.oi[data-icon="oi_studio"]:before, .oi.oi-oi_studio:before, .oi.oi-studio:before, i.fa-oi_studio:before, span.fa-oi_studio:before { font-family: "Phosphor" !important; content: "\e6b6" !important; }
 .oi[data-icon="oi_twitter"]:before, .oi.oi-oi_twitter:before, i.fa-oi_twitter:before, span.fa-oi_twitter:before { font-family: "Phosphor" !important; content: "\e4bc" !important; }
 .oi[data-icon="oi_twitter-square"]:before, .oi.oi-oi_twitter-square:before, i.fa-oi_twitter-square:before, span.fa-oi_twitter-square:before { font-family: "Phosphor" !important; content: "\e4bc" !important; }
 .oi[data-icon="oi_gratipay"]:before, .oi.oi-oi_gratipay:before, i.fa-oi_gratipay:before, span.fa-oi_gratipay:before { font-family: "Phosphor" !important; content: "\e2a8" !important; }
+.oi.oi-voip:before, .oi[data-icon="voip"]:before { font-family: "Phosphor" !important; content: "\e3b8" !important; }
+

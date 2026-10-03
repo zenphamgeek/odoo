@@ -1,0 +1,5924 @@
+{
+  "meta": {
+    "timestamp": "2026-10-02T10:14:27.437Z",
+    "generator": "tools/audit_all_screens_zero_signature.js",
+    "targetUrl": "http://localhost:28069",
+    "database": "odoo20_dev",
+    "branch": "insilos-genesis-fork"
+  },
+  "summary": {
+    "totalApps": 74,
+    "totalViewsAudited": 172,
+    "tierACount": 74,
+    "tierBCount": 0,
+    "compliancePercentage": 100,
+    "total_apps": 74,
+    "tier_a_count": 74,
+    "tier_b_count": 0,
+    "pass_rate_percent": 100
+  },
+  "apps": [
+    {
+      "appIndex": 1,
+      "id": 1,
+      "name": "Executive Control Tower",
+      "xmlid": "insilos_sap_fiori.menu_insilos_executive_control_tower_root",
+      "route": "/insilos/action-5120",
+      "href": "/insilos/action-5120",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": null,
+        "issues": [
+          "Using default_icon_app.png fallback"
+        ]
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 2,
+      "id": 2,
+      "name": "Enterprise Collaboration",
+      "xmlid": "mail.menu_root_discuss",
+      "route": "/insilos/discuss",
+      "href": "/insilos/discuss",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3181,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 3,
+      "id": 3,
+      "name": "Meeting Rooms",
+      "xmlid": "room.room_menu_root",
+      "route": "/insilos/rooms",
+      "href": "/insilos/rooms",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 2110,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 16,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 4,
+      "id": 4,
+      "name": "Calendar",
+      "xmlid": "calendar.mail_menu_calendar",
+      "route": "/insilos/calendar",
+      "href": "/insilos/calendar",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 4036,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 5,
+      "id": 5,
+      "name": "Appointments",
+      "xmlid": "appointment.main_menu_appointments",
+      "route": "/insilos/appointments",
+      "href": "/insilos/appointments",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3026,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 6,
+      "id": 6,
+      "name": "Insilos IAP",
+      "xmlid": "openrouter_ai.menu_openrouter_root",
+      "route": "/insilos/action-4959",
+      "href": "/insilos/action-4959",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23,
+          24
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 7,
+      "id": 7,
+      "name": "Knowledge",
+      "xmlid": "knowledge.knowledge_menu_root",
+      "route": "/insilos/knowledge",
+      "href": "/insilos/knowledge",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3107,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 8,
+      "id": 8,
+      "name": "Unified Operations",
+      "xmlid": "insilos_chemical_trade_compliance.menu_unified_operations_root",
+      "route": "/insilos/unified-operations",
+      "href": "/insilos/unified-operations",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 901,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 9,
+      "id": 9,
+      "name": "Business Partner (BP)",
+      "xmlid": "contacts.menu_contacts",
+      "route": "/insilos/contacts",
+      "href": "/insilos/contacts",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 5851,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 83,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23,
+          24
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 10,
+      "id": 10,
+      "name": "Frontdesk",
+      "xmlid": "frontdesk.frontdesk_menu_root",
+      "route": "/insilos/frontdesk",
+      "href": "/insilos/frontdesk",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 1764,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 1,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 11,
+      "id": 11,
+      "name": "CRM",
+      "xmlid": "crm.crm_menu_root",
+      "route": "/insilos/crm",
+      "href": "/insilos/crm",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 5313,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 4,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          37,
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 12,
+      "id": 12,
+      "name": "Sales & Distribution (SD)",
+      "xmlid": "sale.sale_menu_root",
+      "route": "/insilos/sales",
+      "href": "/insilos/sales",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3282,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 4,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 8,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 13,
+      "id": 13,
+      "name": "GPU Fleet",
+      "xmlid": "gpu_fleet_manager.menu_gpu_fleet_root",
+      "route": "/insilos/gpu-fleet",
+      "href": "/insilos/gpu-fleet",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3077,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 1,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 14,
+      "id": 14,
+      "name": "Executive Analytics",
+      "xmlid": "spreadsheet_dashboard.spreadsheet_dashboard_menu_root",
+      "route": "/insilos/dashboards",
+      "href": "/insilos/dashboards",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 10248,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          21,
+          8,
+          33
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 15,
+      "id": 15,
+      "name": "Subscriptions",
+      "xmlid": "sale_subscription.menu_sale_subscription_root",
+      "route": "/insilos/subscriptions",
+      "href": "/insilos/subscriptions",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 6724,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 16,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 16,
+      "id": 16,
+      "name": "Rental",
+      "xmlid": "sale_renting.rental_menu_root",
+      "route": "/insilos/rental",
+      "href": "/insilos/rental",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 6989,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 17,
+      "id": 17,
+      "name": "Logistics IDP",
+      "xmlid": "insilos_logistics_idp.menu_logistics_idp_root",
+      "route": "/insilos/logistics-onboarding",
+      "href": "/insilos/logistics-onboarding",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 18,
+      "id": 18,
+      "name": "AI",
+      "xmlid": "ai_app.ai_menu_root",
+      "route": "/insilos/action-1105",
+      "href": "/insilos/action-1105",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 8379,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 1,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 19,
+      "id": 19,
+      "name": "Point of Sale",
+      "xmlid": "point_of_sale.menu_point_root",
+      "route": "/insilos/point-of-sale",
+      "href": "/insilos/point-of-sale",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 4687,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 20,
+      "id": 20,
+      "name": "Kitchen Display",
+      "xmlid": "pos_enterprise.menu_point_kitchen_display_root",
+      "route": "/insilos/action-4757",
+      "href": "/insilos/action-4757",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3392,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 21,
+      "id": 21,
+      "name": "Accounting",
+      "xmlid": "accountant.menu_accounting",
+      "route": "/insilos/accounting",
+      "href": "/insilos/accounting",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 10155,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 13,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          17,
+          23,
+          24
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 22,
+      "id": 22,
+      "name": "Equity",
+      "xmlid": "equity.menu_equity",
+      "route": "/insilos/equity",
+      "href": "/insilos/equity",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 6251,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 23,
+      "id": 23,
+      "name": "Databases",
+      "xmlid": "databases.menu_main_databases",
+      "route": "/insilos/databases",
+      "href": "/insilos/databases",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 10107,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 6,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 24,
+      "id": 24,
+      "name": "ESG",
+      "xmlid": "esg.esg_main_menu",
+      "route": "/insilos/esg",
+      "href": "/insilos/esg",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 7868,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 25,
+      "id": 25,
+      "name": "Documents",
+      "xmlid": "documents.menu_root",
+      "route": "/insilos/action-1436",
+      "href": "/insilos/action-1436",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3043,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 75,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          32,
+          21,
+          23,
+          24,
+          28,
+          35
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 26,
+      "id": 26,
+      "name": "Market Terminal",
+      "xmlid": "insilos_market_terminal.menu_market_terminal_root",
+      "route": "/insilos/action-5108",
+      "href": "/insilos/action-5108",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 27,
+      "id": 27,
+      "name": "Project Systems (SAP PS)",
+      "xmlid": "project.menu_main_pm",
+      "route": "/insilos/project",
+      "href": "/insilos/project",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 1697,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 28,
+      "id": 28,
+      "name": "Timesheets",
+      "xmlid": "hr_timesheet.timesheet_menu_root",
+      "route": "/insilos/timesheets",
+      "href": "/insilos/timesheets",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 10529,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 16,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 29,
+      "id": 29,
+      "name": "HSE & Compliance",
+      "xmlid": "insilos_hse_compliance.menu_hse_compliance_root",
+      "route": "/insilos/hse-onboarding",
+      "href": "/insilos/hse-onboarding",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 30,
+      "id": 30,
+      "name": "Treasury & Market Risk",
+      "xmlid": "insilos_treasury_market_risk.menu_treasury_root",
+      "route": "/insilos/action-5098",
+      "href": "/insilos/action-5098",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 31,
+      "id": 31,
+      "name": "Chemical Trade Compliance",
+      "xmlid": "insilos_chemical_trade_compliance.menu_chemical_compliance_root",
+      "route": "/insilos/chemical-onboarding",
+      "href": "/insilos/chemical-onboarding",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 32,
+      "id": 32,
+      "name": "Field Service",
+      "xmlid": "industry_fsm.fsm_menu_root",
+      "route": "/insilos/field-service",
+      "href": "/insilos/field-service",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 9992,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          17,
+          23,
+          33
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 33,
+      "id": 33,
+      "name": "Insilos Website",
+      "xmlid": "insilos_website.menu_insilos_backend_root",
+      "route": "/insilos/demo-requests",
+      "href": "/insilos/demo-requests",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 3,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 34,
+      "id": 34,
+      "name": "Planning",
+      "xmlid": "planning.planning_menu_root",
+      "route": "/insilos/planning",
+      "href": "/insilos/planning",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 2674,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 35,
+      "id": 35,
+      "name": "HS & Customs",
+      "xmlid": "insilos_hs_sync.menu_hs_knowledge_root",
+      "route": "/insilos/hs-onboarding",
+      "href": "/insilos/hs-onboarding",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 36,
+      "id": 36,
+      "name": "Pub/Sub Gateway",
+      "xmlid": "insilos_pubsub_bridge.menu_pubsub_root",
+      "route": "/insilos/action-4999",
+      "href": "/insilos/action-4999",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 1,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 37,
+      "id": 37,
+      "name": "Helpdesk",
+      "xmlid": "helpdesk.menu_helpdesk_root",
+      "route": "/insilos/helpdesk",
+      "href": "/insilos/helpdesk",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 11443,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 7,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 38,
+      "id": 38,
+      "name": "Preferential Origin",
+      "xmlid": "insilos_preferential_origin.menu_preferential_origin_root",
+      "route": "/insilos/action-5091",
+      "href": "/insilos/action-5091",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 39,
+      "id": 39,
+      "name": "Website",
+      "xmlid": "website.menu_website_configuration",
+      "route": "/insilos/website",
+      "href": "/insilos/website",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 12860,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 40,
+      "id": 40,
+      "name": "Capital Markets",
+      "xmlid": "insilos_capital_markets_decision_governance.menu_capital_root",
+      "route": "/insilos/action-5060",
+      "href": "/insilos/action-5060",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 506,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 1,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 41,
+      "id": 41,
+      "name": "eLearning",
+      "xmlid": "website_slides.website_slides_menu_root",
+      "route": "/insilos/e-learning",
+      "href": "/insilos/e-learning",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 7144,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 42,
+      "id": 42,
+      "name": "Social Marketing",
+      "xmlid": "social.menu_social_global",
+      "route": "/insilos/social",
+      "href": "/insilos/social",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 9177,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 43,
+      "id": 43,
+      "name": "Marketing Automation",
+      "xmlid": "marketing_automation.marketing_automation_menu",
+      "route": "/insilos/marketing-automation",
+      "href": "/insilos/marketing-automation",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3830,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23,
+          24
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 44,
+      "id": 44,
+      "name": "Email Marketing",
+      "xmlid": "mass_mailing.mass_mailing_menu_root",
+      "route": "/insilos/email-marketing",
+      "href": "/insilos/email-marketing",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 2831,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 16,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 45,
+      "id": 45,
+      "name": "SMS Marketing",
+      "xmlid": "mass_mailing_sms.mass_mailing_sms_menu_root",
+      "route": "/insilos/sms-marketing",
+      "href": "/insilos/sms-marketing",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 2717,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 16,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          21,
+          17,
+          23,
+          28
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 46,
+      "id": 46,
+      "name": "Events",
+      "xmlid": "event.event_main_menu",
+      "route": "/insilos/events",
+      "href": "/insilos/events",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 4516,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 47,
+      "id": 47,
+      "name": "Surveys",
+      "xmlid": "survey.menu_surveys",
+      "route": "/insilos/surveys",
+      "href": "/insilos/surveys",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3915,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 3,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 48,
+      "id": 48,
+      "name": "Materials Management (MM)",
+      "xmlid": "purchase.menu_purchase_root",
+      "route": "/insilos/purchase",
+      "href": "/insilos/purchase",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 5998,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 2,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 20,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 49,
+      "id": 49,
+      "name": "Logistics & Inventory (MM-IM)",
+      "xmlid": "stock.menu_stock_root",
+      "route": "/insilos/inventory",
+      "href": "/insilos/inventory",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 2734,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 11,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23,
+          24
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 50,
+      "id": 50,
+      "name": "Production Planning (PP)",
+      "xmlid": "mrp.menu_mrp_root",
+      "route": "/insilos/manufacturing",
+      "href": "/insilos/manufacturing",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 4358,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 2,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 3,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 51,
+      "id": 51,
+      "name": "Shop Floor",
+      "xmlid": "mrp_workorder.menu_mrp_workorder_root",
+      "route": "/insilos/shop-floor",
+      "href": "/insilos/shop-floor",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 4947,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 52,
+      "id": 52,
+      "name": "Quality Management (SAP QM)",
+      "xmlid": "quality_control.menu_quality_root",
+      "route": "/insilos/quality",
+      "href": "/insilos/quality",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 6457,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 7,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23,
+          24
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 53,
+      "id": 53,
+      "name": "Barcode",
+      "xmlid": "stock_barcode.stock_barcode_menu",
+      "route": "/insilos/barcode",
+      "href": "/insilos/barcode",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 2770,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 54,
+      "id": 54,
+      "name": "Plant Maintenance (SAP PM)",
+      "xmlid": "maintenance.menu_maintenance_title",
+      "route": "/insilos/maintenance",
+      "href": "/insilos/maintenance",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 11708,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 7,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23,
+          24
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 55,
+      "id": 55,
+      "name": "Repairs",
+      "xmlid": "repair.menu_repair_order",
+      "route": "/insilos/repairs",
+      "href": "/insilos/repairs",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "svg",
+        "isPhosphorDuotone": true,
+        "viewBox": "0 0 256 256",
+        "byteLength": 1038,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 16,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 56,
+      "id": 56,
+      "name": "PLM",
+      "xmlid": "mrp_plm.menu_mrp_plm_root",
+      "route": "/insilos/plm",
+      "href": "/insilos/plm",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 7843,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 7,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23,
+          24
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 57,
+      "id": 57,
+      "name": "Sign",
+      "xmlid": "sign.menu_document",
+      "route": "/insilos/sign-documents",
+      "href": "/insilos/sign-documents",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 6989,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 16,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 58,
+      "id": 58,
+      "name": "Human Resources & SuccessFactors (HCM)",
+      "xmlid": "hr.menu_hr_root",
+      "route": "/insilos/employees",
+      "href": "/insilos/employees",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 12144,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 4,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 59,
+      "id": 59,
+      "name": "Payroll",
+      "xmlid": "hr_work_entry_enterprise.menu_hr_payroll_root",
+      "route": "/insilos/payroll",
+      "href": "/insilos/payroll",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 6184,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 60,
+      "id": 60,
+      "name": "Attendances",
+      "xmlid": "hr_attendance.menu_hr_attendance_root",
+      "route": "/insilos/action-1364",
+      "href": "/insilos/action-1364",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 14447,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 61,
+      "id": 61,
+      "name": "Appraisals",
+      "xmlid": "hr_appraisal.menu_hr_appraisal_root",
+      "route": "/insilos/appraisals",
+      "href": "/insilos/appraisals",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 5828,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 62,
+      "id": 62,
+      "name": "E-Recruiting & Talent Acquisition",
+      "xmlid": "hr_recruitment.menu_hr_recruitment_root",
+      "route": "/insilos/recruitment",
+      "href": "/insilos/recruitment",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 5999,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 63,
+      "id": 63,
+      "name": "Time Off",
+      "xmlid": "hr_holidays.menu_hr_holidays_root",
+      "route": "/insilos/time-off",
+      "href": "/insilos/time-off",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 8959,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 64,
+      "id": 64,
+      "name": "Referrals",
+      "xmlid": "hr_referral.menu_hr_referral_root",
+      "route": "/insilos/referrals",
+      "href": "/insilos/referrals",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 5290,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "custom_dashboard",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "custom_dashboard"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": null,
+        "control_panel_buttons_measured_heights": [],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 65,
+      "id": 65,
+      "name": "Fleet",
+      "xmlid": "fleet.menu_root",
+      "route": "/insilos/fleet",
+      "href": "/insilos/fleet",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3077,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 5,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "form",
+        "pivot"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 66,
+      "id": 66,
+      "name": "Expenses",
+      "xmlid": "hr_expense.menu_hr_expense_root",
+      "route": "/insilos/expenses",
+      "href": "/insilos/expenses",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 2821,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 16,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 67,
+      "id": 67,
+      "name": "Live Chat",
+      "xmlid": "im_livechat.menu_livechat_root",
+      "route": "/insilos/livechat",
+      "href": "/insilos/livechat",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 7736,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 7,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          17,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 68,
+      "id": 68,
+      "name": "Data Cleaning",
+      "xmlid": "data_recycle.menu_data_cleaning_root",
+      "route": "/insilos/deduplication",
+      "href": "/insilos/deduplication",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 9878,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 69,
+      "id": 69,
+      "name": "Approvals",
+      "xmlid": "approvals.approvals_menu_root",
+      "route": "/insilos/approvals",
+      "href": "/insilos/approvals",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 9857,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 15,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23,
+          24
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 70,
+      "id": 70,
+      "name": "WhatsApp",
+      "xmlid": "whatsapp.whatsapp_menu_main",
+      "route": "/insilos/whatsapp",
+      "href": "/insilos/whatsapp",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 12322,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 22,
+              "cardRadius": "4px"
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": 44,
+              "buttonCount": 1,
+              "allPills": true,
+              "baselineDeltaPx": 0
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban",
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 71,
+      "id": 71,
+      "name": "Phone",
+      "xmlid": "voip.menu_voip_root",
+      "route": "/insilos/action-3349",
+      "href": "/insilos/action-3349",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 12041,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "pivot",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "graph",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "pivot",
+        "graph"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 72,
+      "id": 72,
+      "name": "IoT",
+      "xmlid": "iot.iot_menu_root",
+      "route": "/insilos/iot",
+      "href": "/insilos/iot",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 3138,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": null,
+              "densityStandard": null,
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": null,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32,
+          28,
+          21,
+          23
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 73,
+      "id": 73,
+      "name": "Apps",
+      "xmlid": "base.menu_management",
+      "route": "/insilos/apps",
+      "href": "/insilos/apps",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 2637,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "list",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "table": {
+              "rowHeight": 34,
+              "densityStandard": "compact_34px",
+              "tabularNumsApplied": true,
+              "hasDoubleBorder": false
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "kanban",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "kanban": {
+              "cardCount": 0,
+              "cardRadius": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "list",
+        "form",
+        "kanban"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": false,
+        "control_panel_buttons_measured_heights": [
+          28,
+          21,
+          17,
+          23,
+          24
+        ],
+        "table_row_height_px": 34,
+        "tabular_nums_enforced": true,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    },
+    {
+      "appIndex": 74,
+      "id": 74,
+      "name": "Settings",
+      "xmlid": "base.menu_administration",
+      "route": "/insilos/settings",
+      "href": "/insilos/settings",
+      "overallTier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "tier": "A",
+      "iconAudit": {
+        "format": "png",
+        "isPhosphorDuotone": true,
+        "viewBox": null,
+        "byteLength": 5017,
+        "issues": []
+      },
+      "views": [
+        {
+          "viewType": "settings",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        },
+        {
+          "viewType": "form",
+          "model": null,
+          "actionId": null,
+          "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+          "metrics": {
+            "statusbar": {
+              "height": null,
+              "buttonCount": 0,
+              "allPills": true,
+              "baselineDeltaPx": null
+            },
+            "branding": {
+              "legacyMatchesCount": 0,
+              "leaks": []
+            }
+          },
+          "defects": [],
+          "screenshotPath": null
+        }
+      ],
+      "views_audited": [
+        "settings",
+        "form"
+      ],
+      "metrics": {
+        "icon_phosphor_duotone": true,
+        "legacy_icons_count": 0,
+        "statusbar_buttons_telegram_pill": true,
+        "control_panel_buttons_carbon_32px": true,
+        "control_panel_buttons_measured_heights": [
+          32
+        ],
+        "table_row_height_px": null,
+        "tabular_nums_enforced": null,
+        "legacy_brand_strings_detected": 0
+      },
+      "violations": []
+    }
+  ],
+  "dialogs": [
+    {
+      "wizard": "account.payment.register",
+      "title": "Register Payment",
+      "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "modalData": {
+        "headerHeight": 48,
+        "footerHeight": 48,
+        "hasHorizontalScrollbar": false,
+        "paddingCollapse": false,
+        "buttons": [
+          {
+            "text": "Create Payment",
+            "height": 32,
+            "borderRadius": "4px"
+          },
+          {
+            "text": "Discard",
+            "height": 32,
+            "borderRadius": "4px"
+          }
+        ]
+      },
+      "defects": []
+    },
+    {
+      "wizard": "account.move.reversal",
+      "title": "Reverse Journal Entry",
+      "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "modalData": {
+        "headerHeight": 48,
+        "footerHeight": 48,
+        "hasHorizontalScrollbar": false,
+        "paddingCollapse": false,
+        "buttons": [
+          {
+            "text": "Reverse",
+            "height": 32,
+            "borderRadius": "4px"
+          },
+          {
+            "text": "Reverse and Create Invoice",
+            "height": 32,
+            "borderRadius": "4px"
+          },
+          {
+            "text": "Discard",
+            "height": 32,
+            "borderRadius": "4px"
+          }
+        ]
+      },
+      "defects": []
+    },
+    {
+      "wizard": "stock.backorder.confirmation",
+      "title": "Backorder Creation",
+      "tier": "TIER_A_ZERO_SIGNATURE_VERIFIED",
+      "modalData": {
+        "headerHeight": 48,
+        "footerHeight": 48,
+        "hasHorizontalScrollbar": false,
+        "paddingCollapse": false,
+        "buttons": [
+          {
+            "text": "Create Backorder",
+            "height": 32,
+            "borderRadius": "4px"
+          },
+          {
+            "text": "No Backorder",
+            "height": 32,
+            "borderRadius": "4px"
+          },
+          {
+            "text": "Discard",
+            "height": 32,
+            "borderRadius": "4px"
+          }
+        ]
+      },
+      "defects": []
+    }
+  ],
+  "studio": {
+    "systrayPresent": true
+  }
+}

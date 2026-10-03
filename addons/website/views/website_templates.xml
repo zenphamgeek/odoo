@@ -1764,8 +1764,96 @@
 <!-- Features template -->
 <template id="login_layout" inherit_id="web.login_layout" name="Website Login Layout" priority="20">
     <xpath expr="t[@t-call]" position="replace">
-        <t t-call="website.layout" head="head" disable_opengraph="disable_opengraph">
-            <div class="oe_website_login_container" t-out="0"/>
+        <t t-call="web.frontend_layout"
+            html_data="{'style': 'height: 100%;'}"
+            body_classname.f="insilos_auth_body"
+            no_header="True"
+            no_footer="True"
+            head="head">
+
+            <div class="insilos_auth_portal_wrapper d-flex align-items-center justify-content-center">
+                <div t-attf-class="insilos_auth_portal_card d-flex overflow-hidden {{login_card_classes}} o_database_list">
+                    <!-- Left Column: Enterprise Hero Showcase (45%) -->
+                    <div class="insilos_auth_hero_showcase d-flex flex-column justify-content-between p-4 p-lg-5 text-white">
+                        <div class="hero_brand_header mb-4">
+                            <img src="/web/static/img/insilos_logo_dark.svg" alt="Insilos Enterprise Platform" style="height: 38px; width: auto;" class="d-block mb-3"/>
+                            <div class="text-white-50 text-uppercase fw-semibold" style="font-size: 11px; letter-spacing: 0.08em;">Hệ Thống Quản Trị Doanh Nghiệp Toàn Diện</div>
+                            <h2 class="display-6 fw-bold my-3 text-cyan-gradient" style="line-height: 1.2;">
+                                Nền Tảng Quản Trị Doanh Nghiệp
+                            </h2>
+                            <p class="text-white-50 small mb-0" style="line-height: 1.6; font-size: 13.5px;">
+                                Tích hợp và chuẩn hóa quy trình nghiệp vụ cốt lõi: Chuỗi cung ứng (SCM), Quản lý sản xuất (MES/PP), Quản trị tài chính (FI/CO) và Quản trị nguồn nhân lực (HCM).
+                            </p>
+                        </div>
+
+                        <!-- 3 Live Trust Metric Badges -->
+                        <div class="hero_trust_badges my-4 d-flex flex-column gap-3">
+                            <div class="p-3 rounded-3 bg-cyan-subtle border border-white-10 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="pulse-beacon"></span>
+                                    <span class="small fw-semibold text-white">Độ sẵn sàng hệ thống (SLA)</span>
+                                </div>
+                                <span class="badge text-cyan fw-bold font-monospace" style="font-size: 12px;">99.99%</span>
+                            </div>
+                            <div class="p-3 rounded-3 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="oi oi-fw text-cyan" data-icon="shield"></i>
+                                    <span class="small fw-semibold text-white">An toàn &amp; Bảo mật thông tin</span>
+                                </div>
+                                <span class="badge bg-dark text-white-50 border border-white-10" style="font-size: 11px;">ISO/IEC 27001</span>
+                            </div>
+                            <div class="p-3 rounded-3 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="oi oi-fw text-cyan" data-icon="domain"></i>
+                                    <span class="small fw-semibold text-white">Tiêu chuẩn tương thích hệ thống</span>
+                                </div>
+                                <span class="badge bg-dark text-white-50 border border-white-10" style="font-size: 11px;">Chuẩn SAP / IBM</span>
+                            </div>
+                        </div>
+
+                        <div class="hero_brand_footer pt-3 border-top border-white-10 d-flex align-items-center justify-content-between small text-white-50">
+                            <span>Insilos Enterprise Platform v20.0</span>
+                            <span class="font-monospace" style="font-size: 11px;">Vùng dữ liệu bảo mật (Sovereign Enclave)</span>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Authentication Form Pane (55%) -->
+                    <div class="insilos_auth_form_pane p-4 p-lg-5">
+                        <div class="auth_form_header mb-4">
+                            <div class="d-lg-none mb-3 text-center">
+                                <img src="/web/static/img/insilos_logo.svg" alt="Insilos" style="height: 32px; width: auto;"/>
+                            </div>
+                            <t t-if="'signup' in request.httprequest.path">
+                                <h3 class="auth_title mb-1">Đăng Ký Tài Khoản</h3>
+                                <p class="auth_subtitle mb-0">Tạo thông tin định danh mới trên hệ thống Insilos Enterprise</p>
+                            </t>
+                            <t t-elif="'reset_password' in request.httprequest.path">
+                                <h3 class="auth_title mb-1">Đặt Lại Mật Khẩu</h3>
+                                <p class="auth_subtitle mb-0">Nhập địa chỉ email tài khoản để nhận liên kết xác thực đặt lại mật khẩu</p>
+                            </t>
+                            <t t-else="">
+                                <h3 class="auth_title mb-1">Đăng Nhập Hệ Thống</h3>
+                                <p class="auth_subtitle mb-0">Vui lòng nhập thông tin xác thực để truy cập hệ thống</p>
+                            </t>
+                        </div>
+
+                        <div class="auth_form_body oe_website_login_container p-0">
+                            <t t-out="0"/>
+                        </div>
+
+                        <div class="auth_footer_block mt-4 pt-3 border-top d-flex flex-wrap justify-content-between align-items-center small" t-if="not disable_footer">
+                            <t t-if="not disable_database_manager">
+                                <a class="auth_meta_link" href="/web/database/manager">
+                                    <i class="oi oi-fw me-1" data-icon="database"></i>Quản trị cơ sở dữ liệu
+                                </a>
+                            </t>
+                            <a class="auth_meta_link ms-auto" href="https://insilos.com?utm_source=db&amp;utm_medium=auth" target="_blank">
+                                Nền tảng Quản trị <span>Insilos Enterprise</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </t>
     </xpath>
 </template>

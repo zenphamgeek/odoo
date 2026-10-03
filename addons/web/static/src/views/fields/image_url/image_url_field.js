@@ -18,12 +18,20 @@ export class ImageUrlField extends Component {
     setup() {
         this.notification = useService("notification");
         this.state = proxy({
-            src: this.props.record.data[this.props.name],
+            src: this.normalizeSrc(this.props.record.data[this.props.name]),
         });
 
         useEffect(() => {
-            this.state.src = this.props.record.data[this.props.name];
+            this.state.src = this.normalizeSrc(this.props.record.data[this.props.name]);
         });
+    }
+
+    normalizeSrc(src) {
+        if (!src) return src;
+        if (typeof src === "string" && src.startsWith("/") && !src.includes("?") && !src.startsWith("data:")) {
+            return `${src}?v=20261003`;
+        }
+        return src;
     }
 
     get sizeStyle() {

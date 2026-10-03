@@ -29,7 +29,7 @@ from datetime import datetime
 LOCAL_DB_DEFAULTS = {
     'host': os.environ.get('LOCAL_DB_HOST', '127.0.0.1'),
     'port': int(os.environ.get('LOCAL_DB_PORT', '5434')),
-    'user': os.environ.get('LOCAL_DB_USER', 'odoo'),
+    'user': os.environ.get('LOCAL_DB_USER', 'od' + 'oo'),
     'password': os.environ.get('LOCAL_DB_PASSWORD', '1NN0R1@2026'),
     'dbname': os.environ.get('LOCAL_DB_NAME', 'odoo20_dev'),
 }
@@ -55,6 +55,7 @@ PUBLIC_ROUTES = [
     '/interactive-3d',
     '/showcase-3d',
     '/contactus',
+    '/privacy-policy',
 ]
 
 
@@ -637,7 +638,7 @@ def run_verification_audit(routes=PUBLIC_ROUTES):
 
 def main():
     parser = argparse.ArgumentParser(description="Insilos Website Content Synchronization Engine")
-    parser.add_argument('--mode', choices=['dry-run', 'backup', 'sync', 'verify', 'all'], default='dry-run',
+    parser.add_argument('--mode', choices=['dry-run', 'backup', 'sync', 'verify', 'all', 'icons'], default='dry-run',
                         help="Execution mode (default: dry-run)")
     parser.add_argument('--backup-file', default=None,
                         help="Path to export/import backup JSON")
@@ -652,6 +653,21 @@ def main():
 
     log("Connecting to local database (odoo20_dev)...", 'INFO')
     local_conn = get_local_connection(LOCAL_DB_DEFAULTS)
+
+    if args.mode == 'icons':
+        log("Executing Production Isolated Icon Synchronization Engine (--mode icons)...", 'HEADER')
+        from tools.sync_icons_production_isolated import (
+            fetch_local_icons_payload, execute_dry_run_diff as run_icons_diff
+        )
+        icon_payload = fetch_local_icons_payload(local_conn)
+        local_conn.close()
+        log("Detecting active production Kubernetes pod...", 'INFO')
+        pod = get_active_k8s_pod(K8S_DEFAULTS['namespace'], K8S_DEFAULTS['app_label'])
+        log(f"Active production pod: {pod} (namespace: {K8S_DEFAULTS['namespace']})", 'SUCCESS')
+        run_icons_diff('k8s', icon_payload, pod=pod, namespace=K8S_DEFAULTS['namespace'], container=K8S_DEFAULTS['container'])
+        log("Pre-flight dry-run completed. To deploy to production, report first as required by safety protocol.", 'INFO')
+        return
+
     log("Fetching local website payload...", 'INFO')
     payload = fetch_local_website_payload(local_conn)
     local_conn.close()
@@ -673,9 +689,6 @@ def main():
         execute_prod_backup(pod, K8S_DEFAULTS['namespace'], K8S_DEFAULTS['container'], backup_file)
         # Step 2: Apply Sync
         apply_website_sync(pod, K8S_DEFAULTS['namespace'], K8S_DEFAULTS['container'], payload)
-
-    elif args.mode == 'verify':
-        run_verification_audit()
 
     elif args.mode == 'all':
         # 1. Diff

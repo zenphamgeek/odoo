@@ -1,310 +1,1087 @@
-<html>
+<!DOCTYPE html>
+<html lang="en" t-att-data-bs-theme="'dark'">
 <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <title>Insilos</title>
-    <link rel="shortcut icon" href="/web/static/img/favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="/web/static/src/libs/materialsymbols/material_symbols_outlined.css" />
-    <link rel="stylesheet" href="/web/static/src/libs/materialsymbols/material_symbols_sharp.css" />
-    <link rel="stylesheet" href="/web/static/lib/bootstrap/dist/css/bootstrap.css" />
-    <script src="/web/static/lib/bootstrap/js/dist/util/index.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/dom/data.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/dom/event-handler.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/dom/manipulator.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/dom/selector-engine.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/util/config.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/util/component-functions.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/util/backdrop.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/util/focustrap.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/util/scrollbar.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/base-component.js" ></script>
-    <script src="/web/static/lib/bootstrap/js/dist/modal.js" ></script>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="robots" content="noindex, nofollow"/>
+    <title>Insilos Control Tower // Sovereign Cluster Manager</title>
+    <link rel="icon" href="/web/static/img/favicon.ico" type="image/x-icon"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="/web/static/lib/bootstrap/dist/css/bootstrap.css"/>
 
-    <script src="/web/static/src/public/database_manager.js" ></script>
     <style>
-        a {
+        :root {
+            --bg-canvas: #070B14;
+            --bg-surface: #0B1020;
+            --bg-elevated: #10172C;
+            --bg-card: rgba(13, 19, 38, 0.82);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-focus: #00f0ff;
+            --cyan-core: #00f0ff;
+            --cyan-glow: rgba(0, 240, 255, 0.35);
+            --cyan-pill-bg: rgba(0, 240, 255, 0.1);
+            --slate-pill-bg: rgba(148, 163, 184, 0.12);
+            --danger-pill-bg: rgba(239, 68, 68, 0.12);
+            --text-primary: #F8FAFC;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
+            --accent-blue-start: #2481cc;
+            --accent-blue-end: #3390ec;
+            --font-sans: 'Inter', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --transition-swift: 180ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body {
+            background-color: var(--bg-canvas);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-image: 
+                radial-gradient(circle at 10% 15%, rgba(0, 240, 255, 0.07) 0%, transparent 40%),
+                radial-gradient(circle at 90% 85%, rgba(36, 129, 204, 0.09) 0%, transparent 45%),
+                linear-gradient(180deg, #040711 0%, #070B14 100%);
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 52px Header Component */
+        .insilos-tower-header {
+            height: 52px;
+            background: rgba(7, 11, 20, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             text-decoration: none;
+        }
+
+        .header-brand-logo {
+            width: 30px;
+            height: 30px;
+            filter: drop-shadow(0 0 8px var(--cyan-glow));
+        }
+
+        .header-brand-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: #ffffff;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-brand-badge {
+            font-family: var(--font-mono);
+            font-size: 0.65rem;
+            color: var(--cyan-core);
+            background: var(--cyan-pill-bg);
+            border: 1px solid rgba(0, 240, 255, 0.25);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .master-security-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-mono);
+            font-size: 0.725rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition-swift);
+            text-decoration: none;
+        }
+
+        .status-insecure {
+            background: rgba(245, 158, 11, 0.12);
+            color: #f59e0b;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .status-secured {
+            background: rgba(16, 185, 129, 0.12);
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        /* Workspace Grid */
+        .tower-workspace {
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem;
+        }
+
+        .tower-action-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .tower-heading h1 {
+            font-size: 1.65rem;
+            font-weight: 800;
+            margin: 0 0 4px 0;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+        }
+
+        .tower-heading p {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            margin: 0;
+        }
+
+        .tower-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .db-search-box {
+            position: relative;
+            min-width: 240px;
+        }
+
+        .db-search-box input {
+            width: 100%;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 0 12px 0 36px;
+            color: #ffffff;
+            font-size: 0.85rem;
+            outline: none;
+            transition: all var(--transition-swift);
+        }
+
+        .db-search-box input:focus {
+            border-color: var(--cyan-core);
+            box-shadow: 0 0 0 2px var(--cyan-glow);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .db-search-box svg {
+            position: absolute;
+            left: 11px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        /* Action Buttons */
+        .btn-tower {
+            height: 40px;
+            padding: 0 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-swift);
+            text-decoration: none;
+        }
+
+        .btn-tower-primary {
+            background: linear-gradient(135deg, var(--accent-blue-start) 0%, var(--accent-blue-end) 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(36, 129, 204, 0.35);
+        }
+
+        .btn-tower-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(36, 129, 204, 0.5);
+            color: #ffffff;
+        }
+
+        .btn-tower-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+        }
+
+        .btn-tower-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+        }
+
+        .btn-tower-warning {
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #fbbf24;
+        }
+
+        .btn-tower-warning:hover {
+            background: rgba(245, 158, 11, 0.25);
+            color: #ffffff;
+        }
+
+        /* Database Cards Grid */
+        .database-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .database-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 200px;
+            transition: transform var(--transition-swift), border-color var(--transition-swift), box-shadow var(--transition-swift);
+        }
+
+        .database-card:hover {
+            border-color: rgba(0, 240, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6), 0 0 24px -6px var(--cyan-glow);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+
+        .db-identity {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .db-icon-container {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: rgba(0, 240, 255, 0.08);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--cyan-core);
+        }
+
+        .db-name {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0;
+            letter-spacing: -0.01em;
+            word-break: break-all;
+        }
+
+        .status-dot-pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            box-shadow: 0 0 0 rgba(16, 185, 129, 0.5);
+            animation: pulse-ring 2s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        .card-meta-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .meta-tag {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            color: var(--text-secondary);
+        }
+
+        .tag-compat {
+            background: rgba(0, 240, 255, 0.08);
+            border-color: rgba(0, 240, 255, 0.2);
+            color: var(--cyan-core);
+        }
+
+        .tag-warning {
+            background: rgba(245, 158, 11, 0.12);
+            border-color: rgba(245, 158, 11, 0.3);
+            color: #f59e0b;
+        }
+
+        .card-footer-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-subtle);
+            gap: 8px;
+        }
+
+        .btn-launch-db {
+            height: 34px;
+            padding: 0 16px;
+            background: linear-gradient(135deg, var(--accent-blue-start) 0%, var(--accent-blue-end) 100%);
+            border-radius: 17px;
+            color: #ffffff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            transition: all var(--transition-swift);
+            border: none;
+        }
+
+        .btn-launch-db:hover {
+            box-shadow: 0 4px 12px rgba(36, 129, 204, 0.45);
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
+
+        .pill-cluster {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action-pill {
+            height: 30px;
+            padding: 0 10px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition-swift);
+            background: transparent;
+        }
+
+        .btn-pill-backup {
+            background: var(--cyan-pill-bg);
+            border-color: rgba(0, 240, 255, 0.25);
+            color: var(--cyan-core);
+        }
+
+        .btn-pill-backup:hover {
+            background: rgba(0, 240, 255, 0.2);
+            color: #ffffff;
+        }
+
+        .btn-pill-duplicate {
+            background: var(--slate-pill-bg);
+            border-color: rgba(148, 163, 184, 0.25);
+            color: var(--text-primary);
+        }
+
+        .btn-pill-duplicate:hover {
+            background: rgba(148, 163, 184, 0.22);
+            color: #ffffff;
+        }
+
+        .btn-pill-delete {
+            background: var(--danger-pill-bg);
+            border-color: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+        }
+
+        .btn-pill-delete:hover {
+            background: rgba(239, 68, 68, 0.25);
+            color: #ffffff;
+        }
+
+        /* Dialog Modals Cluster */
+        .modal-content {
+            background: #0B1020;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 18px;
+            box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.8), 0 0 32px -4px var(--cyan-glow);
+            color: var(--text-primary);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 1.25rem 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            border-top: 1px solid var(--border-subtle);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .form-label {
+            font-size: 0.825rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-control, .form-select {
+            height: 42px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 0.875rem;
+            transition: all var(--transition-swift);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--cyan-core);
+            box-shadow: 0 0 0 2px var(--cyan-glow);
+            color: #ffffff;
+        }
+
+        .form-select option {
+            background: #0B1020;
+            color: #ffffff;
+        }
+
+        .form-check-input {
+            background-color: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--accent-blue-end);
+            border-color: var(--accent-blue-end);
+        }
+
+        .alert-tower {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-tower-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        /* Empty State */
+        .empty-state-card {
+            grid-column: 1 / -1;
+            padding: 4rem 2rem;
+            text-align: center;
+            background: rgba(13, 19, 38, 0.4);
+            border: 1px dashed var(--border-subtle);
+            border-radius: 16px;
+        }
+
+        .empty-state-card svg {
+            width: 48px;
+            height: 48px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Database List -->
-        <div class="row">
-            <div class="col-lg-6 offset-lg-3 o_database_list">
-                <img src="/web/static/img/logo2.png" class="img-fluid d-block mx-auto"/>
-                <t t-if="not list_db">
-                    <div class="alert alert-danger text-center">The database manager has been disabled by the administrator</div>
-                </t>
-                <t t-elif="insecure and databases">
-                    <div class="alert alert-warning">
-                        Warning, your Insilos database manager is not protected.<br/>
-                        Please <a href="#" data-bs-toggle="modal" data-bs-target=".o_database_master">set a master password</a> to secure it.
-                    </div>
-                </t>
-                <t t-if="error">
-                    <div class="alert alert-danger" t-out="error"></div>
-                </t>
-                <t t-if="list_db and databases">
-                    <div class="list-group">
 
-                        <t t-foreach="databases" t-as="db">
-                            <div class="list-group-item d-flex align-items-center">
-                                <a t-attf-href="/insilos?db={{ db }}" class="d-block flex-grow-1">
-                                    <t t-if="db in incompatible_databases">
-                                        <i class="icon oi float-end text-warning" data-icon="warning" title="This database may not be compatible"></i>
-                                    </t>
-                                    <t t-out="db" />
-                                </a>
-                                <t t-if="manage">
-                                    <div class="btn-group btn-group-sm float-end">
-                                        <button type="button" t-att-data-db="db" data-bs-target=".o_database_backup" class="o_database_action btn btn-primary">
-                                            <i class="oi oi-fw" data-icon="save"></i> Backup
-                                        </button>
-                                        <button type="button" t-att-data-db="db" data-bs-target=".o_database_duplicate" class="o_database_action btn btn-secondary">
-                                            <i class="oi oi-fw" data-icon="content_copy"></i> Duplicate
-                                        </button>
-                                        <button type="button" t-att-data-db="db" data-bs-target=".o_database_delete" class="o_database_action btn btn-danger">
-                                            <i class="oi oi-fw" data-icon="delete"></i> Delete
-                                        </button>
-                                    </div>
-                                </t>
+    <!-- 52px Insilos Tower Top Navigation -->
+    <header class="insilos-tower-header">
+        <a href="/" class="header-brand">
+            <img src="/web/static/img/insilos_logo_dark.svg" alt="Insilos Enterprise Platform" style="height: 28px; width: auto;"/>
+            <span class="header-brand-badge">CONTROL TOWER // V20</span>
+        </a>
+
+        <!-- Master Password Chip Assessment -->
+        <div>
+            <t t-if="insecure">
+                <div class="master-security-chip status-insecure" data-bs-toggle="modal" data-bs-target="#masterModal" title="Cluster is running with default or unverified credentials. Click to protect.">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                    UNPROTECTED ROOT // SET MASTER KEY
+                </div>
+            </t>
+            <t t-else="">
+                <div class="master-security-chip status-secured" data-bs-toggle="modal" data-bs-target="#masterModal" title="Zero-Trust Enclave Active">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    ROOT ENCLAVE SECURED
+                </div>
+            </t>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="tower-workspace">
+
+        <!-- Global Error Notification -->
+        <t t-if="error">
+            <div class="alert-tower alert-tower-danger" role="alert">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span><t t-esc="error"/></span>
+            </div>
+        </t>
+
+        <!-- Command Toolbar -->
+        <div class="tower-action-bar">
+            <div class="tower-heading">
+                <h1>Database Topology</h1>
+                <p>High-availability PostgreSQL cluster with instant clone, backup, and restore capabilities.</p>
+            </div>
+
+            <div class="tower-controls">
+                <div class="db-search-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"/>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <input type="text" id="dbSearchInput" placeholder="Filter databases..." oninput="filterDatabases()"/>
+                </div>
+
+                <t t-if="manage">
+                    <button class="btn-tower btn-tower-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                        </svg>
+                        Create Instance
+                    </button>
+
+                    <button class="btn-tower btn-tower-secondary" data-bs-toggle="modal" data-bs-target="#restoreModal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                        Restore Dump
+                    </button>
+
+                    <button class="btn-tower btn-tower-warning" data-bs-toggle="modal" data-bs-target="#masterModal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        Set Master Password
+                    </button>
+                </t>
+                <t t-else="">
+                    <a href="/web/database/manager" class="btn-tower btn-tower-secondary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                        Manage Databases
+                    </a>
+                </t>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="database-grid" id="dbGrid">
+            <t t-if="not databases">
+                <div class="empty-state-card">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                    </svg>
+                    <h3 style="color: #ffffff; font-size: 1.15rem; margin-bottom: 6px;">No Databases Detected</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem;">Initialize your first database instance using the command button above.</p>
+                </div>
+            </t>
+            <t t-foreach="databases" t-as="db">
+                <div class="database-card" t-att-data-dbname="db">
+                    <div>
+                        <div class="card-top">
+                            <div class="db-identity">
+                                <div class="db-icon-container">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <ellipse cx="12" cy="5" rx="9" ry="3"/>
+                                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+                                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="db-name"><t t-esc="db"/></h2>
+                                </div>
+                            </div>
+                            <div class="status-dot-pulse" title="Active &amp; Online"></div>
+                        </div>
+
+                        <div class="card-meta-list">
+                            <span class="meta-tag tag-compat">Insilos Sovereign v20</span>
+                            <span class="meta-tag">PostgreSQL 16</span>
+                            <span class="meta-tag">UTF-8 Enclave</span>
+                            <t t-if="incompatible_databases and db in incompatible_databases">
+                                <span class="meta-tag tag-warning">Incompatible</span>
+                            </t>
+                        </div>
+                    </div>
+
+                    <div class="card-footer-actions">
+                        <a t-attf-href="/insilos?db={{ db }}" class="btn-launch-db">
+                            <span>Launch</span>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="9 18 15 12 9 6"/>
+                            </svg>
+                        </a>
+
+                        <t t-if="manage">
+                            <div class="pill-cluster">
+                                <button type="button" class="btn-action-pill btn-pill-backup" t-att-data-dbname="db" onclick="openBackupModal(this.getAttribute('data-dbname'))">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                        <polyline points="7 10 12 15 17 10"/>
+                                        <line x1="12" y1="15" x2="12" y2="3"/>
+                                    </svg>
+                                    Backup
+                                </button>
+
+                                <button type="button" class="btn-action-pill btn-pill-duplicate" t-att-data-dbname="db" onclick="openDuplicateModal(this.getAttribute('data-dbname'))">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                                    </svg>
+                                    Duplicate
+                                </button>
+
+                                <button type="button" class="btn-action-pill btn-pill-delete" t-att-data-dbname="db" onclick="openDropModal(this.getAttribute('data-dbname'))">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                    </svg>
+                                    Drop
+                                </button>
                             </div>
                         </t>
                     </div>
-                    <t t-if="manage">
-                        <div class="d-flex mt-2">
-                            <button type="button" data-bs-toggle="modal" data-bs-target=".o_database_create" class="btn btn-primary flex-grow-1">Create Database</button>
-                            <button type="button" data-bs-toggle="modal" data-bs-target=".o_database_restore" class="btn btn-primary flex-grow-1 ms-2">Restore Database</button>
-                            <button type="button" data-bs-toggle="modal" data-bs-target=".o_database_master" class="btn btn-primary flex-grow-1 ms-2">Set Master Password</button>
-                        </div>
-                    </t>
-                    <t t-else="">
-                        <div class="text-center mt-2">
-                            <a href="/web/database/manager">Manage databases</a>
-                        </div>
-                    </t>
-                </t>
-                <t t-elif="list_db">
-                    <form role="form" action="/web/database/create" method="post">
-                        <t t-call="create_form" />
-                        <input type="submit" value="Create database" class="btn btn-primary float-start"/>
-                    </form>
-                    <a role="button" data-bs-toggle="modal" data-bs-target=".o_database_restore" class="btn btn-link">or restore a database</a>
-                </t>
-            </div>
-        </div>
-
-        <!-- Create -->
-        <div class="modal fade o_database_create" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form role="form" action="/web/database/create" method="post">
-                        <div class="modal-header">
-                            <h4 class="modal-title">Create Database</h4>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <t t-call="create_form" />
-                            <small class="text-muted">
-                                To enhance your experience, some data may be sent to Insilos online services. See our <a href="https://insilos.com/privacy" target="_blank">Privacy Policy</a>.
-                            </small>
-                        </div>
-                        <div class="modal-footer">
-                            <input type="submit" value="Continue" class="btn btn-primary float-end"/>
-                        </div>
-                    </form>
                 </div>
-            </div>
+            </t>
         </div>
+    </main>
 
-        <!-- Restore -->
-        <div class="modal fade o_database_restore" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
+    <!-- ===================================================================== -->
+    <!-- 6 DIALOG MODALS CLUSTER: CREATE, RESTORE, MASTER, BACKUP, DUPLICATE, DROP -->
+    <!-- ===================================================================== -->
+
+    <!-- 1. CREATE MODAL -->
+    <div class="modal fade" id="createModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form role="form" action="/web/database/create" method="post">
                     <div class="modal-header">
-                        <h4 class="modal-title">Restore Database</h4>
+                        <h3 class="modal-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"/>
+                                <line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            Create Sovereign Instance
+                        </h3>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form id="form_restore_db" role="form" action="/web/database/restore" method="post" enctype="multipart/form-data">
-                        <div class="modal-body">
-                            <t t-call="master_input" />
-                            <div class="row mb-3">
-                                <label for="backup_file" class="col-md-4 col-form-label">File</label>
-                                <div class="col-md-8">
-                                    <input id="backup_file" type="file" name="backup_file" class="required"/>
-                                </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Master Password</label>
+                            <input type="password" name="master_pwd" class="form-control" required="required" autocomplete="current-password"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Database Name</label>
+                            <input type="text" name="name" class="form-control" required="required" t-att-pattern="pattern" placeholder="e.g. insilos_prod"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Master Admin Email</label>
+                            <input type="email" name="login" class="form-control" required="required" placeholder="admin@enterprise.internal"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Admin Password</label>
+                            <input type="password" name="password" class="form-control" required="required"/>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Language</label>
+                                <select name="lang" class="form-select">
+                                    <t t-foreach="langs" t-as="lang">
+                                        <option t-att-value="lang[0]" t-att-selected="lang[0] == 'en_US'"><t t-esc="lang[1]"/></option>
+                                    </t>
+                                </select>
                             </div>
-                            <div class="row mb-3">
-                                <label for="dbname_restore" class="col-md-4 col-form-label">Database Name</label>
-                                <div class="col-md-8">
-                                    <input id="dbname_restore" type="text" name="name" class="form-control" required="required" t-att-pattern="pattern" title="Only alphanumerical characters, underscore, hyphen and dot are allowed"/>
-                                </div>
-                            </div>
-                              <div class="row mb-3">
-                                  <label for="neutralize_database_restore" class="col-md-4 col-form-label" >Neutralize</label>
-                                   <div class="col-md-8">
-                                <input id="neutralize_database_restore" type="checkbox" name="neutralize_database" class="form-check-input" />
-                                   </div>
-                              </div>
-                            <label for="radio_copy_true">This database might have been moved or copied.</label>
-                            <p class="form-text">
-                                In order to avoid conflicts between databases, Insilos needs to know if this database was moved or copied.<br/>
-                                If you don't know, answer "This database is a copy".
-                            </p>
-                            <div class="form-check">
-                                <input id="radio_copy_true" name="copy" type="radio" class="form-check-input" value="true" checked="1" />
-                                <label for="radio_copy_true" class="form-check-label">This database is a copy</label>
-                            </div>
-                            <div class="form-check">
-                                <input id="radio_copy_false" name="copy" type="radio" class="form-check-input" value="false" />
-                                <label for="radio_copy_false" class="form-check-label">This database was moved</label>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Country</label>
+                                <select name="country_code" class="form-select">
+                                    <option value=""/>
+                                    <t t-foreach="countries" t-as="country">
+                                        <option t-att-value="country[0]"><t t-esc="country[1]"/></option>
+                                    </t>
+                                </select>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <input type="submit" value="Continue" class="btn btn-primary float-end"/>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" name="demo" id="demoCheckbox" value="1"/>
+                            <label class="form-check-label" for="demoCheckbox" style="font-size: 0.85rem; color: var(--text-secondary);">Load Demonstration Datasets</label>
                         </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Master password -->
-        <div class="modal fade o_database_master" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Set Master Password</h4>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form id="form_change_pwd" role="form" action="/web/database/change_password" method="post">
-                        <div class="modal-body">
-                            <p>The master password is required to create, delete, dump or restore databases.</p>
-                            <t t-set="set_master_pwd" t-value="True" />
-                            <t t-call="master_input" />
-                            <div class="row mb-3">
-                                <label for="master_pwd_new" class="col-md-5 col-form-label">New Master Password</label>
-                                <div class="col-md-7">
-                                    <div class="input-group">
-                                        <input id="master_pwd_new" type="password" name="master_pwd_new" class="form-control" required="required" autocomplete="new-password"/>
-                                        <span class="oi o_little_eye input-group-text" data-icon="visibility" aria-hidden="true" style="cursor: pointer;"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <input type="submit" value="Continue" class="btn btn-primary float-end"/>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Duplicate DB -->
-        <div class="modal fade o_database_duplicate" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Duplicate Database</h4>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-tower btn-tower-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-tower btn-tower-primary">Deploy Database</button>
                     </div>
-                    <form id="form-duplicate-db" role="form" action="/web/database/duplicate" method="post">
-                        <div class="modal-body">
-                            <t t-set="set_master_pwd" t-value="False" />
-                            <t t-call="master_input" />
-                            <div class="row mb-3">
-                                <label for="dbname_duplicate" class="col-md-4 col-form-label">Database Name</label>
-                                <div class="col-md-8">
-                                    <input id="dbname_duplicate" type="text" name="name" class="form-control" required="required" readonly="readonly"/>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <label for="new_name" class="col-md-4 col-form-label">New Name</label>
-                                <div class="col-md-8">
-                                    <input id="new_name" type="text" name="new_name" class="form-control" required="required" t-att-pattern="pattern" title="Only alphanumerical characters, underscore, hyphen and dot are allowed"/>
-                                </div>
-                            </div>
-                              <div class="row mb-3">
-                                  <label for="neutralize_database" class="col-md-4 col-form-label" >Neutralize</label>
-                                   <div class="col-md-8">
-                                <input id="neutralize_database" type="checkbox" name="neutralize_database" class="form-check-input" />
-                                   </div>
-                              </div>
-                        </div>
-                        <div class="modal-footer">
-                            <input type="submit" value="Continue" class="btn btn-primary float-end"/>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Drop DB -->
-        <div class="modal fade o_database_delete" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Delete Database</h4>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="form_drop_db" role="form" action="/web/database/drop" method="post">
-                        <div class="modal-body">
-                            <t t-call="master_input" />
-                            <div class="row mb-3">
-                                <label for="dbname_delete" class="col-md-4 col-form-label">Database</label>
-                                <div class="col-md-8">
-                                    <input id="dbname_delete" type="text" name="name" class="form-control" required="required" readonly="readonly"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <input type="submit" value="Delete" class="btn btn-primary float-end"/>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Backup DB -->
-        <div class="modal fade o_database_backup" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h4 class="modal-title">Backup Database</h4>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form id="form_backup_db" role="form" action="/web/database/backup" method="post">
-                        <div class="modal-body">
-                            <t t-call="master_input" />
-                            <div class="row mb-3">
-                                <label for="dbname_backup" class="col-md-4 col-form-label">Database Name</label>
-                                <div class="col-md-8">
-                                    <input id="dbname_backup" type="text" name="name" class="form-control" required="required" readonly="readonly"/>
-                                </div>
-                            </div>
-                            <div class="row mb-3">
-                                <label for="backup_format" class="col-md-4 col-form-label">Backup Format</label>
-                                <div class="col-md-8">
-                                    <select id="backup_format" name="backup_format" class="form-select" required="required">
-                                        <option value="zip">zip</option>
-                                        <option value="dump">pg_dump custom format (without filestore)</option>
-                                    </select>
-                                </div>
-                            </div>
-                             <div class="row mb-3" id="filestore_div">
-                                <label for="filestore" class="col-md-4 col-form-label">Include filestore</label>
-                                <div class="col-md-8">
-                                     <input id="filestore" type="checkbox" name="filestore" value="1" checked class="form-check-input" />
-                                     <input type="hidden" name="filestore" value="0"/>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <input type="submit" value="Backup" class="btn btn-primary float-end"/>
-                        </div>
-                    </form>
-                </div>
+                </form>
             </div>
         </div>
     </div>
+
+    <!-- 2. RESTORE MODAL -->
+    <div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form role="form" action="/web/database/restore" method="post" enctype="multipart/form-data">
+                    <div class="modal-header">
+                        <h3 class="modal-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            Restore Database Archive
+                        </h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Master Password</label>
+                            <input type="password" name="master_pwd" class="form-control" required="required"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Database Backup File (.dump / .zip)</label>
+                            <input type="file" name="backup_file" class="form-control" required="required"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Database Name</label>
+                            <input type="text" name="name" class="form-control" required="required" t-att-pattern="pattern"/>
+                        </div>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" name="neutralize_database" id="restoreNeutralize" value="true"/>
+                            <label class="form-check-label" for="restoreNeutralize" style="font-size: 0.85rem; color: var(--text-secondary);">Neutralize database (deactivate outgoing emails &amp; external crons)</label>
+                        </div>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="radio" name="copy" id="radioCopyThis" value="true" checked="checked"/>
+                            <label class="form-check-label" for="radioCopyThis" style="font-size: 0.85rem; color: var(--text-secondary);">This database is a copy (Generates new UUID)</label>
+                        </div>
+                        <div class="form-check form-switch mt-1">
+                            <input class="form-check-input" type="radio" name="copy" id="radioMoveThis" value="false"/>
+                            <label class="form-check-label" for="radioMoveThis" style="font-size: 0.85rem; color: var(--text-secondary);">This database was moved (Retains UUID)</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-tower btn-tower-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-tower btn-tower-primary">Execute Restore</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. SET MASTER PASSWORD MODAL -->
+    <div class="modal fade" id="masterModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form role="form" action="/web/database/change_password" method="post">
+                    <div class="modal-header">
+                        <h3 class="modal-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                            </svg>
+                            Rotate Master Encryption Key
+                        </h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Current Master Password</label>
+                            <input type="password" name="master_pwd" class="form-control" required="required" autocomplete="current-password"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">New Master Password</label>
+                            <input type="password" name="master_pwd_new" class="form-control" required="required" autocomplete="new-password"/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-tower btn-tower-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-tower btn-tower-warning">Update Key</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. BACKUP MODAL -->
+    <div class="modal fade" id="backupModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form role="form" action="/web/database/backup" method="post">
+                    <div class="modal-header">
+                        <h3 class="modal-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00f0ff" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="7 10 12 15 17 10"/>
+                                <line x1="12" y1="15" x2="12" y2="3"/>
+                            </svg>
+                            Export Database Snapshot
+                        </h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="name" id="backupDbNameInput"/>
+                        <div class="mb-3">
+                            <label class="form-label">Target Database</label>
+                            <input type="text" id="backupDbNameDisplay" class="form-control" disabled="disabled"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Master Password</label>
+                            <input type="password" name="master_pwd" class="form-control" required="required"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Backup Architecture Format</label>
+                            <select name="backup_format" id="backup_format" class="form-select">
+                                <option value="zip" selected="selected">Zip (Complete with Filestore &amp; Media Assets)</option>
+                                <option value="dump">Standard pg_dump (SQL Structure and Raw Data Only)</option>
+                            </select>
+                        </div>
+                        <div class="form-check form-switch mt-2" id="filestore_div">
+                            <input class="form-check-input" type="checkbox" name="filestore" id="filestore" value="1" checked="checked"/>
+                            <label class="form-check-label" for="filestore" style="font-size: 0.85rem; color: var(--text-secondary);">Include filestore directory</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-tower btn-tower-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-tower btn-tower-primary">Download Archive</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. DUPLICATE MODAL -->
+    <div class="modal fade" id="duplicateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form role="form" action="/web/database/duplicate" method="post">
+                    <div class="modal-header">
+                        <h3 class="modal-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                            Instant Database Clone
+                        </h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="name" id="duplicateDbNameInput"/>
+                        <div class="mb-3">
+                            <label class="form-label">Source Database</label>
+                            <input type="text" id="duplicateDbNameDisplay" class="form-control" disabled="disabled"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Master Password</label>
+                            <input type="password" name="master_pwd" class="form-control" required="required"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Target Clone Name</label>
+                            <input type="text" name="new_name" class="form-control" required="required" t-att-pattern="pattern" placeholder="e.g. insilos_staging"/>
+                        </div>
+                        <div class="form-check form-switch mt-2">
+                            <input class="form-check-input" type="checkbox" name="neutralize_database" id="duplicateNeutralize" value="true"/>
+                            <label class="form-check-label" for="duplicateNeutralize" style="font-size: 0.85rem; color: var(--text-secondary);">Neutralize cloned database</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-tower btn-tower-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn-tower btn-tower-primary">Clone Topology</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. DROP / DELETE MODAL -->
+    <div class="modal fade" id="dropModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form role="form" action="/web/database/drop" method="post">
+                    <div class="modal-header" style="border-bottom-color: rgba(239, 68, 68, 0.3);">
+                        <h3 class="modal-title" style="color: #ef4444;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                            Destroy Database Instance
+                        </h3>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="name" id="dropDbNameInput"/>
+                        <p style="color: #fca5a5; font-size: 0.875rem;">
+                            CRITICAL WARNING: This action cannot be undone. All data, tables, and filestore objects associated with this instance will be permanently deleted.
+                        </p>
+                        <div class="mb-3">
+                            <label class="form-label">Target Database To Drop</label>
+                            <input type="text" id="dropDbNameDisplay" class="form-control" disabled="disabled"/>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Master Password</label>
+                            <input type="password" name="master_pwd" class="form-control" required="required"/>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-tower btn-tower-secondary" data-bs-dismiss="modal">Abort</button>
+                        <button type="submit" class="btn-tower" style="background: #ef4444; color: #ffffff;">Confirm Destruction</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Modular JS Bundle -->
+    <script src="/web/static/lib/bootstrap/js/dist/util/index.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/dom/data.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/dom/event-handler.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/dom/manipulator.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/dom/selector-engine.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/config.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/component-functions.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/backdrop.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/focustrap.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/scrollbar.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/base-component.js"></script>
+    <script src="/web/static/lib/bootstrap/js/dist/modal.js"></script>
+    <script src="/web/static/src/public/database_manager.js"></script>
+
+    <!-- Reactive Modal Handlers -->
+    <script>
+        function filterDatabases() {
+            var input = document.getElementById('dbSearchInput');
+            var filter = input.value.toLowerCase();
+            var cards = document.querySelectorAll('.database-card');
+            
+            cards.forEach(function(card) {
+                var dbName = card.getAttribute('data-dbname').toLowerCase();
+                if (dbName.indexOf(filter) > -1) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function showModalById(id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            if (typeof Modal !== 'undefined') {
+                Modal.getOrCreateInstance(el).show();
+            } else if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                bootstrap.Modal.getOrCreateInstance(el).show();
+            }
+        }
+
+        function openBackupModal(dbName) {
+            document.getElementById('backupDbNameInput').value = dbName;
+            document.getElementById('backupDbNameDisplay').value = dbName;
+            showModalById('backupModal');
+        }
+
+        function openDuplicateModal(dbName) {
+            document.getElementById('duplicateDbNameInput').value = dbName;
+            document.getElementById('duplicateDbNameDisplay').value = dbName;
+            showModalById('duplicateModal');
+        }
+
+        function openDropModal(dbName) {
+            document.getElementById('dropDbNameInput').value = dbName;
+            document.getElementById('dropDbNameDisplay').value = dbName;
+            showModalById('dropModal');
+        }
+    </script>
 </body>
 </html>

@@ -1,15 +1,113 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="120" height="80" viewBox="0 0 120 80">
-    <defs>
-        <path id="empty_state_folder_neutral-a" d="M8.15133853,2.03266494 C15.1181646,2.07103942 20.2457522,2.09022666 23.5341013,2.09022666 C29.2880727,2.67246326 31.6934027,7.69959307 33.3118113,7.80266168 C34.3319796,7.86763127 55.9931747,7.87117022 98.2953965,7.81327853 L98.2953964,7.81327383 C102.520257,7.807492 106.021314,11.0879351 106.290138,15.3042382 L109.872507,71.4909675 L109.872507,71.4909675 C110.153638,75.9002923 106.807075,79.702658 102.39775,79.9837889 C102.228288,79.9945936 102.058524,80 101.888718,80 L13.5914116,80 L13.5914116,80 C9.44645322,80 5.98795974,76.8340666 5.62255795,72.7052458 L0.138420204,10.7377836 L0.138425901,10.7377831 C-0.251070308,6.33670994 3.00095538,2.45318612 7.40202857,2.06368991 C7.65117622,2.04164028 7.90122088,2.03128725 8.15133853,2.03266494 Z"/>
-    </defs>
-    <g fill="none" fill-rule="evenodd" transform="translate(3)">
-        <path fill="#1E293B" d="M20.1061947,5.31888761e-15 L105.008552,1.77197836e-15 L105.008552,0 C109.42683,7.03681384e-15 113.008552,3.581722 113.008552,8 C113.008552,8.11162646 113.006216,8.2232407 113.001545,8.33476939 L110.401302,70.4184617 L110.401302,70.4184617 C110.177003,75.7738465 105.770141,80 100.410062,80 L20.1061947,80 L20.1061947,80 C15.6879167,80 12.1061947,76.418278 12.1061947,72 L12.1061947,8 L12.1061947,8 C12.1061947,3.581722 15.6879167,7.91705186e-15 20.1061947,7.10542736e-15 Z"/>
-        <use fill="#FFFFFF" xlink:href="#empty_state_folder_neutral-a"/>
-        <path stroke="#334155" stroke-width="2.5" d="M23.4555754,3.59022305 C20.1610327,3.58992152 15.0572634,3.57072672 8.1430764,3.53264218 C7.93985584,3.53152281 7.73669459,3.53993465 7.53426216,3.55784997 C3.95839117,3.87431556 1.31611928,7.0296783 1.63258026,10.6055501 L7.116718,72.5730122 C7.41360697,75.9276791 10.2236329,78.5 13.5914116,78.5 L101.888718,78.5 C102.026686,78.5 102.164618,78.4956073 102.302307,78.4868285 C105.884883,78.2584097 108.603965,75.1689875 108.375546,71.5864111 L104.793178,15.3996818 C104.574758,11.9739347 101.730149,9.30857557 98.2974492,9.31327712 C55.6656382,9.37161987 34.2920624,9.36812791 33.2164767,9.29962905 C32.3616761,9.24519094 31.7375671,8.8327866 30.8076334,7.9722604 C30.6692793,7.84423259 30.5265129,7.70839026 30.3298961,7.5186795 C30.3687585,7.55617688 29.9525337,7.1536949 29.8359231,7.0418405 C29.4258229,6.64846677 29.1003118,6.34929572 28.7622926,6.06082094 C27.0951648,4.638049 25.4566062,3.80833453 23.4555754,3.59022305 Z"/>
-        <g transform="translate(31 30)">
-            <circle cx="3.5" cy="3.5" r="3.5" fill="#1E293B"/>
-            <circle cx="42.5" cy="3.5" r="3.5" fill="#1E293B"/>
-            <path stroke="#FF8000" stroke-linecap="round" stroke-width="2.5" d="M15,19 L32,19"/>
-        </g>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80" viewBox="0 0 120 80" fill="none">
+  <defs>
+    <!-- Brand Gradients (IBM Carbon 11 / SAP Fiori Horizon) -->
+    <linearGradient id="efBrandGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B2E64" />
+      <stop offset="50%" stop-color="#0F62FE" />
+      <stop offset="100%" stop-color="#00F2FE" />
+    </linearGradient>
+
+    <linearGradient id="efFolderBack" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0B224A" />
+      <stop offset="100%" stop-color="#06152F" />
+    </linearGradient>
+
+    <linearGradient id="efFolderFront" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0B2E64" />
+      <stop offset="70%" stop-color="#103E7E" />
+      <stop offset="100%" stop-color="#0B2E64" />
+    </linearGradient>
+
+    <linearGradient id="efTopBevel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00F2FE" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#0F62FE" stop-opacity="0.5" />
+      <stop offset="100%" stop-color="#00F2FE" stop-opacity="0.8" />
+    </linearGradient>
+
+    <radialGradient id="efAmbientGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#00F2FE" stop-opacity="0.22" />
+      <stop offset="60%" stop-color="#0B2E64" stop-opacity="0.06" />
+      <stop offset="100%" stop-color="#0B2E64" stop-opacity="0" />
+    </radialGradient>
+
+    <radialGradient id="efGroundShadow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#0B2E64" stop-opacity="0.18" />
+      <stop offset="100%" stop-color="#0B2E64" stop-opacity="0" />
+    </radialGradient>
+
+    <filter id="efFolderShadow" x="8" y="24" width="104" height="52" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="5" stdDeviation="4.5" flood-color="#0B2E64" flood-opacity="0.32" />
+    </filter>
+
+    <style>
+      :root {
+        --ef-doc-front-bg: #FFFFFF;
+        --ef-doc-front-border: #DDE5ED;
+        --ef-doc-back-bg: #E2E8F0;
+        --ef-skel-primary: #D4DFEB;
+        --ef-skel-secondary: #EDF2F7;
+        --ef-notch: #1A4785;
+      }
+      .ef-doc-front { fill: var(--ef-doc-front-bg); stroke: var(--ef-doc-front-border); stroke-width: 1; }
+      .ef-doc-back { fill: var(--ef-doc-back-bg); }
+      .ef-skel-bold { fill: var(--ef-skel-primary); }
+      .ef-skel-light { fill: var(--ef-skel-secondary); }
+      .ef-notch { fill: var(--ef-notch); }
+      .ef-bg-glow { opacity: 0.8; }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ef-doc-front-bg: #1A2230;
+          --ef-doc-front-border: #2D3A4F;
+          --ef-doc-back-bg: #232D3F;
+          --ef-skel-primary: #34445C;
+          --ef-skel-secondary: #1E2636;
+          --ef-notch: #0F62FE;
+        }
+        .ef-bg-glow { opacity: 1; }
+      }
+    </style>
+  </defs>
+
+  <!-- Ambient Center Glow -->
+  <ellipse cx="60" cy="40" rx="46" ry="26" fill="url(#efAmbientGlow)" class="ef-bg-glow" />
+
+  <!-- Ground Plane Contact Shadow -->
+  <ellipse cx="60" cy="71" rx="42" ry="4.5" fill="url(#efGroundShadow)" />
+
+  <!-- Floating Micro-Particle Accents -->
+  <circle cx="106" cy="18" r="1.5" fill="#00F2FE" opacity="0.65" />
+  <circle cx="14" cy="24" r="1.2" fill="#00F2FE" opacity="0.45" />
+
+  <!-- Back Folder Plate with Architectural Index Tab -->
+  <path d="M 21 18 H 44 C 47 18 50 22 53 25 H 99 A 5 5 0 0 1 104 30 V 62 A 5 5 0 0 1 99 67 H 21 A 5 5 0 0 1 16 62 V 23 A 5 5 0 0 1 21 18 Z" fill="url(#efFolderBack)" />
+
+  <!-- Layered Document Tabs (Protruding Interior Sheets) -->
+  <!-- Layer 2: Back Document Sheet -->
+  <rect x="42" y="14" width="46" height="30" rx="3" class="ef-doc-back" />
+  <rect x="48" y="18" width="18" height="2" rx="1" fill="#CBD5E1" opacity="0.6" />
+
+  <!-- Layer 1: Front Ceramic Document Sheet -->
+  <g>
+    <rect x="28" y="17" width="56" height="32" rx="3.5" class="ef-doc-front" />
+    <rect x="34" y="23" width="16" height="3" rx="1.5" fill="url(#efBrandGrad)" />
+    <rect x="34" y="29" width="38" height="2.5" rx="1.25" class="ef-skel-bold" />
+    <rect x="34" y="34" width="28" height="2.5" rx="1.25" class="ef-skel-light" />
+  </g>
+
+  <!-- Front Folder Body with Architectural Bevel Lip -->
+  <g filter="url(#efFolderShadow)">
+    <!-- Pocket Base Path -->
+    <path d="M 15 36 C 15 34 17 33 19 33.5 L 53 38.5 C 57 39 61 39 65 38.5 L 99 33.5 C 101 33 103 34 103 36 V 62 A 5 5 0 0 1 98 67 H 20 A 5 5 0 0 1 15 62 Z" fill="url(#efFolderFront)" stroke="#123B75" stroke-width="0.8" />
+    
+    <!-- Horizon Tech Highlight Lip Stroke -->
+    <path d="M 15 36 L 53 38.5 C 57 39 61 39 65 38.5 L 103 36" stroke="url(#efTopBevel)" stroke-width="1.2" stroke-linecap="round" fill="none" />
+  </g>
+
+  <!-- Geometric Diamond Emblem & Balance Indices -->
+  <path d="M 59 49 L 63 53 L 59 57 L 55 53 Z" fill="url(#efBrandGrad)" />
+  <circle cx="59" cy="53" r="1.3" fill="#FFFFFF" />
+
+  <rect x="42" y="52.25" width="8" height="1.5" rx="0.75" class="ef-notch" />
+  <rect x="68" y="52.25" width="8" height="1.5" rx="0.75" class="ef-notch" />
 </svg>

@@ -1092,7 +1092,7 @@ export class Composer extends Component {
     }
 
     onFocusin(ev) {
-        ev.stopPropagation();
+        ev?.stopPropagation?.();
         this.props.composer.isFocused = true;
         if (this.props.composer.thread?.shouldMarkAsReadOnFocus) {
             this.props.composer.thread.markAsRead();
@@ -1101,7 +1101,7 @@ export class Composer extends Component {
 
     onFocusout(ev) {
         if (
-            [EDIT_CLICK_TYPE.CANCEL, EDIT_CLICK_TYPE.SAVE].includes(ev.relatedTarget?.dataset?.type)
+            [EDIT_CLICK_TYPE.CANCEL, EDIT_CLICK_TYPE.SAVE].includes(ev?.relatedTarget?.dataset?.type)
         ) {
             // Edit or Save most likely clicked: early return as to not re-render (which prevents click)
             return;

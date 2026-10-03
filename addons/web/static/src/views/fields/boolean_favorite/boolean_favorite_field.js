@@ -18,8 +18,8 @@ export class BooleanFavoriteField extends Component {
 
     get label() {
         return this.props.record.data[this.props.name]
-            ? _t("Remove from Favorites")
-            : _t("Add to Favorites");
+            ? _t("Remove Bookmark")
+            : _t("Add Bookmark");
     }
 
     async update() {
@@ -33,7 +33,7 @@ export class BooleanFavoriteField extends Component {
 
 export const booleanFavoriteField = {
     component: BooleanFavoriteField,
-    displayName: _t("Favorite"),
+    displayName: _t("Bookmark"),
     supportedTypes: ["boolean"],
     isEmpty: () => false,
     listViewWidth: ({ hasLabel }) => (!hasLabel ? 20 : false),

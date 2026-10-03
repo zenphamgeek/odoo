@@ -1,0 +1,9 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_gpu_worker_user,gpu.worker.user,model_gpu_worker,base.group_user,1,1,1,1
+access_gpu_workspace_user,gpu.workspace.user,model_gpu_workspace,base.group_user,1,1,1,1
+access_gpu_task_log_user,gpu.task.log.user,model_gpu_task_log,base.group_user,1,1,1,1
+access_gpu_usage_meter_user,gpu.usage.meter.user,model_gpu_usage_meter,base.group_user,1,1,1,1
+access_gpu_provider_user,gpu.provider.user,model_gpu_provider,base.group_user,1,1,1,1
+access_gpu_service_combo_user,gpu.service.combo.user,model_gpu_service_combo,base.group_user,1,1,1,1
+access_gpu_service_combo_line_user,gpu.service.combo.line.user,model_gpu_service_combo_line,base.group_user,1,1,1,1
+access_gpu_usage_daily_user,gpu.usage.daily.user,model_gpu_usage_daily,base.group_user,1,1,1,1

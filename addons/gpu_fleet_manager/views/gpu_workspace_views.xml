@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- GPU Workspace List View -->
+    <record id="view_gpu_workspace_list" model="ir.ui.view">
+        <field name="name">gpu.workspace.list</field>
+        <field name="model">gpu.workspace</field>
+        <field name="arch" type="xml">
+            <list string="GPU Workspaces" decoration-danger="billing_status in ('critical', 'breached', 'overdue')" decoration-warning="billing_status == 'warning'">
+                <header>
+                    <button name="action_sync_from_fleet_server" type="object" string="Sync from Fleet Server" class="btn btn-primary"/>
+                </header>
+                <field name="priority"/>
+                <field name="name"/>
+                <field name="provider_id"/>
+                <field name="email_account"/>
+                <field name="tier" widget="badge"/>
+                <field name="budget_ceiling" widget="monetary"/>
+                <field name="current_usage" widget="monetary"/>
+                <field name="remaining_headroom" widget="monetary"/>
+                <field name="headroom_score"/>
+                <field name="billing_status" widget="badge" decoration-success="billing_status == 'healthy'" decoration-warning="billing_status == 'warning'" decoration-danger="billing_status in ('critical', 'breached', 'overdue')"/>
+                <field name="is_compliant" widget="boolean_toggle"/>
+                <field name="last_sync"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- GPU Workspace Kanban View -->
+    <record id="view_gpu_workspace_kanban" model="ir.ui.view">
+        <field name="name">gpu.workspace.kanban</field>
+        <field name="model">gpu.workspace</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="tier" sample="1">
+                <field name="name"/>
+                <field name="email_account"/>
+                <field name="tier"/>
+                <field name="budget_ceiling"/>
+                <field name="current_usage"/>
+                <field name="remaining_headroom"/>
+                <field name="billing_status"/>
+                <field name="headroom_score"/>
+                <field name="hard_ceiling_breached"/>
+                <templates>
+                    <t t-name="card" class="flex-column p-3">
+                        <main>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <strong class="fs-5 text-primary"><field name="name"/></strong>
+                                <field name="billing_status" widget="badge" decoration-success="billing_status == 'healthy'" decoration-warning="billing_status == 'warning'" decoration-danger="billing_status in ('critical', 'breached', 'overdue')"/>
+                            </div>
+                            <div class="text-muted small mb-2"><i class="ph ph-envelope-simple me-1"/><field name="email_account"/></div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Spent: <strong>$<field name="current_usage"/></strong></span>
+                                <span>Ceiling: $<field name="budget_ceiling"/></span>
+                            </div>
+                            <div class="progress mt-1 mb-2" style="height: 6px;">
+                                <div class="progress-bar bg-info" role="progressbar" t-attf-style="width: #{(record.current_usage.raw_value / (record.budget_ceiling.raw_value or 30.0)) * 100}%;"/>
+                            </div>
+                            <div class="d-flex justify-content-between small">
+                                <span>Headroom: <strong class="text-success">$<field name="remaining_headroom"/></strong></span>
+                                <span>Score: <field name="headroom_score"/></span>
+                            </div>
+                        </main>
+                        <footer class="pt-2 mt-2 border-top d-flex justify-content-between align-items-center">
+                            <span class="badge bg-secondary"><i class="ph ph-cpu me-1"/><field name="tier"/></span>
+                            <button name="action_sync_from_fleet_server" type="object" class="btn btn-sm btn-outline-primary">
+                                <i class="ph ph-arrows-clockwise me-1"/>Sync
+                            </button>
+                        </footer>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- GPU Workspace Form View -->
+    <record id="view_gpu_workspace_form" model="ir.ui.view">
+        <field name="name">gpu.workspace.form</field>
+        <field name="model">gpu.workspace</field>
+        <field name="arch" type="xml">
+            <form string="GPU Workspace">
+                <header>
+                    <button name="action_sync_from_fleet_server" type="object" string="Sync from Fleet Server" class="btn btn-primary"/>
+                    <field name="billing_status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" type="action" name="%(action_gpu_task_log)d" context="{'search_default_workspace_id': id}">
+                            <i class="ph ph-list-checks fs-4 me-2"/>
+                            <field name="task_count" widget="statinfo" string="Tasks"/>
+                        </button>
+                        <button class="oe_stat_button" type="action" name="%(action_gpu_worker)d" context="{'search_default_workspace_id': id}">
+                            <i class="ph ph-cpu fs-4 me-2"/>
+                            <field name="worker_count" widget="statinfo" string="Workers"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. zenmaster"/></h1>
+                    </div>
+                    <group>
+                        <group string="Profile &amp; Governance">
+                            <field name="provider_id"/>
+                            <field name="priority"/>
+                            <field name="email_account"/>
+                            <field name="tier"/>
+                            <field name="active_workers_count"/>
+                            <field name="probes_today"/>
+                            <field name="last_sync"/>
+                        </group>
+                        <group string="Tokenomics &amp; Budget Ceiling">
+                            <field name="budget_ceiling"/>
+                            <field name="current_usage"/>
+                            <field name="remaining_headroom"/>
+                            <field name="headroom_score"/>
+                            <field name="preemptive_cutoff"/>
+                            <field name="hard_ceiling"/>
+                            <field name="hard_ceiling_breached"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Assigned Workers" name="workers">
+                            <field name="worker_ids">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="gpu_type"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="hourly_cost_rate"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Recent Task Logs" name="task_logs">
+                            <field name="task_log_ids">
+                                <list limit="10">
+                                    <field name="request_id"/>
+                                    <field name="model_template"/>
+                                    <field name="duration_seconds"/>
+                                    <field name="micro_cost"/>
+                                    <field name="status" widget="badge"/>
+                                    <field name="execution_timestamp"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Usage Meters" name="meters">
+                            <field name="meter_ids">
+                                <list limit="10">
+                                    <field name="date"/>
+                                    <field name="period"/>
+                                    <field name="compute_hours"/>
+                                    <field name="cost_dollars"/>
+                                    <field name="total_requests"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Sentinel &amp; Compliance" name="sentinel">
+                            <group>
+                                <field name="is_configured"/>
+                                <field name="is_compliant"/>
+                                <field name="configured_limit_usd"/>
+                                <field name="has_overdue_invoice"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- GPU Workspace Search View -->
+    <record id="view_gpu_workspace_search" model="ir.ui.view">
+        <field name="name">gpu.workspace.search</field>
+        <field name="model">gpu.workspace</field>
+        <field name="arch" type="xml">
+            <search string="Search Workspaces">
+                <field name="name"/>
+                <field name="email_account"/>
+                <field name="tier"/>
+                <field name="provider_id"/>
+                <filter string="Healthy" name="healthy" domain="[('billing_status', '=', 'healthy')]"/>
+                <filter string="Warning" name="warning" domain="[('billing_status', '=', 'warning')]"/>
+                <filter string="Critical / Breached" name="critical" domain="[('billing_status', 'in', ['critical', 'breached'])]"/>
+                <filter string="Overdue Invoice" name="overdue" domain="[('billing_status', '=', 'overdue')]"/>
+                <separator/>
+                <filter string="Archived" name="inactive" domain="[('active', '=', False)]"/>
+                <group>
+                    <filter string="Provider" name="group_provider" context="{'group_by': 'provider_id'}"/>
+                    <filter string="GPU Tier" name="group_tier" context="{'group_by': 'tier'}"/>
+                    <filter string="Billing Status" name="group_billing_status" context="{'group_by': 'billing_status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- GPU Workspace Window Action with URL path="gpu-fleet" -->
+    <record id="action_gpu_workspace" model="ir.actions.act_window">
+        <field name="name">GPU Workspaces</field>
+        <field name="res_model">gpu.workspace</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="search_view_id" ref="view_gpu_workspace_search"/>
+        <field name="path">gpu-fleet</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage GPU Workspaces and Monitor Tokenomics
+            </p>
+        </field>
+    </record>
+</data>

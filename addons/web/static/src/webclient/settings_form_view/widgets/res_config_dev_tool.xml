@@ -4,13 +4,35 @@
         <div id="developer_tool">
             <SettingsBlock title.translate="Developer Tools">
                 <Setting addLabel="false">
-                    <ul class="list-unstyled">
-                        <li><button t-if="!this.debugMode.isActive()" class="btn btn-link btn-link-inline" t-on-click="() => this.activateDebug(1)">Activate the developer mode</button></li>
-                        <li><button t-if="!this.debugMode.isActive('assets')" class="btn btn-link btn-link-inline" t-on-click="() => this.activateDebug('assets')">Activate the developer mode (with assets)</button></li>
-                        <li><button t-if="!this.debugMode.isActive('tests')" class="btn btn-link btn-link-inline" t-on-click="() => this.activateDebug('assets,tests')">Activate the developer mode (with tests assets)</button></li>
-                        <li><button t-if="this.debugMode.isActive()" class="btn btn-link btn-link-inline" t-on-click="() => this.activateDebug(0)">Deactivate the developer mode</button></li>
-                        <li><button t-if="this.debugMode.isActive() and !this.isDemoDataActive.value" t-on-click="this.onClickForceDemo" class="o_web_settings_force_demo btn btn-link btn-link-inline">Load demo data</button></li>
-                    </ul>
+                    <div class="o_dev_tools_tiles d-flex flex-wrap gap-2 pt-1">
+                        <button t-if="!this.debugMode.isActive()" class="btn o_dev_tile_btn d-flex flex-column align-items-center justify-content-center text-center p-3" t-on-click="() => this.activateDebug(1)" title="Activate Developer Mode">
+                            <div class="o_dev_tile_icon mb-2 d-flex align-items-center justify-content-center">
+                                <i class="ph-duotone ph-code fs-3"/>
+                            </div>
+                            <span class="o_dev_tile_name fw-semibold">Developer Mode</span>
+                        </button>
+                        <button t-if="!this.debugMode.isActive('assets')" class="btn o_dev_tile_btn d-flex flex-column align-items-center justify-content-center text-center p-3" t-on-click="() => this.activateDebug('assets')" title="Activate Developer Mode (with assets)">
+                            <div class="o_dev_tile_icon mb-2 d-flex align-items-center justify-content-center">
+                                <i class="ph-duotone ph-file-code fs-3"/>
+                            </div>
+                            <span class="o_dev_tile_name fw-semibold">With Assets</span>
+                        </button>
+                        <button t-if="!this.debugMode.isActive('tests')" class="btn o_dev_tile_btn d-flex flex-column align-items-center justify-content-center text-center p-3" t-on-click="() => this.activateDebug('assets,tests')" title="Activate Developer Mode (with tests assets)">
+                            <div class="o_dev_tile_icon mb-2 d-flex align-items-center justify-content-center">
+                                <i class="ph-duotone ph-flask fs-3"/>
+                            </div>
+                            <span class="o_dev_tile_name fw-semibold">With Tests</span>
+                        </button>
+                        <button t-if="this.debugMode.isActive()" class="btn o_dev_tile_btn o_dev_tile_active d-flex flex-column align-items-center justify-content-center text-center p-3" t-on-click="() => this.activateDebug(0)" title="Deactivate Developer Mode">
+                            <div class="o_dev_tile_icon mb-2 d-flex align-items-center justify-content-center text-danger">
+                                <i class="ph-duotone ph-power fs-3"/>
+                            </div>
+                            <span class="o_dev_tile_name fw-semibold text-danger">Deactivate</span>
+                        </button>
+                    </div>
+                    <div t-if="this.debugMode.isActive() and !this.isDemoDataActive.value" class="mt-3">
+                        <button t-on-click="this.onClickForceDemo" class="o_web_settings_force_demo btn btn-sm btn-outline-secondary">Load demo data</button>
+                    </div>
                 </Setting>
             </SettingsBlock>
         </div>

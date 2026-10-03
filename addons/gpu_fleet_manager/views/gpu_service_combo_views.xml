@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- GPU Service Combo List View -->
+    <record id="view_gpu_service_combo_list" model="ir.ui.view">
+        <field name="name">gpu.service.combo.list</field>
+        <field name="model">gpu.service.combo</field>
+        <field name="arch" type="xml">
+            <list string="Service Combos">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="service_type" widget="badge"/>
+                <field name="routing_strategy" widget="badge"/>
+                <field name="targets_summary"/>
+                <field name="line_count"/>
+                <field name="timeout_seconds"/>
+                <field name="max_retries"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- GPU Service Combo Form View -->
+    <record id="view_gpu_service_combo_form" model="ir.ui.view">
+        <field name="name">gpu.service.combo.form</field>
+        <field name="model">gpu.service.combo</field>
+        <field name="arch" type="xml">
+            <form string="Service Combo">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Combo Name"/>
+                        <h1><field name="name" placeholder="e.g. Thapsang Wan 2.2 S2V Failover"/></h1>
+                    </div>
+                    <group>
+                        <group string="Routing Specification">
+                            <field name="code"/>
+                            <field name="service_type"/>
+                            <field name="routing_strategy"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="SLA &amp; Resilience">
+                            <field name="timeout_seconds"/>
+                            <field name="max_retries"/>
+                            <field name="targets_summary"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Target Chain Order" name="targets">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="target_model"/>
+                                    <field name="provider_id"/>
+                                    <field name="endpoint"/>
+                                    <field name="weight"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Description &amp; SLA Notes" name="description">
+                            <field name="description" placeholder="Failover policies, SLA parameters, latency tolerances..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- GPU Service Combo Search View -->
+    <record id="view_gpu_service_combo_search" model="ir.ui.view">
+        <field name="name">gpu.service.combo.search</field>
+        <field name="model">gpu.service.combo</field>
+        <field name="arch" type="xml">
+            <search string="Search Service Combos">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="service_type"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <separator/>
+                <group>
+                    <filter string="Service Category" name="group_service" context="{'group_by': 'service_type'}"/>
+                    <filter string="Routing Strategy" name="group_strategy" context="{'group_by': 'routing_strategy'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- GPU Service Combo Window Action -->
+    <record id="action_gpu_service_combo" model="ir.actions.act_window">
+        <field name="name">Service Combos</field>
+        <field name="res_model">gpu.service.combo</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_gpu_service_combo_search"/>
+        <field name="path">gpu-combos</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define Failover Routing Chains and Service Combos
+            </p>
+        </field>
+    </record>
+</data>

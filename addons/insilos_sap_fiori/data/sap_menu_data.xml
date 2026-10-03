@@ -374,6 +374,7 @@
     <menuitem id="menu_insilos_executive_control_tower_root"
               name="Executive Control Tower"
               action="action_insilos_executive_control_tower"
+              web_icon="insilos_sap_fiori,static/description/icon.png"
               sequence="2"/>
 
     <menuitem id="menu_insilos_executive_control_tower_sub"

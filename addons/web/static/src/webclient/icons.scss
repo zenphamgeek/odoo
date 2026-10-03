@@ -76,6 +76,18 @@ $oi-fw-ratio: 1.28571429; // Matches .fa-fw
     &[data-icon="oi_twitter-square"]:before {
         content: "oi_x-square";
     }
+    &.oi-studio:before,
+    &[data-icon="oi_studio"]:before,
+    &[data-icon="studio"]:before {
+        font-family: $ph-font-family !important;
+        content: "\e6b6" !important;
+    }
+    &.oi-voip:before,
+    &[data-icon="oi_voip"]:before,
+    &[data-icon="voip"]:before {
+        font-family: $ph-font-family !important;
+        content: "\e3b8" !important;
+    }
 }
 
 .o_rtl .oi {

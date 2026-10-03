@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- GPU Provider List View -->
+    <record id="view_gpu_provider_list" model="ir.ui.view">
+        <field name="name">gpu.provider.list</field>
+        <field name="model">gpu.provider</field>
+        <field name="arch" type="xml">
+            <list string="GPU Providers" decoration-danger="status == 'offline'" decoration-warning="status == 'degraded'">
+                <field name="priority"/>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="provider_type" widget="badge"/>
+                <field name="base_url"/>
+                <field name="api_prefix"/>
+                <field name="workspace_count"/>
+                <field name="worker_count"/>
+                <field name="total_budget" widget="monetary"/>
+                <field name="total_usage" widget="monetary"/>
+                <field name="remaining_budget" widget="monetary"/>
+                <field name="status" widget="badge" decoration-success="status == 'active'" decoration-warning="status == 'degraded'" decoration-danger="status == 'offline'"/>
+                <field name="active" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- GPU Provider Form View -->
+    <record id="view_gpu_provider_form" model="ir.ui.view">
+        <field name="name">gpu.provider.form</field>
+        <field name="model">gpu.provider</field>
+        <field name="arch" type="xml">
+            <form string="GPU Provider">
+                <header>
+                    <button name="action_test_connection" type="object" string="Test Connection" class="btn btn-primary"/>
+                    <field name="status" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Provider Name"/>
+                        <h1><field name="name" placeholder="e.g. Modal Sovereign Fleet"/></h1>
+                    </div>
+                    <group>
+                        <group string="Provider Configuration">
+                            <field name="code"/>
+                            <field name="provider_type"/>
+                            <field name="base_url"/>
+                            <field name="api_prefix"/>
+                            <field name="api_key" password="True"/>
+                            <field name="priority"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Financial &amp; Fleet Rollups">
+                            <field name="workspace_count"/>
+                            <field name="worker_count"/>
+                            <field name="total_budget"/>
+                            <field name="total_usage"/>
+                            <field name="remaining_budget"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Managed Workspaces" name="workspaces">
+                            <field name="workspace_ids">
+                                <list>
+                                    <field name="priority"/>
+                                    <field name="name"/>
+                                    <field name="tier" widget="badge"/>
+                                    <field name="budget_ceiling"/>
+                                    <field name="current_usage"/>
+                                    <field name="remaining_headroom"/>
+                                    <field name="billing_status" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Architecture &amp; Notes" name="description">
+                            <field name="description" placeholder="Provider architectural overview, failover SLAs, and notes..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- GPU Provider Search View -->
+    <record id="view_gpu_provider_search" model="ir.ui.view">
+        <field name="name">gpu.provider.search</field>
+        <field name="model">gpu.provider</field>
+        <field name="arch" type="xml">
+            <search string="Search Providers">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="provider_type"/>
+                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Available" name="status_active" domain="[('status', '=', 'active')]"/>
+                <filter string="Degraded" name="status_degraded" domain="[('status', '=', 'degraded')]"/>
+                <filter string="Offline" name="status_offline" domain="[('status', '=', 'offline')]"/>
+                <separator/>
+                <group>
+                    <filter string="Provider Type" name="group_type" context="{'group_by': 'provider_type'}"/>
+                    <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- GPU Provider Window Action -->
+    <record id="action_gpu_provider" model="ir.actions.act_window">
+        <field name="name">Providers</field>
+        <field name="res_model">gpu.provider</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_gpu_provider_search"/>
+        <field name="path">gpu-providers</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure Compute Cloud and Sovereign Hardware Providers
+            </p>
+        </field>
+    </record>
+</data>

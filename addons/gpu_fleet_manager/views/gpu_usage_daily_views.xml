@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- GPU Usage Daily List View -->
+    <record id="view_gpu_usage_daily_list" model="ir.ui.view">
+        <field name="name">gpu.usage.daily.list</field>
+        <field name="model">gpu.usage.daily</field>
+        <field name="arch" type="xml">
+            <list string="Daily Usage Aggregations">
+                <header>
+                    <button name="action_sync_from_9router" type="object" string="Sync from 9Router" class="btn btn-primary"/>
+                </header>
+                <field name="date"/>
+                <field name="name"/>
+                <field name="workspace_id"/>
+                <field name="provider_id"/>
+                <field name="compute_hours"/>
+                <field name="cost" widget="monetary"/>
+                <field name="total_requests"/>
+                <field name="successful_requests"/>
+                <field name="failed_requests"/>
+                <field name="avg_latency_ms"/>
+                <field name="cache_hit_rate"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- GPU Usage Daily Graph View -->
+    <record id="view_gpu_usage_daily_graph" model="ir.ui.view">
+        <field name="name">gpu.usage.daily.graph</field>
+        <field name="model">gpu.usage.daily</field>
+        <field name="arch" type="xml">
+            <graph string="Daily Usage Trends" type="bar" sample="1">
+                <field name="date" interval="day"/>
+                <field name="cost" type="measure"/>
+                <field name="compute_hours" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- GPU Usage Daily Pivot View -->
+    <record id="view_gpu_usage_daily_pivot" model="ir.ui.view">
+        <field name="name">gpu.usage.daily.pivot</field>
+        <field name="model">gpu.usage.daily</field>
+        <field name="arch" type="xml">
+            <pivot string="Daily Usage Matrix" sample="1">
+                <field name="date" interval="day" type="row"/>
+                <field name="workspace_id" type="row"/>
+                <field name="provider_id" type="col"/>
+                <field name="cost" type="measure"/>
+                <field name="compute_hours" type="measure"/>
+                <field name="total_requests" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- GPU Usage Daily Form View -->
+    <record id="view_gpu_usage_daily_form" model="ir.ui.view">
+        <field name="name">gpu.usage.daily.form</field>
+        <field name="model">gpu.usage.daily</field>
+        <field name="arch" type="xml">
+            <form string="Daily Usage Record">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Usage Reference"/>
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Dimension Scope">
+                            <field name="date"/>
+                            <field name="workspace_id"/>
+                            <field name="provider_id"/>
+                        </group>
+                        <group string="Aggregated Metrics">
+                            <field name="compute_hours"/>
+                            <field name="cost"/>
+                            <field name="total_requests"/>
+                            <field name="successful_requests"/>
+                            <field name="failed_requests"/>
+                            <field name="avg_latency_ms"/>
+                            <field name="cache_hit_rate"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Service Telemetry Breakdown" name="service_breakdown">
+                            <field name="service_breakdown" placeholder="Raw JSON telemetry breakdown by service..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- GPU Usage Daily Search View -->
+    <record id="view_gpu_usage_daily_search" model="ir.ui.view">
+        <field name="name">gpu.usage.daily.search</field>
+        <field name="model">gpu.usage.daily</field>
+        <field name="arch" type="xml">
+            <search string="Search Daily Usage">
+                <field name="date"/>
+                <field name="workspace_id"/>
+                <field name="provider_id"/>
+                <group>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
+                    <filter string="Workspace" name="group_workspace" context="{'group_by': 'workspace_id'}"/>
+                    <filter string="Provider" name="group_provider" context="{'group_by': 'provider_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- GPU Usage Daily Window Action -->
+    <record id="action_gpu_usage_daily" model="ir.actions.act_window">
+        <field name="name">Daily Usage</field>
+        <field name="res_model">gpu.usage.daily</field>
+        <field name="view_mode">list,graph,pivot,form</field>
+        <field name="search_view_id" ref="view_gpu_usage_daily_search"/>
+        <field name="path">gpu-usage-daily</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Daily Rollups and Analytics for Compute Hours and Dollar Costs
+            </p>
+        </field>
+    </record>
+</data>

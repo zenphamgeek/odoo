@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data>
+    <!-- GPU Usage Meter List View -->
+    <record id="view_gpu_usage_meter_list" model="ir.ui.view">
+        <field name="name">gpu.usage.meter.list</field>
+        <field name="model">gpu.usage.meter</field>
+        <field name="arch" type="xml">
+            <list string="GPU Usage Meters">
+                <field name="date"/>
+                <field name="period" widget="badge"/>
+                <field name="workspace_id"/>
+                <field name="compute_hours"/>
+                <field name="cost_dollars" widget="monetary"/>
+                <field name="total_requests"/>
+                <field name="successful_requests"/>
+                <field name="failed_requests"/>
+                <field name="avg_latency_ms"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- GPU Usage Meter Form View -->
+    <record id="view_gpu_usage_meter_form" model="ir.ui.view">
+        <field name="name">gpu.usage.meter.form</field>
+        <field name="model">gpu.usage.meter</field>
+        <field name="arch" type="xml">
+            <form string="GPU Usage Meter">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group string="Period &amp; Workspace">
+                            <field name="workspace_id"/>
+                            <field name="date"/>
+                            <field name="period"/>
+                        </group>
+                        <group string="Compute Hours &amp; Financials">
+                            <field name="compute_hours"/>
+                            <field name="cost_dollars"/>
+                        </group>
+                    </group>
+                    <group string="Request Volume &amp; Performance SLA">
+                        <group>
+                            <field name="total_requests"/>
+                            <field name="successful_requests"/>
+                        </group>
+                        <group>
+                            <field name="failed_requests"/>
+                            <field name="avg_latency_ms"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- GPU Usage Meter Search View -->
+    <record id="view_gpu_usage_meter_search" model="ir.ui.view">
+        <field name="name">gpu.usage.meter.search</field>
+        <field name="model">gpu.usage.meter</field>
+        <field name="arch" type="xml">
+            <search string="Search Usage Meters">
+                <field name="workspace_id"/>
+                <field name="date"/>
+                <field name="period"/>
+                <filter string="Daily" name="daily" domain="[('period', '=', 'daily')]"/>
+                <filter string="Monthly" name="monthly" domain="[('period', '=', 'monthly')]"/>
+                <group>
+                    <filter string="Workspace" name="group_workspace" context="{'group_by': 'workspace_id'}"/>
+                    <filter string="Date" name="group_date" context="{'group_by': 'date'}"/>
+                    <filter string="Period" name="group_period" context="{'group_by': 'period'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- GPU Usage Meter Window Action -->
+    <record id="action_gpu_usage_meter" model="ir.actions.act_window">
+        <field name="name">Usage Meters</field>
+        <field name="res_model">gpu.usage.meter</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Track daily and monthly compute consumption and billing
+            </p>
+        </field>
+    </record>
+</data>
