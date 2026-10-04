@@ -26,7 +26,7 @@ class MrpProductionGroup(models.Model):
     _description = 'Production Group'
 
     name = fields.Char('Name', required=True, index='btree')
-    production_ids = fields.One2many('mrp.production', 'production_group_id', string='Productions')
+    production_ids = fields.One2many('manufacturing.order', 'production_group_id', string='Productions')
     child_ids = fields.Many2many(
         'mrp.production.group', 'mrp_production_group_rel', 'parent_group_id', 'child_group_id',
         string='Child Manufacturing Orders')
@@ -37,7 +37,8 @@ class MrpProductionGroup(models.Model):
 
 class MrpProduction(models.Model):
     """ Manufacturing Orders """
-    _name = 'mrp.production'
+    _name = 'manufacturing.order'
+    _table = 'manufacturing_order'
     _description = 'Manufacturing Order'
     _date_name = 'date_start'
     _inherit = ['mail.thread', 'mail.activity.mixin', 'product.catalog.mixin']
@@ -169,7 +170,7 @@ class MrpProduction(models.Model):
     duration = fields.Float("Real Duration", help="Total real duration (in minutes)", compute='_compute_duration', store=True)
 
     bom_id = fields.Many2one(
-        'mrp.bom', 'Bill of Material', readonly=False,
+        'manufacturing.bom', 'Bill of Material', readonly=False,
         domain="""[
         '&',
             '|',

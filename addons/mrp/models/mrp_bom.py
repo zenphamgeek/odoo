@@ -12,7 +12,8 @@ from odoo.tools.misc import clean_context
 
 class MrpBom(models.Model):
     """ Defines bills of material for a product or a product template """
-    _name = 'mrp.bom'
+    _name = 'manufacturing.bom'
+    _table = 'manufacturing_bom'
     _description = 'Bill of Material'
     _inherit = ['mail.thread', 'product.catalog.mixin']
     _rec_name = 'product_tmpl_id'
@@ -682,7 +683,7 @@ class MrpBomLine(models.Model):
         'Sequence', default=1,
         help="Gives the sequence order when displaying.")
     bom_id = fields.Many2one(
-        'mrp.bom', 'Parent BoM',
+        'manufacturing.bom', 'Parent BoM',
         index=True, ondelete='cascade', required=True)
     parent_product_tmpl_id = fields.Many2one('product.template', 'Parent Product Template', related='bom_id.product_tmpl_id')
     possible_bom_product_template_attribute_value_ids = fields.Many2many(related='bom_id.possible_product_template_attribute_value_ids')
@@ -845,7 +846,7 @@ class MrpBomByproduct(models.Model):
     uom_id = fields.Many2one('uom.uom', 'Unit', required=True,
                                      compute="_compute_uom_id", store=True, readonly=False, precompute=True)
     product_uom_id = fields.Many2one('uom.uom', related='uom_id', string='Unit', readonly=False)
-    bom_id = fields.Many2one('mrp.bom', 'BoM', ondelete='cascade', index=True)
+    bom_id = fields.Many2one('manufacturing.bom', 'BoM', ondelete='cascade', index=True)
     allowed_operation_ids = fields.One2many('mrp.routing.workcenter', related='bom_id.operation_ids')
     operation_id = fields.Many2one(
         'mrp.routing.workcenter', 'Produced in Operation', check_company=True,

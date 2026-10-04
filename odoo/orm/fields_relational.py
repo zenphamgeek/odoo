@@ -1351,6 +1351,8 @@ class Many2many(_RelationalMulti):
                     'order_line': 'sale_order_line',
                     'logistics_transfer': 'stock_picking',
                     'logistics_movement': 'stock_move',
+                    'manufacturing_order': 'mrp_production',
+                    'manufacturing_bom': 'mrp_bom',
                 }
                 legacy_tbl = SOVEREIGN_TABLE_LEGACY.get(model._table)
                 legacy_comodel_tbl = SOVEREIGN_TABLE_LEGACY.get(comodel._table)
