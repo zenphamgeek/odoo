@@ -224,8 +224,9 @@ class FormatAddressMixin(models.AbstractModel):
 
 
 class ResPartnerCategory(models.Model):
-    _name = 'res.partner.category'
-    _description = 'Partner Tag'
+    _name = 'party.classification'
+    _table = 'party_classification'
+    _description = 'Party Classification'
     _order = 'name, id'
     _parent_store = True
 
@@ -234,11 +235,11 @@ class ResPartnerCategory(models.Model):
 
     name = fields.Char('Name', required=True, translate=True)
     color = fields.Integer(string='Color', default=_get_default_color, aggregator=False)
-    parent_id: ResPartnerCategory = fields.Many2one('res.partner.category', string='Category', index=True, ondelete='cascade')
-    child_ids: ResPartnerCategory = fields.One2many('res.partner.category', 'parent_id', string='Child Tags')
+    parent_id: ResPartnerCategory = fields.Many2one('party.classification', string='Category', index=True, ondelete='cascade')
+    child_ids: ResPartnerCategory = fields.One2many('party.classification', 'parent_id', string='Child Tags')
     active = fields.Boolean(default=True, help="The active field allows you to hide the category without removing it.")
     parent_path = fields.Char(index=True)
-    partner_ids: ResPartner = fields.Many2many('res.partner', column1='category_id', column2='partner_id', string='Partners', copy=False)
+    partner_ids: ResPartner = fields.Many2many('res.partner', relation='party_classification_rel', column1='category_id', column2='partner_id', string='Partners', copy=False)
 
     @api.depends('parent_id')
     def _compute_display_name(self):
@@ -278,7 +279,7 @@ class ResPartner(models.Model):
     _complete_name_displayed_types = ('invoice', 'delivery', 'other')
 
     def _default_category(self):
-        return self.env['res.partner.category'].browse(self.env.context.get('category_id'))
+        return self.env['party.classification'].browse(self.env.context.get('category_id'))
 
     @api.model
     def default_get(self, fields):
@@ -336,7 +337,7 @@ class ResPartner(models.Model):
     website = fields.Char('Website Link')
     comment = fields.Html(string='Notes')
 
-    category_id: ResPartnerCategory = fields.Many2many('res.partner.category', column1='partner_id',
+    category_id: ResPartnerCategory = fields.Many2many('party.classification', relation='party_classification_rel', column1='partner_id',
                                     column2='category_id', string='Tags', default=_default_category)
     active = fields.Boolean(default=True)
     employee = fields.Boolean(help="Check this box if this contact is an Employee.")
@@ -1290,7 +1291,7 @@ class ResPartner(models.Model):
         if self.env.context.get('category_id'):
             return  _(
                 'Partners: %(category)s',
-                category=self.env['res.partner.category'].browse(self.env.context['category_id']).name,
+                category=self.env['party.classification'].browse(self.env.context['category_id']).name,
             )
         return super().view_header_get(view_id, view_type)
 

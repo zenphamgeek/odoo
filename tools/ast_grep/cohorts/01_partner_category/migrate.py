@@ -3,7 +3,8 @@
 """
 ================================================================================
 INSILOS SOVEREIGN HARD FORK — COHORT 1 AUTOMATED MIGRATION ENGINE
-Target: res.partner.category -> insilos.partner.category (DB Table: insilos_partner_category)
+Target: res.partner.category -> party.classification (DB Table: party_classification)
+IBM Enterprise Data Architecture Standard (Party Pattern)
 ================================================================================
 """
 import sys
@@ -50,23 +51,25 @@ def verify_db_parity():
     
     # 1. Count check
     cr.execute("SELECT count(*) FROM res_partner_category")
-    cnt_view = cr.fetchone()[0]
-    cr.execute("SELECT count(*) FROM insilos_partner_category")
+    cnt_legacy = cr.fetchone()[0]
+    cr.execute("SELECT count(*) FROM party_classification")
     cnt_table = cr.fetchone()[0]
-    assert cnt_view == cnt_table, f"Mismatch: view {cnt_view} != table {cnt_table}"
-    log(f"Count parity confirmed: {cnt_view} records in both table and view.", "OK")
+    cr.execute("SELECT count(*) FROM insilos_partner_category")
+    cnt_insilos = cr.fetchone()[0]
+    assert cnt_legacy == cnt_table == cnt_insilos, f"Mismatch: legacy {cnt_legacy} != table {cnt_table} != insilos {cnt_insilos}"
+    log(f"Count parity confirmed: {cnt_table} records across table and all views.", "OK")
     
     # 2. Test INSERT through Updatable View
     cr.execute("INSERT INTO res_partner_category (name) VALUES ('{\"en_US\": \"__TEST_SOVEREIGN_PARITY__\"}'::jsonb) RETURNING id")
     new_id = cr.fetchone()[0]
     
     # Verify it exists in physical sovereign table
-    cr.execute("SELECT name->>'en_US' FROM insilos_partner_category WHERE id = %s", (new_id,))
+    cr.execute("SELECT name->>'en_US' FROM party_classification WHERE id = %s", (new_id,))
     fetched = cr.fetchone()[0]
     assert fetched == '__TEST_SOVEREIGN_PARITY__', f"Data integrity error: {fetched}"
     
     # Clean up test record
-    cr.execute("DELETE FROM insilos_partner_category WHERE id = %s", (new_id,))
+    cr.execute("DELETE FROM party_classification WHERE id = %s", (new_id,))
     conn.close()
     log("Bidirectional write-through verified: Updatable View passes INSERT/DELETE directly to physical table.", "OK")
 
@@ -92,7 +95,7 @@ def main():
     action = sys.argv[1] if len(sys.argv) > 1 else "up"
     print("================================================================================")
     print("🚀 INSILOS SOVEREIGN HARD FORK — COHORT 1 MIGRATION RUNNER")
-    print("   Domain: res.partner.category ──▶ insilos.partner.category")
+    print("   Domain: res.partner.category ──▶ party.classification")
     print("================================================================================")
 
     if action == "down":

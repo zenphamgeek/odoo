@@ -507,7 +507,7 @@
         <!-- Categories -->
         <record id="view_partner_category_form" model="ir.ui.view">
             <field name="name">Contact Tags</field>
-            <field name="model">res.partner.category</field>
+            <field name="model">party.classification</field>
             <field name="arch" type="xml">
                 <form string="Contact Tag">
                     <sheet>
@@ -524,7 +524,7 @@
 
         <record id="view_partner_category_list" model="ir.ui.view">
             <field name="name">Contact Tags</field>
-            <field name="model">res.partner.category</field>
+            <field name="model">party.classification</field>
             <field eval="6" name="priority"/>
             <field name="arch" type="xml">
                 <list string="Contact Tags" editable="bottom" multi_edit="1" sample="1">
@@ -537,7 +537,7 @@
 
         <record id="res_partner_category_view_search" model="ir.ui.view">
             <field name="name">res.partner.category.view.search</field>
-            <field name="model">res.partner.category</field>
+            <field name="model">party.classification</field>
             <field name="arch" type="xml">
                 <search string="Search Partner Category">
                     <field name="name" string="Name"/>
@@ -554,7 +554,7 @@
 
         <record id="action_partner_category_form" model="ir.actions.act_window">
             <field name="name">Contact Tags</field>
-            <field name="res_model">res.partner.category</field>
+            <field name="res_model">party.classification</field>
             <field name="search_view_id" ref="res_partner_category_view_search"/>
             <field name="help" type="html">
               <p class="o_view_nocontent_smiling_face">

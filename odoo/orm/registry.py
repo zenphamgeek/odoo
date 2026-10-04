@@ -380,12 +380,28 @@ class Registry(Mapping[str, type["BaseModel"]]):
         """ Return an iterator over all model names. """
         return iter(self.models)
 
+    SOVEREIGN_MODEL_ALIASES = {
+        'res.partner.category': 'party.classification',
+    }
+
+    def __contains__(self, model_name: str) -> bool:
+        return (
+            model_name in self.models
+            or model_name == 'ir.rule'
+            or (model_name == 'hr.leave.type' and 'hr.work.entry.type' in self.models)
+            or (model_name in self.SOVEREIGN_MODEL_ALIASES and self.SOVEREIGN_MODEL_ALIASES[model_name] in self.models)
+        )
+
     def __getitem__(self, model_name: str) -> type[BaseModel]:
         """ Return the model with the given name or raise KeyError if it doesn't exist."""
         if model_name == 'ir.rule':
             return self.models['ir.access']
         if model_name == 'hr.leave.type' and 'hr.leave.type' not in self.models and 'hr.work.entry.type' in self.models:
             return self.models['hr.work.entry.type']
+        if model_name in self.SOVEREIGN_MODEL_ALIASES and model_name not in self.models:
+            target = self.SOVEREIGN_MODEL_ALIASES[model_name]
+            if target in self.models:
+                return self.models[target]
         return self.models[model_name]
 
     def clear_cache(self, cache_name: str = 'default') -> None:
