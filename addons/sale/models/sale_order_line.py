@@ -10,7 +10,8 @@ from odoo.tools import float_compare, float_is_zero, format_date, groupby
 
 
 class SaleOrderLine(models.Model):
-    _name = "sale.order.line"
+    _name = "order.line"
+    _table = "order_line"
     _inherit = [
         "analytic.mixin",
         "res.currency.rate.consolidation.mixin",
@@ -40,7 +41,7 @@ class SaleOrderLine(models.Model):
     # on record creation (and is also a good ordering logic imho)
 
     order_id = fields.Many2one(
-        comodel_name="sale.order",
+        comodel_name="order.header",
         string="Order Reference",
         required=True,
         ondelete="cascade",
@@ -178,14 +179,14 @@ class SaleOrderLine(models.Model):
     scheduled_date = fields.Datetime(string="Delivery Date", compute="_compute_qty_at_date")
     linked_line_id = fields.Many2one(
         string="Linked Order Line",
-        comodel_name="sale.order.line",
+        comodel_name="order.line",
         ondelete="cascade",
         domain="[('order_id', '=', order_id)]",
         copy=False,
         index=True,
     )
     linked_line_ids = fields.One2many(
-        string="Linked Order Lines", comodel_name="sale.order.line", inverse_name="linked_line_id"
+        string="Linked Order Lines", comodel_name="order.line", inverse_name="linked_line_id"
     )
     categ_id = fields.Many2one(related="product_id.categ_id")
     # Uniquely identifies this sale order line before the record is saved in the DB, i.e. before the
@@ -411,7 +412,7 @@ class SaleOrderLine(models.Model):
 
     # Section-related fields
     parent_id = fields.Many2one(
-        string="Parent Section Line", comodel_name="sale.order.line", compute="_compute_parent_id"
+        string="Parent Section Line", comodel_name="order.line", compute="_compute_parent_id"
     )  # The section or subsection this line belongs to.
     collapse_prices = fields.Boolean(
         string="Collapse Prices", copy=True, default=False

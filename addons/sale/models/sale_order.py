@@ -32,7 +32,8 @@ SALE_ORDER_STATE = [
 
 
 class SaleOrder(models.Model):
-    _name = "sale.order"
+    _name = "order.header"
+    _table = "order_header"
     _explanation = "Represents a customer quotation that can be converted into a sales order. Used"
     " to manage pricing, product quantities, and status"
     _inherit = [
@@ -337,7 +338,7 @@ class SaleOrder(models.Model):
 
     # Lines and line based computes
     order_line = fields.One2many(
-        comodel_name="sale.order.line",
+        comodel_name="order.line",
         inverse_name="order_id",
         string="Order Lines",
         copy=True,
@@ -452,7 +453,7 @@ class SaleOrder(models.Model):
             Green: Fully Delivered",
     )
     duplicated_order_ids = fields.Many2many(
-        comodel_name="sale.order", compute="_compute_duplicated_order_ids"
+        comodel_name="order.header", compute="_compute_duplicated_order_ids"
     )
     expected_date = fields.Datetime(
         string="Expected Date",
