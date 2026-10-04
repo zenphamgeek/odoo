@@ -305,6 +305,10 @@
     insilos.define = loader.define.bind(loader);
     insilos.loader = loader;
 
+    insilos.__version__ = "20.0";
+    insilos.__edition__ = "Enterprise";
+    insilos.__platform__ = "Insilos Enterprise Platform";
+
     if (insilos.debug && !loader.debug) {
         // remove debug mode if not explicitely set in url
         insilos.debug = "";

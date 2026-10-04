@@ -152,6 +152,16 @@
         }
     }
 
+    .o_menu_brand_icon,
+    img.o_menu_brand_icon {
+        width: 24px !important;
+        height: 24px !important;
+        max-width: 24px !important;
+        max-height: 24px !important;
+        object-fit: contain !important;
+        vertical-align: middle !important;
+    }
+
     .o_nav_entry, .dropdown-toggle:not(.o-dropdown-toggle-custo) {
         @extend %-main-navbar-entry-base;
         @extend %-main-navbar-entry-spacing;

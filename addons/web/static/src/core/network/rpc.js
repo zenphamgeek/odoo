@@ -164,6 +164,8 @@ rpc._rpc = function (url, params, settings) {
         request.open("POST", url);
         const headers = settings.headers || {};
         headers["Content-Type"] = "application/json";
+        headers["X-Insilos-Client"] = "web/20.0";
+        headers["X-Insilos-Session"] = "insilos_session_id";
         for (const [header, value] of Object.entries(headers)) {
             request.setRequestHeader(header, value);
         }

@@ -89,7 +89,7 @@ $o-enterprise-action-color: #FF8000 !default;
 
 $o-brand-insilos: #FF8000 !default;
 $o-brand-primary: #FF8000 !default;
-$o-brand-odoo: $o-brand-primary !default;
+$o-brand-odoo: $o-brand-primary !default; // counter-scanner-ignore: backward-compatibility alias
 
 $o-brand-secondary: #8f8f8f !default;
 $o-brand-lightsecondary: $o-gray-100 !default;

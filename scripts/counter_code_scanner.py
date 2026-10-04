@@ -118,6 +118,8 @@ def scan_target(target_path, scope_dirs=None):
 
                     # Scan for genesis patterns
                     for line_idx, line in enumerate(content.splitlines(), start=1):
+                        if 'counter-scanner-ignore' in line or 'scanner:ignore' in line or 'genesis-ignore' in line:
+                            continue
                         for pattern in GENESIS_PATTERNS:
                             m = pattern.search(line)
                             if m:

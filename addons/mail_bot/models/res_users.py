@@ -31,9 +31,9 @@ class ResUsers(models.Model):
         odoobot_id = self.env['ir.model.data']._xmlid_to_res_id("base.partner_root")
         channel = self.env['discuss.channel']._get_or_create_chat([odoobot_id, self.partner_id.id])
         message = Markup("%s<br/>%s<br/><b>%s</b>") % (
-            self.env._("Hello 👋"),
-            self.env._("Insilos's Discuss application helps employees collaborate efficiently. I'm here to help you explore its features."),
-            self.env._("Go ahead - Try sending me an emoji 😊")
+            self.env._("Hello 👋 I'm InsilosBot, your cheerful digital companion!"),
+            self.env._("Insilos Discuss keeps your team connected, collaborative, and moving fast across enterprise workflows."),
+            self.env._("Go ahead - Try sending me an emoji to start our tour 😊")
         )
         channel.sudo().message_post(
             author_id=odoobot_id,

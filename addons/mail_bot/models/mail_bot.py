@@ -178,16 +178,16 @@ class MailBot(models.AbstractModel):
                 return random.choice(
                     [
                         self.env._(
-                            "I'm not smart enough to answer your question.%(new_line)sTo follow my "
-                            "guide, ask: %(command_start)sstart the tour%(command_end)s.",
+                            "I'm always learning new things! 💡%(new_line)sTo explore Discuss with my "
+                            "interactive guide, just ask: %(command_start)sstart the tour%(command_end)s.",
                             **self._get_style_dict()
                         ),
-                        self.env._("Hmmm..."),
-                        self.env._("I'm afraid I don't understand. Sorry!"),
+                        self.env._("I'm here and ready to help! Let me know if you want to explore Insilos."),
+                        self.env._("Need a refresher on Discuss features? Type %(command_start)sstart the tour%(command_end)s anytime! ✨", **self._get_style_dict()),
                         self.env._(
-                            "Sorry I'm sleepy. Or not! Maybe I'm just trying to hide my unawareness"
-                            " of human language...%(new_line)sI can show you features if you write:"
-                            " %(command_start)sstart the tour%(command_end)s.",
+                            "Beep boop! 🤖 I'm your cheerful InsilosBot assistant.%(new_line)s"
+                            "Feel free to ask for %(command_start)s/help%(command_end)s or type "
+                            "%(command_start)sstart the tour%(command_end)s!",
                             **self._get_style_dict()
                         ),
                     ]
