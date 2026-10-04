@@ -19,7 +19,8 @@ _logger = logging.getLogger(__name__)
 
 
 class PurchaseOrder(models.Model):
-    _name = 'purchase.order'
+    _name = 'procurement.order'
+    _table = 'procurement_order'
     _inherit = ['portal.mixin', 'product.catalog.mixin', 'mail.thread', 'mail.activity.mixin', 'account.document.import.mixin']
     _description = "Purchase Order"
     _rec_names_search = ('name', 'partner_ref')
@@ -118,7 +119,7 @@ class PurchaseOrder(models.Model):
         copy=False,
         tracking=True)
     lock_confirmed_po = fields.Selection(related="company_id.po_lock")
-    order_line = fields.One2many('purchase.order.line', 'order_id', string='Order Lines', copy=True)
+    order_line = fields.One2many('procurement.order.line', 'order_id', string='Order Lines', copy=True)
     acknowledged = fields.Boolean(
         'Acknowledged', copy=False, tracking=True,
         help="It indicates that the vendor has acknowledged the receipt of the purchase order.")
@@ -185,7 +186,7 @@ class PurchaseOrder(models.Model):
         store=True,
         precompute=True,
     )
-    duplicated_order_ids = fields.Many2many(comodel_name='purchase.order', compute='_compute_duplicated_order_ids')
+    duplicated_order_ids = fields.Many2many(comodel_name='procurement.order', compute='_compute_duplicated_order_ids')
     receipt_status = fields.Selection([
         ('pending', 'Not Received'),
         ('partial', 'Partially Received'),

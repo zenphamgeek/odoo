@@ -11,7 +11,8 @@ from odoo.tools.float_utils import float_compare, float_round
 
 
 class PurchaseOrderLine(models.Model):
-    _name = 'purchase.order.line'
+    _name = 'procurement.order.line'
+    _table = 'procurement_order_line'
     _inherit = [
         'analytic.mixin',
         'res.currency.rate.consolidation.mixin',
@@ -62,7 +63,7 @@ class PurchaseOrderLine(models.Model):
     price_tax = fields.Float(compute='_compute_amount', string='Tax', store=True)
     non_deductible_tax = fields.Float(compute='_compute_amount', store=True)
 
-    order_id = fields.Many2one('purchase.order', string='Order Reference', index=True, required=True, ondelete='cascade')
+    order_id = fields.Many2one('procurement.order', string='Order Reference', index=True, required=True, ondelete='cascade')
 
     company_id = fields.Many2one('res.company', related='order_id.company_id', string='Company', store=True, readonly=True, index=True)
     state = fields.Selection(related='order_id.state')

@@ -87,6 +87,26 @@ class _Relational(Field[BaseModel]):
         assert self.comodel_name in model.pool, \
             f"Field {self} with unknown comodel_name {self.comodel_name or '???'!r}"
 
+    def setup_related(self, model):
+        super().setup_related(model)
+        if hasattr(self, 'related_field') and self.related_field.relational:
+            self.comodel_name = self.related_field.comodel_name
+        elif hasattr(model.pool, 'SOVEREIGN_MODEL_ALIASES'):
+            self.comodel_name = model.pool.SOVEREIGN_MODEL_ALIASES.get(self.comodel_name, self.comodel_name)
+
+    def _is_matching_comodel(self, model_name: str, pool) -> bool:
+        if model_name == self.comodel_name:
+            return True
+        if hasattr(pool, 'SOVEREIGN_MODEL_ALIASES'):
+            aliases = pool.SOVEREIGN_MODEL_ALIASES
+            if aliases.get(model_name) == self.comodel_name:
+                return True
+            if aliases.get(self.comodel_name) == model_name:
+                return True
+            if aliases.get(model_name) and aliases.get(model_name) == aliases.get(self.comodel_name):
+                return True
+        return False
+
     def setup_inverses(self, registry: Registry, inverses: Collector[Field, Field]):
         """ Populate ``inverses`` with ``self`` and its inverse fields. """
 
@@ -330,7 +350,7 @@ class Many2one(_Relational):
         if type(value) is int or type(value) is NewId:
             id_ = value
         elif isinstance(value, BaseModel):
-            if validate and (value._name != self.comodel_name or len(value) > 1):
+            if validate and (not self._is_matching_comodel(value._name, records.pool) or len(value) > 1):
                 raise ValueError("Wrong value for %s: %r" % (self, value))
             id_ = value._ids[0] if value._ids else None
         elif isinstance(value, tuple):
@@ -381,7 +401,7 @@ class Many2one(_Relational):
             return value
         if not value:
             return False
-        if isinstance(value, BaseModel) and value._name == self.comodel_name:
+        if isinstance(value, BaseModel) and self._is_matching_comodel(value._name, record.pool):
             return value.id
         if isinstance(value, tuple):
             # value is either a pair (id, name), or a tuple of ids
@@ -631,7 +651,7 @@ class _RelationalMulti(_Relational):
             return value
 
         elif isinstance(value, BaseModel):  # recordset
-            if validate and value._name != self.comodel_name:
+            if validate and not self._is_matching_comodel(value._name, records.pool if records else value.pool):
                 raise ValueError("Wrong value for %s: %s" % (self, value))
             ids = value._ids
             if records and not any(records._ids):
@@ -740,7 +760,7 @@ class _RelationalMulti(_Relational):
             # a tuple of ids, this is the cache format
             value = record.env[self.comodel_name].browse(value)
 
-        if isinstance(value, BaseModel) and value._name == self.comodel_name:
+        if isinstance(value, BaseModel) and self._is_matching_comodel(value._name, record.pool):
             def get_origin(val):
                 return val._origin if isinstance(val, BaseModel) else val
 
@@ -816,7 +836,7 @@ class _RelationalMulti(_Relational):
         for idx, (recs, value) in enumerate(records_commands_list):
             if isinstance(value, tuple):
                 value = [Command.set(value)]
-            elif isinstance(value, BaseModel) and value._name == self.comodel_name:
+            elif isinstance(value, BaseModel) and self._is_matching_comodel(value._name, recs.pool):
                 value = [Command.set(value._ids)]
             elif value is False or value is None:
                 value = [Command.clear()]
@@ -1325,6 +1345,8 @@ class Many2many(_RelationalMulti):
                     'organization_unit': 'res_company',
                     'system_attachment': 'ir_attachment',
                     'party_classification': 'res_partner_category',
+                    'procurement_order': 'purchase_order',
+                    'procurement_order_line': 'purchase_order_line',
                 }
                 legacy_tbl = SOVEREIGN_TABLE_LEGACY.get(model._table)
                 legacy_comodel_tbl = SOVEREIGN_TABLE_LEGACY.get(comodel._table)
