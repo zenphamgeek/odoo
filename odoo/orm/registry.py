@@ -385,6 +385,8 @@ class Registry(Mapping[str, type["BaseModel"]]):
         'ir.attachment': 'system.attachment',
         'res.company': 'organization.unit',
         'res.partner': 'party.master',
+        'product.template': 'catalog.item',
+        'product.product': 'catalog.sku',
     }
 
     def __contains__(self, model_name: str) -> bool:

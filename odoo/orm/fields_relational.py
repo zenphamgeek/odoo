@@ -1318,12 +1318,27 @@ class Many2many(_RelationalMulti):
                         "table is not possible when source and destination models " \
                         "are the same" % self
                     self.relation = '%s_%s_rel' % tuple(tables)
-                # Safe to update shared fields' attributes
-                # because _check_model_extension guarantees model_cls._table is not overridable.
+                SOVEREIGN_TABLE_LEGACY = {
+                    'catalog_item': 'product_template',
+                    'catalog_sku': 'product_product',
+                    'party_master': 'res_partner',
+                    'organization_unit': 'res_company',
+                    'system_attachment': 'ir_attachment',
+                    'party_classification': 'res_partner_category',
+                }
+                legacy_tbl = SOVEREIGN_TABLE_LEGACY.get(model._table)
+                legacy_comodel_tbl = SOVEREIGN_TABLE_LEGACY.get(comodel._table)
+
                 if not self.column1:
-                    self.column1 = '%s_id' % model._table
+                    if legacy_tbl and legacy_tbl in (self.relation or ''):
+                        self.column1 = f'{legacy_tbl}_id'
+                    else:
+                        self.column1 = '%s_id' % model._table
                 if not self.column2:
-                    self.column2 = '%s_id' % comodel._table
+                    if legacy_comodel_tbl and legacy_comodel_tbl in (self.relation or ''):
+                        self.column2 = f'{legacy_comodel_tbl}_id'
+                    else:
+                        self.column2 = '%s_id' % comodel._table
             # check validity of table name
             check_pg_name(self.relation)
         else:

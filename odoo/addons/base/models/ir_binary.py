@@ -73,7 +73,7 @@ class IrBinary(models.AbstractModel):
         :param field_name: the binary field where to load the data
             from.
         """
-        if record._name == 'ir.attachment' and field_name in ('raw', 'db_datas'):
+        if record._name in ('ir.attachment', 'system.attachment') and field_name in ('raw', 'db_datas'):
             return record._to_http_stream()
 
         value = record[field_name]

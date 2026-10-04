@@ -345,7 +345,7 @@ class HTML_Editor(Controller):
                     res_model=args.get('model', 'ir.attachment'),
                     res_id=args.get('id'),
                 )
-                if record._name == 'ir.attachment':
+                if record._name in ('ir.attachment', 'system.attachment'):
                     return _extract_attachment_info(record)
 
         # Probably not a standard case, for example:

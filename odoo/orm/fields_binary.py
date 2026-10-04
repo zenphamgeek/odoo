@@ -409,7 +409,7 @@ class BinaryValueAttachment(BinaryValue):
     __slots__ = ('__attachment', '__checksum')
 
     def __init__(self, attachment: IrAttachment):
-        assert attachment.env.su and attachment._name == 'ir.attachment' and len(attachment) == 1
+        assert attachment.env.su and attachment._name in ('ir.attachment', 'system.attachment') and len(attachment) == 1
         self.__attachment = attachment
         self.__checksum = attachment.checksum
 

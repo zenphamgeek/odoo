@@ -13,10 +13,11 @@ from odoo.tools.sql import SQL
 
 
 class ProductProduct(models.Model):
-    _name = 'product.product'
+    _name = 'catalog.sku'
+    _table = 'catalog_sku'
     _description = "Product Variant"
     _explanation = "A specific variant of a product.template (e.g., T-Shirt in size Large and color Red). This is the actual item that is bought, sold, and tracked in inventory."
-    _inherits = {'product.template': 'product_tmpl_id'}
+    _inherits = {'catalog.item': 'product_tmpl_id'}
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'default_code, name, id'
     _clear_cache_name = 'default'
@@ -59,6 +60,8 @@ class ProductProduct(models.Model):
         string="Attribute Values",
         comodel_name='product.template.attribute.value',
         relation='product_variant_combination',
+        column1='product_product_id',
+        column2='product_template_attribute_value_id',
         ondelete='restrict',
         context={'display_attribute_name': False}
     )
@@ -66,6 +69,8 @@ class ProductProduct(models.Model):
         string="Attributes",
         comodel_name='product.template.attribute.value',
         relation='product_variant_combination',
+        column1='product_product_id',
+        column2='product_template_attribute_value_id',
         domain=[('attribute_line_id.value_count', '>', 1)],
         ondelete='restrict',
     )

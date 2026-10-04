@@ -23,7 +23,8 @@ async function main() {
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
-  const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
   const errors = [];
 
   page.on('console', msg => {
@@ -44,10 +45,18 @@ async function main() {
   try {
     // 1. Authenticate
     console.log('\n--- 1. Authenticating as Admin ---');
-    const authRes = await page.request.post('http://localhost:28069/web/session/authenticate', {
+    const authRes = await context.request.post('http://localhost:28069/web/session/authenticate', {
       data: { jsonrpc: '2.0', params: { db: 'odoo20_dev', login: 'admin', password: 'admin' } }
     });
     if (!authRes.ok()) throw new Error('Authentication failed');
+    const cookies = await context.cookies();
+    const sid = cookies.find(c => c.name === 'session_id' || c.name === 'insilos_session_id')?.value;
+    if (sid) {
+      await context.addCookies([
+        { name: 'session_id', value: sid, domain: 'localhost', path: '/' },
+        { name: 'insilos_session_id', value: sid, domain: 'localhost', path: '/' },
+      ]);
+    }
     console.log('✓ Successfully authenticated.');
 
     // 2. Visit /insilos
