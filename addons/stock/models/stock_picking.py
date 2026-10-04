@@ -16,7 +16,8 @@ from odoo.tools.misc import clean_context
 
 
 class StockPicking(models.Model):
-    _name = 'stock.picking'
+    _name = 'logistics.transfer'
+    _table = 'logistics_transfer'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = "Transfer"
     _explanation = "Represents a physical movement of goods, such as receiving a shipment, sending out a delivery, or moving stock internally within a warehouse. Contains multiple stock.move lines."
@@ -38,14 +39,14 @@ class StockPicking(models.Model):
     origin = fields.Char('Source Document', index='trigram')
     note = fields.Html('Notes')
     backorder_id = fields.Many2one(
-        'stock.picking', 'Back Order of',
+        'logistics.transfer', 'Back Order of',
         copy=False, index='btree_not_null', readonly=True,
         check_company=True,
         help="If this shipment was split, then this field links to the shipment which contains the already processed part.")
-    backorder_ids = fields.One2many('stock.picking', 'backorder_id', 'Back Orders')
-    return_id = fields.Many2one('stock.picking', 'Return of', copy=False, index='btree_not_null', readonly=True, check_company=True,
+    backorder_ids = fields.One2many('logistics.transfer', 'backorder_id', 'Back Orders')
+    return_id = fields.Many2one('logistics.transfer', 'Return of', copy=False, index='btree_not_null', readonly=True, check_company=True,
         help="If this picking was created as a return of another picking, this field links to the original picking.")
-    return_ids = fields.One2many('stock.picking', 'return_id', 'Returns')
+    return_ids = fields.One2many('logistics.transfer', 'return_id', 'Returns')
     return_count = fields.Integer('# Returns', compute='_compute_return_count', compute_sudo=False)
 
     move_type = fields.Selection([
@@ -94,7 +95,7 @@ class StockPicking(models.Model):
         'stock.location', "Destination Location",
         compute="_compute_location_dest_id", store=True, precompute=True, readonly=False, domain="[('usage','!=','view')]",
         check_company=True, required=True)
-    move_ids = fields.One2many('stock.move', 'picking_id', string="Stock Moves", domain=[('is_scrap', '=', False)], copy=True)
+    move_ids = fields.One2many('logistics.movement', 'picking_id', string="Stock Moves", domain=[('is_scrap', '=', False)], copy=True)
     has_scrap_move = fields.Boolean(
         'Has Scrap Moves', compute='_has_scrap_move')
     picking_type_id = fields.Many2one(

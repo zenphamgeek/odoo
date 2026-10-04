@@ -15,7 +15,8 @@ PROCUREMENT_PRIORITIES = [('0', 'Normal'), ('1', 'Urgent')]
 
 
 class StockMove(models.Model):
-    _name = 'stock.move'
+    _name = 'logistics.movement'
+    _table = 'logistics_movement'
     _description = "Stock Move"
     _explanation = "Represents a request or a completed action to move a specific quantity of a product from a source location to a destination location. These are the lines that make up a stock.picking."
     _inherit = ['product.catalog.line.mixin']
@@ -97,14 +98,14 @@ class StockMove(models.Model):
         compute='_compute_partner_id', store=True, readonly=False,
         index='btree_not_null')
     move_dest_ids = fields.Many2many(
-        'stock.move', 'stock_move_move_rel', 'move_orig_id', 'move_dest_id', 'Destination Moves',
+        'logistics.movement', 'stock_move_move_rel', 'move_orig_id', 'move_dest_id', 'Destination Moves',
         copy=False,
         help="Optional: next stock move when chaining them")
     move_orig_ids = fields.Many2many(
-        'stock.move', 'stock_move_move_rel', 'move_dest_id', 'move_orig_id', 'Original Move',
+        'logistics.movement', 'stock_move_move_rel', 'move_dest_id', 'move_orig_id', 'Original Move',
         copy=False,
         help="Optional: previous stock move when chaining them")
-    picking_id = fields.Many2one('stock.picking', 'Transfer', index=True, check_company=True)
+    picking_id = fields.Many2one('logistics.transfer', 'Transfer', index=True, check_company=True)
     state = fields.Selection([
         ('draft', 'New'),
         ('waiting', 'Waiting Another Move'),
@@ -154,9 +155,9 @@ class StockMove(models.Model):
     move_line_ids = fields.One2many('stock.move.line', 'move_id')
     package_ids = fields.One2many('stock.package', string='Packages', compute="_compute_package_ids")
     origin_returned_move_id = fields.Many2one(
-        'stock.move', 'Origin return move', copy=False, index=True,
+        'logistics.movement', 'Origin return move', copy=False, index=True,
         help='Move that created the return move', check_company=True)
-    returned_move_ids = fields.One2many('stock.move', 'origin_returned_move_id', 'All returned moves', help='Optional: all returned moves created from this move')
+    returned_move_ids = fields.One2many('logistics.movement', 'origin_returned_move_id', 'All returned moves', help='Optional: all returned moves created from this move')
     availability = fields.Float(
         'Forecasted Quantity', compute='_compute_product_availability',
         readonly=True, help='Quantity in stock that can still be reserved for this move')
