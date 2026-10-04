@@ -2,6 +2,7 @@
 ruleDirs:
   - rules/orm
   - rules/owl3
+  - rules/python
   - rules/qweb
 testConfigs:
   - testDir: rule-tests

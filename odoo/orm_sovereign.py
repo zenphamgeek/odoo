@@ -34,15 +34,31 @@ SOVEREIGN_MODEL_ALIASES: Dict[str, str] = {
     "enterprise.ui.menu": "ir.ui.menu",
     "enterprise.action": "ir.actions.act_window",
 
-    # Finance, Operations & Supply Chain
-    "enterprise.financial.entry": "account.move",
-    "enterprise.financial.line": "account.move.line",
-    "enterprise.sales.order": "sale.order",
-    "enterprise.purchase.order": "purchase.order",
-    "enterprise.inventory.item": "product.template",
-    "enterprise.production.order": "mrp.production",
-    "enterprise.bom": "mrp.bom",
-    "enterprise.employee": "hr.employee",
+    # Sovereign Cohorts 1-10: Master Data, Supply Chain & Finance (IBM Taxonomy)
+    "party.classification": "res.partner.category",
+    "system.attachment": "ir.attachment",
+    "organization.unit": "res.company",
+    "party.master": "res.partner",
+    "catalog.item": "product.template",
+    "catalog.sku": "product.product",
+    "procurement.order": "purchase.order",
+    "procurement.order.line": "purchase.order.line",
+    "order.header": "sale.order",
+    "order.line": "sale.order.line",
+    "logistics.transfer": "stock.picking",
+    "logistics.movement": "stock.move",
+    "manufacturing.order": "mrp.production",
+    "manufacturing.bom": "mrp.bom",
+    "finance.journal.entry": "account.move",
+    "finance.journal.line": "account.move.line",
+
+    # Sovereign Cohorts 11-12: Project Systems & Plant Maintenance
+    "ps.project.definition": "project.project",
+    "ps.wbs.element": "project.task",
+    "ps.project.milestone": "project.milestone",
+    "pm.technical.equipment": "maintenance.equipment",
+    "pm.maintenance.order": "maintenance.request",
+    "pm.maintenance.group": "maintenance.team",
 }
 
 # Reverse mapping for inspection & export

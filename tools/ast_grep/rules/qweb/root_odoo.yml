@@ -1,0 +1,7 @@
+id: insilos-qweb-root-odoo
+message: "Discovered legacy root tag <odoo> in QWeb / View XML. Refactor to <insilos>."
+severity: warning
+language: html
+rule:
+  pattern: <odoo> $$$CHILDREN </odoo>
+fix: <insilos> $$$CHILDREN </insilos>

@@ -1,0 +1,7 @@
+id: insilos-owl3-window-odoo
+message: "Discovered legacy 'window.odoo' reference in OWL 3 component or service."
+severity: warning
+language: javascript
+rule:
+  pattern: window.odoo
+fix: window.insilos

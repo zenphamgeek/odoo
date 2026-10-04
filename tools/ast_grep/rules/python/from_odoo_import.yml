@@ -1,0 +1,7 @@
+id: insilos-python-from-odoo-import
+message: "Discovered 'from odoo import ...' in Python module. Refactor to 'from insilos import ...'."
+severity: warning
+language: python
+rule:
+  pattern: from odoo import $$$MODULES
+fix: from insilos import $$$MODULES

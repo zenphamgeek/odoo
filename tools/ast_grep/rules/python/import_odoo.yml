@@ -1,0 +1,7 @@
+id: insilos-python-import-odoo
+message: "Discovered legacy 'import odoo' in Python module. Refactor to 'import insilos'."
+severity: warning
+language: python
+rule:
+  pattern: import odoo
+fix: import insilos
