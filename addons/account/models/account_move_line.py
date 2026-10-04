@@ -21,7 +21,8 @@ _ignore_tax_lock_date = object()
 
 
 class AccountMoveLine(models.Model):
-    _name = 'account.move.line'
+    _name = 'finance.journal.line'
+    _table = 'finance_journal_line'
     _inherit = [
         "analytic.mixin",
         "mail.track.mixin",
@@ -40,7 +41,7 @@ class AccountMoveLine(models.Model):
 
     # === Parent fields === #
     move_id = fields.Many2one(
-        comodel_name='account.move',
+        comodel_name='finance.journal.entry',
         string='Journal Entry',
         required=True,
         readonly=True,
