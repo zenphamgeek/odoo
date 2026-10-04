@@ -82,6 +82,8 @@ class _Relational(Field[BaseModel]):
 
     def setup_nonrelated(self, model):
         super().setup_nonrelated(model)
+        if hasattr(model.pool, 'SOVEREIGN_MODEL_ALIASES'):
+            self.comodel_name = model.pool.SOVEREIGN_MODEL_ALIASES.get(self.comodel_name, self.comodel_name)
         assert self.comodel_name in model.pool, \
             f"Field {self} with unknown comodel_name {self.comodel_name or '???'!r}"
 
@@ -128,8 +130,8 @@ class _Relational(Field[BaseModel]):
             field_to_check = None
             if self.company_dependent:
                 cids = '[allowed_company_ids[0]]'
-            elif self.model_name == 'res.company':
-                # when using check_company=True on a field on 'res.company', the
+            elif self.model_name in ('res.company', 'organization.unit'):
+                # when using check_company=True on a field on 'res.company'/'organization.unit', the
                 # company_id comes from the id of the current record
                 cids = '[id]'
             elif 'company_id' in env[self.model_name]:

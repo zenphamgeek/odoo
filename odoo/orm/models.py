@@ -3404,7 +3404,7 @@ class BaseModel(metaclass=MetaModel):
             # The first part of the check verifies that all records linked via relation fields are compatible
             # with the company of the origin document, i.e. `self.account_id.company_id == self.company_id`
             if regular_fields:
-                if self._name == 'res.company':
+                if self._name in ('res.company', 'organization.unit'):
                     companies = record
                 elif 'company_id' in self:
                     companies = record.company_id
@@ -3441,7 +3441,7 @@ class BaseModel(metaclass=MetaModel):
             record_msg = _lt("- “%(record)s” belongs to company “%(company)s” while “%(field)s” (%(fname)s: %(values)s) belongs to another company.")
             root_company_msg = _lt("- Only a root company can be set on “%(record)s”. Currently set to “%(company)s”")
             for record, name, corecords in inconsistencies[:5]:
-                if record._name == 'res.company':
+                if record._name in ('res.company', 'organization.unit'):
                     msg, companies = company_msg, record
                 elif record == corecords and name == 'company_id':
                     msg, companies = root_company_msg, record.company_id
