@@ -265,8 +265,9 @@ class ResPartnerCategory(models.Model):
 
 
 class ResPartner(models.Model):
-    _name = 'res.partner'
-    _description = 'Contact'
+    _name = 'party.master'
+    _table = 'party_master'
+    _description = 'Involved Party Master'
     _explanation = "Foundational model for all people and companies (customers, vendors, employees, etc.). Used for identifying individuals or organizations."
     _inherit = ['format.address.mixin', 'format.vat.label.mixin', 'avatar.mixin', 'properties.base.definition.mixin']
     _order = "complete_name ASC, id DESC"

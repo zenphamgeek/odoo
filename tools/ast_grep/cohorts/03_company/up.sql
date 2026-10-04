@@ -23,6 +23,33 @@ END $$;
 CREATE OR REPLACE VIEW res_company AS 
     SELECT * FROM organization_unit;
 
+-- 2.1 M2M Relation Updatable Views
+DO $$
+DECLARE
+    r RECORD;
+    v_new_table TEXT;
+    v_col1 TEXT;
+    v_col2 TEXT;
+BEGIN
+    FOR r IN 
+        SELECT table_name 
+        FROM information_schema.tables 
+        WHERE table_name LIKE '%res_company%rel%' AND table_type = 'BASE TABLE'
+    LOOP
+        v_new_table := replace(r.table_name, 'res_company', 'organization_unit');
+        SELECT column_name INTO v_col1 FROM information_schema.columns WHERE table_name = r.table_name ORDER BY ordinal_position LIMIT 1;
+        SELECT column_name INTO v_col2 FROM information_schema.columns WHERE table_name = r.table_name ORDER BY ordinal_position OFFSET 1 LIMIT 1;
+        
+        IF v_col1 = 'res_company_id' THEN
+            EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT res_company_id AS organization_unit_id, %I FROM %I', v_new_table, v_col2, r.table_name);
+        ELSIF v_col2 = 'res_company_id' THEN
+            EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT %I, res_company_id AS organization_unit_id FROM %I', v_new_table, v_col1, r.table_name);
+        ELSE
+            EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT * FROM %I', v_new_table, r.table_name);
+        END IF;
+    END LOOP;
+END $$;
+
 -- 3. Pre-Boot ORM Metamodel Injection
 UPDATE ir_model 
 SET model = 'organization.unit' 

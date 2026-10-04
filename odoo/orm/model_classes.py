@@ -299,7 +299,9 @@ def _init_model_class_attributes(model_cls: type[BaseModel]):
             model_cls._table = base._table or model_cls._table
             model_cls._log_access = getattr(base, '_log_access', model_cls._log_access)
 
-        inherits.update(base._inherits)
+        aliases = getattr(model_cls.pool, 'SOVEREIGN_MODEL_ALIASES', {})
+        for k, v in base._inherits.items():
+            inherits[aliases.get(k, k)] = v
 
         for mname, fnames in base._depends.items():
             depends.setdefault(mname, []).extend(fnames)
