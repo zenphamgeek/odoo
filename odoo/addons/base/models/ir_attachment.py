@@ -80,8 +80,9 @@ class IrAttachment(models.Model):
     The default implementation is the file:dirname location that stores files
     on the local filesystem using name based on their sha1 hash
     """
-    _name = 'ir.attachment'
-    _description = 'Attachment'
+    _name = 'system.attachment'
+    _table = 'system_attachment'
+    _description = 'System Attachment'
     _order = 'id desc'
     _access_domain_heavy = True
 
@@ -662,7 +663,7 @@ class IrAttachment(models.Model):
     @api.constrains('res_model', 'res_id')
     def _check_circular_attachment(self):
         for record in self.sudo():
-            if record.res_model == 'ir.attachment' and record.id == record.res_id:
+            if record.res_model in ('ir.attachment', 'system.attachment') and record.id == record.res_id:
                 raise ValidationError(_(
                     "You cannot attach an attachment to itself.\n"
                     "Attachment %(record)s cannot have res_id: %(res_id)s",

@@ -382,6 +382,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
 
     SOVEREIGN_MODEL_ALIASES = {
         'res.partner.category': 'party.classification',
+        'ir.attachment': 'system.attachment',
     }
 
     def __contains__(self, model_name: str) -> bool:

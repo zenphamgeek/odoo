@@ -177,8 +177,9 @@ def add_to_registry(registry: Registry, model_def: type[BaseModel]) -> type[Base
                         "please define models.Constraint on the model.")
 
     # all models except 'base' implicitly inherit from 'base'
-    name = model_def._name
-    parent_names = list(model_def._inherit)
+    aliases = getattr(registry, 'SOVEREIGN_MODEL_ALIASES', {})
+    name = aliases.get(model_def._name, model_def._name)
+    parent_names = [aliases.get(p, p) for p in model_def._inherit]
     if name != 'base':
         parent_names.append('base')
 
@@ -291,7 +292,8 @@ def _init_model_class_attributes(model_cls: type[BaseModel]):
     for base in reversed(model_cls._base_classes__):
         if is_model_definition(base):
             # the following attributes are not taken from registry classes
-            if model_cls._name not in base._inherit and not base._description:
+            inherit_targets = [getattr(model_cls.pool, 'SOVEREIGN_MODEL_ALIASES', {}).get(p, p) for p in base._inherit]
+            if model_cls._name not in inherit_targets and not base._description:
                 _logger.warning("The model %s has no _description", model_cls._name)
             model_cls._description = base._description or model_cls._description
             model_cls._table = base._table or model_cls._table
