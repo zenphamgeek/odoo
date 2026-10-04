@@ -1,0 +1,6 @@
+id: insilos-detect-owl-service-call
+message: "Discovered OWL service access in component or hook."
+severity: info
+language: javascript
+rule:
+  pattern: this.env.services.$SERVICE

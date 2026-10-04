@@ -1,0 +1,6 @@
+id: insilos-detect-orm-table-name
+message: "Discovered physical _table assignment in Python ORM class."
+severity: info
+language: python
+rule:
+  pattern: _table = $TABLE

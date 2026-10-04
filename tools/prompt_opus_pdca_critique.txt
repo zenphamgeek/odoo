@@ -1,0 +1,46 @@
+You are the Chief Enterprise Architect and Sovereign Hard Fork Auditor (Claude Opus 5.5 / 4.8).
+
+TASK: Adversarial Critique, Plan Calibration, and Tactical Refinement of the "Sovereign Sequential PDCA AST-Grep (No-Forbidden-Zone: OWL 3 -> QWeb -> ORM -> PostgreSQL Table Names)" Architecture for the Insilos Enterprise Platform v20.0.
+
+BACKGROUND & MANDATE:
+The user explicitly commands:
+"fleet_run dùng node Opus 5.5 để phản biện và hiệu chỉnh plan, sau đó bắt đầu tổ chức fleet chuyên gia để thực thi, luôn document lại"
+"Tôi từng thành công khi tuần tự PDCA AST Grep để sửa chữa khoanh vùng các Odoo code footprint mà không có vùng cấm từ OWL3, QWEB cho đến ORM , Table name."
+
+Previously, our team adopted a self-imposed defensive boundary ("Strict Database Schema Invariance") avoiding physical table renames and deep structural model alterations out of caution. The user has unlocked the true Hard Fork paradigm: NO FORBIDDEN ZONES across all 4 layers:
+1. Layer 1: Frontend OWL 3 (Component classes, hooks, registries, DOM class hooks)
+2. Layer 2: QWeb Architecture (XML views, XPath selectors, arch models, templates, XML IDs)
+3. Layer 3: Python ORM Core (_name, _table, _inherit, relational fields, RPC methods)
+4. Layer 4: PostgreSQL Physical Database Schema & Table Names (DDL table renames + Updatable Compatibility View Facade)
+
+DELIVERABLES REQUIRED:
+1. ADVERSARIAL CRITIQUE & PITFALL ANALYSIS:
+   - What are the subtle failure modes when renaming physical tables (e.g. `res_partner` -> `insilos_partner`) even with PostgreSQL Updatable Views?
+   - Analyze:
+     a) PostgreSQL Sequences and default values (e.g., `nextval('res_partner_id_seq')` vs new sequence name)
+     b) Foreign Key constraints in PostgreSQL: when Table A renames to Table B, foreign keys from other tables automatically follow the OID, BUT raw DDL and new module migrations might expect specific constraint names!
+     c) ORM System Metadata Tables: `ir_model` (`model = 'res.partner'`), `ir_model_fields`, `ir_model_data` (`res_id`, `model`), `ir_ui_view`. How does the Insilos ORM registry resolve models if `_name` changes? (Hint: Model Aliasing vs Database Migration).
+     d) Dynamic QWeb XPath inheritance: if a sub-module does `<xpath expr="//field[@name='foo']">` or uses XML IDs from `base`, how do we prevent xpath breakage?
+     e) OWL 3 service dependencies: event bus notifications, websockets, and JS registries.
+
+2. PLAN CALIBRATION & REFINEMENT (THE SOVEREIGN DUAL-VIEW SPECIFICATION):
+   - Provide the exact, hardened SQL pattern for PostgreSQL Table Renaming:
+     * DDL Table rename + Sequence rename
+     * CREATE OR REPLACE VIEW legacy_name AS SELECT * FROM sovereign_name
+     * Trigger / RULE requirements for PostgreSQL updatable views
+     * Handling of indexes and primary keys
+   - Calibrate the Topological Order of Operations in the PDCA cycle:
+     Should DB Views come before ORM, or should ORM support Dual-Name aliasing first?
+
+3. SELECTION & BLUEPRINT FOR COHORT 1 (FIRST BOUNDED EXPERIMENTAL TRIAL):
+   - Recommend the ideal Cohort 1 candidate. Why?
+     Candidate A: `ir.attachment` / `ir_attachment` (High volume, simple schema, foundational to all documents/images)
+     Candidate B: `res.partner.category` / `res_partner_category` (Tags, lightweight, zero risk to auth)
+     Candidate C: `res.partner` / `res_partner` (The flagship Business Partner)
+   - For the recommended Cohort 1, provide:
+     * Exact AST-Grep rule definitions (`rules/orm/*.yml`, `rules/qweb/*.yml`, `rules/owl3/*.yml`)
+     * SQL migration script with Updatable View
+     * Reversible Rollback SQL script
+     * Automated Check criteria for the PDCA loop
+
+Provide deep, production-grade, hardened technical instructions. Zero fluff.

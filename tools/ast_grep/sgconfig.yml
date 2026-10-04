@@ -1,0 +1,9 @@
+# ast-grep configuration for Insilos Sovereign Refactoring Engine
+ruleDirs:
+  - rules/orm
+  - rules/owl3
+  - rules/qweb
+testConfigs:
+  - testDir: rule-tests
+utilDirs:
+  - utils

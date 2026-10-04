@@ -1,0 +1,6 @@
+id: insilos-detect-orm-model-name
+message: "Discovered model _name assignment in Python ORM class."
+severity: info
+language: python
+rule:
+  pattern: _name = $NAME
