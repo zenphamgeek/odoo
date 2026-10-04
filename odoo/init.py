@@ -50,11 +50,17 @@ odoo._lt = _lt
 odoo.Command = Command
 
 # ----------------------------------------------------------
-# Insilos PEP 451 adapter bridge
+# Insilos PEP 451 adapter bridge & Sovereign ORM Facade
 # ----------------------------------------------------------
 try:
     from insilos_adapter import hook as _insilos_hook
     _insilos_hook.install()
+except Exception:
+    pass
+
+try:
+    from .orm_sovereign import patch_orm_sovereign as _patch_orm_sovereign
+    _patch_orm_sovereign()
 except Exception:
     pass
 

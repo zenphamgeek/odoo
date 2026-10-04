@@ -208,9 +208,9 @@ async function runLiveDomAudit(port = 28069) {
   ]);
 
   const page = await context.newPage();
-  log('Navigating to Insilos App Launcher (/insilos)...', 'INFO');
-  await page.goto(`http://localhost:${port}/insilos`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(2000);
+  await page.goto(`http://localhost:${port}/insilos`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('.o_app', { timeout: 20000 });
+  await page.waitForTimeout(1000);
 
   // Extract all app launcher elements from DOM
   const appElements = await page.evaluate(() => {

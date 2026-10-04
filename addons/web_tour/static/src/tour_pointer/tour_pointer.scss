@@ -1,106 +1,106 @@
-@keyframes o-tour-pointer-bounce-left {
-    from {
-        transform: translateX(calc(var(--TourPointer__bounce-offset) * 1)) scaleX(var(--TourPointer__scale)) rotate(135deg);
-    }
-    to {
-        transform: translateX(calc(var(--TourPointer__bounce-offset) * -1)) scaleX(var(--TourPointer__scale)) rotate(135deg);
-    }
-}
-
-@keyframes o-tour-pointer-bounce-right {
-    from {
-        transform: translateX(calc(var(--TourPointer__bounce-offset) * 1)) scaleX(var(--TourPointer__scale)) rotate(315deg);
-    }
-    to {
-        transform: translateX(calc(var(--TourPointer__bounce-offset) * -1)) scaleX(var(--TourPointer__scale)) rotate(315deg);
-    }
-}
-
-@keyframes o-tour-pointer-bounce-top {
-    from {
-        transform: translateY(calc(var(--TourPointer__bounce-offset) * -1)) scaleY(var(--TourPointer__scale)) rotate(225deg);
-    }
-    to {
-        transform: translateY(var(--TourPointer__bounce-offset)) scaleY(var(--TourPointer__scale)) rotate(225deg);
-    }
-}
-
-@keyframes o-tour-pointer-bounce-bottom {
-    from {
-        transform:
-            translateY(calc(var(--TourPointer__bounce-offset) * -1)) scaleY(var(--TourPointer__scale)) rotate(45deg);
-    }
-    to {
-        transform:
-            translateY(var(--TourPointer__bounce-offset)) scaleY(var(--TourPointer__scale)) rotate(45deg);
-    }
-}
+// =============================================================================
+// Insilos Enterprise Platform v20.0 — Tour Pointer
+// Beacon / Pulse Ring design — zero teardrop, zero rotation distortion.
+// Directional arrow pseudo-elements are fully suppressed.
+// Pointer is hidden on all app-launcher views by default.
+// =============================================================================
 
 .o_tour_pointer {
-    --TourPointer__anchor-space: 0;
-    --TourPointer__bounce-offset: 3px;
-    --TourPointer__offset: 8px;
-    --TourPointer__scale: 1.12;
-    --TourPointer__color: #{$o-enterprise-color};
-    --TourPointer__color-accent: #{lighten($o-enterprise-color, 7%)};
-    --TourPointer__border-width: 1px;
-    --TourPointer__border-color-rgb: 255, 255, 255;
-    --TourPointer__border-color: rgba(var(--TourPointer__border-color-rgb), 1);
-    --TourPointer__arrow-size: 1rem;
-    --TourPointer__animation-duration: 500ms;
-    --TourPointer__expand-duration: 200ms;
-    --TourPointer__text-color: black;
-    --TourPointer__reveal-animation: o-tour-pointer-fade-in 400ms ease;
+    --TourPointer__width: 28px;
+    --TourPointer__height: 28px;
+    --TourPointer__border-width: 2px;
+    --TourPointer__pulse-size: 44px;
 
-    --TourPointer__translate-x: 0;
-    --TourPointer__translate-y: 0;
-    
-    max-width: 270px;
-    border: var(--TourPointer__border-width) solid transparent;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1070;
 
+    // ─── Core beacon ────────────────────────────────────────────────────────
     .o_tour_pointer_tip {
         width: var(--TourPointer__width);
         height: var(--TourPointer__height);
         border: var(--TourPointer__border-width) solid #ffffff;
-        border-radius: 50% !important; /* Eliminates legacy Odoo teardrop footprint (was 0 50% 50% 50%) */
+        border-radius: 50% !important;
         background-image: radial-gradient(
             #00F0FF,
             #0B2E64
         ) !important;
         box-shadow: 0 0 14px 2px rgba(0, 240, 255, 0.5) !important;
+        animation: o_tour_pointer_tip_animation 1s ease-in-out infinite !important;
 
-        &.o_left {
-            animation: o-tour-pointer-bounce-left var(--TourPointer__animation-duration) ease-in infinite alternate,
-                var(--TourPointer__reveal-animation);
+        // Neutralise any inherited shape distortions from Odoo base.
+        clip-path: none !important;
+        transform: none !important;
+        border-top-left-radius: 50% !important;
+        border-top-right-radius: 50% !important;
+        border-bottom-left-radius: 50% !important;
+        border-bottom-right-radius: 50% !important;
+
+        // Suppress the legacy teardrop ::before / ::after on the tip itself
+        &::before,
+        &::after {
+            display: none !important;
+            content: none !important;
         }
 
-        &.o_right {
-            animation: o-tour-pointer-bounce-right var(--TourPointer__animation-duration) ease-in infinite alternate,
-                var(--TourPointer__reveal-animation);
-        }
-
-        &.o_top {
-            animation: o-tour-pointer-bounce-top var(--TourPointer__animation-duration) ease-in infinite alternate,
-                var(--TourPointer__reveal-animation);
-        }
-
-        &.o_bottom {
-            animation: o-tour-pointer-bounce-bottom var(--TourPointer__animation-duration) ease-in infinite alternate,
-                var(--TourPointer__reveal-animation);
+        &.o_animated {
+            animation: o_tour_pointer_tip_animation 1s ease-in-out infinite;
         }
     }
-    
+
+    // ─── Outer ripple ring ───────────────────────────────────────────────────
+    .o_tour_pointer_overlay {
+        position: absolute;
+        width: var(--TourPointer__pulse-size);
+        height: var(--TourPointer__pulse-size);
+        border-radius: 50%;
+        background: transparent;
+        border: 2px solid rgba(0, 240, 255, 0.6);
+        animation: o_tour_pointer_overlay_animation 1.5s ease-out infinite !important;
+        opacity: 0;
+
+        // Suppress any legacy arrow shapes
+        &::before,
+        &::after {
+            display: none !important;
+            content: none !important;
+        }
+    }
+
+    // ─── Suppress teardrop arrow pseudo-elements on the wrapper ─────────────
+    &::before,
+    &::after,
+    &.o_tour_pointer_right::before,
+    &.o_tour_pointer_right::after,
+    &.o_tour_pointer_left::before,
+    &.o_tour_pointer_left::after,
+    &.o_tour_pointer_top::before,
+    &.o_tour_pointer_top::after,
+    &.o_tour_pointer_bottom::before,
+    &.o_tour_pointer_bottom::after {
+        display: none !important;
+        content: none !important;
+    }
+
+    // ─── Directional variants — beacon only, no arrows ──────────────────────
+    &.o_tour_pointer_right,
+    &.o_tour_pointer_left,
+    &.o_tour_pointer_top,
+    &.o_tour_pointer_bottom {
+        // No extra styles — beacon and ring are sufficient for all directions.
+    }
+
     .o_tour_pointer_content {
-        transition: color 0s ease var(--TourPointer__expand-duration);
-        line-height: $line-height-base;
-        @include font-size($font-size-base);
-        font-family: $font-family-sans-serif;
+        line-height: 1.4;
+        font-family: inherit;
         font-weight: normal;
     }
 
     .o_tour_dropzone {
-        border: 3px dashed #004455;
-        background: rgba(0, 68, 85, 0.2);
+        border: 3px dashed #00F0FF;
+        background: rgba(0, 240, 255, 0.15);
         position: fixed;
     }
 }
@@ -114,4 +114,47 @@
     .o_tour_anchor, .o_tour_pointer {
         display: none !important;
     }
+}
+
+// =============================================================================
+// App Launcher suppression
+// Hide the tour pointer completely on the home menu and all app-launcher
+// contexts so it can never appear over app icon cards.
+// =============================================================================
+
+.o_home_menu,
+.o_apps_menu,
+.o_app_switcher,
+.o_main_navbar ~ .o_action_manager .o_home_menu,
+.o_web_client > .o_action_manager > .o_view_controller.o_home_menu {
+    .o_tour_pointer {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        opacity: 0 !important;
+    }
+}
+
+// =============================================================================
+// Keyframes — pure scale pulse, zero rotation
+// =============================================================================
+
+@keyframes o_tour_pointer_tip_animation {
+    0%   {
+        transform: scale(1);
+        box-shadow: 0 0 14px 2px rgba(0, 240, 255, 0.5);
+    }
+    50%  {
+        transform: scale(1.12);
+        box-shadow: 0 0 22px 6px rgba(0, 240, 255, 0.8);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 14px 2px rgba(0, 240, 255, 0.5);
+    }
+}
+
+@keyframes o_tour_pointer_overlay_animation {
+    0%   { transform: scale(0.6); opacity: 0.7; }
+    100% { transform: scale(1.4); opacity: 0;   }
 }

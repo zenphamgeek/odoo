@@ -1,6 +1,21 @@
 #!/usr/bin/env python3
-import importlib
+# -*- coding: utf-8 -*-
+"""Insilos Enterprise Platform v20.0 Sovereign Launcher."""
+import sys
+import os
+
+# Ensure current directory is on sys.path
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+if CURRENT_DIR not in sys.path:
+    sys.path.insert(0, CURRENT_DIR)
+
+# Initialize Python Import Virtualization Hook BEFORE any imports
+try:
+    from insilos_adapter.hook import install as install_insilos_hook
+    install_insilos_hook()
+except Exception as _e:
+    sys.stderr.write(f"[WARN] Insilos Hook Bootstrap Warning: {_e}\n")
 
 if __name__ == "__main__":
-    cli = importlib.import_module("".join(["o", "d", "o", "o", ".cli"]))
-    cli.main()
+    import insilos.cli
+    insilos.cli.main()

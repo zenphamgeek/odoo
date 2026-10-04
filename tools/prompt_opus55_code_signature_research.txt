@@ -1,0 +1,81 @@
+# BÁO CÁO NGHIÊN CỨU KIẾN TRÚC: GIẢI PHÁP TRIỆT TIÊU TOÀN DIỆN ODOO FOOTPRINTS & CODE SIGNATURES (INSILOS ENTERPRISE PLATFORM v20.0)
+
+## 1. BỐI CẢNH & HÀNG RÀO BẤT BIẾN (INVARIANTS)
+Bạn là **Chief Enterprise Software Architect** thuộc Hội đồng Kiến trúc Cấp cao Insilos (Insilos Hard Fork Council).
+Nền tảng Insilos Enterprise Platform v20.0 là một hard fork độc lập từ Odoo 20 Enterprise (hơn 700 modules, cơ sở dữ liệu PostgreSQL `odoo20_dev` và production Kubernetes).
+Hệ thống đã chuẩn hóa thành công UI/UX, branding logo, màu sắc IBM Carbon 11 / SAP Fiori Horizon, Telegram capsule discuss composer, và bộ launcher Phosphor Duotone.
+
+TUY NHIÊN, khi soi chiếu sâu vào mã nguồn (Code Signature) và hạ tầng kỹ thuật (Runtime Footprints), hệ thống vẫn còn tồn tại các "dấu chân" di sản (Legacy Odoo Footprints) ở 5 tầng kiến trúc cốt lõi.
+
+### HÀNG RÀO BẤT BIẾN BẮT BUỘC (HARD CONSTRAINTS):
+1. **STRICT DATABASE SCHEMA INVARIANCE**: Tuyệt đối KHÔNG thay đổi tên bảng PostgreSQL (`res_partner`, `res_users`, `ir_model`, `ir_ui_view`, `bus_presence`...), KHÔNG đổi tên cột, KHÔNG sửa đổi quan hệ khóa ngoại, KHÔNG chạy DDL migration làm đột biến cấu trúc DB trên production.
+2. **100% BACKWARD COMPATIBILITY**: 700+ modules đã cài đặt, các API bên ngoài, bộ test HOOT / CEW 10-Gate phải tiếp tục hoạt động hoàn hảo, zero runtime crashes.
+3. **ZERO PERFORMANCE REGRESSION**: Không tạo thêm nút thắt cổ chai về độ trễ RPC (< 1ms overhead) hay thời gian biên dịch tài nguyên web.
+
+---
+
+## 2. PHÂN TÍCH 5 TẦNG FOOTPRINTS & YÊU CẦU NGHIÊN CỨU TỪ OPUS 5.5
+
+### TẦNG 1: PYTHON RUNTIME & IMPORT HOOK VIRTUALIZATION
+- **Thực trạng**: Các file Python trong 700+ modules vẫn chứa `import odoo`, `from odoo import api, fields, models, _`. Thư mục mã nguồn gốc tên là `odoo/`.
+- **Yêu cầu giải pháp**:
+  * Thiết kế cơ chế PEP 451 `sys.meta_path` MetaPathFinder & Loader hai chiều (`insilos_adapter/hook.py` hoặc `insilos/boot/import_hook.py`) để các lập trình viên và module mới có thể viết hoàn toàn:
+    ```python
+    import insilos
+    from insilos import api, fields, models, _
+    from insilos.addons import crm, account
+    ```
+  * Cơ chế bảo đảm Object Identity (`sys.modules['insilos'] is sys.modules['odoo']`, `insilos.models.Model is odoo.models.Model`).
+  * Xử lý trường hợp monkeypatching, inspect module name, và logging namespaces.
+  * Cung cấp code Python hoàn chỉnh, sẵn sàng tích hợp vào `odoo/init.py` và `insilos-bin`.
+
+### TẦNG 2: FRONTEND JAVASCRIPT / OWL & CSS CLASS ABSTRACTION
+- **Thực trạng**:
+  * Các biến toàn cục trình duyệt: `window.odoo`, `odoo.define()`, `odoo.loader`, `odoo.__DEBUG__`.
+  * Hàng nghìn class CSS prefix `.o_*` (`.o_web_client`, `.o_action_manager`, `.o_form_view`, `.o_list_view`, `.o_control_panel`).
+  * Tên bundle assets: `web.assets_backend`, `web.assets_frontend`.
+- **Yêu cầu giải pháp**:
+  * Thiết kế JavaScript ES6 Proxy hai chiều (`addons/web/static/src/core/insilos_bridge.js`):
+    - Khởi tạo `window.insilos = new Proxy(window.odoo, ...)` với đầy đủ traps: `get`, `set`, `has`, `ownKeys`, `getOwnPropertyDescriptor`.
+    - Hỗ trợ `insilos.define(...)` song song với `odoo.define(...)`.
+  * Giải bài toán nan giải về CSS `.o_*`: Có nên đổi tên hàng loạt class `.o_*` sang `.ins_*` trong 700+ QWeb templates không? Rủi ro phá vỡ cascade SCSS và OWL component selectors là bao nhiêu? Giải pháp thay thế tối ưu: Sử dụng CSS Custom Properties (Tokens) kết hợp Sovereign Container Wrappers và Theme Encapsulation như thế nào?
+  * Cung cấp mã nguồn JS ES6 Proxy hoàn chỉnh có JSDoc, xử lý mọi edge cases.
+
+### TẦNG 3: HTTP ROUTING, WSGI & NETWORK PERIMETER GATEWAY
+- **Thực trạng**:
+  * URLs: `/odoo`, `/odoo/*`, `/web/dataset/call_kw`, `/web/login`, `/web/tests`.
+  * Session cookie: `session_id` truyền thống.
+  * Headers phản hồi HTTP.
+- **Yêu cầu giải pháp**:
+  * Thiết kế WSGI Sovereign Middleware (`odoo/http_sovereign.py` hoặc Router Rewriter):
+    - Ánh xạ transparent nội bộ giữa `/insilos/*` và `/odoo/*` (ví dụ `/insilos/web/dataset/call_kw` -> `/web/dataset/call_kw`) với zero external 301/302 redirects.
+    - Cơ chế đồng bộ kép Dual-Session Cookie (`insilos_session_id` và `session_id`): Client gửi cookie nào server cũng nhận diện phiên đăng nhập chính xác, và Set-Cookie trả về đồng thời cả hai.
+    - Cấu hình Header chuẩn Sovereign: `Server: Insilos Platform 20.0`, `X-Insilos-Platform: Enterprise`.
+  * Cung cấp mã nguồn Python WSGI Middleware hoàn chỉnh.
+
+### TẦNG 4: ORM MODEL REGISTRY & METADATA VIRTUALIZATION (DƯỚI NGUYÊN TẮC SCHEMA BẤT BIẾN)
+- **Thực trạng**:
+  * Tên kỹ thuật của model: `res.partner`, `res.users`, `ir.model`, `ir.ui.view`.
+  * Trong Python: `self.env['res.partner']`.
+  * Tên bảng vật lý trong DB: `res_partner`, `res_users` (KHÔNG ĐƯỢC PHÉP ĐỔI).
+- **Yêu cầu giải pháp**:
+  * Thiết kế Sovereign Model Registry Alias Facade trong `odoo/api.py` / `odoo/models.py`:
+    - Cho phép tra cứu mô hình qua cả tên danh pháp chuẩn SAP / Insilos lẫn tên gốc:
+      `self.env['enterprise.business_partner']` hoặc `self.env['insilos.business_partner']` trỏ thẳng tới `self.env['res.partner']`.
+    - Hoàn toàn KHÔNG tạo bảng mới trong PostgreSQL, KHÔNG đổi tên bảng DB.
+    - Cơ chế sanitize JSON-RPC exceptions và metadata introspection để không làm lộ stack trace hay tên genesis trong client response.
+  * Cung cấp mã nguồn Python Model Registry patch hoàn chỉnh.
+
+### TẦNG 5: TOOLING, PACKAGING, BUILD & HẠ TẦNG HỆ THỐNG
+- **Thực trạng**: CLI, packaging, systemd, docker compose, k8s manifests.
+- **Yêu cầu giải pháp**:
+  * Cấu trúc `pyproject.toml` chuẩn hóa gói `insilos-enterprise` v20.0.0.
+  * Hardened systemd unit file `insilos-enterprise.service`.
+  * Bản đồ rủi ro (Risk Matrix) gồm 16+ rủi ro kèm thang điểm L*I và biện pháp giảm thiểu.
+  * Lộ trình 3 giai đoạn chuyển đổi (Roadmap: Phase 1 Shims -> Phase 2 Dual-Homed -> Phase 3 Sovereign).
+
+---
+
+## 3. ĐỊNH DẠNG ĐẦU RA YÊU CẦU
+- Báo cáo kiến trúc chuyên sâu bằng tiếng Việt chuẩn Enterprise / SAP / Tech Executive.
+- Code blocks đầy đủ, chi tiết, không dùng code cắt xén (no ellipsis `...`), có thể copy/áp dụng ngay vào production codebase.

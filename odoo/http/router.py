@@ -341,7 +341,8 @@ class Application:
                 request_var.reset(request_reset)
 
 
-root = Application()
+from ..http_sovereign import apply_wsgi_sovereign_middleware
+root = apply_wsgi_sovereign_middleware(Application())
 
 
 def serve_static(request: Request) -> Response:
