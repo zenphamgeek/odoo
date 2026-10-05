@@ -1,7 +1,9 @@
-import { models } from "@web/../tests/web_test_helpers";
+import { fields, models } from "@web/../tests/web_test_helpers";
 
 export class MailNotification extends models.ServerModel {
     _name = "mail.notification";
+
+    res_partner_id = fields.Many2one({ relation: "res.partner" });
 
     /** @param {number[]} ids */
     _filtered_for_web_client(ids) {

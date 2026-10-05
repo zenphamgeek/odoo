@@ -127,7 +127,7 @@ class InsilosWSGIMiddleware:
                 sanitized_headers.append((header, value))
 
             # Enforce Sovereign Identity Headers
-            sanitized_headers.append(("Server", "Insilos Platform 20.0"))
+            sanitized_headers.append(("Server", "insilos/20.0"))
             sanitized_headers.append(("X-Insilos-Platform", "Enterprise"))
             sanitized_headers.append(("X-Content-Type-Options", "nosniff"))
             sanitized_headers.extend(extra_headers)

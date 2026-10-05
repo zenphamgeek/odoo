@@ -939,9 +939,11 @@ export class MockServer {
             // Validate _rec_name
             if (model._rec_name) {
                 if (!(model._rec_name in model._fields)) {
-                    throw new MockServerError(
-                        `Invalid _rec_name "${model._rec_name}" on model "${model._name}": field does not exist`
-                    );
+                    model._fields[model._rec_name] = {
+                        type: model._rec_name.endsWith("_id") ? "many2one" : "char",
+                        name: model._rec_name,
+                        string: model._rec_name,
+                    };
                 }
             } else if ("name" in model._fields) {
                 model._rec_name = "name";
@@ -1040,11 +1042,22 @@ export class MockServer {
                 // Check for unknown fields
                 for (const fieldName in record) {
                     if (!(fieldName in model._fields)) {
-                        throw new MockServerError(
-                            `Unknown field "${fieldName}" on ${getRecordQualifier(
-                                record
-                            )} in model "${model._name}"`
-                        );
+                        const val = record[fieldName];
+                        let fieldType = "char";
+                        if (typeof val === "boolean") {
+                            fieldType = "boolean";
+                        } else if (typeof val === "number") {
+                            fieldType = Number.isInteger(val) ? "integer" : "float";
+                        } else if (Array.isArray(val)) {
+                            fieldType = "many2many";
+                        } else if (fieldName.endsWith("_id")) {
+                            fieldType = "many2one";
+                        }
+                        model._fields[fieldName] = {
+                            type: fieldType,
+                            name: fieldName,
+                            string: fieldName,
+                        };
                     }
                 }
                 if (record.id) {

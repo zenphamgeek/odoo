@@ -20,7 +20,7 @@ const http = require('http');
 const https = require('https');
 
 const SERVER_BASE = process.env.HOOT_SERVER_URL || 'http://localhost:28069';
-const DB_NAME = process.env.HOOT_DB || 'odoo20_dev';
+const DB_NAME = process.env.HOOT_DB || 'insilos20_dev';
 const AUTH_LOGIN = process.env.HOOT_LOGIN || 'admin';
 const AUTH_PASSWORD = process.env.HOOT_PASSWORD || 'admin';
 

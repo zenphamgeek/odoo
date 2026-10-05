@@ -5,6 +5,9 @@ import { ServerModel } from "../mock_model";
 export class ResCompany extends ServerModel {
     _name = "res.company";
 
+    name = fields.Char();
+    active = fields.Boolean({ default: true });
+    partner_id = fields.Many2one({ relation: "res.partner" });
     description = fields.Text();
 
     _records = serverState.companies.map((company) => ({

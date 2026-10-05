@@ -1,8 +1,19 @@
 import { serverState } from "../../mock_server_state.hoot";
+import * as fields from "../mock_fields";
 import { ServerModel } from "../mock_model";
 
 export class ResUsers extends ServerModel {
     _name = "res.users";
+
+    name = fields.Char({ related: "partner_id.name" });
+    active = fields.Boolean({ default: true });
+    company_id = fields.Many2one({ relation: "res.company" });
+    company_ids = fields.Many2many({ relation: "res.company" });
+    login = fields.Char();
+    partner_id = fields.Many2one({ relation: "res.partner" });
+    password = fields.Char();
+    share = fields.Boolean({ default: false });
+    groups_id = fields.Many2many({ relation: "res.groups" });
 
     _records = [
         {
