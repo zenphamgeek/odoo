@@ -177,7 +177,7 @@ def provision_tenant(subdomain, company_name=None, dbname=None, template_db=None
     UPDATE res_company SET name = '{company_name}' WHERE id = 1;
     UPDATE res_partner SET name = '{company_name}' WHERE id = (SELECT partner_id FROM res_company WHERE id = 1);
     UPDATE res_users SET password = '{hashed_pw}' WHERE login = 'admin';
-    DELETE FROM ir_attachment WHERE name LIKE '%assets_%';
+    DELETE FROM ir_attachment WHERE name LIKE '%assets%' OR url LIKE '%assets%';
     """
     run_cmd(f"kubectl -n {DB_NAMESPACE} exec -i {PG_POD} -- psql -U {DB_USER} -d {target_db} -c \"{tailor_sql}\"")
     print(f"  ✅ Company set to '{company_name}' and password hash updated for 'admin'")
