@@ -243,11 +243,13 @@ class ProductTemplate(models.Model):
     @api.constrains('uom_id')
     def _check_uom_not_in_invoice(self):
         self.env['product.template'].flush_model(['uom_id'])
-        self.env.cr.execute("""
+        tmpl_table = self.env['product.template']._table
+        prod_table = self.env['product.product']._table
+        self.env.cr.execute(f"""
             SELECT prod_template.id
               FROM account_move_line line
-              JOIN product_product prod_variant ON line.product_id = prod_variant.id
-              JOIN product_template prod_template ON prod_variant.product_tmpl_id = prod_template.id
+              JOIN {prod_table} prod_variant ON line.product_id = prod_variant.id
+              JOIN {tmpl_table} prod_template ON prod_variant.product_tmpl_id = prod_template.id
               JOIN uom_uom template_uom ON prod_template.uom_id = template_uom.id
               JOIN uom_uom line_uom ON line.product_uom_id = line_uom.id
              WHERE prod_template.id IN %s

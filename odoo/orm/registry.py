@@ -398,6 +398,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
         'account.move': 'finance.journal.entry',
         'account.move.line': 'finance.journal.line',
     }
+    REVERSE_MODEL_ALIASES = {v: k for k, v in SOVEREIGN_MODEL_ALIASES.items()}
 
     def __contains__(self, model_name: str) -> bool:
         return (
@@ -405,6 +406,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
             or model_name == 'ir.rule'
             or (model_name == 'hr.leave.type' and 'hr.work.entry.type' in self.models)
             or (model_name in self.SOVEREIGN_MODEL_ALIASES and self.SOVEREIGN_MODEL_ALIASES[model_name] in self.models)
+            or (model_name in self.REVERSE_MODEL_ALIASES and self.REVERSE_MODEL_ALIASES[model_name] in self.models)
         )
 
     def __getitem__(self, model_name: str) -> type[BaseModel]:
@@ -415,6 +417,10 @@ class Registry(Mapping[str, type["BaseModel"]]):
             return self.models['hr.work.entry.type']
         if model_name in self.SOVEREIGN_MODEL_ALIASES and model_name not in self.models:
             target = self.SOVEREIGN_MODEL_ALIASES[model_name]
+            if target in self.models:
+                return self.models[target]
+        if model_name in self.REVERSE_MODEL_ALIASES and model_name not in self.models:
+            target = self.REVERSE_MODEL_ALIASES[model_name]
             if target in self.models:
                 return self.models[target]
         return self.models[model_name]

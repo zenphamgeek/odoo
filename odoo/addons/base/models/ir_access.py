@@ -345,6 +345,12 @@ class IrAccess(models.Model):
                 _logger.debug("_get_all_access: failed to evaluate domain", exc_info=True)
             info = AccessInfo(access.id, access.group_id.id, access.operation, domain)
             result[model_name].append(info)
+            sovereign_alias = getattr(self.env.registry, 'SOVEREIGN_MODEL_ALIASES', {}).get(model_name)
+            if sovereign_alias and sovereign_alias in self.env.registry:
+                result[sovereign_alias].append(info)
+            reverse_alias = getattr(self.env.registry, 'REVERSE_MODEL_ALIASES', {}).get(model_name)
+            if reverse_alias and reverse_alias in self.env.registry:
+                result[reverse_alias].append(info)
 
         return frozendict({model_name: tuple(infos) for model_name, infos in result.items()})
 

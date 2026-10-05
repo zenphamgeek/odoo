@@ -3652,8 +3652,15 @@ class BaseModel(metaclass=MetaModel):
         # include False in user groups to catch global rules
         group_ids = {*self.env.user._get_group_ids(), False}
         # some domains have been pre-evaluated, evaluate only if needed
+        model_access = IrAccess._get_all_access().get(self._name, ())
+        if not model_access:
+            aliases = getattr(self.pool, 'SOVEREIGN_MODEL_ALIASES', {})
+            rev_aliases = getattr(self.pool, 'REVERSE_MODEL_ALIASES', {})
+            alt_name = aliases.get(self._name) or rev_aliases.get(self._name)
+            if alt_name:
+                model_access = IrAccess._get_all_access().get(alt_name, ())
         eval_context = None
-        for access in IrAccess._get_all_access().get(self._name, ()):
+        for access in model_access:
             if access.operation in operations and access.group_id in group_ids:
                 domain = access.domain
                 if not isinstance(domain, Domain):
