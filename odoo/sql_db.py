@@ -288,7 +288,7 @@ class Cursor(_CursorProtocol):
             self.__caller = None
         self._closed = False   # real initialization value
 
-        if os.getenv('ODOO_FAKETIME_TEST_MODE') and self.dbname in tools.config['db_name']:
+        if os.getenv('ODOO_FAKETIME_TEST_MODE') and self.dbname in tools.config.db_names:
             self._obj.execute("SET SESSION search_path = public, pg_catalog;")
             self._cnx.commit()  # ensure that the search_path remains after a rollback
 
@@ -542,7 +542,7 @@ class Cursor(_CursorProtocol):
         keep_in_pool = not self._cnx.closed and self.dbname not in (
             'template0', 'template1',
             # keep open if one of preloaded databases
-            config['db_system'] if config['db_system'] not in config['db_name'] else '',
+            config['db_system'] if config['db_system'] not in config.db_names else '',
             config['db_template'],
         )
         self._cnx.give_back(keep_in_pool=keep_in_pool)

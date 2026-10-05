@@ -111,7 +111,7 @@ def empty_pipe(fd):
 
 def cron_database_list():
     from ..modules.db import list_dbs  # noqa: PLC0415
-    return config['db_name'] or list_dbs(force=True)
+    return config.db_names or list_dbs(force=True)
 
 
 # ----------------------------------------------------------

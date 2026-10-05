@@ -113,7 +113,7 @@ class I18n(Command):
 
         config.parse_config(config_args, setup_logging=True)
 
-        db_names = config['db_name']
+        db_names = config.db_names
         if not db_names or len(db_names) > 1:
             self.parser.error("Please provide a single database in the config file")
         parsed_args.db_name = db_names[0]

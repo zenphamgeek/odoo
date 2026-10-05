@@ -117,7 +117,7 @@ class Module(Command):
             config_args += ['-D', parsed_args.data_dir]
         config.parse_config(config_args, setup_logging=True)
 
-        db_names = config['db_name']
+        db_names = config.db_names
         if not db_names or len(db_names) > 1:
             self.parser.error("Please provide a single database in the config file")
         parsed_args.db_name = db_names[0]

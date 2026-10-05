@@ -96,7 +96,7 @@ class Populate(Command):
         :return: Database name passed through ``-d``/``--database``.
         :raise ValueError: If no database or several databases were provided.
         """
-        dbnames = config['db_name']
+        dbnames = config.db_names
         if not dbnames:
             msg = "Database name is required. Use -d/--database option."
             raise ValueError(msg)

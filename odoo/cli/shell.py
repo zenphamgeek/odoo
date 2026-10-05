@@ -153,7 +153,7 @@ class Shell(Command):
     def run(self, args):
         self.init(args)
 
-        dbnames = config['db_name']
+        dbnames = config.db_names
         if len(dbnames) > 1:
             sys.exit("-d/--database/db_name has multiple database, please provide a single one")
         if not dbnames:

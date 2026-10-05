@@ -299,7 +299,7 @@ def country_timezones():
 def _check_faketime_mode(db_name: str) -> None:
     if not os.getenv('ODOO_FAKETIME_TEST_MODE'):
         return
-    if db_name not in odoo.tools.config['db_name']:
+    if db_name not in odoo.tools.config.db_names:
         return
     try:
         db = odoo.sql_db.db_connect(db_name)
@@ -702,11 +702,11 @@ def list_dbs(*, force=False):
     if not force:
         verify_db_management_enabled()
 
-    if not odoo.tools.config['dbfilter'] and odoo.tools.config['db_name']:
-        # In case --db-filter is not provided and --database is passed, Odoo will not
+    if not odoo.tools.config['dbfilter'] and odoo.tools.config.db_names:
+        # In case --db-filter is not provided and --database is passed, Insilos will not
         # fetch the list of databases available on the postgres server and instead will
-        # use the value of --database as comma seperated list of exposed databases.
-        return sorted(odoo.tools.config['db_name'])
+        # use the value of --database as comma separated list of exposed databases.
+        return sorted(odoo.tools.config.db_names)
 
     chosen_template = odoo.tools.config['db_template']
     ignore_templates_list = tuple({'postgres', chosen_template})

@@ -167,7 +167,7 @@ class Obfuscate(Command):
             if len(opt.db_name) > 1:
                 _logger.error("-d/--database has multiple databases, please provide a single one")
                 sys.exit("ERROR: -d/--database has multiple databases, please provide a single one")
-            self.dbname = config['db_name'][0]
+            self.dbname = config.get_primary_db()
             self.registry = Registry(self.dbname)
             with self.registry.cursor() as cr:
                 self.cr = cr

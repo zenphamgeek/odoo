@@ -132,10 +132,10 @@ def db_filter(dbs: Iterable[str], host: str | None = None) -> list[str]:
                               .replace(R"%d", re.escape(domain)))
         return [db for db in dbs if dbfilter_re.match(db)]
 
-    if config['db_name']:
+    if config.db_names:
         # In case --db-filter is not provided and --database is passed, the server will
         # use the value of --database as a comma separated list of exposed databases.
-        return sorted(set(config['db_name']).intersection(dbs))
+        return sorted(set(config.db_names).intersection(dbs))
 
     return list(dbs)
 
@@ -543,12 +543,7 @@ def _set_session_and_dbname(request: Request) -> None:
             dbname = header_dbname
     else:
         all_dbs = db_list(force=True, host=host)
-        cfg_db = config.get('db_name')
-        cfg_db = cfg_db[0] if isinstance(cfg_db, (list, tuple)) and cfg_db else (cfg_db if isinstance(cfg_db, str) else None)
-        if len(all_dbs) == 1:
-            dbname = all_dbs[0]  # monodb
-        elif cfg_db and cfg_db in all_dbs:
-            dbname = cfg_db
+        dbname = config.resolve_database(all_dbs)
 
     if session.db != dbname:
         if session.db:

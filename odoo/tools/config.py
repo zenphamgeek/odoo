@@ -1144,16 +1144,77 @@ class configmanager:
             # what to do if impossible?
             sys.stderr.write("ERROR: couldn't create the config directory\n")
 
+    @property
+    def db_names(self) -> list[str]:
+        """
+        Returns a normalized, clean list of configured database names.
+        Always returns a list of non-empty strings, never a string, None, or boolean.
+        """
+        val = self.options.get('db_name')
+        if not val:
+            return []
+        if isinstance(val, str):
+            return [v for s in val.split(',') if (v := s.strip())]
+        if isinstance(val, (list, tuple, set)):
+            return [str(v).strip() for v in val if str(v).strip()]
+        return []
+
+    def get_primary_db(self) -> str | None:
+        """
+        Returns the primary (first) configured database name, or None.
+        Guaranteed to return a str or None.
+        """
+        dbs = self.db_names
+        return dbs[0] if dbs else None
+
+    def resolve_database(self, available_dbs=None) -> str | None:
+        """
+        Deterministically resolve the active database name from available databases.
+
+        Priority resolution order:
+        1. If available_dbs has exactly 1 database (classic monodb), use it.
+        2. If the primary configured database is present in available_dbs, use it.
+        3. If any configured database in db_names is present in available_dbs, use the first match.
+        4. If available_dbs is None or empty, fallback to the primary configured database.
+        5. Return None (requires explicit user selection / database selector).
+        """
+        if available_dbs is not None:
+            available_list = list(available_dbs)
+            if len(available_list) == 1:
+                return available_list[0]
+            primary = self.get_primary_db()
+            if primary and primary in available_list:
+                return primary
+            for db in self.db_names:
+                if db in available_list:
+                    return db
+            return None
+        return self.get_primary_db()
+
     def get(self, key, default=None):
-        return self.options.get(key, default)
+        val = self.options.get(key, default)
+        if key == 'db_name' and isinstance(val, str):
+            val = [v for s in val.split(',') if (v := s.strip())]
+        return val
 
     def __setitem__(self, key, value):
-        if isinstance(value, str) and key in self.options_index:
+        if key == 'db_name':
+            if isinstance(value, str):
+                value = [v for s in value.split(',') if (v := s.strip())]
+            elif isinstance(value, (list, tuple, set)):
+                value = [str(v).strip() for v in value if str(v).strip()]
+            elif not value:
+                value = []
+        elif isinstance(value, str) and key in self.options_index:
             value = self.parse(key, value)
         self.options[key] = value
 
     def __getitem__(self, key):
-        return self.options[key]
+        val = self.options[key]
+        if key == 'db_name' and isinstance(val, str):
+            val = [v for s in val.split(',') if (v := s.strip())]
+            self.options['db_name'] = val
+        return val
 
     @functools.cached_property
     def root_path(self):

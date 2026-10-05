@@ -103,12 +103,7 @@ def ensure_db(redirect='/web/database/selector', db=None):
     # if no database provided and no database in session, use monodb or configured db
     if not db:
         all_dbs = router.db_list(force=True)
-        cfg_db = config.get('db_name')
-        cfg_db = cfg_db[0] if isinstance(cfg_db, (list, tuple)) and cfg_db else (cfg_db if isinstance(cfg_db, str) else None)
-        if len(all_dbs) == 1:
-            db = all_dbs[0]
-        elif cfg_db and cfg_db in all_dbs:
-            db = cfg_db
+        db = config.resolve_database(all_dbs)
 
     # if no db can be found til here, send to the database selector
     # the database selector will redirect to database manager if needed

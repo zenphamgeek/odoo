@@ -23,7 +23,7 @@ class Neutralize(Command):
         parser.add_option_group(group)
         opt = odoo.tools.config.parse_config(args, setup_logging=True)
 
-        dbnames = odoo.tools.config['db_name']
+        dbnames = odoo.tools.config.db_names
         if not dbnames:
             _logger.error('Neutralize command needs a database name. Use "-d" argument')
             sys.exit(1)

@@ -52,7 +52,7 @@ class Duplicate(Command):
         except TypeError:
             raise ValueError("Separator must be a single Unicode character.")
 
-        dbnames = config['db_name']
+        dbnames = config.db_names
         if len(dbnames) > 1:
             sys.exit("-d/--database/db_name has multiple database, please provide a single one")
         registry = Registry(dbnames[0])

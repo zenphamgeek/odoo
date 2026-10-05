@@ -122,7 +122,7 @@ IGNORED_MSGS = re.compile(r"""
 """, flags=re.VERBOSE | re.IGNORECASE).search
 
 def get_db_name():
-    dbnames = odoo.tools.config['db_name']
+    dbnames = odoo.tools.config.db_names
     # If the database name is not provided on the command-line,
     # use the one on the thread (which means if it is provided on
     # the command-line, this will break when installing another
