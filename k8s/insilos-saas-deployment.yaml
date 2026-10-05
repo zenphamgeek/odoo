@@ -1,0 +1,266 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "2469"
+    field.cattle.io/publicEndpoints: '[{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"insilos.com","path":"/websocket","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"insilos.com","path":"/","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"*.insilos.com","path":"/websocket","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"*.insilos.com","path":"/","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"inno.ai.vn","path":"/websocket","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"inno.ai.vn","path":"/","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"*.inno.ai.vn","path":"/websocket","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"*.inno.ai.vn","path":"/","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"mate.ai.vn","path":"/websocket","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"mate.ai.vn","path":"/","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"*.mate.ai.vn","path":"/websocket","allNodes":false},{"addresses":["164.152.166.109","164.152.166.121","164.152.166.15","164.152.166.21","167.253.158.134","195.85.19.217","45.128.222.38","45.128.222.39"],"port":80,"protocol":"HTTP","serviceName":"production:insilos-prod-svc","ingressName":"production:insilos-saas-ingress","hostname":"*.mate.ai.vn","path":"/","allNodes":false}]'
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{"deployment.kubernetes.io/revision":"2458","field.cattle.io/publicEndpoints":"[{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"insilos.com\",\"path\":\"/websocket\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"insilos.com\",\"path\":\"/\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"*.insilos.com\",\"path\":\"/websocket\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"*.insilos.com\",\"path\":\"/\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"inno.ai.vn\",\"path\":\"/websocket\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"inno.ai.vn\",\"path\":\"/\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"*.inno.ai.vn\",\"path\":\"/websocket\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"*.inno.ai.vn\",\"path\":\"/\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"mate.ai.vn\",\"path\":\"/websocket\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"mate.ai.vn\",\"path\":\"/\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"*.mate.ai.vn\",\"path\":\"/websocket\",\"allNodes\":false},{\"addresses\":[\"164.152.166.109\",\"164.152.166.121\",\"164.152.166.15\",\"164.152.166.21\",\"167.253.158.134\",\"195.85.19.217\",\"45.128.222.38\",\"45.128.222.39\"],\"port\":80,\"protocol\":\"HTTP\",\"serviceName\":\"production:insilos-prod-svc\",\"ingressName\":\"production:insilos-saas-ingress\",\"hostname\":\"*.mate.ai.vn\",\"path\":\"/\",\"allNodes\":false}]"},"creationTimestamp":"2026-07-28T11:14:09Z","generation":2743,"labels":{"app":"insilos-saas","tier":"frontend"},"name":"insilos-saas-app","namespace":"production","resourceVersion":"133217768","uid":"32bb1287-f3ce-44fc-af7a-f9d4916bb76d"},"spec":{"progressDeadlineSeconds":600,"replicas":2,"revisionHistoryLimit":10,"selector":{"matchLabels":{"app":"insilos-saas"}},"strategy":{"rollingUpdate":{"maxSurge":1,"maxUnavailable":0},"type":"RollingUpdate"},"template":{"metadata":{"annotations":{"checksum/secrets":"v1","kubectl.kubernetes.io/restartedAt":"2026-09-27T12:45:02Z"},"labels":{"app":"insilos-saas"}},"spec":{"containers":[{"args":["--data-dir=/var/lib/insilos/filestore","--addons-path=/app/insilos/addons,/app/insilos/apps","--db_host=$(DB_HOST)","--db_port=$(DB_PORT)","--db_user=$(DB_USER)","--db-filter=.*","--db-filter-map={\"insilos.com\":\"insilos\",\"yoga.insilos.com\":\"insilos_yoga\",\"inno.ai.vn\":\"insilos_ind_inno_ai\",\"mate.ai.vn\":\"insilos_ind_mate_ai\"}","--http-interface=0.0.0.0","--http-port=8069","--proxy-mode","--workers=4","--max-cron-threads=1","--limit-memory-hard=3758096384","--limit-memory-soft=3221225472","--limit-time-cpu=600","--limit-time-real=1200"],"env":[{"name":"POD_NAME","valueFrom":{"fieldRef":{"apiVersion":"v1","fieldPath":"metadata.name"}}},{"name":"DB_HOST","valueFrom":{"secretKeyRef":{"key":"db-host","name":"insilos-db-secret"}}},{"name":"DB_PORT","valueFrom":{"secretKeyRef":{"key":"db-port","name":"insilos-db-secret"}}},{"name":"DB_USER","valueFrom":{"secretKeyRef":{"key":"db-user","name":"insilos-db-secret"}}},{"name":"PGPASSWORD","valueFrom":{"secretKeyRef":{"key":"db-password","name":"insilos-db-secret"}}},{"name":"INSILOS_SESSION_REDIS_URL","value":"redis://trigger-redis-svc:6379/1"}],"image":"docker.io/innoriahub/insilos:v20.0.0-qa","imagePullPolicy":"Always","livenessProbe":{"failureThreshold":3,"httpGet":{"path":"/web/health","port":8069,"scheme":"HTTP"},"periodSeconds":30,"successThreshold":1,"timeoutSeconds":10},"name":"insilos","ports":[{"containerPort":8069,"name":"http","protocol":"TCP"},{"containerPort":8072,"name":"websocket","protocol":"TCP"}],"readinessProbe":{"failureThreshold":3,"httpGet":{"path":"/web/health","port":8069,"scheme":"HTTP"},"initialDelaySeconds":5,"periodSeconds":10,"successThreshold":2,"timeoutSeconds":10},"resources":{"limits":{"cpu":"2","memory":"4Gi"},"requests":{"cpu":"500m","memory":"1Gi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"runAsGroup":1000,"runAsNonRoot":true,"runAsUser":1000},"startupProbe":{"failureThreshold":30,"httpGet":{"path":"/web/health","port":8069,"scheme":"HTTP"},"periodSeconds":10,"successThreshold":1,"timeoutSeconds":10},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","volumeMounts":[{"mountPath":"/var/lib/insilos/filestore","name":"filestore"}]},{"env":[{"name":"SIDECAR_PORT","value":"8787"},{"name":"SIDECAR_TOKEN","valueFrom":{"secretKeyRef":{"key":"sidecar-token","name":"capital-markets-sidecar-secret"}}},{"name":"SIDECAR_TOKEN_NEXT","valueFrom":{"secretKeyRef":{"key":"sidecar-token-next","name":"capital-markets-sidecar-secret","optional":true}}}],"image":"docker.io/innoriahub/insilos-market-data-sidecar@sha256:64b883c98a5a35807dc1413f9744b9114426253d6940e40e7f1f70ad859136b7","imagePullPolicy":"IfNotPresent","livenessProbe":{"exec":{"command":["node","-e","const http=require('node:http');const r=http.get({host:'127.0.0.1',port:8787,path:'/healthz',headers:{Authorization:'Bearer '+process.env.SIDECAR_TOKEN}},x=\u003eprocess.exit(x.statusCode===200?0:1));r.on('error',()=\u003eprocess.exit(1));"]},"failureThreshold":3,"periodSeconds":30,"successThreshold":1,"timeoutSeconds":3},"name":"market-data-sidecar","readinessProbe":{"exec":{"command":["node","-e","const http=require('node:http');const r=http.get({host:'127.0.0.1',port:8787,path:'/healthz',headers:{Authorization:'Bearer '+process.env.SIDECAR_TOKEN}},x=\u003eprocess.exit(x.statusCode===200?0:1));r.on('error',()=\u003eprocess.exit(1));"]},"failureThreshold":3,"periodSeconds":10,"successThreshold":1,"timeoutSeconds":3},"resources":{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"128Mi"}},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsNonRoot":true},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File","volumeMounts":[{"mountPath":"/tmp","name":"market-data-sidecar-tmp"}]}],"dnsPolicy":"ClusterFirst","imagePullSecrets":[{"name":"docker-innoriahub"}],"initContainers":[{"command":["sh","-c","until pg_isready -h pgbouncer-service -p 6432 -U insilos; do echo \"[wait-for-db] PgBouncer not ready, retrying...\"; sleep 3; done; echo \"[wait-for-db] DB ready!\""],"env":[{"name":"PGPASSWORD","valueFrom":{"secretKeyRef":{"key":"db-password","name":"insilos-db-secret"}}},{"name":"INSILOS_SESSION_REDIS_URL","value":"redis://trigger-redis-svc:6379/1"}],"image":"postgres:15-alpine","imagePullPolicy":"IfNotPresent","name":"wait-for-db","resources":{},"securityContext":{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"readOnlyRootFilesystem":true,"runAsGroup":65534,"runAsNonRoot":true,"runAsUser":65534},"terminationMessagePath":"/dev/termination-log","terminationMessagePolicy":"File"}],"restartPolicy":"Always","schedulerName":"default-scheduler","securityContext":{"seccompProfile":{"type":"RuntimeDefault"}},"serviceAccount":"insilos-tenant-job-controller","serviceAccountName":"insilos-tenant-job-controller","terminationGracePeriodSeconds":30,"volumes":[{"name":"filestore","persistentVolumeClaim":{"claimName":"insilos-filestore"}},{"emptyDir":{},"name":"market-data-sidecar-tmp"}]}}}}
+  creationTimestamp: "2026-07-28T11:14:09Z"
+  generation: 2763
+  labels:
+    app: insilos-saas
+    tier: frontend
+  name: insilos-saas-app
+  namespace: production
+  resourceVersion: "138519191"
+  uid: 32bb1287-f3ce-44fc-af7a-f9d4916bb76d
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 3
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: insilos-saas
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        checksum/secrets: v1
+        kubectl.kubernetes.io/restartedAt: "2026-09-29T00:47:24+07:00"
+      labels:
+        app: insilos-saas
+    spec:
+      containers:
+      - args:
+        - --data-dir=/var/lib/insilos/filestore
+        - --addons-path=/app/insilos/addons,/app/insilos/apps
+        - --db_host=$(DB_HOST)
+        - --db_port=$(DB_PORT)
+        - --db_user=$(DB_USER)
+        - --db-filter=.*
+        - --db-filter-map={"insilos.com":"insilos","yoga.insilos.com":"insilos_yoga","inno.ai.vn":"insilos_ind_inno_ai","mate.ai.vn":"insilos_ind_mate_ai","innoria.insilos.com":"innoria_prod","innokafe.insilos.com":"innokafe_prod","innokafe.com":"innokafe_prod","innokafe.vn":"innokafe_prod"}
+        - --http-interface=0.0.0.0
+        - --http-port=8069
+        - --proxy-mode
+        - --workers=4
+        - --max-cron-threads=1
+        - --limit-memory-hard=3758096384
+        - --limit-memory-soft=3221225472
+        - --limit-time-cpu=600
+        - --limit-time-real=1200
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              key: db-host
+              name: insilos-db-secret
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              key: db-port
+              name: insilos-db-secret
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              key: db-user
+              name: insilos-db-secret
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: db-password
+              name: insilos-db-secret
+        - name: INSILOS_SESSION_REDIS_URL
+          value: redis://trigger-redis-svc:6379/1
+        image: docker.io/innoriahub/insilos:v20.0.0-qa
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /web/health
+            port: 8069
+            scheme: HTTP
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        name: insilos
+        ports:
+        - containerPort: 8069
+          name: http
+          protocol: TCP
+        - containerPort: 8072
+          name: websocket
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /web/health
+            port: 8069
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 2
+          timeoutSeconds: 10
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /web/health
+            port: 8069
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /var/lib/insilos/filestore
+          name: filestore
+      - env:
+        - name: SIDECAR_PORT
+          value: "8787"
+        - name: SIDECAR_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: sidecar-token
+              name: capital-markets-sidecar-secret
+        - name: SIDECAR_TOKEN_NEXT
+          valueFrom:
+            secretKeyRef:
+              key: sidecar-token-next
+              name: capital-markets-sidecar-secret
+              optional: true
+        image: docker.io/innoriahub/insilos-market-data-sidecar@sha256:64b883c98a5a35807dc1413f9744b9114426253d6940e40e7f1f70ad859136b7
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - node
+            - -e
+            - const http=require('node:http');const r=http.get({host:'127.0.0.1',port:8787,path:'/healthz',headers:{Authorization:'Bearer
+              '+process.env.SIDECAR_TOKEN}},x=>process.exit(x.statusCode===200?0:1));r.on('error',()=>process.exit(1));
+          failureThreshold: 3
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 3
+        name: market-data-sidecar
+        readinessProbe:
+          exec:
+            command:
+            - node
+            - -e
+            - const http=require('node:http');const r=http.get({host:'127.0.0.1',port:8787,path:'/healthz',headers:{Authorization:'Bearer
+              '+process.env.SIDECAR_TOKEN}},x=>process.exit(x.statusCode===200?0:1));r.on('error',()=>process.exit(1));
+          failureThreshold: 3
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /tmp
+          name: market-data-sidecar-tmp
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: docker-innoriahub
+      initContainers:
+      - command:
+        - sh
+        - -c
+        - until pg_isready -h pgbouncer-service -p 6432 -U insilos; do echo "[wait-for-db]
+          PgBouncer not ready, retrying..."; sleep 3; done; echo "[wait-for-db] DB
+          ready!"
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: db-password
+              name: insilos-db-secret
+        - name: INSILOS_SESSION_REDIS_URL
+          value: redis://trigger-redis-svc:6379/1
+        image: postgres:15-alpine
+        imagePullPolicy: IfNotPresent
+        name: wait-for-db
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 65534
+          runAsNonRoot: true
+          runAsUser: 65534
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
+      serviceAccount: insilos-tenant-job-controller
+      serviceAccountName: insilos-tenant-job-controller
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - name: filestore
+        persistentVolumeClaim:
+          claimName: insilos-filestore
+      - emptyDir: {}
+        name: market-data-sidecar-tmp
+status:
+  availableReplicas: 2
+  conditions:
+  - lastTransitionTime: "2026-09-17T02:38:17Z"
+    lastUpdateTime: "2026-10-05T10:33:13Z"
+    message: ReplicaSet "insilos-saas-app-8d5c9b69b" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  - lastTransitionTime: "2026-10-05T10:43:45Z"
+    lastUpdateTime: "2026-10-05T10:43:45Z"
+    message: Deployment does not have minimum availability.
+    reason: MinimumReplicasUnavailable
+    status: "False"
+    type: Available
+  observedGeneration: 2763
+  readyReplicas: 2
+  replicas: 3
+  unavailableReplicas: 1
+  updatedReplicas: 3

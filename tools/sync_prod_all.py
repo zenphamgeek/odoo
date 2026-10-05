@@ -48,7 +48,9 @@ FILES_TO_COPY = [
     ('enterprise/marketing_automation/static/description/icon.png', '/app/insilos/enterprise/marketing_automation/static/description/icon.png'),
     ('addons/base/static/description/modules.png', '/app/insilos/addons/base/static/description/modules.png'),
     ('addons/base/static/description/settings.png', '/app/insilos/addons/base/static/description/settings.png'),
-    ('addons/base/static/description/exception.png', '/app/insilos/addons/base/static/description/exception.png')
+    ('addons/base/static/description/exception.png', '/app/insilos/addons/base/static/description/exception.png'),
+    ('odoo/orm/registry.py', '/app/insilos/odoo/orm/registry.py'),
+    ('odoo/tools/zeep/wsse/__init__.py', '/app/insilos/odoo/tools/zeep/wsse/__init__.py')
 ]
 
 def run_cmd(cmd):
