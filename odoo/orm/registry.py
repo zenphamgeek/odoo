@@ -1062,9 +1062,19 @@ class Registry(Mapping[str, type["BaseModel"]]):
         }
 
         # create or update foreign keys
+        table_kinds = {}
+
+        def get_kind(tbl):
+            if tbl not in table_kinds:
+                table_kinds[tbl] = sql.table_kind(cr, tbl)
+            return table_kinds[tbl]
+
         for key, val in self._foreign_keys.items():
             table1, column1 = key
             table2, column2, ondelete, model, module = val
+            if get_kind(table1) in (sql.TableKind.View, sql.TableKind.Materialized) or \
+               get_kind(table2) in (sql.TableKind.View, sql.TableKind.Materialized):
+                continue
             deltype = sql._CONFDELTYPES[ondelete.upper()]
             spec = existing.get(key)
             if spec is None:
