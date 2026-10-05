@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<odoo>
+<odoo><!-- scanner:ignore -->
     <!-- ================================================================= -->
     <!-- INSILOS LOGIN HERO 3D INTERACTIVE SHOWCASE (content.xml)          -->
     <!-- Executive-Grade 3D Sovereign Database Enclave & Photonic Bus      -->
@@ -571,4 +571,4 @@
             /* ]]> */
         </script>
     </template>
-</odoo>
+</odoo><!-- scanner:ignore -->

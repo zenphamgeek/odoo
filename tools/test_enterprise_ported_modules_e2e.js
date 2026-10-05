@@ -10,8 +10,8 @@ const PORTED_MODULES = [
   'insilos_tenant_control', 'insilos_chemical_trade_compliance', 'insilos_preferential_origin',
   'insilos_industry_showcase', 'insilos_market_data', 'insilos_treasury_market_risk',
   'insilos_market_terminal', 'insilos_finance_agent_os', 'insilos_esg_bridge',
-  'insilos_website', 'insilos_theme_genesis', 'industry_templates',
-  'openrouter_ai', 'ai_vision_iap', 'industry_fsm_theme', 'pos_react',
+  'insilos_website', 'insilos_theme_genesis', 'insilos_sap_fiori', 'insilos_adapter',
+  'industry_templates', 'openrouter_ai', 'ai_vision_iap', 'industry_fsm_theme', 'pos_react',
   'pos_discount_react', 'pos_hr_react', 'cloud_storage_s3', 'l10n_vn_demo'
 ];
 
@@ -107,22 +107,30 @@ async function main() {
     if (installedCount !== PORTED_MODULES.length) {
       throw new Error(`Only ${installedCount}/${PORTED_MODULES.length} modules installed!`);
     }
-    console.log(`✓ ALL 26/26 Ported Enterprise Modules are Verified INSTALLED!`);
+    console.log(`✓ ALL ${PORTED_MODULES.length}/${PORTED_MODULES.length} Ported Enterprise & Insilos Modules are Verified INSTALLED!`);
 
     // 4. Test Key Enterprise Module Routes
     console.log('\n--- 4. Testing Core Functional Views of Ported Modules ---');
     
-    // Test Knowledge Graph / HSE / Chemical views via Settings / Menus
+    // Test Knowledge Graph / HSE / Chemical views via Settings / Menus and bespoke Insilos Hubs
     const routesToTest = [
       { name: 'Settings Hub', url: 'http://localhost:28069/insilos/settings' },
       { name: 'Apps Hub', url: 'http://localhost:28069/insilos/apps' },
       { name: 'Contacts App', url: 'http://localhost:28069/insilos/contacts' },
+      { name: 'Unified Operations Hub', url: 'http://localhost:28069/insilos/unified-operations' },
+      { name: 'Logistics IDP Onboarding', url: 'http://localhost:28069/insilos/logistics-onboarding' },
+      { name: 'Chemical Trade Compliance Onboarding', url: 'http://localhost:28069/insilos/chemical-onboarding' },
+      { name: 'HS Tariff Sync Onboarding', url: 'http://localhost:28069/insilos/hs-onboarding' },
+      { name: 'HSE Safety Compliance Onboarding', url: 'http://localhost:28069/insilos/hse-onboarding' },
+      { name: 'ESG Carbon Bridge Onboarding', url: 'http://localhost:28069/insilos/esg-onboarding' },
+      { name: 'PubSub Event Bridge Onboarding', url: 'http://localhost:28069/insilos/pubsub-onboarding' },
+      { name: 'Logistics Overview Hub', url: 'http://localhost:28069/insilos/logistics-overview' },
     ];
 
     for (const route of routesToTest) {
       console.log(`Visiting ${route.name} (${route.url})...`);
       await page.goto(route.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
-      await page.waitForTimeout(2000);
+      await page.waitForTimeout(1500);
       console.log(`  ✓ Loaded ${route.name} without errors.`);
     }
 
@@ -143,7 +151,7 @@ async function main() {
       console.error('Errors details:', errors);
       throw new Error(`Test failed with ${errors.length} errors!`);
     } else {
-      console.log('🎉 ALL 26 PORTED ENTERPRISE MODULES PASSED E2E VERIFICATION 100%!');
+      console.log(`🎉 ALL ${PORTED_MODULES.length} PORTED ENTERPRISE & INSILOS MODULES PASSED E2E VERIFICATION 100%!`);
     }
     console.log('============================================================');
 

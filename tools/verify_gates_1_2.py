@@ -11,7 +11,11 @@ import sys
 import py_compile
 from lxml import etree
 
-MODULES = [
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ENTERPRISE_DIR = os.path.join(REPO_ROOT, 'enterprise')
+ADDONS_DIR = os.path.join(REPO_ROOT, 'addons')
+
+ENTERPRISE_MODULES = [
     'insilos_hs_sync', 'insilos_hse_compliance', 'insilos_knowledge_graph',
     'insilos_pubsub_bridge', 'insilos_logistics_idp',
     'insilos_capital_markets_decision_governance', 'insilos_tenant_control',
@@ -24,21 +28,36 @@ MODULES = [
     'pos_hr_react', 'cloud_storage_s3', 'l10n_vn_demo'
 ]
 
-ENTERPRISE_DIR = '/home/zen/O20/enterprise'
+ADDONS_MODULES = [
+    'insilos_sap_fiori', 'insilos_adapter'
+]
+
+def get_all_module_dirs():
+    dirs = []
+    for mod in ENTERPRISE_MODULES:
+        p = os.path.join(ENTERPRISE_DIR, mod)
+        if os.path.isdir(p):
+            dirs.append(p)
+    for mod in ADDONS_MODULES:
+        p = os.path.join(ADDONS_DIR, mod)
+        if os.path.isdir(p):
+            dirs.append(p)
+    return dirs
+
 
 def run_gate1():
     print("=" * 60)
     print("GATE 1: PYTHON SYNTAX AND COMPILATION AUDIT")
     print("=" * 60)
     py_files = []
-    for mod in MODULES:
-        mod_dir = os.path.join(ENTERPRISE_DIR, mod)
+    module_dirs = get_all_module_dirs()
+    for mod_dir in module_dirs:
         for root, dirs, files in os.walk(mod_dir):
             for f in files:
                 if f.endswith('.py'):
                     py_files.append(os.path.join(root, f))
     
-    print(f"Auditing {len(py_files)} Python files across 26 modules...")
+    print(f"Auditing {len(py_files)} Python files across {len(module_dirs)} modules (enterprise + addons)...")
     errors = []
     for p in py_files:
         try:
@@ -60,14 +79,14 @@ def run_gate2():
     print("GATE 2: XML & QWEB WELL-FORMEDNESS AUDIT")
     print("=" * 60)
     xml_files = []
-    for mod in MODULES:
-        mod_dir = os.path.join(ENTERPRISE_DIR, mod)
+    module_dirs = get_all_module_dirs()
+    for mod_dir in module_dirs:
         for root, dirs, files in os.walk(mod_dir):
             for f in files:
                 if f.endswith('.xml'):
                     xml_files.append(os.path.join(root, f))
     
-    print(f"Auditing {len(xml_files)} XML files across 26 modules...")
+    print(f"Auditing {len(xml_files)} XML files across {len(module_dirs)} modules (enterprise + addons)...")
     errors = []
     parser = etree.XMLParser(recover=False)
     for x in xml_files:

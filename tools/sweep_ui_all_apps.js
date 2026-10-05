@@ -153,6 +153,14 @@ async function main() {
         ['Planning', 'http://localhost:28069/insilos/planning'],
         ['Quality', 'http://localhost:28069/insilos/quality_control'],
         ['Maintenance', 'http://localhost:28069/insilos/maintenance'],
+        ['Unified Operations Hub', 'http://localhost:28069/insilos/unified-operations'],
+        ['Logistics IDP Onboarding', 'http://localhost:28069/insilos/logistics-onboarding'],
+        ['Chemical Trade Compliance Onboarding', 'http://localhost:28069/insilos/chemical-onboarding'],
+        ['HS Tariff Sync Onboarding', 'http://localhost:28069/insilos/hs-onboarding'],
+        ['HSE Safety Compliance Onboarding', 'http://localhost:28069/insilos/hse-onboarding'],
+        ['ESG Carbon Bridge Onboarding', 'http://localhost:28069/insilos/esg-onboarding'],
+        ['PubSub Event Bridge Onboarding', 'http://localhost:28069/insilos/pubsub-onboarding'],
+        ['Logistics Overview Hub', 'http://localhost:28069/insilos/logistics-overview'],
     ];
 
     const CONCURRENCY = 3;
