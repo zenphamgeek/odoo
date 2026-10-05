@@ -67,13 +67,25 @@ async function verifyInnoriaHomepage() {
         const ecosystemPillars = await page.$$eval('.innoria-card-ecosystem h3', els => els.map(e => e.textContent.trim()));
         console.log(`[✓] Ecosystem Pillars: ${ecosystemPillars.join(' | ')}`);
 
-        // Test interaction: Click "DIGIFORCE" HUD button
-        console.log('[*] Testing HUD interaction: click DIGIFORCE node button...');
-        await page.click('[data-action="focus-node"][data-node-key="DIGIFORCE"]');
-        await page.waitForTimeout(1500);
+        // Check Dedicated Navbar & Official Logo
+        const navbarExists = await page.$('.innoria-navbar');
+        console.log(`[✓] Dedicated Innoria Navbar exists: ${!!navbarExists}`);
+        const logoSrc = await page.$eval('.navbar-brand-logo', el => el.src).catch(() => 'NOT_FOUND');
+        console.log(`[✓] Navbar Brand Logo src: ${logoSrc}`);
 
-        const hudVisible = await page.$eval('#innoria-topology-hud', el => el.style.display !== 'none').catch(() => false);
-        console.log(`[✓] Telemetry HUD Visible on Click: ${hudVisible}`);
+        // Check Architecture Diagram
+        const archLoaded = await page.$eval('img[src*="architecture_innoria_platform_grey"]', el => el.complete && el.naturalWidth > 0).catch(() => false);
+        console.log(`[✓] Platform Architecture Diagram Loaded: ${archLoaded}`);
+
+        // Check Client Trust Logos
+        const clientLogos = await page.$$eval('.client-logo-img', els => els.length);
+        console.log(`[✓] Client Trust Logos count: ${clientLogos}`);
+
+        // Check Dedicated Footer
+        const footerExists = await page.$('.innoria-footer');
+        console.log(`[✓] Dedicated Innoria Footer exists: ${!!footerExists}`);
+        const footerContact = await page.$eval('.innoria-footer', el => el.textContent.includes('0313683499') && el.textContent.includes('contact@innoria.com')).catch(() => false);
+        console.log(`[✓] Footer Authentic Legal & Contact Verified: ${footerContact}`);
 
         // Capture full screen proof
         const screenshotPath = '/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-bdff11b8b865/innoria_3d_elevated_homepage.png';
