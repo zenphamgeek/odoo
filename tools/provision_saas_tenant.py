@@ -177,10 +177,59 @@ def provision_tenant(subdomain, company_name=None, dbname=None, template_db=None
     UPDATE res_company SET name = '{company_name}' WHERE id = 1;
     UPDATE res_partner SET name = '{company_name}' WHERE id = (SELECT partner_id FROM res_company WHERE id = 1);
     UPDATE res_users SET password = '{hashed_pw}' WHERE login = 'admin';
-    DELETE FROM ir_attachment WHERE name LIKE '%assets%' OR url LIKE '%assets%';
     """
     run_cmd(f"kubectl -n {DB_NAMESPACE} exec -i {PG_POD} -- psql -U {DB_USER} -d {target_db} -c \"{tailor_sql}\"")
     print(f"  ✅ Company set to '{company_name}' and password hash updated for 'admin'")
+
+    # 4.1 Schema Invariance & Sequence Synchronization Guardian
+    print("\n▶ Step 4.1: Enforcing Primary Keys, Deduplication & Universal Sequence Sync...")
+    guardian_sql = f"""
+    -- Deduplicate system_attachment if any transient overlap exists
+    DELETE FROM system_attachment a
+    USING system_attachment b
+    WHERE a.id = b.id AND a.ctid > b.ctid;
+
+    -- Purge dynamic compiled assets
+    DELETE FROM system_attachment WHERE url LIKE '%assets%' OR name LIKE '%assets%';
+
+    -- Ensure primary key exists on system_attachment
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint WHERE conrelid = 'system_attachment'::regclass AND contype = 'p'
+        ) THEN
+            ALTER TABLE system_attachment ADD CONSTRAINT ir_attachment_pkey PRIMARY KEY (id);
+        END IF;
+    END $$;
+
+    -- Universal Sequence Resynchronization for 100% of tables
+    DO $$
+    DECLARE
+        r RECORD;
+        v_max BIGINT;
+    BEGIN
+        FOR r IN (
+            SELECT
+                c.relname AS seq_name,
+                t.relname AS table_name,
+                a.attname AS col_name
+            FROM pg_class c
+            JOIN pg_depend d ON d.objid = c.oid AND d.deptype = 'a'
+            JOIN pg_class t ON t.oid = d.refobjid
+            JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = d.refobjsubid
+            WHERE c.relkind = 'S' AND t.relkind = 'r'
+        ) LOOP
+            EXECUTE format('SELECT COALESCE(MAX(%I), 0) FROM %I', r.col_name, r.table_name) INTO v_max;
+            IF v_max > 0 THEN
+                EXECUTE format('SELECT setval(%L, %s, true)', r.seq_name, v_max);
+            ELSE
+                EXECUTE format('SELECT setval(%L, 1, false)', r.seq_name);
+            END IF;
+        END LOOP;
+    END $$;
+    """
+    run_cmd(f"kubectl -n {DB_NAMESPACE} exec -i {PG_POD} -- psql -U postgres -d {target_db} -c \"{guardian_sql}\"")
+    print(f"  ✅ Primary Keys enforced and 100% sequences resynchronized for '{target_db}'")
 
     # 5. Update Kubernetes Deployment --db-filter-map
     print("\n▶ Step 5: Updating Kubernetes Deployment Routing (--db-filter-map)...")
