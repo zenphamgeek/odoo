@@ -12,18 +12,18 @@ class ResConfigSettings(models.TransientModel):
     login_hero_title = fields.Char(
         'Tiêu đề Hero Đăng nhập',
         config_parameter='insilos.login_hero_title',
-        default='Trung Tâm Chỉ Huy & Bản Sao Số Doanh Nghiệp',
+        default='Xóa Bỏ Ốc Đảo Dữ Liệu • Hợp Nhất Doanh Nghiệp',
     )
     login_hero_subtitle = fields.Char(
         'Phụ đề Hero Đăng nhập',
         config_parameter='insilos.login_hero_subtitle',
-        default='Bản sao số công nghiệp 3D kết nối thời gian thực với lõi điều hành sản xuất MES, chuỗi cung ứng logistics đa cảng và hệ thống tài chính kế toán chủ quyền.',
+        default='Biểu tượng 3 trụ cột Silo liên kết biểu trưng cho sự giải phóng và đồng bộ hóa tức thời giữa Sản Xuất (MES), Chuỗi Cung Ứng (SCM) và Quản Trị Tài Chính Chủ Quyền (FI/CO).',
     )
     login_hero_3d_mode = fields.Selection([
+        ('insilos_icon', 'Biểu tượng 3D Insilos Icon (3 Silos & Data Bridge)'),
         ('digital_twin', '3D Digital Twin Equipment (V-LIFT 2500E)'),
-        ('logistics_radar', '3D Logistics Radar & Route Map'),
         ('cyber_mesh', '3D Cybernetic Mesh Topology'),
-    ], string='Chế độ 3D Interactive Hero', config_parameter='insilos.login_hero_3d_mode', default='digital_twin')
+    ], string='Chế độ 3D Interactive Hero', config_parameter='insilos.login_hero_3d_mode', default='insilos_icon')
     login_hero_show_3d = fields.Boolean(
         'Kích hoạt 3D Interactive Snippet',
         config_parameter='insilos.login_hero_show_3d',

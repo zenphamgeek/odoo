@@ -2,77 +2,79 @@
 <odoo>
     <!-- ================================================================= -->
     <!-- INSILOS LOGIN HERO 3D INTERACTIVE SHOWCASE (content.xml)          -->
+    <!-- 3D Interactive Insilos Icon (Breaking Data Silos & Unified Core)   -->
     <!-- Configurable via Company Settings (res.config.settings)           -->
     <!-- ================================================================= -->
     <template id="login_hero_content" name="Login Hero 3D Interactive Content">
-        <t t-set="hero_title" t-value="request.env['ir.config_parameter'].sudo().get_param('insilos.login_hero_title') or 'Trung Tâm Chỉ Huy &amp; Bản Sao Số Doanh Nghiệp'"/>
-        <t t-set="hero_subtitle" t-value="request.env['ir.config_parameter'].sudo().get_param('insilos.login_hero_subtitle') or 'Bản sao số công nghiệp 3D kết nối thời gian thực với lõi điều hành sản xuất MES, chuỗi cung ứng logistics đa cảng và hệ thống tài chính kế toán chủ quyền.'"/>
+        <t t-set="hero_title" t-value="request.env['ir.config_parameter'].sudo().get_param('insilos.login_hero_title') or 'Xóa Bỏ Ốc Đảo Dữ Liệu • Hợp Nhất Doanh Nghiệp'"/>
+        <t t-set="hero_subtitle" t-value="request.env['ir.config_parameter'].sudo().get_param('insilos.login_hero_subtitle') or 'Biểu tượng 3 trụ cột Silo liên kết biểu trưng cho sự giải phóng và đồng bộ hóa tức thời giữa Sản Xuất (MES), Chuỗi Cung Ứng (SCM) và Quản Trị Tài Chính Chủ Quyền (FI/CO).'"/>
         <t t-set="show_3d" t-value="request.env['ir.config_parameter'].sudo().get_param('insilos.login_hero_show_3d', 'True') != 'False'"/>
-        <t t-set="mode_3d" t-value="request.env['ir.config_parameter'].sudo().get_param('insilos.login_hero_3d_mode') or 'digital_twin'"/>
+        <t t-set="mode_3d" t-value="request.env['ir.config_parameter'].sudo().get_param('insilos.login_hero_3d_mode') or 'insilos_icon'"/>
 
-        <div class="hero_brand_header mb-3">
-            <img src="/web/static/img/insilos_logo_dark.svg" alt="Insilos Enterprise Platform" style="height: 38px; width: auto;" class="d-block mb-3"/>
+        <div class="hero_brand_header mb-2.5">
+            <img src="/web/static/img/insilos_logo_dark.svg" alt="Insilos Enterprise Platform" style="height: 36px; width: auto;" class="d-block mb-2.5"/>
             <div class="d-inline-flex align-items-center gap-2 px-2.5 py-1 rounded-pill border border-primary border-opacity-30 text-cyan small mb-2 font-monospace" style="background: rgba(0, 240, 255, 0.08); font-size: 11px;">
-                <span class="pulse-beacon" style="width: 7px; height: 7px; background: #00f0ff; box-shadow: 0 0 8px #00f0ff; border-radius: 50%;"></span>
-                <span>SOVEREIGN DIGITAL TWIN // 3D COCKPIT</span>
+                <span class="pulse-beacon" style="width: 7px; height: 7px; background: #ff9800; box-shadow: 0 0 8px #ff9800; border-radius: 50%;"></span>
+                <span>KIẾN TRÚC HỢP NHẤT DỮ LIỆU // SOVEREIGN ENCLAVE</span>
             </div>
-            <h2 class="display-6 fw-bold my-2 text-cyan-gradient" style="line-height: 1.25; font-size: 1.7rem;">
+            <h2 class="display-6 fw-bold my-2 text-cyan-gradient" style="line-height: 1.25; font-size: 1.65rem;">
                 <t t-out="hero_title"/>
             </h2>
-            <p class="text-white-50 small mb-0" style="line-height: 1.5; font-size: 13px;">
+            <p class="text-white-50 small mb-0" style="line-height: 1.5; font-size: 12.8px;">
                 <t t-out="hero_subtitle"/>
             </p>
         </div>
 
-        <!-- 3D Interactive Snippet Viewport Container -->
-        <div t-if="show_3d" class="insilos_login_3d_container position-relative my-3 rounded-3 overflow-hidden border border-white-10" style="background: radial-gradient(circle at 50% 50%, rgba(11, 46, 100, 0.35) 0%, rgba(7, 11, 20, 0.95) 100%); min-height: 220px; box-shadow: 0 8px 32px rgba(0,0,0,0.6), inset 0 0 24px rgba(0, 240, 255, 0.08);">
-            <!-- Cybernetic Grid & Reticle Backdrop -->
-            <div class="ins-3d-grid-bg" style="position: absolute; inset: 0; pointer-events: none; opacity: 0.35; background-image: linear-gradient(rgba(0, 240, 255, 0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.15) 1px, transparent 1px); background-size: 20px 20px;"></div>
+        <!-- 3D Interactive Snippet Viewport Container: 3D Insilos Icon -->
+        <div t-if="show_3d" class="insilos_login_3d_container position-relative my-2.5 rounded-3 overflow-hidden border border-white-10" style="background: radial-gradient(circle at 50% 45%, rgba(15, 30, 60, 0.75) 0%, rgba(5, 10, 20, 0.98) 100%); min-height: 220px; box-shadow: 0 8px 32px rgba(0,0,0,0.65), inset 0 0 24px rgba(255, 152, 0, 0.08);">
+            <!-- Cybernetic Grid Backdrop -->
+            <div class="ins-3d-grid-bg" style="position: absolute; inset: 0; pointer-events: none; opacity: 0.25; background-image: linear-gradient(rgba(0, 240, 255, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.12) 1px, transparent 1px); background-size: 20px 20px;"></div>
             
             <!-- Neon Corner Brackets -->
-            <div class="ins-neon-corner" style="position: absolute; top: 6px; left: 6px; width: 10px; height: 10px; border-top: 2px solid #00f0ff; border-left: 2px solid #00f0ff; z-index: 5;"></div>
+            <div class="ins-neon-corner" style="position: absolute; top: 6px; left: 6px; width: 10px; height: 10px; border-top: 2px solid #ff9800; border-left: 2px solid #ff9800; z-index: 5;"></div>
             <div class="ins-neon-corner" style="position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-top: 2px solid #00f0ff; border-right: 2px solid #00f0ff; z-index: 5;"></div>
             <div class="ins-neon-corner" style="position: absolute; bottom: 6px; left: 6px; width: 10px; height: 10px; border-bottom: 2px solid #00f0ff; border-left: 2px solid #00f0ff; z-index: 5;"></div>
-            <div class="ins-neon-corner" style="position: absolute; bottom: 6px; right: 6px; width: 10px; height: 10px; border-bottom: 2px solid #00f0ff; border-right: 2px solid #00f0ff; z-index: 5;"></div>
+            <div class="ins-neon-corner" style="position: absolute; bottom: 6px; right: 6px; width: 10px; height: 10px; border-bottom: 2px solid #ff9800; border-right: 2px solid #ff9800; z-index: 5;"></div>
 
             <!-- 3D Interactive Canvas Viewport -->
-            <div class="ins-3d-viewport position-relative ins-3d-digital-twin-canvas w-100" id="insilosLoginDigitalTwinViewport" t-att-data-insilos-3d="mode_3d" style="min-height: 220px; height: 220px; cursor: grab;">
+            <div class="ins-3d-viewport position-relative ins-3d-digital-twin-canvas w-100" id="insilosLoginDigitalTwinViewport" t-att-data-insilos-3d="mode_3d" style="min-height: 220px; height: 220px; cursor: grab;" title="Kéo chuột để xoay 3D Biểu Tượng Insilos">
                 <canvas id="insilosLoginDigitalTwinCanvas" class="ins-3d-canvas" style="width: 100%; height: 220px; display: block;"></canvas>
 
                 <!-- Floating HUD Status & Switcher Controls -->
-                <div class="position-absolute bottom-0 start-0 end-0 p-2 d-flex justify-content-between align-items-center" style="background: linear-gradient(180deg, transparent, rgba(7, 11, 20, 0.94)); z-index: 10;">
-                    <div class="d-flex align-items-center gap-1.5 font-monospace text-cyan" style="font-size: 10px;">
-                        <span class="ins-live-ping" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 6px #10b981;"></span>
-                        <span>LIVE ERP: CONNECTED</span>
+                <div class="position-absolute bottom-0 start-0 end-0 p-2 d-flex justify-content-between align-items-center" style="background: linear-gradient(180deg, transparent, rgba(5, 10, 20, 0.95)); z-index: 10;">
+                    <div class="d-flex align-items-center gap-1.5 font-monospace" style="font-size: 10px;">
+                        <span class="ins-live-ping" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #00f0ff; box-shadow: 0 0 6px #00f0ff;"></span>
+                        <span class="text-cyan">SYNC: &lt;1.8ms</span>
+                        <span class="text-white-50 ms-1">• DÒNG CHẢY HỢP NHẤT</span>
                     </div>
                     <div class="d-flex gap-1">
-                        <button type="button" class="btn btn-dark btn-sm py-0 px-2 rounded-1 border border-white-10 font-monospace text-white-50 active" data-action="toggle-model" id="btnModelVliftLogin" style="font-size: 10px; height: 22px;">
-                            <span>V-LIFT</span>
+                        <button type="button" class="btn btn-dark btn-sm py-0 px-2 rounded-1 border border-warning font-monospace text-warning active" data-action="toggle-model" id="btnModeSilos" style="font-size: 10px; height: 22px;">
+                            <span>3D ICON</span>
                         </button>
-                        <button type="button" class="btn btn-dark btn-sm py-0 px-2 rounded-1 border border-white-10 font-monospace text-white-50" data-action="toggle-model" id="btnModelCncLogin" style="font-size: 10px; height: 22px;">
-                            <span>CNC LASER</span>
+                        <button type="button" class="btn btn-dark btn-sm py-0 px-2 rounded-1 border border-white-10 font-monospace text-white-50" data-action="toggle-flow" id="btnModeFlow" style="font-size: 10px; height: 22px;">
+                            <span>DATA FLOW</span>
                         </button>
-                        <button type="button" class="btn btn-dark btn-sm py-0 px-2 rounded-1 border border-cyan text-cyan font-monospace" data-action="set-mode" data-mode="wireframe" id="btnModeWireLogin" style="font-size: 10px; height: 22px;">
-                            <span>3D HUD</span>
+                        <button type="button" class="btn btn-dark btn-sm py-0 px-2 rounded-1 border border-white-10 font-monospace text-white-50" data-action="toggle-orbit" id="btnModeOrbit" style="font-size: 10px; height: 22px;">
+                            <span>XOAY 360°</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 3 Live Trust Metric Badges -->
+        <!-- 3 Live Trust Metric Badges (Ý nghĩa cốt lõi của Insilos) -->
         <div class="hero_trust_badges my-2 d-flex flex-column gap-2">
             <div class="p-2.5 px-3 rounded-2 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="pulse-beacon" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #00f0ff;"></span>
-                    <span class="small fw-semibold text-white" style="font-size: 12px;">Độ sẵn sàng hệ thống (SLA)</span>
+                    <span class="pulse-beacon" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ff9800; box-shadow: 0 0 6px #ff9800;"></span>
+                    <span class="small fw-semibold text-white" style="font-size: 12px;">Đồng bộ Dữ liệu Toàn diện</span>
                 </div>
-                <span class="badge text-cyan fw-bold font-monospace" style="font-size: 11px;">99.999%</span>
+                <span class="badge text-warning fw-bold font-monospace" style="font-size: 11px;">MES ⇄ SCM ⇄ FI/CO</span>
             </div>
             <div class="p-2.5 px-3 rounded-2 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
                 <div class="d-flex align-items-center gap-2">
                     <i class="oi oi-fw text-cyan" data-icon="shield" style="font-size: 12px;"></i>
-                    <span class="small fw-semibold text-white" style="font-size: 12px;">Chuẩn Bảo Mật &amp; Cô Lập</span>
+                    <span class="small fw-semibold text-white" style="font-size: 12px;">Chủ Quyền &amp; Kháng Lượng Tử</span>
                 </div>
                 <span class="badge bg-dark text-white-50 border border-white-10" style="font-size: 10.5px;">ISO 27001 • Post-Quantum</span>
             </div>
@@ -80,10 +82,10 @@
 
         <div class="hero_brand_footer pt-2 border-top border-white-10 d-flex align-items-center justify-content-between small text-white-50" style="font-size: 11px;">
             <span>Insilos Enterprise Platform v20.0</span>
-            <span class="font-monospace">Vùng Dữ Liệu Chủ Quyền (Sovereign Enclave)</span>
+            <span class="font-monospace">Kiến Trúc Dữ Liệu Không Ốc Đảo (Zero-Silo)</span>
         </div>
 
-        <!-- Interactive 3D Canvas Fallback & WebGL Interactive Engine Initializer -->
+        <!-- Interactive 3D Insilos Icon Engine (WebGL / 60FPS 3D Vector Canvas) -->
         <script type="text/javascript">
             /* <![CDATA[ */
             (function() {
@@ -92,178 +94,394 @@
                     const viewport = document.getElementById('insilosLoginDigitalTwinViewport');
                     if (!canvas || !viewport) return;
 
-                    // If Three.js and Insilos3D are available, autoInit will mount.
-                    // Otherwise, provide high-performance 60FPS 3D wireframe gyroscope & particle mesh!
-                    if (window.THREE && window.Insilos3D) {
-                        try {
-                            if (!window.__dtLogin) {
-                                window.__dtLogin = window.Insilos3D.initDigitalTwin(viewport, {
-                                    activeModel: "vlift",
-                                    renderMode: "pbr",
-                                    autoRotate: true,
-                                    autoRotateSpeed: 0.8
-                                });
-                            }
-                            return;
-                        } catch(e) {
-                            console.warn("[Insilos3D Login] Full Three.js init error, falling back to 3D canvas:", e);
-                        }
-                    }
-
-                    // 60FPS Interactive 3D Wireframe Cybernetic Gyroscope on Canvas
                     const ctx = canvas.getContext('2d');
                     if (!ctx) return;
 
                     let width = canvas.width = viewport.clientWidth || 380;
                     let height = canvas.height = viewport.clientHeight || 220;
 
-                    let rotX = 0.4, rotY = 0.6, rotZ = 0;
-                    let targetRotX = 0.4, targetRotY = 0.6;
+                    // Camera rotation angles
+                    let rotX = 0.28, rotY = -0.32, rotZ = 0;
+                    let targetRotX = 0.28, targetRotY = -0.32;
                     let isDragging = false, lastMouseX = 0, lastMouseY = 0;
-                    let currentModel = 'vlift';
+                    let autoOrbit = true;
+                    let showDataFlow = true;
 
-                    window.addEventListener('resize', () => {
+                    window.addEventListener('resize', function() {
                         if (!viewport || !canvas) return;
                         width = canvas.width = viewport.clientWidth || 380;
                         height = canvas.height = viewport.clientHeight || 220;
                     });
 
-                    viewport.addEventListener('mousedown', (e) => {
+                    viewport.addEventListener('mousedown', function(e) {
                         isDragging = true;
+                        autoOrbit = false;
                         lastMouseX = e.clientX;
                         lastMouseY = e.clientY;
                         viewport.style.cursor = 'grabbing';
                     });
 
-                    window.addEventListener('mousemove', (e) => {
+                    window.addEventListener('mousemove', function(e) {
                         if (isDragging) {
                             const dx = e.clientX - lastMouseX;
                             const dy = e.clientY - lastMouseY;
-                            targetRotY += dx * 0.01;
-                            targetRotX += dy * 0.01;
+                            targetRotY += dx * 0.012;
+                            targetRotX += dy * 0.012;
+                            // Clamp vertical tilt to avoid flipping
+                            targetRotX = Math.max(-0.6, Math.min(0.8, targetRotX));
                             lastMouseX = e.clientX;
                             lastMouseY = e.clientY;
                         }
                     });
 
-                    window.addEventListener('mouseup', () => {
+                    window.addEventListener('mouseup', function() {
                         isDragging = false;
                         if (viewport) viewport.style.cursor = 'grab';
                     });
 
                     // HUD Toggle Buttons
-                    const btnVlift = document.getElementById('btnModelVliftLogin');
-                    const btnCnc = document.getElementById('btnModelCncLogin');
-                    const btnHud = document.getElementById('btnModeWireLogin');
+                    const btnSilos = document.getElementById('btnModeSilos');
+                    const btnFlow = document.getElementById('btnModeFlow');
+                    const btnOrbit = document.getElementById('btnModeOrbit');
 
-                    if (btnVlift) {
-                        btnVlift.addEventListener('click', () => {
-                            currentModel = 'vlift';
-                            btnVlift.classList.add('active', 'text-cyan');
-                            if (btnCnc) btnCnc.classList.remove('active', 'text-cyan');
+                    if (btnSilos) {
+                        btnSilos.addEventListener('click', function() {
+                            targetRotX = 0.28;
+                            targetRotY = -0.32;
+                            btnSilos.classList.add('border-warning', 'text-warning');
                         });
                     }
-                    if (btnCnc) {
-                        btnCnc.addEventListener('click', () => {
-                            currentModel = 'cnc';
-                            btnCnc.classList.add('active', 'text-cyan');
-                            if (btnVlift) btnVlift.classList.remove('active', 'text-cyan');
+                    if (btnFlow) {
+                        btnFlow.addEventListener('click', function() {
+                            showDataFlow = !showDataFlow;
+                            if (showDataFlow) {
+                                btnFlow.classList.add('border-cyan', 'text-cyan');
+                                btnFlow.classList.remove('text-white-50');
+                            } else {
+                                btnFlow.classList.remove('border-cyan', 'text-cyan');
+                                btnFlow.classList.add('text-white-50');
+                            }
+                        });
+                    }
+                    if (btnOrbit) {
+                        btnOrbit.addEventListener('click', function() {
+                            autoOrbit = !autoOrbit;
+                            if (autoOrbit) {
+                                btnOrbit.classList.add('border-warning', 'text-warning');
+                                btnOrbit.classList.remove('text-white-50');
+                            } else {
+                                btnOrbit.classList.remove('border-warning', 'text-warning');
+                                btnOrbit.classList.add('text-white-50');
+                            }
                         });
                     }
 
-                    // 3D Nodes Definition
-                    function getNodes(model) {
-                        if (model === 'cnc') {
-                            return [
-                                [-70, -35, -45], [70, -35, -45], [70, 35, -45], [-70, 35, -45],
-                                [-70, -35, 45], [70, -35, 45], [70, 35, 45], [-70, 35, 45],
-                                [0, 45, 0], [0, -45, 0], [-40, 0, 0], [40, 0, 0]
-                            ];
+                    // =========================================================================
+                    // 3D GEOMETRY DEFINITION: THE INSILOS ICON
+                    // Three Cylindrical Silos + Diagonal Cybernetic Data Bridge
+                    // =========================================================================
+                    // Silo 0: Left Column (MES / Shop Floor) - 5 stacked discs + top cap
+                    // Silo 1: Center Column (SCM / Logistics) - 5 stacked discs + top cap (elevated)
+                    // Silo 2: Right Column (FI/CO / Finance) - 5 stacked discs + top cap
+                    const silos = [
+                        {
+                            id: 'mes',
+                            label: 'MES',
+                            name: 'Sản Xuất',
+                            x: -66,
+                            rx: 23,
+                            rz: 14,
+                            levels: [-44, -22, 0, 22, 44],
+                            capY: 57,
+                            baseColor: '#FF9800',
+                            topColor: '#FFB74D',
+                            edgeColor: '#E65100'
+                        },
+                        {
+                            id: 'scm',
+                            label: 'SCM',
+                            name: 'Chuỗi Cung Ứng',
+                            x: 0,
+                            rx: 20,
+                            rz: 13,
+                            levels: [-34, -12, 10, 32, 54],
+                            capY: 67,
+                            baseColor: '#FFA000',
+                            topColor: '#FFE082',
+                            edgeColor: '#F57C00'
+                        },
+                        {
+                            id: 'fico',
+                            label: 'FI/CO',
+                            name: 'Tài Chính',
+                            x: +66,
+                            rx: 23,
+                            rz: 14,
+                            levels: [-40, -18, 4, 26, 48],
+                            capY: 61,
+                            baseColor: '#FF8F00',
+                            topColor: '#FFCA28',
+                            edgeColor: '#EF6C00'
                         }
-                        // V-LIFT 2500E Industrial Forklift Chassis & Mast geometry
-                        return [
-                            [-45, -30, -35], [45, -30, -35], [45, 10, -35], [-45, 10, -35],
-                            [-45, -30, 35], [45, -30, 35], [45, 10, 35], [-45, 10, 35],
-                            [35, 60, -20], [35, 60, 20], [35, -30, -20], [35, -30, 20],
-                            [60, -25, -15], [60, -25, 15]
-                        ];
-                    }
-
-                    const edges = [
-                        [0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],
-                        [0,4],[1,5],[2,6],[3,7],[8,9],[10,11],[8,10],[9,11],[12,13]
                     ];
 
+                    // Diagonal Data Bridge Connecting Silo 1 and Silo 2 (Exactly matching Insilos logo mask 30/31)
+                    // And secondary bridge linking Silo 0 and Silo 1
+                    const bridges = [
+                        { from: { x: 0, y: 10, z: 0 }, to: { x: 66, y: -18, z: 0 }, color: '#00f0ff' },
+                        { from: { x: -66, y: 0, z: 0 }, to: { x: 0, y: 10, z: 0 }, color: '#ffb74d' }
+                    ];
+
+                    let time = 0;
                     let animFrame;
+
+                    function projectPoint(x, y, z, cosX, sinX, cosY, sinY, cx, cy, fov) {
+                        // Rotate Y
+                        const x1 = x * cosY - z * sinY;
+                        const z1 = z * cosY + x * sinY;
+                        // Rotate X
+                        const y2 = y * cosX - z1 * sinX;
+                        const z2 = z1 * cosX + y * sinX + 250;
+
+                        const scale = fov / (z2 || 1);
+                        return {
+                            x: cx + x1 * scale,
+                            y: cy - y2 * scale,
+                            z: z2,
+                            scale: scale
+                        };
+                    }
+
                     function render() {
+                        time += 0.025;
                         rotX += (targetRotX - rotX) * 0.08;
                         rotY += (targetRotY - rotY) * 0.08;
-                        if (!isDragging) {
-                            targetRotY += 0.008;
+                        if (autoOrbit && !isDragging) {
+                            targetRotY += 0.007;
                         }
 
                         ctx.clearRect(0, 0, width, height);
 
                         const cx = width / 2;
-                        const cy = height / 2;
+                        const cy = height / 2 - 2;
                         const fov = 320;
 
                         const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
                         const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
 
-                        const nodes = getNodes(currentModel);
-                        const projected = [];
-
-                        for (let i = 0; i < nodes.length; i++) {
-                            const [x, y, z] = nodes[i];
-                            // Rotate Y
-                            let x1 = x * cosY - z * sinY;
-                            let z1 = z * cosY + x * sinY;
-                            // Rotate X
-                            let y2 = y * cosX - z1 * sinX;
-                            let z2 = z1 * cosX + y * sinX + 220;
-
-                            const scale = fov / (z2 || 1);
-                            const px = cx + x1 * scale;
-                            const py = cy - y2 * scale;
-                            projected.push({ x: px, y: py, z: z2, scale: scale });
-                        }
-
-                        // Draw Grid Ring on ground
+                        // 1. Draw Horizon Hologram Ring under the 3 Silos
+                        const centerGround = projectPoint(0, -68, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
                         ctx.beginPath();
-                        ctx.ellipse(cx, cy + 45, 65, 20, 0, 0, Math.PI * 2);
-                        ctx.strokeStyle = 'rgba(0, 240, 255, 0.25)';
+                        ctx.ellipse(centerGround.x, centerGround.y, 110 * centerGround.scale, 35 * centerGround.scale, 0, 0, Math.PI * 2);
+                        ctx.strokeStyle = 'rgba(255, 152, 0, 0.22)';
+                        ctx.lineWidth = 1.2;
+                        ctx.stroke();
+
+                        ctx.beginPath();
+                        ctx.ellipse(centerGround.x, centerGround.y, 65 * centerGround.scale, 20 * centerGround.scale, 0, 0, Math.PI * 2);
+                        ctx.strokeStyle = 'rgba(0, 240, 255, 0.28)';
                         ctx.lineWidth = 1;
                         ctx.stroke();
 
-                        // Draw Wireframe Edges with Depth Glow
-                        ctx.strokeStyle = '#00f0ff';
-                        ctx.lineWidth = 1.6;
-                        ctx.shadowColor = '#00f0ff';
-                        ctx.shadowBlur = 8;
+                        // 2. Collect All Renderable 3D Discs for Depth Sorting
+                        const renderItems = [];
 
-                        for (let j = 0; j < edges.length; j++) {
-                            const [i1, i2] = edges[j];
-                            if (projected[i1] && projected[i2]) {
+                        silos.forEach(function(silo, sIdx) {
+                            silo.levels.forEach(function(lvlY, dIdx) {
+                                const diskHeight = 6.5;
+                                const centerProj = projectPoint(silo.x, lvlY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                                renderItems.push({
+                                    type: 'disc',
+                                    siloIndex: sIdx,
+                                    silo: silo,
+                                    lvlY: lvlY,
+                                    height: diskHeight,
+                                    center: centerProj,
+                                    z: centerProj.z
+                                });
+                            });
+
+                            // Top Dome Cap for each Silo (characteristic of Insilos brand)
+                            const capProj = projectPoint(silo.x, silo.capY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                            renderItems.push({
+                                type: 'cap',
+                                siloIndex: sIdx,
+                                silo: silo,
+                                center: capProj,
+                                z: capProj.z
+                            });
+                        });
+
+                        // Add Data Bridges to render items
+                        bridges.forEach(function(br, bIdx) {
+                            const pA = projectPoint(br.from.x, br.from.y, br.from.z, cosX, sinX, cosY, sinY, cx, cy, fov);
+                            const pB = projectPoint(br.to.x, br.to.y, br.to.z, cosX, sinX, cosY, sinY, cx, cy, fov);
+                            renderItems.push({
+                                type: 'bridge',
+                                bridge: br,
+                                pA: pA,
+                                pB: pB,
+                                z: (pA.z + pB.z) / 2
+                            });
+                        });
+
+                        // Sort by depth (back to front: highest Z first)
+                        renderItems.sort(function(a, b) {
+                            return b.z - a.z;
+                        });
+
+                        // 3. Render All Sorted Items
+                        renderItems.forEach(function(item) {
+                            if (item.type === 'bridge') {
+                                // Draw Cybernetic Diagonal Bridge
+                                const pA = item.pA;
+                                const pB = item.pB;
+
+                                // Bridge Core Glow Beam
                                 ctx.beginPath();
-                                ctx.moveTo(projected[i1].x, projected[i1].y);
-                                ctx.lineTo(projected[i2].x, projected[i2].y);
+                                ctx.moveTo(pA.x, pA.y);
+                                ctx.lineTo(pB.x, pB.y);
+                                ctx.strokeStyle = item.bridge.color;
+                                ctx.lineWidth = Math.max(1.8, 2.8 * pA.scale);
+                                ctx.shadowColor = item.bridge.color;
+                                ctx.shadowBlur = 10;
                                 ctx.stroke();
+
+                                // Streaming Data Packets along the Bridge
+                                if (showDataFlow) {
+                                    const packetCount = 4;
+                                    for (let k = 0; k < packetCount; k++) {
+                                        const progress = ((time * 0.9 + k / packetCount) % 1);
+                                        const px = pA.x + (pB.x - pA.x) * progress;
+                                        const py = pA.y + (pB.y - pA.y) * progress;
+                                        const pz = pA.z + (pB.z - pA.z) * progress;
+                                        const pscale = fov / (pz || 1);
+
+                                        ctx.beginPath();
+                                        ctx.arc(px, py, Math.max(2.2, 3.8 * pscale), 0, Math.PI * 2);
+                                        ctx.fillStyle = (k % 2 === 0) ? '#ffffff' : '#00f0ff';
+                                        ctx.shadowColor = '#00f0ff';
+                                        ctx.shadowBlur = 12;
+                                        ctx.fill();
+                                    }
+                                }
+                                ctx.shadowBlur = 0;
+                            } else if (item.type === 'disc') {
+                                const silo = item.silo;
+                                const lvlY = item.lvlY;
+                                const h = item.height;
+
+                                // 3D Ellipse points for top and bottom faces of disk
+                                const steps = 18;
+                                const topPts = [];
+                                const botPts = [];
+
+                                for (let i = 0; i <= steps; i++) {
+                                    const th = (i / steps) * Math.PI * 2;
+                                    const localX = silo.x + silo.rx * Math.cos(th);
+                                    const localZ = silo.rz * Math.sin(th);
+                                    topPts.push(projectPoint(localX, lvlY + h / 2, localZ, cosX, sinX, cosY, sinY, cx, cy, fov));
+                                    botPts.push(projectPoint(localX, lvlY - h / 2, localZ, cosX, sinX, cosY, sinY, cx, cy, fov));
+                                }
+
+                                // Draw Disc Cylinder Rim / Side Body
+                                ctx.beginPath();
+                                ctx.moveTo(topPts[0].x, topPts[0].y);
+                                for (let i = 1; i <= steps; i++) {
+                                    ctx.lineTo(topPts[i].x, topPts[i].y);
+                                }
+                                for (let i = steps; i >= 0; i--) {
+                                    ctx.lineTo(botPts[i].x, botPts[i].y);
+                                }
+                                ctx.closePath();
+
+                                const sideGrad = ctx.createLinearGradient(
+                                    topPts[0].x, topPts[0].y,
+                                    topPts[Math.floor(steps / 2)].x, topPts[Math.floor(steps / 2)].y
+                                );
+                                sideGrad.addColorStop(0, silo.edgeColor);
+                                sideGrad.addColorStop(0.5, silo.baseColor);
+                                sideGrad.addColorStop(1, silo.edgeColor);
+
+                                ctx.fillStyle = sideGrad;
+                                ctx.fill();
+                                ctx.strokeStyle = 'rgba(255, 200, 50, 0.4)';
+                                ctx.lineWidth = 0.8;
+                                ctx.stroke();
+
+                                // Draw Disc Top Face
+                                ctx.beginPath();
+                                ctx.moveTo(topPts[0].x, topPts[0].y);
+                                for (let i = 1; i <= steps; i++) {
+                                    ctx.lineTo(topPts[i].x, topPts[i].y);
+                                }
+                                ctx.closePath();
+
+                                const topGrad = ctx.createLinearGradient(
+                                    topPts[0].x, topPts[0].y,
+                                    topPts[Math.floor(steps / 2)].x, topPts[Math.floor(steps / 2)].y
+                                );
+                                topGrad.addColorStop(0, silo.topColor);
+                                topGrad.addColorStop(0.6, silo.baseColor);
+                                topGrad.addColorStop(1, silo.edgeColor);
+
+                                ctx.fillStyle = topGrad;
+                                ctx.shadowColor = silo.baseColor;
+                                ctx.shadowBlur = 6;
+                                ctx.fill();
+                                ctx.shadowBlur = 0;
+
+                                ctx.strokeStyle = '#fff2a8';
+                                ctx.lineWidth = 1;
+                                ctx.stroke();
+
+                            } else if (item.type === 'cap') {
+                                // Top Dome Cap for the Silo
+                                const silo = item.silo;
+                                const topPts = [];
+                                const steps = 18;
+                                for (let i = 0; i <= steps; i++) {
+                                    const th = (i / steps) * Math.PI * 2;
+                                    const localX = silo.x + silo.rx * 0.95 * Math.cos(th);
+                                    const localZ = silo.rz * 0.95 * Math.sin(th);
+                                    topPts.push(projectPoint(localX, silo.capY, localZ, cosX, sinX, cosY, sinY, cx, cy, fov));
+                                }
+
+                                ctx.beginPath();
+                                ctx.moveTo(topPts[0].x, topPts[0].y);
+                                for (let i = 1; i <= steps; i++) {
+                                    ctx.lineTo(topPts[i].x, topPts[i].y);
+                                }
+                                ctx.closePath();
+                                ctx.fillStyle = '#FFE082';
+                                ctx.shadowColor = '#FF9800';
+                                ctx.shadowBlur = 10;
+                                ctx.fill();
+                                ctx.shadowBlur = 0;
+
+                                // Floating 3D Micro-Badge Tag above Silo
+                                const tagProj = projectPoint(silo.x, silo.capY + 16, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                                ctx.save();
+                                ctx.font = 'bold 9.5px monospace';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                const tagText = silo.label;
+                                const textW = ctx.measureText(tagText).width;
+
+                                ctx.fillStyle = 'rgba(7, 15, 30, 0.88)';
+                                ctx.strokeStyle = '#00f0ff';
+                                ctx.lineWidth = 1;
+                                ctx.beginPath();
+                                ctx.roundRect(tagProj.x - textW / 2 - 5, tagProj.y - 7, textW + 10, 14, 3);
+                                ctx.fill();
+                                ctx.stroke();
+
+                                ctx.fillStyle = '#00f0ff';
+                                ctx.fillText(tagText, tagProj.x, tagProj.y);
+                                ctx.restore();
                             }
-                        }
+                        });
 
-                        // Draw Vertices / Sensor Hotspots
-                        for (let k = 0; k < projected.length; k++) {
-                            const p = projected[k];
-                            ctx.beginPath();
-                            ctx.arc(p.x, p.y, Math.max(2, p.scale * 2.2), 0, Math.PI * 2);
-                            ctx.fillStyle = (k === 8 || k === 9) ? '#10b981' : '#00f0ff';
-                            ctx.shadowColor = (k === 8 || k === 9) ? '#10b981' : '#00f0ff';
-                            ctx.shadowBlur = 10;
-                            ctx.fill();
-                        }
-
-                        ctx.shadowBlur = 0;
                         animFrame = requestAnimationFrame(render);
                     }
 
