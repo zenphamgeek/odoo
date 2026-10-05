@@ -276,6 +276,10 @@ body:has(.insilos_auth_portal_wrapper) {
     &:hover {
       color: #0f172a !important;
     }
+
+    &[href*="utm_medium=auth"] {
+      display: none !important;
+    }
   }
 }
 
