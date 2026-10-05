@@ -1,3 +1,4 @@
+/** Insilos Enterprise WebClient v20.0 - Cache Invalidation v2026.10.05.1 **/
 import { whenReady } from "@insilos/owl";
 import { hasTouch } from "@web/core/browser/feature_detection";
 import { localization } from "@web/core/l10n/localization";
