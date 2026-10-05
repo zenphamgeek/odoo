@@ -22,11 +22,33 @@
     .o_nocontent_help {
         @include o-nocontent-empty;
 
-        .o_view_nocontent_smiling_face:before {
-            @extend %o-nocontent-init-image;
-            width: 120px;
-            height: 140px;
-            background: transparent url(/web/static/img/smiling_face.svg?v=insilos20) no-repeat center;
+        .o_view_nocontent_smiling_face {
+            cursor: pointer;
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+            &:before {
+                @extend %o-nocontent-init-image;
+                width: 120px;
+                height: 140px;
+                background: transparent url(/web/static/img/smiling_face.svg?v=insilos20) no-repeat center;
+                cursor: pointer;
+                transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+            }
+
+            &:hover:before {
+                transform: translateY(-2px) scale(1.05);
+                filter: drop-shadow(0 8px 24px rgba(255, 128, 0, 0.45));
+            }
+
+            &:active:before {
+                transform: translateY(0px) scale(0.97);
+            }
+        }
+
+        /* Clean: remove redundant Create a Room button since icon is interactive */
+        a.btn-outline-primary[href*="meeting-rooms/new"],
+        a.btn[href*="meeting-rooms/new"] {
+            display: none !important;
         }
 
         .o_view_nocontent_neutral_face:before {

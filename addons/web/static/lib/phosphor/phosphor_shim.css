@@ -136,4 +136,5 @@
 .oi[data-icon="oi_twitter-square"]:before, .oi.oi-oi_twitter-square:before, i.fa-oi_twitter-square:before, span.fa-oi_twitter-square:before { font-family: "Phosphor" !important; content: "\e4bc" !important; }
 .oi[data-icon="oi_gratipay"]:before, .oi.oi-oi_gratipay:before, i.fa-oi_gratipay:before, span.fa-oi_gratipay:before { font-family: "Phosphor" !important; content: "\e2a8" !important; }
 .oi.oi-voip:before, .oi[data-icon="voip"]:before { font-family: "Phosphor" !important; content: "\e3b8" !important; }
+.oi[data-icon="forum"]:before, .oi.oi-forum:before, i.fa-forum:before, span.fa-forum:before { font-family: "Phosphor" !important; content: "\e17c" !important; }
 

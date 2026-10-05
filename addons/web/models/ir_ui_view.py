@@ -27,5 +27,6 @@ class IrUiView(models.Model):
             'pivot': {'icon': 'table'},
             'kanban': {'icon': 'kanban'},
             'calendar': {'icon': 'calendar'},
+            'gantt': {'icon': 'chart-bar-horizontal'},
             'search': {'icon': 'magnifying-glass'},
         }

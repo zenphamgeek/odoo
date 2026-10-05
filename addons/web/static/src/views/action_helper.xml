@@ -2,7 +2,7 @@
 <templates xml:space="preserve">
 
     <t t-name="web.ActionHelper">
-        <div class="o_view_nocontent">
+        <div class="o_view_nocontent" t-on-click="this.onNocontentClick">
             <div class="o_nocontent_help">
                 <t t-if="this.showDefaultHelper">
                     <p class="o_view_nocontent_empty_folder">

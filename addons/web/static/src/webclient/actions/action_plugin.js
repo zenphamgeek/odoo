@@ -1293,7 +1293,10 @@ export function useActionManager(router = _router, customEnv = null) {
                 continue;
             }
             if (session.view_info[type]) {
-                const { icon, display_name, multi_record: multiRecord } = session.view_info[type];
+                let { icon, display_name, multi_record: multiRecord } = session.view_info[type];
+                if (type === "gantt" && (!icon || icon.includes(" "))) {
+                    icon = "chart-bar-horizontal";
+                }
                 views.push({ icon, display_name, multiRecord, type });
             } else {
                 unknown.push(type);
