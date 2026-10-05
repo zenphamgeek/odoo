@@ -1773,13 +1773,13 @@
 
             <div class="insilos_auth_portal_wrapper d-flex align-items-center justify-content-center">
                 <div t-attf-class="insilos_auth_portal_card d-flex overflow-hidden {{login_card_classes}} o_database_list">
-                    <!-- Left Column: Enterprise Hero Showcase (45%) -->
-                    <div class="insilos_auth_hero_showcase d-flex flex-column justify-content-between p-4 p-lg-5 text-white">
+                    <!-- Left Column: Enterprise Hero Showcase (58%) -->
+                    <div class="insilos_auth_hero_showcase d-flex flex-column justify-content-between p-4 p-lg-5 text-white" style="flex: 0 0 58% !important; max-width: 58% !important;">
                         <t t-call="web.login_hero_content"/>
                     </div>
 
-                    <!-- Right Column: Authentication Form Pane (55%) -->
-                    <div class="insilos_auth_form_pane p-4 p-lg-5">
+                    <!-- Right Column: Authentication Form Pane (42%) -->
+                    <div class="insilos_auth_form_pane p-4 p-lg-5" style="flex: 0 0 42% !important; max-width: 42% !important;">
                         <div class="auth_form_header mb-4">
                             <div class="d-lg-none mb-3 text-center">
                                 <img src="/web/static/img/insilos_logo.svg" alt="Insilos" style="height: 32px; width: auto;"/>

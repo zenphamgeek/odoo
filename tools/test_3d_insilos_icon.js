@@ -93,12 +93,12 @@ const fs = require('fs');
                 yTop: 26, // Elevated hero stature
                 hudOffsetX: 0,
                 hudOffsetY: 26, // Staggered crown
-                primaryColor: '#00F0FF',
-                accentColor: '#0284C7',
-                lightColor: '#FFFFFF',
-                shadowColor: '#031E36',
-                ledColor: '#FFFFFF',
-                glowColor: 'rgba(0, 240, 255, 0.55)'
+                primaryColor: '#FF8000', // Insilos Logo Flame Orange
+                accentColor: '#FFA940',  // Warm Amber Glow
+                lightColor: '#FFFFFF',   // Pure Platinum White
+                shadowColor: '#2B1100',  // Deep warm umber shadow
+                ledColor: '#FFFFFF',     // Pure white status LEDs
+                glowColor: 'rgba(255, 128, 0, 0.65)'
             },
             {
                 id: 'db_ai',
@@ -113,19 +113,19 @@ const fs = require('fs');
                 yTop: 14,
                 hudOffsetX: 6,
                 hudOffsetY: 14,
-                primaryColor: '#42E6C3',
-                accentColor: '#10B981',
-                lightColor: '#ECFDF5',
-                shadowColor: '#03261D',
-                ledColor: '#42E6C3',
-                glowColor: 'rgba(66, 230, 195, 0.45)'
+                primaryColor: '#00F0FF',
+                accentColor: '#0284C7',
+                lightColor: '#E0F2FE',
+                shadowColor: '#031E36',
+                ledColor: '#00F0FF',
+                glowColor: 'rgba(0, 240, 255, 0.45)'
             }
         ];
 
         // 3D Triangular Photonic Highway Mesh connecting the 3 databases
         const bridges = [
-            { fromIdx: 0, toIdx: 1, color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.45)' },
-            { fromIdx: 1, toIdx: 2, color: '#42E6C3', glow: 'rgba(66, 230, 195, 0.45)' },
+            { fromIdx: 0, toIdx: 1, color: '#FF8000', glow: 'rgba(255, 128, 0, 0.45)' },
+            { fromIdx: 1, toIdx: 2, color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.45)' },
             { fromIdx: 0, toIdx: 2, color: '#0F62FE', glow: 'rgba(15, 98, 254, 0.35)' }
         ];
 

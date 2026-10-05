@@ -12,78 +12,27 @@
         <t t-set="show_3d" t-value="request.env['ir.config_parameter'].sudo().get_param('insilos.login_hero_show_3d', 'True') != 'False'"/>
         <t t-set="mode_3d" t-value="request.env['ir.config_parameter'].sudo().get_param('insilos.login_hero_3d_mode') or 'insilos_icon'"/>
 
-        <div class="hero_brand_header mb-2.5">
-            <img src="/web/static/img/insilos_logo_dark.svg" alt="Insilos Enterprise Platform" style="height: 36px; width: auto;" class="d-block mb-2.5"/>
-            <div class="d-inline-flex align-items-center gap-2 px-2.5 py-1 rounded-pill border border-cyan border-opacity-30 text-cyan small mb-2 font-monospace" style="background: rgba(0, 240, 255, 0.08); font-size: 11px;">
-                <span class="pulse-beacon" style="width: 7px; height: 7px; background: #00f0ff; box-shadow: 0 0 8px #00f0ff; border-radius: 50%;"></span>
-                <span>KIẾN TRÚC HỢP NHẤT DỮ LIỆU // SOVEREIGN ENCLAVE</span>
-            </div>
-            <h2 class="display-6 fw-bold my-2 text-cyan-gradient" style="line-height: 1.25; font-size: 1.65rem;">
-                <t t-out="hero_title"/>
+        <div class="hero_brand_header mb-3">
+            <img src="/web/static/img/insilos_logo_dark.svg" alt="Insilos Enterprise Platform" style="height: 38px; width: auto;" class="d-block mb-3"/>
+            <h2 class="fw-bold my-2 text-white" style="line-height: 1.25; font-size: 1.85rem; letter-spacing: -0.02em;">
+                Hạ Tầng Dữ Liệu <span class="text-cyan-gradient">Chủ Quyền</span>
             </h2>
-            <p class="text-white-50 small mb-0" style="line-height: 1.5; font-size: 12.8px;">
-                <t t-out="hero_subtitle"/>
+            <p class="text-white-50 mb-0" style="line-height: 1.5; font-size: 13.5px; max-width: 92%;">
+                Nền tảng ERP &amp; CSDL hợp nhất đa tầng — Kháng ốc đảo, tối ưu hiệu năng và an toàn lượng tử.
             </p>
         </div>
 
-        <!-- 3D Interactive Snippet Viewport Container: Volumetric Database Enclave -->
-        <div t-if="show_3d" class="insilos_login_3d_container position-relative my-2.5 rounded-3 overflow-hidden border border-white-10" style="background: radial-gradient(circle at 50% 40%, #0d1b30 0%, #050913 100%); min-height: 230px; box-shadow: 0 16px 40px rgba(0,0,0,0.7), inset 0 0 28px rgba(0, 240, 255, 0.06);">
-            <!-- Cybernetic Grid Backdrop -->
-            <div class="ins-3d-grid-bg" style="position: absolute; inset: 0; pointer-events: none; opacity: 0.22; background-image: linear-gradient(rgba(0, 240, 255, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 240, 255, 0.12) 1px, transparent 1px); background-size: 20px 20px;"></div>
-            
-            <!-- Neon Corner Brackets in Insilos Palette -->
-            <div class="ins-neon-corner" style="position: absolute; top: 6px; left: 6px; width: 10px; height: 10px; border-top: 2px solid #00f0ff; border-left: 2px solid #00f0ff; z-index: 5;"></div>
-            <div class="ins-neon-corner" style="position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-top: 2px solid #42e6c3; border-right: 2px solid #42e6c3; z-index: 5;"></div>
-            <div class="ins-neon-corner" style="position: absolute; bottom: 6px; left: 6px; width: 10px; height: 10px; border-bottom: 2px solid #0f62fe; border-left: 2px solid #0f62fe; z-index: 5;"></div>
-            <div class="ins-neon-corner" style="position: absolute; bottom: 6px; right: 6px; width: 10px; height: 10px; border-bottom: 2px solid #00f0ff; border-right: 2px solid #00f0ff; z-index: 5;"></div>
-
-            <!-- 3D Interactive Canvas Viewport -->
-            <div class="ins-3d-viewport position-relative ins-login-database-viewport w-100" id="insilosLoginDigitalTwinViewport" style="min-height: 230px; height: 230px; cursor: grab;" title="Kéo chuột để xoay 3D Cơ Sở Dữ Liệu Insilos">
-                <canvas id="insilosLoginDigitalTwinCanvas" class="ins-3d-canvas" style="width: 100%; height: 230px; display: block;"></canvas>
-
-                <!-- Floating HUD Status & Switcher Controls -->
-                <div class="position-absolute bottom-0 start-0 end-0 px-2 py-1.5 d-flex justify-content-between align-items-center" style="background: linear-gradient(180deg, transparent, rgba(5, 9, 19, 0.96)); z-index: 10;">
-                    <div class="d-flex align-items-center gap-1 font-monospace" style="font-size: 9.5px; white-space: nowrap;">
-                        <span class="ins-live-ping" style="display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: #00f0ff; box-shadow: 0 0 6px #00f0ff;"></span>
-                        <span class="text-cyan">SYNC: &lt;0.8ms</span>
-                        <span class="text-white-50 ms-1 d-none d-md-inline">• QUANG HỌC</span>
-                    </div>
-                    <div class="d-flex gap-1" style="flex-shrink: 0;">
-                        <button type="button" class="btn btn-dark btn-sm py-0 px-1.5 rounded-1 border border-cyan font-monospace text-cyan active" data-action="toggle-model" id="btnModeSilos" style="font-size: 9px; height: 20px; line-height: 18px; white-space: nowrap;">
-                            <span>3D CORE</span>
-                        </button>
-                        <button type="button" class="btn btn-dark btn-sm py-0 px-1.5 rounded-1 border border-cyan text-cyan font-monospace" data-action="toggle-flow" id="btnModeFlow" style="font-size: 9px; height: 20px; line-height: 18px; white-space: nowrap;">
-                            <span>DATA FLOW</span>
-                        </button>
-                        <button type="button" class="btn btn-dark btn-sm py-0 px-1.5 rounded-1 border border-white-10 font-monospace text-white-50" data-action="toggle-orbit" id="btnModeOrbit" style="font-size: 9px; height: 20px; line-height: 18px; white-space: nowrap;">
-                            <span>XOAY 360°</span>
-                        </button>
-                    </div>
-                </div>
+        <!-- 3D Interactive Seamless Viewport (No Frame, Fully Integrated) -->
+        <div t-if="show_3d" class="insilos_login_3d_container position-relative my-auto w-100" style="background: transparent !important; border: none !important; min-height: 280px;">
+            <!-- 3D Interactive Canvas Viewport (Seamless Blend into Dark Navy Hero Background) -->
+            <div class="position-relative w-100 overflow-hidden" id="insilosLoginDigitalTwinViewport" style="min-height: 280px; height: 280px; cursor: grab; background: transparent !important; border: none !important; box-shadow: none !important; border-radius: 0 !important;" title="Kéo chuột để xoay 3D Cơ Sở Dữ Liệu Insilos">
+                <canvas id="insilosLoginDigitalTwinCanvas" class="ins-3d-canvas" style="width: 100%; height: 280px; display: block; background: transparent !important;"></canvas>
             </div>
         </div>
 
-        <!-- 3 Live Trust Metric Badges -->
-        <div class="hero_trust_badges my-2 d-flex flex-column gap-2">
-            <div class="p-2.5 px-3 rounded-2 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="pulse-beacon" style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #00f0ff; box-shadow: 0 0 6px #00f0ff;"></span>
-                    <span class="small fw-semibold text-white" style="font-size: 12px;">Đồng bộ Dữ liệu Toàn diện</span>
-                </div>
-                <span class="badge text-cyan fw-bold font-monospace" style="font-size: 11px;">ERP CORE ⇄ SOVEREIGN ⇄ AI</span>
-            </div>
-            <div class="p-2.5 px-3 rounded-2 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
-                <div class="d-flex align-items-center gap-2">
-                    <i class="oi oi-fw text-cyan" data-icon="shield" style="font-size: 12px;"></i>
-                    <span class="small fw-semibold text-white" style="font-size: 12px;">Chủ Quyền &amp; Kháng Lượng Tử</span>
-                </div>
-                <span class="badge bg-dark text-white-50 border border-white-10" style="font-size: 10.5px;">ISO 27001 • Post-Quantum Enclave</span>
-            </div>
-        </div>
-
-        <div class="hero_brand_footer pt-2 border-top border-white-10 d-flex align-items-center justify-content-between small text-white-50" style="font-size: 11px;">
+        <div class="hero_brand_footer pt-3 border-top border-white-10 d-flex align-items-center justify-content-between small text-white-50" style="font-size: 11px;">
             <span>Insilos Enterprise Platform v20.0</span>
-            <span class="font-monospace">Kiến Trúc Dữ Liệu Không Ốc Đảo (Zero-Silo)</span>
+            <span class="font-monospace text-cyan" style="opacity: 0.85;">Sovereign Zero-Silo Architecture</span>
         </div>
 
         <!-- Executive-Grade 3D Sovereign Database Engine (60 FPS Native Canvas) -->
@@ -99,7 +48,7 @@
                     if (!ctx) return;
 
                     let width = canvas.width = viewport.clientWidth || 380;
-                    let height = canvas.height = viewport.clientHeight || 230;
+                    let height = canvas.height = viewport.clientHeight || 280;
 
                     let rotX = 0.34, rotY = -0.32;
                     let targetRotX = 0.34, targetRotY = -0.32;
@@ -111,7 +60,7 @@
                     window.addEventListener('resize', function() {
                         if (!viewport || !canvas) return;
                         width = canvas.width = viewport.clientWidth || 380;
-                        height = canvas.height = viewport.clientHeight || 230;
+                        height = canvas.height = viewport.clientHeight || 280;
                     });
 
                     viewport.addEventListener('mousedown', function(e) {
@@ -190,10 +139,10 @@
                         });
                     }
 
-                    // 3 Monolithic Enterprise Database Cylinders in authentic Insilos Brand Palette:
-                    // DB 1 (Left): Insilos Deep Cobalt & Electric Blue (#0B2E64 / #0F62FE)
-                    // DB 2 (Center Hero): Elevated Sovereign Database in Tech Cyan & Sapphire (#00F0FF / #0284C7)
-                    // DB 3 (Right): Insilos Electric Mint & Emerald (#42E6C3 / #10B981)
+                    // SPATIAL 3D STAGGERED FORMATION (Sovereign Apex Triangle)
+                    // DB 1 (Foreground Left): ERP Core in Deep Cobalt (#0F62FE)
+                    // DB 2 (Elevated Center-Back Apex): Sovereign DB in Insilos Logo Flame Orange & Platinum White (#FF8000 / #FFFFFF)
+                    // DB 3 (Foreground Right): AI & Analytics in Tech Cyan (#00F0FF)
                     const databases = [
                         {
                             id: 'db_erp',
@@ -202,12 +151,12 @@
                             kpi: 'IOPS: 150K',
                             x: -74,
                             z: 24, // Foreground Left
-                            rx: 20,
-                            rz: 11.5,
-                            yBottom: -25,
-                            yTop: 13,
+                            rx: 21,
+                            rz: 12,
+                            yBottom: -26,
+                            yTop: 14,
                             hudOffsetX: -6,
-                            hudOffsetY: 13,
+                            hudOffsetY: 14,
                             primaryColor: '#0F62FE',
                             accentColor: '#38BDF8',
                             lightColor: '#DBEAFE',
@@ -222,18 +171,18 @@
                             kpi: 'LATENCY: <0.5ms',
                             x: 0,
                             z: -30, // Background Center Apex Crown
-                            rx: 24,
-                            rz: 13.5,
-                            yBottom: -29,
+                            rx: 25,
+                            rz: 14.5,
+                            yBottom: -30,
                             yTop: 26, // Elevated hero stature
                             hudOffsetX: 0,
-                            hudOffsetY: 36, // Staggered high above flanking tags
-                            primaryColor: '#00F0FF',
-                            accentColor: '#0284C7',
-                            lightColor: '#FFFFFF',
-                            shadowColor: '#031E36',
-                            ledColor: '#FFFFFF',
-                            glowColor: 'rgba(0, 240, 255, 0.55)'
+                            hudOffsetY: 26, // Staggered crown
+                            primaryColor: '#FF8000', // Insilos Logo Flame Orange
+                            accentColor: '#FFA940',  // Warm Amber Glow
+                            lightColor: '#FFFFFF',   // Pure Platinum White
+                            shadowColor: '#2B1100',  // Deep warm umber shadow
+                            ledColor: '#FFFFFF',     // Pure white status LEDs
+                            glowColor: 'rgba(255, 128, 0, 0.65)'
                         },
                         {
                             id: 'db_ai',
@@ -242,26 +191,26 @@
                             kpi: 'SYNC: REALTIME',
                             x: 74,
                             z: 24, // Foreground Right
-                            rx: 20,
-                            rz: 11.5,
-                            yBottom: -25,
-                            yTop: 13,
+                            rx: 21,
+                            rz: 12,
+                            yBottom: -26,
+                            yTop: 14,
                             hudOffsetX: 6,
-                            hudOffsetY: 13,
-                            primaryColor: '#42E6C3',
-                            accentColor: '#10B981',
-                            lightColor: '#ECFDF5',
-                            shadowColor: '#03261D',
-                            ledColor: '#42E6C3',
-                            glowColor: 'rgba(66, 230, 195, 0.45)'
+                            hudOffsetY: 14,
+                            primaryColor: '#00F0FF', // Tech Cyan
+                            accentColor: '#0284C7',  // Sapphire
+                            lightColor: '#E0F2FE',
+                            shadowColor: '#031E36',
+                            ledColor: '#00F0FF',
+                            glowColor: 'rgba(0, 240, 255, 0.45)'
                         }
                     ];
 
                     // Photonic Data Highway Triangular Mesh connecting the 3 databases across 3D space
                     const bridges = [
-                        { fromIdx: 0, toIdx: 1, color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.45)' }, // ERP Core ⇄ Sovereign DB
-                        { fromIdx: 1, toIdx: 2, color: '#42E6C3', glow: 'rgba(66, 230, 195, 0.45)' }, // Sovereign DB ⇄ AI & Analytics
-                        { fromIdx: 0, toIdx: 2, color: '#0F62FE', glow: 'rgba(15, 98, 254, 0.45)' }  // ERP Core ⇄ AI & Analytics
+                        { fromIdx: 0, toIdx: 1, color: '#FF8000', glow: 'rgba(255, 128, 0, 0.45)' }, // ERP Core ⇄ Sovereign DB (Flame Orange)
+                        { fromIdx: 1, toIdx: 2, color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.45)' }, // Sovereign DB ⇄ AI & Analytics (Tech Cyan)
+                        { fromIdx: 0, toIdx: 2, color: '#0F62FE', glow: 'rgba(15, 98, 254, 0.35)' }  // ERP Core ⇄ AI & Analytics (Cobalt Blue)
                     ];
 
                     function project(x, y, z, cosX, sinX, cosY, sinY, cx, cy, fov) {
