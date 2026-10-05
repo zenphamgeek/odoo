@@ -106,15 +106,19 @@ async function runAudit() {
 
             // Extract layout metrics
             const metrics = await page.evaluate(() => {
-                const sheet = document.querySelector('.insilos_hub_sheet, .o_form_sheet');
+                const sheet = document.querySelector('.o_form_sheet');
+                const sheetBg = document.querySelector('.o_form_sheet_bg');
                 const hero = document.querySelector('.insilos_hub_hero');
                 const cards = document.querySelectorAll('.insilos_hub_card');
                 const footerCards = document.querySelectorAll('.insilos_hub_footer_card');
                 const title = document.querySelector('.insilos_hub_title, h2');
                 
                 return {
+                    windowWidth: window.innerWidth + 'px',
                     sheetWidth: sheet ? window.getComputedStyle(sheet).width : null,
                     sheetMaxWidth: sheet ? window.getComputedStyle(sheet).maxWidth : null,
+                    sheetBgWidth: sheetBg ? window.getComputedStyle(sheetBg).width : null,
+                    heroWidth: hero ? window.getComputedStyle(hero).width : null,
                     hasHero: !!hero,
                     cardsCount: cards.length,
                     footerCardsCount: footerCards.length,
@@ -150,8 +154,8 @@ async function runAudit() {
             Route: r.name,
             Status: r.status,
             Cards: r.metrics ? r.metrics.cardsCount : 'N/A',
-            Footer: r.metrics ? r.metrics.footerCardsCount : 'N/A',
-            Hero: r.metrics ? (r.metrics.hasHero ? 'YES' : 'NO') : 'N/A',
+            SheetWidth: r.metrics ? r.metrics.sheetWidth : 'N/A',
+            HeroWidth: r.metrics ? r.metrics.heroWidth : 'N/A',
             MaxWidth: r.metrics ? r.metrics.sheetMaxWidth : 'N/A'
         })));
 
