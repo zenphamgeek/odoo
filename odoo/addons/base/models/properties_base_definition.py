@@ -49,18 +49,25 @@ class PropertiesBaseDefinition(models.Model):
 
     @api.ormcache("model_name", "field_name", cache='stable')
     def _get_definition_id_for_property_field(self, model_name, field_name):
+        aliases = getattr(self.pool, 'SOVEREIGN_MODEL_ALIASES', {})
+        rev_aliases = getattr(self.pool, 'REVERSE_MODEL_ALIASES', {})
+        alt_model = aliases.get(model_name) or rev_aliases.get(model_name)
+        model_names = [model_name, alt_model] if alt_model else [model_name]
         definition_record = self.sudo().search(
             [
-                ("properties_field_id.model", "=", model_name),
+                ("properties_field_id.model", "in", model_names),
                 ("properties_field_id.name", "=", field_name),
             ],
             limit=1,
         )
         if not definition_record:
             field = self.env["ir.model.fields"].sudo()._get(model_name, field_name)
-            definition_record = self.sudo().create(
-                {
-                    "properties_field_id": field.id,
-                },
-            )
-        return definition_record.id
+            if not field and alt_model:
+                field = self.env["ir.model.fields"].sudo()._get(alt_model, field_name)
+            if field and field.id:
+                definition_record = self.sudo().create(
+                    {
+                        "properties_field_id": field.id,
+                    },
+                )
+        return definition_record.id if definition_record else False

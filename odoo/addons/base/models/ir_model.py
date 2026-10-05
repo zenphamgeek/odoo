@@ -339,6 +339,13 @@ class IrModel(models.Model):
     def _get_id(self, name):
         self.env.cr.execute("SELECT id FROM ir_model WHERE model=%s", (name,))
         result = self.env.cr.fetchone()
+        if not result and name:
+            aliases = getattr(self.pool, 'SOVEREIGN_MODEL_ALIASES', {})
+            rev_aliases = getattr(self.pool, 'REVERSE_MODEL_ALIASES', {})
+            alt = aliases.get(name) or rev_aliases.get(name)
+            if alt:
+                self.env.cr.execute("SELECT id FROM ir_model WHERE model=%s", (alt,))
+                result = self.env.cr.fetchone()
         return result and result[0]
 
     def _drop_table(self):
@@ -972,7 +979,15 @@ class IrModelFields(models.Model):
     def _get_ids(self, model_name):
         cr = self.env.cr
         cr.execute("SELECT name, id FROM ir_model_fields WHERE model=%s", [model_name])
-        return dict(cr.fetchall())
+        res = dict(cr.fetchall())
+        if not res and model_name:
+            aliases = getattr(self.pool, 'SOVEREIGN_MODEL_ALIASES', {})
+            rev_aliases = getattr(self.pool, 'REVERSE_MODEL_ALIASES', {})
+            alt = aliases.get(model_name) or rev_aliases.get(model_name)
+            if alt:
+                cr.execute("SELECT name, id FROM ir_model_fields WHERE model=%s", [alt])
+                res = dict(cr.fetchall())
+        return res
 
     def _drop_column(self):
         from insilos.orm.model_classes import pop_field  # noqa: PLC0415
