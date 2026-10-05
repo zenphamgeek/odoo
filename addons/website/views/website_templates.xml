@@ -1804,7 +1804,37 @@
 
                         <div class="auth_footer_block mt-4 pt-3 border-top d-flex flex-wrap justify-content-between align-items-center small" t-if="not disable_footer">
                             <t t-if="not disable_database_manager">
-                                <a class="auth_meta_link" href="/web/database/manager">
+                                <div t-if="databases and len(databases) &gt; 1" class="dropdown dropup">
+                                    <button type="button" id="insilosDbSelectorDropdown" class="btn btn-sm dropdown-toggle d-inline-flex align-items-center gap-1.5 py-0.5 px-2.5 rounded-pill shadow-none border" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 11.5px; height: 26px; line-height: 24px; background: #f8fafc; color: #334155; border-color: #e2e8f0;">
+                                        <i class="oi oi-fw me-0.5" data-icon="database" style="font-size: 11px; color: #0F62FE;"></i>
+                                        <span style="font-size: 11px; color: #64748B;">Cơ sở dữ liệu:</span>
+                                        <span class="font-monospace fw-bold" style="font-size: 11px; color: #0F172A;"><t t-out="request.db"/></span>
+                                    </button>
+                                    <ul class="dropdown-menu shadow-sm border py-1 mb-1" style="font-size: 12px; min-width: 210px; border-color: #e2e8f0;">
+                                        <li class="dropdown-header text-uppercase text-muted py-1" style="font-size: 10px; letter-spacing: 0.05em; font-weight: 600;">Chọn cơ sở dữ liệu</li>
+                                        <t t-foreach="databases" t-as="d">
+                                            <li>
+                                                <a t-attf-href="/web/login?db=#{d}" t-attf-class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 {{ 'active fw-semibold' if d == request.db else '' }}">
+                                                    <span class="font-monospace"><t t-out="d"/></span>
+                                                    <i t-if="d == request.db" class="oi oi-fw ms-2" data-icon="check" style="font-size: 11px;"></i>
+                                                </a>
+                                            </li>
+                                        </t>
+                                        <li class="dropdown-divider my-1"></li>
+                                        <li>
+                                            <a href="/web/database/manager" class="dropdown-item py-1.5 px-3 text-muted small d-flex align-items-center gap-1.5">
+                                                <i class="oi oi-fw" data-icon="settings" style="font-size: 11px;"></i>
+                                                <span>Quản trị cơ sở dữ liệu...</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <a t-elif="request.db" class="auth_meta_link d-inline-flex align-items-center gap-1.5 py-0.5 px-2.5 rounded-pill border" href="/web/database/manager" style="font-size: 11.5px; height: 26px; line-height: 24px; background: #f8fafc; color: #334155; border-color: #e2e8f0; text-decoration: none;">
+                                    <i class="oi oi-fw me-0.5" data-icon="database" style="font-size: 11px; color: #0F62FE;"></i>
+                                    <span style="font-size: 11px; color: #64748B;">Cơ sở dữ liệu:</span>
+                                    <span class="font-monospace fw-bold" style="font-size: 11px; color: #0F172A;"><t t-out="request.db"/></span>
+                                </a>
+                                <a t-else="" class="auth_meta_link" href="/web/database/manager">
                                     <i class="oi oi-fw me-1" data-icon="database"></i>Quản trị cơ sở dữ liệu
                                 </a>
                             </t>

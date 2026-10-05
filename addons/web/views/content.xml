@@ -201,6 +201,7 @@
                             sub: 'DỮ LIỆU CỐT LÕI',
                             kpi: 'IOPS: 150K',
                             x: -74,
+                            z: 24, // Foreground Left
                             rx: 20,
                             rz: 11.5,
                             yBottom: -25,
@@ -220,10 +221,11 @@
                             sub: 'CƠ SỞ ĐỘC BẢN',
                             kpi: 'LATENCY: <0.5ms',
                             x: 0,
+                            z: -30, // Background Center Apex Crown
                             rx: 24,
                             rz: 13.5,
                             yBottom: -29,
-                            yTop: 22, // Elevated hero stature
+                            yTop: 26, // Elevated hero stature
                             hudOffsetX: 0,
                             hudOffsetY: 36, // Staggered high above flanking tags
                             primaryColor: '#00F0FF',
@@ -239,6 +241,7 @@
                             sub: 'TRÍ TUỆ NHÂN TẠO',
                             kpi: 'SYNC: REALTIME',
                             x: 74,
+                            z: 24, // Foreground Right
                             rx: 20,
                             rz: 11.5,
                             yBottom: -25,
@@ -254,10 +257,11 @@
                         }
                     ];
 
-                    // Photonic Data Highway Bridges connecting the 3 databases
+                    // Photonic Data Highway Triangular Mesh connecting the 3 databases across 3D space
                     const bridges = [
-                        { fromX: -72, fromY: -6, toX: 0, toY: -4, color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.45)' },
-                        { fromX: 0, fromY: -4, toX: 72, toY: -6, color: '#42E6C3', glow: 'rgba(66, 230, 195, 0.45)' }
+                        { fromIdx: 0, toIdx: 1, color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.45)' }, // ERP Core ⇄ Sovereign DB
+                        { fromIdx: 1, toIdx: 2, color: '#42E6C3', glow: 'rgba(66, 230, 195, 0.45)' }, // Sovereign DB ⇄ AI & Analytics
+                        { fromIdx: 0, toIdx: 2, color: '#0F62FE', glow: 'rgba(15, 98, 254, 0.45)' }  // ERP Core ⇄ AI & Analytics
                     ];
 
                     function project(x, y, z, cosX, sinX, cosY, sinY, cx, cy, fov) {
@@ -330,14 +334,16 @@
 
                         // A. Data Highway Bridges
                         bridges.forEach(function(b) {
-                            const pA = project(b.fromX, b.fromY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
-                            const pB = project(b.toX, b.toY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                            const dbA = databases[b.fromIdx];
+                            const dbB = databases[b.toIdx];
+                            const pA = project(dbA.x, (dbA.yBottom + dbA.yTop) * 0.4, dbA.z, cosX, sinX, cosY, sinY, cx, cy, fov);
+                            const pB = project(dbB.x, (dbB.yBottom + dbB.yTop) * 0.4, dbB.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                             items.push({ type: 'bridge', bridge: b, pA: pA, pB: pB, z: (pA.z + pB.z) / 2 });
                         });
 
                         // B. Database Monoliths
                         databases.forEach(function(db, dIdx) {
-                            const pMid = project(db.x, (db.yBottom + db.yTop) / 2, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                            const pMid = project(db.x, (db.yBottom + db.yTop) / 2, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                             items.push({ type: 'cylinder', db: db, dIdx: dIdx, z: pMid.z });
                         });
 
@@ -403,12 +409,12 @@
                             } else if (item.type === 'cylinder') {
                                 const db = item.db;
 
-                                // Projected center points at bottom and top of cylinder
-                                const P_bot = project(db.x, db.yBottom, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                                // Projected center points at bottom and top of cylinder with 3D Z
+                                const P_bot = project(db.x, db.yBottom, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                                 const rx_bot = db.rx * P_bot.scale;
                                 const ry_bot = db.rz * Math.abs(Math.sin(rotX)) * P_bot.scale;
 
-                                const P_top = project(db.x, db.yTop, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                                const P_top = project(db.x, db.yTop, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                                 const rx_top = db.rx * P_top.scale;
                                 const ry_top = db.rz * Math.abs(Math.sin(rotX)) * P_top.scale;
 
@@ -423,7 +429,7 @@
                                 ctx.restore();
 
                                 // 2. Base Pedestal Foot Collar
-                                const P_foot = project(db.x, db.yBottom - 5, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                                const P_foot = project(db.x, db.yBottom - 5, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                                 const rx_foot = db.rx * 1.08 * P_foot.scale;
                                 const ry_foot = db.rz * 1.08 * Math.abs(Math.sin(rotX)) * P_foot.scale;
                                 ctx.beginPath();
@@ -462,7 +468,7 @@
                                 const slotFractions = [0.26, 0.50, 0.74];
                                 slotFractions.forEach(function(frac, sIdx) {
                                     const slotY = db.yBottom + (db.yTop - db.yBottom) * frac;
-                                    const P_slot = project(db.x, slotY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                                    const P_slot = project(db.x, slotY, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                                     const rx_slot = db.rx * P_slot.scale;
                                     const ry_slot = db.rz * Math.abs(Math.sin(rotX)) * P_slot.scale;
 
@@ -554,8 +560,8 @@
 
                         // 5. Dedicated HUD Overlay Pass: Leader Pins & Floating Tag Badges (Always on top)
                         databases.forEach(function(db) {
-                            const capTop = project(db.x, db.yTop + 2, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
-                            const tagProj = project(db.x + db.hudOffsetX, db.yTop + db.hudOffsetY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                            const capTop = project(db.x, db.yTop + 2, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
+                            const tagProj = project(db.x + db.hudOffsetX, db.yTop + db.hudOffsetY, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
 
                             // Glowing vertical leader pin
                             ctx.beginPath();

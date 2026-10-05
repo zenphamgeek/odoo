@@ -13,8 +13,8 @@ const { chromium } = require('playwright');
     console.log('Navigating to http://localhost:28069/web/login...');
     await page.goto('http://localhost:28069/web/login', { waitUntil: 'networkidle' });
 
-    // Wait 2.5 seconds for 3D animation loop
-    await page.waitForTimeout(2500);
+    // Wait 2 seconds for 3D animation loop
+    await page.waitForTimeout(2000);
 
     const canvas = await page.$('#insilosLoginDigitalTwinCanvas');
     if (!canvas) {
@@ -23,17 +23,41 @@ const { chromium } = require('playwright');
     }
     console.log('Canvas found!');
 
+    // Capture the login card
+    const loginCard = await page.$('.insilos_auth_portal_card') || await page.$('.insilos_login_card') || await page.$('.card');
+    if (loginCard) {
+        const heroPath = '/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-bdff11b8b865/login_3d_hero_container.png';
+        await loginCard.screenshot({ path: heroPath });
+        console.log('Login portal card captured at:', heroPath);
+    }
+
     // Capture full screenshot
     const fullPath = '/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-bdff11b8b865/login_3d_hero_insilos_databases.png';
     await page.screenshot({ path: fullPath, fullPage: true });
     console.log('Full page captured at:', fullPath);
 
-    // Capture the login card / hero container
-    const heroCard = await page.$('.insilos_login_card') || await page.$('.card') || await page.$('.insilos_login_3d_container');
-    if (heroCard) {
-        const heroPath = '/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-bdff11b8b865/login_3d_hero_container.png';
-        await heroCard.screenshot({ path: heroPath });
-        console.log('Hero container captured at:', heroPath);
+    // Capture footer block specifically
+    const footerBlock = await page.$('.auth_footer_block');
+    if (footerBlock) {
+        const footerPath = '/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-bdff11b8b865/login_footer_db_selector.png';
+        await footerBlock.screenshot({ path: footerPath });
+        console.log('Footer block captured at:', footerPath);
+    }
+
+    // Click dropdown button to verify dropup menu
+    const dbBtn = await page.$('#insilosDbSelectorDropdown');
+    if (dbBtn) {
+        console.log('Found #insilosDbSelectorDropdown! Clicking...');
+        await dbBtn.click();
+        await page.waitForTimeout(500);
+
+        if (loginCard) {
+            const openCardPath = '/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-bdff11b8b865/login_footer_db_selector_open.png';
+            await loginCard.screenshot({ path: openCardPath });
+            console.log('Open dropup captured at:', openCardPath);
+        }
+    } else {
+        console.log('Single database mode: #insilosDbSelectorDropdown not present (single db link active)');
     }
 
     await browser.close();

@@ -55,23 +55,24 @@ const fs = require('fs');
             });
         }
 
-        // 3 Monolithic Enterprise Database Cylinders in authentic Insilos Brand Palette:
-        // DB 1 (Left): Insilos Deep Cobalt & Electric Blue (#0B2E64 / #0F62FE)
-        // DB 2 (Center Hero): Elevated Sovereign Database in Tech Cyan & Sapphire (#00F0FF / #0284C7)
-        // DB 3 (Right): Insilos Electric Mint & Emerald (#42E6C3 / #10B981)
+        // SPATIAL 3D STAGGERED FORMATION (Sovereign Apex Triangle)
+        // DB 1 (Foreground Left): ERP Core (z: +22, x: -74)
+        // DB 2 (Elevated Center-Back Apex): Sovereign DB (z: -30, x: 0)
+        // DB 3 (Foreground Right): AI & Analytics (z: +22, x: +74)
         const databases = [
             {
                 id: 'db_erp',
                 tag: 'ERP CORE',
                 sub: 'DỮ LIỆU CỐT LÕI',
                 kpi: 'IOPS: 150K',
-                x: -88,
-                rx: 26,
-                rz: 15,
-                yBottom: -40,
-                yTop: 18,
-                hudOffsetX: -8,
-                hudOffsetY: 20,
+                x: -74,
+                z: 24, // Foreground Left
+                rx: 21,
+                rz: 12,
+                yBottom: -26,
+                yTop: 14,
+                hudOffsetX: -6,
+                hudOffsetY: 14,
                 primaryColor: '#0F62FE',
                 accentColor: '#38BDF8',
                 lightColor: '#DBEAFE',
@@ -85,12 +86,13 @@ const fs = require('fs');
                 sub: 'CƠ SỞ ĐỘC BẢN',
                 kpi: 'LATENCY: <0.5ms',
                 x: 0,
-                rx: 31,
-                rz: 18,
-                yBottom: -46,
-                yTop: 32, // Elevated hero stature
+                z: -30, // Background Apex (recessed into depth, elevated crown)
+                rx: 25,
+                rz: 14.5,
+                yBottom: -30,
+                yTop: 26, // Elevated hero stature
                 hudOffsetX: 0,
-                hudOffsetY: 44, // Staggered substantially higher
+                hudOffsetY: 26, // Staggered crown
                 primaryColor: '#00F0FF',
                 accentColor: '#0284C7',
                 lightColor: '#FFFFFF',
@@ -103,13 +105,14 @@ const fs = require('fs');
                 tag: 'AI & ANALYTICS',
                 sub: 'TRÍ TUỆ NHÂN TẠO',
                 kpi: 'SYNC: REALTIME',
-                x: 88,
-                rx: 26,
-                rz: 15,
-                yBottom: -40,
-                yTop: 18,
-                hudOffsetX: 12,
-                hudOffsetY: 20,
+                x: 74,
+                z: 24, // Foreground Right
+                rx: 21,
+                rz: 12,
+                yBottom: -26,
+                yTop: 14,
+                hudOffsetX: 6,
+                hudOffsetY: 14,
                 primaryColor: '#42E6C3',
                 accentColor: '#10B981',
                 lightColor: '#ECFDF5',
@@ -119,10 +122,11 @@ const fs = require('fs');
             }
         ];
 
-        // Photonic Data Highway Bridges connecting the 3 databases
+        // 3D Triangular Photonic Highway Mesh connecting the 3 databases
         const bridges = [
-            { fromX: -88, fromY: -10, toX: 0, toY: -7, color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.45)' },
-            { fromX: 0, fromY: -7, toX: 88, toY: -10, color: '#42E6C3', glow: 'rgba(66, 230, 195, 0.45)' }
+            { fromIdx: 0, toIdx: 1, color: '#00F0FF', glow: 'rgba(0, 240, 255, 0.45)' },
+            { fromIdx: 1, toIdx: 2, color: '#42E6C3', glow: 'rgba(66, 230, 195, 0.45)' },
+            { fromIdx: 0, toIdx: 2, color: '#0F62FE', glow: 'rgba(15, 98, 254, 0.35)' }
         ];
 
         function project(x, y, z, cosX, sinX, cosY, sinY, cx, cy, fov) {
@@ -147,19 +151,19 @@ const fs = require('fs');
 
             ctx.clearRect(0, 0, width, height);
             const cx = width / 2;
-            const cy = height / 2 - 2;
-            const fov = 340;
+            const cy = height / 2 - 14;
+            const fov = 270;
 
             const cosX = Math.cos(rotX), sinX = Math.sin(rotX);
             const cosY = Math.cos(rotY), sinY = Math.sin(rotY);
 
             // 1. Cybernetic Ground Horizon & Compass Rings in Insilos Cyan & Cobalt
-            const groundProj = project(0, -56, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+            const groundProj = project(0, -38, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
             
             // Outer dashed compass ring
             ctx.save();
             ctx.beginPath();
-            ctx.ellipse(groundProj.x, groundProj.y, 148 * groundProj.scale, 48 * groundProj.scale, 0, 0, Math.PI * 2);
+            ctx.ellipse(groundProj.x, groundProj.y, 136 * groundProj.scale, 42 * groundProj.scale, 0, 0, Math.PI * 2);
             ctx.setLineDash([4, 6]);
             ctx.strokeStyle = 'rgba(0, 240, 255, 0.28)';
             ctx.lineWidth = 1;
@@ -168,11 +172,11 @@ const fs = require('fs');
 
             // Inner solid glow ring in Insilos Blue & Cyan
             ctx.beginPath();
-            ctx.ellipse(groundProj.x, groundProj.y, 90 * groundProj.scale, 30 * groundProj.scale, 0, 0, Math.PI * 2);
+            ctx.ellipse(groundProj.x, groundProj.y, 82 * groundProj.scale, 26 * groundProj.scale, 0, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(15, 98, 254, 0.45)';
-            ctx.lineWidth = 1.6;
+            ctx.lineWidth = 1.5;
             ctx.shadowColor = '#00F0FF';
-            ctx.shadowBlur = 10;
+            ctx.shadowBlur = 9;
             ctx.stroke();
             ctx.shadowBlur = 0;
 
@@ -198,8 +202,10 @@ const fs = require('fs');
 
             // A. Data Highway Bridges
             bridges.forEach((b, bIdx) => {
-                const pA = project(b.fromX, b.fromY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
-                const pB = project(b.toX, b.toY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                const dbA = databases[b.fromIdx];
+                const dbB = databases[b.toIdx];
+                const pA = project(dbA.x, (dbA.yBottom + dbA.yTop) * 0.4, dbA.z, cosX, sinX, cosY, sinY, cx, cy, fov);
+                const pB = project(dbB.x, (dbB.yBottom + dbB.yTop) * 0.4, dbB.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                 items.push({
                     type: 'bridge',
                     bridge: b,
@@ -210,7 +216,7 @@ const fs = require('fs');
 
             // B. Database Monoliths
             databases.forEach((db, dIdx) => {
-                const pMid = project(db.x, (db.yBottom + db.yTop) / 2, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                const pMid = project(db.x, (db.yBottom + db.yTop) / 2, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                 items.push({
                     type: 'cylinder',
                     db,
@@ -236,12 +242,12 @@ const fs = require('fs');
                     ctx.moveTo(pA.x, pA.y + 2);
                     ctx.lineTo(pB.x, pB.y + 2);
                     ctx.strokeStyle = item.bridge.color;
-                    ctx.lineWidth = Math.max(1.2, 2 * pA.scale);
+                    ctx.lineWidth = Math.max(1.1, 1.8 * pA.scale);
                     ctx.shadowColor = item.bridge.color;
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 8;
                     ctx.stroke();
 
-                    // Translucent High-Speed Optical Energy Ribbon
+                    // Translucent Optical Energy Ribbon
                     ctx.beginPath();
                     ctx.moveTo(pA.x, pA.y - 2);
                     ctx.lineTo(pB.x, pB.y - 2);
@@ -252,9 +258,9 @@ const fs = require('fs');
                     ctx.fill();
 
                     // Luminous Flying Photon Data Packets
-                    const packetCount = 4;
+                    const packetCount = 3;
                     for (let k = 0; k < packetCount; k++) {
-                        const prog = (time * 1.2 + k / packetCount) % 1;
+                        const prog = (time * 1.1 + k / packetCount) % 1;
                         const px = pA.x + (pB.x - pA.x) * prog;
                         const py = pA.y + (pB.y - pA.y) * prog;
                         const pz = pA.z + (pB.z - pA.z) * prog;
@@ -262,10 +268,10 @@ const fs = require('fs');
 
                         // Primary glowing packet
                         ctx.beginPath();
-                        ctx.arc(px, py, Math.max(2.6, 4.4 * pscale), 0, Math.PI * 2);
+                        ctx.arc(px, py, Math.max(2.2, 3.8 * pscale), 0, Math.PI * 2);
                         ctx.fillStyle = k % 2 === 0 ? '#FFFFFF' : item.bridge.color;
                         ctx.shadowColor = item.bridge.color;
-                        ctx.shadowBlur = 16;
+                        ctx.shadowBlur = 14;
                         ctx.fill();
 
                         // Trailing comet spark
@@ -275,23 +281,23 @@ const fs = require('fs');
                         const tailY = py - (pB.y - pA.y) * 0.1;
                         ctx.lineTo(tailX, tailY);
                         ctx.strokeStyle = item.bridge.color;
-                        ctx.lineWidth = 2.2 * pscale;
+                        ctx.lineWidth = 1.8 * pscale;
                         ctx.stroke();
                     }
                     ctx.restore();
                 } else if (item.type === 'cylinder') {
                     const db = item.db;
 
-                    // Projected center points at bottom and top of cylinder
-                    const P_bot = project(db.x, db.yBottom, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                    // Projected center points at bottom and top of cylinder with 3D Z
+                    const P_bot = project(db.x, db.yBottom, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                     const rx_bot = db.rx * P_bot.scale;
                     const ry_bot = db.rz * Math.abs(Math.sin(rotX)) * P_bot.scale;
 
-                    const P_top = project(db.x, db.yTop, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                    const P_top = project(db.x, db.yTop, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                     const rx_top = db.rx * P_top.scale;
                     const ry_top = db.rz * Math.abs(Math.sin(rotX)) * P_top.scale;
 
-                    // 1. Ambient Drop Shadow
+                    // 1. Ambient Drop Shadow on ground
                     ctx.save();
                     ctx.beginPath();
                     ctx.ellipse(P_bot.x, P_bot.y + 2, rx_bot * 1.15, ry_bot * 1.15, 0, 0, Math.PI * 2);
@@ -302,7 +308,7 @@ const fs = require('fs');
                     ctx.restore();
 
                     // 2. Base Pedestal Foot Collar
-                    const P_foot = project(db.x, db.yBottom - 5, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                    const P_foot = project(db.x, db.yBottom - 5, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                     const rx_foot = db.rx * 1.08 * P_foot.scale;
                     const ry_foot = db.rz * 1.08 * Math.abs(Math.sin(rotX)) * P_foot.scale;
                     ctx.beginPath();
@@ -318,10 +324,8 @@ const fs = require('fs');
                     ctx.beginPath();
                     ctx.moveTo(P_top.x - rx_top, P_top.y);
                     ctx.lineTo(P_bot.x - rx_bot, P_bot.y);
-                    // Bottom front arc curving downward
                     ctx.ellipse(P_bot.x, P_bot.y, rx_bot, ry_bot, 0, Math.PI, 0, true);
                     ctx.lineTo(P_top.x + rx_top, P_top.y);
-                    // Top back arc
                     ctx.ellipse(P_top.x, P_top.y, rx_top, ry_top, 0, 0, Math.PI, true);
                     ctx.closePath();
 
@@ -334,7 +338,6 @@ const fs = require('fs');
                     ctx.fillStyle = bodyGrad;
                     ctx.fill();
 
-                    // Side edge highlight lines
                     ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
                     ctx.lineWidth = 0.8;
                     ctx.stroke();
@@ -342,9 +345,9 @@ const fs = require('fs');
 
                     // 4. Horizontal CNC Storage Drive Slots & LED Arrays
                     const slotFractions = [0.26, 0.50, 0.74];
-                    slotFractions.forEach((frac, sIdx) => {
+                    slotFractions.forEach(function(frac, sIdx) {
                         const slotY = db.yBottom + (db.yTop - db.yBottom) * frac;
-                        const P_slot = project(db.x, slotY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
+                        const P_slot = project(db.x, slotY, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
                         const rx_slot = db.rx * P_slot.scale;
                         const ry_slot = db.rz * Math.abs(Math.sin(rotX)) * P_slot.scale;
 
@@ -423,7 +426,7 @@ const fs = require('fs');
                     ctx.lineWidth = 1.2;
                     ctx.stroke();
 
-                    // 6. Central Optical Emitter & Laser Transmitter
+                    // 6. Central Optical Emitter
                     ctx.beginPath();
                     ctx.arc(P_top.x, P_top.y, Math.max(3.2, 5.2 * P_top.scale), 0, Math.PI * 2);
                     ctx.fillStyle = '#FFFFFF';
@@ -431,54 +434,56 @@ const fs = require('fs');
                     ctx.shadowBlur = 16;
                     ctx.fill();
                     ctx.shadowBlur = 0;
-
-                    // 7. Holographic HUD Leader Pin & Staggered Badge Card
-                    const capTop = project(db.x, db.yTop + 2, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
-                    const tagProj = project(db.x + db.hudOffsetX, db.yTop + db.hudOffsetY, 0, cosX, sinX, cosY, sinY, cx, cy, fov);
-
-                    // Glowing vertical leader pin
-                    ctx.beginPath();
-                    ctx.moveTo(capTop.x, capTop.y);
-                    ctx.lineTo(tagProj.x, tagProj.y + 9);
-                    ctx.strokeStyle = db.primaryColor;
-                    ctx.lineWidth = 1.1;
-                    ctx.stroke();
-
-                    // Micro dot at anchor
-                    ctx.beginPath();
-                    ctx.arc(capTop.x, capTop.y, 2.5, 0, Math.PI * 2);
-                    ctx.fillStyle = db.primaryColor;
-                    ctx.fill();
-
-                    // Holographic Tag Card with dynamic width
-                    ctx.save();
-                    const fontSize = Math.max(9, Math.round(10.5 * tagProj.scale));
-                    ctx.font = 'bold ' + fontSize + 'px monospace';
-                    const textWidth = ctx.measureText(db.tag).width;
-                    const tagW = Math.max(62, textWidth + 16 * tagProj.scale);
-                    const tagH = 20 * tagProj.scale;
-                    const rx = tagProj.x - tagW / 2;
-                    const ry = tagProj.y - tagH / 2;
-
-                    // Frosted Glass Plate in Deep Insilos Navy
-                    ctx.fillStyle = 'rgba(5, 14, 30, 0.94)';
-                    ctx.strokeStyle = db.primaryColor;
-                    ctx.lineWidth = 1.3;
-                    ctx.shadowColor = db.primaryColor;
-                    ctx.shadowBlur = 12;
-                    ctx.beginPath();
-                    ctx.roundRect(rx, ry, tagW, tagH, 4);
-                    ctx.fill();
-                    ctx.stroke();
-                    ctx.shadowBlur = 0;
-
-                    // Text Header
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.fillText(db.tag, tagProj.x, tagProj.y);
-                    ctx.restore();
                 }
+            });
+
+            // 5. Dedicated HUD Overlay Pass: Leader Pins & Floating Tag Badges (Always on top)
+            databases.forEach(function(db) {
+                const capTop = project(db.x, db.yTop + 2, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
+                const tagProj = project(db.x + db.hudOffsetX, db.yTop + db.hudOffsetY, db.z, cosX, sinX, cosY, sinY, cx, cy, fov);
+
+                // Glowing vertical leader pin
+                ctx.beginPath();
+                ctx.moveTo(capTop.x, capTop.y);
+                ctx.lineTo(tagProj.x, tagProj.y + 7);
+                ctx.strokeStyle = db.primaryColor;
+                ctx.lineWidth = 1.1;
+                ctx.stroke();
+
+                // Micro dot at anchor
+                ctx.beginPath();
+                ctx.arc(capTop.x, capTop.y, 2.2, 0, Math.PI * 2);
+                ctx.fillStyle = db.primaryColor;
+                ctx.fill();
+
+                // Holographic Tag Card with dynamic width
+                ctx.save();
+                const fontSize = Math.max(8.5, Math.round(9.5 * tagProj.scale));
+                ctx.font = 'bold ' + fontSize + 'px monospace';
+                const textWidth = ctx.measureText(db.tag).width;
+                const tagW = Math.max(50, textWidth + 12 * tagProj.scale);
+                const tagH = 17 * tagProj.scale;
+                const rx = tagProj.x - tagW / 2;
+                const ry = tagProj.y - tagH / 2;
+
+                // Frosted Glass Plate in Deep Insilos Navy
+                ctx.fillStyle = 'rgba(5, 14, 30, 0.94)';
+                ctx.strokeStyle = db.primaryColor;
+                ctx.lineWidth = 1.2;
+                ctx.shadowColor = db.primaryColor;
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.roundRect(rx, ry, tagW, tagH, 3.5);
+                ctx.fill();
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+
+                // Text Header
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillText(db.tag, tagProj.x, tagProj.y);
+                ctx.restore();
             });
         }
 
