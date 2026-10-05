@@ -12,6 +12,7 @@ This module provides the core of the Insilos Web Client.
     'depends': ['base'],
     'auto_install': True,
     'data': [
+        'views/content.xml',
         'views/webclient_templates.xml',
         'views/report_templates.xml',
         'views/base_document_layout_views.xml',

@@ -121,46 +121,7 @@
                 <div t-attf-class="insilos_auth_portal_card d-flex overflow-hidden {{login_card_classes}} o_database_list">
                     <!-- Left Column: Enterprise Hero Showcase (45%) -->
                     <div class="insilos_auth_hero_showcase d-flex flex-column justify-content-between p-4 p-lg-5 text-white">
-                        <div class="hero_brand_header mb-4">
-                            <img src="/web/static/img/insilos_logo_dark.svg" alt="Insilos Enterprise Platform" style="height: 38px; width: auto;" class="d-block mb-3"/>
-                            <div class="text-white-50 text-uppercase fw-semibold" style="font-size: 11px; letter-spacing: 0.08em;">Hệ Thống Quản Trị Doanh Nghiệp Toàn Diện</div>
-                            <h2 class="display-6 fw-bold my-3 text-cyan-gradient" style="line-height: 1.2;">
-                                Nền Tảng Quản Trị Doanh Nghiệp
-                            </h2>
-                            <p class="text-white-50 small mb-0" style="line-height: 1.6; font-size: 13.5px;">
-                                Tích hợp và chuẩn hóa quy trình nghiệp vụ cốt lõi: Chuỗi cung ứng (SCM), Quản lý sản xuất (MES/PP), Quản trị tài chính (FI/CO) và Quản trị nguồn nhân lực (HCM).
-                            </p>
-                        </div>
-
-                        <!-- 3 Live Trust Metric Badges -->
-                        <div class="hero_trust_badges my-4 d-flex flex-column gap-3">
-                            <div class="p-3 rounded-3 bg-cyan-subtle border border-white-10 d-flex align-items-center justify-content-between">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="pulse-beacon"></span>
-                                    <span class="small fw-semibold text-white">Độ sẵn sàng hệ thống (SLA)</span>
-                                </div>
-                                <span class="badge text-cyan fw-bold font-monospace" style="font-size: 12px;">99.99%</span>
-                            </div>
-                            <div class="p-3 rounded-3 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="oi oi-fw text-cyan" data-icon="shield"></i>
-                                    <span class="small fw-semibold text-white">An toàn &amp; Bảo mật thông tin</span>
-                                </div>
-                                <span class="badge bg-dark text-white-50 border border-white-10" style="font-size: 11px;">ISO/IEC 27001</span>
-                            </div>
-                            <div class="p-3 rounded-3 bg-white-5 border border-white-10 d-flex align-items-center justify-content-between" style="background: rgba(255, 255, 255, 0.03);">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="oi oi-fw text-cyan" data-icon="domain"></i>
-                                    <span class="small fw-semibold text-white">Tiêu chuẩn tương thích hệ thống</span>
-                                </div>
-                                <span class="badge bg-dark text-white-50 border border-white-10" style="font-size: 11px;">Chuẩn SAP / IBM</span>
-                            </div>
-                        </div>
-
-                        <div class="hero_brand_footer pt-3 border-top border-white-10 d-flex align-items-center justify-content-between small text-white-50">
-                            <span>Insilos Enterprise Platform v20.0</span>
-                            <span class="font-monospace" style="font-size: 11px;">Vùng dữ liệu bảo mật (Sovereign Enclave)</span>
-                        </div>
+                        <t t-call="web.login_hero_content"/>
                     </div>
 
                     <!-- Right Column: Authentication Form Pane (55%) -->
@@ -234,11 +195,32 @@
             <form class="oe_login_form" role="form" t-attf-action="/web/login" method="post" onsubmit="this.action = '/web/login' + location.hash" data-captcha="login">
                 <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
-                <div class="mb-3" t-if="databases and len(databases) &gt; 1">
-                    <label for="db" class="col-form-label">Cơ sở dữ liệu</label>
-                    <div class="input-group">
-                        <input type="text" name="db" t-att-value="request.db" id="db" class="form-control" required="required" readonly="readonly"/>
-                        <a role="button" href="/web/database/selector" class="btn border border-start-0">Chọn <i class="oi" data-icon="database" role="img" aria-label="Database" title="Database"></i></a>
+                <input type="hidden" name="db" t-att-value="request.db" id="db"/>
+                <div class="d-flex justify-content-end align-items-center mb-3" t-if="databases and len(databases) &gt; 1">
+                    <div class="dropdown">
+                        <button type="button" id="insilosDbSelectorDropdown" class="btn btn-sm dropdown-toggle d-inline-flex align-items-center gap-1.5 py-1 px-3 rounded-pill shadow-none" data-bs-toggle="dropdown" aria-expanded="false" style="font-size: 12px; height: 28px; line-height: 26px; border: 1px solid #e2e8f0; background: #f8fafc; color: #334155;">
+                            <i class="oi oi-fw text-primary opacity-75" data-icon="database" style="font-size: 11px;"></i>
+                            <span class="text-secondary" style="font-size: 11.5px;">Cơ sở dữ liệu:</span>
+                            <span class="font-monospace fw-bold text-dark" style="font-size: 11.5px;"><t t-out="request.db"/></span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border py-1" style="font-size: 12px; min-width: 200px; border-color: #e2e8f0;">
+                            <li class="dropdown-header text-uppercase text-muted py-1" style="font-size: 10px; letter-spacing: 0.05em; font-weight: 600;">Chọn cơ sở dữ liệu</li>
+                            <t t-foreach="databases" t-as="d">
+                                <li>
+                                    <a t-attf-href="/web/login?db=#{d}" t-attf-class="dropdown-item d-flex align-items-center justify-content-between py-1.5 px-3 {{ 'active fw-semibold' if d == request.db else '' }}">
+                                        <span class="font-monospace"><t t-out="d"/></span>
+                                        <i t-if="d == request.db" class="oi oi-fw ms-2" data-icon="check" style="font-size: 11px;"></i>
+                                    </a>
+                                </li>
+                            </t>
+                            <li t-if="not disable_database_manager" class="dropdown-divider my-1"></li>
+                            <li t-if="not disable_database_manager">
+                                <a href="/web/database/selector" class="dropdown-item py-1.5 px-3 text-muted small d-flex align-items-center gap-1.5">
+                                    <i class="oi oi-fw" data-icon="settings" style="font-size: 11px;"></i>
+                                    <span>Trang quản trị...</span>
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                 </div>
 
