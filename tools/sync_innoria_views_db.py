@@ -44,6 +44,7 @@ def sync_database(host, port, user, password, dbname):
 
     xml_homepage = "enterprise/insilos_website/views/innoria_homepage.xml"
     xml_snippets = "enterprise/insilos_website/views/snippets_3d.xml"
+    xml_pages = "enterprise/insilos_website/views/innoria_pages.xml"
 
     targets = [
         ("innoria_navbar", "insilos_website.innoria_navbar", xml_homepage),
@@ -51,6 +52,13 @@ def sync_database(host, port, user, password, dbname):
         ("innoria_footer", "insilos_website.innoria_footer", xml_homepage),
         ("s_innoria_3d_topology", "insilos_website.s_innoria_3d_topology", xml_snippets),
         ("s_innoria_3d_architecture_deck", "insilos_website.s_innoria_3d_architecture_deck", xml_snippets),
+        ("insilos_about_page", "insilos_website.insilos_about_page", xml_pages),
+        ("insilos_platform_page", "insilos_website.insilos_platform_page", xml_pages),
+        ("innoria_digiforce_page", "insilos_website.innoria_digiforce_page", xml_pages),
+        ("innoria_blockchain_page", "insilos_website.innoria_blockchain_page", xml_pages),
+        ("insilos_solutions_page", "insilos_website.insilos_solutions_page", xml_pages),
+        ("insilos_industries_page", "insilos_website.insilos_industries_page", xml_pages),
+        ("innoria_contactus", "insilos_website.innoria_contactus", xml_pages),
     ]
 
     for tmpl_id, key, xml_path in targets:
@@ -71,6 +79,19 @@ def sync_database(host, port, user, password, dbname):
         else:
             print(f"[!] View with key {key} not found in database!")
 
+    # Also sync to all website.homepage views (e.g. view 980 and 1688) so native website resolution serves the same hero slider
+    homepage_arch_xml = extract_template_arch(xml_homepage, "innoria_homepage_template", "website.homepage")
+    homepage_arch_dict = {"en_US": homepage_arch_xml}
+    cur.execute("SELECT id FROM ir_ui_view WHERE key = 'website.homepage'")
+    for row in cur.fetchall():
+        v_id = row[0]
+        cur.execute("""
+            UPDATE ir_ui_view
+            SET arch_db = %s::jsonb, active = true, write_date = NOW()
+            WHERE id = %s
+        """, (json.dumps(homepage_arch_dict), v_id))
+        print(f"[✓] Also synced homepage arch to website.homepage view {v_id} ({len(homepage_arch_xml)} bytes)")
+
     # Ensure all innoria views have active = True
     cur.execute("UPDATE ir_ui_view SET active = true WHERE key LIKE '%innoria%' AND (active IS NULL OR active = false)")
     activated_views = cur.rowcount
@@ -78,7 +99,7 @@ def sync_database(host, port, user, password, dbname):
         print(f"[✓] Activated {activated_views} previously inactive innoria views")
 
     # Invalidate cached asset bundles
-    cur.execute("DELETE FROM ir_attachment WHERE url LIKE '%/web.assets_%'")
+    cur.execute("DELETE FROM ir_attachment WHERE name LIKE 'web.assets_%'")
     deleted_assets = cur.rowcount
     print(f"[✓] Deleted {deleted_assets} cached web.assets bundles")
 
