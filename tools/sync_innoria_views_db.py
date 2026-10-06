@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""
+Sync Innoria views from XML files into PostgreSQL innoria_prod database.
+Converts <template id="xyz"> to Odoo's native QWeb <t t-name="module.key"> format.
+Supports local (127.0.0.1:5434) and production environments.
+"""
+
+import sys
+import os
+import re
+import json
+import psycopg2
+
+def extract_template_arch(xml_path, template_id, full_key):
+    with open(xml_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # Search for <template id="template_id" ...> ... </template>
+    pattern = rf'(<template\s+[^>]*id=["\']{template_id}["\'][^>]*>)(.*?)(</template>)'
+    match = re.search(pattern, content, re.DOTALL)
+    if not match:
+        raise ValueError(f"Template '{template_id}' not found in {xml_path}")
+    
+    open_tag = match.group(1)
+    body = match.group(2)
+    
+    name_match = re.search(r'name=["\']([^"\']+)["\']', open_tag)
+    name_attr = f' name="{name_match.group(1)}"' if name_match else ''
+    
+    # Convert <template> to standard Odoo QWeb root <t t-name="...">
+    return f'<t t-name="{full_key}"{name_attr}>{body}</t>'
+
+def sync_database(host, port, user, password, dbname):
+    print(f"[*] Connecting to {dbname} on {host}:{port} as {user}...")
+    conn = psycopg2.connect(
+        host=host,
+        port=port,
+        user=user,
+        password=password,
+        dbname=dbname
+    )
+    conn.autocommit = False
+    cur = conn.cursor()
+
+    xml_homepage = "enterprise/insilos_website/views/innoria_homepage.xml"
+    xml_snippets = "enterprise/insilos_website/views/snippets_3d.xml"
+
+    targets = [
+        ("innoria_navbar", "insilos_website.innoria_navbar", xml_homepage),
+        ("innoria_homepage_template", "insilos_website.innoria_homepage_template", xml_homepage),
+        ("innoria_footer", "insilos_website.innoria_footer", xml_homepage),
+        ("s_innoria_3d_topology", "insilos_website.s_innoria_3d_topology", xml_snippets),
+        ("s_innoria_3d_architecture_deck", "insilos_website.s_innoria_3d_architecture_deck", xml_snippets),
+    ]
+
+    for tmpl_id, key, xml_path in targets:
+        arch_xml = extract_template_arch(xml_path, tmpl_id, key)
+        arch_dict = {"en_US": arch_xml}
+        
+        # Check if view exists
+        cur.execute("SELECT id, name FROM ir_ui_view WHERE key = %s", (key,))
+        row = cur.fetchone()
+        if row:
+            view_id, name = row
+            cur.execute("""
+                UPDATE ir_ui_view
+                SET arch_db = %s::jsonb, active = true, write_date = NOW()
+                WHERE id = %s
+            """, (json.dumps(arch_dict), view_id))
+            print(f"[✓] Updated view {view_id} ({key}) - {len(arch_xml)} bytes (active=True)")
+        else:
+            print(f"[!] View with key {key} not found in database!")
+
+    # Ensure all innoria views have active = True
+    cur.execute("UPDATE ir_ui_view SET active = true WHERE key LIKE '%innoria%' AND (active IS NULL OR active = false)")
+    activated_views = cur.rowcount
+    if activated_views > 0:
+        print(f"[✓] Activated {activated_views} previously inactive innoria views")
+
+    # Invalidate cached asset bundles
+    cur.execute("DELETE FROM ir_attachment WHERE url LIKE '%/web.assets_%'")
+    deleted_assets = cur.rowcount
+    print(f"[✓] Deleted {deleted_assets} cached web.assets bundles")
+
+    conn.commit()
+    conn.close()
+    print("[✓] Synchronization committed successfully.")
+
+if __name__ == '__main__':
+    target = sys.argv[1] if len(sys.argv) > 1 else 'local'
+    if target == 'local':
+        sync_database('127.0.0.1', 5434, 'odoo', '1NN0R1@2026', 'innoria_prod')
+    elif target == 'prod_pod':
+        sync_database(
+            os.environ.get('DB_HOST', 'pgbouncer-service'),
+            int(os.environ.get('DB_PORT', 6432)),
+            os.environ.get('DB_USER', 'insilos'),
+            os.environ.get('PGPASSWORD', ''),
+            'innoria_prod'
+        )
