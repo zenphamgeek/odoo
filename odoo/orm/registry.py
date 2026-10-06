@@ -420,42 +420,71 @@ class Registry(Mapping[str, type["BaseModel"]]):
     )
 
     def _ensure_sovereign_bridges(self, cr: BaseCursor) -> None:
-        """ Ensure bidirectional updatable view bridges exist between sovereign and legacy tables.
-        Guarantees zero-downtime, zero-regression execution across all tenant and fresh databases.
+        """ Ensure sovereign tables are physical base tables and legacy tables are updatable views.
+        Guarantees zero-downtime, zero-regression execution across all tenant, cloned, and fresh databases.
         """
         try:
             all_tables = [t for pair in self.SOVEREIGN_TABLE_BRIDGES for t in pair]
             cr.execute("""
-                SELECT relname 
+                SELECT relname, relkind 
                 FROM pg_class 
                 WHERE relname = ANY(%s) 
                   AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
             """, [all_tables])
-            existing = {row[0] for row in cr.fetchall()}
+            rel_kinds = {row[0]: row[1] for row in cr.fetchall()}
             
-            created = 0
+            healed = 0
             for sov, leg in self.SOVEREIGN_TABLE_BRIDGES:
-                if leg in existing and sov not in existing:
-                    cr.execute(f'CREATE OR REPLACE VIEW "{sov}" AS SELECT * FROM "{leg}"')
-                    created += 1
-                elif sov in existing and leg not in existing:
+                sov_kind = rel_kinds.get(sov)
+                leg_kind = rel_kinds.get(leg)
+                
+                # Case 1: Legacy exists as physical table ('r') while Sovereign is missing or a view.
+                # Sovereign MUST be the physical table because Python ORM models reference self._table = sov.
+                if leg_kind == 'r' and sov_kind != 'r':
+                    if sov_kind == 'v':
+                        cr.execute(f'DROP VIEW IF EXISTS "{sov}" CASCADE')
+                    cr.execute(f'ALTER TABLE "{leg}" RENAME TO "{sov}"')
+                    cr.execute(f"""
+                        DO $$
+                        BEGIN
+                            IF EXISTS (SELECT 1 FROM pg_class WHERE relkind = 'S' AND relname = '{leg}_id_seq' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())) THEN
+                                ALTER SEQUENCE "{leg}_id_seq" RENAME TO "{sov}_id_seq";
+                                ALTER TABLE "{sov}" ALTER COLUMN id SET DEFAULT nextval('"{sov}_id_seq"'::regclass);
+                            END IF;
+                        END $$;
+                    """)
                     cr.execute(f'CREATE OR REPLACE VIEW "{leg}" AS SELECT * FROM "{sov}"')
-                    created += 1
-            
-            # Special check for M2M classification rel
-            if 'res_partner_res_partner_category_rel' in existing and 'party_classification_rel' not in existing:
-                cr.execute('CREATE OR REPLACE VIEW "party_classification_rel" AS SELECT category_id, partner_id FROM "res_partner_res_partner_category_rel"')
-                created += 1
-            elif 'party_classification_rel' in existing and 'res_partner_res_partner_category_rel' not in existing:
-                cr.execute('CREATE OR REPLACE VIEW "res_partner_res_partner_category_rel" AS SELECT category_id, partner_id FROM "party_classification_rel"')
-                created += 1
+                    rel_kinds[sov] = 'r'
+                    rel_kinds[leg] = 'v'
+                    healed += 1
 
-            if created > 0:
+                # Case 2: Sovereign is physical table ('r') and Legacy view is missing.
+                elif sov_kind == 'r' and leg_kind is None:
+                    cr.execute(f'CREATE OR REPLACE VIEW "{leg}" AS SELECT * FROM "{sov}"')
+                    rel_kinds[leg] = 'v'
+                    healed += 1
+
+            # Special check for M2M classification rel
+            cr.execute("""
+                SELECT relname, relkind 
+                FROM pg_class 
+                WHERE relname IN ('res_partner_res_partner_category_rel', 'party_classification_rel')
+                  AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
+            """)
+            m2m_kinds = {row[0]: row[1] for row in cr.fetchall()}
+            if 'res_partner_res_partner_category_rel' in m2m_kinds and 'party_classification_rel' not in m2m_kinds:
+                cr.execute('CREATE OR REPLACE VIEW "party_classification_rel" AS SELECT category_id, partner_id FROM "res_partner_res_partner_category_rel"')
+                healed += 1
+            elif 'party_classification_rel' in m2m_kinds and 'res_partner_res_partner_category_rel' not in m2m_kinds:
+                cr.execute('CREATE OR REPLACE VIEW "res_partner_res_partner_category_rel" AS SELECT category_id, partner_id FROM "party_classification_rel"')
+                healed += 1
+
+            if healed > 0:
                 try:
                     cr.execute("GRANT ALL ON ALL TABLES IN SCHEMA public TO CURRENT_USER")
                 except Exception:
                     pass
-                _logger.info("Auto-healed %d sovereign view bridges on database %s", created, self.db_name)
+                _logger.info("Auto-healed %d sovereign table/view bridges on database %s", healed, self.db_name)
         except Exception:
             _logger.debug("Failed to auto-heal sovereign view bridges on %s", self.db_name, exc_info=True)
 

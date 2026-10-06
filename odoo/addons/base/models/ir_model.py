@@ -328,6 +328,55 @@ class IrModel(models.Model):
 
     _obj_name_uniq = models.Constraint('UNIQUE (model)', 'Each model must have a unique name.')
 
+    def _search_display_name(self, operator, value):
+        if isinstance(value, str):
+            aliases = getattr(self.pool, 'SOVEREIGN_MODEL_ALIASES', {})
+            rev_aliases = getattr(self.pool, 'REVERSE_MODEL_ALIASES', {})
+            alt = aliases.get(value) or rev_aliases.get(value)
+            if alt:
+                from odoo.orm.domains import Domain
+                dom1 = super()._search_display_name(operator, value)
+                dom2 = super()._search_display_name(operator, alt)
+                return Domain.OR([dom1, dom2])
+        return super()._search_display_name(operator, value)
+
+    @api.model
+    def _search(self, domain, offset=0, limit=None, order=None, **kwargs):
+        if domain:
+            aliases = getattr(self.pool, 'SOVEREIGN_MODEL_ALIASES', {})
+            rev_aliases = getattr(self.pool, 'REVERSE_MODEL_ALIASES', {})
+            if aliases or rev_aliases:
+                expanded_domain = []
+                for item in domain:
+                    if isinstance(item, (list, tuple)) and len(item) == 3 and item[0] == 'model':
+                        field_name, op, val = item
+                        if op in ('=', '==') and isinstance(val, str):
+                            alt = aliases.get(val) or rev_aliases.get(val)
+                            if alt:
+                                item = ('model', 'in', [val, alt])
+                        elif op == 'in' and isinstance(val, (list, tuple, set)):
+                            new_vals = set(val)
+                            for v in val:
+                                if isinstance(v, str):
+                                    alt = aliases.get(v) or rev_aliases.get(v)
+                                    if alt:
+                                        new_vals.add(alt)
+                            item = ('model', 'in', list(new_vals))
+                    expanded_domain.append(item)
+                domain = expanded_domain
+        return super()._search(domain, offset=offset, limit=limit, order=order, **kwargs)
+
+    @api.model
+    def name_search(self, name='', domain=None, operator='ilike', limit=100, **kwargs):
+        res = super().name_search(name=name, domain=domain, operator=operator, limit=limit, **kwargs)
+        if not res and name:
+            aliases = getattr(self.pool, 'SOVEREIGN_MODEL_ALIASES', {})
+            rev_aliases = getattr(self.pool, 'REVERSE_MODEL_ALIASES', {})
+            alt = aliases.get(name) or rev_aliases.get(name)
+            if alt:
+                res = super().name_search(name=alt, domain=domain, operator=operator, limit=limit, **kwargs)
+        return res
+
     def _get(self, name):
         """ Return the (sudoed) `ir.model` record with the given name.
         The result may be an empty recordset if the model is not found.
@@ -544,6 +593,9 @@ class IrModel(models.Model):
                 xml_id = model_xmlid(module, model_name)
                 record = self.browse(model_id)
                 data_list.append({'xml_id': xml_id, 'record': record})
+                alias_name = self.pool.REVERSE_MODEL_ALIASES.get(model_name) or self.pool.SOVEREIGN_MODEL_ALIASES.get(model_name)
+                if alias_name:
+                    data_list.append({'xml_id': model_xmlid(module, alias_name), 'record': record})
         self.env['ir.model.data']._update_xmlids(data_list)
 
     @api.model
@@ -2373,6 +2425,21 @@ class IrModelData(models.Model):
             elif module in MODULE_ALIASES:
                 self.env.cr.execute(query, [MODULE_ALIASES[module], name])
                 result = self.env.cr.fetchone()
+            elif name.startswith('model_'):
+                model_key = name[6:].replace('_', '.')
+                alias_key = self.pool.SOVEREIGN_MODEL_ALIASES.get(model_key) or self.pool.REVERSE_MODEL_ALIASES.get(model_key)
+                if alias_key:
+                    target_name = f"model_{alias_key.replace('.', '_')}"
+                    self.env.cr.execute(query, [module, target_name])
+                    result = self.env.cr.fetchone()
+            elif name.startswith('field_') and '__' in name:
+                mod_part, fld_part = name[6:].split('__', 1)
+                model_key = mod_part.replace('_', '.')
+                alias_key = self.pool.SOVEREIGN_MODEL_ALIASES.get(model_key) or self.pool.REVERSE_MODEL_ALIASES.get(model_key)
+                if alias_key:
+                    target_name = f"field_{alias_key.replace('.', '_')}__{fld_part}"
+                    self.env.cr.execute(query, [module, target_name])
+                    result = self.env.cr.fetchone()
         if not (result and result[1]):
             raise ValueError('External ID not found in the system: %s' % xmlid)
         return result
