@@ -73,7 +73,7 @@ probe_script = """
 import urllib.request
 try:
     req = urllib.request.Request('http://127.0.0.1:8069/', headers={'Host': 'innoria.insilos.com'})
-    html = urllib.request.urlopen(req, timeout=10).read().decode()
+    html = urllib.request.urlopen(req, timeout=30).read().decode()
     has_nav_gradient = 'linear-gradient(135deg, #0369A1' in html or 'linear-gradient(135deg,#0369A1' in html
     print(f'[✓] Probe HTTP 200 OK - Gradient in Navbar: {has_nav_gradient}')
 except Exception as e:
