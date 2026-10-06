@@ -50,6 +50,8 @@ FILES_TO_COPY = [
     ('addons/base/static/description/settings.png', '/app/insilos/addons/base/static/description/settings.png'),
     ('addons/base/static/description/exception.png', '/app/insilos/addons/base/static/description/exception.png'),
     ('odoo/orm/registry.py', '/app/insilos/odoo/orm/registry.py'),
+    ('odoo/orm/models.py', '/app/insilos/odoo/orm/models.py'),
+    ('odoo/addons/base/models/ir_model.py', '/app/insilos/odoo/addons/base/models/ir_model.py'),
     ('odoo/tools/zeep/wsse/__init__.py', '/app/insilos/odoo/tools/zeep/wsse/__init__.py')
 ]
 
