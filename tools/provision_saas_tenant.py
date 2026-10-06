@@ -55,6 +55,22 @@ def run_cmd(cmd, check=True, capture=True):
     return p.stdout.strip() if capture else ""
 
 
+def run_psql(sql: str, dbname: str = "postgres", user: str = "postgres") -> str:
+    """Execute SQL directly via stdin without bash variable expansion ($$)."""
+    cmd = ["kubectl", "-n", DB_NAMESPACE, "exec", "-i", PG_POD, "--", "psql", "-tA", "-U", user, "-d", dbname]
+    p = subprocess.run(
+        cmd,
+        input=sql,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    if p.returncode != 0:
+        err = p.stderr.strip() if p.stderr else f"Exit code {p.returncode}"
+        raise RuntimeError(f"PSQL failed on '{dbname}':\nError: {err}")
+    return p.stdout.strip()
+
+
 def hash_password(password: str) -> str:
     """Generate Odoo-compatible PBKDF2-SHA512 hash with 600,000 rounds."""
     if HAS_PASSLIB:
@@ -130,24 +146,28 @@ def provision_tenant(subdomain, company_name=None, dbname=None, template_db=None
         print("[DRY-RUN] Pre-flight checks passed. No changes executed.")
         return
 
-    # 1. Check if database already exists
-    check_sql = f"SELECT 1 FROM pg_database WHERE datname = '{target_db}';"
-    out = run_cmd(f"kubectl -n {DB_NAMESPACE} exec -i {PG_POD} -- psql -U postgres -tAc \"{check_sql}\"")
-    if out.strip() == "1":
-        print(f"ℹ️ Database '{target_db}' already exists. Skipping database cloning.")
-    else:
+    # 1. Check if database already exists and has tables
+    check_sql = "SELECT count(*) FROM information_schema.tables WHERE table_schema='public';"
+    db_check = run_psql(f"SELECT 1 FROM pg_database WHERE datname = '{target_db}';")
+    db_exists = (db_check.strip() == "1")
+    reclone_needed = False
+    if db_exists:
+        tbl_count = int(run_psql(check_sql, dbname=target_db) or "0")
+        if tbl_count < 1000:
+            print(f"⚠️ Database '{target_db}' exists but has only {tbl_count} tables (incomplete/empty). Re-cloning from '{template_db}'...")
+            reclone_needed = True
+            run_psql(f"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{target_db}' AND pid <> pg_backend_pid();")
+            run_psql(f"DROP DATABASE IF EXISTS {target_db};")
+        else:
+            print(f"ℹ️ Database '{target_db}' already exists with {tbl_count} tables. Skipping database cloning.")
+
+    if not db_exists or reclone_needed:
         print(f"\n▶ Step 1: Instant Database Cloning from '{template_db}' via Template Engine...")
         t0 = time.time()
         # Terminate any stray connections to template_db
-        run_cmd(
-            f"kubectl -n {DB_NAMESPACE} exec -i {PG_POD} -- psql -U postgres -c "
-            f"\"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{template_db}' AND pid <> pg_backend_pid();\""
-        )
+        run_psql(f"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = '{template_db}' AND pid <> pg_backend_pid();")
         # Create database from template with owner insilos
-        run_cmd(
-            f"kubectl -n {DB_NAMESPACE} exec -i {PG_POD} -- psql -U postgres -c "
-            f"\"CREATE DATABASE {target_db} TEMPLATE {template_db} OWNER {DB_USER};\""
-        )
+        run_psql(f"CREATE DATABASE {target_db} TEMPLATE {template_db} OWNER {DB_USER};")
         dur = round(time.time() - t0, 2)
         print(f"  ✅ Database '{target_db}' created in {dur}s (100% constraints & indexes preserved)")
 
@@ -159,7 +179,7 @@ def provision_tenant(subdomain, company_name=None, dbname=None, template_db=None
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO {DB_USER};
     GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO {DB_USER};
     """
-    run_cmd(f"kubectl -n {DB_NAMESPACE} exec -i {PG_POD} -- psql -U postgres -d {target_db} -c \"{grant_sql}\"")
+    run_psql(grant_sql, dbname=target_db)
     print(f"  ✅ Permissions verified for user '{DB_USER}'")
 
     # 3. Provision Filestore on PVC via hardlinks
@@ -178,12 +198,12 @@ def provision_tenant(subdomain, company_name=None, dbname=None, template_db=None
     UPDATE res_partner SET name = '{company_name}' WHERE id = (SELECT partner_id FROM res_company WHERE id = 1);
     UPDATE res_users SET password = '{hashed_pw}' WHERE login = 'admin';
     """
-    run_cmd(f"kubectl -n {DB_NAMESPACE} exec -i {PG_POD} -- psql -U {DB_USER} -d {target_db} -c \"{tailor_sql}\"")
+    run_psql(tailor_sql, dbname=target_db, user=DB_USER)
     print(f"  ✅ Company set to '{company_name}' and password hash updated for 'admin'")
 
     # 4.1 Schema Invariance & Sequence Synchronization Guardian
     print("\n▶ Step 4.1: Enforcing Primary Keys, Deduplication & Universal Sequence Sync...")
-    guardian_sql = f"""
+    guardian_sql = """
     -- Deduplicate system_attachment if any transient overlap exists
     DELETE FROM system_attachment a
     USING system_attachment b
@@ -228,8 +248,67 @@ def provision_tenant(subdomain, company_name=None, dbname=None, template_db=None
         END LOOP;
     END $$;
     """
-    run_cmd(f"kubectl -n {DB_NAMESPACE} exec -i {PG_POD} -- psql -U postgres -d {target_db} -c \"{guardian_sql}\"")
+    run_psql(guardian_sql, dbname=target_db)
     print(f"  ✅ Primary Keys enforced and 100% sequences resynchronized for '{target_db}'")
+
+    # 4.2 Enforce Sovereign Bidirectional Views Bridge
+    print("\n▶ Step 4.2: Enforcing Sovereign Bidirectional Views Bridge & Table Grants...")
+    bridge_sql = """
+    DO $$
+    DECLARE
+        bridges TEXT[][] := ARRAY[
+            ['party_master', 'res_partner'],
+            ['organization_unit', 'res_company'],
+            ['system_attachment', 'ir_attachment'],
+            ['party_classification', 'res_partner_category'],
+            ['catalog_item', 'product_template'],
+            ['catalog_sku', 'product_product'],
+            ['procurement_order', 'purchase_order'],
+            ['procurement_order_line', 'purchase_order_line'],
+            ['order_header', 'sale_order'],
+            ['order_line', 'sale_order_line'],
+            ['logistics_transfer', 'stock_picking'],
+            ['logistics_movement', 'stock_move'],
+            ['manufacturing_order', 'mrp_production'],
+            ['manufacturing_bom', 'mrp_bom'],
+            ['finance_journal_entry', 'account_move'],
+            ['finance_journal_line', 'account_move_line']
+        ];
+        i INT;
+        sov TEXT;
+        leg TEXT;
+        sov_exists BOOLEAN;
+        leg_exists BOOLEAN;
+    BEGIN
+        FOR i IN 1..array_length(bridges, 1) LOOP
+            sov := bridges[i][1];
+            leg := bridges[i][2];
+            SELECT EXISTS (SELECT 1 FROM pg_class WHERE relname = sov AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')) INTO sov_exists;
+            SELECT EXISTS (SELECT 1 FROM pg_class WHERE relname = leg AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')) INTO leg_exists;
+            
+            IF leg_exists AND NOT sov_exists THEN
+                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT * FROM %I', sov, leg);
+            ELSIF sov_exists AND NOT leg_exists THEN
+                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT * FROM %I', leg, sov);
+            END IF;
+        END LOOP;
+        
+        -- Special M2M view
+        IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'res_partner_res_partner_category_rel' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public'))
+           AND NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'party_classification_rel' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')) THEN
+            CREATE OR REPLACE VIEW party_classification_rel AS SELECT category_id, partner_id FROM res_partner_res_partner_category_rel;
+        ELSIF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'party_classification_rel' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public'))
+           AND NOT EXISTS (SELECT 1 FROM pg_class WHERE relname = 'res_partner_res_partner_category_rel' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')) THEN
+            CREATE OR REPLACE VIEW res_partner_res_partner_category_rel AS SELECT category_id, partner_id FROM party_classification_rel;
+        END IF;
+    END $$;
+    GRANT ALL ON ALL TABLES IN SCHEMA public TO insilos;
+    GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO insilos;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO insilos;
+    ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO insilos;
+    """
+    run_psql(bridge_sql, dbname=target_db)
+    print(f"  ✅ Sovereign bidirectional views verified and granted on '{target_db}'")
 
     # 5. Update Kubernetes Deployment --db-filter-map
     print("\n▶ Step 5: Updating Kubernetes Deployment Routing (--db-filter-map)...")
@@ -242,7 +321,10 @@ def provision_tenant(subdomain, company_name=None, dbname=None, template_db=None
         
         # Patch the deployment args
         if map_idx >= 0:
-            args_list[map_idx] = new_json_str
+            if args_list[map_idx].startswith("--db-filter-map="):
+                args_list[map_idx] = f"--db-filter-map={new_json_str}"
+            else:
+                args_list[map_idx] = new_json_str
         else:
             args_list.extend(["--db-filter-map", new_json_str])
             

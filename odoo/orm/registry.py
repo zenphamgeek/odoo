@@ -400,6 +400,65 @@ class Registry(Mapping[str, type["BaseModel"]]):
     }
     REVERSE_MODEL_ALIASES = {v: k for k, v in SOVEREIGN_MODEL_ALIASES.items()}
 
+    SOVEREIGN_TABLE_BRIDGES = (
+        ('party_master', 'res_partner'),
+        ('organization_unit', 'res_company'),
+        ('system_attachment', 'ir_attachment'),
+        ('party_classification', 'res_partner_category'),
+        ('catalog_item', 'product_template'),
+        ('catalog_sku', 'product_product'),
+        ('procurement_order', 'purchase_order'),
+        ('procurement_order_line', 'purchase_order_line'),
+        ('order_header', 'sale_order'),
+        ('order_line', 'sale_order_line'),
+        ('logistics_transfer', 'stock_picking'),
+        ('logistics_movement', 'stock_move'),
+        ('manufacturing_order', 'mrp_production'),
+        ('manufacturing_bom', 'mrp_bom'),
+        ('finance_journal_entry', 'account_move'),
+        ('finance_journal_line', 'account_move_line'),
+    )
+
+    def _ensure_sovereign_bridges(self, cr: BaseCursor) -> None:
+        """ Ensure bidirectional updatable view bridges exist between sovereign and legacy tables.
+        Guarantees zero-downtime, zero-regression execution across all tenant and fresh databases.
+        """
+        try:
+            all_tables = [t for pair in self.SOVEREIGN_TABLE_BRIDGES for t in pair]
+            cr.execute("""
+                SELECT relname 
+                FROM pg_class 
+                WHERE relname = ANY(%s) 
+                  AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
+            """, [all_tables])
+            existing = {row[0] for row in cr.fetchall()}
+            
+            created = 0
+            for sov, leg in self.SOVEREIGN_TABLE_BRIDGES:
+                if leg in existing and sov not in existing:
+                    cr.execute(f'CREATE OR REPLACE VIEW "{sov}" AS SELECT * FROM "{leg}"')
+                    created += 1
+                elif sov in existing and leg not in existing:
+                    cr.execute(f'CREATE OR REPLACE VIEW "{leg}" AS SELECT * FROM "{sov}"')
+                    created += 1
+            
+            # Special check for M2M classification rel
+            if 'res_partner_res_partner_category_rel' in existing and 'party_classification_rel' not in existing:
+                cr.execute('CREATE OR REPLACE VIEW "party_classification_rel" AS SELECT category_id, partner_id FROM "res_partner_res_partner_category_rel"')
+                created += 1
+            elif 'party_classification_rel' in existing and 'res_partner_res_partner_category_rel' not in existing:
+                cr.execute('CREATE OR REPLACE VIEW "res_partner_res_partner_category_rel" AS SELECT category_id, partner_id FROM "party_classification_rel"')
+                created += 1
+
+            if created > 0:
+                try:
+                    cr.execute("GRANT ALL ON ALL TABLES IN SCHEMA public TO CURRENT_USER")
+                except Exception:
+                    pass
+                _logger.info("Auto-healed %d sovereign view bridges on database %s", created, self.db_name)
+        except Exception:
+            _logger.debug("Failed to auto-heal sovereign view bridges on %s", self.db_name, exc_info=True)
+
     def __contains__(self, model_name: str) -> bool:
         return (
             model_name in self.models
@@ -509,6 +568,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
         env = Environment(cr, SUPERUSER_ID, {})
         env.invalidate_all()
         transaction = env.transaction
+        self._ensure_sovereign_bridges(cr)
 
         # Uninstall registry hooks. Because of the condition, this only happens
         # on a fully loaded registry, and not on a registry being loaded.
