@@ -141,9 +141,11 @@ class AccountJournal(models.Model):
             return amounts
 
         query, selects = journals._get_open_sale_purchase_query()
+        move_table = SQL.identifier(self.env['account.move']._table)
         sql = SQL("""%s
-                GROUP BY account_move.company_id, account_move.journal_id, account_move.currency_id, late, to_pay""",
+                GROUP BY %s.company_id, %s.journal_id, %s.currency_id, late, to_pay""",
             query.select(*selects),
+            move_table, move_table, move_table,
         )
         self.env.cr.execute(sql)
         query_result = group_by_journal(self.env.cr.dictfetchall())
@@ -757,10 +759,12 @@ class AccountJournal(models.Model):
         query_results_drafts = group_by_journal(self.env.execute_query_dict(sql))
 
         # WAITING AND LATE BILLS AND PAYMENTS
+        move_table = SQL.identifier(self.env['account.move']._table)
         query, selects = sale_purchase_journals._get_open_sale_purchase_query()
         sql = SQL("""%s
-                GROUP BY account_move.company_id, account_move.journal_id, account_move.currency_id, late, to_pay""",
+                GROUP BY %s.company_id, %s.journal_id, %s.currency_id, late, to_pay""",
                   query.select(*selects),
+                  move_table, move_table, move_table,
         )
         self.env.cr.execute(sql)
         query_result = group_by_journal(self.env.cr.dictfetchall())
@@ -775,8 +779,9 @@ class AccountJournal(models.Model):
 
         query, selects = sale_purchase_journals._get_to_check_payment_query()
         sql = SQL("""%s
-                GROUP BY account_move.company_id, account_move.journal_id, account_move.currency_id, late, to_pay""",
+                GROUP BY %s.company_id, %s.journal_id, %s.currency_id, late, to_pay""",
                   query.select(*selects),
+                  move_table, move_table, move_table,
                   )
         self.env.cr.execute(sql)
         to_check_vals = group_by_journal(self.env.cr.dictfetchall())
@@ -901,14 +906,15 @@ class AccountJournal(models.Model):
 
     @api.model
     def _get_bills_field_list(self):
+        tbl = SQL.identifier(self.env['account.move']._table)
         return [
-            SQL("account_move.journal_id"),
-            SQL("(CASE WHEN account_move.move_type IN ('out_refund', 'in_refund') THEN -1 ELSE 1 END) * account_move.amount_total AS amount_total"),
-            SQL("(CASE WHEN account_move.move_type IN ('in_invoice', 'in_refund', 'in_receipt') THEN -1 ELSE 1 END) * account_move.amount_total_signed AS amount_total_company"),
-            SQL("account_move.currency_id AS currency"),
-            SQL("account_move.move_type"),
-            SQL("account_move.invoice_date"),
-            SQL("account_move.company_id"),
+            SQL("%s.journal_id", tbl),
+            SQL("(CASE WHEN %s.move_type IN ('out_refund', 'in_refund') THEN -1 ELSE 1 END) * %s.amount_total AS amount_total", tbl, tbl),
+            SQL("(CASE WHEN %s.move_type IN ('in_invoice', 'in_refund', 'in_receipt') THEN -1 ELSE 1 END) * %s.amount_total_signed AS amount_total_company", tbl, tbl),
+            SQL("%s.currency_id AS currency", tbl),
+            SQL("%s.move_type", tbl),
+            SQL("%s.invoice_date", tbl),
+            SQL("%s.company_id", tbl),
         ]
 
     def _get_draft_sales_purchases_query(self):

@@ -3363,6 +3363,8 @@ class BaseModel(metaclass=MetaModel):
         :param companies: the allowed companies for the related record
         :type companies: BaseModel or list or tuple or int or unquote
         """
+        if 'company_id' not in self._fields:
+            return Domain.TRUE
         if not companies:
             return Domain('company_id', '=', False)
         if isinstance(companies, unquote):

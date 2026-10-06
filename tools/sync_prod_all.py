@@ -52,6 +52,8 @@ FILES_TO_COPY = [
     ('odoo/orm/registry.py', '/app/insilos/odoo/orm/registry.py'),
     ('odoo/orm/models.py', '/app/insilos/odoo/orm/models.py'),
     ('odoo/addons/base/models/ir_model.py', '/app/insilos/odoo/addons/base/models/ir_model.py'),
+    ('addons/account/models/account_journal_dashboard.py', '/app/insilos/addons/account/models/account_journal_dashboard.py'),
+    ('enterprise/account_reports/models/account_report.py', '/app/insilos/enterprise/account_reports/models/account_report.py'),
     ('odoo/tools/zeep/wsse/__init__.py', '/app/insilos/odoo/tools/zeep/wsse/__init__.py')
 ]
 
