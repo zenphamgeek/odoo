@@ -52,6 +52,8 @@ def sync_database(host, port, user, password, dbname):
         ("innoria_footer", "insilos_website.innoria_footer", xml_homepage),
         ("s_innoria_3d_topology", "insilos_website.s_innoria_3d_topology", xml_snippets),
         ("s_innoria_3d_architecture_deck", "insilos_website.s_innoria_3d_architecture_deck", xml_snippets),
+        ("s_innoria_3d_solutions_erp", "insilos_website.s_innoria_3d_solutions_erp", xml_snippets),
+        ("s_innoria_3d_erp_shift", "insilos_website.s_innoria_3d_erp_shift", xml_snippets),
         ("insilos_about_page", "insilos_website.insilos_about_page", xml_pages),
         ("insilos_platform_page", "insilos_website.insilos_platform_page", xml_pages),
         ("innoria_digiforce_page", "insilos_website.innoria_digiforce_page", xml_pages),
@@ -72,22 +74,44 @@ def sync_database(host, port, user, password, dbname):
             view_id, name = row
             cur.execute("""
                 UPDATE ir_ui_view
-                SET arch_db = %s::jsonb, active = true, write_date = NOW()
+                SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
                 WHERE id = %s
             """, (json.dumps(arch_dict), view_id))
-            print(f"[✓] Updated view {view_id} ({key}) - {len(arch_xml)} bytes (active=True)")
+            print(f"[✓] Updated view {view_id} ({key}) - {len(arch_xml)} bytes (active=True, arch_fs=NULL)")
         else:
-            print(f"[!] View with key {key} not found in database!")
+            cur.execute("""
+                INSERT INTO ir_ui_view (name, key, type, mode, priority, active, arch_updated, arch_db, arch_fs, create_uid, write_uid, create_date, write_date)
+                VALUES (%s, %s, 'qweb', 'primary', 16, true, true, %s::jsonb, NULL, 1, 1, NOW(), NOW())
+                RETURNING id
+            """, (tmpl_id, key, json.dumps(arch_dict)))
+            new_view_id = cur.fetchone()[0]
+            cur.execute("""
+                INSERT INTO ir_model_data (name, module, model, res_id, noupdate)
+                VALUES (%s, 'insilos_website', 'ir.ui.view', %s, false)
+                ON CONFLICT (module, name) DO UPDATE SET res_id = EXCLUDED.res_id
+            """, (tmpl_id, new_view_id))
+            print(f"[✓] Inserted view {new_view_id} ({key}) - {len(arch_xml)} bytes (active=True, arch_fs=NULL)")
+
+    # Also sync to insilos_website.insilos_homepage so controller fallback serves Innoria homepage
+    homepage_arch_xml = extract_template_arch(xml_homepage, "innoria_homepage_template", "insilos_website.insilos_homepage")
+    homepage_arch_dict = {"en_US": homepage_arch_xml}
+    cur.execute("SELECT id FROM ir_ui_view WHERE key = 'insilos_website.insilos_homepage'")
+    for row in cur.fetchall():
+        v_id = row[0]
+        cur.execute("""
+            UPDATE ir_ui_view
+            SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
+            WHERE id = %s
+        """, (json.dumps(homepage_arch_dict), v_id))
+        print(f"[✓] Also synced homepage arch to insilos_website.insilos_homepage view {v_id} ({len(homepage_arch_xml)} bytes)")
 
     # Also sync to all website.homepage views (e.g. view 980 and 1688) so native website resolution serves the same hero slider
-    homepage_arch_xml = extract_template_arch(xml_homepage, "innoria_homepage_template", "website.homepage")
-    homepage_arch_dict = {"en_US": homepage_arch_xml}
     cur.execute("SELECT id FROM ir_ui_view WHERE key = 'website.homepage'")
     for row in cur.fetchall():
         v_id = row[0]
         cur.execute("""
             UPDATE ir_ui_view
-            SET arch_db = %s::jsonb, active = true, write_date = NOW()
+            SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
             WHERE id = %s
         """, (json.dumps(homepage_arch_dict), v_id))
         print(f"[✓] Also synced homepage arch to website.homepage view {v_id} ({len(homepage_arch_xml)} bytes)")

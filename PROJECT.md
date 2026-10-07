@@ -48,10 +48,10 @@ Layered frontend styling, 3D WebGL Web visual arts, and computer vision presenta
 | # | Name | Scope | Dependencies | Status | Key Outputs |
 |---|------|-------|-------------|--------|-------------|
 | M1 | Elegance Palette & Liquid Spatial Theme | Tokens #1–6: SCSS tokens engine, mesh gradients, ethereal diffused glows, cardless primitives, WCAG test suite | none | DONE | `insilos_liquid_spatial.scss`, updated `__manifest__.py`, expanded `test_design_tokens_wcag_empirical.py` (97 tests pass) |
-| M2 | Hero 3D Interactive Storytelling Arts | Features #7–14: 3,600-point particle wave field, 4-state morphing sphere, 4-chapter narrative transitions, exploded view, wireframe to mesh, 360° inertia orbit | M1 | PLANNED | `innoria_hero_controllers.js`, `innoria_hero_interactive_stage.js`, `innoria_hero_3d_manager.js` |
-| M3 | Cinematic YOLO Industrial AI HUD | Features #15–19: Dual-mode industrial video viewport, 60 FPS sweeping laser scanline, pulsing bounding boxes, real-time RAF telemetry ticker | M1 | PLANNED | `innoria_yolo_inspection.js`, `snippets_cctv.xml`, `innoria_pages.xml`, `innoria_homepage.xml` |
-| M4 | Multi-Route Cardless Conversion & Polish | Features #20–25: Cardless conversion on `/`, `/solutions`, `/industries`, `/resources`, `/showcase-3d`, elimination of rigid borders & banned phrases | M1 | PLANNED | Refactored QWeb views & `innoria_theme.scss` |
-| M5 | Comprehensive E2E Verification & Pod Sync | Features #26–32: 6 automated test suites, high-res visual audit deck (1920x1080 & 390x844), multi-pod K8s deployment & live probe | M2, M3, M4 | PLANNED | 100% test pass, visual screenshots deck, 3 K8s pods synced HTTP/2 200 OK |
+| M2 | Hero 3D Interactive Storytelling Arts | Features #7–14: 3,600-point particle wave field, 4-state morphing sphere, 4-chapter narrative transitions, exploded view, wireframe to mesh, 360° inertia orbit | M1 | DONE | `innoria_hero_controllers.js`, `innoria_hero_interactive_stage.js`, `innoria_hero_3d_manager.js` (stress & flow PASS) |
+| M3 | Cinematic YOLO Industrial AI HUD | Features #15–19: Dual-mode industrial video viewport, 60 FPS sweeping laser scanline, pulsing bounding boxes, real-time RAF telemetry ticker | M1 | DONE | `innoria_yolo_inspection.js`, `snippets_cctv.xml`, `insilos_cctv_player.js` (Gate 4 diversity PASS) |
+| M4 | Multi-Route Cardless Conversion & Polish | Features #20–25: Cardless conversion on `/`, `/solutions`, `/industries`, `/resources`, `/showcase-3d`, elimination of rigid borders & banned phrases | M1 | DONE | Refactored QWeb views, 24/24 edge viewports PASS, 0 banned phrases |
+| M5 | Comprehensive E2E Verification & Pod Sync | Features #26–32: 6 automated test suites, high-res visual audit deck (1920x1080 & 390x844), multi-pod K8s deployment & live probe | M2, M3, M4 | DONE | 100% test pass, 3 K8s pods synced HTTP/2 200 OK, git commit af4f9fe69 on main |
 
 ## Interface Contracts
 ### Tokens ↔ Liquid Spatial Styles

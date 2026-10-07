@@ -6,6 +6,7 @@ async function captureDeck() {
     const TARGET_URL = process.env.TARGET_URL || 'https://innoria.insilos.com/';
     const outDir = '/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-bdff11b8b865';
     const localArtifactDir = '/home/zen/O20/.agents/teamwork/worker_3d_physics_geometry/screenshots';
+    const refinementArtifactDir = '/home/zen/O20/.agents/teamwork/worker_3d_physics_refinement/screenshots';
     
     if (!fs.existsSync(outDir)) {
         fs.mkdirSync(outDir, { recursive: true });
@@ -13,18 +14,28 @@ async function captureDeck() {
     if (!fs.existsSync(localArtifactDir)) {
         fs.mkdirSync(localArtifactDir, { recursive: true });
     }
+    if (!fs.existsSync(refinementArtifactDir)) {
+        fs.mkdirSync(refinementArtifactDir, { recursive: true });
+    }
 
     const browser = await chromium.launch({
         headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-ipv6',
+            '--host-resolver-rules=MAP innoria.insilos.com 172.67.156.74'
+        ]
     });
 
     async function saveScreenshot(element, filename) {
         const p1 = path.join(outDir, filename);
         const p2 = path.join(localArtifactDir, filename);
+        const p3 = path.join(refinementArtifactDir, filename);
         await element.screenshot({ path: p1 });
         try {
             fs.copyFileSync(p1, p2);
+            fs.copyFileSync(p1, p3);
         } catch (e) {}
         console.log(`[✓] Saved: ${filename}`);
     }
@@ -35,7 +46,8 @@ async function captureDeck() {
     console.log('\n--- CAPTURING DESKTOP VIEWPORT (1440x900) ---');
     const desktopContext = await browser.newContext({
         viewport: { width: 1440, height: 900 },
-        deviceScaleFactor: 2
+        deviceScaleFactor: 2,
+        ignoreHTTPSErrors: true
     });
     const desktopPage = await desktopContext.newPage();
     console.log(`Navigating desktop to ${TARGET_URL} ...`);
@@ -70,18 +82,13 @@ async function captureDeck() {
 
         for (let idx = 0; idx < 4; idx++) {
             await desktopPage.evaluate((i) => {
-                const card = document.getElementById(`card-${i}`);
-                if (card) {
-                    card.click();
-                } else {
-                    const slab = document.getElementById(`slab-${i}`);
-                    if (slab) {
-                        slab.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
-                        slab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-                    }
+                const slab = document.getElementById(`slab-${i}`);
+                if (slab) {
+                    slab.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+                    slab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
                 }
             }, idx);
-            await desktopPage.waitForTimeout(800);
+            await desktopPage.waitForTimeout(1000);
             await saveScreenshot(desktopStage, `deck_3d_desktop_${layerNames[idx]}.png`);
             if (idx === 1) {
                 await saveScreenshot(desktopStage, 'deck_3d_slab1_pulled.png'); // legacy alias
@@ -142,7 +149,8 @@ async function captureDeck() {
         viewport: { width: 375, height: 812 },
         deviceScaleFactor: 2,
         isMobile: true,
-        hasTouch: true
+        hasTouch: true,
+        ignoreHTTPSErrors: true
     });
     const mobilePage = await mobileContext.newPage();
     console.log(`Navigating mobile to ${TARGET_URL} ...`);
@@ -176,17 +184,12 @@ async function captureDeck() {
 
         for (let idx = 0; idx < 4; idx++) {
             await mobilePage.evaluate((i) => {
-                const card = document.getElementById(`card-${i}`);
-                if (card) {
-                    card.click();
-                } else {
-                    const slab = document.getElementById(`slab-${i}`);
-                    if (slab) {
-                        slab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-                    }
+                const slab = document.getElementById(`slab-${i}`);
+                if (slab) {
+                    slab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
                 }
             }, idx);
-            await mobilePage.waitForTimeout(800);
+            await mobilePage.waitForTimeout(1000);
             await saveScreenshot(mobileStage, `deck_3d_mobile_${layerNames[idx]}.png`);
             if (idx === 1) {
                 await saveScreenshot(mobileStage, 'deck_3d_mobile_pulled.png');
