@@ -1,125 +1,91 @@
-# Project: Dashboard KPI Analytics & Executive Control Tower
-
-## Executive Summary
-Trung tâm điều hành doanh nghiệp Dashboard KPI Analytics & Executive Control Tower theo chuẩn SAP Fiori Horizon Overview Page (OVP) và IBM Carbon Design System 11 trên nền tảng Insilos Enterprise (Odoo 20 LTS).
+# Project: "Bring Arts into Technology" Visual Revolution Campaign across innoria.insilos.com
 
 ## Architecture
-- **Framework**: OWL 3 (`@insilos/owl`) + SAP Fiori Horizon Cards Hierarchy + IBM Carbon 16-Column Responsive Grid.
-- **Backend Service**: `models.AbstractModel` (`_auto = False`) with `@api.model` read-only aggregation queries ensuring **Strict Database Schema Invariance** (0 DDL/schema changes on PostgreSQL `odoo20_dev`).
-- **Gateway Endpoint**: `/insilos/api/v1/control_tower/kpis` (JSON envelope, `Server: insilos/20.0`).
-- **Action Client Registration**: Action `insilos_executive_control_tower` registered in `addons/insilos_sap_fiori`.
-- **Accessibility & Contrast**: WCAG 2.1 AAA (>= 7:1 contrast ratio) and High-Contrast Dark Mode (`#070B14` canvas, `#141E33` card, `#00F2FE` Tech Cyan neon, `#10B981` Emerald).
-- **Micro-Visualizations**: Native mathematical SVG sparklines (viewBox `0 0 120 36`), radial OEE gauge, and semantic delta badges (+/- %) with zero external heavy charting dependencies.
-
-## Code Layout & Write Ownership
-| File Path | Component / Module | Write Ownership |
-|---|---|---|
-| `tools/verify_dashboard_analytics.js` | Playwright E2E Verification Suite | E2E Testing Track |
-| `addons/insilos_sap_fiori/models/insilos_control_tower.py` | Read-only ORM Aggregation Service (`AbstractModel`) | Milestone 2 Worker |
-| `addons/insilos_sap_fiori/controllers/control_tower_controller.py` | Perimeter Gateway Controller Endpoint | Milestone 2 Worker |
-| `addons/insilos_sap_fiori/data/sap_menu_data.xml` | Menu Item & Action Client Declaration | Milestone 1 Worker |
-| `addons/insilos_sap_fiori/views/sap_control_tower_views.xml` | Action Client View Declaration | Milestone 1 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/executive_control_tower.js` | Root OWL 3 Action Component | Milestone 1 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/executive_control_tower.xml` | Carbon 16-Col Grid Root QWeb Template | Milestone 1 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/timeframe_filter_bar.js` | Global Timeframe Bar Component | Milestone 1 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/timeframe_filter_bar.xml` | Timeframe Bar Template | Milestone 1 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/kpi_summary_tile.js` | KPI Summary Tile Component | Milestone 2 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/kpi_summary_tile.xml` | KPI Summary Tile Template (SVG Sparkline) | Milestone 2 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/mes_oee_card.js` | Smart Factory MES OEE Hub Component | Milestone 3 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/mes_oee_card.xml` | MES OEE Gauge & Telemetry Template | Milestone 3 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/logistics_hub_card.js` | Logistics Drayage & DET/DEM Hub Component | Milestone 3 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/logistics_hub_card.xml` | Logistics Drayage & DET/DEM Hub Template | Milestone 3 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/process_monitoring_card.js` | E2E Chevron Process Pipelines (L2C, P2P, O2D) | Milestone 1 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/components/process_monitoring_card.xml` | Process Pipelines Template | Milestone 1 Worker |
-| `addons/insilos_sap_fiori/static/src/executive_control_tower/executive_control_tower.scss` | Carbon Grid & Fiori Card SCSS Styling | Milestone 4 Worker |
-| `enterprise/insilos_theme_genesis/static/src/scss/insilos_modern_tokens.scss` | Theme SCSS & Dark Mode Contrast Tokens | Milestone 4 Worker |
+Layered frontend styling, 3D WebGL Web visual arts, and computer vision presentation on Odoo 20:
+- **Design Tokens & Spatial Theme**: `enterprise/insilos_website/static/src/scss/insilos_liquid_spatial.scss` (Elegance Palette: Deep Obsidian, Titanium Slate, Liquid Aurora, Royal Electric Indigo, Warm Rose Glow; mesh gradient depth; soft ethereal glows; cardless floating primitives).
+- **3D WebGL Storytelling Arts**: Three.js r180 air-gapped bundle (`static/src/lib/three/three.min.js`), `innoria_hero_controllers.js`, `innoria_hero_interactive_stage.js`, `innoria_hero_3d_manager.js` (3,600-point responsive mathematical wave mesh, 4-state morphing digital sphere, 4 narrative chapters, 360° inertia orbit, blueprint wireframe to PBR mesh morphing, camera focal length zoom).
+- **Cinematic YOLO Industrial AI HUD**: `innoria_yolo_inspection.js`, `insilos_cctv_player.js`, `views/innoria_pages.xml`, `views/snippets_cctv.xml` (Dual-mode viewport: real 1080p industrial video feeds + micro-metrology inspection, dynamic 60 FPS laser scanline, real-time RAF telemetry readout).
+- **Multi-Route Cardless Sub-routes**: Cardless UI floating layers on `/`, `/solutions`, `/industries`, `/resources`, `/showcase-3d` eliminating all `#E2E8F0` solid borders and boxed cards.
+- **Verification & Deployment Infrastructure**: Playwright console/performance auditor, edge viewport invariants scanner, 3D stress harnesses, empirical WCAG contrast suite, quality gate, and multi-pod K8s deployment tool (`tools/sync_all_pods_and_reload.py`).
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
-|---|---|---|---|---|
-| F1 | IBM Carbon 16-Col Responsive Grid | Layout breakpoint hierarchy (Desktop 16-col, Tablet 8-col, Mobile 4-col) | M1 | Survey R1 |
-| F2 | Global Timeframe Bar | Presets (Today, 7d, Month, Quarter, FY2026) with reactive filter state | M1 | Survey R1 |
-| F3 | Fiori Cards Hierarchy Layout | Container for Analytical, Summary, Process, and Priority Cards | M1 | Survey R1 |
-| F4 | Process Monitoring Pipelines | Multi-stage chevron flows for L2C, P2P, and O2D with click-throughs | M1 | Survey R1 |
-| F5 | Read-Only Aggregation Backend | `AbstractModel` and JSON controller providing real-time data under strict schema invariance | M2 | Survey R2 |
-| F6 | Executive KPI Tiles | 6 core KPI summary tiles (Revenue, Spend/TCO, OCF, OTIF, DOH, HSE) | M2 | Survey R2 |
-| F7 | Pure SVG Micro-Sparklines | Mathematical coordinate mapping for 7d/30d trends without 3rd party libraries | M2 | Survey R2 |
-| F8 | Semantic Delta Badges | YoY/MoM percentage delta indicators with color inversion for costs/hazards | M2 | Survey R2 |
-| F9 | Smart Factory MES OEE Hub | 3-Pillar radial/bar gauge (Availability >= 92%, Performance >= 95%, Quality >= 99%) | M3 | Survey R3 |
-| F10 | Live CNC & Robot Telemetry | Real-time status for Fiber Laser 12kW, Yaskawa welding robot, and press brake | M3 | Survey R3 |
-| F11 | Logistics Drayage Fleet Hub | Fleet tracking (Hyundai Xcient, CIMC chassis) between Cat Lai & Cai Mep | M3 | Survey R3 |
-| F12 | DET/DEM Penalty Warning | Real-time SLA countdown and penalty avoidance alert | M3 | Survey R3 |
-| F13 | High-Contrast Dark Mode | Deep slate `#070B14` canvas, `#141E33` card, `#00F2FE` Tech Cyan neon accents | M4 | Survey R4 |
-| F14 | WCAG AAA Contrast (>= 7:1) | Strict contrast compliance on typography, labels, numbers, and badges | M4 | Survey R4 |
-| F15 | Tabular Nums & Focus Outlines | Precision font styling (`tabular-nums`) and `:focus-visible` 2px outlines | M4 | Survey R4 |
-| F16 | Playwright E2E Test Suite | Headless test harness verifying 100% of dashboard cards, grid, and contrast | E2E | Survey R1-R4 |
-| F17 | Platform & Council Gates Invariance | Boot 700 modules, 0 genesis detections, Council Gates 8 & 10, git diff = 0 | Final | Survey R4 |
+|---|---------|-------------|-----------|--------|
+| 1 | Elegance Palette Token Architecture | Full CSS custom properties for Deep Obsidian (#050811, #0A101D), Titanium Slate (#1E293B), Liquid Aurora (#42E6C3 to #00F2FE), Royal Electric Indigo (#6366F1, #818CF8), Warm Rose Glow (#F43F5E, #FB7185) | M1 | Survey |
+| 2 | Multi-Tier Mesh Gradient Depth | Declarative radial & mesh gradient depth formulas (`--ins-mesh-gradient-obsidian`, `--ins-mesh-gradient-aurora`) creating organic spatial depth without flat black | M1 | Survey |
+| 3 | Diffused Ethereal Glow Borders | Ambient optical glow tokens (`--ins-glow-aurora`, `--ins-glow-indigo`, `--ins-glow-rose`) replacing harsh drop-shadows and solid box borders | M1 | Survey |
+| 4 | Cardless Spatial UI Primitives | Reusable floating layer classes (`.ins-spatial-layer`, `.ins-floating-pod`, `.ins-mesh-canvas`, `.ins-cardless`) with 24px backdrop-blur and 160% saturation | M1 | Survey |
+| 5 | WCAG AAA Contrast Normalization | Mathematical verification of 14.6:1 to 20.0:1 contrast for headings/text on obsidian, and dark text #05101E on mint/cyan (12.1:1 to 13.8:1) | M1 | Survey |
+| 6 | Design Tokens & SCSS Test Suite Extension | Update `tools/test_design_tokens_wcag_empirical.py` to assert Elegance Palette tokens, WCAG contrast ratios, and `web.assets_frontend` compilation | M1 | Survey |
+| 7 | Mathematical Particle Wave Engine | 3,600-point ($60 \times 60$) dynamic wave field ($y = A\sin(kx+\omega t)\cos(kz+\omega t)$) styled in Liquid Aurora palette with cursor repulsion displacement | M2 | Survey |
+| 8 | Morphing Digital Sphere | 4-state geometric particle morphing (Wave Surface $\leftrightarrow$ Fibonacci Sphere $\leftrightarrow$ Toroidal Core $\leftrightarrow$ Quantum Hex Matrix) with smooth cubic hermite interpolation | M2 | Survey |
+| 9 | 4-Chapter Storytelling State Machine | Synchronize 4 Hero modes (Cloud Fabric, AI Swarm, Smart ERP, Trust Security) with lighting, camera position, geometry morphing, and HUD titles | M2 | Survey |
+| 10 | Animated Exploded View & Leader Lines | Central 3D core separates into elevated volumetric layers with glowing data buses during Chapter 2 (Intelligent ERP) | M2 | Survey |
+| 11 | Blueprint Wireframe to PBR Mesh Morph | Dynamic shader/material transition animating from cyan holographic blueprint wireframe to photorealistic reflective PBR metallic mesh | M2 | Survey |
+| 12 | 360° Kinetic Orbit with Inertia Damping | Custom pointer drag rotation with exponential velocity decay ($\lambda = 3.2$) and vertical pitch clamping [$15^\circ, 85^\circ$] | M2 | Survey |
+| 13 | Cinematic Focal Length Camera Zoom | Animate camera FOV ($55^\circ \rightarrow 35^\circ$) with projection matrix updates for dramatic depth compression during chapter transitions | M2 | Survey |
+| 14 | WebGL Context Loss & Mobile Optimization | Clamp DPR to 2.0, dynamic particle scaling (1,600 on mobile, 3,600 on desktop) guaranteeing $\ge 55$ FPS on iPhone viewports; zero memory leak | M2 | Survey |
+| 15 | Dual-Mode Cinematic AI Viewport | Architectural fusion of real industrial video feeds and micro-metrology synthetic inspection in high-tech viewport frame | M3 | Survey |
+| 16 | Authentic Industrial Video Streaming | Seamless integration of high-resolution CCTV video feeds (`cctv_cam02_welding_ss400.mp4`, etc.) with continuous 60 FPS playback | M3 | Survey |
+| 17 | Real-time AI HUD Visual Overlay | Dynamic 60 FPS sweeping laser scanline, animated bounding boxes with confidence tags, corner reticles, and optical calibration grid | M3 | Survey |
+| 18 | Live Telemetry Real-time Stream | High-frequency RAF ticker displaying live latency (11.2ms), stream FPS (60.0), precision (99.42%), and defect classifications | M3 | Survey |
+| 19 | Featured YOLO HUD Placement on Homepage | Mount featured YOLO/CCTV inspection block on `innoria_homepage.xml` (`/`) and elevate on `/industries` | M3 | Survey |
+| 20 | Homepage (`/`) Cardless Conversion | Convert 6 vertical solution cards, 4 cadence steps, and closing CTA into `.ins-spatial-layer` with soft diffused glow, eliminating `#E2E8F0` solid borders | M4 | Survey |
+| 21 | `/solutions` Cardless Polish | Remove outer box from `s_innoria_3d_solutions_erp`, convert 4 ERP pillars from 4px solid left stripes to organic floating layers, convert comparison matrix to open liquid table | M4 | Survey |
+| 22 | `/industries` Cardless Polish | Eliminate `#FFFFFF` section clash on dark canvas, convert 4 case studies and 101 Industries directory into exhibition case study layout | M4 | Survey |
+| 23 | `/resources` Cardless Polish | Transform whitepaper cards and webinar cards into cardless floating liquid spatial tiles with glowing filter pills | M4 | Survey |
+| 24 | `/showcase-3d` Elegance Polish | Harmonize 5-snippet vertical stack under Elegance Palette, convert `.ins-3d-viewport` and 3 BOM ledger cards to spatial frames | M4 | Survey |
+| 25 | DOM Invariant & Banned Phrase Elimination | Verify zero occurrences of banned phrases ("Kéo chuột", "Hover khối", "Rê chuột", "360° interactive", "Hardware 3D // 60 FPS") across all views | M4 | Survey |
+| 26 | Design Tokens & WCAG Verification | Execute `tools/test_design_tokens_wcag_empirical.py` asserting all tokens, contrast ratios $\ge 4.5:1$, and SCSS compilation | M5 | Survey |
+| 27 | 3D Stress & Performance Verification | Execute `tools/stress_hero_3d_performance.js` (40 clicks at 50ms, 180 frames $\ge 55$ FPS, zero leak) and `tools/empirical_stress_3d_deck.js` | M5 | Survey |
+| 28 | Playwright Multi-Route Console & LCP Audit | Execute `tools/audit_website_console_performance.js` across 7 routes asserting 0 console errors, 0 network errors, LCP $\le 2.2$s, CLS $\le 0.05$ | M5 | Survey |
+| 29 | Edge Viewport & DOM Invariants Audit | Execute `tools/verify_edge_viewports_and_dom_invariants.js` asserting 0 overflow at 320/414/820/1920px and 0 banned phrases | M5 | Survey |
+| 30 | Quality Gate Compliance Audit | Execute `python3 enterprise/insilos_website/tools/quality_gate.py` asserting 7/7 gates PASS | M5 | Survey |
+| 31 | Visual Evidence High-Res Audit Deck | Capture full-page screenshots at 1920x1080 (Desktop) and 390x844 (Mobile) for `/`, `/solutions`, `/industries`, `/resources`, `/showcase-3d` | M5 | Survey |
+| 32 | Multi-Pod Production Sync & Probe | Execute `tools/sync_all_pods_and_reload.py` syncing all 3 K8s pods and validating HTTP/2 200 OK | M5 | Survey |
 
 ## Milestones
-| # | Name | Scope | Dependencies | Status |
-|---|---|---|---|---|
-| E2E | E2E Testing Track | Build `tools/verify_dashboard_analytics.js` | none | IN_PROGRESS |
-| M1 | Executive Control Tower Architecture | Carbon 16-Col Grid, Action Client, Timeframe Bar, Process Pipelines | none | IN_PROGRESS |
-| M2 | Real-Time KPI Tiles & SVG Sparklines | Backend AbstractModel aggregation & KPI Tiles with SVG Sparklines | M1 | PLANNED |
-| M3 | MES OEE Hub & Logistics Drayage Hub | OEE 3-pillar gauge, station telemetry, fleet tracking, DET/DEM countdown | M1, M2 | PLANNED |
-| M4 | SCSS Component & Dark Mode Polish | Carbon SCSS, High-Contrast Dark Mode tokens, WCAG AAA contrast | M1, M2, M3 | PLANNED |
-| Final | Council Gates & Adversarial Audit | Gates 8 & 10, Server Boot, Counter Code Scanner, Git DDL Invariance | E2E, M1-M4 | PLANNED |
+| # | Name | Scope | Dependencies | Status | Key Outputs |
+|---|------|-------|-------------|--------|-------------|
+| M1 | Elegance Palette & Liquid Spatial Theme | Tokens #1–6: SCSS tokens engine, mesh gradients, ethereal diffused glows, cardless primitives, WCAG test suite | none | DONE | `insilos_liquid_spatial.scss`, updated `__manifest__.py`, expanded `test_design_tokens_wcag_empirical.py` (97 tests pass) |
+| M2 | Hero 3D Interactive Storytelling Arts | Features #7–14: 3,600-point particle wave field, 4-state morphing sphere, 4-chapter narrative transitions, exploded view, wireframe to mesh, 360° inertia orbit | M1 | PLANNED | `innoria_hero_controllers.js`, `innoria_hero_interactive_stage.js`, `innoria_hero_3d_manager.js` |
+| M3 | Cinematic YOLO Industrial AI HUD | Features #15–19: Dual-mode industrial video viewport, 60 FPS sweeping laser scanline, pulsing bounding boxes, real-time RAF telemetry ticker | M1 | PLANNED | `innoria_yolo_inspection.js`, `snippets_cctv.xml`, `innoria_pages.xml`, `innoria_homepage.xml` |
+| M4 | Multi-Route Cardless Conversion & Polish | Features #20–25: Cardless conversion on `/`, `/solutions`, `/industries`, `/resources`, `/showcase-3d`, elimination of rigid borders & banned phrases | M1 | PLANNED | Refactored QWeb views & `innoria_theme.scss` |
+| M5 | Comprehensive E2E Verification & Pod Sync | Features #26–32: 6 automated test suites, high-res visual audit deck (1920x1080 & 390x844), multi-pod K8s deployment & live probe | M2, M3, M4 | PLANNED | 100% test pass, visual screenshots deck, 3 K8s pods synced HTTP/2 200 OK |
 
 ## Interface Contracts
+### Tokens ↔ Liquid Spatial Styles
+- All colors and gradients MUST consume the Elegance Palette CSS variables (`--ins-obsidian-deep`, `--ins-obsidian-surface`, `--ins-titanium-slate`, `--ins-aurora-mint`, `--ins-aurora-cyan`, `--ins-electric-indigo`, `--ins-rose-glow`).
+- Hardcoded `#E2E8F0` solid borders and boxed machine shadows are strictly prohibited on cardless elements.
+- All floating spatial layers MUST utilize `backdrop-filter: blur(var(--ins-spatial-layer-blur))` and `--ins-spatial-border-glow`.
 
-### Backend ↔ Frontend Contract
-Endpoint: `/insilos/api/v1/control_tower/kpis` or RPC `insilos.control.tower.get_executive_kpi_metrics(timeframe, filters)`
-Request Payload:
-```json
-{
-  "timeframe": "7d", // "today" | "7d" | "month" | "quarter" | "fy2026"
-  "filters": {
-    "company_id": 1,
-    "domain": "all" // "all" | "sd" | "mm" | "pp" | "le" | "hse"
-  }
-}
-```
-Response Payload Schema:
-```json
-{
-  "success": true,
-  "timeframe": "7d",
-  "kpis": {
-    "net_revenue": { "value": 1860500000.0, "value_formatted": "1.860 Tỷ ₫", "delta_percent": 14.2, "delta_semantic": "positive", "sparkline": { "points": [...], "line_d": "...", "area_d": "..." } },
-    "procurement_tco": { "value": 615300000.0, "value_formatted": "615.3 Tr ₫", "tco_savings_annual_formatted": "₫2,029,050,000 / Năm", "delta_percent": -8.6, "delta_semantic": "positive", "sparkline": { ... } },
-    "operating_cash_flow": { "value": 1245250000.0, "value_formatted": "+1.245 Tỷ ₫", "delta_percent": 18.5, "delta_semantic": "positive", "sparkline": { ... } },
-    "otif_delivery": { "value": 99.2, "value_formatted": "99.2%", "threshold_formatted": ">= 98.5%", "delta_percent": 0.7, "delta_semantic": "positive", "sparkline": { ... } },
-    "days_on_hand": { "value": 18.5, "value_formatted": "18.5 Ngày", "delta_percent": -10.2, "delta_semantic": "positive", "sparkline": { ... } },
-    "safety_index": { "value": 100.0, "value_formatted": "100%", "ppe_compliance_formatted": "99.8%", "lost_time_injuries": 0, "sparkline": { ... } }
-  },
-  "industrial_mes": {
-    "oee_composite": 92.5,
-    "pillars": {
-      "availability": { "threshold": 92.0, "actual": 94.2, "status": "passed" },
-      "performance": { "threshold": 95.0, "actual": 98.1, "status": "passed" },
-      "quality": { "threshold": 99.0, "actual": 99.8, "status": "passed" }
-    },
-    "workcenters": [
-      { "code": "WC-CUT-01", "name": "Fiber Laser 12kW", "actual_oee": 91.2, "status": "running" },
-      { "code": "WC-WELD-01", "name": "Yaskawa Motoman", "actual_oee": 94.8, "status": "running" }
-    ]
-  },
-  "logistics_hub": {
-    "drayage_fleet": [
-      { "plate": "51C-982.45", "model": "Hyundai Xcient GT", "status": "in_transit" },
-      { "plate": "51R-089.34", "model": "CIMC Chassis 40ft", "status": "coupled" }
-    ],
-    "container_moves": {
-      "det_dem_countdown_hours": 28.0,
-      "buffer_time_hours": 8.5,
-      "potential_penalty_averted": 48000000.0,
-      "potential_penalty_formatted": "48,000,000 ₫"
-    }
-  },
-  "process_pipelines": {
-    "lead_to_cash": [ { "stage": "Inquiries", "count": 24 }, { "stage": "Quotations", "count": 18 }, { "stage": "Orders", "count": 42 }, { "stage": "Billing", "count": 36 } ],
-    "procure_to_pay": [ { "stage": "Requisitions", "count": 12 }, { "stage": "RFQs", "count": 8 }, { "stage": "POs", "count": 26 }, { "stage": "Inbound", "count": 24 } ],
-    "order_to_delivery": [ { "stage": "Confirmed", "count": 10 }, { "stage": "Production", "count": 8 }, { "stage": "QA Inspection", "count": 6 }, { "stage": "Dispatched", "count": 14 } ]
-  }
-}
-```
+### Three.js Hero Manager ↔ Interactive Stage Controllers
+- Particle waves and morphing spheres MUST register with `InnoriaHero3DManager` disposables for clean GPU garbage collection.
+- Pointer tracking MUST calculate normalized device coordinates (NDC) and pass them to active controllers.
+- Camera FOV and position changes MUST execute via smooth LERP in requestAnimationFrame.
+
+### Industrial AI HUD ↔ Telemetry Controllers
+- YOLO HUD scanline and bounding boxes MUST synchronize with video playback clock without blocking main thread.
+- Telemetry tickers (Latency, FPS, Precision) MUST update via requestAnimationFrame with micro-fluctuations matching industrial sensor physics.
+
+## Code Layout
+- Tokens & Liquid Spatial SCSS: `enterprise/insilos_website/static/src/scss/insilos_liquid_spatial.scss`
+- Base Website Styling: `enterprise/insilos_website/static/src/scss/insilos.scss`
+- Theme Styling & Scoped Overrides: `enterprise/insilos_website/static/src/scss/innoria_theme.scss`
+- 3D Hero Controllers: `enterprise/insilos_website/static/src/js/innoria_hero_controllers.js`
+- 3D Stage & Storytelling Manager: `enterprise/insilos_website/static/src/js/innoria_hero_interactive_stage.js`
+- 3D WebGL Engine & Lifecycle: `enterprise/insilos_website/static/src/js/innoria_hero_3d_manager.js`
+- YOLO Inspection Engine: `enterprise/insilos_website/static/src/js/innoria_yolo_inspection.js`
+- CCTV Player Engine: `enterprise/insilos_website/static/src/js/insilos_cctv_player.js`
+- Homepage View: `enterprise/insilos_website/views/innoria_homepage.xml`
+- Pages View (`/solutions`, `/industries`): `enterprise/insilos_website/views/innoria_pages.xml`
+- Resources View: `enterprise/insilos_website/views/resources_about_demo.xml`
+- 3D & CCTV Snippets: `enterprise/insilos_website/views/snippets_3d.xml`, `enterprise/insilos_website/views/snippets_cctv.xml`
+- Test Harnesses:
+  - `tools/test_design_tokens_wcag_empirical.py`
+  - `tools/stress_hero_3d_performance.js`
+  - `tools/empirical_stress_3d_deck.js`
+  - `tools/audit_website_console_performance.js`
+  - `tools/verify_edge_viewports_and_dom_invariants.js`
+  - `enterprise/insilos_website/tools/quality_gate.py`
+  - `tools/sync_all_pods_and_reload.py`

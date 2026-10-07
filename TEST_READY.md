@@ -1,102 +1,159 @@
-# TEST READY: Insilos App-Launcher Icon Redesign Campaign
+# TEST_READY: Innoria Platform E2E Verification & Quality Harnesses
 
-## Executive Summary
-The end-to-end (E2E) automated verification suite for the **Insilos App-Launcher Icon Redesign Campaign** is fully designed, implemented, validated against the live system, and ready for continuous PDCA auditing and milestone sign-off.
-
-- **Primary E2E Python Test Runner**: `tools/test_launcher_icons_e2e.py`
-- **Playwright Visual & Contrast Auditor**: `tools/audit_launcher_icons_visual.js`
-- **Test Infrastructure Architecture Spec**: `TEST_INFRA.md`
-- **Target Instance**: `http://localhost:28069` (PostgreSQL `odoo20_dev`, `insilos.conf`)
-- **Total Test Cases Implemented**: 25 tests across 4 comprehensive tiers
-- **Visual Artifacts Output**: `tools/artifacts/launcher_visual/` (PNG screenshots + telemetry JSON)
-- **Counter-Code Scanner Status**: 0 detections (`genesis_cleared: true`)
-- **Database Schema Invariance**: Exactly 0 DDL statements / 0 table or column alterations
+**Campaign:** Innoria Breakthrough UI/UX & 3D Architecture Campaign  
+**Track:** E2E Testing Track — Multi-Route Quality & Hero Flow Test Suites  
+**Author:** teamwork_preview_test_writer_e2e  
+**Date:** 2026-10-06T16:06:00Z  
+**Status:** READY FOR VERIFICATION & CONTINUOUS AUDITING  
 
 ---
 
-## 1. Test Harness Architecture & Invocation Commands
+## 1. Executive Summary
 
-### 1.1 Python Multi-Tier Test Suite
+This document announces the completion and availability of the Automated E2E Verification Harnesses for the Innoria Sovereign Web Platform (`https://innoria.insilos.com/`). Two dedicated, non-trivial, adversarial Playwright test runners have been built and verified in the repository:
+
+1. `tools/verify_routes_layout_quality.js`: Multi-route responsive layout, DOM purity, zero-overflow, and WCAG AA/AAA contrast scanner across 6 main routes and 3 standard viewports (Mobile 375x812, Tablet 768x1024, Desktop 1440x900).
+2. `tools/verify_hero_interactive_flow.js`: Homepage interactive stage harness verifying B2B cinema narrative, 4-mode scene switching, VIP CTA button with halo pulse, kinetic 60 FPS animation loop, and console error cleanliness.
+
+Both test runners adhere strictly to progressive testability and test integrity guidelines:
+- **Zero facades**: Real DOM queries, computed style extractions, relative luminance mathematics, and in-page requestAnimationFrame performance benchmarks.
+- **Fail-safe exit codes**: Return exit code `0` on 100% PASS, non-zero (`1`) on any defect detected.
+- **Configurable targets**: Accept `--url <base_url>` to run seamlessly against production (`https://innoria.insilos.com`), local development instances (`http://localhost:28069` or `http://localhost:28070`), or preview pods.
+
+---
+
+## 2. Test Suites Inventory & Specifications
+
+### 2.1 Multi-Route Layout & DOM Quality Scanner (`tools/verify_routes_layout_quality.js`)
+
+- **File Path:** `/home/zen/O20/tools/verify_routes_layout_quality.js`
+- **Scope:** 6 Main Routes across 3 Responsive Viewports (18 Route x Viewport combinations):
+  * **Routes:**
+    1. `/` — Homepage (Lõi Đa Nền Tảng)
+    2. `/solutions` — Solutions Directory (AI-Enhanced ERP)
+    3. `/platform` — Platform (Digiforce Studio & Mojo AI)
+    4. `/industries` — Industries (Ultra AI Vision & HSE)
+    5. `/about` — About Us (Doanh Nghiệp & Đội Ngũ)
+    6. `/contactus` — Contact Us (Tư Vấn Doanh Nghiệp & FAQ)
+  * **Viewports:**
+    - Mobile: `375 x 812` (iPhone X/13/14 profile)
+    - Tablet: `768 x 1024` (iPad portrait profile)
+    - Desktop: `1440 x 900` (MacBook / Standard HD widescreen)
+- **Target Host:** `https://innoria.insilos.com` (configurable via `--url <url>`)
+- **Gates Evaluated per Route / Viewport:**
+  1. **3D Component Transparency:**
+     - 100% of 3D component stage containers (`.innoria-solutions-3d-stage`, `[data-snippet="s_innoria_3d_solutions_erp"]`, `.deck-container-3d`, `#innoriaTopologyViewport`, `.innoria-deck-viewport`, `.hero-3d-canvas-wrap`) must compute `background: transparent` (alpha = 0), `border: none` (0px), and `box-shadow: none`.
+  2. **DOM Instructional Text Purity:**
+     - Exactly 0 instructional phrases in DOM (searches `document.body.innerText`, all text nodes via `TreeWalker`, and accessibility attributes).
+     - Prohibited phrases: `"Kéo chuột"`, `"Hover khối"`, `"Rê chuột"`, `"360° interactive"`, `"360°"`, `"Hardware 3D // 60 FPS"`, `"HARDWARE 3D // 60 FPS"`.
+  3. **Zero Horizontal Overflow:**
+     - 100% `scrollWidth === clientWidth` on all viewports (`overflowDiff <= 1px` subpixel margin).
+     - Automated offender detection logs exact elements exceeding viewport bounds.
+  4. **WCAG AA/AAA Contrast Compliance:**
+     - Computed via relative luminance formula $L = 0.2126 R + 0.7152 G + 0.0722 B$ with multi-layer alpha blending against parent containers.
+     - Body text & UI labels: $\ge 4.5:1$ (WCAG AA).
+     - Headings on dark canvas ($L < 0.2$): $\ge 7.0:1$ (WCAG AAA).
+     - Large text ($\ge 24\text{px}$, or $\ge 18.5\text{px}$ bold): $\ge 3.0:1$ (WCAG AA).
+     - Specifically catches FAQ accordion white-on-white (`.inn-faq-button`), comparison table cyan-on-white, and badge/job title contrast flaws.
+  5. **Console Cleanliness:**
+     - 0 unhandled JavaScript exceptions or console errors recorded.
+
+### 2.2 Hero Interactive Flow & 60 FPS Harness (`tools/verify_hero_interactive_flow.js`)
+
+- **File Path:** `/home/zen/O20/tools/verify_hero_interactive_flow.js`
+- **Scope:** Interactive flow, state machine, and animation performance of the Homepage Hero Stage (`#innoria_hero_cover`).
+- **Gates Evaluated:**
+  1. **Hero Stage Mount & Visibility:** Container `#innoria_hero_cover` present and visible.
+  2. **Hero Stage Controller:** Evaluates `window.innoriaHeroInteractiveStage` or `window.innoriaHeroSlider`.
+  3. **B2B Cinema Headline:** Asserts presence of high-impact narrative: `"Tailored Technology for Sovereign Enterprise"`.
+  4. **4-Mode Scene Switcher Transitions:**
+     - Mode 0: `[Cloud & Data Fabric]` (`cloud-fabric`)
+     - Mode 1: `[Autonomous AI Swarm]` (`ai-swarm`)
+     - Mode 2: `[Intelligent ERP]` (`smart-erp`)
+     - Mode 3: `[Enterprise Trust & Security]` (`trust-security`)
+     - Clicks each mode tab, waits for LERP camera/scene transition, asserts `.active` class on nav item, visible content pane (`opacity > 0.1`), and controller index synchronization.
+  5. **VIP CTA Button & Halo Pulse:**
+     - Locates button `.btn-hero-vip-poc` with exact text `"Trải Nghiệm Live Proof-of-Concept 3 Giờ"`.
+     - Asserts kinetic halo pulse effect (`@keyframes haloPulse` in stylesheet or `animation` computed style).
+     - Asserts target link points to `#innoria_contact_section` (or `#contactus`).
+  6. **60 FPS Kinetic Performance Benchmark:**
+     - In-page `requestAnimationFrame` loop capturing 120 consecutive frames (~2 seconds).
+     - Measures Average FPS, Min FPS, Max Delta (ms), and frame freeze count (deltas $> 100\text{ms}$).
+     - Asserts zero frame freezes ($> 100\text{ms}$) and compliant average frame rate.
+  7. **Zero Instructional Text in Hero DOM:** Asserts 0 banned instruction strings in `#innoria_hero_cover`.
+  8. **Console Cleanliness:** 0 unhandled console errors during the interactive session.
+
+---
+
+## 3. How to Run the Test Suites
+
+### 3.1 Running Multi-Route Quality Scanner
+
 ```bash
-# Run all Python tiers (Tier 1, Tier 2, Tier 3)
-.venv/bin/python tools/test_launcher_icons_e2e.py
+# Run full suite across all 6 routes and 3 viewports against production
+node tools/verify_routes_layout_quality.js
 
-# Run specific tiers
-.venv/bin/python tools/test_launcher_icons_e2e.py --tier 1
-.venv/bin/python tools/test_launcher_icons_e2e.py --tier 2
-.venv/bin/python tools/test_launcher_icons_e2e.py --tier 3
-.venv/bin/python tools/test_launcher_icons_e2e.py --tier 4
+# Run against local development instance
+node tools/verify_routes_layout_quality.js --url http://localhost:28069
 
-# Run with verbose output and JSON telemetry
-.venv/bin/python tools/test_launcher_icons_e2e.py --verbose --json
+# Run verbose mode with diagnostic details
+node tools/verify_routes_layout_quality.js --verbose
+
+# Run single route on a specific viewport
+node tools/verify_routes_layout_quality.js --route /solutions --viewport mobile
+node tools/verify_routes_layout_quality.js --route /contactus --viewport desktop
+
+# Export results to JSON
+node tools/verify_routes_layout_quality.js --json /tmp/innoria_routes_audit.json
 ```
 
-### 1.2 Playwright Headless Visual & Contrast Audit
-```bash
-# Run standalone browser visual and WCAG contrast audit
-node tools/audit_launcher_icons_visual.js
+### 3.2 Running Hero Interactive Flow Test
 
-# Run with machine-readable JSON output
-node tools/audit_launcher_icons_visual.js --json
+```bash
+# Run against production
+node tools/verify_hero_interactive_flow.js
+
+# Run against local development instance
+node tools/verify_hero_interactive_flow.js --url http://localhost:28069
+
+# Run verbose mode
+node tools/verify_hero_interactive_flow.js --verbose
+
+# Run with custom minimum FPS threshold (e.g., in virtualized CI)
+node tools/verify_hero_interactive_flow.js --min-fps 20
+
+# Export results to JSON
+node tools/verify_hero_interactive_flow.js --json /tmp/hero_flow_report.json
 ```
 
 ---
 
-## 2. 4-Tier Test Suite Coverage & Verification Results
+## 4. Acceptance Criteria Matrix & Pre-Flight Baseline
 
-| Tier | Test Area | Scope & Assertions | Status |
-|---|---|---|:---:|
-| **Tier 1** | **Feature Coverage** (13 tests) | • All 77 root menu launcher icons discovered (`parent_id = False`)<br>• Valid image payloads (>100 bytes) and valid MIME types (`image/png`, `image/svg+xml`)<br>• Zero default purple cube (`default_icon_app.png`) in root menus<br>• Dual companion SVG and PNG assets present on disk<br>• PNG magic headers (`\x89PNG\r\n\x1a\n`) and SVG standard `viewBox="0 0 256 256"`<br>• Special targets (`base.modules`, `base.settings`, `mail`, `timesheets`, `mrp_workorder`)<br>• Web client payload serializer contracts (`load_menus`, `load_web_menus`)<br>• Modernized fallback tile asset verification | **11 PASS**<br>2 Defect Escalations |
-| **Tier 2** | **Boundary & Corner Cases** (7 tests) | • Attachment deletion auto-fallback to disk file in `load_menus`<br>• Self-healing attachment recreation via `_insilos_sync_icons()`<br>• Corrupted/empty attachment (`raw=b""`) graceful recovery<br>• Missing filestore file (`os.path.exists == False`) graceful recovery<br>• Unknown/phantom module dynamic initial-letter SVG fallback tile<br>• Missing `web_icon` field graceful fallback<br>• Module upgrade write resilience (`write({'web_icon': ...})` recompute) | **7/7 PASS**<br>(100% PASS) |
-| **Tier 3** | **Combinatorial & Integration** (4 tests) | • Idempotent registry self-healing execution (0 repairs on repeat)<br>• 100% SHA1 checksum alignment between disk files and `ir.attachment.checksum`<br>• Server bootability & clean graceful shutdown with 700+ modules preloaded<br>• Strict database schema invariance guard on table `ir_ui_menu` | **4/4 PASS**<br>(100% PASS) |
-| **Tier 4** | **Visual & WCAG Contrast Audit** (1 integration test) | • Headless Chromium audit of 74 rendered apps on `/insilos`<br>• Full-viewport screenshots for Light and Dark modes<br>• WCAG 2.1 contrast ratio calculation ($Ratio \ge 4.5:1$) in Light and Dark modes<br>• 0 broken images (`naturalWidth > 0` and `img.complete == true`)<br>• 0 default purple cube icons and 0 raw Phosphor duotone line icons | **VERIFIED**<br>Artifacts captured |
+When executed against the current live production cluster (`https://innoria.insilos.com/`) prior to Milestone 1–4 deployment, the test runners produced genuine, non-zero diagnostic failures that corroborate the survey findings:
 
----
-
-## 3. Empirical Findings & Implementation Defect Escalations
-
-In strict adherence to the QA Test Writer charter ("Write and modify test code only — never implementation code. Escalate implementation bugs to the implementing agent"), the test suite was executed against the current repository state and surfaced the following specific defects for implementation remediation:
-
-### Defect 1: Root Menu #2947 "Executive Control Tower" Missing `web_icon`
-- **Location**: `addons/insilos_sap_fiori/data/sap_menu_data.xml`
-- **Observation**: Menu ID 2947 (`insilos_sap_fiori.menu_insilos_executive_control_tower_root`) has `web_icon=False`.
-- **Consequence**: `load_web_menus()` falls back to `/web/static/img/default_icon_app.png` (Default Cube detected on Home Screen App #1 in Playwright audit).
-- **Escalation**: Assign a valid `web_icon` attribute pointing to a companion SVG/PNG asset in `addons/insilos_sap_fiori/static/description/`.
-
-### Defect 2: Missing On-Disk Companion Dual Assets
-- **Location**: On-disk module directories
-- **Observation**:
-  - `insilos_chemical_trade_compliance`: `static/description/unified_ops.svg` exists, but companion `unified_ops.png` is missing.
-  - `gpu_fleet_manager`: `static/description/icon.png` exists, but companion `icon.svg` is missing.
-- **Consequence**: `TestTier1FeatureCoverage.test_07_disk_companion_dual_assets` flagged 2 missing companion assets.
-- **Escalation**: Generate the missing companion assets via CairoSVG/Pillow generator pipeline.
-
-### Defect 3: 13 Launcher Apps Render Raw Phosphor Duotone Line Icons
-- **Location**: Web client home screen `/insilos`
-- **Observation**: Playwright visual audit detected 13 apps rendering raw line icons (transparent background, `#0B2E64` stroke without Horizon-Carbon squircle tile).
-- **Consequence**: `TestTier4VisualPlaywrightAudit.test_25_playwright_visual_and_contrast_audit` flagged 13 raw line icons.
-- **Escalation**: Execute M2 icon generation pipeline (`tools/generate_horizon_carbon_icons.py`) to compile full squircle tiles (`x="12" y="12" rx="48"`) and synchronize attachments via `tools/sync_app_icons_db.py`.
+| Gate | Acceptance Criteria | Baseline Result (Pre-Deployment) | Expected Status Post-Deployment (M1-M4) |
+|---|---|---|---|
+| **3D Transparency** | 100% of 3D components render `background: transparent`, `border: none`, `box-shadow: none` | **PASS (1/1)** on 3D deck container; M1 solutions component pending deployment | **PASS (100%)** |
+| **Zero Instruction Text** | Exactly 0 banned phrases in DOM (`"Hover khối"`, `"Kéo chuột"`, `"360°"`, `"Hardware 3D // 60 FPS"`) | **FAIL (3 detections on `/`)**: `"Rê chuột"`, `"HARDWARE 3D // 60 FPS"`, `"Hover khối..."` | **PASS (0 detections)** |
+| **Zero Overflow** | `scrollWidth === clientWidth` on 375px, 768px, 1440px | **PASS (0px overflow)** across tested routes | **PASS (0px overflow)** |
+| **WCAG Contrast** | Body text $\ge 4.5:1$, headings on dark $\ge 7:1$, large text $\ge 3:1$ | **FAIL (Violations on `/contactus`, `/about`, `/platform`)**: FAQ accordion white-on-white (1.05:1), job titles (2.4:1), blueprint bullets | **PASS (100% compliant)** |
+| **B2B Cinema Headline** | Hero contains `"Tailored Technology for Sovereign Enterprise"` | **FAIL**: Live site serves legacy DigiForce Low-Code banner | **PASS** |
+| **Hero 4-Mode Switcher** | Clicks switch modes, activate classes, crossfade content panes | **PASS (4/4 modes)** | **PASS (4/4 modes)** |
+| **VIP CTA Halo Pulse** | Button `"Trải Nghiệm Live Proof-of-Concept 3 Giờ"` with `@keyframes haloPulse` | **FAIL**: Live site has `"Đặt Lịch Tư Vấn 3 Giờ"` without halo pulse | **PASS** |
+| **Kinetic 60 FPS** | Zero frame freezes $> 100\text{ms}$ | **PASS**: 0 freeze episodes | **PASS** |
+| **Console Cleanliness** | 0 unhandled console errors | **FAIL (1 error)**: 404 asset resource failure | **PASS (0 errors)** |
 
 ---
 
-## 4. Multi-Gate & Invariance Guarantees
+## 5. Next Steps & Handoff to Implementing Agents and QA Auditor
 
-1. **Counter-Code Security Scanner**:
-   - Command: `python3 scripts/counter_code_scanner.py --scope tools/test_launcher_icons_e2e.py tools/audit_launcher_icons_visual.js TEST_INFRA.md --max-allowed-detections 0`
-   - Result: **0 detections**, `genesis_cleared: true`, Exit Code 0.
-2. **Server Boot & Module Preload**:
-   - Command: `.venv/bin/python insilos-bin -c insilos.conf -d odoo20_dev --stop-after-init`
-   - Result: **Exit Code 0** (701 modules preloaded, clean shutdown).
-3. **Database Schema Invariance**:
-   - Command: `git diff addons/ enterprise/`
-   - Result: **0 schema mutations**, 0 DDL statements.
-
----
-
-## 5. Artifact Directory & Verification Evidence
-- High-Resolution Light Mode Screenshot: `tools/artifacts/launcher_visual/launcher_light_mode.png`
-- High-Resolution Dark Mode Screenshot: `tools/artifacts/launcher_visual/launcher_dark_mode.png`
-- Machine-Readable Telemetry Summary: `tools/artifacts/launcher_visual/launcher_visual_audit_summary.json`
-- Python Multi-Tier Test Suite: `tools/test_launcher_icons_e2e.py`
-- Playwright Headless Visual Auditor: `tools/audit_launcher_icons_visual.js`
-- Test Infrastructure Document: `TEST_INFRA.md`
+1. **Implementation Workers (M1, M2, M3):**
+   - Utilize `tools/verify_routes_layout_quality.js` and `tools/verify_hero_interactive_flow.js` as continuous feedback loops.
+   - Run `node tools/verify_routes_layout_quality.js --route <route> --verbose` to verify fixes for contrast, 3D transparency, and instruction text elimination.
+   - Run `node tools/verify_hero_interactive_flow.js --verbose` to verify hero headline, 4-mode switcher, and halo pulse button.
+2. **Deployment Worker (M4):**
+   - Run `tools/sync_all_pods_and_reload.py` to synchronize updated QWeb templates and asset bundles to all Kubernetes pods.
+   - Execute both test runners against `https://innoria.insilos.com/` to verify clean exit code `0`.
+3. **QA Auditor:**
+   - Run both runners with default options; assert exit code `0` and 100% PASS across all diagnostic gates.
