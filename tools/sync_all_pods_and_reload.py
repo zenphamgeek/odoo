@@ -26,7 +26,7 @@ print("\n=== 1. PACKAGING targeted insilos_website ARCHIVE ===")
 tar_path = "/tmp/insilos_website_sync.tar.gz"
 run_cmd(
     f"tar -czf {tar_path} -C enterprise/insilos_website "
-    f"__manifest__.py controllers views static/src/scss static/src/js static/src/icons static/src/img/innoria",
+    f"__manifest__.py controllers views static/src/scss static/src/js static/src/icons static/src/img/innoria static/src/img/assets_library static/src/img/logos",
     check=True
 )
 tar_size = os.path.getsize(tar_path)
@@ -38,11 +38,12 @@ for pod in pods:
     cmd = (
         f"kubectl cp -n {NAMESPACE} -c {CONTAINER} {tar_path} {pod}:/tmp/insilos_website_sync.tar.gz && "
         f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_innoria_views_db.py {pod}:/app/insilos/tools/sync_innoria_views_db.py && "
+        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_logos_to_assets_library.py {pod}:/app/insilos/tools/sync_logos_to_assets_library.py && "
         f"kubectl exec -n {NAMESPACE} {pod} -c {CONTAINER} -- sh -c '"
         f"mkdir -p /app/insilos/apps/insilos_website /app/insilos/enterprise/insilos_website && "
         f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
         f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/enterprise/insilos_website/ && "
-        f"chown -R insilos:insilos /app/insilos/apps/insilos_website /app/insilos/enterprise/insilos_website /app/insilos/tools/sync_innoria_views_db.py && "
+        f"chown -R insilos:insilos /app/insilos/apps/insilos_website /app/insilos/enterprise/insilos_website /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py && "
         f"rm -f /tmp/insilos_website_sync.tar.gz'"
     )
     p = subprocess.Popen(cmd, shell=True)
@@ -63,6 +64,15 @@ res = subprocess.run([
 print(res.stdout)
 if res.stderr:
     print("Stderr:", res.stderr)
+
+print("\n=== 3B. REGISTERING LOGOS IN ASSETS LIBRARY (IR.ATTACHMENT) ON LEAD POD ===")
+res_assets = subprocess.run([
+    "kubectl", "exec", "-n", "production", pods[0], "-c", "insilos", "--",
+    "python3", "/app/insilos/tools/sync_logos_to_assets_library.py", "prod_pod"
+], capture_output=True, text=True)
+print(res_assets.stdout)
+if res_assets.stderr:
+    print("Stderr:", res_assets.stderr)
 
 print("\n=== 4. RESTARTING CHILD WORKERS ON ALL PODS IN PARALLEL ===")
 worker_kill_script = """
