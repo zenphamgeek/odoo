@@ -189,7 +189,7 @@ def tier4_live_http_smoke_test(domain="https://innoria.insilos.com"):
 
     for r in routes:
         url = domain + r
-        for attempt in range(2):
+        for attempt in range(3):
             try:
                 req = urllib.request.Request(
                     url,
@@ -198,7 +198,7 @@ def tier4_live_http_smoke_test(domain="https://innoria.insilos.com"):
                         'Accept': 'text/html,application/xhtml+xml'
                     }
                 )
-                with urllib.request.urlopen(req, timeout=30) as resp:
+                with urllib.request.urlopen(req, timeout=35) as resp:
                     code = resp.getcode()
                     body = resp.read().decode('utf-8', errors='ignore')
                     
@@ -214,8 +214,8 @@ def tier4_live_http_smoke_test(domain="https://innoria.insilos.com"):
                         failed.append((r, f"Unexpected HTTP status {code}"))
                     break
             except Exception as e:
-                if attempt == 0:
-                    time.sleep(1.5)
+                if attempt < 2:
+                    time.sleep(2.0 * (attempt + 1))
                     continue
                 print(f"  [✗] {r:<38}: {e}", flush=True)
                 failed.append((r, str(e)))
