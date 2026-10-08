@@ -76,7 +76,6 @@ def sync_database(host, port, user, password, dbname):
 
         # Layout, Brand & Helpers
         ("innokafe_head_metadata", "innokafe_website.innokafe_head_metadata", xml_templates),
-        ("innokafe_header_brand_bar", "innokafe_website.innokafe_header_brand_bar", xml_templates),
         ("innokafe_global_cta", "innokafe_website.innokafe_global_cta", xml_templates),
         ("innokafe_pledge_ribbon", "innokafe_website.innokafe_pledge_ribbon", xml_templates),
         ("innokafe_footer_custom", "innokafe_website.innokafe_footer_custom", xml_templates),
@@ -105,15 +104,15 @@ def sync_database(host, port, user, password, dbname):
         
         # Check if view exists
         cur.execute("SELECT id, name FROM ir_ui_view WHERE key = %s", (key,))
-        row = cur.fetchone()
-        if row:
-            view_id, name = row
-            cur.execute("""
-                UPDATE ir_ui_view
-                SET arch_db = %s::jsonb, name = %s, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
-                WHERE id = %s
-            """, (json.dumps(arch_dict), view_name, view_id))
-            print(f"[✓] Updated view {view_id} ({key}: '{view_name}') - {len(arch_xml)} bytes")
+        rows = cur.fetchall()
+        if rows:
+            for view_id, name in rows:
+                cur.execute("""
+                    UPDATE ir_ui_view
+                    SET arch_db = %s::jsonb, name = %s, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
+                    WHERE id = %s
+                """, (json.dumps(arch_dict), view_name, view_id))
+                print(f"[✓] Updated view {view_id} ({key}: '{view_name}') - {len(arch_xml)} bytes")
         else:
             cur.execute("""
                 INSERT INTO ir_ui_view (name, key, type, mode, priority, active, arch_updated, arch_db, arch_fs, create_uid, write_uid, create_date, write_date)
@@ -180,14 +179,7 @@ def sync_database(host, port, user, password, dbname):
 
             <div id="o_main_nav" class="o_main_nav inno-header-glass border-bottom border-dark">
                 <!-- Brand -->
-                <a href="/" class="navbar-brand d-inline-flex align-items-center gap-2 text-decoration-none py-1 me-4 text-nowrap" style="max-width: none !important; width: auto !important; white-space: nowrap !important;">
-                    <span class="fs-3 fw-bold inno-serif text-white tracking-tight" style="white-space: nowrap !important;">
-                        Inno<span class="text-warning inno-amber-text">Kafe</span>
-                    </span>
-                    <span class="d-none d-md-inline-block border-start border-secondary ps-2 ms-1 text-uppercase text-muted" style="font-size: 0.68rem; letter-spacing: 0.12em; line-height: 1.1; white-space: nowrap !important;">
-                        Specialty<br/>Roastery
-                    </span>
-                </a>
+                <t t-call="website.placeholder_header_brand" _link_class.f="me-4"/>
                 <!-- Navbar -->
                 <t t-call="website.navbar_nav" _nav_class.f="me-auto">
                     <!-- Menu -->
