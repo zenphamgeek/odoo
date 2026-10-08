@@ -22,29 +22,39 @@ if not pods:
     exit(1)
 
 # Package targeted files (controllers, views, scss, js, icons, images)
-print("\n=== 1. PACKAGING targeted insilos_website ARCHIVE ===")
-tar_path = "/tmp/insilos_website_sync.tar.gz"
+print("\n=== 1. PACKAGING targeted insilos_website & insilos_theme_genesis ARCHIVES ===")
+tar_path_website = "/tmp/insilos_website_sync.tar.gz"
 run_cmd(
-    f"tar -czf {tar_path} -C enterprise/insilos_website "
-    f"__manifest__.py controllers views static/src/scss static/src/js static/src/icons static/src/img/innoria static/src/img/assets_library static/src/img/logos",
+    f"tar --exclude='static/src/video/gold_masters' -czf {tar_path_website} -C enterprise/insilos_website "
+    f"__manifest__.py controllers views static",
     check=True
 )
-tar_size = os.path.getsize(tar_path)
-print(f"[✓] Created {tar_path} ({tar_size} bytes)")
+tar_size_web = os.path.getsize(tar_path_website)
+print(f"[✓] Created {tar_path_website} ({tar_size_web} bytes)")
 
-print("\n=== 2. DEPLOYING ARCHIVE TO ALL PODS IN PARALLEL ===")
+tar_path_theme = "/tmp/insilos_theme_genesis_sync.tar.gz"
+run_cmd(
+    f"tar -czf {tar_path_theme} -C enterprise/insilos_theme_genesis "
+    f"__manifest__.py views static",
+    check=True
+)
+tar_size_theme = os.path.getsize(tar_path_theme)
+print(f"[✓] Created {tar_path_theme} ({tar_size_theme} bytes)")
+
+print("\n=== 2. DEPLOYING ARCHIVES TO ALL PODS IN PARALLEL ===")
 deploy_procs = []
 for pod in pods:
     cmd = (
-        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} {tar_path} {pod}:/tmp/insilos_website_sync.tar.gz && "
-        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_innoria_views_db.py {pod}:/app/insilos/tools/sync_innoria_views_db.py && "
-        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_logos_to_assets_library.py {pod}:/app/insilos/tools/sync_logos_to_assets_library.py && "
+        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} {tar_path_website} {pod}:/tmp/insilos_website_sync.tar.gz && "
+        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} {tar_path_theme} {pod}:/tmp/insilos_theme_genesis_sync.tar.gz && "
+        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_innoria_views_db.py {pod}:/tmp/sync_innoria_views_db.py && "
+        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_logos_to_assets_library.py {pod}:/tmp/sync_logos_to_assets_library.py && "
         f"kubectl exec -n {NAMESPACE} {pod} -c {CONTAINER} -- sh -c '"
-        f"mkdir -p /app/insilos/apps/insilos_website /app/insilos/enterprise/insilos_website && "
-        f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
+        f"mkdir -p /app/insilos/enterprise/insilos_website /app/insilos/enterprise/insilos_theme_genesis && "
         f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/enterprise/insilos_website/ && "
-        f"chown -R insilos:insilos /app/insilos/apps/insilos_website /app/insilos/enterprise/insilos_website /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py && "
-        f"rm -f /tmp/insilos_website_sync.tar.gz'"
+        f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/enterprise/insilos_theme_genesis/ && "
+        f"chown -R insilos:insilos /app/insilos/enterprise/insilos_website /app/insilos/enterprise/insilos_theme_genesis /tmp/sync_innoria_views_db.py /tmp/sync_logos_to_assets_library.py && "
+        f"rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz'"
     )
     p = subprocess.Popen(cmd, shell=True)
     deploy_procs.append((pod, p))
@@ -59,7 +69,7 @@ for pod, p in deploy_procs:
 print("\n=== 3. RUNNING DB SYNC ON LEAD POD ===")
 res = subprocess.run([
     "kubectl", "exec", "-n", "production", pods[0], "-c", "insilos", "--",
-    "python3", "/app/insilos/tools/sync_innoria_views_db.py", "prod_pod"
+    "python3", "/tmp/sync_innoria_views_db.py", "prod_pod"
 ], capture_output=True, text=True)
 print(res.stdout)
 if res.stderr:
@@ -68,7 +78,7 @@ if res.stderr:
 print("\n=== 3B. REGISTERING LOGOS IN ASSETS LIBRARY (IR.ATTACHMENT) ON LEAD POD ===")
 res_assets = subprocess.run([
     "kubectl", "exec", "-n", "production", pods[0], "-c", "insilos", "--",
-    "python3", "/app/insilos/tools/sync_logos_to_assets_library.py", "prod_pod"
+    "python3", "/tmp/sync_logos_to_assets_library.py", "prod_pod"
 ], capture_output=True, text=True)
 print(res_assets.stdout)
 if res_assets.stderr:

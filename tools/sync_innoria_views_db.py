@@ -42,9 +42,25 @@ def sync_database(host, port, user, password, dbname):
     conn.autocommit = False
     cur = conn.cursor()
 
-    xml_homepage = "enterprise/insilos_website/views/innoria_homepage.xml"
-    xml_snippets = "enterprise/insilos_website/views/snippets_3d.xml"
-    xml_pages = "enterprise/insilos_website/views/innoria_pages.xml"
+    candidate_dirs = [
+        "/app/insilos/enterprise/insilos_website",
+        "/app/insilos/apps/insilos_website",
+        os.path.abspath("enterprise/insilos_website"),
+        os.path.abspath("/home/zen/O20/enterprise/insilos_website"),
+    ]
+    module_dir = None
+    for cand in candidate_dirs:
+        if os.path.exists(os.path.join(cand, "views", "innoria_homepage.xml")):
+            module_dir = cand
+            break
+
+    if not module_dir:
+        raise FileNotFoundError(f"Could not find insilos_website module directory in candidates: {candidate_dirs}")
+
+    print(f"[✓] Using module dir: {module_dir}")
+    xml_homepage = os.path.join(module_dir, "views/innoria_homepage.xml")
+    xml_snippets = os.path.join(module_dir, "views/snippets_3d.xml")
+    xml_pages = os.path.join(module_dir, "views/innoria_pages.xml")
 
     targets = [
         ("innoria_navbar", "insilos_website.innoria_navbar", xml_homepage),
