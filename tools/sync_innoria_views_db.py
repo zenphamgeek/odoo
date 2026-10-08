@@ -138,10 +138,11 @@ def sync_database(host, port, user, password, dbname):
     if activated_views > 0:
         print(f"[✓] Activated {activated_views} previously inactive innoria views")
 
-    # Invalidate cached asset bundles
-    cur.execute("DELETE FROM ir_attachment WHERE name LIKE 'web.assets_%'")
-    deleted_assets = cur.rowcount
-    print(f"[✓] Deleted {deleted_assets} cached web.assets bundles")
+    # Zero-Downtime Asset Lifecycle:
+    # We DO NOT execute destructive 'DELETE FROM ir_attachment WHERE name LIKE web.assets_%'
+    # Destructive deletes cause client-side 404s, unstyled flash, and concurrent compilation stampedes.
+    # Instead, assets are pre-warmed atomically via tools/safe_asset_warmup.py.
+    print("[✓] Preserving active asset bundles (atomic rotation handled by safe_asset_warmup.py)")
 
     conn.commit()
     conn.close()

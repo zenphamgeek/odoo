@@ -49,11 +49,14 @@ for pod in pods:
         f"kubectl cp -n {NAMESPACE} -c {CONTAINER} {tar_path_theme} {pod}:/tmp/insilos_theme_genesis_sync.tar.gz && "
         f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_innoria_views_db.py {pod}:/tmp/sync_innoria_views_db.py && "
         f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_logos_to_assets_library.py {pod}:/tmp/sync_logos_to_assets_library.py && "
+        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/safe_asset_warmup.py {pod}:/tmp/safe_asset_warmup.py && "
         f"kubectl exec -n {NAMESPACE} {pod} -c {CONTAINER} -- sh -c '"
-        f"mkdir -p /app/insilos/enterprise/insilos_website /app/insilos/enterprise/insilos_theme_genesis && "
+        f"mkdir -p /app/insilos/enterprise/insilos_website /app/insilos/enterprise/insilos_theme_genesis /app/insilos/apps/insilos_website /app/insilos/apps/insilos_theme_genesis && "
         f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/enterprise/insilos_website/ && "
+        f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
         f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/enterprise/insilos_theme_genesis/ && "
-        f"chown -R insilos:insilos /app/insilos/enterprise/insilos_website /app/insilos/enterprise/insilos_theme_genesis /tmp/sync_innoria_views_db.py /tmp/sync_logos_to_assets_library.py && "
+        f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/apps/insilos_theme_genesis/ && "
+        f"chown -R insilos:insilos /app/insilos/enterprise /app/insilos/apps/insilos_website /app/insilos/apps/insilos_theme_genesis /tmp/sync_innoria_views_db.py /tmp/sync_logos_to_assets_library.py /tmp/safe_asset_warmup.py && "
         f"rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz'"
     )
     p = subprocess.Popen(cmd, shell=True)
@@ -83,6 +86,15 @@ res_assets = subprocess.run([
 print(res_assets.stdout)
 if res_assets.stderr:
     print("Stderr:", res_assets.stderr)
+
+print("\n=== 3C. ZERO-DOWNTIME SCSS ASSET PRE-WARMING ON LEAD POD ===")
+res_warmup = subprocess.run([
+    "kubectl", "exec", "-n", "production", pods[0], "-c", "insilos", "--",
+    "python3", "/tmp/safe_asset_warmup.py", "innoria_prod"
+], capture_output=True, text=True)
+print(res_warmup.stdout)
+if res_warmup.stderr:
+    print("Stderr:", res_warmup.stderr)
 
 print("\n=== 4. RESTARTING CHILD WORKERS ON ALL PODS IN PARALLEL ===")
 worker_kill_script = """
