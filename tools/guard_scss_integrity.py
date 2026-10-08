@@ -18,6 +18,7 @@ import hashlib
 import subprocess
 import urllib.request
 import re
+import time
 
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -188,31 +189,37 @@ def tier4_live_http_smoke_test(domain="https://innoria.insilos.com"):
 
     for r in routes:
         url = domain + r
-        try:
-            req = urllib.request.Request(
-                url,
-                headers={
-                    'User-Agent': 'Insilos-AntiRegression-Guardian/2.0',
-                    'Accept': 'text/html,application/xhtml+xml'
-                }
-            )
-            with urllib.request.urlopen(req, timeout=15) as resp:
-                code = resp.getcode()
-                body = resp.read().decode('utf-8', errors='ignore')
-                
-                # Check for genuine Odoo style or compilation errors in body
-                if any(err_tok in body for err_tok in ["Could not compile stylesheet", "Style error:"]):
-                    print(f"  [✗] {r:<38}: Contains SCSS compile error in HTML!", flush=True)
-                    failed.append((r, f"HTTP {code} but contains SCSS compile error in HTML!"))
-                elif code == 200:
-                    print(f"  [✓] {r:<38}: HTTP 200 OK ({len(body)} bytes)", flush=True)
-                    passed += 1
-                else:
-                    print(f"  [!] {r:<38}: Unexpected HTTP {code}", flush=True)
-                    failed.append((r, f"Unexpected HTTP status {code}"))
-        except Exception as e:
-            print(f"  [✗] {r:<38}: {e}", flush=True)
-            failed.append((r, str(e)))
+        for attempt in range(2):
+            try:
+                req = urllib.request.Request(
+                    url,
+                    headers={
+                        'User-Agent': 'Insilos-AntiRegression-Guardian/2.0',
+                        'Accept': 'text/html,application/xhtml+xml'
+                    }
+                )
+                with urllib.request.urlopen(req, timeout=30) as resp:
+                    code = resp.getcode()
+                    body = resp.read().decode('utf-8', errors='ignore')
+                    
+                    # Check for genuine Odoo style or compilation errors in body
+                    if any(err_tok in body for err_tok in ["Could not compile stylesheet", "Style error:"]):
+                        print(f"  [✗] {r:<38}: Contains SCSS compile error in HTML!", flush=True)
+                        failed.append((r, f"HTTP {code} but contains SCSS compile error in HTML!"))
+                    elif code == 200:
+                        print(f"  [✓] {r:<38}: HTTP 200 OK ({len(body)} bytes)", flush=True)
+                        passed += 1
+                    else:
+                        print(f"  [!] {r:<38}: Unexpected HTTP {code}", flush=True)
+                        failed.append((r, f"Unexpected HTTP status {code}"))
+                    break
+            except Exception as e:
+                if attempt == 0:
+                    time.sleep(1.5)
+                    continue
+                print(f"  [✗] {r:<38}: {e}", flush=True)
+                failed.append((r, str(e)))
+                break
 
     if failed:
         for r, err in failed:
