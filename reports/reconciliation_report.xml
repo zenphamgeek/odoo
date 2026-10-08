@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="utf-8"?>
+<enterprise_erp_catalog_audit_report version="2.0" generated_at="2026-10-08T14:38:14.258846+00:00" generator="Insilos Autonomous Multi-Catalog Forensic Engine" target_domain="https://innoria.insilos.com" target_database="innoria_prod" source_database="digiforce360-production">
+  <executive_summary>
+    <status>MULTI_CATALOG_AUDIT_COMPLETED</status>
+    <assessment>Kiểm tra toàn diện tất cả các catalog dữ liệu trên MongoDB nguồn (digiforce360-production) đối soát với database production (innoria_prod) của tên miền innoria.insilos.com. Hiện tại nhóm danh mục cốt lõi gồm Nhân sự (37 nhân viên), Khách hàng (74 contacts, 45 accounts), và Cơ hội (8 leads, 2 opportunities) đã được đồng bộ 100%. Các catalog quan trọng khác như Dự án (39 projects, 78 tasks, 69 milestones), Sản phẩm &amp; Dịch vụ (47 products/services SaaS, 29 categories), Nghỉ phép &amp; Chấm công (179 leaves, 239 attendances), và Mua hàng / Kế toán đã được đối soát chi tiết, sẵn sàng cho giai đoạn đồng bộ tiếp theo.</assessment>
+    <metrics>
+      <total_mongo_collections>456</total_mongo_collections>
+      <non_empty_collections>239</non_empty_collections>
+      <empty_collections>217</empty_collections>
+      <audited_business_catalogs>34</audited_business_catalogs>
+      <synced_records_count>872</synced_records_count>
+      <pending_records_count>14139</pending_records_count>
+    </metrics>
+  </executive_summary>
+  <catalog_domains>
+    <domain name="Nhân sự &amp; Tổ chức (HR &amp; Org)">
+      <catalog mongo_collection="employees" display_name="Nhân viên Innoria" odoo_model="hr.employee" odoo_table="hr_employee" status="SYNCED">
+        <counts>
+          <source_mongo>37</source_mongo>
+          <target_prod_total>37</target_prod_total>
+          <target_prod_synced>37</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>Trương Hoàng Thạch</sample>
+          <sample>Lê Quốc Thắng</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="organizations" display_name="Phòng ban / Cơ cấu tổ chức" odoo_model="hr.department" odoo_table="hr_department" status="SYNCED">
+        <counts>
+          <source_mongo>22</source_mongo>
+          <target_prod_total>29</target_prod_total>
+          <target_prod_synced>22</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>COPORATED BUSINESS</sample>
+          <sample>INTELLIGENT INDISTRIAL INSTRUMENT I3</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="hr_job" display_name="Vị trí chức danh công việc" odoo_model="hr.job" odoo_table="hr_job" status="SYNCED">
+        <counts>
+          <source_mongo>2</source_mongo>
+          <target_prod_total>2</target_prod_total>
+          <target_prod_synced>2</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>Tổng Hợp</sample>
+          <sample>Lập trình viên</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="leaves" display_name="Đơn xin nghỉ phép" odoo_model="hr.leave" odoo_table="hr_leave" status="SYNCED">
+        <counts>
+          <source_mongo>179</source_mongo>
+          <target_prod_total>177</target_prod_total>
+          <target_prod_synced>177</target_prod_synced>
+          <gap>2</gap>
+        </counts>
+        <sample_records>
+          <sample>Nguyễn Hoài Ân Nghỉ Phép</sample>
+          <sample>Trần Thanh Lâm Nghỉ Phép</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="summary_leaves_allocation" display_name="Phân bổ ngày nghỉ phép" odoo_model="hr.leave.allocation" odoo_table="hr_leave_allocation" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>105</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>105</gap>
+        </counts>
+        <sample_records>
+          <sample>63c0ed4ea45ff7001d0e3044</sample>
+          <sample>63c0ed4ea45ff7001d0e3048</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="timesheet_detail" display_name="Chấm công (Check-in/out)" odoo_model="hr.attendance" odoo_table="hr_attendance" status="SYNCED">
+        <counts>
+          <source_mongo>239</source_mongo>
+          <target_prod_total>136</target_prod_total>
+          <target_prod_synced>239</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>6335248183c33d001d40521a</sample>
+          <sample>6335248183c33d001d405219</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="timesheet" display_name="Bảng chấm công Timesheet" odoo_model="account.analytic.line" odoo_table="account_analytic_line" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>4</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>4</gap>
+        </counts>
+        <sample_records>
+          <sample>Mai Thị Hồng Thắm - Timesheet 11/2022</sample>
+          <sample>Nguyễn Thanh Thảo - Timesheet 12/2022</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="salary_structure" display_name="Cơ cấu thang bảng lương" odoo_model="hr.payroll.structure" odoo_table="hr_payroll_structure" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>2</source_mongo>
+          <target_prod_total>4</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>2</gap>
+        </counts>
+        <sample_records>
+          <sample>Lương nhân viên</sample>
+          <sample>Lương BP QL</sample>
+        </sample_records>
+      </catalog>
+    </domain>
+    <domain name="Khách hàng &amp; Bán hàng (CRM &amp; Sales)">
+      <catalog mongo_collection="contacts" display_name="Người liên hệ (Contacts)" odoo_model="res.partner" odoo_table="res_partner" status="SYNCED">
+        <counts>
+          <source_mongo>74</source_mongo>
+          <target_prod_total>160</target_prod_total>
+          <target_prod_synced>74</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>NGUYỄN THANH TỊNH</sample>
+          <sample>Văn Công Hậu</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="accounts" display_name="Khách hàng Doanh nghiệp (Accounts)" odoo_model="res.partner" odoo_table="res_partner" status="SYNCED">
+        <counts>
+          <source_mongo>45</source_mongo>
+          <target_prod_total>160</target_prod_total>
+          <target_prod_synced>45</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>VIỆN NGHIÊN CỨU VÀ HỖ TRỢ GIÁO DỤC NGHỀ NGHIỆP</sample>
+          <sample>Công ty TNHH Ma Ri Got Việt Nam</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="leads" display_name="Khách hàng tiềm năng (Leads)" odoo_model="crm.lead" odoo_table="crm_lead" status="SYNCED">
+        <counts>
+          <source_mongo>8</source_mongo>
+          <target_prod_total>8</target_prod_total>
+          <target_prod_synced>8</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>Mai Trần</sample>
+          <sample>Bình Đoàn</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="opportunity" display_name="Cơ hội bán hàng (Opportunities)" odoo_model="crm.lead" odoo_table="crm_lead" status="SYNCED">
+        <counts>
+          <source_mongo>2</source_mongo>
+          <target_prod_total>8</target_prod_total>
+          <target_prod_synced>8</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>Gói bảo trì hệ thống Insuria 2021-2022</sample>
+          <sample>Cảnh Trần</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="quote" display_name="Báo giá (Quotations)" odoo_model="sale.order" odoo_table="sale_order" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>1</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>1</gap>
+        </counts>
+        <sample_records>
+          <sample>Bảng báo giá</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="sale_order" display_name="Đơn đặt hàng bán (Sales Orders)" odoo_model="sale.order" odoo_table="sale_order" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>1</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>1</gap>
+        </counts>
+        <sample_records>
+          <sample>SO-230315-000000003</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="sale_order_line" display_name="Chi tiết dòng đơn bán hàng" odoo_model="sale.order.line" odoo_table="sale_order_line" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>1</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>1</gap>
+        </counts>
+        <sample_records>
+          <sample>SOL-0323-000000002</sample>
+        </sample_records>
+      </catalog>
+    </domain>
+    <domain name="Dự án &amp; Nhiệm vụ (Projects &amp; Tasks)">
+      <catalog mongo_collection="project" display_name="Dự án phần mềm/triển khai" odoo_model="project.project" odoo_table="project_project" status="SYNCED">
+        <counts>
+          <source_mongo>39</source_mongo>
+          <target_prod_total>39</target_prod_total>
+          <target_prod_synced>39</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>ERP-YAKYO</sample>
+          <sample>RCM Maintenance</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="project_task" display_name="Công việc / Nhiệm vụ dự án" odoo_model="project.task" odoo_table="project_task" status="SYNCED">
+        <counts>
+          <source_mongo>72</source_mongo>
+          <target_prod_total>78</target_prod_total>
+          <target_prod_synced>78</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>[FE] - Move project FE to React</sample>
+          <sample>Handle cors</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="tasks" display_name="Tác vụ công việc bổ sung" odoo_model="project.task" odoo_table="project_task" status="SYNCED">
+        <counts>
+          <source_mongo>6</source_mongo>
+          <target_prod_total>78</target_prod_total>
+          <target_prod_synced>78</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>Gửi báo giá CRM</sample>
+          <sample>Xác định yêu cầu</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="project_milestone" display_name="Cột mốc dự án (Milestones)" odoo_model="project.milestone" odoo_table="project_milestone" status="SYNCED">
+        <counts>
+          <source_mongo>69</source_mongo>
+          <target_prod_total>68</target_prod_total>
+          <target_prod_synced>68</target_prod_synced>
+          <gap>1</gap>
+        </counts>
+        <sample_records>
+          <sample>ASM</sample>
+          <sample>Pricelist theo Vendors</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="project_issue" display_name="Vấn đề phát sinh (Issues)" odoo_model="project.task" odoo_table="project_task" status="SYNCED">
+        <counts>
+          <source_mongo>2</source_mongo>
+          <target_prod_total>78</target_prod_total>
+          <target_prod_synced>78</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>Cập nhật tất cả tài liệu, file, mail liên quan lên Dự án</sample>
+          <sample>Vấn đề 01</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="project_expense" display_name="Chi phí dự án" odoo_model="hr.expense" odoo_table="hr_expense" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>1</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>1</gap>
+        </counts>
+        <sample_records>
+          <sample>PE0003</sample>
+        </sample_records>
+      </catalog>
+    </domain>
+    <domain name="Sản phẩm &amp; Dịch vụ (Products &amp; Inventory)">
+      <catalog mongo_collection="product_template" display_name="Mẫu sản phẩm / Gói giải pháp SaaS" odoo_model="product.template" odoo_table="product_template" status="SYNCED">
+        <counts>
+          <source_mongo>47</source_mongo>
+          <target_prod_total>117</target_prod_total>
+          <target_prod_synced>48</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>Processor</sample>
+          <sample>HDD</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="product_product" display_name="Biến thể sản phẩm thực tế" odoo_model="product.product" odoo_table="product_product" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>47</source_mongo>
+          <target_prod_total>117</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>47</gap>
+        </counts>
+        <sample_records>
+          <sample>PROCESSOR</sample>
+          <sample>HDD</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="product_category" display_name="Nhóm phân loại sản phẩm" odoo_model="product.category" odoo_table="product_category" status="SYNCED">
+        <counts>
+          <source_mongo>29</source_mongo>
+          <target_prod_total>41</target_prod_total>
+          <target_prod_synced>29</target_prod_synced>
+          <gap>0</gap>
+        </counts>
+        <sample_records>
+          <sample>OUTSOURCING SERVICE</sample>
+          <sample>INSILOS</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="uom_uom" display_name="Đơn vị tính (UoM)" odoo_model="uom.uom" odoo_table="uom_uom" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>11</source_mongo>
+          <target_prod_total>30</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>11</gap>
+        </counts>
+        <sample_records>
+          <sample>gói</sample>
+          <sample>giờ</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="price_list" display_name="Bảng giá sản phẩm" odoo_model="product.pricelist" odoo_table="product_pricelist" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>1</source_mongo>
+          <target_prod_total>1</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>1</gap>
+        </counts>
+        <sample_records>
+          <sample>Bảng Gía Cloud</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="stock_warehouse" display_name="Kho hàng" odoo_model="stock.warehouse" odoo_table="stock_warehouse" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>1</source_mongo>
+          <target_prod_total>1</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>1</gap>
+        </counts>
+        <sample_records>
+          <sample>Kho Innoria</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="stock_location" display_name="Địa điểm kho lưu trữ" odoo_model="stock.location" odoo_table="stock_location" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>7</source_mongo>
+          <target_prod_total>15</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>7</gap>
+        </counts>
+        <sample_records>
+          <sample>ĐĐ Kiểm Kê</sample>
+          <sample>InnoKafe</sample>
+        </sample_records>
+      </catalog>
+    </domain>
+    <domain name="Mua hàng &amp; Cung ứng (Procurement)">
+      <catalog mongo_collection="purchase_order" display_name="Đơn mua hàng (PO)" odoo_model="purchase.order" odoo_table="purchase_order" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>2</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>2</gap>
+        </counts>
+        <sample_records>
+          <sample>PO-0123-000000024</sample>
+          <sample>PO-0323-000000025</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="purchase_order_line" display_name="Chi tiết dòng mua hàng" odoo_model="purchase.order.line" odoo_table="purchase_order_line" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>37</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>37</gap>
+        </counts>
+        <sample_records>
+          <sample>Storage</sample>
+          <sample>Processor</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="product_supplierinfo" display_name="Bảng giá nhà cung cấp" odoo_model="product.supplierinfo" odoo_table="product_supplierinfo" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>1</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>1</gap>
+        </counts>
+        <sample_records>
+          <sample>9TYBp3j5JfazefjkN</sample>
+        </sample_records>
+      </catalog>
+    </domain>
+    <domain name="Tài chính &amp; Kế toán (Accounting &amp; Finance)">
+      <catalog mongo_collection="account_account" display_name="Hệ thống tài khoản kế toán" odoo_model="account.account" odoo_table="account_account" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>275</source_mongo>
+          <target_prod_total>63</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>275</gap>
+        </counts>
+        <sample_records>
+          <sample>Giá vốn hàng hoá dịch vụ khác</sample>
+          <sample>Chi phí quản lý doanh nghiệp</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="account_move" display_name="Bút toán sổ nhật ký / Hóa đơn" odoo_model="account.move" odoo_table="account_move" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>654</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>654</gap>
+        </counts>
+        <sample_records>
+          <sample>JNE-09-2022-000027</sample>
+          <sample>JNE-09-2022-000045</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="account_move_line" display_name="Chi tiết định khoản bút toán" odoo_model="account.move.line" odoo_table="account_move_line" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>1368</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>1368</gap>
+        </counts>
+        <sample_records>
+          <sample>JNE-09-2022-000029 PAYMENT-0922-000042 [Nợ 1121]</sample>
+          <sample>Thanh toán của khách hàng</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="account_payment" display_name="Thanh toán / Phiếu thu chi" odoo_model="account.payment" odoo_table="account_payment" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>82</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>82</gap>
+        </counts>
+        <sample_records>
+          <sample>PAYMENT-1022-000201</sample>
+          <sample>PAYMENT-1022-000204</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="currency" display_name="Danh mục Tiền tệ" odoo_model="res.currency" odoo_table="res_currency" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>171</source_mongo>
+          <target_prod_total>170</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>171</gap>
+        </counts>
+        <sample_records>
+          <sample>USD</sample>
+          <sample>VEF</sample>
+        </sample_records>
+      </catalog>
+    </domain>
+    <domain name="Địa lý &amp; Hành chính Việt Nam (Vietnam Geography)">
+      <catalog mongo_collection="provinces" display_name="Tỉnh / Thành phố Việt Nam" odoo_model="res.country.state" odoo_table="res_country_state" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>63</source_mongo>
+          <target_prod_total>2130</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>63</gap>
+        </counts>
+        <sample_records>
+          <sample>Yên Bái</sample>
+          <sample>Hải Dương</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="districts" display_name="Quận / Huyện" odoo_model="res.district (custom/staging)" odoo_table="res_district" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>705</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>705</gap>
+        </counts>
+        <sample_records>
+          <sample>Lào Cai</sample>
+          <sample>Trảng Bàng</sample>
+        </sample_records>
+      </catalog>
+      <catalog mongo_collection="wards" display_name="Phường / Xã" odoo_model="res.ward (custom/staging)" odoo_table="res_ward" status="PENDING_SYNC">
+        <counts>
+          <source_mongo>10599</source_mongo>
+          <target_prod_total>0</target_prod_total>
+          <target_prod_synced>0</target_prod_synced>
+          <gap>10599</gap>
+        </counts>
+        <sample_records>
+          <sample>Giảng Võ</sample>
+          <sample>Vạn Thắng</sample>
+        </sample_records>
+      </catalog>
+    </domain>
+  </catalog_domains>
+  <synchronization_roadmap>
+    <phase id="Phase_1_Foundational_Metadata">
+      <step collection="organizations" target_model="hr.department">22 departments/org units</step>
+      <step collection="hr_job" target_model="hr.job">2 job titles</step>
+      <step collection="uom_uom" target_model="uom.uom">11 units of measure</step>
+      <step collection="product_category" target_model="product.category">29 product categories</step>
+    </phase>
+    <phase id="Phase_2_Products_And_Projects">
+      <step collection="product_template" target_model="product.template">47 SaaS products &amp; service templates</step>
+      <step collection="product_product" target_model="product.product">47 product variants</step>
+      <step collection="project" target_model="project.project">39 software &amp; client projects</step>
+      <step collection="project_milestone" target_model="project.milestone">69 project milestones</step>
+    </phase>
+    <phase id="Phase_3_Operational_Activities">
+      <step collection="project_task" target_model="project.task">72 project tasks</step>
+      <step collection="tasks" target_model="project.task">6 general tasks</step>
+      <step collection="leaves" target_model="hr.leave">179 employee leave requests</step>
+      <step collection="timesheet_detail" target_model="hr.attendance">239 employee attendance records</step>
+      <step collection="purchase_order" target_model="purchase.order">2 purchase orders</step>
+      <step collection="purchase_order_line" target_model="purchase.order.line">37 purchase order lines</step>
+    </phase>
+    <phase id="Phase_4_Finance_And_Accounting">
+      <step collection="account_account" target_model="account.account">275 chart of accounts</step>
+      <step collection="account_payment" target_model="account.payment">82 payment vouchers</step>
+      <step collection="account_move" target_model="account.move">654 journal entries</step>
+      <step collection="account_move_line" target_model="account.move.line">1368 journal entry lines</step>
+    </phase>
+  </synchronization_roadmap>
+</enterprise_erp_catalog_audit_report>

@@ -209,8 +209,8 @@ def provision_tenant(subdomain, company_name=None, dbname=None, template_db=None
     USING system_attachment b
     WHERE a.id = b.id AND a.ctid > b.ctid;
 
-    -- Purge dynamic compiled assets
-    DELETE FROM system_attachment WHERE url LIKE '%assets%' OR name LIKE '%assets%';
+    -- Asset bundles are safely handled via tools/safe_asset_warmup.py
+    -- DELETE FROM system_attachment WHERE url LIKE '%assets%' OR name LIKE '%assets%';
 
     -- Ensure primary key exists on system_attachment
     DO $$

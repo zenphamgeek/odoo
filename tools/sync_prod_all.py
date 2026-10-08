@@ -173,9 +173,10 @@ with registry.cursor() as cr:
             bp.write({'image_1920': bot_b64})
             print(f'Updated bot partner {bp.id} ({bp.name}) avatar')
 
-    # 3. Clear web assets so bundle regenerates
-    cr.execute("DELETE FROM ir_attachment WHERE name LIKE '%assets_%'")
-    print(f'Cleared {cr.rowcount} web asset cache records.')
+    # 3. Safe Zero-Downtime Asset Preservation:
+    # Strictly prohibit destructive 'DELETE FROM ir_attachment WHERE name LIKE %assets_%'
+    # Asset bundle rotation is safely pre-warmed via tools/safe_asset_warmup.py without raw deletion.
+    print('Preserving active web assets (safe warmup handled via tools/safe_asset_warmup.py).')
     
     cr.commit()
     print('DB Commit successful!')

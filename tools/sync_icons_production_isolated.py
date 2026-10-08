@@ -498,7 +498,7 @@ def apply_isolated_icon_sync(target_type, local_payload, pod=None, namespace=Non
       - Only writes to `ir_attachment` where `res_model = 'ir.ui.menu'` and `res_field = 'web_icon_data'`.
       - Does NOT update or modify `res_users`, passwords, account_*, crm_*, sale_*, or any business tables.
       - Sets `db_datas` directly in SQL using decode(..., 'base64') to safeguard against missing filestore files.
-      - Clears compiled web asset caches (`DELETE FROM ir_attachment WHERE url LIKE '%/web.assets_%'`).
+      - Preserves compiled web asset caches (atomic rotation handled by tools/safe_asset_warmup.py).
     """
     log("Applying isolated icon synchronization to target database...", 'HEADER')
 
@@ -580,9 +580,10 @@ try:
             ''', [att_name, m_id, mimetype, expected_sha1, b64_data])
             stats['icons_inserted'] += 1
 
-    # Invalidate web client asset bundle caches
-    cur.execute("DELETE FROM ir_attachment WHERE url LIKE '%/web.assets_%'")
-    stats['cache_cleared'] = cur.rowcount
+    # Zero-Downtime Asset Lifecycle:
+    # Strictly prohibit destructive 'DELETE FROM ir_attachment WHERE url LIKE %/web.assets_%'
+    # Asset bundle pre-warming is handled safely via tools/safe_asset_warmup.py without raw deletion.
+    stats['cache_cleared'] = 0
 
     conn.commit()
     print(json.dumps(stats))
@@ -657,8 +658,10 @@ finally:
                     """, [att_name, m_id, mimetype, expected_sha1, b64_data])
                     stats['icons_inserted'] += 1
 
-            cur.execute("DELETE FROM ir_attachment WHERE url LIKE '%/web.assets_%'")
-            stats['cache_cleared'] = cur.rowcount
+            # Zero-Downtime Asset Lifecycle:
+            # Strictly prohibit destructive 'DELETE FROM ir_attachment WHERE url LIKE %/web.assets_%'
+            # Asset bundle pre-warming is handled safely via tools/safe_asset_warmup.py without raw deletion.
+            stats['cache_cleared'] = 0
             conn.commit()
         except Exception as e:
             conn.rollback()

@@ -581,9 +581,10 @@ try:
             ''', [name, mimetype, att['type'], url, att['public'], res_model, datas if datas else ''])
             stats['attachments_synced'] += 1
 
-    # --- 6. CLEAR COMPILED ASSET BUNDLES ---
-    cur.execute(\"DELETE FROM ir_attachment WHERE url LIKE '%/web.assets_%'\")
-    stats['cache_cleared'] = cur.rowcount
+    # --- 6. SAFE ASSET PRESERVATION ---
+    # Strictly prohibit destructive 'DELETE FROM ir_attachment WHERE url LIKE %/web.assets_%'
+    # Asset bundle pre-warming is handled safely via tools/safe_asset_warmup.py without raw deletion.
+    stats['cache_cleared'] = 0
 
     conn.commit()
     print(json.dumps(stats))
