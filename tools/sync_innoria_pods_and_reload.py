@@ -129,16 +129,25 @@ time.sleep(4)
 print("\n=== 5. PROBING ALL INNORIA PODS DIRECTLY ===")
 all_ok = True
 for pod in pods:
-    pod_ip_res = run_cmd(f"kubectl get pod -n {NAMESPACE} {pod} -o jsonpath='{{.status.podIP}}'")
-    pod_ip = pod_ip_res.stdout.strip()
-    probe_cmd = f"curl -s -o /dev/null -w '%{{http_code}}' -H 'Host: innoria.com' http://{pod_ip}:8069/"
-    code_res = run_cmd(probe_cmd)
-    code = code_res.stdout.strip()
+    probe_res = subprocess.run([
+        "kubectl", "exec", "-n", NAMESPACE, pod, "-c", CONTAINER, "--",
+        "curl", "-s", "-o", "/dev/null", "-w", "%{http_code}", "-H", "Host: innoria.com", "http://127.0.0.1:8069/"
+    ], capture_output=True, text=True)
+    code = probe_res.stdout.strip()
     if code in ("200", "303", "301", "302"):
-        print(f"[✓] Pod {pod} ({pod_ip}): HTTP {code} OK")
+        print(f"[✓] Pod {pod}: HTTP {code} OK")
     else:
-        print(f"[✗] Pod {pod} ({pod_ip}): HTTP {code} FAILED")
+        print(f"[✗] Pod {pod}: HTTP {code} FAILED ({probe_res.stderr.strip()})")
         all_ok = False
+
+# Probe public ingress
+pub_res = run_cmd("curl -s -o /dev/null -w '%{http_code}' https://innoria.com/")
+pub_code = pub_res.stdout.strip()
+if pub_code in ("200", "303", "301", "302"):
+    print(f"[✓] Public Ingress https://innoria.com/: HTTP {pub_code} OK")
+else:
+    print(f"[✗] Public Ingress https://innoria.com/: HTTP {pub_code} FAILED")
+    all_ok = False
 
 if all_ok:
     print("\n[SUCCESS] Dedicated Innoria cluster is 100% synchronized and healthy!")
