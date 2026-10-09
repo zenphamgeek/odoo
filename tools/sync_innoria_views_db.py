@@ -61,6 +61,7 @@ def sync_database(host, port, user, password, dbname):
     xml_homepage = os.path.join(module_dir, "views/innoria_homepage.xml")
     xml_snippets = os.path.join(module_dir, "views/snippets_3d.xml")
     xml_pages = os.path.join(module_dir, "views/innoria_pages.xml")
+    xml_cctv = os.path.join(module_dir, "views/snippets_cctv.xml")
 
     targets = [
         ("innoria_navbar", "insilos_website.innoria_navbar", xml_homepage),
@@ -70,6 +71,7 @@ def sync_database(host, port, user, password, dbname):
         ("s_innoria_3d_architecture_deck", "insilos_website.s_innoria_3d_architecture_deck", xml_snippets),
         ("s_innoria_3d_solutions_erp", "insilos_website.s_innoria_3d_solutions_erp", xml_snippets),
         ("s_innoria_3d_erp_shift", "insilos_website.s_innoria_3d_erp_shift", xml_snippets),
+        ("s_insilos_cctv_ai_camera", "insilos_website.s_insilos_cctv_ai_camera", xml_cctv),
         ("insilos_about_page", "insilos_website.insilos_about_page", xml_pages),
         ("insilos_platform_page", "insilos_website.insilos_platform_page", xml_pages),
         ("innoria_digiforce_page", "insilos_website.innoria_digiforce_page", xml_pages),

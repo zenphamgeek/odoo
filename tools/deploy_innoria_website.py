@@ -402,14 +402,11 @@ def apply_database_updates():
     run_psql_command("/tmp/update_logo.sql", as_file=True)
     log("  Updated ir_attachment logo and favicon records.", 'SUCCESS')
 
-    # 8. Purge compiled asset bundles so frontend recompiles immediately
-    log("  Purging compiled web assets on innoria_prod...")
-    sql_purge = """
-    DELETE FROM ir_attachment
-    WHERE name LIKE '%web.assets%' AND (res_model = 'ir.ui.view' OR res_model IS NULL);
-    """
-    out = run_psql_command(sql_purge)
-    log(f"  {out.strip()}", 'SUCCESS')
+    # 8. Zero-Downtime Asset Lifecycle:
+    # Strictly PROHIBIT destructive 'DELETE FROM ir_attachment WHERE name LIKE web.assets_%'
+    # Raw deletion causes client-side 404s, unstyled flash (FOUC), and concurrent worker compile stampedes.
+    # Instead, compiled assets are preserved and safely pre-warmed via tools/safe_asset_warmup.py.
+    log("  Preserving active compiled web assets (safe atomic rotation handled by tools/safe_asset_warmup.py).", 'SUCCESS')
 
 def normalize_file_timestamps(pods):
     log("Normalizing file timestamps across pods to ensure identical bundle hashes...")
