@@ -1,0 +1,139 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: innoria-prod-netpol
+  namespace: production
+  labels:
+    app: innoria-prod
+spec:
+  podSelector:
+    matchLabels:
+      app: innoria-prod
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector: {}
+    - podSelector: {}
+    ports:
+    - port: 8069
+      protocol: TCP
+    - port: 8072
+      protocol: TCP
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+    ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+  - to:
+    - podSelector:
+        matchLabels:
+          app: pgbouncer
+    ports:
+    - port: 6432
+      protocol: TCP
+    - port: 5432
+      protocol: TCP
+  - to:
+    - podSelector:
+        matchLabels:
+          app: trigger-redis
+    ports:
+    - port: 6379
+      protocol: TCP
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+        - 169.254.0.0/16
+    ports:
+    - port: 443
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pgbouncer-insilos
+  namespace: production
+spec:
+  podSelector:
+    matchLabels:
+      app: pgbouncer
+  policyTypes:
+  - Ingress
+  - Egress
+  egress:
+  - ports:
+    - port: 53
+      protocol: UDP
+    - port: 53
+      protocol: TCP
+    to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+  - ports:
+    - port: 5432
+      protocol: TCP
+    to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgres
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: insilos-saas
+    ports:
+    - port: 6432
+      protocol: TCP
+  - from:
+    - podSelector:
+        matchLabels:
+          app: innoria-prod
+    ports:
+    - port: 6432
+      protocol: TCP
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/component: migration
+          app.kubernetes.io/name: verticalrisk
+    ports:
+    - port: 6432
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: pgbouncer-insilos-ingress
+  namespace: production
+spec:
+  podSelector:
+    matchLabels:
+      app: pgbouncer
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: insilos-saas
+    - podSelector:
+        matchLabels:
+          app: innoria-prod
+    ports:
+    - port: 5432
+      protocol: TCP

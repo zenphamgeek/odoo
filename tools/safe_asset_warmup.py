@@ -29,7 +29,7 @@ def warmup_database_assets(dbname="innoria_prod"):
 
     odoo.tools.config.parse_config([
         '--data-dir=/var/lib/insilos/filestore',
-        '--addons-path=/app/insilos/addons,/app/insilos/apps',
+        '--addons-path=/app/insilos/addons,/app/insilos/enterprise,/app/insilos/apps',
         f'--db_host={db_host}',
         f'--db_port={db_port}',
         f'--db_user={db_user}',
@@ -39,6 +39,9 @@ def warmup_database_assets(dbname="innoria_prod"):
     registry = Registry(dbname)
     with registry.cursor() as cr:
         env = api.Environment(cr, SUPERUSER_ID, {})
+        # Clear stale asset bundle attachments so new SCSS changes compile fresh
+        cr.execute("DELETE FROM ir_attachment WHERE url LIKE '/web/assets/%';")
+
         bundles = [
             'web.assets_frontend',
             'web.assets_web',

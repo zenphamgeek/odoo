@@ -1,0 +1,334 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: innoria-prod-app
+  namespace: production
+  labels:
+    app: innoria-prod
+    tier: frontend
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: innoria-prod
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: innoria-prod
+        tier: frontend
+    spec:
+      nodeSelector:
+        kubernetes.io/hostname: sg2-a1-master-02.inno
+      imagePullSecrets:
+      - name: docker-innoriahub
+      serviceAccount: insilos-tenant-job-controller
+      serviceAccountName: insilos-tenant-job-controller
+      terminationGracePeriodSeconds: 30
+      initContainers:
+      - name: wait-for-db
+        image: postgres:15-alpine
+        imagePullPolicy: IfNotPresent
+        command:
+        - sh
+        - -c
+        - until pg_isready -h pgbouncer-service -p 6432 -U insilos; do echo "[wait-for-db] PgBouncer not ready, retrying..."; sleep 3; done; echo "[wait-for-db] DB ready!"
+        env:
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: db-password
+              name: insilos-db-secret
+        - name: INSILOS_SESSION_REDIS_URL
+          value: redis://trigger-redis-svc:6379/1
+        resources: {}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsGroup: 65534
+          runAsNonRoot: true
+          runAsUser: 65534
+      containers:
+      - name: innoria
+        image: docker.io/innoriahub/insilos:v20.0.0-qa
+        imagePullPolicy: Always
+        args:
+        - --data-dir=/var/lib/insilos/filestore
+        - --addons-path=/app/insilos/addons,/app/insilos/apps
+        - --db_host=$(DB_HOST)
+        - --db_port=$(DB_PORT)
+        - --db_user=$(DB_USER)
+        - -d
+        - innoria_prod
+        - --db-filter=^innoria_prod$
+        - --db-filter-map={"innoria.com":"innoria_prod","www.innoria.com":"innoria_prod","innoria.insilos.com":"innoria_prod"}
+        - --http-interface=0.0.0.0
+        - --http-port=8069
+        - --proxy-mode
+        - --workers=3
+        - --max-cron-threads=1
+        - --limit-memory-hard=3758096384
+        - --limit-memory-soft=3221225472
+        - --limit-time-cpu=600
+        - --limit-time-real=1200
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              key: db-host
+              name: insilos-db-secret
+        - name: DB_PORT
+          valueFrom:
+            secretKeyRef:
+              key: db-port
+              name: insilos-db-secret
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              key: db-user
+              name: insilos-db-secret
+        - name: PGPASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: db-password
+              name: insilos-db-secret
+        - name: INSILOS_SESSION_REDIS_URL
+          value: redis://trigger-redis-svc:6379/1
+        ports:
+        - containerPort: 8069
+          name: http
+          protocol: TCP
+        - containerPort: 8072
+          name: websocket
+          protocol: TCP
+        startupProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /web/health
+            port: 8069
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 10
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /web/health
+            port: 8069
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          successThreshold: 2
+          timeoutSeconds: 10
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /web/health
+            port: 8069
+            scheme: HTTP
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        resources:
+          requests:
+            cpu: 250m
+            memory: 1Gi
+          limits:
+            cpu: "2"
+            memory: 4Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          runAsGroup: 1000
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts:
+        - mountPath: /var/lib/insilos/filestore
+          name: filestore
+      - name: market-data-sidecar
+        image: docker.io/innoriahub/insilos-market-data-sidecar@sha256:64b883c98a5a35807dc1413f9744b9114426253d6940e40e7f1f70ad859136b7
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: SIDECAR_PORT
+          value: "8787"
+        - name: SIDECAR_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: sidecar-token
+              name: capital-markets-sidecar-secret
+        - name: SIDECAR_TOKEN_NEXT
+          valueFrom:
+            secretKeyRef:
+              key: sidecar-token-next
+              name: capital-markets-sidecar-secret
+              optional: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 250m
+            memory: 256Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+        volumeMounts:
+        - mountPath: /tmp
+          name: market-data-sidecar-tmp
+      volumes:
+      - name: filestore
+        persistentVolumeClaim:
+          claimName: insilos-filestore
+      - emptyDir: {}
+        name: market-data-sidecar-tmp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: innoria-prod-svc
+  namespace: production
+  labels:
+    app: innoria-prod
+spec:
+  ports:
+  - name: http
+    port: 8069
+    protocol: TCP
+    targetPort: 8069
+  - name: websocket
+    port: 8072
+    protocol: TCP
+    targetPort: 8072
+  selector:
+    app: innoria-prod
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: innoria-prod-ingress
+  namespace: production
+  labels:
+    app: innoria-prod
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.priority: "100"
+    traefik.ingress.kubernetes.io/router.middlewares: production-insilos-cors-assets@kubernetescrd
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection "upgrade";
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: innoria.com
+    http:
+      paths:
+      - path: /websocket
+        pathType: Prefix
+        backend:
+          service:
+            name: innoria-prod-svc
+            port:
+              number: 8072
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: innoria-prod-svc
+            port:
+              number: 8069
+  - host: www.innoria.com
+    http:
+      paths:
+      - path: /websocket
+        pathType: Prefix
+        backend:
+          service:
+            name: innoria-prod-svc
+            port:
+              number: 8072
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: innoria-prod-svc
+            port:
+              number: 8069
+  - host: innoria.insilos.com
+    http:
+      paths:
+      - path: /websocket
+        pathType: Prefix
+        backend:
+          service:
+            name: innoria-prod-svc
+            port:
+              number: 8072
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: innoria-prod-svc
+            port:
+              number: 8069
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: innoria-tunnel-ingress
+  namespace: kube-system
+  labels:
+    app: innoria-prod
+  annotations:
+    kubernetes.io/ingress.class: cloudflare-tunnel
+spec:
+  ingressClassName: cloudflare-tunnel
+  rules:
+  - host: innoria.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: traefik
+            port:
+              number: 80
+  - host: www.innoria.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: traefik
+            port:
+              number: 80
