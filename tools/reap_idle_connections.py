@@ -229,18 +229,31 @@ class ClusterPostgresReaper:
         candidates = self._run_psql_json(candidate_sql) or []
 
         reaped_records = []
-        for row in candidates:
-            pid = row['pid']
-            datname = row.get('datname', 'unknown')
-            idle_sec = row.get('idle_seconds', 0)
+        if not candidates:
+            return reaped_records
 
-            if dry_run:
+        if dry_run:
+            for row in candidates:
+                pid = row['pid']
+                datname = row.get('datname', 'unknown')
+                idle_sec = row.get('idle_seconds', 0)
                 if verbose:
                     log(f"  [DRY-RUN] Would terminate cluster PID {pid} (DB: {datname}, Idle: {idle_sec}s)", 'WARN')
                 reaped_records.append(dict(row))
-            else:
-                term_res = self._run_psql_scalar(f"SELECT pg_terminate_backend({pid});")
-                terminated = (term_res.strip().lower() in ('t', 'true'))
+        else:
+            pids = [row['pid'] for row in candidates]
+            pids_str = ",".join(str(p) for p in pids)
+            batch_sql = f"""
+                SELECT pid, pg_terminate_backend(pid) AS terminated
+                FROM unnest(ARRAY[{pids_str}]) AS pid;
+            """
+            term_results = self._run_psql_json(batch_sql) or []
+            term_map = {r['pid']: r.get('terminated', False) for r in term_results}
+            for row in candidates:
+                pid = row['pid']
+                datname = row.get('datname', 'unknown')
+                idle_sec = row.get('idle_seconds', 0)
+                terminated = term_map.get(pid, False)
                 rec = dict(row)
                 rec['terminated'] = terminated
                 if terminated:
