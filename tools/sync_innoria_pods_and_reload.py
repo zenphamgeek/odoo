@@ -56,6 +56,7 @@ for pod in pods:
         f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
         f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/enterprise/insilos_theme_genesis/ && "
         f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/apps/insilos_theme_genesis/ && "
+        f"chown -R insilos:insilos /app/insilos/enterprise /app/insilos/apps/insilos_website /app/insilos/apps/insilos_theme_genesis /tmp/sync_innoria_views_db.py /tmp/sync_logos_to_assets_library.py /tmp/safe_asset_warmup.py && "
         f"rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz'"
     )
     p = subprocess.Popen(cmd, shell=True)
@@ -95,36 +96,31 @@ print(res_warmup.stdout)
 if res_warmup.stderr:
     print("Stderr:", res_warmup.stderr)
 
-print("\n=== 4. RESTARTING CHILD WORKERS ON ALL INNORIA PODS IN PARALLEL ===")
-worker_kill_script = """
+print("\n=== 4. RE-EXECUTING MASTER SERVER ON ALL INNORIA PODS (SIGHUP) ===")
+master_reload_script = """
 import os, signal
-current_pid = os.getpid()
-for pid in os.listdir('/proc'):
-    if pid.isdigit() and int(pid) > 1 and int(pid) != current_pid:
-        try:
-            with open(f'/proc/{pid}/cmdline', 'rb') as f:
-                cmd = f.read()
-                if b'insilos-bin' in cmd:
-                    print(f'Signaling worker {pid}')
-                    os.kill(int(pid), signal.SIGTERM)
-        except Exception:
-            pass
+try:
+    print('Sending SIGHUP to master process (PID 1) to trigger in-place _reexec()...')
+    os.kill(1, signal.SIGHUP)
+    print('[✓] SIGHUP signal delivered successfully.')
+except Exception as e:
+    print(f'[✗] Failed sending SIGHUP: {e}')
 """
 
 reload_procs = []
 for pod in pods:
-    print(f"[*] Reloading workers on {pod}...")
+    print(f"[*] Reloading master process on {pod}...")
     p = subprocess.Popen([
         "kubectl", "exec", "-n", "production", pod, "-c", CONTAINER, "--",
-        "python3", "-c", worker_kill_script
+        "python3", "-c", master_reload_script
     ])
     reload_procs.append((pod, p))
 
 for pod, p in reload_procs:
     p.wait()
 
-print("\n[*] Waiting 4s for master process to respawn pristine workers...")
-time.sleep(4)
+print("\n[*] Waiting 12s for master process to re-exec and pre-load all modules...")
+time.sleep(12)
 
 print("\n=== 5. PROBING ALL INNORIA PODS DIRECTLY ===")
 all_ok = True

@@ -22,14 +22,24 @@ def warmup_database_assets(dbname="innoria_prod"):
     from odoo.orm.registry import Registry
     from odoo import api, SUPERUSER_ID
 
-    db_host = os.environ.get('DB_HOST', 'pgbouncer-service')
-    db_port = os.environ.get('DB_PORT', '6432')
-    db_user = os.environ.get('DB_USER', 'insilos')
-    db_password = os.environ.get('PGPASSWORD', '')
+    if os.path.exists('/app/insilos'):
+        addons_path = '/app/insilos/addons,/app/insilos/apps'
+        data_dir = '/var/lib/insilos/filestore'
+        db_host = os.environ.get('DB_HOST', 'pgbouncer-service')
+        db_port = os.environ.get('DB_PORT', '6432')
+        db_user = os.environ.get('DB_USER', 'insilos')
+        db_password = os.environ.get('PGPASSWORD', '')
+    else:
+        addons_path = '/home/zen/O20/addons,/home/zen/O20/enterprise'
+        data_dir = '/home/zen/O20/filestore'
+        db_host = '127.0.0.1'
+        db_port = '5434'
+        db_user = 'odoo'
+        db_password = '1NN0R1@2026'
 
     odoo.tools.config.parse_config([
-        '--data-dir=/var/lib/insilos/filestore',
-        '--addons-path=/app/insilos/addons,/app/insilos/enterprise,/app/insilos/apps',
+        f'--data-dir={data_dir}',
+        f'--addons-path={addons_path}',
         f'--db_host={db_host}',
         f'--db_port={db_port}',
         f'--db_user={db_user}',
@@ -41,6 +51,7 @@ def warmup_database_assets(dbname="innoria_prod"):
         env = api.Environment(cr, SUPERUSER_ID, {})
         # Clear stale asset bundle attachments so new SCSS changes compile fresh
         cr.execute("DELETE FROM ir_attachment WHERE url LIKE '/web/assets/%';")
+        print("[✓] Cleared previous /web/assets attachments from database.")
 
         bundles = [
             'web.assets_frontend',
@@ -70,6 +81,29 @@ def warmup_database_assets(dbname="innoria_prod"):
             except Exception as e:
                 print(f"  [✗] FAILED warming {b}: {e}")
                 compiled_summary.append((b, False, 0, 0))
+
+        # Explicitly warm up website-specific asset bundles (website_id != None)
+        websites = env['website'].search([])
+        for w in websites:
+            website_bundles = [
+                'web.assets_frontend',
+                'web.assets_frontend_lazy',
+                'web.assets_frontend_minimal',
+            ]
+            for b in website_bundles:
+                try:
+                    b_t0 = time.time()
+                    bundle = env['ir.qweb']._get_asset_bundle(b, css=True, js=True, assets_params={'website_id': w.id})
+                    css_att = bundle.css()
+                    js_att = bundle.js()
+                    dur = round(time.time() - b_t0, 2)
+                    css_size = css_att.file_size if css_att else 0
+                    js_size = js_att.file_size if js_att else 0
+                    print(f"  [✓] Warmed {b:<24} [Website {w.id}] (CSS: {css_size:>8}B, JS: {js_size:>8}B in {dur}s)")
+                    compiled_summary.append((f"{b}_w{w.id}", True, css_size, js_size))
+                except Exception as e:
+                    print(f"  [✗] FAILED warming {b} [Website {w.id}]: {e}")
+                    compiled_summary.append((f"{b}_w{w.id}", False, 0, 0))
 
         # Commit new attachments to DB
         cr.commit()
