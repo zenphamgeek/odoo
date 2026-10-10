@@ -223,11 +223,47 @@ def test_reap_rejects_nonfinite_idle_minutes():
             pass
     log("Successfully rejected all non-finite, NaN, Inf, and out-of-bounds idle_minutes inputs", "PASS")
 
+def test_transaction_start_safety_interlock():
+    log("=== TEST 7: Accounting & In-Flight Transaction Interlock (xact_start IS NULL) ===", "INFO")
+    conn_tx = psycopg2.connect(**DB_CONFIG)
+    cur_tx = conn_tx.cursor()
+    cur_tx.execute("SELECT pg_backend_pid();")
+    tx_pid = cur_tx.fetchone()[0]
+
+    # Open transaction and execute query so xact_start is set
+    cur_tx.execute("BEGIN; SELECT 100;")
+    cur_tx.fetchall()
+
+    # Verify xact_start is non-null
+    conn_verify = psycopg2.connect(**DB_CONFIG)
+    cur_verify = conn_verify.cursor(cursor_factory=RealDictCursor)
+    cur_verify.execute("SELECT pid, state, xact_start FROM pg_stat_activity WHERE pid = %s;", (tx_pid,))
+    row = cur_verify.fetchone()
+    assert row is not None, f"Could not find backend pid {tx_pid}"
+    assert row['xact_start'] is not None, f"Expected non-null xact_start for pid {tx_pid}, got None"
+    log(f"Verified backend PID {tx_pid} has in-flight transaction with xact_start = {row['xact_start']}", "PASS")
+    cur_verify.close()
+    conn_verify.close()
+
+    # Execute reaper with idle_minutes=0.0 (aggressive). Must NEVER touch in-flight transaction
+    reaper = LocalPostgresReaper(**DB_CONFIG)
+    reaped = reaper.reap(idle_minutes=0.0, dry_run=False, verbose=True)
+    reaped_pids = [r['pid'] for r in reaped]
+    assert tx_pid not in reaped_pids, f"CRITICAL ACCOUNTING VIOLATION: In-flight transaction PID {tx_pid} was terminated!"
+    log(f"In-flight transaction PID {tx_pid} was completely protected from reaper termination", "PASS")
+
+    # Complete the transaction cleanly
+    cur_tx.execute("COMMIT;")
+    cur_tx.close()
+    conn_tx.close()
+    log("In-flight transaction committed cleanly without interruption", "PASS")
+
 if __name__ == '__main__':
     try:
         test_active_and_iit_immunity()
         test_advisory_lock_concurrency()
         test_reap_rejects_nonfinite_idle_minutes()
+        test_transaction_start_safety_interlock()
         test_cluster_sql_predicate()
         test_full_reaper_limits()
         log("\n🎉 ALL ADVERSARIAL REAPER TESTS PASSED 100%!", "PASS")

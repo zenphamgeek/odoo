@@ -20,6 +20,7 @@ Safety Invariants:
 
 import argparse
 import json
+import math
 import os
 import re
 import subprocess
@@ -48,8 +49,6 @@ def log(msg: str, level: str = 'INFO') -> None:
     print(f"{badge} {msg}")
 
 
-import math
-
 def format_states(states_dict: Dict[Optional[str], int]) -> str:
     parts = []
     for state, cnt in sorted(states_dict.items(), key=lambda x: str(x[0])):
@@ -58,7 +57,9 @@ def format_states(states_dict: Dict[Optional[str], int]) -> str:
     return ", ".join(parts) if parts else "none"
 
 
-REAPER_LOCK_KEY = 0x52454150  # 1380270416 ('REAP') - Fixed bigint lock namespace
+# Global Lock Registry: 0x52454150 is the allocated 32-bit integer namespace ('REAP' = 1380270416)
+# Used exclusively for serializing postgres connection pool reaper sessions across local & cluster pods.
+REAPER_LOCK_KEY = 0x52454150
 IDENTIFIER_REGEX = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_$]{0,62}$")
 
 
@@ -150,6 +151,7 @@ class LocalPostgresReaper:
             WHERE state = 'idle'
               AND state_change < now() - (%s * INTERVAL '1 minute')
               AND pid != pg_backend_pid()
+              AND xact_start IS NULL
               AND (backend_type = 'client backend' OR backend_type IS NULL)
               {db_filter}
             ORDER BY state_change ASC;
@@ -159,7 +161,7 @@ class LocalPostgresReaper:
         with self.connect() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 if not dry_run and not self.acquire_advisory_lock(cur):
-                    log("Another reaper process holds the advisory lock (pg_connection_pool_reaper). Skipping cycle.", 'WARN')
+                    log("Another reaper process holds the advisory lock (REAPER_LOCK_KEY). Skipping cycle.", 'WARN')
                     return []
                 try:
                     cur.execute(candidate_sql, tuple(params))
@@ -167,7 +169,7 @@ class LocalPostgresReaper:
 
                     for row in candidates:
                         pid = row.get('pid')
-                        if pid is None or not isinstance(pid, int) or pid <= 0:
+                        if pid is None or type(pid) is not int or pid <= 0:
                             continue
                         datname = row.get('datname') or 'unknown'
                         idle_sec = row.get('idle_seconds', 0)
@@ -278,49 +280,64 @@ class ClusterPostgresReaper:
             WHERE state = 'idle'
               AND state_change < now() - INTERVAL '{idle_mins} minutes'
               AND pid != pg_backend_pid()
+              AND xact_start IS NULL
               AND (backend_type = 'client backend' OR backend_type IS NULL)
               {db_filter}
             ORDER BY state_change ASC
         """
-        candidates = self._run_psql_json(candidate_sql) or []
+
+        if not dry_run:
+            locked = self._run_psql_scalar(f"SELECT pg_try_advisory_lock({REAPER_LOCK_KEY});")
+            if locked.strip() != 't':
+                log("Another cluster reaper process holds the advisory lock (REAPER_LOCK_KEY). Skipping cycle.", 'WARN')
+                return []
 
         reaped_records = []
-        if not candidates:
-            return reaped_records
-
-        if dry_run:
-            for row in candidates:
-                pid = row['pid']
-                datname = row.get('datname', 'unknown')
-                idle_sec = row.get('idle_seconds', 0)
-                if verbose:
-                    log(f"  [DRY-RUN] Would terminate cluster PID {pid} (DB: {datname}, Idle: {idle_sec}s)", 'WARN')
-                reaped_records.append(dict(row))
-        else:
-            pids = [int(row['pid']) for row in candidates if str(row.get('pid', '')).isdigit() and int(row.get('pid', 0)) > 0]
-            if not pids:
+        try:
+            candidates = self._run_psql_json(candidate_sql) or []
+            if not candidates:
                 return reaped_records
-            pids_str = ",".join(str(p) for p in pids)
-            batch_sql = f"""
-                SELECT pid, pg_terminate_backend(pid) AS terminated
-                FROM unnest(ARRAY[{pids_str}]) AS pid;
-            """
-            term_results = self._run_psql_json(batch_sql) or []
-            term_map = {r['pid']: r.get('terminated', False) for r in term_results}
-            for row in candidates:
-                pid = row['pid']
-                datname = row.get('datname', 'unknown')
-                idle_sec = row.get('idle_seconds', 0)
-                terminated = term_map.get(pid, False)
-                rec = dict(row)
-                rec['terminated'] = terminated
-                if terminated:
-                    reaped_records.append(rec)
+
+            if dry_run:
+                for row in candidates:
+                    pid = row.get('pid')
+                    if pid is None or type(pid) is not int or pid <= 0:
+                        continue
+                    datname = row.get('datname', 'unknown')
+                    idle_sec = row.get('idle_seconds', 0)
                     if verbose:
-                        log(f"  Terminated cluster idle PID {pid} on {datname} (idle {idle_sec}s)", 'SUCCESS')
-                else:
-                    if verbose:
-                        log(f"  Cluster PID {pid} could not be terminated (may have already closed)", 'WARN')
+                        log(f"  [DRY-RUN] Would terminate cluster PID {pid} (DB: {datname}, Idle: {idle_sec}s)", 'WARN')
+                    reaped_records.append(dict(row))
+            else:
+                pids = [int(row['pid']) for row in candidates if str(row.get('pid', '')).isdigit() and int(row.get('pid', 0)) > 0]
+                if not pids:
+                    return reaped_records
+                pids_str = ",".join(str(p) for p in pids)
+                batch_sql = f"""
+                    SELECT pid, pg_terminate_backend(pid) AS terminated
+                    FROM unnest(ARRAY[{pids_str}]) AS pid;
+                """
+                term_results = self._run_psql_json(batch_sql) or []
+                term_map = {r['pid']: r.get('terminated', False) for r in term_results}
+                for row in candidates:
+                    pid = row.get('pid')
+                    if pid is None or type(pid) is not int or pid <= 0:
+                        continue
+                    datname = row.get('datname', 'unknown')
+                    idle_sec = row.get('idle_seconds', 0)
+                    terminated = term_map.get(pid, False)
+                    rec = dict(row)
+                    rec['terminated'] = terminated
+                    if terminated:
+                        reaped_records.append(rec)
+                        if verbose:
+                            log(f"  Terminated cluster idle PID {pid} on {datname} (idle {idle_sec}s)", 'SUCCESS')
+                    else:
+                        if verbose:
+                            log(f"  Cluster PID {pid} could not be terminated (may have already closed)", 'WARN')
+        finally:
+            if not dry_run:
+                self._run_psql_scalar(f"SELECT pg_advisory_unlock({REAPER_LOCK_KEY});")
 
         return reaped_records
 
