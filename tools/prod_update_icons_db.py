@@ -67,9 +67,10 @@ with registry.cursor() as cr:
             m.write({'web_icon_data': b64_data})
             print(f'Updated {m.name} -> sha1: {sha1}, store: {store_fname}')
 
-    # 3. Clear web assets so bundle regenerates
-    cr.execute("DELETE FROM ir_attachment WHERE name LIKE '%assets_%'")
-    print(f'Cleared {cr.rowcount} web asset cache records.')
+    # 3. Safe Zero-Downtime Asset Preservation:
+    # Strictly prohibit destructive 'DELETE FROM ir_attachment WHERE name LIKE %assets_%'
+    # Asset bundle rotation is safely pre-warmed via tools/safe_asset_warmup.py without raw deletion.
+    print('Preserving active web assets (safe warmup handled via tools/safe_asset_warmup.py).')
     
     cr.commit()
     print('DB Commit successful!')

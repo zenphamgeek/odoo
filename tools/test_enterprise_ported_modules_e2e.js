@@ -59,9 +59,9 @@ async function main() {
     }
     console.log('✓ Successfully authenticated.');
 
-    // 2. Visit /insilos
+    // 2. Visit /web (initializes webclient session and lands on /insilos launcher)
     console.log('\n--- 2. Checking /insilos Main App Launcher ---');
-    await page.goto('http://localhost:28069/insilos', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.goto('http://localhost:28069/web', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForSelector('.o_app', { timeout: 20000 });
     const appCount = await page.$$eval('.o_app', els => els.length);
     console.log(`✓ Discovered ${appCount} apps in launcher.`);

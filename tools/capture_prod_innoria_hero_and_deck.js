@@ -15,6 +15,7 @@ async function run() {
     });
 
     const context = await browser.newContext({
+        userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         viewport: { width: 1440, height: 900 },
         ignoreHTTPSErrors: true
     });
