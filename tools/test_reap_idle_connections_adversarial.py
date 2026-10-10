@@ -22,7 +22,10 @@ from psycopg2.extras import RealDictCursor
 import os
 
 # Import the reaper module
-from reap_idle_connections import LocalPostgresReaper, ClusterPostgresReaper, run_reaper, REAPER_LOCK_KEY
+from reap_idle_connections import (
+    LocalPostgresReaper, ClusterPostgresReaper, run_reaper,
+    REAPER_LOCK_KEY, IDENTIFIER_REGEX, K8S_NAME_REGEX
+)
 
 DB_CONFIG = {
     'host': '127.0.0.1',
@@ -258,12 +261,36 @@ def test_transaction_start_safety_interlock():
     conn_tx.close()
     log("In-flight transaction committed cleanly without interruption", "PASS")
 
+def test_argparse_sink_coverage():
+    log("=== TEST 8: Argument-to-Sink Grammar & RFC 1123 DNS Coverage ===", "INFO")
+    
+    # 1. K8S_NAME_REGEX test (strict RFC 1123)
+    valid_k8s = ["postgres-0", "database", "k8s-pod.app-1", "default", "prod-cluster-1"]
+    for v in valid_k8s:
+        assert K8S_NAME_REGEX.match(v) is not None, f"Expected valid K8S name for {v!r}"
+        
+    invalid_k8s = ["Postgres-0", "postgres_0", "-postgres", "postgres-", "a"*64, "pod name"]
+    for inv in invalid_k8s:
+        assert K8S_NAME_REGEX.match(inv) is None, f"Expected rejection for invalid K8S name {inv!r}"
+    log("Verified K8S_NAME_REGEX strictly enforces lowercase DNS-1123 labels (no uppercase/underscores)", "PASS")
+
+    # 2. IDENTIFIER_REGEX test (PostgreSQL unquoted identifier)
+    valid_db = ["innoria_prod", "odoo", "postgres", "_internal$1", "db2"]
+    for v in valid_db:
+        assert IDENTIFIER_REGEX.match(v) is not None, f"Expected valid DB identifier for {v!r}"
+
+    invalid_db = ["1nnoria", "innoria-prod", "innoria.prod", "innoria prod", "innoria;DROP", "a"*64]
+    for inv in invalid_db:
+        assert IDENTIFIER_REGEX.match(inv) is None, f"Expected rejection for invalid DB identifier {inv!r}"
+    log("Verified IDENTIFIER_REGEX strictly enforces PostgreSQL unquoted identifier grammar", "PASS")
+
 if __name__ == '__main__':
     try:
         test_active_and_iit_immunity()
         test_advisory_lock_concurrency()
         test_reap_rejects_nonfinite_idle_minutes()
         test_transaction_start_safety_interlock()
+        test_argparse_sink_coverage()
         test_cluster_sql_predicate()
         test_full_reaper_limits()
         log("\n🎉 ALL ADVERSARIAL REAPER TESTS PASSED 100%!", "PASS")
