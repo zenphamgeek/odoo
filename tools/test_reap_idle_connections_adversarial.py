@@ -469,6 +469,37 @@ def test_cli_fail_closed_without_dbname_or_allow_all():
     assert res_with_db.returncode == 0, f"Expected code 0 for cluster dry-run with explicit --dbname, got {res_with_db.returncode} (stderr: {res_with_db.stderr})"
     log("CLI permitted cluster reap when explicit --dbname was provided", "PASS")
 
+def test_two_session_advisory_lock_contention_and_no_orphans():
+    log("=== TEST 14: Two-Session Advisory Lock Contention Spike & No Orphans (Finding 2) ===", "INFO")
+    import subprocess
+    cluster_reaper = ClusterPostgresReaper()
+    
+    # Session A: Grabs the lock and holds it for 3 seconds
+    lock_cmd = [
+        "kubectl", "exec", "-i", "-n", "database", "postgres-0", "--",
+        "psql", "-U", "postgres", "-d", "postgres", "-c",
+        f"SELECT pg_advisory_lock({REAPER_LOCK_KEY}); SELECT pg_sleep(3); SELECT pg_advisory_unlock({REAPER_LOCK_KEY});"
+    ]
+    proc_a = subprocess.Popen(lock_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    time.sleep(0.5)
+
+    # Session B: Runs real cluster reaper. MUST reap 0 (lock contended)
+    result_b = cluster_reaper.reap(idle_minutes=0.0, allow_all_databases=True, dry_run=False, verbose=True)
+    assert len(result_b) == 0, f"Expected 0 reaped under contention, got {len(result_b)}"
+    log("Session B correctly terminated 0 connections while Session A held advisory lock", "PASS")
+
+    # Wait for Session A to finish
+    stdout_a, stderr_a = proc_a.communicate(timeout=10)
+    assert proc_a.returncode == 0, f"Session A failed: {stderr_a.decode()}"
+
+    # Query pg_locks to guarantee 0 orphaned locks remain on REAPER_LOCK_KEY
+    orphan_check = cluster_reaper._run_psql_scalar(
+        f"SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND objid={REAPER_LOCK_KEY};"
+    )
+    orphan_count = int(orphan_check) if orphan_check.isdigit() else -1
+    assert orphan_count == 0, f"Expected 0 orphaned advisory locks, found {orphan_count}!"
+    log(f"Verified 0 orphaned advisory locks remain on cluster PostgreSQL (pg_locks count={orphan_count})", "PASS")
+
 if __name__ == '__main__':
     try:
         test_active_and_iit_immunity()
@@ -481,9 +512,10 @@ if __name__ == '__main__':
         test_bound_sql_quoted_psql_var_regression()
         test_dry_run_vs_real_sql_predicate_parity()
         test_cli_fail_closed_without_dbname_or_allow_all()
+        test_two_session_advisory_lock_contention_and_no_orphans()
         test_cluster_sql_predicate()
         test_full_reaper_limits()
-        log("\n🎉 ALL 13 ADVERSARIAL REAPER GATES PASSED 100%!", "PASS")
+        log("\n🎉 ALL 14 ADVERSARIAL REAPER GATES PASSED 100%!", "PASS")
         sys.exit(0)
     except AssertionError as e:
         log(f"\n❌ ASSERTION FAILED: {e}", "FAIL")

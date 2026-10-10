@@ -330,6 +330,10 @@ class ClusterPostgresReaper:
             db_filter = "AND datname = :'v_dbname'"
             psql_vars["v_dbname"] = dbname
 
+        assert db_filter in ("", "AND datname = :'v_dbname'"), (
+            "Invariant violation: db_filter must strictly contain static psql-var tokens"
+        )
+
         if dry_run:
             candidate_sql = f"""
                 SELECT
@@ -355,6 +359,7 @@ class ClusterPostgresReaper:
         # pg_try_advisory_lock, candidate selection, termination, and unlock occur within
         # one unified backend session, completely eliminating TOCTOU session release.
         # Single-sourced with CLUSTER_CANDIDATE_COLUMNS and CLUSTER_REAP_PREDICATE (prevents dry-run drift).
+        # Explicitly evaluates and returns 'unlocked' in json_build_object to prevent query planner CTE pruning.
         psql_vars["v_lock_key"] = str(REAPER_LOCK_KEY)
         unified_sql = f"""
             WITH lock AS (
@@ -386,6 +391,7 @@ class ClusterPostgresReaper:
             )
             SELECT json_build_object(
                 'lock_acquired', (SELECT acquired FROM lock),
+                'unlocked', (SELECT bool_and(unlocked) FROM released),
                 'records', COALESCE((SELECT json_agg(t) FROM terminated t), '[]'::json)
             );
         """
