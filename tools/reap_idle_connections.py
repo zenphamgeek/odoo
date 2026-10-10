@@ -21,6 +21,7 @@ Safety Invariants:
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -59,12 +60,12 @@ class LocalPostgresReaper:
     """Manages idle connection reaping on local PostgreSQL instance (port 5434)."""
 
     def __init__(self, host: str = '127.0.0.1', port: int = 5434,
-                 user: str = 'odoo', password: str = '1NN0R1@2026',
+                 user: str = 'odoo', password: Optional[str] = None,
                  dbname: str = 'innoria_prod'):
         self.host = host
         self.port = port
         self.user = user
-        self.password = password
+        self.password = password or os.getenv('PGPASSWORD') or os.getenv('ODOO_DB_PASSWORD') or '1NN0R1@2026'
         self.dbname = dbname
 
     def connect(self):
@@ -95,6 +96,8 @@ class LocalPostgresReaper:
 
     def get_db_count(self, dbname: str = 'innoria_prod') -> int:
         """Returns connection count for a specific database."""
+        if not re.match(r"^[a-zA-Z0-9_-]+$", dbname):
+            raise ValueError(f"Invalid database name: {dbname}")
         with self.connect() as conn:
             with conn.cursor() as cur:
                 cur.execute("SELECT count(*) FROM pg_stat_activity WHERE datname = %s;", (dbname,))
@@ -103,7 +106,15 @@ class LocalPostgresReaper:
     def reap(self, idle_minutes: float = 3.0, dbname: Optional[str] = None,
              dry_run: bool = False, verbose: bool = False) -> List[Dict[str, Any]]:
         """Identifies and terminates idle connections older than idle_minutes."""
-        db_filter = f"AND datname = '{dbname}'" if dbname else ""
+        idle_mins = float(idle_minutes)
+        db_filter = ""
+        params: List[Any] = [idle_mins]
+        if dbname:
+            if not re.match(r"^[a-zA-Z0-9_-]+$", dbname):
+                raise ValueError(f"Invalid database name: {dbname}")
+            db_filter = "AND datname = %s"
+            params.append(dbname)
+
         candidate_sql = f"""
             SELECT
                 pid,
@@ -114,7 +125,7 @@ class LocalPostgresReaper:
                 round(extract(epoch FROM (now() - state_change)))::int AS idle_seconds
             FROM pg_stat_activity
             WHERE state = 'idle'
-              AND state_change < now() - INTERVAL '{idle_minutes} minutes'
+              AND state_change < now() - (%s * INTERVAL '1 minute')
               AND pid != pg_backend_pid()
               AND (backend_type = 'client backend' OR backend_type IS NULL)
               {db_filter}
@@ -124,7 +135,7 @@ class LocalPostgresReaper:
         reaped_records = []
         with self.connect() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(candidate_sql)
+                cur.execute(candidate_sql, tuple(params))
                 candidates = cur.fetchall()
 
                 for row in candidates:
@@ -203,13 +214,20 @@ class ClusterPostgresReaper:
 
     def get_db_count(self, dbname: str = 'innoria_prod') -> int:
         """Returns connection count for a specific database."""
+        if not re.match(r"^[a-zA-Z0-9_-]+$", dbname):
+            raise ValueError(f"Invalid database name: {dbname}")
         out = self._run_psql_scalar(f"SELECT count(*) FROM pg_stat_activity WHERE datname = '{dbname}';")
         return int(out) if out.isdigit() else 0
 
     def reap(self, idle_minutes: float = 3.0, dbname: Optional[str] = None,
              dry_run: bool = False, verbose: bool = False) -> List[Dict[str, Any]]:
         """Identifies and terminates idle connections older than idle_minutes."""
-        db_filter = f"AND datname = '{dbname}'" if dbname else ""
+        idle_mins = float(idle_minutes)
+        db_filter = ""
+        if dbname:
+            if not re.match(r"^[a-zA-Z0-9_-]+$", dbname):
+                raise ValueError(f"Invalid database name: {dbname}")
+            db_filter = f"AND datname = '{dbname}'"
         candidate_sql = f"""
             SELECT
                 pid,
@@ -220,7 +238,7 @@ class ClusterPostgresReaper:
                 round(extract(epoch FROM (now() - state_change)))::int AS idle_seconds
             FROM pg_stat_activity
             WHERE state = 'idle'
-              AND state_change < now() - INTERVAL '{idle_minutes} minutes'
+              AND state_change < now() - INTERVAL '{idle_mins} minutes'
               AND pid != pg_backend_pid()
               AND (backend_type = 'client backend' OR backend_type IS NULL)
               {db_filter}
@@ -271,11 +289,13 @@ def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
                threshold: int = 40, dry_run: bool = False,
                verbose: bool = False,
                local_host: str = '127.0.0.1', local_port: int = 5434,
-               local_user: str = 'odoo', local_pass: str = '1NN0R1@2026',
+               local_user: str = 'odoo', local_pass: Optional[str] = None,
                local_db: str = 'innoria_prod',
                cluster_ns: str = 'database', cluster_pod: str = 'postgres-0',
-               cluster_user: str = 'insilos', cluster_db: str = 'postgres') -> bool:
+               cluster_user: str = 'postgres', cluster_db: str = 'postgres') -> bool:
     """Executes reaper across designated targets and validates limits."""
+
+    local_pass = local_pass or os.getenv('PGPASSWORD') or os.getenv('ODOO_DB_PASSWORD') or '1NN0R1@2026'
 
     log("=" * 70, 'HEADER')
     log("PostgreSQL Idle Connection Pool Reaper (Safety Guardrail)", 'HEADER')
@@ -401,7 +421,7 @@ def main():
     parser.add_argument('--local-host', default='127.0.0.1', help="Local PostgreSQL host (default: 127.0.0.1)")
     parser.add_argument('--local-port', type=int, default=5434, help="Local PostgreSQL port (default: 5434)")
     parser.add_argument('--local-user', default='odoo', help="Local PostgreSQL user (default: odoo)")
-    parser.add_argument('--local-pass', default='1NN0R1@2026', help="Local PostgreSQL password")
+    parser.add_argument('--local-pass', default=None, help="Local PostgreSQL password (default: env PGPASSWORD / ODOO_DB_PASSWORD)")
     parser.add_argument('--local-db', default='innoria_prod', help="Local PostgreSQL database (default: innoria_prod)")
     parser.add_argument('--cluster-ns', default='database', help="Cluster PostgreSQL namespace (default: database)")
     parser.add_argument('--cluster-pod', default='postgres-0', help="Cluster PostgreSQL pod (default: postgres-0)")
@@ -409,6 +429,13 @@ def main():
     parser.add_argument('--cluster-db', default='postgres', help="Cluster PostgreSQL database (default: postgres)")
 
     args = parser.parse_args()
+
+    for name, val in [("local-db", args.local_db), ("cluster-db", args.cluster_db),
+                      ("cluster-user", args.cluster_user), ("cluster-pod", args.cluster_pod),
+                      ("cluster-ns", args.cluster_ns)]:
+        if val and not re.match(r"^[a-zA-Z0-9_.-]+$", val):
+            print(f"[✗] Invalid characters in CLI argument --{name}: {val}", file=sys.stderr)
+            sys.exit(1)
 
     success = run_reaper(
         target=args.target,

@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-10-10T21:02:30Z",
+  "timestamp": "2026-10-10T21:35:36Z",
   "deployment_script_inspection": {
     "no_sigterm": true,
     "no_blanket_kills": true,
@@ -57,20 +57,19 @@
   },
   "connection_pool_audit": {
     "local": {
-      "total": 15,
+      "total": 13,
       "innoria_prod": 1,
       "under_40": true,
       "breakdown": {
         "system/bg": 8,
-        "active": 1,
+        "active": 2,
         "idle in transaction": 1,
-        "idle": 4,
-        "idle in transaction (aborted)": 1
+        "idle": 2
       }
     },
     "cluster": {
-      "total": 65,
-      "innoria_prod": 13,
+      "total": 32,
+      "innoria_prod": 10,
       "under_40": true
     },
     "status": "PASS"
@@ -98,19 +97,19 @@
     "Innoria": {
       "url": "https://innoria.insilos.com/",
       "status_code": 200,
-      "latency_sec": 0.71,
+      "latency_sec": 0.932,
       "expected_ok": true,
       "isolation_ok": true
     },
     "InnoKafe": {
       "url": "https://innokafe.insilos.com/",
       "status_code": 200,
-      "latency_sec": 0.56,
+      "latency_sec": 8.35,
       "expected_ok": true,
       "isolation_ok": true
     },
     "status": "PASS"
   },
   "overall_verdict": "CONFIRM",
-  "elapsed_seconds": 24.21
+  "elapsed_seconds": 36.03
 }
