@@ -25,6 +25,17 @@ const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 
+// CLI Arguments
+const args = process.argv.slice(2);
+let baseUrl = process.env.INNOKAFE_BASE_URL || process.env.INSILOS_BASE_URL || 'http://localhost:28071';
+
+for (let i = 0; i < args.length; i++) {
+  if (args[i] === '--base-url' && args[i + 1]) {
+    baseUrl = args[i + 1];
+    i++;
+  }
+}
+
 // PostgreSQL Configuration for Direct DB Ingestion Verification
 const PG_HOST = process.env.PGHOST || '127.0.0.1';
 const PG_PORT = process.env.PGPORT || '5434';
@@ -32,11 +43,46 @@ const PG_USER = process.env.PGUSER || 'odoo';
 const PG_PASSWORD = process.env.PGPASSWORD || '1NN0R1@2026';
 const PG_DATABASE = process.env.PGDATABASE || 'innokafe_prod';
 
-function queryCrmLeadByEmail(email) {
-  const query = `SELECT id, name, contact_name, partner_name, email_from, phone, create_date FROM crm_lead WHERE email_from = '${email}' ORDER BY id DESC LIMIT 1;`;
-  const cmd = `PGPASSWORD="${PG_PASSWORD}" psql -h "${PG_HOST}" -p "${PG_PORT}" -U "${PG_USER}" -d "${PG_DATABASE}" -t -A -F "|" -c "${query}"`;
+function getLeadPodName() {
   try {
-    const raw = execSync(cmd, { encoding: 'utf-8', timeout: 5000 }).trim();
+    const out = execSync("kubectl get pods -n production -l app=insilos-saas --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}'", { encoding: 'utf-8', timeout: 5000 }).trim();
+    return out || 'insilos-saas-app-575f447b-bfhnb';
+  } catch (_) {
+    return 'insilos-saas-app-575f447b-bfhnb';
+  }
+}
+
+function queryCrmLeadByEmail(email) {
+  if (baseUrl.includes('insilos.com')) {
+    const query = `SELECT id, name, contact_name, partner_name, email_from, phone, create_date FROM crm_lead WHERE email_from = '${email}' ORDER BY id DESC LIMIT 1;`;
+    try {
+      const { execFileSync } = require('child_process');
+      const raw = execFileSync('kubectl', ['exec', '--stdin=false', '-n', 'database', 'postgres-0', '--', 'psql', '-U', 'insilos', '-d', 'innokafe_prod', '-t', '-A', '-F', '|', '-c', query], { encoding: 'utf-8', timeout: 15000, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+      if (!raw) return null;
+      const [id, name, contact_name, partner_name, email_from, phone, create_date] = raw.split('|');
+      return {
+        id: parseInt(id, 10),
+        name,
+        contact_name,
+        partner_name,
+        email_from,
+        phone,
+        create_date,
+      };
+    } catch (err) {
+      console.error(`    ⚠️ Production PostgreSQL query error: ${err.message}`);
+      return null;
+    }
+  }
+
+  const query = `SELECT id, name, contact_name, partner_name, email_from, phone, create_date FROM crm_lead WHERE email_from = '${email.replace(/'/g, "''")}' ORDER BY id DESC LIMIT 1;`;
+  try {
+    const { execFileSync } = require('child_process');
+    const raw = execFileSync('psql', ['-h', PG_HOST, '-p', String(PG_PORT), '-U', PG_USER, '-d', PG_DATABASE, '-t', '-A', '-F', '|', '-c', query], {
+      encoding: 'utf-8',
+      timeout: 5000,
+      env: { ...process.env, PGPASSWORD: PG_PASSWORD }
+    }).trim();
     if (!raw) return null;
     const [id, name, contact_name, partner_name, email_from, phone, create_date] = raw.split('|');
     return {
@@ -56,21 +102,25 @@ function queryCrmLeadByEmail(email) {
 
 function cleanupCrmLead(leadId) {
   if (!leadId) return;
-  const cmd = `PGPASSWORD="${PG_PASSWORD}" psql -h "${PG_HOST}" -p "${PG_PORT}" -U "${PG_USER}" -d "${PG_DATABASE}" -c "DELETE FROM crm_lead WHERE id = ${leadId};"`;
-  try {
-    execSync(cmd, { stdio: 'ignore', timeout: 5000 });
-  } catch (_) {}
-}
-
-// CLI Arguments
-const args = process.argv.slice(2);
-let baseUrl = process.env.INNOKAFE_BASE_URL || process.env.INSILOS_BASE_URL || 'http://localhost:28071';
-
-for (let i = 0; i < args.length; i++) {
-  if (args[i] === '--base-url' && args[i + 1]) {
-    baseUrl = args[i + 1];
-    i++;
+  const safeId = parseInt(leadId, 10);
+  if (isNaN(safeId)) return;
+  if (baseUrl.includes('insilos.com')) {
+    const cmd = `DELETE FROM crm_lead WHERE id = ${safeId};`;
+    try {
+      const { execFileSync } = require('child_process');
+      execFileSync('kubectl', ['exec', '--stdin=false', '-n', 'database', 'postgres-0', '--', 'psql', '-U', 'insilos', '-d', 'innokafe_prod', '-c', cmd], { stdio: ['ignore', 'ignore', 'ignore'], timeout: 15000 });
+    } catch (_) {}
+    return;
   }
+
+  try {
+    const { execFileSync } = require('child_process');
+    execFileSync('psql', ['-h', PG_HOST, '-p', String(PG_PORT), '-U', PG_USER, '-d', PG_DATABASE, '-c', `DELETE FROM crm_lead WHERE id = ${safeId};`], {
+      stdio: 'ignore',
+      timeout: 5000,
+      env: { ...process.env, PGPASSWORD: PG_PASSWORD }
+    });
+  } catch (_) {}
 }
 
 const PUBLIC_ROUTES = [
@@ -234,6 +284,11 @@ async function runTestSuite() {
     console.log(`    - Rendered Match Score Badge: "${matchText.trim()}"`);
     const hasPercentage = /\d+(\.\d+)?%/.test(matchText);
 
+    // Wait for async match calculation/RPC to finish and render Sensory Wheel radar chart
+    try {
+      await profilerPage.waitForSelector('.profiler-sensory-wheel-target svg', { timeout: 8000 });
+    } catch (_) {}
+
     // Assert Sensory Wheel radar chart rendered
     const sensoryTarget = profilerPage.locator('.profiler-sensory-wheel-target svg, svg.innokafe-sensory-wheel, svg polygon').first();
     const hasSvgRadar = await sensoryTarget.isVisible();
@@ -352,6 +407,108 @@ async function runTestSuite() {
     console.log(`  ❌ [FAIL] B2B Form test exception: ${e.message}`);
   } finally {
     await b2bPage.close();
+  }
+
+  // ==========================================================================
+  // STAGE 4: BARISTA INTERACTIVE BREW LAB & REALTIME EXTRACTION CALCULATOR
+  // ==========================================================================
+  console.log('\n[STAGE 4] Testing Barista Interactive Brew Lab & Realtime Calculator...');
+  totalTests++;
+
+  const brewPage = await context.newPage();
+  const brewJsErrors = [];
+  brewPage.on('pageerror', err => brewJsErrors.push(err.message));
+  brewPage.on('console', msg => {
+    if (msg.type() === 'error' && !msg.text().includes('favicon')) {
+      brewJsErrors.push(msg.text());
+    }
+  });
+
+  try {
+    const homeUrl = `${baseUrl.replace(/\/$/, '')}/`;
+    console.log(`  • Navigating to ${homeUrl} for Brew Lab...`);
+    await brewPage.goto(homeUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    await brewPage.waitForTimeout(1000);
+
+    // Locate Brew Lab section
+    const brewLabSection = brewPage.locator('.inno-brew-lab-section').first();
+    await brewLabSection.waitFor({ state: 'visible', timeout: 10000 });
+    await brewLabSection.scrollIntoViewIfNeeded();
+    await brewPage.waitForTimeout(500);
+
+    // Ensure interactive JS has attached to Brew Lab container
+    try {
+      await brewPage.waitForFunction(
+        () => !!document.querySelector('.inno-brew-lab-section')?.__innoBrewLabInstance,
+        { timeout: 15000 }
+      );
+    } catch (_) {
+      await brewPage.waitForTimeout(2000);
+    }
+
+    // 1. Verify all 5 brew method buttons exist
+    const methodButtons = brewLabSection.locator('.inno-brew-method-btn');
+    const buttonCount = await methodButtons.count();
+    console.log(`    - Detected ${buttonCount} extraction method buttons (Expected: 5)`);
+
+    // 2. Verify Phin default state (1:4, 25g -> 100ml water)
+    const phinRatio = await brewLabSection.locator('.inno-param-ratio').innerText();
+    const phinGrams = await brewLabSection.locator('.inno-calc-grams').innerText();
+    const phinWater = await brewLabSection.locator('.inno-calc-water').innerText();
+    console.log(`    - Phin Defaults: Ratio="${phinRatio.trim()}", Grams="${phinGrams.trim()}", Water="${phinWater.trim()}"`);
+
+    // 3. Switch to Espresso 9 Bar
+    console.log('  • Switching to Espresso 9 Bar method...');
+    await brewLabSection.locator('.inno-brew-method-btn[data-method="espresso"]').click();
+    await brewPage.waitForTimeout(400);
+
+    const espressoBadge = await brewLabSection.locator('.inno-method-badge').innerText();
+    const espressoRatio = await brewLabSection.locator('.inno-param-ratio').innerText();
+    const espressoWater = await brewLabSection.locator('.inno-calc-water').innerText();
+    console.log(`    - Espresso State: Badge="${espressoBadge.trim()}", Ratio="${espressoRatio.trim()}", Water="${espressoWater.trim()}"`);
+
+    // 4. Switch to Pour-Over V60 and test Slider live calculation
+    console.log('  • Switching to Pour-Over V60 and dragging slider to 20g...');
+    await brewLabSection.locator('.inno-brew-method-btn[data-method="v60"]').click();
+    await brewPage.waitForTimeout(400);
+
+    await brewLabSection.locator('.inno-calc-slider').evaluate(el => {
+      el.value = 20;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+    await brewPage.waitForTimeout(300);
+
+    const v60Grams = await brewLabSection.locator('.inno-calc-grams').innerText();
+    const v60Bloom = await brewLabSection.locator('.inno-calc-bloom').innerText();
+    const v60Water = await brewLabSection.locator('.inno-calc-water').innerText();
+    const v60Yield = await brewLabSection.locator('.inno-calc-yield').innerText();
+    console.log(`    - V60 (20g): Bloom="${v60Bloom.trim()}", Water="${v60Water.trim()}", Yield="${v60Yield.trim()}"`);
+
+    // 5. Capture screenshot of verified Brew Lab
+    const brewScreenshot = path.join(ARTIFACTS_DIR, 'innokafe_brew_lab_verified.png');
+    await brewLabSection.screenshot({ path: brewScreenshot });
+    console.log(`    - Screenshot captured: ${brewScreenshot}`);
+
+    // Assertions
+    const isPhinValid = phinRatio.includes('1 : 4') && phinGrams.includes('25g') && phinWater.includes('100 ml');
+    const isEspressoValid = espressoBadge.includes('ESPRESSO') && espressoRatio.includes('1 : 2') && espressoWater.includes('36 ml');
+    const isV60Valid = v60Grams.includes('20g') && v60Water.includes('300 ml') && v60Bloom.includes('50 ml');
+
+    if (buttonCount === 5 && isPhinValid && isEspressoValid && isV60Valid && brewJsErrors.length === 0) {
+      passedTests++;
+      console.log('  ✅ [PASS] Barista Interactive Brew Lab: 5 Methods, SCA Ratios & Dynamic Slider Calculations Validated!');
+    } else {
+      failedTests++;
+      const reason = `buttonCount=${buttonCount}, isPhinValid=${isPhinValid}, isEspressoValid=${isEspressoValid}, isV60Valid=${isV60Valid}, jsErrors=${JSON.stringify(brewJsErrors)}`;
+      failureDetails.push(`Brew Lab validation failed: ${reason}`);
+      console.log(`  ❌ [FAIL] Brew Lab verification failed: ${reason}`);
+    }
+  } catch (e) {
+    failedTests++;
+    failureDetails.push(`Brew Lab exception: ${e.message}`);
+    console.log(`  ❌ [FAIL] Brew Lab test exception: ${e.message}`);
+  } finally {
+    await brewPage.close();
   }
 
   // ==========================================================================
