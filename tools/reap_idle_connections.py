@@ -60,9 +60,19 @@ def format_states(states_dict: Dict[Optional[str], int]) -> str:
 # Global Lock Registry: 0x52454150 is the allocated 32-bit integer namespace ('REAP' = 1380270416)
 # Used exclusively for serializing postgres connection pool reaper sessions across local & cluster pods.
 REAPER_LOCK_KEY = 0x52454150
-IDENTIFIER_REGEX = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_$]{0,62}$")
-# DNS-1123 label/subdomain: lowercase alphanumeric, hyphens and dots only (no uppercase, no underscores).
-K8S_NAME_REGEX = re.compile(r"^[a-z0-9]([-a-z0-9.]{0,61}[a-z0-9])?$")
+
+# Strict PostgreSQL unquoted identifier: letters/underscores followed by letters/digits/_/$, 1-63 chars.
+# Anchored with \A and \Z to prevent trailing newline bypasses (CWE-20).
+IDENTIFIER_REGEX = re.compile(r"\A[a-zA-Z_][a-zA-Z0-9_$]{0,62}\Z")
+
+# Kubernetes DNS-1123 label: lowercase alphanumeric and hyphens, no dots, 1-63 chars (namespaces).
+K8S_LABEL_REGEX = re.compile(r"\A[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?\Z")
+
+# Kubernetes DNS-1123 subdomain: lowercase alphanumeric, hyphens and dots, 1-253 chars (pod names).
+K8S_SUBDOMAIN_REGEX = re.compile(r"\A[a-z0-9]([-a-z0-9.]{0,251}[a-z0-9])?\Z")
+
+# Backward-compatibility alias
+K8S_NAME_REGEX = K8S_SUBDOMAIN_REGEX
 
 
 class LocalPostgresReaper:
@@ -117,7 +127,7 @@ class LocalPostgresReaper:
 
     def get_db_count(self, dbname: str = 'innoria_prod') -> int:
         """Returns connection count for a specific database."""
-        if not IDENTIFIER_REGEX.match(dbname):
+        if not IDENTIFIER_REGEX.fullmatch(dbname):
             raise ValueError(f"Invalid database name: {dbname}")
         with self.connect() as conn:
             with conn.cursor() as cur:
@@ -136,7 +146,7 @@ class LocalPostgresReaper:
         db_filter = ""
         params: List[Any] = [idle_mins]
         if dbname:
-            if not IDENTIFIER_REGEX.match(dbname):
+            if not IDENTIFIER_REGEX.fullmatch(dbname):
                 raise ValueError(f"Invalid database name: {dbname}")
             db_filter = "AND datname = %s"
             params.append(dbname)
@@ -251,7 +261,7 @@ class ClusterPostgresReaper:
 
     def get_db_count(self, dbname: str = 'innoria_prod') -> int:
         """Returns connection count for a specific database."""
-        if not IDENTIFIER_REGEX.match(dbname):
+        if not IDENTIFIER_REGEX.fullmatch(dbname):
             raise ValueError(f"Invalid database name: {dbname}")
         out = self._run_psql_scalar(f"SELECT count(*) FROM pg_stat_activity WHERE datname = '{dbname}';")
         return int(out) if out.isdigit() else 0
@@ -267,7 +277,7 @@ class ClusterPostgresReaper:
 
         db_filter = ""
         if dbname:
-            if not IDENTIFIER_REGEX.match(dbname):
+            if not IDENTIFIER_REGEX.fullmatch(dbname):
                 raise ValueError(f"Invalid database name: {dbname}")
             db_filter = f"AND datname = '{dbname}'"
         candidate_sql = f"""
@@ -495,18 +505,25 @@ def main():
             if len(val) > 63:
                 print(f"[✗] Database identifier argument --{name} exceeds 63 chars: {val}", file=sys.stderr)
                 sys.exit(1)
-            if not IDENTIFIER_REGEX.match(val):
+            if not IDENTIFIER_REGEX.fullmatch(val):
                 print(f"[✗] Invalid characters in database/user argument --{name}: {val}", file=sys.stderr)
                 sys.exit(1)
 
-    for name, val in [("cluster-pod", args.cluster_pod), ("cluster-ns", args.cluster_ns)]:
-        if val:
-            if len(val) > 63:
-                print(f"[✗] Kubernetes resource argument --{name} exceeds 63 chars: {val}", file=sys.stderr)
-                sys.exit(1)
-            if not K8S_NAME_REGEX.match(val):
-                print(f"[✗] Invalid characters in Kubernetes resource argument --{name}: {val}", file=sys.stderr)
-                sys.exit(1)
+    if args.cluster_ns:
+        if len(args.cluster_ns) > 63:
+            print(f"[✗] Kubernetes namespace argument --cluster-ns exceeds 63 chars: {args.cluster_ns}", file=sys.stderr)
+            sys.exit(1)
+        if not K8S_LABEL_REGEX.fullmatch(args.cluster_ns):
+            print(f"[✗] Invalid characters in Kubernetes namespace argument --cluster-ns: {args.cluster_ns}", file=sys.stderr)
+            sys.exit(1)
+
+    if args.cluster_pod:
+        if len(args.cluster_pod) > 253:
+            print(f"[✗] Kubernetes pod argument --cluster-pod exceeds 253 chars: {args.cluster_pod}", file=sys.stderr)
+            sys.exit(1)
+        if not K8S_SUBDOMAIN_REGEX.fullmatch(args.cluster_pod):
+            print(f"[✗] Invalid characters in Kubernetes pod argument --cluster-pod: {args.cluster_pod}", file=sys.stderr)
+            sys.exit(1)
 
     success = run_reaper(
         target=args.target,

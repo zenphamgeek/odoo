@@ -24,7 +24,8 @@ import os
 # Import the reaper module
 from reap_idle_connections import (
     LocalPostgresReaper, ClusterPostgresReaper, run_reaper,
-    REAPER_LOCK_KEY, IDENTIFIER_REGEX, K8S_NAME_REGEX
+    REAPER_LOCK_KEY, IDENTIFIER_REGEX, K8S_NAME_REGEX,
+    K8S_LABEL_REGEX, K8S_SUBDOMAIN_REGEX
 )
 
 DB_CONFIG = {
@@ -263,26 +264,77 @@ def test_transaction_start_safety_interlock():
 
 def test_argparse_sink_coverage():
     log("=== TEST 8: Argument-to-Sink Grammar & RFC 1123 DNS Coverage ===", "INFO")
-    
-    # 1. K8S_NAME_REGEX test (strict RFC 1123)
-    valid_k8s = ["postgres-0", "database", "k8s-pod.app-1", "default", "prod-cluster-1"]
-    for v in valid_k8s:
-        assert K8S_NAME_REGEX.match(v) is not None, f"Expected valid K8S name for {v!r}"
-        
-    invalid_k8s = ["Postgres-0", "postgres_0", "-postgres", "postgres-", "a"*64, "pod name"]
-    for inv in invalid_k8s:
-        assert K8S_NAME_REGEX.match(inv) is None, f"Expected rejection for invalid K8S name {inv!r}"
-    log("Verified K8S_NAME_REGEX strictly enforces lowercase DNS-1123 labels (no uppercase/underscores)", "PASS")
+    import subprocess
+    import sys
 
-    # 2. IDENTIFIER_REGEX test (PostgreSQL unquoted identifier)
+    # 1. IDENTIFIER_REGEX test (PostgreSQL unquoted identifier with fullmatch)
     valid_db = ["innoria_prod", "odoo", "postgres", "_internal$1", "db2"]
     for v in valid_db:
-        assert IDENTIFIER_REGEX.match(v) is not None, f"Expected valid DB identifier for {v!r}"
+        assert IDENTIFIER_REGEX.fullmatch(v) is not None, f"Expected valid DB identifier for {v!r}"
 
-    invalid_db = ["1nnoria", "innoria-prod", "innoria.prod", "innoria prod", "innoria;DROP", "a"*64]
+    invalid_db = [
+        "1nnoria", "innoria-prod", "innoria.prod", "innoria prod", "innoria;DROP",
+        "odoo\n", "odoo\r", "\nodoo", "odoo\x00", "odoo--comment", "a" * 64
+    ]
     for inv in invalid_db:
-        assert IDENTIFIER_REGEX.match(inv) is None, f"Expected rejection for invalid DB identifier {inv!r}"
-    log("Verified IDENTIFIER_REGEX strictly enforces PostgreSQL unquoted identifier grammar", "PASS")
+        assert IDENTIFIER_REGEX.fullmatch(inv) is None, f"Expected rejection for invalid DB identifier {inv!r}"
+    log("Verified IDENTIFIER_REGEX strictly enforces PostgreSQL unquoted identifier grammar (zero newline bypass)", "PASS")
+
+    # 2. K8S_LABEL_REGEX test (strict RFC 1123 label: no dots, lowercase alphanumeric & hyphens, <= 63 chars)
+    valid_labels = ["database", "production", "default", "ns-1", "app-db"]
+    for v in valid_labels:
+        assert K8S_LABEL_REGEX.fullmatch(v) is not None, f"Expected valid K8S label for {v!r}"
+
+    invalid_labels = [
+        "database.prod", "Database", "database_prod", "database\n", "database\r",
+        "-database", "database-", "a" * 64, "pod name"
+    ]
+    for inv in invalid_labels:
+        assert K8S_LABEL_REGEX.fullmatch(inv) is None, f"Expected rejection for invalid K8S label {inv!r}"
+    log("Verified K8S_LABEL_REGEX strictly enforces DNS-1123 labels (no dots, no uppercase/underscores)", "PASS")
+
+    # 3. K8S_SUBDOMAIN_REGEX test (strict RFC 1123 subdomain: dots allowed, <= 253 chars)
+    valid_pods = ["postgres-0", "k8s-pod.app-1", "default", "prod-cluster-1", "pod.namespace.svc"]
+    for v in valid_pods:
+        assert K8S_SUBDOMAIN_REGEX.fullmatch(v) is not None, f"Expected valid K8S subdomain for {v!r}"
+
+    invalid_pods = [
+        "Postgres-0", "postgres_0", "-postgres", "postgres-", "postgres-0\n",
+        "postgres-0\r", "a" * 254, "pod name", "pod\x00name"
+    ]
+    for inv in invalid_pods:
+        assert K8S_SUBDOMAIN_REGEX.fullmatch(inv) is None, f"Expected rejection for invalid K8S subdomain {inv!r}"
+    log("Verified K8S_SUBDOMAIN_REGEX strictly enforces DNS-1123 subdomains (zero newline/null bypass)", "PASS")
+
+    # 4. Real CLI argument-to-sink boundary execution proof
+    reaper_script = os.path.join(os.path.dirname(__file__), 'reap_idle_connections.py')
+
+    # Vector A: Newline injection into database argument
+    res_a = subprocess.run([sys.executable, reaper_script, "--local-db=odoo\n"], capture_output=True, text=True)
+    assert res_a.returncode != 0, "CLI should reject trailing newline in --local-db"
+    assert "Invalid characters in database/user argument" in res_a.stderr
+
+    # Vector B: Newline injection into pod argument
+    res_b = subprocess.run([sys.executable, reaper_script, "--cluster-pod=postgres-0\n"], capture_output=True, text=True)
+    assert res_b.returncode != 0, "CLI should reject trailing newline in --cluster-pod"
+    assert "Invalid characters in Kubernetes pod argument" in res_b.stderr
+
+    # Vector C: Dot in namespace label (must be rejected)
+    res_c = subprocess.run([sys.executable, reaper_script, "--cluster-ns=database.prod"], capture_output=True, text=True)
+    assert res_c.returncode != 0, "CLI should reject dots in --cluster-ns label"
+    assert "Invalid characters in Kubernetes namespace argument" in res_c.stderr
+
+    # Vector D: SQL injection attempt into database argument
+    res_d = subprocess.run([sys.executable, reaper_script, "--local-db=innoria;DROP TABLE users;"], capture_output=True, text=True)
+    assert res_d.returncode != 0, "CLI should reject SQL metacharacters in --local-db"
+    assert "Invalid characters in database/user argument" in res_d.stderr
+
+    # Vector E: Over-length namespace argument
+    res_e = subprocess.run([sys.executable, reaper_script, f"--cluster-ns={'a'*64}"], capture_output=True, text=True)
+    assert res_e.returncode != 0, "CLI should reject namespace exceeding 63 chars"
+    assert "exceeds 63 chars" in res_e.stderr
+
+    log("Verified CLI main() rejects all malicious arguments before any database/kubectl sink is invoked", "PASS")
 
 if __name__ == '__main__':
     try:
