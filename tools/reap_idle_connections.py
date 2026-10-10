@@ -61,6 +61,7 @@ def format_states(states_dict: Dict[Optional[str], int]) -> str:
 # Used exclusively for serializing postgres connection pool reaper sessions across local & cluster pods.
 REAPER_LOCK_KEY = 0x52454150
 IDENTIFIER_REGEX = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_$]{0,62}$")
+K8S_NAME_REGEX = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9_.-]{0,61}[a-zA-Z0-9])?$")
 
 
 class LocalPostgresReaper:
@@ -488,10 +489,14 @@ def main():
     args = parser.parse_args()
 
     for name, val in [("local-db", args.local_db), ("cluster-db", args.cluster_db),
-                      ("cluster-user", args.cluster_user), ("cluster-pod", args.cluster_pod),
-                      ("cluster-ns", args.cluster_ns)]:
+                      ("cluster-user", args.cluster_user), ("local-user", args.local_user)]:
         if val and not IDENTIFIER_REGEX.match(val):
-            print(f"[✗] Invalid characters in CLI argument --{name}: {val}", file=sys.stderr)
+            print(f"[✗] Invalid characters in database/user argument --{name}: {val}", file=sys.stderr)
+            sys.exit(1)
+
+    for name, val in [("cluster-pod", args.cluster_pod), ("cluster-ns", args.cluster_ns)]:
+        if val and not K8S_NAME_REGEX.match(val):
+            print(f"[✗] Invalid characters in Kubernetes resource argument --{name}: {val}", file=sys.stderr)
             sys.exit(1)
 
     success = run_reaper(
