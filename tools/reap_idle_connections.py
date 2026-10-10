@@ -79,6 +79,25 @@ K8S_SUBDOMAIN_REGEX = re.compile(
 # Backward-compatibility alias
 K8S_NAME_REGEX = K8S_SUBDOMAIN_REGEX
 
+# Single-source authoritative candidate columns and reap predicate (CWE-relevant: prevents dry-run vs real drift)
+CLUSTER_CANDIDATE_COLUMNS = """
+    pid,
+    datname,
+    usename,
+    client_addr::text AS client_addr,
+    state_change::text AS state_change,
+    round(extract(epoch FROM (now() - state_change)))::int AS idle_seconds
+""".strip()
+
+CLUSTER_REAP_PREDICATE = """
+    state = 'idle'
+    AND state_change < now() - (:'v_idle_mins'::numeric * INTERVAL '1 minute')
+    AND pid != pg_backend_pid()
+    AND xact_start IS NULL
+    AND (backend_type = 'client backend' OR backend_type IS NULL)
+    {db_filter}
+""".strip()
+
 
 class LocalPostgresReaper:
     """Manages idle connection reaping on local PostgreSQL instance (port 5434)."""
@@ -314,19 +333,9 @@ class ClusterPostgresReaper:
         if dry_run:
             candidate_sql = f"""
                 SELECT
-                    pid,
-                    datname,
-                    usename,
-                    client_addr::text AS client_addr,
-                    state_change::text AS state_change,
-                    round(extract(epoch FROM (now() - state_change)))::int AS idle_seconds
+                    {CLUSTER_CANDIDATE_COLUMNS}
                 FROM pg_stat_activity
-                WHERE state = 'idle'
-                  AND state_change < now() - (:'v_idle_mins'::numeric * INTERVAL '1 minute')
-                  AND pid != pg_backend_pid()
-                  AND xact_start IS NULL
-                  AND (backend_type = 'client backend' OR backend_type IS NULL)
-                  {db_filter}
+                WHERE {CLUSTER_REAP_PREDICATE.format(db_filter=db_filter)}
                 ORDER BY state_change ASC
             """
             candidates = self._run_psql_json(candidate_sql, psql_vars=psql_vars) or []
@@ -345,6 +354,7 @@ class ClusterPostgresReaper:
         # Real execution: Single-session CTE consolidation enforcing atomic session cohesion.
         # pg_try_advisory_lock, candidate selection, termination, and unlock occur within
         # one unified backend session, completely eliminating TOCTOU session release.
+        # Single-sourced with CLUSTER_CANDIDATE_COLUMNS and CLUSTER_REAP_PREDICATE (prevents dry-run drift).
         psql_vars["v_lock_key"] = str(REAPER_LOCK_KEY)
         unified_sql = f"""
             WITH lock AS (
@@ -352,20 +362,10 @@ class ClusterPostgresReaper:
             ),
             candidates AS (
                 SELECT
-                    pid,
-                    datname,
-                    usename,
-                    client_addr::text AS client_addr,
-                    state_change::text AS state_change,
-                    round(extract(epoch FROM (now() - state_change)))::int AS idle_seconds
+                    {CLUSTER_CANDIDATE_COLUMNS}
                 FROM pg_stat_activity
                 WHERE (SELECT acquired FROM lock) = true
-                  AND state = 'idle'
-                  AND state_change < now() - (:'v_idle_mins'::numeric * INTERVAL '1 minute')
-                  AND pid != pg_backend_pid()
-                  AND xact_start IS NULL
-                  AND (backend_type = 'client backend' OR backend_type IS NULL)
-                  {db_filter}
+                  AND {CLUSTER_REAP_PREDICATE.format(db_filter=db_filter)}
                 ORDER BY state_change ASC
             ),
             terminated AS (
@@ -427,6 +427,7 @@ def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
                threshold: int = 40, dry_run: bool = False,
                verbose: bool = False,
                allow_all_databases: bool = False,
+               dbname: Optional[str] = None,
                local_host: str = '127.0.0.1', local_port: int = 5434,
                local_user: str = 'odoo', local_pass: Optional[str] = None,
                local_db: str = 'innoria_prod',
@@ -435,6 +436,8 @@ def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
     """Executes reaper across designated targets and validates limits."""
 
     local_pass = local_pass or os.getenv('PGPASSWORD') or os.getenv('ODOO_DB_PASSWORD') or None
+    local_target_db = dbname or local_db
+    cluster_target_db = dbname
 
     log("=" * 70, 'HEADER')
     log("PostgreSQL Idle Connection Pool Reaper (Safety Guardrail)", 'HEADER')
@@ -459,9 +462,10 @@ def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
 
             reaped = cluster_reaper.reap(
                 idle_minutes=idle_minutes,
+                dbname=cluster_target_db,
                 dry_run=dry_run,
                 verbose=verbose,
-                allow_all_databases=True
+                allow_all_databases=allow_all_databases
             )
             action_verb = "Identified" if dry_run else "Successfully reaped"
             log(f"{action_verb} {len(reaped)} idle connections (idle > {idle_minutes} min).", 'SUCCESS' if reaped else 'INFO')
@@ -501,15 +505,15 @@ def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
                 port=local_port,
                 user=local_user,
                 password=local_pass,
-                dbname=local_db
+                dbname=local_target_db
             )
             total_before, states_before, max_conn = local_reaper.get_stats()
-            innoria_local_before = local_reaper.get_db_count(local_db)
-            log(f"Before Reaper: {total_before}/{max_conn} local connections ({local_db}: {innoria_local_before}) [{format_states(states_before)}]", 'INFO')
+            innoria_local_before = local_reaper.get_db_count(local_target_db)
+            log(f"Before Reaper: {total_before}/{max_conn} local connections ({local_target_db}: {innoria_local_before}) [{format_states(states_before)}]", 'INFO')
 
             reaped = local_reaper.reap(
                 idle_minutes=idle_minutes,
-                dbname=local_db,
+                dbname=local_target_db,
                 dry_run=dry_run,
                 verbose=verbose,
                 allow_all_databases=allow_all_databases
@@ -521,11 +525,11 @@ def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
                 time.sleep(0.5)
 
             total_after, states_after, _ = local_reaper.get_stats()
-            innoria_local_after = local_reaper.get_db_count(local_db)
-            log(f"After Reaper : {total_after}/{max_conn} local connections ({local_db}: {innoria_local_after}) [{format_states(states_after)}]", 'INFO')
+            innoria_local_after = local_reaper.get_db_count(local_target_db)
+            log(f"After Reaper : {total_after}/{max_conn} local connections ({local_target_db}: {innoria_local_after}) [{format_states(states_after)}]", 'INFO')
 
             if total_after < threshold and innoria_local_after < threshold:
-                log(f"Local Connection Limit: PASS (Total: {total_after} < {threshold}, {local_db}: {innoria_local_after} < {threshold})", 'SUCCESS')
+                log(f"Local Connection Limit: PASS (Total: {total_after} < {threshold}, {local_target_db}: {innoria_local_after} < {threshold})", 'SUCCESS')
             else:
                 log(f"Local Connection Limit: WARN/FAIL ({total_after} >= {threshold} required threshold)", 'WARN')
                 overall_pass = False
@@ -572,6 +576,10 @@ def main():
         '--allow-all-databases', action='store_true',
         help="Explicitly permit reaping across all tenant databases when no specific dbname is supplied"
     )
+    parser.add_argument(
+        '--dbname', default=None,
+        help="Target a specific database name to reap (e.g. innoria_prod)"
+    )
     parser.add_argument('--local-host', default='127.0.0.1', help="Local PostgreSQL host (default: 127.0.0.1)")
     parser.add_argument('--local-port', type=int, default=5434, help="Local PostgreSQL port (default: 5434)")
     parser.add_argument('--local-user', default='odoo', help="Local PostgreSQL user (default: odoo)")
@@ -594,6 +602,14 @@ def main():
                 print(f"[✗] Invalid characters in database/user argument --{name}: {val}", file=sys.stderr)
                 sys.exit(1)
 
+    if args.dbname:
+        if len(args.dbname) > 63:
+            print(f"[✗] Database identifier argument --dbname exceeds 63 chars: {args.dbname}", file=sys.stderr)
+            sys.exit(1)
+        if not IDENTIFIER_REGEX.fullmatch(args.dbname):
+            print(f"[✗] Invalid characters in database argument --dbname: {args.dbname}", file=sys.stderr)
+            sys.exit(1)
+
     if args.cluster_ns:
         if len(args.cluster_ns) > 63:
             print(f"[✗] Kubernetes namespace argument --cluster-ns exceeds 63 chars: {args.cluster_ns}", file=sys.stderr)
@@ -610,6 +626,10 @@ def main():
             print(f"[✗] Invalid characters in Kubernetes pod argument --cluster-pod: {args.cluster_pod}", file=sys.stderr)
             sys.exit(1)
 
+    if args.target in ('all', 'cluster') and not args.allow_all_databases and not args.dbname:
+        print("[✗] Refusing cluster-wide reap across all tenant databases without --allow-all-databases or --dbname", file=sys.stderr)
+        sys.exit(1)
+
     success = run_reaper(
         target=args.target,
         idle_minutes=args.idle_minutes,
@@ -617,6 +637,7 @@ def main():
         dry_run=args.dry_run,
         verbose=args.verbose,
         allow_all_databases=args.allow_all_databases,
+        dbname=args.dbname,
         local_host=args.local_host,
         local_port=args.local_port,
         local_user=args.local_user,

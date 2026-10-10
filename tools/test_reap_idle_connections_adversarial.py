@@ -171,7 +171,7 @@ def test_cluster_sql_predicate():
 
 def test_full_reaper_limits():
     log("=== TEST 4: Full Reaper Execution & < 40 Slots Threshold Enforcement ===", "INFO")
-    success = run_reaper(target='all', idle_minutes=3.0, threshold=40, dry_run=False, verbose=True)
+    success = run_reaper(target='all', idle_minutes=3.0, threshold=40, dry_run=False, verbose=True, allow_all_databases=True)
     assert success, "Reaper run_reaper returned False!"
     
     # Verify local counts
@@ -401,6 +401,74 @@ def test_bound_sql_quoted_psql_var_regression():
     assert captured["vars"] == {"v_dbname": "innoria_prod"}
     log("Verified SQL query uses strictly quoted psql variable substitution (:'v_dbname')", "PASS")
 
+def test_dry_run_vs_real_sql_predicate_parity():
+    log("=== TEST 12: Dry-Run vs Real-Path SQL Predicate Parity (Finding 4 / Anti-Drift) ===", "INFO")
+    from reap_idle_connections import CLUSTER_CANDIDATE_COLUMNS, CLUSTER_REAP_PREDICATE
+    
+    # Assert columns and predicate are defined and non-empty
+    assert CLUSTER_CANDIDATE_COLUMNS.strip() != "", "CLUSTER_CANDIDATE_COLUMNS must not be empty"
+    assert CLUSTER_REAP_PREDICATE.strip() != "", "CLUSTER_REAP_PREDICATE must not be empty"
+    
+    # Assert critical safety predicates are present in the shared predicate
+    assert "pid != pg_backend_pid()" in CLUSTER_REAP_PREDICATE
+    assert "xact_start IS NULL" in CLUSTER_REAP_PREDICATE
+    assert "state = 'idle'" in CLUSTER_REAP_PREDICATE
+    assert "client backend" in CLUSTER_REAP_PREDICATE
+    assert "{db_filter}" in CLUSTER_REAP_PREDICATE
+
+    # Verify both dry-run and real-path generate queries incorporating this exact predicate
+    cluster_reaper = ClusterPostgresReaper()
+    captured_queries = []
+
+    def mock_json(sql, psql_vars=None):
+        captured_queries.append(("json", sql))
+        return []
+
+    def mock_scalar(sql, psql_vars=None):
+        captured_queries.append(("scalar", sql))
+        return '{"lock_acquired": true, "records": []}'
+
+    cluster_reaper._run_psql_json = mock_json
+    cluster_reaper._run_psql_scalar = mock_scalar
+
+    # 1. Dry run execution
+    cluster_reaper.reap(idle_minutes=5.0, dbname="innoria_prod", dry_run=True)
+    # 2. Real execution
+    cluster_reaper.reap(idle_minutes=5.0, dbname="innoria_prod", dry_run=False)
+
+    assert len(captured_queries) == 2, f"Expected 2 queries, got {len(captured_queries)}"
+    dry_sql = captured_queries[0][1]
+    real_sql = captured_queries[1][1]
+
+    # Verify formatted predicate is identically embedded in both SQL statements
+    expected_predicate = CLUSTER_REAP_PREDICATE.format(db_filter="AND datname = :'v_dbname'")
+    assert expected_predicate in dry_sql, "Dry-run SQL does not contain the shared authoritative predicate!"
+    assert expected_predicate in real_sql, "Real-path CTE SQL does not contain the shared authoritative predicate!"
+    log("Dry-run and real-path CTE confirmed to use identical single-source predicate (zero drift)", "PASS")
+
+def test_cli_fail_closed_without_dbname_or_allow_all():
+    log("=== TEST 13: CLI Fail-Closed Default (Finding 5 / Opt-In Enforcement) ===", "INFO")
+    import subprocess
+    import sys
+    reaper_script = os.path.join(os.path.dirname(__file__), 'reap_idle_connections.py')
+
+    # Invocation 1: target=cluster with NO --dbname and NO --allow-all-databases -> Must FAIL (exit != 0)
+    res_cluster = subprocess.run([sys.executable, reaper_script, "--target=cluster"], capture_output=True, text=True)
+    assert res_cluster.returncode != 0, f"Expected non-zero exit for cluster reap without opt-in, got {res_cluster.returncode}"
+    assert "Refusing cluster-wide reap" in res_cluster.stderr
+    log("CLI correctly refused cluster reap without --allow-all-databases or --dbname", "PASS")
+
+    # Invocation 2: target=all with NO --dbname and NO --allow-all-databases -> Must FAIL (exit != 0)
+    res_all = subprocess.run([sys.executable, reaper_script, "--target=all"], capture_output=True, text=True)
+    assert res_all.returncode != 0, f"Expected non-zero exit for all-target reap without opt-in, got {res_all.returncode}"
+    assert "Refusing cluster-wide reap" in res_all.stderr
+    log("CLI correctly refused target=all reap without --allow-all-databases or --dbname", "PASS")
+
+    # Invocation 3: target=cluster WITH --dbname=innoria_prod -> Must NOT fail due to blast radius guard
+    res_with_db = subprocess.run([sys.executable, reaper_script, "--target=cluster", "--dbname=innoria_prod", "--dry-run"], capture_output=True, text=True)
+    assert res_with_db.returncode == 0, f"Expected code 0 for cluster dry-run with explicit --dbname, got {res_with_db.returncode} (stderr: {res_with_db.stderr})"
+    log("CLI permitted cluster reap when explicit --dbname was provided", "PASS")
+
 if __name__ == '__main__':
     try:
         test_active_and_iit_immunity()
@@ -411,9 +479,11 @@ if __name__ == '__main__':
         test_cross_tenant_blast_radius_guard()
         test_cluster_single_session_advisory_lock()
         test_bound_sql_quoted_psql_var_regression()
+        test_dry_run_vs_real_sql_predicate_parity()
+        test_cli_fail_closed_without_dbname_or_allow_all()
         test_cluster_sql_predicate()
         test_full_reaper_limits()
-        log("\n🎉 ALL 11 ADVERSARIAL REAPER GATES PASSED 100%!", "PASS")
+        log("\n🎉 ALL 13 ADVERSARIAL REAPER GATES PASSED 100%!", "PASS")
         sys.exit(0)
     except AssertionError as e:
         log(f"\n❌ ASSERTION FAILED: {e}", "FAIL")
