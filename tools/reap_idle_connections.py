@@ -140,13 +140,20 @@ class LocalPostgresReaper:
                 return int(cur.fetchone()[0])
 
     def reap(self, idle_minutes: float = 3.0, dbname: Optional[str] = None,
-             dry_run: bool = False, verbose: bool = False) -> List[Dict[str, Any]]:
+             dry_run: bool = False, verbose: bool = False,
+             allow_all_databases: bool = False) -> List[Dict[str, Any]]:
         """Identifies and terminates idle connections older than idle_minutes."""
         idle_mins = float(idle_minutes)
         if math.isnan(idle_mins) or math.isinf(idle_mins):
             raise ValueError(f"idle_minutes must be a finite number, got: {idle_minutes!r}")
         if idle_mins < 0.0 or idle_mins > 1440.0:
             raise ValueError(f"idle_minutes must be between 0.0 and 1440.0, got: {idle_minutes}")
+
+        if dbname is None and not allow_all_databases:
+            raise ValueError(
+                "Refusing cross-database reap across all tenant databases; "
+                "pass dbname=... or allow_all_databases=True explicitly."
+            )
 
         db_filter = ""
         params: List[Any] = [idle_mins]
@@ -281,13 +288,20 @@ class ClusterPostgresReaper:
         return int(out) if out.isdigit() else 0
 
     def reap(self, idle_minutes: float = 3.0, dbname: Optional[str] = None,
-             dry_run: bool = False, verbose: bool = False) -> List[Dict[str, Any]]:
+             dry_run: bool = False, verbose: bool = False,
+             allow_all_databases: bool = False) -> List[Dict[str, Any]]:
         """Identifies and terminates idle connections older than idle_minutes."""
         idle_mins = float(idle_minutes)
         if math.isnan(idle_mins) or math.isinf(idle_mins):
             raise ValueError(f"idle_minutes must be a finite number, got: {idle_minutes!r}")
         if idle_mins < 0.0 or idle_mins > 1440.0:
             raise ValueError(f"idle_minutes must be between 0.0 and 1440.0, got: {idle_minutes}")
+
+        if dbname is None and not allow_all_databases:
+            raise ValueError(
+                "Refusing cluster-wide reap across all tenant databases; "
+                "pass dbname=... or allow_all_databases=True explicitly."
+            )
 
         db_filter = ""
         psql_vars: Dict[str, str] = {"v_idle_mins": str(idle_mins)}
@@ -297,82 +311,114 @@ class ClusterPostgresReaper:
             db_filter = "AND datname = :'v_dbname'"
             psql_vars["v_dbname"] = dbname
 
-        candidate_sql = f"""
-            SELECT
-                pid,
-                datname,
-                usename,
-                client_addr::text AS client_addr,
-                state_change::text AS state_change,
-                round(extract(epoch FROM (now() - state_change)))::int AS idle_seconds
-            FROM pg_stat_activity
-            WHERE state = 'idle'
-              AND state_change < now() - (:'v_idle_mins'::numeric * INTERVAL '1 minute')
-              AND pid != pg_backend_pid()
-              AND xact_start IS NULL
-              AND (backend_type = 'client backend' OR backend_type IS NULL)
-              {db_filter}
-            ORDER BY state_change ASC
-        """
-
-        if not dry_run:
-            locked = self._run_psql_scalar(
-                "SELECT pg_try_advisory_lock(:'v_lock_key');",
-                psql_vars={"v_lock_key": str(REAPER_LOCK_KEY)}
-            )
-            if locked.strip() != 't':
-                log("Another cluster reaper process holds the advisory lock (REAPER_LOCK_KEY). Skipping cycle.", 'WARN')
-                return []
-
-        reaped_records = []
-        try:
+        if dry_run:
+            candidate_sql = f"""
+                SELECT
+                    pid,
+                    datname,
+                    usename,
+                    client_addr::text AS client_addr,
+                    state_change::text AS state_change,
+                    round(extract(epoch FROM (now() - state_change)))::int AS idle_seconds
+                FROM pg_stat_activity
+                WHERE state = 'idle'
+                  AND state_change < now() - (:'v_idle_mins'::numeric * INTERVAL '1 minute')
+                  AND pid != pg_backend_pid()
+                  AND xact_start IS NULL
+                  AND (backend_type = 'client backend' OR backend_type IS NULL)
+                  {db_filter}
+                ORDER BY state_change ASC
+            """
             candidates = self._run_psql_json(candidate_sql, psql_vars=psql_vars) or []
-            if not candidates:
-                return reaped_records
+            reaped_records = []
+            for row in candidates:
+                pid = row.get('pid')
+                if pid is None or type(pid) is not int or pid <= 0:
+                    continue
+                datname = row.get('datname', 'unknown')
+                idle_sec = row.get('idle_seconds', 0)
+                if verbose:
+                    log(f"  [DRY-RUN] Would terminate cluster PID {pid} (DB: {datname}, Idle: {idle_sec}s)", 'WARN')
+                reaped_records.append(dict(row))
+            return reaped_records
 
-            if dry_run:
-                for row in candidates:
-                    pid = row.get('pid')
-                    if pid is None or type(pid) is not int or pid <= 0:
-                        continue
-                    datname = row.get('datname', 'unknown')
-                    idle_sec = row.get('idle_seconds', 0)
-                    if verbose:
-                        log(f"  [DRY-RUN] Would terminate cluster PID {pid} (DB: {datname}, Idle: {idle_sec}s)", 'WARN')
-                    reaped_records.append(dict(row))
+        # Real execution: Single-session CTE consolidation enforcing atomic session cohesion.
+        # pg_try_advisory_lock, candidate selection, termination, and unlock occur within
+        # one unified backend session, completely eliminating TOCTOU session release.
+        psql_vars["v_lock_key"] = str(REAPER_LOCK_KEY)
+        unified_sql = f"""
+            WITH lock AS (
+                SELECT pg_try_advisory_lock(:'v_lock_key') AS acquired
+            ),
+            candidates AS (
+                SELECT
+                    pid,
+                    datname,
+                    usename,
+                    client_addr::text AS client_addr,
+                    state_change::text AS state_change,
+                    round(extract(epoch FROM (now() - state_change)))::int AS idle_seconds
+                FROM pg_stat_activity
+                WHERE (SELECT acquired FROM lock) = true
+                  AND state = 'idle'
+                  AND state_change < now() - (:'v_idle_mins'::numeric * INTERVAL '1 minute')
+                  AND pid != pg_backend_pid()
+                  AND xact_start IS NULL
+                  AND (backend_type = 'client backend' OR backend_type IS NULL)
+                  {db_filter}
+                ORDER BY state_change ASC
+            ),
+            terminated AS (
+                SELECT
+                    c.pid,
+                    c.datname,
+                    c.usename,
+                    c.client_addr,
+                    c.state_change,
+                    c.idle_seconds,
+                    pg_terminate_backend(c.pid) AS terminated
+                FROM candidates c
+            ),
+            released AS (
+                SELECT pg_advisory_unlock(:'v_lock_key') AS unlocked
+                FROM lock
+                WHERE (SELECT count(*) FROM terminated) >= 0 AND lock.acquired = true
+            )
+            SELECT json_build_object(
+                'lock_acquired', (SELECT acquired FROM lock),
+                'records', COALESCE((SELECT json_agg(t) FROM terminated t), '[]'::json)
+            );
+        """
+        raw_result = self._run_psql_scalar(unified_sql, psql_vars=psql_vars)
+        if not raw_result:
+            return []
+        try:
+            result_obj = json.loads(raw_result)
+        except Exception:
+            return []
+
+        if not result_obj.get('lock_acquired', False):
+            log("Another cluster reaper process holds the advisory lock (REAPER_LOCK_KEY). Skipping cycle.", 'WARN')
+            return []
+
+        candidates = result_obj.get('records', []) or []
+        reaped_records = []
+        for row in candidates:
+            pid = row.get('pid')
+            if pid is None or type(pid) is not int or pid <= 0:
+                continue
+            datname = row.get('datname', 'unknown')
+            idle_sec = row.get('idle_seconds', 0)
+            terminated = row.get('terminated', False)
+            rec = dict(row)
+            rec['terminated'] = terminated
+            if terminated:
+                reaped_records.append(rec)
+                if verbose:
+                    log(f"  Terminated cluster idle PID {pid} on {datname} (idle {idle_sec}s)", 'SUCCESS')
             else:
-                pids = [int(row['pid']) for row in candidates if str(row.get('pid', '')).isdigit() and int(row.get('pid', 0)) > 0]
-                if not pids:
-                    return reaped_records
-                pids_str = ",".join(str(p) for p in pids)
-                batch_sql = f"""
-                    SELECT pid, pg_terminate_backend(pid) AS terminated
-                    FROM unnest(ARRAY[{pids_str}]) AS pid;
-                """
-                term_results = self._run_psql_json(batch_sql) or []
-                term_map = {r['pid']: r.get('terminated', False) for r in term_results}
-                for row in candidates:
-                    pid = row.get('pid')
-                    if pid is None or type(pid) is not int or pid <= 0:
-                        continue
-                    datname = row.get('datname', 'unknown')
-                    idle_sec = row.get('idle_seconds', 0)
-                    terminated = term_map.get(pid, False)
-                    rec = dict(row)
-                    rec['terminated'] = terminated
-                    if terminated:
-                        reaped_records.append(rec)
-                        if verbose:
-                            log(f"  Terminated cluster idle PID {pid} on {datname} (idle {idle_sec}s)", 'SUCCESS')
-                    else:
-                        if verbose:
-                            log(f"  Cluster PID {pid} could not be terminated (may have already closed)", 'WARN')
-        finally:
-            if not dry_run:
-                self._run_psql_scalar(
-                    "SELECT pg_advisory_unlock(:'v_lock_key');",
-                    psql_vars={"v_lock_key": str(REAPER_LOCK_KEY)}
-                )
+                if verbose:
+                    log(f"  Cluster PID {pid} could not be terminated (may have already closed)", 'WARN')
 
         return reaped_records
 
@@ -380,6 +426,7 @@ class ClusterPostgresReaper:
 def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
                threshold: int = 40, dry_run: bool = False,
                verbose: bool = False,
+               allow_all_databases: bool = False,
                local_host: str = '127.0.0.1', local_port: int = 5434,
                local_user: str = 'odoo', local_pass: Optional[str] = None,
                local_db: str = 'innoria_prod',
@@ -410,7 +457,12 @@ def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
             innoria_before = cluster_reaper.get_db_count("innoria_prod")
             log(f"Before Reaper: {total_before}/{max_conn} cluster connections (innoria_prod: {innoria_before}) [{format_states(states_before)}]", 'INFO')
 
-            reaped = cluster_reaper.reap(idle_minutes=idle_minutes, dry_run=dry_run, verbose=verbose)
+            reaped = cluster_reaper.reap(
+                idle_minutes=idle_minutes,
+                dry_run=dry_run,
+                verbose=verbose,
+                allow_all_databases=True
+            )
             action_verb = "Identified" if dry_run else "Successfully reaped"
             log(f"{action_verb} {len(reaped)} idle connections (idle > {idle_minutes} min).", 'SUCCESS' if reaped else 'INFO')
 
@@ -455,7 +507,13 @@ def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
             innoria_local_before = local_reaper.get_db_count(local_db)
             log(f"Before Reaper: {total_before}/{max_conn} local connections ({local_db}: {innoria_local_before}) [{format_states(states_before)}]", 'INFO')
 
-            reaped = local_reaper.reap(idle_minutes=idle_minutes, dry_run=dry_run, verbose=verbose)
+            reaped = local_reaper.reap(
+                idle_minutes=idle_minutes,
+                dbname=local_db,
+                dry_run=dry_run,
+                verbose=verbose,
+                allow_all_databases=allow_all_databases
+            )
             action_verb = "Identified" if dry_run else "Successfully reaped"
             log(f"{action_verb} {len(reaped)} idle connections (idle > {idle_minutes} min).", 'SUCCESS' if reaped else 'INFO')
 
@@ -510,6 +568,10 @@ def main():
         '--verbose', '-v', action='store_true',
         help="Print detailed PID information for each reaped connection"
     )
+    parser.add_argument(
+        '--allow-all-databases', action='store_true',
+        help="Explicitly permit reaping across all tenant databases when no specific dbname is supplied"
+    )
     parser.add_argument('--local-host', default='127.0.0.1', help="Local PostgreSQL host (default: 127.0.0.1)")
     parser.add_argument('--local-port', type=int, default=5434, help="Local PostgreSQL port (default: 5434)")
     parser.add_argument('--local-user', default='odoo', help="Local PostgreSQL user (default: odoo)")
@@ -554,6 +616,7 @@ def main():
         threshold=args.threshold,
         dry_run=args.dry_run,
         verbose=args.verbose,
+        allow_all_databases=args.allow_all_databases,
         local_host=args.local_host,
         local_port=args.local_port,
         local_user=args.local_user,

@@ -108,8 +108,8 @@ def test_active_and_iit_immunity():
     reaper = LocalPostgresReaper(**DB_CONFIG)
     
     # First: DRY RUN
-    log("Running LocalPostgresReaper.reap(idle_minutes=0.0, dry_run=True)...")
-    dry_candidates = reaper.reap(idle_minutes=0.0, dry_run=True, verbose=True)
+    log("Running LocalPostgresReaper.reap(idle_minutes=0.0, dbname='innoria_prod', dry_run=True)...")
+    dry_candidates = reaper.reap(idle_minutes=0.0, dbname='innoria_prod', dry_run=True, verbose=True)
     dry_candidate_pids = [c['pid'] for c in dry_candidates]
     
     assert active_pid not in dry_candidate_pids, f"VIOLATION: Active PID {active_pid} included in reaper candidates!"
@@ -122,8 +122,8 @@ def test_active_and_iit_immunity():
     log("Idle connection PID remained intact after dry-run.", "PASS")
     
     # Second: REAL REAP with idle_minutes=0.0 to verify actual termination filtering
-    log("Running LocalPostgresReaper.reap(idle_minutes=0.0, dry_run=False)...")
-    reaped = reaper.reap(idle_minutes=0.0, dry_run=False, verbose=True)
+    log("Running LocalPostgresReaper.reap(idle_minutes=0.0, dbname='innoria_prod', dry_run=False)...")
+    reaped = reaper.reap(idle_minutes=0.0, dbname='innoria_prod', dry_run=False, verbose=True)
     reaped_pids = [r['pid'] for r in reaped]
     
     assert active_pid not in reaped_pids, f"CRITICAL VIOLATION: Active PID {active_pid} was terminated!"
@@ -162,7 +162,7 @@ def test_cluster_sql_predicate():
     log(f"Cluster PostgreSQL stats: total={total}/{max_conn}, states={states}")
     
     # Run cluster reaper in dry-run
-    candidates = cluster_reaper.reap(idle_minutes=3.0, dry_run=True, verbose=True)
+    candidates = cluster_reaper.reap(idle_minutes=3.0, dry_run=True, verbose=True, allow_all_databases=True)
     for c in candidates:
         assert c.get('state', 'idle') == 'idle' or 'state' not in c, "Cluster candidate state must be idle"
         log(f"Cluster candidate verified: PID {c['pid']} on DB {c.get('datname')} idle for {c.get('idle_seconds')}s")
@@ -203,7 +203,7 @@ def test_advisory_lock_concurrency():
 
     # Now attempt to run reaper on connection 2. It must safely detect lock contention and skip gracefully without crashing
     reaper = LocalPostgresReaper(**DB_CONFIG)
-    result = reaper.reap(idle_minutes=0.0, dry_run=False, verbose=True)
+    result = reaper.reap(idle_minutes=0.0, dbname='innoria_prod', dry_run=False, verbose=True)
     assert result == [], "Expected empty result when advisory lock is held by peer process"
     log("Reaper cleanly skipped execution without collision or deadlock while lock was held", "PASS")
 
@@ -221,7 +221,7 @@ def test_reap_rejects_nonfinite_idle_minutes():
     bad_inputs = ["nan", "inf", "-inf", float("nan"), float("inf"), float("-inf"), -0.1, 1440.1]
     for bad in bad_inputs:
         try:
-            reaper.reap(idle_minutes=bad, dry_run=True)
+            reaper.reap(idle_minutes=bad, dbname='innoria_prod', dry_run=True)
             assert False, f"Expected ValueError for bad input {bad!r}, but no error was raised!"
         except ValueError:
             pass
@@ -251,7 +251,7 @@ def test_transaction_start_safety_interlock():
 
     # Execute reaper with idle_minutes=0.0 (aggressive). Must NEVER touch in-flight transaction
     reaper = LocalPostgresReaper(**DB_CONFIG)
-    reaped = reaper.reap(idle_minutes=0.0, dry_run=False, verbose=True)
+    reaped = reaper.reap(idle_minutes=0.0, dbname='innoria_prod', dry_run=False, verbose=True)
     reaped_pids = [r['pid'] for r in reaped]
     assert tx_pid not in reaped_pids, f"CRITICAL ACCOUNTING VIOLATION: In-flight transaction PID {tx_pid} was terminated!"
     log(f"In-flight transaction PID {tx_pid} was completely protected from reaper termination", "PASS")
@@ -336,6 +336,71 @@ def test_argparse_sink_coverage():
 
     log("Verified CLI main() rejects all malicious arguments before any database/kubectl sink is invoked", "PASS")
 
+def test_cross_tenant_blast_radius_guard():
+    log("=== TEST 9: Cross-Tenant Blast Radius Guard (Finding 3 / Auth Boundary) ===", "INFO")
+    # 1. LocalPostgresReaper: dbname is None and allow_all_databases is False -> Must raise ValueError
+    local_reaper = LocalPostgresReaper(**DB_CONFIG)
+    try:
+        local_reaper.reap(dbname=None, dry_run=True, allow_all_databases=False)
+        assert False, "Expected ValueError when dbname is None and allow_all_databases is False"
+    except ValueError as e:
+        assert "Refusing cross-database reap" in str(e)
+        log("LocalPostgresReaper correctly refused cross-database reap without explicit opt-in", "PASS")
+
+    # 2. ClusterPostgresReaper: dbname is None and allow_all_databases is False -> Must raise ValueError
+    cluster_reaper = ClusterPostgresReaper()
+    try:
+        cluster_reaper.reap(dbname=None, dry_run=True, allow_all_databases=False)
+        assert False, "Expected ValueError when cluster dbname is None and allow_all_databases is False"
+    except ValueError as e:
+        assert "Refusing cluster-wide reap" in str(e)
+        log("ClusterPostgresReaper correctly refused cluster-wide reap without explicit opt-in", "PASS")
+
+    # 3. Explicit opt-in: allow_all_databases=True must succeed
+    candidates = cluster_reaper.reap(dbname=None, dry_run=True, allow_all_databases=True)
+    assert isinstance(candidates, list)
+    log("Explicit allow_all_databases=True permitted cluster-wide dry-run scan cleanly", "PASS")
+
+def test_cluster_single_session_advisory_lock():
+    log("=== TEST 10: Cluster Atomic Single-Session Advisory Lock & Anti-Collision (Finding 2) ===", "INFO")
+    import subprocess
+    # Spawn background lock-holder on cluster pod
+    lock_cmd = [
+        "kubectl", "exec", "-i", "-n", "database", "postgres-0", "--",
+        "psql", "-U", "postgres", "-d", "postgres", "-c",
+        f"SELECT pg_advisory_lock({REAPER_LOCK_KEY}); SELECT pg_sleep(3); SELECT pg_advisory_unlock({REAPER_LOCK_KEY});"
+    ]
+    proc = subprocess.Popen(lock_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    time.sleep(0.5)
+
+    cluster_reaper = ClusterPostgresReaper()
+    result = cluster_reaper.reap(idle_minutes=0.0, allow_all_databases=True, dry_run=False, verbose=True)
+    proc.wait(timeout=10)
+
+    assert result == [], "Expected empty result when cluster advisory lock is held by peer process"
+    log("ClusterPostgresReaper cleanly detected lock contention via atomic single-session CTE without TOCTOU release", "PASS")
+
+def test_bound_sql_quoted_psql_var_regression():
+    log("=== TEST 11: Bound SQL Quoted PSQL Variable Substitution (Finding 1 Regression) ===", "INFO")
+    import re
+    cluster_reaper = ClusterPostgresReaper()
+    captured = {}
+    original_scalar = cluster_reaper._run_psql_scalar
+
+    def fake_scalar(sql, psql_vars=None):
+        captured["sql"] = sql
+        captured["vars"] = psql_vars
+        return "0"
+
+    cluster_reaper._run_psql_scalar = fake_scalar
+    cluster_reaper.get_db_count("innoria_prod")
+    cluster_reaper._run_psql_scalar = original_scalar
+
+    assert ":'v_dbname'" in captured["sql"], "SQL must use quoted psql variable :'v_dbname'"
+    assert re.search(r"(?<!'):v_dbname\b", captured["sql"]) is None, "Bare unquoted :v_dbname must NOT appear in SQL"
+    assert captured["vars"] == {"v_dbname": "innoria_prod"}
+    log("Verified SQL query uses strictly quoted psql variable substitution (:'v_dbname')", "PASS")
+
 if __name__ == '__main__':
     try:
         test_active_and_iit_immunity()
@@ -343,9 +408,12 @@ if __name__ == '__main__':
         test_reap_rejects_nonfinite_idle_minutes()
         test_transaction_start_safety_interlock()
         test_argparse_sink_coverage()
+        test_cross_tenant_blast_radius_guard()
+        test_cluster_single_session_advisory_lock()
+        test_bound_sql_quoted_psql_var_regression()
         test_cluster_sql_predicate()
         test_full_reaper_limits()
-        log("\n🎉 ALL ADVERSARIAL REAPER TESTS PASSED 100%!", "PASS")
+        log("\n🎉 ALL 11 ADVERSARIAL REAPER GATES PASSED 100%!", "PASS")
         sys.exit(0)
     except AssertionError as e:
         log(f"\n❌ ASSERTION FAILED: {e}", "FAIL")
