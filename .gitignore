@@ -68,3 +68,10 @@ prod_icons_backup_*.json
 tools/artifacts/
 tools/test_artifacts_challenger_media/
 tools/challenger1_stress_results.json
+/reports/
+/artifacts/
+/layout_scan_results/
+tools/test_artifacts_*/
+tools/*_results.json
+*.png
+

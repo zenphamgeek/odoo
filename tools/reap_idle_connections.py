@@ -48,6 +48,8 @@ def log(msg: str, level: str = 'INFO') -> None:
     print(f"{badge} {msg}")
 
 
+import math
+
 def format_states(states_dict: Dict[Optional[str], int]) -> str:
     parts = []
     for state, cnt in sorted(states_dict.items(), key=lambda x: str(x[0])):
@@ -56,7 +58,8 @@ def format_states(states_dict: Dict[Optional[str], int]) -> str:
     return ", ".join(parts) if parts else "none"
 
 
-IDENTIFIER_REGEX = re.compile(r"^[a-zA-Z0-9_.-]{1,63}$")
+REAPER_LOCK_KEY = 0x52454150  # 1380270416 ('REAP') - Fixed bigint lock namespace
+IDENTIFIER_REGEX = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_$]{0,62}$")
 
 
 class LocalPostgresReaper:
@@ -86,13 +89,13 @@ class LocalPostgresReaper:
 
     def acquire_advisory_lock(self, cur) -> bool:
         """Acquires a session-level advisory lock to serialize reaper runs and prevent races."""
-        cur.execute("SELECT pg_try_advisory_lock(hashtext('pg_connection_pool_reaper'));")
+        cur.execute("SELECT pg_try_advisory_lock(%s) AS locked;", (REAPER_LOCK_KEY,))
         row = cur.fetchone()
-        return bool(row and (row['pg_try_advisory_lock'] if isinstance(row, dict) else row[0]))
+        return bool(row and (row['locked'] if isinstance(row, dict) else row[0]))
 
     def release_advisory_lock(self, cur) -> None:
         """Releases the session-level advisory lock."""
-        cur.execute("SELECT pg_advisory_unlock(hashtext('pg_connection_pool_reaper'));")
+        cur.execute("SELECT pg_advisory_unlock(%s);", (REAPER_LOCK_KEY,))
 
     def get_stats(self) -> Tuple[int, Dict[Optional[str], int], int]:
         """Returns (total_connections, states_breakdown, max_connections)."""
@@ -122,6 +125,8 @@ class LocalPostgresReaper:
              dry_run: bool = False, verbose: bool = False) -> List[Dict[str, Any]]:
         """Identifies and terminates idle connections older than idle_minutes."""
         idle_mins = float(idle_minutes)
+        if math.isnan(idle_mins) or math.isinf(idle_mins):
+            raise ValueError(f"idle_minutes must be a finite number, got: {idle_minutes!r}")
         if idle_mins < 0.0 or idle_mins > 1440.0:
             raise ValueError(f"idle_minutes must be between 0.0 and 1440.0, got: {idle_minutes}")
 
@@ -161,9 +166,11 @@ class LocalPostgresReaper:
                     candidates = cur.fetchall()
 
                     for row in candidates:
-                        pid = row['pid']
-                        datname = row['datname']
-                        idle_sec = row['idle_seconds']
+                        pid = row.get('pid')
+                        if pid is None or not isinstance(pid, int) or pid <= 0:
+                            continue
+                        datname = row.get('datname') or 'unknown'
+                        idle_sec = row.get('idle_seconds', 0)
 
                         if dry_run:
                             if verbose:
@@ -171,7 +178,8 @@ class LocalPostgresReaper:
                             reaped_records.append(dict(row))
                         else:
                             cur.execute("SELECT pg_terminate_backend(%s);", (pid,))
-                            terminated = cur.fetchone()['pg_terminate_backend']
+                            res = cur.fetchone()
+                            terminated = bool(res and (res.get('pg_terminate_backend') if isinstance(res, dict) else res[0]))
                             rec = dict(row)
                             rec['terminated'] = terminated
                             if terminated:
@@ -248,6 +256,8 @@ class ClusterPostgresReaper:
              dry_run: bool = False, verbose: bool = False) -> List[Dict[str, Any]]:
         """Identifies and terminates idle connections older than idle_minutes."""
         idle_mins = float(idle_minutes)
+        if math.isnan(idle_mins) or math.isinf(idle_mins):
+            raise ValueError(f"idle_minutes must be a finite number, got: {idle_minutes!r}")
         if idle_mins < 0.0 or idle_mins > 1440.0:
             raise ValueError(f"idle_minutes must be between 0.0 and 1440.0, got: {idle_minutes}")
 

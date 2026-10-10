@@ -22,7 +22,7 @@ from psycopg2.extras import RealDictCursor
 import os
 
 # Import the reaper module
-from reap_idle_connections import LocalPostgresReaper, ClusterPostgresReaper, run_reaper
+from reap_idle_connections import LocalPostgresReaper, ClusterPostgresReaper, run_reaper, REAPER_LOCK_KEY
 
 DB_CONFIG = {
     'host': '127.0.0.1',
@@ -192,10 +192,10 @@ def test_advisory_lock_concurrency():
     # Open connection 1 and acquire the reaper advisory lock
     conn_lock = psycopg2.connect(**DB_CONFIG)
     cur_lock = conn_lock.cursor()
-    cur_lock.execute("SELECT pg_try_advisory_lock(hashtext('pg_connection_pool_reaper'));")
+    cur_lock.execute("SELECT pg_try_advisory_lock(%s);", (REAPER_LOCK_KEY,))
     locked = cur_lock.fetchone()[0]
     assert locked is True, "Failed to acquire test advisory lock on connection 1"
-    log("Acquired pg_connection_pool_reaper advisory lock on connection 1", "PASS")
+    log("Acquired REAPER_LOCK_KEY advisory lock on connection 1", "PASS")
 
     # Now attempt to run reaper on connection 2. It must safely detect lock contention and skip gracefully without crashing
     reaper = LocalPostgresReaper(**DB_CONFIG)
@@ -204,17 +204,30 @@ def test_advisory_lock_concurrency():
     log("Reaper cleanly skipped execution without collision or deadlock while lock was held", "PASS")
 
     # Release the lock on connection 1
-    cur_lock.execute("SELECT pg_advisory_unlock(hashtext('pg_connection_pool_reaper'));")
+    cur_lock.execute("SELECT pg_advisory_unlock(%s);", (REAPER_LOCK_KEY,))
     unlocked = cur_lock.fetchone()[0]
     assert unlocked is True, "Failed to release test advisory lock"
     cur_lock.close()
     conn_lock.close()
     log("Released advisory lock on connection 1", "PASS")
 
+def test_reap_rejects_nonfinite_idle_minutes():
+    log("=== TEST 6: Non-Finite & Malicious idle_minutes Validation (CWE-20) ===", "INFO")
+    reaper = LocalPostgresReaper(**DB_CONFIG)
+    bad_inputs = ["nan", "inf", "-inf", float("nan"), float("inf"), float("-inf"), -0.1, 1440.1]
+    for bad in bad_inputs:
+        try:
+            reaper.reap(idle_minutes=bad, dry_run=True)
+            assert False, f"Expected ValueError for bad input {bad!r}, but no error was raised!"
+        except ValueError:
+            pass
+    log("Successfully rejected all non-finite, NaN, Inf, and out-of-bounds idle_minutes inputs", "PASS")
+
 if __name__ == '__main__':
     try:
         test_active_and_iit_immunity()
         test_advisory_lock_concurrency()
+        test_reap_rejects_nonfinite_idle_minutes()
         test_cluster_sql_predicate()
         test_full_reaper_limits()
         log("\n🎉 ALL ADVERSARIAL REAPER TESTS PASSED 100%!", "PASS")
