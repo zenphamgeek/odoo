@@ -47,14 +47,16 @@ export class NavBar extends Component {
     debugMode = usePlugin(DebugModePlugin);
 
     scope = useScope();
+    isAdapting = false;
 
     setup() {
+        this.isAdapting = false;
         this.currentAppSectionsExtra = [];
         this.actionService = useService("action");
         this.menuService = useService("menu");
         this.offlinePlugin = usePlugin(OfflinePlugin);
         this.pwa = useService("pwa");
-        const debouncedAdapt = debounce(this.adapt.bind(this), 250);
+        const debouncedAdapt = debounce(this.adapt.bind(this), 100);
         onWillDestroy(() => debouncedAdapt.cancel());
         useListener(window, "resize", debouncedAdapt);
 
@@ -166,7 +168,7 @@ export class NavBar extends Component {
      *     By the end of this method another render may occur depending on the adaptation result.
      */
     async adapt() {
-        if (!this.root()) {
+        if (!this.root() || this.isAdapting) {
             /** @todo do we still need this check? */
             // currently, the promise returned by 'render' is resolved at the end of
             // the rendering even if the component has been destroyed meanwhile, so we
@@ -182,65 +184,117 @@ export class NavBar extends Component {
             return;
         }
 
-        // Save initial state to further check if new render has to be done.
-        const initialAppSectionsExtra = this.currentAppSectionsExtra;
-        const firstInitialAppSectionExtra = [...initialAppSectionsExtra].shift();
-        const initialAppId = firstInitialAppSectionExtra && firstInitialAppSectionExtra.appID;
+        this.isAdapting = true;
+        try {
+            // Save initial state to further check if new render has to be done.
+            const initialAppSectionsExtra = this.currentAppSectionsExtra;
+            const initialSectionIds = initialAppSectionsExtra
+                .map((s) => `${s?.appID || ""}:${s?.id}`)
+                .join(",");
 
-        // Restore (needed to get offset widths)
-        const sections = [
-            ...sectionsMenu.querySelectorAll(":scope > *:not(.o_menu_sections_more)"),
-        ];
-        for (const section of sections) {
-            section.classList.remove("d-none");
-        }
-        this.currentAppSectionsExtra = [];
-
-        // ------- Check overflowing sections -------
-        // use getBoundingClientRect to get unrounded values for width in order to avoid rounding problem
-        // with offsetWidth.
-        const sectionsAvailableWidth = getBoundingClientRect.call(sectionsMenu).width;
-        const sectionsTotalWidth = sections.reduce(
-            (sum, s) => sum + getBoundingClientRect.call(s).width,
-            0
-        );
-        if (sectionsAvailableWidth < sectionsTotalWidth) {
-            // Sections are overflowing
-            // Initial width is harcoded to the width the more menu dropdown will take
-            let width = 46;
+            // Restore (needed to get offset widths)
+            const sections = [
+                ...sectionsMenu.querySelectorAll(":scope > *:not(.o_menu_sections_more)"),
+            ];
             for (const section of sections) {
-                if (sectionsAvailableWidth < width + section.offsetWidth) {
-                    // Last sections are overflowing
-                    const overflowingSections = sections.slice(sections.indexOf(section));
-                    overflowingSections.forEach((s) => {
-                        // Hide from normal menu
-                        s.classList.add("d-none");
-                        // Show inside "more" menu
-                        const sectionId =
-                            s.dataset.section ||
-                            s.querySelector("[data-section]").getAttribute("data-section");
-                        const currentAppSection = this.currentAppSections.find(
-                            (appSection) => appSection.id.toString() === sectionId
-                        );
-                        this.currentAppSectionsExtra.push(currentAppSection);
-                    });
-                    break;
-                }
-                width += section.offsetWidth;
+                section.classList.remove("d-none");
             }
-        }
+            this.currentAppSectionsExtra = [];
 
-        // ------- Final rendering -------
-        const firstCurrentAppSectionExtra = [...this.currentAppSectionsExtra].shift();
-        const currentAppId = firstCurrentAppSectionExtra && firstCurrentAppSectionExtra.appID;
-        if (
-            initialAppSectionsExtra.length === this.currentAppSectionsExtra.length &&
-            initialAppId === currentAppId
-        ) {
-            // Do not render if more menu items stayed the same.
-            return;
+            // ------- Check overflowing sections -------
+            // Calculate true physical geometric available space bounded by Brand and Systray
+            const navEl = this.root()?.querySelector(".o_main_navbar") || this.root();
+            const systrayEl = navEl?.querySelector(".o_menu_systray");
+            const brandEl =
+                navEl?.querySelector(".o_menu_brand_wrapper") ||
+                navEl?.querySelector(".o_menu_brand");
+
+            const sectionsRect = getBoundingClientRect.call(sectionsMenu);
+            let sectionsAvailableWidth = sectionsRect.width;
+
+            if (navEl && systrayEl) {
+                const navRect = getBoundingClientRect.call(navEl);
+                const systrayRect = getBoundingClientRect.call(systrayEl);
+                const navStyle = window.getComputedStyle(navEl);
+                const paddingRight = parseFloat(navStyle.paddingRight) || 0;
+
+                // Physical right boundary where sections must stop before hitting systray
+                const maxRight = navRect.right - paddingRight - systrayRect.width;
+
+                // Physical left boundary where sections start (after brand wrapper)
+                const brandRight = brandEl
+                    ? getBoundingClientRect.call(brandEl).right
+                    : sectionsRect.left;
+                const effectiveLeft = Math.max(sectionsRect.left, brandRight);
+
+                // Safety buffer of 12px absorbs subpixel rounding, flex gaps, and borders
+                const safetyBuffer = 12;
+                const geometricSpace = Math.max(0, maxRight - effectiveLeft - safetyBuffer);
+
+                // Bound sectionsAvailableWidth by physical geometric free space
+                sectionsAvailableWidth = Math.min(sectionsRect.width, geometricSpace);
+            }
+
+            const sectionsTotalWidth = sections.reduce(
+                (sum, s) => sum + getBoundingClientRect.call(s).width,
+                0
+            );
+
+            if (sectionsAvailableWidth < sectionsTotalWidth) {
+                // Determine accurate reserved width for the More button (min 58px)
+                const moreBtn = sectionsMenu.querySelector(".o_menu_sections_more");
+                let moreReservedWidth = 58;
+                if (moreBtn) {
+                    const measured = getBoundingClientRect.call(moreBtn).width;
+                    if (measured > 0) {
+                        moreReservedWidth = Math.max(58, Math.ceil(measured));
+                    }
+                }
+
+                let width = moreReservedWidth;
+                for (const section of sections) {
+                    const sectionWidth = getBoundingClientRect.call(section).width;
+                    if (sectionsAvailableWidth < width + sectionWidth) {
+                        // Last sections are overflowing
+                        const overflowingSections = sections.slice(sections.indexOf(section));
+                        overflowingSections.forEach((s) => {
+                            // Hide from normal menu
+                            s.classList.add("d-none");
+                            // Show inside "more" menu
+                            const sectionId =
+                                s.dataset.section ||
+                                s.querySelector("[data-section]")?.getAttribute("data-section");
+                            const currentAppSection = this.currentAppSections.find(
+                                (appSection) => appSection.id.toString() === sectionId
+                            );
+                            if (
+                                currentAppSection &&
+                                !this.currentAppSectionsExtra.includes(currentAppSection)
+                            ) {
+                                this.currentAppSectionsExtra.push(currentAppSection);
+                            }
+                        });
+                        break;
+                    }
+                    width += sectionWidth;
+                }
+            }
+
+            // ------- Final rendering -------
+            const currentSectionIds = this.currentAppSectionsExtra
+                .map((s) => `${s?.appID || ""}:${s?.id}`)
+                .join(",");
+            if (
+                initialAppSectionsExtra.length === this.currentAppSectionsExtra.length &&
+                initialSectionIds === currentSectionIds
+            ) {
+                // Do not render if more menu items stayed the same.
+                return;
+            }
+            this.render();
+        } finally {
+            this.isAdapting = false;
         }
-        this.render();
     }
 
     render() {

@@ -64,12 +64,16 @@ def _ensure_odoo_addons_paths() -> None:
             "/home/zen/O20/enterprise",
         ])
 
+        persistent_custom = "/var/lib/insilos/filestore/custom_addons"
+        if os.path.isdir(persistent_custom) and persistent_custom not in candidates:
+            candidates.append(persistent_custom)
+
         for p in candidates:
             if os.path.isdir(p) and p not in odoo.addons.__path__:
                 odoo.addons.__path__.append(p)
 
         # Crucial for PEP 420 _NamespacePath: prevent Python from resetting __path__ to sys.path
-        if hasattr(odoo.addons, "__path__"):
+        if hasattr(odoo.addons, "__path__") and hasattr(odoo.addons.__path__, "_path_finder"):
             odoo.addons.__path__._path_finder = lambda *a: None
 
         importlib.invalidate_caches()

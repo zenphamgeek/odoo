@@ -16,7 +16,7 @@
           t-out="this.currentApp.name"
           class="'o_menu_brand d-flex'"
           onSelected="() => this.onNavBarDropdownItemSelection(this.currentApp)"
-          attrs="{ href: this.getMenuItemHref(this.currentApp), 'data-menu-xmlid': this.currentApp.xmlid, 'data-section': this.currentApp.id }"
+          attrs="{ title: this.currentApp.name, href: this.getMenuItemHref(this.currentApp), 'data-menu-xmlid': this.currentApp.xmlid, 'data-section': this.currentApp.id }"
         />
 
         <div class="o_navbar_breadcrumbs d-contents"/>

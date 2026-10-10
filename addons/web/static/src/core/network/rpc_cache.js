@@ -169,10 +169,15 @@ export class RPCCache {
                                 expires: now + maxAge,
                             };
                             this.indexedDB.write(table, key, diskEntry).catch((e) => {
-                                if (e instanceof IDBQuotaExceededError) {
+                                if (
+                                    e instanceof IDBQuotaExceededError ||
+                                    e?.message?.includes?.("NO_SPACE") ||
+                                    e?.message?.includes?.("FILE_ERROR") ||
+                                    e?.message?.includes?.("IO error")
+                                ) {
                                     this.indexedDB.deleteDatabase();
                                 } else {
-                                    throw e;
+                                    console.warn("Failed to write to RPC disk cache:", e?.message || e);
                                 }
                             });
                         });
@@ -225,6 +230,10 @@ export class RPCCache {
                                 resolve(decrypted);
                                 fromCacheValue = decrypted;
                             }
+                        })
+                        .catch((e) => {
+                            // Disk read failure should safely fallback to network
+                            console.warn("Failed to read from RPC disk cache:", e?.message || e);
                         })
                         .finally(() => fromCache.resolve());
                 } else {

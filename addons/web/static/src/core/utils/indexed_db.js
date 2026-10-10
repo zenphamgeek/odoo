@@ -240,10 +240,14 @@ export class IndexedDB {
                 Promise.resolve(callback(db))
                     .then(resolve)
                     .catch(async (e) => {
-                        if (e.name === "QuotaExceededError") {
+                        if (
+                            e?.name === "QuotaExceededError" ||
+                            e?.message?.includes?.("NO_SPACE") ||
+                            e?.message?.includes?.("FILE_ERROR")
+                        ) {
                             const { quota, usage } = (await navigator.storage?.estimate?.()) || {};
                             console.error(
-                                `IndexedDB error: Quota Exceeded (${formatStorageSize(
+                                `IndexedDB error: Storage / Quota Exceeded (${formatStorageSize(
                                     usage
                                 )} out of ${formatStorageSize(quota)} used)`
                             );

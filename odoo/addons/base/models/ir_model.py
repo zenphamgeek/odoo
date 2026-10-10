@@ -334,7 +334,7 @@ class IrModel(models.Model):
             rev_aliases = getattr(self.pool, 'REVERSE_MODEL_ALIASES', {})
             alt = aliases.get(value) or rev_aliases.get(value)
             if alt:
-                from odoo.orm.domains import Domain
+                from insilos.orm.domains import Domain
                 dom1 = super()._search_display_name(operator, value)
                 dom2 = super()._search_display_name(operator, alt)
                 return Domain.OR([dom1, dom2])
