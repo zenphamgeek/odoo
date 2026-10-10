@@ -69,7 +69,12 @@ IDENTIFIER_REGEX = re.compile(r"\A[a-zA-Z_][a-zA-Z0-9_$]{0,62}\Z")
 K8S_LABEL_REGEX = re.compile(r"\A[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?\Z")
 
 # Kubernetes DNS-1123 subdomain: lowercase alphanumeric, hyphens and dots, 1-253 chars (pod names).
-K8S_SUBDOMAIN_REGEX = re.compile(r"\A[a-z0-9]([-a-z0-9.]{0,251}[a-z0-9])?\Z")
+# Enforces that each dot-separated label is a valid DNS-1123 label (rejects '..', '.-', '-.').
+K8S_SUBDOMAIN_REGEX = re.compile(
+    r"\A(?=.{1,253}\Z)"
+    r"[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?"
+    r"(\.[a-z0-9]([-a-z0-9]{0,61}[a-z0-9])?)*\Z"
+)
 
 # Backward-compatibility alias
 K8S_NAME_REGEX = K8S_SUBDOMAIN_REGEX
@@ -220,13 +225,16 @@ class ClusterPostgresReaper:
         self.user = user
         self.dbname = dbname
 
-    def _run_psql_json(self, sql: str) -> Any:
+    def _run_psql_json(self, sql: str, psql_vars: Optional[Dict[str, str]] = None) -> Any:
         wrapper_sql = f"SELECT json_agg(t) FROM ({sql.strip().rstrip(';')}) t;"
         cmd = [
-            "kubectl", "exec", "-n", self.namespace, self.pod, "--",
-            "psql", "-U", self.user, "-d", self.dbname, "-t", "-A", "-c", wrapper_sql
+            "kubectl", "exec", "-i", "-n", self.namespace, self.pod, "--",
+            "psql", "-U", self.user, "-d", self.dbname, "-t", "-A"
         ]
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
+        if psql_vars:
+            for k, v in psql_vars.items():
+                cmd.extend(["-v", f"{k}={v}"])
+        res = subprocess.run(cmd, input=wrapper_sql, capture_output=True, text=True, timeout=25)
         if res.returncode != 0:
             raise RuntimeError(f"Cluster psql failed ({res.returncode}): {res.stderr.strip()}")
         out = res.stdout.strip()
@@ -238,12 +246,15 @@ class ClusterPostgresReaper:
             # Fallback if json_agg returns null or empty
             return []
 
-    def _run_psql_scalar(self, sql: str) -> str:
+    def _run_psql_scalar(self, sql: str, psql_vars: Optional[Dict[str, str]] = None) -> str:
         cmd = [
-            "kubectl", "exec", "-n", self.namespace, self.pod, "--",
-            "psql", "-U", self.user, "-d", self.dbname, "-t", "-A", "-c", sql
+            "kubectl", "exec", "-i", "-n", self.namespace, self.pod, "--",
+            "psql", "-U", self.user, "-d", self.dbname, "-t", "-A"
         ]
-        res = subprocess.run(cmd, capture_output=True, text=True, timeout=25)
+        if psql_vars:
+            for k, v in psql_vars.items():
+                cmd.extend(["-v", f"{k}={v}"])
+        res = subprocess.run(cmd, input=sql, capture_output=True, text=True, timeout=25)
         if res.returncode != 0:
             raise RuntimeError(f"Cluster psql failed ({res.returncode}): {res.stderr.strip()}")
         return res.stdout.strip()
@@ -263,7 +274,10 @@ class ClusterPostgresReaper:
         """Returns connection count for a specific database."""
         if not IDENTIFIER_REGEX.fullmatch(dbname):
             raise ValueError(f"Invalid database name: {dbname}")
-        out = self._run_psql_scalar(f"SELECT count(*) FROM pg_stat_activity WHERE datname = '{dbname}';")
+        out = self._run_psql_scalar(
+            "SELECT count(*) FROM pg_stat_activity WHERE datname = :'v_dbname';",
+            psql_vars={"v_dbname": dbname}
+        )
         return int(out) if out.isdigit() else 0
 
     def reap(self, idle_minutes: float = 3.0, dbname: Optional[str] = None,
@@ -276,10 +290,13 @@ class ClusterPostgresReaper:
             raise ValueError(f"idle_minutes must be between 0.0 and 1440.0, got: {idle_minutes}")
 
         db_filter = ""
+        psql_vars: Dict[str, str] = {"v_idle_mins": str(idle_mins)}
         if dbname:
             if not IDENTIFIER_REGEX.fullmatch(dbname):
                 raise ValueError(f"Invalid database name: {dbname}")
-            db_filter = f"AND datname = '{dbname}'"
+            db_filter = "AND datname = :'v_dbname'"
+            psql_vars["v_dbname"] = dbname
+
         candidate_sql = f"""
             SELECT
                 pid,
@@ -290,7 +307,7 @@ class ClusterPostgresReaper:
                 round(extract(epoch FROM (now() - state_change)))::int AS idle_seconds
             FROM pg_stat_activity
             WHERE state = 'idle'
-              AND state_change < now() - INTERVAL '{idle_mins} minutes'
+              AND state_change < now() - (:'v_idle_mins'::numeric * INTERVAL '1 minute')
               AND pid != pg_backend_pid()
               AND xact_start IS NULL
               AND (backend_type = 'client backend' OR backend_type IS NULL)
@@ -299,14 +316,17 @@ class ClusterPostgresReaper:
         """
 
         if not dry_run:
-            locked = self._run_psql_scalar(f"SELECT pg_try_advisory_lock({REAPER_LOCK_KEY});")
+            locked = self._run_psql_scalar(
+                "SELECT pg_try_advisory_lock(:'v_lock_key');",
+                psql_vars={"v_lock_key": str(REAPER_LOCK_KEY)}
+            )
             if locked.strip() != 't':
                 log("Another cluster reaper process holds the advisory lock (REAPER_LOCK_KEY). Skipping cycle.", 'WARN')
                 return []
 
         reaped_records = []
         try:
-            candidates = self._run_psql_json(candidate_sql) or []
+            candidates = self._run_psql_json(candidate_sql, psql_vars=psql_vars) or []
             if not candidates:
                 return reaped_records
 
@@ -349,7 +369,10 @@ class ClusterPostgresReaper:
                             log(f"  Cluster PID {pid} could not be terminated (may have already closed)", 'WARN')
         finally:
             if not dry_run:
-                self._run_psql_scalar(f"SELECT pg_advisory_unlock({REAPER_LOCK_KEY});")
+                self._run_psql_scalar(
+                    "SELECT pg_advisory_unlock(:'v_lock_key');",
+                    psql_vars={"v_lock_key": str(REAPER_LOCK_KEY)}
+                )
 
         return reaped_records
 
