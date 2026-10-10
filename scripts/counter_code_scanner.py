@@ -91,7 +91,11 @@ def scan_target(target_path, scope_dirs=None):
             total_files += 1
 
             # Skip binary files or images for text regex, unless checking filenames
-            is_image = fname.lower().endswith(('.png', '.svg', '.jpg', '.ico', '.webp'))
+            is_binary = fname.lower().endswith((
+                '.png', '.svg', '.jpg', '.jpeg', '.ico', '.webp',
+                '.mp4', '.webm', '.mov', '.avi', '.mp3', '.wav',
+                '.pdf', '.zip', '.tar', '.gz', '.woff', '.woff2', '.ttf', '.eot'
+            ))
             
             # Check filename for genesis signatures
             for pattern in GENESIS_PATTERNS:
@@ -103,7 +107,7 @@ def scan_target(target_path, scope_dirs=None):
                         "type": "filename_genesis"
                     })
 
-            if is_image:
+            if is_binary:
                 continue
 
             try:

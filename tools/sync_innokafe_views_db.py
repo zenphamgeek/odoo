@@ -95,6 +95,10 @@ def sync_database(host, port, user, password, dbname):
         ("s_innokafe_roastery_bar", "innokafe_website.s_innokafe_roastery_bar", xml_snippets),
         ("s_innokafe_cta_sample_box", "innokafe_website.s_innokafe_cta_sample_box", xml_snippets),
         ("s_innokafe_grind_guide", "innokafe_website.s_innokafe_grind_guide", xml_snippets),
+        ("s_innokafe_brew_lab", "innokafe_website.s_innokafe_brew_lab", xml_snippets),
+        ("s_innokafe_terroir_deepdive", "innokafe_website.s_innokafe_terroir_deepdive", xml_snippets),
+        ("s_innokafe_roast_mastery", "innokafe_website.s_innokafe_roast_mastery", xml_snippets),
+        ("s_innokafe_subscription_club", "innokafe_website.s_innokafe_subscription_club", xml_snippets),
         ("innokafe_custom_snippets", "innokafe_website.innokafe_custom_snippets", xml_snippets),
     ]
 
@@ -151,25 +155,31 @@ def sync_database(host, port, user, password, dbname):
         """, (json.dumps(homepage_arch_dict), v_id))
         print(f"[✓] Synced InnoKafe homepage arch to insilos_website.insilos_homepage view {v_id}")
 
+    # 2b. Also sync to website.innokafe-homepage (view 15754)
+    cur.execute("SELECT id FROM ir_ui_view WHERE key = 'website.innokafe-homepage'")
+    for row in cur.fetchall():
+        v_id = row[0]
+        cur.execute("""
+            UPDATE ir_ui_view
+            SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
+            WHERE id = %s
+        """, (json.dumps(homepage_arch_dict), v_id))
+        print(f"[✓] Synced InnoKafe homepage arch to website.innokafe-homepage view {v_id}")
+
     # 3. Synchronize InnoKafe Brand Logo to Header Brand views (view 1046 and 1693)
     inno_brand_logo_arch = """<data name="Header Brand Logo">
     <xpath expr="//*[@id='o_fake_navbar_brand']" position="replace">
-        <a data-name="Navbar Logo" href="/" t-attf-class="navbar-brand d-inline-flex align-items-center gap-2 text-decoration-none py-1 text-nowrap #{_link_class}" style="max-width: none !important; width: auto !important; white-space: nowrap !important;">
-            <span class="fs-3 fw-bold inno-serif text-white tracking-tight" style="white-space: nowrap !important;">
-                Inno<span class="text-warning inno-amber-text">Kafe</span>
-            </span>
-            <span class="d-none d-md-inline-block border-start border-secondary ps-2 ms-1 text-uppercase text-muted" style="font-size: 0.68rem; letter-spacing: 0.12em; line-height: 1.1; white-space: nowrap !important;">
-                Specialty<br/>Roastery
-            </span>
+        <a data-name="Navbar Logo" href="/" t-attf-class="navbar-brand logo inno-logo-interactive d-inline-flex align-items-center py-1 me-xl-4 me-3 #{_link_class}">
+            <img class="inno-brand-logo img-fluid" src="/innokafe_website/static/src/img/branding/innokafe_logo_master.svg" alt="InnoKafe - Inspire the Techno" height="38" style="height: 38px; width: auto; max-height: 44px;"/>
         </a>
     </xpath>
 </data>"""
     cur.execute("""
         UPDATE ir_ui_view
         SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
-        WHERE key = 'website.option_header_brand_logo'
+        WHERE id = 1046 OR key = 'website.option_header_brand_logo'
     """, (json.dumps({"en_US": inno_brand_logo_arch}),))
-    print("[✓] Updated website.option_header_brand_logo with InnoKafe brand logo")
+    print("[✓] Updated website.option_header_brand_logo (view 1046) with InnoKafe vector SVG brand logo")
 
     # Also update website.template_header_default (views 1005 and 1693) to include glass style and direct InnoKafe brand
     inno_header_default_arch = """<data name="Template Header Default">
@@ -246,14 +256,9 @@ def sync_database(host, port, user, password, dbname):
                         <!-- Col 1: Brand & Origin Mission -->
                         <div class="col-lg-4 col-md-6">
                             <div class="mb-3">
-                                <a href="/" class="d-inline-flex align-items-center gap-2 text-decoration-none">
-                                    <span class="fs-2 fw-bold inno-serif text-white tracking-tight">
-                                        Inno<span class="text-warning inno-amber-text">Kafe</span>
-                                    </span>
+                                <a href="/" class="d-inline-flex align-items-center text-decoration-none">
+                                    <img src="/innokafe_website/static/src/img/branding/innokafe_logo_white.svg" alt="InnoKafe - Inspire the Techno" height="38" style="height: 38px; width: auto; max-height: 44px;"/>
                                 </a>
-                                <div class="text-warning small font-monospace mt-1" style="letter-spacing: 0.15em;">
-                                    VIETNAM SPECIALTY COFFEE &amp; ROASTERY
-                                </div>
                             </div>
                             <p class="text-secondary small lh-lg mb-4">
                                 Hành trình tôn vinh hạt cà phê Việt Nam nguyên bản từ thủ phủ Robusta Đắk Lắk (Cư M'gar) và Arabica Cầu Đất (1.650m). Chúng tôi kiên định với triết lý Farm-to-Cup, rang mộc Hot-Air chuẩn quốc tế và cam kết 4 Không tuyệt đối vì sức khỏe người thưởng thức.
@@ -415,22 +420,19 @@ def sync_database(host, port, user, password, dbname):
         if not v_row:
             continue
         v_id = v_row[0]
-        cur.execute("SELECT id FROM website_page WHERE url = %s AND website_id = 1", (json.dumps({"en_US": p_url}),))
-        p_row = cur.fetchone()
         title_dict = {"en_US": p_title, "vi_VN": p_title}
         url_dict = {"en_US": p_url}
-        if p_row:
-            cur.execute("""
-                UPDATE website_page
-                SET view_id = %s, name = %s::jsonb, is_published = true, write_date = NOW()
-                WHERE id = %s
-            """, (v_id, json.dumps(title_dict), p_row[0]))
-        else:
+        cur.execute("""
+            UPDATE website_page
+            SET view_id = %s, name = %s::jsonb, is_published = true, write_date = NOW()
+            WHERE url::text LIKE %s
+        """, (v_id, json.dumps(title_dict), f'%"{p_url}"%'))
+        if cur.rowcount == 0:
             cur.execute("""
                 INSERT INTO website_page (name, url, view_id, website_id, is_published, website_indexed, create_uid, write_uid, create_date, write_date)
                 VALUES (%s::jsonb, %s::jsonb, %s, 1, true, true, 1, 1, NOW(), NOW())
             """, (json.dumps(title_dict), json.dumps(url_dict), v_id))
-        print(f"[✓] Page {p_url} mapped to view {v_id} ({p_title})")
+        print(f"[✓] Page {p_url} mapped to view {v_id} ({p_title}) - updated {cur.rowcount} website_page records")
 
     # 10. Clean up and deduplicate navigation menu items
     # Purge any rogue Insilos or orphaned menus

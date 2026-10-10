@@ -15,7 +15,17 @@ import psycopg2
 import mimetypes
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-ASSETS_DIR = os.path.join(BASE_DIR, 'enterprise', 'insilos_website', 'static', 'src', 'img', 'assets_library')
+candidate_dirs = [
+    os.path.join(BASE_DIR, 'enterprise', 'insilos_website', 'static', 'src', 'img', 'assets_library'),
+    "/app/insilos/enterprise/insilos_website/static/src/img/assets_library",
+    "/app/insilos/apps/insilos_website/static/src/img/assets_library",
+    "/home/zen/O20/enterprise/insilos_website/static/src/img/assets_library",
+]
+ASSETS_DIR = candidate_dirs[0]
+for cand in candidate_dirs:
+    if os.path.exists(cand):
+        ASSETS_DIR = cand
+        break
 
 def get_mimetype(filename):
     if filename.endswith('.svg'):

@@ -124,6 +124,8 @@ def sync_database(host, port, user, password, dbname):
         print(f"[✓] Also synced homepage arch to insilos_website.insilos_homepage view {v_id} ({len(homepage_arch_xml)} bytes)")
 
     # Also sync to all website.homepage views (e.g. view 980 and 1688) so native website resolution serves the same hero slider
+    native_homepage_arch_xml = extract_template_arch(xml_homepage, "innoria_homepage_template", "website.homepage")
+    native_homepage_arch_dict = {"en_US": native_homepage_arch_xml}
     cur.execute("SELECT id FROM ir_ui_view WHERE key = 'website.homepage'")
     for row in cur.fetchall():
         v_id = row[0]
@@ -131,8 +133,8 @@ def sync_database(host, port, user, password, dbname):
             UPDATE ir_ui_view
             SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
             WHERE id = %s
-        """, (json.dumps(homepage_arch_dict), v_id))
-        print(f"[✓] Also synced homepage arch to website.homepage view {v_id} ({len(homepage_arch_xml)} bytes)")
+        """, (json.dumps(native_homepage_arch_dict), v_id))
+        print(f"[✓] Also synced homepage arch to website.homepage view {v_id} ({len(native_homepage_arch_xml)} bytes)")
 
     # Ensure all innoria views have active = True
     cur.execute("UPDATE ir_ui_view SET active = true WHERE key LIKE '%innoria%' AND (active IS NULL OR active = false)")
@@ -151,8 +153,10 @@ def sync_database(host, port, user, password, dbname):
     print("[✓] Synchronization committed successfully.")
 
 if __name__ == '__main__':
-    target = sys.argv[1] if len(sys.argv) > 1 else 'local'
-    if target == 'local':
+    target = sys.argv[1] if len(sys.argv) > 1 else 'cluster'
+    if target == 'cluster':
+        sync_database('127.0.0.1', 5433, 'postgres', None, 'innoria_prod')
+    elif target == 'local':
         sync_database('127.0.0.1', 5434, 'odoo', '1NN0R1@2026', 'innoria_prod')
     elif target == 'prod_pod':
         sync_database(
