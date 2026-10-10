@@ -19,6 +19,8 @@ import threading
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
+import os
+
 # Import the reaper module
 from reap_idle_connections import LocalPostgresReaper, ClusterPostgresReaper, run_reaper
 
@@ -26,9 +28,12 @@ DB_CONFIG = {
     'host': '127.0.0.1',
     'port': 5434,
     'user': 'odoo',
-    'password': '1NN0R1@2026',
     'dbname': 'innoria_prod'
 }
+if os.getenv('PGPASSWORD'):
+    DB_CONFIG['password'] = os.getenv('PGPASSWORD')
+elif os.getenv('ODOO_DB_PASSWORD'):
+    DB_CONFIG['password'] = os.getenv('ODOO_DB_PASSWORD')
 
 def log(msg, level="INFO"):
     badges = {"INFO": "[*]", "PASS": "[✓]", "FAIL": "[✗]", "WARN": "[!]"}
@@ -182,9 +187,34 @@ def test_full_reaper_limits():
     
     log("Post-reap connection counts strictly < 40 slots validated on all environments.", "PASS")
 
+def test_advisory_lock_concurrency():
+    log("=== TEST 5: Advisory Session Lock Concurrency & Anti-Collision ===", "INFO")
+    # Open connection 1 and acquire the reaper advisory lock
+    conn_lock = psycopg2.connect(**DB_CONFIG)
+    cur_lock = conn_lock.cursor()
+    cur_lock.execute("SELECT pg_try_advisory_lock(hashtext('pg_connection_pool_reaper'));")
+    locked = cur_lock.fetchone()[0]
+    assert locked is True, "Failed to acquire test advisory lock on connection 1"
+    log("Acquired pg_connection_pool_reaper advisory lock on connection 1", "PASS")
+
+    # Now attempt to run reaper on connection 2. It must safely detect lock contention and skip gracefully without crashing
+    reaper = LocalPostgresReaper(**DB_CONFIG)
+    result = reaper.reap(idle_minutes=0.0, dry_run=False, verbose=True)
+    assert result == [], "Expected empty result when advisory lock is held by peer process"
+    log("Reaper cleanly skipped execution without collision or deadlock while lock was held", "PASS")
+
+    # Release the lock on connection 1
+    cur_lock.execute("SELECT pg_advisory_unlock(hashtext('pg_connection_pool_reaper'));")
+    unlocked = cur_lock.fetchone()[0]
+    assert unlocked is True, "Failed to release test advisory lock"
+    cur_lock.close()
+    conn_lock.close()
+    log("Released advisory lock on connection 1", "PASS")
+
 if __name__ == '__main__':
     try:
         test_active_and_iit_immunity()
+        test_advisory_lock_concurrency()
         test_cluster_sql_predicate()
         test_full_reaper_limits()
         log("\n🎉 ALL ADVERSARIAL REAPER TESTS PASSED 100%!", "PASS")

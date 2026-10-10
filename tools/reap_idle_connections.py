@@ -56,6 +56,9 @@ def format_states(states_dict: Dict[Optional[str], int]) -> str:
     return ", ".join(parts) if parts else "none"
 
 
+IDENTIFIER_REGEX = re.compile(r"^[a-zA-Z0-9_.-]{1,63}$")
+
+
 class LocalPostgresReaper:
     """Manages idle connection reaping on local PostgreSQL instance (port 5434)."""
 
@@ -65,19 +68,31 @@ class LocalPostgresReaper:
         self.host = host
         self.port = port
         self.user = user
-        self.password = password or os.getenv('PGPASSWORD') or os.getenv('ODOO_DB_PASSWORD') or '1NN0R1@2026'
+        self.password = password or os.getenv('PGPASSWORD') or os.getenv('ODOO_DB_PASSWORD') or None
         self.dbname = dbname
 
     def connect(self):
         if not HAS_PSYCOPG2:
             raise RuntimeError("psycopg2 is required for local PostgreSQL connection reaping.")
-        return psycopg2.connect(
-            host=self.host,
-            port=self.port,
-            user=self.user,
-            password=self.password,
-            dbname=self.dbname
-        )
+        conn_kwargs = {
+            'host': self.host,
+            'port': self.port,
+            'user': self.user,
+            'dbname': self.dbname,
+        }
+        if self.password:
+            conn_kwargs['password'] = self.password
+        return psycopg2.connect(**conn_kwargs)
+
+    def acquire_advisory_lock(self, cur) -> bool:
+        """Acquires a session-level advisory lock to serialize reaper runs and prevent races."""
+        cur.execute("SELECT pg_try_advisory_lock(hashtext('pg_connection_pool_reaper'));")
+        row = cur.fetchone()
+        return bool(row and (row['pg_try_advisory_lock'] if isinstance(row, dict) else row[0]))
+
+    def release_advisory_lock(self, cur) -> None:
+        """Releases the session-level advisory lock."""
+        cur.execute("SELECT pg_advisory_unlock(hashtext('pg_connection_pool_reaper'));")
 
     def get_stats(self) -> Tuple[int, Dict[Optional[str], int], int]:
         """Returns (total_connections, states_breakdown, max_connections)."""
@@ -96,7 +111,7 @@ class LocalPostgresReaper:
 
     def get_db_count(self, dbname: str = 'innoria_prod') -> int:
         """Returns connection count for a specific database."""
-        if not re.match(r"^[a-zA-Z0-9_-]+$", dbname):
+        if not IDENTIFIER_REGEX.match(dbname):
             raise ValueError(f"Invalid database name: {dbname}")
         with self.connect() as conn:
             with conn.cursor() as cur:
@@ -107,10 +122,13 @@ class LocalPostgresReaper:
              dry_run: bool = False, verbose: bool = False) -> List[Dict[str, Any]]:
         """Identifies and terminates idle connections older than idle_minutes."""
         idle_mins = float(idle_minutes)
+        if idle_mins < 0.0 or idle_mins > 1440.0:
+            raise ValueError(f"idle_minutes must be between 0.0 and 1440.0, got: {idle_minutes}")
+
         db_filter = ""
         params: List[Any] = [idle_mins]
         if dbname:
-            if not re.match(r"^[a-zA-Z0-9_-]+$", dbname):
+            if not IDENTIFIER_REGEX.match(dbname):
                 raise ValueError(f"Invalid database name: {dbname}")
             db_filter = "AND datname = %s"
             params.append(dbname)
@@ -135,30 +153,37 @@ class LocalPostgresReaper:
         reaped_records = []
         with self.connect() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(candidate_sql, tuple(params))
-                candidates = cur.fetchall()
+                if not dry_run and not self.acquire_advisory_lock(cur):
+                    log("Another reaper process holds the advisory lock (pg_connection_pool_reaper). Skipping cycle.", 'WARN')
+                    return []
+                try:
+                    cur.execute(candidate_sql, tuple(params))
+                    candidates = cur.fetchall()
 
-                for row in candidates:
-                    pid = row['pid']
-                    datname = row['datname']
-                    idle_sec = row['idle_seconds']
+                    for row in candidates:
+                        pid = row['pid']
+                        datname = row['datname']
+                        idle_sec = row['idle_seconds']
 
-                    if dry_run:
-                        if verbose:
-                            log(f"  [DRY-RUN] Would terminate PID {pid} (DB: {datname}, Idle: {idle_sec}s)", 'WARN')
-                        reaped_records.append(dict(row))
-                    else:
-                        cur.execute("SELECT pg_terminate_backend(%s);", (pid,))
-                        terminated = cur.fetchone()['pg_terminate_backend']
-                        rec = dict(row)
-                        rec['terminated'] = terminated
-                        if terminated:
-                            reaped_records.append(rec)
+                        if dry_run:
                             if verbose:
-                                log(f"  Terminated idle PID {pid} on {datname} (idle {idle_sec}s)", 'SUCCESS')
+                                log(f"  [DRY-RUN] Would terminate PID {pid} (DB: {datname}, Idle: {idle_sec}s)", 'WARN')
+                            reaped_records.append(dict(row))
                         else:
-                            if verbose:
-                                log(f"  PID {pid} could not be terminated (may have already closed)", 'WARN')
+                            cur.execute("SELECT pg_terminate_backend(%s);", (pid,))
+                            terminated = cur.fetchone()['pg_terminate_backend']
+                            rec = dict(row)
+                            rec['terminated'] = terminated
+                            if terminated:
+                                reaped_records.append(rec)
+                                if verbose:
+                                    log(f"  Terminated idle PID {pid} on {datname} (idle {idle_sec}s)", 'SUCCESS')
+                            else:
+                                if verbose:
+                                    log(f"  PID {pid} could not be terminated (may have already closed)", 'WARN')
+                finally:
+                    if not dry_run:
+                        self.release_advisory_lock(cur)
 
         return reaped_records
 
@@ -214,7 +239,7 @@ class ClusterPostgresReaper:
 
     def get_db_count(self, dbname: str = 'innoria_prod') -> int:
         """Returns connection count for a specific database."""
-        if not re.match(r"^[a-zA-Z0-9_-]+$", dbname):
+        if not IDENTIFIER_REGEX.match(dbname):
             raise ValueError(f"Invalid database name: {dbname}")
         out = self._run_psql_scalar(f"SELECT count(*) FROM pg_stat_activity WHERE datname = '{dbname}';")
         return int(out) if out.isdigit() else 0
@@ -223,9 +248,12 @@ class ClusterPostgresReaper:
              dry_run: bool = False, verbose: bool = False) -> List[Dict[str, Any]]:
         """Identifies and terminates idle connections older than idle_minutes."""
         idle_mins = float(idle_minutes)
+        if idle_mins < 0.0 or idle_mins > 1440.0:
+            raise ValueError(f"idle_minutes must be between 0.0 and 1440.0, got: {idle_minutes}")
+
         db_filter = ""
         if dbname:
-            if not re.match(r"^[a-zA-Z0-9_-]+$", dbname):
+            if not IDENTIFIER_REGEX.match(dbname):
                 raise ValueError(f"Invalid database name: {dbname}")
             db_filter = f"AND datname = '{dbname}'"
         candidate_sql = f"""
@@ -259,7 +287,9 @@ class ClusterPostgresReaper:
                     log(f"  [DRY-RUN] Would terminate cluster PID {pid} (DB: {datname}, Idle: {idle_sec}s)", 'WARN')
                 reaped_records.append(dict(row))
         else:
-            pids = [row['pid'] for row in candidates]
+            pids = [int(row['pid']) for row in candidates if str(row.get('pid', '')).isdigit() and int(row.get('pid', 0)) > 0]
+            if not pids:
+                return reaped_records
             pids_str = ",".join(str(p) for p in pids)
             batch_sql = f"""
                 SELECT pid, pg_terminate_backend(pid) AS terminated
@@ -295,7 +325,7 @@ def run_reaper(target: str = 'all', idle_minutes: float = 3.0,
                cluster_user: str = 'postgres', cluster_db: str = 'postgres') -> bool:
     """Executes reaper across designated targets and validates limits."""
 
-    local_pass = local_pass or os.getenv('PGPASSWORD') or os.getenv('ODOO_DB_PASSWORD') or '1NN0R1@2026'
+    local_pass = local_pass or os.getenv('PGPASSWORD') or os.getenv('ODOO_DB_PASSWORD') or None
 
     log("=" * 70, 'HEADER')
     log("PostgreSQL Idle Connection Pool Reaper (Safety Guardrail)", 'HEADER')
@@ -433,7 +463,7 @@ def main():
     for name, val in [("local-db", args.local_db), ("cluster-db", args.cluster_db),
                       ("cluster-user", args.cluster_user), ("cluster-pod", args.cluster_pod),
                       ("cluster-ns", args.cluster_ns)]:
-        if val and not re.match(r"^[a-zA-Z0-9_.-]+$", val):
+        if val and not IDENTIFIER_REGEX.match(val):
             print(f"[✗] Invalid characters in CLI argument --{name}: {val}", file=sys.stderr)
             sys.exit(1)
 
