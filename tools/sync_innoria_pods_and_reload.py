@@ -12,9 +12,11 @@ def run_cmd(cmd, check=False):
         raise RuntimeError(f"Command failed ({res.returncode}): {cmd}\n{res.stderr}")
     return res
 
+import re
 print("=== 0. DISCOVERING ACTIVE DEDICATED INNORIA PROD PODS ===")
 pod_out = run_cmd(f"kubectl get pods -n {NAMESPACE} -l app=innoria-prod --field-selector=status.phase=Running -o jsonpath='{{.items[*].metadata.name}}'")
-pods = [p.strip() for p in pod_out.stdout.split() if p.strip()]
+raw_pods = [p.strip() for p in pod_out.stdout.split() if p.strip()]
+pods = [p for p in raw_pods if re.match(r"^[a-zA-Z0-9.-]+$", p)]
 print(f"[✓] Found {len(pods)} running innoria-prod pods: {pods}")
 
 if not pods:
@@ -25,8 +27,8 @@ if not pods:
 print("\n=== 1. PACKAGING targeted insilos_website & insilos_theme_genesis ARCHIVES ===")
 tar_path_website = "/tmp/insilos_website_sync.tar.gz"
 run_cmd(
-    f"tar --exclude='*.mp4' --exclude='static/src/video/gold_masters' -czf {tar_path_website} -C enterprise/insilos_website "
-    f"__manifest__.py controllers views static",
+    f"tar --exclude='static/src/video' --exclude='static/src/img' --exclude='static/src/docs' -czf {tar_path_website} -C enterprise/insilos_website "
+    f"__manifest__.py controllers views static/src/scss static/src/js static/src/icons",
     check=True
 )
 tar_size_web = os.path.getsize(tar_path_website)
@@ -41,11 +43,36 @@ run_cmd(
 tar_size_theme = os.path.getsize(tar_path_theme)
 print(f"[✓] Created {tar_path_theme} ({tar_size_theme} bytes)")
 
+tar_path_media = "/tmp/insilos_media_sync.tar.gz"
+media_files = [
+    "static/src/video/hero_cleanroom_pharma_opt.mp4",
+    "static/src/video/hero_cleanroom_pharma_opt_poster.webp",
+    "static/src/video/hero_fmcg_conveyor_opt.mp4",
+    "static/src/video/hero_fmcg_conveyor_opt_poster.webp",
+    "static/src/video/hero_petrochem_refinery_opt.mp4",
+    "static/src/video/hero_petrochem_refinery_opt_poster.webp",
+    "static/src/video/hero_digiforce_opt.mp4",
+    "static/src/video/hero_digiforce_opt_poster.webp",
+    "static/src/video/hero_contact_opt.mp4",
+    "static/src/video/hero_contact_opt_poster.webp",
+    "static/src/img/innoria/bg_contactus_boardroom.webp",
+    "static/src/img/innoria/bg_digiforce_grid.webp",
+    "static/src/img/innoria/bg_industry_precision.webp",
+]
+existing_media = [m for m in media_files if os.path.exists(os.path.join("enterprise/insilos_website", m))]
+run_cmd(
+    f"tar -czf {tar_path_media} -C enterprise/insilos_website {' '.join(existing_media)}",
+    check=True
+)
+tar_size_media = os.path.getsize(tar_path_media)
+print(f"[✓] Created {tar_path_media} ({tar_size_media:,} bytes)")
+
 print("\n=== 2. DEPLOYING ARCHIVES TO ALL INNORIA PODS IN PARALLEL ===")
 deploy_procs = []
 for pod in pods:
     cmd = (
         f"kubectl cp -n {NAMESPACE} -c {CONTAINER} {tar_path_website} {pod}:/tmp/insilos_website_sync.tar.gz && "
+        f"kubectl cp -n {NAMESPACE} -c {CONTAINER} {tar_path_media} {pod}:/tmp/insilos_media_sync.tar.gz && "
         f"kubectl cp -n {NAMESPACE} -c {CONTAINER} {tar_path_theme} {pod}:/tmp/insilos_theme_genesis_sync.tar.gz && "
         f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_innoria_views_db.py {pod}:/tmp/sync_innoria_views_db.py && "
         f"kubectl cp -n {NAMESPACE} -c {CONTAINER} tools/sync_logos_to_assets_library.py {pod}:/tmp/sync_logos_to_assets_library.py && "
@@ -53,11 +80,13 @@ for pod in pods:
         f"kubectl exec -n {NAMESPACE} {pod} -c {CONTAINER} -- sh -c '"
         f"mkdir -p /app/insilos/enterprise/insilos_website /app/insilos/enterprise/insilos_theme_genesis /app/insilos/apps/insilos_website /app/insilos/apps/insilos_theme_genesis && "
         f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/enterprise/insilos_website/ && "
+        f"tar -xzf /tmp/insilos_media_sync.tar.gz -C /app/insilos/enterprise/insilos_website/ && "
         f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
+        f"tar -xzf /tmp/insilos_media_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
         f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/enterprise/insilos_theme_genesis/ && "
         f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/apps/insilos_theme_genesis/ && "
         f"chown -R insilos:insilos /app/insilos/enterprise /app/insilos/apps/insilos_website /app/insilos/apps/insilos_theme_genesis /tmp/sync_innoria_views_db.py /tmp/sync_logos_to_assets_library.py /tmp/safe_asset_warmup.py && "
-        f"rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz'"
+        f"rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz'"
     )
     p = subprocess.Popen(cmd, shell=True)
     deploy_procs.append((pod, p))
