@@ -1,5 +1,6 @@
 import { EventBus } from "@insilos/owl";
 import { browser } from "../browser/browser";
+import { cookie } from "../browser/cookie";
 import { omit } from "../utils/objects";
 
 /**
@@ -97,9 +98,10 @@ export function rpc(url, params = {}, settings = {}) {
 rpc._rpc = function (url, params, settings) {
     validateRPCSettings(settings);
     if (settings.cache && rpcCache) {
+        const cids = cookie.get("cids") || "";
         return rpcCache.read(
             params?.method || url, // table
-            JSON.stringify({ url, params }), // key
+            JSON.stringify({ url, params, cids }), // key
             () => rpc._rpc(url, params, omit(settings, "cache")),
             typeof settings.cache === "boolean" ? {} : settings.cache // cache can be boolean or an object with options (or an empty object of course)
         );

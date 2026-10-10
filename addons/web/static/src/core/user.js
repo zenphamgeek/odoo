@@ -1,6 +1,6 @@
 import { location, browser } from "@web/core/browser/browser";
 import { pyToJsLocale } from "@web/core/l10n/utils/locales";
-import { rpc } from "@web/core/network/rpc";
+import { rpc, rpcBus } from "@web/core/network/rpc";
 import { Cache } from "@web/core/utils/cache";
 import { session } from "@web/session";
 import { ensureArray, sortBy } from "./utils/arrays";
@@ -79,6 +79,7 @@ export function _makeUser(session) {
         Object.assign(context, { allowed_company_ids: activeCompanies.map((c) => c.id) });
 
         userBus.trigger("ACTIVE_COMPANIES_CHANGED");
+        rpcBus.trigger("CLEAR-CACHES");
     }
 
     // Companies information

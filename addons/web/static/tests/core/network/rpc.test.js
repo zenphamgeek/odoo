@@ -154,6 +154,8 @@ test("rpc can send additional headers", async () => {
             new Headers([
                 ["Content-Type", "application/json"],
                 ["Hello", "World"],
+                ["X-Insilos-Client", "web/20.0"],
+                ["X-Insilos-Session", "insilos_session_id"],
             ])
         );
         return { result: true };
