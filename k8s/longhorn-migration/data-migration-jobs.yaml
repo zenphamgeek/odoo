@@ -1,0 +1,119 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: innoria-filestore-sync-to-longhorn
+  namespace: production
+  labels:
+    migration: filestore-longhorn
+    app: innoria-prod
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        migration: filestore-longhorn
+        app: innoria-prod
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector:
+        kubernetes.io/hostname: sg2-a1-worker-01.inno
+      containers:
+      - name: filestore-migrator
+        image: alpine:latest
+        command: ["sh", "-c"]
+        args:
+        - |
+          set -e
+          echo "=== 1. INSTALLING RSYNC & TOOLS ==="
+          apk add --no-cache rsync bash coreutils
+
+          echo "=== 2. VERIFYING SOURCE MOUNT ==="
+          ls -la /source/
+          SOURCE_SIZE=$(du -sh /source/ | cut -f1)
+          echo "[*] Source size: $SOURCE_SIZE"
+
+          echo "=== 3. EXECUTING HIGH-FIDELITY RSYNC TO LONGHORN ==="
+          rsync -aHAXv --delete /source/ /dest/
+
+          echo "=== 4. VERIFYING DESTINATION MOUNT ==="
+          ls -la /dest/
+          DEST_SIZE=$(du -sh /dest/ | cut -f1)
+          echo "[*] Destination size: $DEST_SIZE"
+
+          echo "=== 5. CHECKING FILE PERMISSIONS (INSILOS UID 1000) ==="
+          chown -R 1000:1000 /dest/
+
+          echo "[✓] Innoria Filestore Migration Complete!"
+        volumeMounts:
+        - name: src-volume
+          mountPath: /source
+          readOnly: true
+        - name: dst-volume
+          mountPath: /dest
+      volumes:
+      - name: src-volume
+        persistentVolumeClaim:
+          claimName: innoria-filestore-local
+      - name: dst-volume
+        persistentVolumeClaim:
+          claimName: innoria-filestore-longhorn
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: insilos-filestore-sync-to-longhorn
+  namespace: production
+  labels:
+    migration: filestore-longhorn
+    app: insilos-saas
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        migration: filestore-longhorn
+        app: insilos-saas
+    spec:
+      restartPolicy: OnFailure
+      nodeSelector:
+        kubernetes.io/hostname: sg2-a1-master-02.inno
+      containers:
+      - name: filestore-migrator
+        image: alpine:latest
+        command: ["sh", "-c"]
+        args:
+        - |
+          set -e
+          echo "=== 1. INSTALLING RSYNC & TOOLS ==="
+          apk add --no-cache rsync bash coreutils
+
+          echo "=== 2. VERIFYING SOURCE MOUNT ==="
+          ls -la /source/
+          SOURCE_SIZE=$(du -sh /source/ | cut -f1)
+          echo "[*] Source size: $SOURCE_SIZE"
+
+          echo "=== 3. EXECUTING HIGH-FIDELITY RSYNC TO LONGHORN ==="
+          rsync -aHAXv --delete /source/ /dest/
+
+          echo "=== 4. VERIFYING DESTINATION MOUNT ==="
+          ls -la /dest/
+          DEST_SIZE=$(du -sh /dest/ | cut -f1)
+          echo "[*] Destination size: $DEST_SIZE"
+
+          echo "=== 5. CHECKING FILE PERMISSIONS (INSILOS UID 1000) ==="
+          chown -R 1000:1000 /dest/
+
+          echo "[✓] Insilos Filestore Migration Complete!"
+        volumeMounts:
+        - name: src-volume
+          mountPath: /source
+          readOnly: true
+        - name: dst-volume
+          mountPath: /dest
+      volumes:
+      - name: src-volume
+        persistentVolumeClaim:
+          claimName: insilos-filestore
+      - name: dst-volume
+        persistentVolumeClaim:
+          claimName: insilos-filestore-longhorn

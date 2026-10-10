@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: innoria-filestore-longhorn
+  namespace: production
+  labels:
+    app: innoria-prod
+    tier: storage
+    storage-engine: longhorn
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: longhorn-storage-rep1
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: insilos-filestore-longhorn
+  namespace: production
+  labels:
+    app: insilos-saas
+    tier: storage
+    storage-engine: longhorn
+spec:
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: longhorn-storage-rep1
+  resources:
+    requests:
+      storage: 20Gi

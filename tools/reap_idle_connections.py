@@ -156,7 +156,7 @@ class ClusterPostgresReaper:
     """Manages idle connection reaping on Kubernetes cluster PostgreSQL instance."""
 
     def __init__(self, namespace: str = 'database', pod: str = 'postgres-0',
-                 user: str = 'insilos', dbname: str = 'postgres'):
+                 user: str = 'postgres', dbname: str = 'postgres'):
         self.namespace = namespace
         self.pod = pod
         self.user = user
@@ -405,7 +405,7 @@ def main():
     parser.add_argument('--local-db', default='innoria_prod', help="Local PostgreSQL database (default: innoria_prod)")
     parser.add_argument('--cluster-ns', default='database', help="Cluster PostgreSQL namespace (default: database)")
     parser.add_argument('--cluster-pod', default='postgres-0', help="Cluster PostgreSQL pod (default: postgres-0)")
-    parser.add_argument('--cluster-user', default='insilos', help="Cluster PostgreSQL user (default: insilos)")
+    parser.add_argument('--cluster-user', default='postgres', help="Cluster PostgreSQL user (default: postgres)")
     parser.add_argument('--cluster-db', default='postgres', help="Cluster PostgreSQL database (default: postgres)")
 
     args = parser.parse_args()

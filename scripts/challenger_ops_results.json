@@ -1,0 +1,116 @@
+{
+  "timestamp": "2026-10-10T21:02:30Z",
+  "deployment_script_inspection": {
+    "no_sigterm": true,
+    "no_blanket_kills": true,
+    "has_sigint": true,
+    "has_stagger": true,
+    "sequential_pod_rollout": true,
+    "dual_warmup": true,
+    "health_probe_both_hosts": true,
+    "safety_gates_integrated": true,
+    "compile_ok": true,
+    "status": "PASS"
+  },
+  "schema_invariance_audit": {
+    "script_exit_code": 0,
+    "odoo20_dev": {
+      "clean": true,
+      "leaked_tables": [],
+      "leaked_columns": [],
+      "leaked_models": [],
+      "leaked_fields": [],
+      "leaked_modules": [],
+      "leaked_views": []
+    },
+    "insilos20_dev": {
+      "clean": true,
+      "leaked_tables": [],
+      "leaked_columns": [],
+      "leaked_models": [],
+      "leaked_fields": [],
+      "leaked_modules": [],
+      "leaked_views": []
+    },
+    "innoria_prod": {
+      "clean": true,
+      "leaked_tables": [],
+      "leaked_columns": [],
+      "leaked_models": [],
+      "leaked_fields": [],
+      "leaked_modules": [],
+      "leaked_views": []
+    },
+    "reference_innokafe_prod": {
+      "module_installed": true,
+      "columns": [
+        "catalog_item.innokafe_elevation",
+        "catalog_item.innokafe_varietal",
+        "catalog_item.innokafe_process",
+        "catalog_item.innokafe_roast_level",
+        "catalog_item.innokafe_tasting_notes",
+        "catalog_item.innokafe_sensory_vector",
+        "catalog_item.innokafe_cupping_score"
+      ]
+    },
+    "status": "PASS"
+  },
+  "connection_pool_audit": {
+    "local": {
+      "total": 15,
+      "innoria_prod": 1,
+      "under_40": true,
+      "breakdown": {
+        "system/bg": 8,
+        "active": 1,
+        "idle in transaction": 1,
+        "idle": 4,
+        "idle in transaction (aborted)": 1
+      }
+    },
+    "cluster": {
+      "total": 65,
+      "innoria_prod": 13,
+      "under_40": true
+    },
+    "status": "PASS"
+  },
+  "pod_runtime_verification": {
+    "pods": [
+      "insilos-saas-app-6ffc759bc9-djcxk",
+      "insilos-saas-app-6ffc759bc9-dn4tv",
+      "insilos-saas-app-6ffc759bc9-f5bkz"
+    ],
+    "workers": [
+      237,
+      239,
+      241,
+      243,
+      245
+    ],
+    "probe_output": [
+      "Innoria:200:85437",
+      "InnoKafe:200:169739"
+    ],
+    "status": "PASS"
+  },
+  "live_edge_verification": {
+    "Innoria": {
+      "url": "https://innoria.insilos.com/",
+      "status_code": 200,
+      "latency_sec": 0.71,
+      "expected_ok": true,
+      "isolation_ok": true
+    },
+    "InnoKafe": {
+      "url": "https://innokafe.insilos.com/",
+      "status_code": 200,
+      "latency_sec": 0.56,
+      "expected_ok": true,
+      "isolation_ok": true
+    },
+    "status": "PASS"
+  },
+  "overall_verdict": "CONFIRM",
+  "elapsed_seconds": 24.21
+}

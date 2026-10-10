@@ -25,7 +25,7 @@ spec:
         tier: frontend
     spec:
       nodeSelector:
-        kubernetes.io/hostname: sg2-a1-master-02.inno
+        kubernetes.io/hostname: sg2-a1-worker-01.inno
       imagePullSecrets:
       - name: docker-innoriahub
       serviceAccount: insilos-tenant-job-controller
@@ -63,7 +63,7 @@ spec:
         imagePullPolicy: Always
         args:
         - --data-dir=/var/lib/insilos/filestore
-        - --addons-path=/app/insilos/addons,/app/insilos/apps
+        - --addons-path=/var/lib/insilos/filestore/custom_addons,/app/insilos/addons,/app/insilos/apps
         - --db_host=$(DB_HOST)
         - --db_port=$(DB_PORT)
         - --db_user=$(DB_USER)
@@ -161,6 +161,12 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/insilos/filestore
           name: filestore
+        - mountPath: /app/insilos/enterprise/insilos_website
+          name: filestore
+          subPath: custom_addons/insilos_website
+        - mountPath: /app/insilos/enterprise/insilos_theme_genesis
+          name: filestore
+          subPath: custom_addons/insilos_theme_genesis
       - name: market-data-sidecar
         image: docker.io/innoriahub/insilos-market-data-sidecar@sha256:64b883c98a5a35807dc1413f9744b9114426253d6940e40e7f1f70ad859136b7
         imagePullPolicy: IfNotPresent
@@ -198,7 +204,7 @@ spec:
       volumes:
       - name: filestore
         persistentVolumeClaim:
-          claimName: insilos-filestore
+          claimName: innoria-filestore-longhorn
       - emptyDir: {}
         name: market-data-sidecar-tmp
 ---

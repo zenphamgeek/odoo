@@ -57,7 +57,7 @@ spec:
       containers:
       - args:
         - --data-dir=/var/lib/insilos/filestore
-        - --addons-path=/app/insilos/addons,/app/insilos/apps
+        - --addons-path=/var/lib/insilos/filestore/custom_addons,/app/insilos/addons,/app/insilos/apps
         - --db_host=$(DB_HOST)
         - --db_port=$(DB_PORT)
         - --db_user=$(DB_USER)
@@ -158,6 +158,12 @@ spec:
         volumeMounts:
         - mountPath: /var/lib/insilos/filestore
           name: filestore
+        - mountPath: /app/insilos/enterprise/insilos_website
+          name: filestore
+          subPath: custom_addons/insilos_website
+        - mountPath: /app/insilos/enterprise/insilos_theme_genesis
+          name: filestore
+          subPath: custom_addons/insilos_theme_genesis
       - env:
         - name: SIDECAR_PORT
           value: '8787'
@@ -260,6 +266,6 @@ spec:
       volumes:
       - name: filestore
         persistentVolumeClaim:
-          claimName: insilos-filestore
+          claimName: insilos-filestore-longhorn
       - emptyDir: {}
         name: market-data-sidecar-tmp

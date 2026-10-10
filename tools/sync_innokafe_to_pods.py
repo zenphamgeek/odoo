@@ -18,6 +18,7 @@ Executes:
 
 import hashlib
 import os
+import re
 import subprocess
 import sys
 import time

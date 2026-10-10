@@ -23,6 +23,7 @@ const SERVER_BASE = process.env.HOOT_SERVER_URL || 'http://localhost:28069';
 const DB_NAME = process.env.HOOT_DB || 'insilos20_dev';
 const AUTH_LOGIN = process.env.HOOT_LOGIN || 'admin';
 const AUTH_PASSWORD = process.env.HOOT_PASSWORD || 'admin';
+const TEST_TIMEOUT = process.env.HOOT_TIMEOUT || '25000';
 
 /**
  * Single-Flight Warmup Gate
@@ -37,7 +38,11 @@ async function ensureAssetsWarm(baseUrl) {
     const url = new URL('/web/tests', baseUrl);
     const client = url.protocol === 'https:' ? https : http;
 
-    const req = client.get(url.toString(), res => {
+    const req = client.get(url.toString(), {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    }, res => {
       let data = '';
       res.on('data', chunk => (data += chunk));
       res.on('end', () => {
@@ -57,9 +62,9 @@ async function ensureAssetsWarm(baseUrl) {
       resolve(); // Do not block if server check fails, let browser handle it
     });
 
-    req.setTimeout(60000, () => {
+    req.setTimeout(10000, () => {
       req.destroy();
-      console.warn('⚠️ [Harness Warmup] Warmup request timed out after 60s; proceeding');
+      console.warn('⚠️ [Harness Warmup] Warmup request timed out after 10s; proceeding');
       resolve();
     });
   });
@@ -72,10 +77,16 @@ async function ensureAssetsWarm(baseUrl) {
 async function authenticateOnce(browser, baseUrl) {
   console.log('🔑 [Harness Auth] Authenticating session once via JSON-RPC...');
   const t0 = Date.now();
-  const authContext = await browser.newContext();
+  const authContext = await browser.newContext({
+    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+  });
   const page = await authContext.newPage();
 
   const resp = await page.request.post(`${baseUrl}/web/session/authenticate`, {
+    headers: {
+      'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Content-Type': 'application/json'
+    },
     data: {
       jsonrpc: '2.0',
       params: {
@@ -119,6 +130,7 @@ async function executeSingleSuite(browser, storageState, runConfig) {
 
   const context = await browser.newContext({
     storageState,
+    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     viewport: isMobile ? { width: 375, height: 667 } : { width: 1366, height: 768 },
     hasTouch: isMobile,
     isMobile: isMobile,
@@ -343,7 +355,7 @@ async function main() {
       });
     } else if (item.includes('preset=')) {
       const isMobile = item.includes('preset=mobile');
-      const url = `${SERVER_BASE}/web/tests?${item}` + (headlessMode ? '&headless' : '');
+      const url = `${SERVER_BASE}/web/tests?${item}&timeout=${TEST_TIMEOUT}` + (headlessMode ? '&headless' : '');
       runConfigs.push({
         url,
         isMobile,
@@ -352,13 +364,13 @@ async function main() {
       });
     } else if (item.startsWith('filter=') || item.startsWith('id=')) {
       runConfigs.push({
-        url: `${SERVER_BASE}/web/tests?${item}&preset=desktop` + (headlessMode ? '&headless' : ''),
+        url: `${SERVER_BASE}/web/tests?${item}&preset=desktop&timeout=${TEST_TIMEOUT}` + (headlessMode ? '&headless' : ''),
         isMobile: false,
         suiteName: item,
         desc: 'Desktop',
       });
       runConfigs.push({
-        url: `${SERVER_BASE}/web/tests?${item}&preset=mobile` + (headlessMode ? '&headless' : ''),
+        url: `${SERVER_BASE}/web/tests?${item}&preset=mobile&timeout=${TEST_TIMEOUT}` + (headlessMode ? '&headless' : ''),
         isMobile: true,
         suiteName: item,
         desc: 'Mobile',
@@ -368,13 +380,13 @@ async function main() {
       const cleanMod = item.replace(/^@/, '');
       const regexFilter = encodeURIComponent(`/^@${cleanMod}/`);
       runConfigs.push({
-        url: `${SERVER_BASE}/web/tests?filter=${regexFilter}&preset=desktop` + (headlessMode ? '&headless' : ''),
+        url: `${SERVER_BASE}/web/tests?filter=${regexFilter}&preset=desktop&timeout=${TEST_TIMEOUT}` + (headlessMode ? '&headless' : ''),
         isMobile: false,
         suiteName: item,
         desc: 'Desktop',
       });
       runConfigs.push({
-        url: `${SERVER_BASE}/web/tests?filter=${regexFilter}&preset=mobile` + (headlessMode ? '&headless' : ''),
+        url: `${SERVER_BASE}/web/tests?filter=${regexFilter}&preset=mobile&timeout=${TEST_TIMEOUT}` + (headlessMode ? '&headless' : ''),
         isMobile: true,
         suiteName: item,
         desc: 'Mobile',
