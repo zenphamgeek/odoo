@@ -5,6 +5,8 @@ Applies remaining de-slop updates and layout balance wrappers.
 """
 
 import sys
+import os
+import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -20,11 +22,11 @@ changes = 0
 replacements = [
     (
         '<span class="font-monospace text-uppercase small text-secondary" style="font-size: 0.72rem;">// 5 Tác Tử Swarm Trực Chiến:</span>',
-        '<span class="font-monospace text-uppercase small text-secondary" style="font-size: 0.72rem;">// 5 Tác Nhân AI Phối Hợp Trực Chiến:</span>'
+        '<span class="font-monospace text-uppercase small text-secondary" style="font-size: 0.72rem;">5 Tác Nhân AI Phối Hợp Trực Chiến:</span>'
     ),
     (
         '<div class="fw-bold text-white font-monospace fs-5" style="color: #FFFFFF !important;">BẢNG ĐIỀU KHIỂN TELEMETRY TÁC TỬ MOJO // CỤM ĐANG HOẠT ĐỘNG</div>\n                                    <div class="small font-monospace" style="font-size: 0.75rem; color: #94A3B8 !important;">NỐT CỤM MÁY CHỦ: VN-SGP-PROD-08 // TUÂN THỦ CÔ LẬP MẠNG AIR-GAPPED</div>',
-        '<div class="fw-bold text-white font-monospace fs-5" style="color: #FFFFFF !important;">BẢNG ĐIỀU PHỐI TÁC NHÂN AI MOJO // CỤM ĐANG HOẠT ĐỘNG</div>\n                                    <div class="small font-monospace" style="font-size: 0.75rem; color: #94A3B8 !important;">NÚT TÍNH TOÁN CỤM MÁY CHỦ: VN-SGP-PROD-08 // TUÂN THỦ CÔ LẬP MẠNG AIR-GAPPED</div>'
+        '<div class="fw-bold text-white font-monospace fs-5" style="color: #FFFFFF !important;">BẢNG ĐIỀU PHỐI TÁC NHÂN AI MOJO · CỤM ĐANG HOẠT ĐỘNG</div>\n                                    <div class="small font-monospace" style="font-size: 0.75rem; color: #94A3B8 !important;">NÚT TÍNH TOÁN CỤM MÁY CHỦ: VN-SGP-PROD-08 · TUÂN THỦ CÔ LẬP MẠNG AIR-GAPPED</div>'
     ),
     (
         'Khởi đầu hành trình tự động hóa tác tử thông minh với buổi làm việc chuyên sâu 3 giờ cùng đội ngũ kiến trúc sư trưởng MOJO AI &amp; INNORIA.',
@@ -44,13 +46,17 @@ replacements = [
     )
 ]
 
+drift_count = 0
 for old, new in replacements:
     if old in content:
         content = content.replace(old, new)
         changes += 1
         print(f"[✓] Replaced slop phrase: {old[:50]}...")
+    elif new in content or ("5 Tác Nhân AI" in new and "5 Tác Nhân AI" in content) or ("BẢNG ĐIỀU PHỐI TÁC NHÂN AI" in new and "BẢNG ĐIỀU PHỐI TÁC NHÂN AI" in content):
+        print(f"[=] Already applied: {new[:50]}...")
     else:
-        print(f"[!] Warning: phrase not found: {old[:50]}...")
+        drift_count += 1
+        print(f"[!] DRIFT WARNING: phrase not found: {old[:50]}...")
 
 # 2. Card Balance: /about 4 Deployment Modes (lines 135-166)
 old_modes_block = """                        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
@@ -155,8 +161,11 @@ if old_modes_block in content:
     content = content.replace(old_modes_block, new_modes_block)
     changes += 1
     print("[✓] Upgraded /about 4 Deployment Mode cards with symmetrical bottom alignment.")
+elif new_modes_block in content or "01 · Dedicated Private Cloud" in content or "Cụm Đám Mây Doanh Nghiệp Riêng Biệt" in content:
+    print("[=] Already applied: /about 4 Deployment Mode cards.")
 else:
-    print("[!] Warning: old_modes_block not matched in /about.")
+    drift_count += 1
+    print("[!] DRIFT WARNING: old_modes_block not matched in /about.")
 
 # 3. Card Balance: /solutions 4 ROI cards (lines 2912-2940)
 old_roi_block = """                                    <div class="col-md-6">
@@ -229,8 +238,11 @@ if old_roi_block in content:
     content = content.replace(old_roi_block, new_roi_block)
     changes += 1
     print("[✓] Upgraded /solutions 4 ROI cards with symmetrical bottom alignment.")
+elif new_roi_block in content or "CHI PHÍ BẢN QUYỀN &amp; TỰ ĐỘNG HÓA" in content or "CHI PHÍ BẢN QUYỀN" in content:
+    print("[=] Already applied: /solutions 4 ROI cards.")
 else:
-    print("[!] Warning: old_roi_block not matched in /solutions.")
+    drift_count += 1
+    print("[!] DRIFT WARNING: old_roi_block not matched in /solutions.")
 
 # 4. Card Balance: /blockchain Swarm PDCA 5 Roles (lines 2118-2200)
 old_roles_block = """                            <!-- Role 1: Explorer -->
@@ -417,8 +429,11 @@ if old_roles_block in content:
     content = content.replace(old_roles_block, new_roles_block)
     changes += 1
     print("[✓] Upgraded /blockchain Swarm PDCA 5 Roles cards with symmetrical bottom alignment.")
+elif new_roles_block in content or "TÁC NHÂN KHẢO SÁT" in content or "EXPLORER AGENT" in content:
+    print("[=] Already applied: /blockchain Swarm PDCA 5 Roles cards.")
 else:
-    print("[!] Warning: old_roles_block not matched in /blockchain.")
+    drift_count += 1
+    print("[!] DRIFT WARNING: old_roles_block not matched in /blockchain.")
 
 # 5. Card Balance: /blockchain 3 Use Case cards (lines 2274-2310)
 old_use_cases = """                            <!-- Case 1 -->
@@ -509,12 +524,27 @@ if old_use_cases in content:
     content = content.replace(old_use_cases, new_use_cases)
     changes += 1
     print("[✓] Upgraded /blockchain 3 Use Case cards with symmetrical bottom alignment.")
+elif new_use_cases in content or "USE CASE 01" in content:
+    print("[=] Already applied: /blockchain 3 Use Case cards.")
 else:
-    print("[!] Warning: old_use_cases not matched in /blockchain.")
+    drift_count += 1
+    print("[!] DRIFT WARNING: old_use_cases not matched in /blockchain.")
 
 if content != orig_content:
-    with open(pages_file, "w", encoding="utf-8") as f:
-        f.write(content)
-    print(f"\n[🎉] Total {changes} updates applied successfully to innoria_pages.xml.")
+    fd, tmp = tempfile.mkstemp(dir=pages_file.parent, prefix="tmp_unslop_", suffix=".xml")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, pages_file)
+        print(f"\n[✓] Total {changes} updates atomically written to {pages_file}.")
+    except Exception:
+        if os.path.exists(tmp):
+            os.unlink(tmp)
+        raise
 else:
-    print("\n[i] No changes made to innoria_pages.xml.")
+    print(f"\n[i] No changes needed; {pages_file} is untouched.")
+
+if drift_count > 0:
+    sys.exit(f"[!] Refusing success: {drift_count} phrase(s) drifted or missing.")

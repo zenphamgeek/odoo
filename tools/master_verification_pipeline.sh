@@ -24,9 +24,10 @@ echo -e "\n▶ [STAGE 2/6] Verifying Phosphor Duotone App Icons & Canonical Bran
 $VENV_PYTHON "$SCRIPT_DIR/check_app_icons_integrity.py"
 $VENV_PYTHON "$SCRIPT_DIR/sync_branding_logos.py" --check
 
-# 3. Gate 4: PEP 451 Transparent Import Hook Adapter
-echo -e "\n▶ [STAGE 3/6] Verifying Hexagonal Import Hook Adapter (PEP 451)..."
+# 3. Gate 4: PEP 451 Transparent Import Hook Adapter & Cryptographic Attestation Security
+echo -e "\n▶ [STAGE 3/6] Verifying Hexagonal Import Hook Adapter & Key Consistency..."
 $VENV_PYTHON "$SCRIPT_DIR/test_insilos_import_hook.py"
+$VENV_PYTHON "$SCRIPT_DIR/verify_attestation_key_consistency.py"
 
 # 4. Gate 5: Cross-Module E2E Workflow Simulation
 echo -e "\n▶ [STAGE 4/6] Executing In-Process Cross-Module Workflow Simulation..."
