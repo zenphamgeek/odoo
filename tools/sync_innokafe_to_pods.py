@@ -23,6 +23,8 @@ import hmac
 import json
 import logging
 import os
+
+logger = logging.getLogger("sync_innokafe_to_pods")
 import re
 import subprocess
 import sys
@@ -36,6 +38,22 @@ from typing import Dict, List, Optional, Tuple, Union
 NAMESPACE = "production"
 CONTAINER = "insilos"
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+
+def compute_runtime_provenance_seal() -> str:
+    """Computes a SHA-256 seal over the realpath of this module and its physical content.
+    Prevents runtime module swapping or symlink substitution during long-running daemon ticks (CWE-426).
+    """
+    resolved_file = os.path.realpath(__file__)
+    resolved_dir = os.path.dirname(resolved_file)
+    hasher = hashlib.sha256()
+    hasher.update(resolved_dir.encode("utf-8"))
+    try:
+        with open(resolved_file, "rb") as f:
+            hasher.update(f.read())
+    except Exception as e:
+        raise RuntimeError(f"Failed to read module for provenance seal: {e}")
+    return hasher.hexdigest()
 
 MEDIA_ASSETS = [
     "enterprise/innokafe_website/static/src/video/innokafe_coffee_pour_16x9_opt.mp4",
@@ -533,10 +551,11 @@ def _load_anchor_key() -> bytes:
                 "REQUIRE_EXTERNAL_ANCHOR is set but LEDGER_ANCHOR_KEY is missing; "
                 "refusing to operate without an authenticated anchor (CWE-287)"
             )
-        logging.warning(
+        logger.warning(
             "[!] [SECURITY WARNING] Operating in unkeyed degraded local mode (CWE-636): "
             "LEDGER_ANCHOR_KEY is unset and REQUIRE_EXTERNAL_ANCHOR is disabled. "
-            "Audit ledger HMAC signing is inactive."
+            "Audit ledger HMAC signing is inactive.",
+            extra={"event": "anchor_key_degraded"}
         )
         return b""
     key = raw.encode("utf-8")
