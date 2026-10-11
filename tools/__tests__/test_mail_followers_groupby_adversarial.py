@@ -36,12 +36,19 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         odoo.tools.config.parse_config(["-c", conf_file])
 
         # Dynamic test database resolution (Zero Production Blast Radius)
-        test_db = os.environ.get("ODOO_TEST_DB", "odoo20_dev")
+        test_db = os.environ.get("ODOO_TEST_DB", "innokafe_test")
 
-        # Blast Radius Circuit Breaker: strictly reject any production-like DB
-        if any(b in test_db.lower() for b in ("prod", "production")):
+        # Deny-by-default allowlist: only databases explicitly marked disposable may run
+        # write-capable adversarial tests. Name heuristics are secondary.
+        allowed = {
+            d.strip()
+            for d in os.environ.get("ODOO_TEST_DB_ALLOWLIST", "innokafe_test,odoo20_dev,insilos20_dev").split(",")
+            if d.strip()
+        }
+        if test_db not in allowed or any(b in test_db.lower() for b in ("prod", "production", "live", "main")):
             raise RuntimeError(
-                f"BLAST RADIUS GUARD: Refusing to execute write-capable test against production database '{test_db}'"
+                f"BLAST RADIUS GUARD: '{test_db}' is not in the disposable test allowlist {sorted(allowed)} "
+                f"or matches production keywords."
             )
 
         cls.db_target = test_db
@@ -53,13 +60,26 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         self._created_partner_ids = []
 
     def tearDown(self):
-        # Transaction-isolated rollback: zero database pollution
-        try:
-            if hasattr(self, "cr") and self.cr:
-                self.cr.rollback()
+        # Rollback must succeed; a failure here means isolation is void and must be surfaced.
+        if getattr(self, "cr", None):
+            self.cr.rollback()
+            try:
                 self.cr.close()
-        except Exception:
-            pass
+            except Exception:
+                pass
+
+        # Empirical pollution proof on a fresh connection.
+        if self._created_partner_ids:
+            with self.registry.cursor() as fresh_cr:
+                fresh_cr.execute(
+                    "SELECT id FROM res_partner WHERE id = ANY(%s)",
+                    (list(self._created_partner_ids),),
+                )
+                leaked = fresh_cr.fetchall()
+                if leaked:
+                    raise AssertionError(
+                        f"Isolation breach: partner rows persisted after rollback: {leaked}"
+                    )
 
     def test_00_empty_pids_boundary_preservation(self):
         """
