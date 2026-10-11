@@ -26,7 +26,11 @@ import hashlib
 from unittest.mock import patch
 
 from tools.atomic_io import atomic_write_text
-from tools.execute_fleet_unslop_views import clean_file_content
+from tools.execute_fleet_unslop_views import (
+    assert_mutation_fraction_bounded,
+    clean_file_content,
+    main as execute_views_main,
+)
 from tools.safe_xml import ForbiddenMarkupError, assert_markup_preserved, parse_xml_safe
 from tools.unslop_ledger import UnslopLedger
 
@@ -540,6 +544,74 @@ class TestExecuteFleetUnslopViews(unittest.TestCase):
         with self.assertRaises(TypeError):
             sig.bind(object(), nonexistent_typo_kwarg=True)
 
+    def test_clean_file_content_purges_endashes_and_emojis(self):
+        """Unslop Engine v3.0: En-dashes and decorative emojis are purged idempotently."""
+        sample = (
+            '<odoo>\n'
+            '  <template id="t1" name="Title – Scope">\n'
+            '    <span>🧪 Sandbox Mô Phỏng 48h</span>\n'
+            '    <div class="range">4.6 – 6.1 Tháng</div>\n'
+            '    <span class="tab-icon">🏭</span>\n'
+            '    <button>🌟 3D Blender Twin</button>\n'
+            '  </template>\n'
+            '</odoo>'
+        )
+        cleaned = clean_file_content(sample)
+        self.assertNotIn("–", cleaned)
+        self.assertNotIn("🧪", cleaned)
+        self.assertNotIn("🏭", cleaned)
+        self.assertNotIn("🌟", cleaned)
+        self.assertIn("Sandbox Mô Phỏng 48h", cleaned)
+        self.assertIn("4.6 - 6.1 Tháng", cleaned)
+        self.assertIn('<span class="tab-icon">MFG</span>', cleaned)
+        self.assertIn("<button>3D Blender Twin</button>", cleaned)
+        # Idempotency
+        self.assertEqual(clean_file_content(cleaned), cleaned)
+        # Topology preservation
+        assert_markup_preserved(sample, cleaned, "test_template.xml")
+
+    def test_cli_check_drift_passes_when_clean(self):
+        """CLI: execute_views_main(['--check-drift']) returns 0 when no drift exists."""
+        exit_code = execute_views_main(["--check-drift"])
+        self.assertEqual(exit_code, 0)
+
+    def test_cli_check_drift_detects_anomaly(self):
+        """CLI: execute_views_main(['--check-drift']) exits with code 1 when anomaly is detected."""
+        with patch.object(
+            UnslopLedger,
+            "detect_anomalies",
+            return_value=[("enterprise/insilos_website/views/home.xml", "old_sha", "drifted_sha")],
+        ):
+            exit_code = execute_views_main(["--check-drift"])
+            self.assertEqual(exit_code, 1)
+
+    def test_vietnamese_and_cjk_bytes_preserved_exactly(self):
+        """CWE-20 Data Integrity: Vietnamese diacritics and CJK text must be 100% byte-for-byte preserved."""
+        sample = '<odoo><span>Mô Phỏng Tháng Chuỗi 工厂 サンドボックス</span></odoo>'
+        self.assertEqual(clean_file_content(sample), sample)
+
+    def test_bare_endash_without_surrounding_spaces_is_handled(self):
+        """Boundary: bare numeric range en-dash '4.6–6.1' is cleaned to '4.6-6.1' without residuals."""
+        cleaned = clean_file_content('<div class="range">4.6–6.1</div>')
+        self.assertNotIn("–", cleaned)
+        self.assertEqual(cleaned, '<div class="range">4.6-6.1</div>')
+
+    def test_mutation_fraction_stays_small_on_clean_input(self):
+        """Adversarial Canary: Surgical unslop touches only minimal character ratio (< 10%)."""
+        src = '<odoo><t t-set="additional_title">A — B</t></odoo>'
+        out = clean_file_content(src)
+        fraction = assert_mutation_fraction_bounded(src, out, max_fraction=0.15)
+        self.assertLess(fraction, 0.15)
+
+    def test_mutation_fraction_circuit_breaker_trips_on_excessive_delta(self):
+        """Safety Circuit Breaker: Aborts with ValueError if mutation fraction exceeds threshold."""
+        src = '<odoo><p>Original small body text</p></odoo>'
+        mutated = '<odoo><p>Radically altered content completely diverging from original bytes</p></odoo>'
+        with self.assertRaises(ValueError) as ctx:
+            assert_mutation_fraction_bounded(src, mutated, max_fraction=0.10)
+        self.assertIn("circuit breaker", str(ctx.exception).lower())
+
 
 if __name__ == "__main__":
     unittest.main()
+

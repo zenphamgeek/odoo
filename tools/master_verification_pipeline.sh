@@ -15,9 +15,11 @@ echo "🚀 INSILOS ENTERPRISE MASTER VERIFICATION PIPELINE (Odoo 20 LTS Platform
 echo "   Root: $ROOT_DIR | Python: $VENV_PYTHON"
 echo "================================================================================"
 
-# 1. Gate 1 & 2: Python Syntax & XML QWeb Well-formedness
-echo -e "\n▶ [STAGE 1/6] Running Syntax & XML Verification Gates (Gates 1 & 2)..."
+# 1. Gate 1 & 2: Python Syntax & XML QWeb Well-formedness & Negative-Selection Drift Audit
+echo -e "\n▶ [STAGE 1/6] Running Syntax, XML & Negative-Selection Drift Gates (Gates 1 & 2)..."
 $VENV_PYTHON "$SCRIPT_DIR/verify_gates_1_2.py"
+$VENV_PYTHON "$SCRIPT_DIR/execute_fleet_unslop_views.py" --check-drift
+$VENV_PYTHON -m unittest "$SCRIPT_DIR/__tests__/test_execute_fleet_unslop_views.py" "$SCRIPT_DIR/__tests__/test_atomic_io.py"
 
 # 2. Gate 3: Phosphor Duotone App Icon & Branding Integrity
 echo -e "\n▶ [STAGE 2/6] Verifying Phosphor Duotone App Icons & Canonical Branding..."
