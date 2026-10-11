@@ -899,15 +899,19 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
         proc_script = """
 import os, sys
 expected_tools_dir = os.path.join(os.environ["REPO_ROOT"], "tools")
-if os.path.islink(expected_tools_dir):
-    sys.stderr.write(f"FAIL: tools dir is a symlink, provenance unverifiable: {expected_tools_dir}\\n")
+# CWE-59: realpath resolves every symlink in the path; abspath resolves none.
+# Any divergence means a symlink exists somewhere in the ancestry.
+if os.path.realpath(expected_tools_dir) != os.path.abspath(expected_tools_dir):
+    sys.stderr.write(
+        f"FAIL: symlink detected in tools provenance path, unverifiable: {expected_tools_dir}\\n"
+    )
     sys.exit(3)
 
 sys.path.insert(0, expected_tools_dir)
 import sync_innokafe_to_pods as m
 
 resolved_file = os.path.realpath(m.__file__)
-expected_dir = os.path.abspath(expected_tools_dir)
+expected_dir = os.path.realpath(expected_tools_dir)
 if os.path.dirname(resolved_file) != expected_dir:
     sys.stderr.write(f"FAIL: Module provenance spoofing detected: {resolved_file} not directly in {expected_tools_dir}\\n")
     sys.exit(2)
@@ -1169,6 +1173,61 @@ sys.exit(0)
             res = subprocess.run([sys.executable, "-c", test_script, current_symlink], capture_output=True, text=True)
             self.assertEqual(res.returncode, 3, "Strict ancestor symlink rejection must detect parent symlinks with exit code 3")
             self.assertIn("symlink in deploy path", res.stderr)
+
+    def test_provenance_guard_rejects_symlink_at_every_ancestor_depth(self):
+        """CWE-59 / Ancestor Depth Fuzzing: Proves guard rejects symlinks at leaf, parent, and grandparent depths with exit 3."""
+        import tempfile, subprocess, sys
+
+        test_guard_script = """
+import os, sys
+expected_tools_dir = os.path.join(sys.argv[1], "tools")
+if os.path.realpath(expected_tools_dir) != os.path.abspath(expected_tools_dir):
+    sys.stderr.write(f"FAIL: symlink detected in tools provenance path, unverifiable: {expected_tools_dir}\\n")
+    sys.exit(3)
+sys.exit(0)
+"""
+        depth_configs = [
+            ("leaf", 3),
+            ("parent", 3),
+            ("grandparent", 3),
+            ("none", 0),
+        ]
+        for depth, expected_code in depth_configs:
+            with tempfile.TemporaryDirectory() as raw_tmp:
+                tmpdir = os.path.realpath(raw_tmp)
+                real_tree = os.path.join(tmpdir, "real_store", "grandparent", "parent", "tools")
+                os.makedirs(real_tree, exist_ok=True)
+                with open(os.path.join(real_tree, "sync_innokafe_to_pods.py"), "w") as f:
+                    f.write("# real module\\n")
+
+                if depth == "leaf":
+                    repo_dir = os.path.join(tmpdir, "repo")
+                    os.makedirs(repo_dir, exist_ok=True)
+                    os.symlink(real_tree, os.path.join(repo_dir, "tools"))
+                    target_repo = repo_dir
+                elif depth == "parent":
+                    parent_real = os.path.join(tmpdir, "real_store", "grandparent", "parent")
+                    parent_symlink = os.path.join(tmpdir, "repo")
+                    os.symlink(parent_real, parent_symlink)
+                    target_repo = parent_symlink
+                elif depth == "grandparent":
+                    gp_real = os.path.join(tmpdir, "real_store", "grandparent")
+                    gp_symlink = os.path.join(tmpdir, "gp_link")
+                    os.symlink(gp_real, gp_symlink)
+                    target_repo = os.path.join(gp_symlink, "parent")
+                elif depth == "none":
+                    target_repo = os.path.join(tmpdir, "real_store", "grandparent", "parent")
+
+                res = subprocess.run(
+                    [sys.executable, "-c", test_guard_script, target_repo],
+                    capture_output=True, text=True
+                )
+                self.assertEqual(
+                    res.returncode, expected_code,
+                    f"Depth '{depth}' expected exit code {expected_code}, got {res.returncode}. Stderr: {res.stderr}"
+                )
+                if expected_code == 3:
+                    self.assertIn("symlink detected in tools provenance path", res.stderr)
 
     def test_provenance_guard_rejects_divergent_module_dir(self):
         """CWE-426: realpath guard must reject a module whose real dir differs from expected tools dir (e.g. shadowed via sys.path precedence)."""
