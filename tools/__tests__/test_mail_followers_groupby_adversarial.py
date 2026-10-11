@@ -8,6 +8,7 @@ under strict non-prod database isolation and transaction rollback proof.
 """
 
 import os
+import re
 import sys
 import unicodedata
 import unittest
@@ -19,6 +20,17 @@ if ROOT_DIR not in sys.path:
 
 import odoo
 from odoo import SUPERUSER_ID, api
+
+_PROD_TOKENS = ("prod", "production", "live", "main")
+
+
+def _looks_like_production(db_name: str) -> bool:
+    """
+    Token-boundary match: 'maintenance' -> {'maintenance'}, not 'main'.
+    Avoids CWE-20 over-matching while strictly blocking production databases.
+    """
+    tokens = set(re.split(r"[^a-z0-9]+", db_name.lower()))
+    return any(tok in tokens for tok in _PROD_TOKENS)
 
 
 class TestMailFollowersGroupByAdversarial(unittest.TestCase):
@@ -39,16 +51,26 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         test_db = os.environ.get("ODOO_TEST_DB", "innokafe_test")
 
         # Deny-by-default allowlist: only databases explicitly marked disposable may run
-        # write-capable adversarial tests. Name heuristics are secondary.
+        # write-capable adversarial tests.
         allowed = {
             d.strip()
-            for d in os.environ.get("ODOO_TEST_DB_ALLOWLIST", "innokafe_test,odoo20_dev,insilos20_dev").split(",")
+            for d in os.environ.get(
+                "ODOO_TEST_DB_ALLOWLIST", "innokafe_test,odoo20_dev,insilos20_dev"
+            ).split(",")
             if d.strip()
         }
-        if test_db not in allowed or any(b in test_db.lower() for b in ("prod", "production", "live", "main")):
+
+        # Validate the guard's own input: prevent poisoned allowlist blast-radius holes
+        poisoned = {d for d in allowed if _looks_like_production(d)}
+        if poisoned:
             raise RuntimeError(
-                f"BLAST RADIUS GUARD: '{test_db}' is not in the disposable test allowlist {sorted(allowed)} "
-                f"or matches production keywords."
+                f"BLAST RADIUS GUARD: allowlist contains production-like entries {sorted(poisoned)}"
+            )
+
+        if test_db not in allowed or _looks_like_production(test_db):
+            raise RuntimeError(
+                f"BLAST RADIUS GUARD: '{test_db}' is not in the disposable test allowlist "
+                f"{sorted(allowed)} or matches production tokens."
             )
 
         cls.db_target = test_db
@@ -60,26 +82,37 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         self._created_partner_ids = []
 
     def tearDown(self):
-        # Rollback must succeed; a failure here means isolation is void and must be surfaced.
+        rollback_error = None
         if getattr(self, "cr", None):
-            self.cr.rollback()
             try:
-                self.cr.close()
-            except Exception:
-                pass
+                self.cr.rollback()
+            except Exception as exc:
+                rollback_error = exc
+            finally:
+                try:
+                    self.cr.close()
+                except Exception:
+                    pass
 
-        # Empirical pollution proof on a fresh connection.
+        # Empirical pollution proof on an independent connection - runs even if rollback raised
+        leaked = []
         if self._created_partner_ids:
-            with self.registry.cursor() as fresh_cr:
+            registry = getattr(self, "registry", None)
+            if registry is None:
+                raise RuntimeError(
+                    "Pollution-proof aborted: self.registry unavailable; cannot verify isolation."
+                )
+            with registry.cursor() as fresh_cr:
                 fresh_cr.execute(
                     "SELECT id FROM res_partner WHERE id = ANY(%s)",
                     (list(self._created_partner_ids),),
                 )
-                leaked = fresh_cr.fetchall()
-                if leaked:
-                    raise AssertionError(
-                        f"Isolation breach: partner rows persisted after rollback: {leaked}"
-                    )
+                leaked = [row[0] for row in fresh_cr.fetchall()]
+
+        if rollback_error is not None:
+            raise AssertionError(f"Isolation rollback FAILED (connection released): {rollback_error!r}")
+        if leaked:
+            raise AssertionError(f"Isolation breach: partner rows persisted after rollback: {leaked}")
 
     def test_00_empty_pids_boundary_preservation(self):
         """
@@ -416,6 +449,28 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
                 fresh_env["res.partner"].browse(p_id).exists(),
                 "CRITICAL: Record persisted past rollback! Transaction isolation failed."
             )
+
+    def test_09_blast_radius_guard_token_precision(self):
+        """
+        Unit verification of the blast-radius token boundary classifier.
+        Ensures:
+        - Exact production tokens ('prod', 'production', 'live', 'main') are blocked.
+        - Token-delimited names ('innokafe_prod', 'odoo-live', 'db_main') are blocked.
+        - Legitimate non-production substrings ('innokafe_maintenance', 'delivery_qa') are permitted.
+        """
+        self.assertTrue(_looks_like_production("main"))
+        self.assertTrue(_looks_like_production("prod"))
+        self.assertTrue(_looks_like_production("production"))
+        self.assertTrue(_looks_like_production("live"))
+        self.assertTrue(_looks_like_production("innokafe_prod"))
+        self.assertTrue(_looks_like_production("my-main-db"))
+        self.assertTrue(_looks_like_production("system_live_test"))
+
+        self.assertFalse(_looks_like_production("innokafe_maintenance"))
+        self.assertFalse(_looks_like_production("delivery_qa"))
+        self.assertFalse(_looks_like_production("innokafe_test"))
+        self.assertFalse(_looks_like_production("odoo20_dev"))
+        self.assertFalse(_looks_like_production("insilos20_dev"))
 
 
 if __name__ == "__main__":
