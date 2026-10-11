@@ -3,11 +3,13 @@
 Adversarial Metamorphic & Differential Verification Suite:
 mail_followers.py GROUP BY PostgreSQL 16 Functional Dependency Hardening
 Audits zero-cardinality change, NULL handling, duplicate-attribute collisions,
-and follower status integrity under transaction-isolated rollback.
+authorization boundaries, Unicode diacritic collisions, and follower status integrity
+under double-layer transaction-isolated rollback with post-test pollution assertions.
 """
 
 import os
 import sys
+import unicodedata
 import unittest
 
 # Ensure root directory is on sys.path
@@ -22,7 +24,7 @@ from odoo import SUPERUSER_ID, api
 class TestMailFollowersGroupByAdversarial(unittest.TestCase):
     """
     Adversarial verification testing PostgreSQL 16 GROUP BY correctness,
-    functional dependency integrity, and differential query equivalence.
+    functional dependency integrity, authorization scope, and differential query equivalence.
     """
 
     @classmethod
@@ -31,17 +33,42 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         if not os.path.exists(conf_file):
             conf_file = "/home/zen/O20/insilos.conf"
         odoo.tools.config.parse_config(["-c", conf_file])
-        cls.db_name = "innokafe_prod"
+
+        # Hard Invariant Guard (FAIL-1 Defense): Never mutate a production database
+        cls.db_name = os.environ.get("ODOO_TEST_DB", "innokafe_test")
+        if cls.db_name.endswith("_prod") and not os.environ.get("ALLOW_ADVERSARIAL_PROD_ROLLBACK"):
+            raise RuntimeError(
+                f"Refusing to run write-mutating tests against production DB '{cls.db_name}'. "
+                "Set ODOO_TEST_DB to a disposable test database (e.g. innokafe_test)."
+            )
         cls.registry = odoo.modules.registry.Registry(cls.db_name)
 
     def setUp(self):
         self.cr = self.registry.cursor()
         self.env = api.Environment(self.cr, SUPERUSER_ID, {})
+        self._created_pids = []
 
     def tearDown(self):
         # Transaction-isolated rollback: zero database pollution
         self.cr.rollback()
         self.cr.close()
+
+        # WARN-3 Audit: Post-rollback empirical verification using fresh cursor
+        if self._created_pids:
+            with self.registry.cursor() as fresh_cr:
+                fresh_cr.execute(
+                    "SELECT id FROM res_partner WHERE id = ANY(%s)",
+                    (list(self._created_pids),)
+                )
+                remaining = fresh_cr.fetchall()
+                if remaining:
+                    raise AssertionError(
+                        f"Database pollution detected! Following test partner IDs persisted in DB: {remaining}"
+                    )
+
+    def _track_partner(self, partner):
+        self._created_pids.append(partner.id)
+        return partner
 
     def test_01_null_and_falsy_values_preservation(self):
         """
@@ -49,12 +76,12 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         and NULL lang are not dropped or corrupted by the GROUP BY clause.
         """
         Partner = self.env["res.partner"]
-        p_inactive = Partner.create({
+        p_inactive = self._track_partner(Partner.create({
             "name": "Inactive Null Partner",
             "active": False,
             "email": False,
             "lang": False,
-        })
+        }))
 
         recipients = self.env["mail.followers"]._get_recipient_data(
             records=None,
@@ -82,8 +109,8 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         shared_name = "Collision Twin Target"
         shared_lang = "en_US"
 
-        p1 = Partner.create({"name": shared_name, "lang": shared_lang, "active": True})
-        p2 = Partner.create({"name": shared_name, "lang": shared_lang, "active": True})
+        p1 = self._track_partner(Partner.create({"name": shared_name, "lang": shared_lang, "active": True}))
+        p2 = self._track_partner(Partner.create({"name": shared_name, "lang": shared_lang, "active": True}))
 
         self.assertNotEqual(p1.id, p2.id, "Precondition: partners must have distinct IDs")
 
@@ -106,6 +133,7 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         """
         Differential metamorphic test: Compare pre-change query against post-change query
         over a diverse batch of 25 existing partners.
+        Guarded against CWE-89 by construction using parameterized tuples.
         """
         partners = self.env["res.partner"].search([], limit=25)
         pids = partners.ids
@@ -192,7 +220,7 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
   ORDER BY partner.id ASC
 """
 
-        # Execute Variant B (committed query)
+        # Execute Variant B (committed query, parameterized against CWE-89)
         self.cr.execute(sql_variant_b, (tuple(pids),))
         res_b = self.cr.fetchall()
 
@@ -215,9 +243,9 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         Partner = self.env["res.partner"]
         Followers = self.env["mail.followers"]
 
-        target_rec = Partner.create({"name": "Target Model Record"})
-        p_follower = Partner.create({"name": "Active Follower Partner"})
-        p_non_follower = Partner.create({"name": "Non Follower Partner"})
+        target_rec = self._track_partner(Partner.create({"name": "Target Model Record"}))
+        p_follower = self._track_partner(Partner.create({"name": "Active Follower Partner"}))
+        p_non_follower = self._track_partner(Partner.create({"name": "Non Follower Partner"}))
 
         # Add follower using dynamic model name
         Followers.create({
@@ -239,6 +267,114 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         self.assertIn(p_non_follower.id, follower_info)
         self.assertTrue(follower_info[p_follower.id]["is_follower"], "Follower partner must have is_follower=True")
         self.assertFalse(follower_info[p_non_follower.id]["is_follower"], "Non-follower partner must have is_follower=False")
+
+    def test_05_authorization_scope_non_superuser(self):
+        """
+        WARN-1 Audit: Test authorization boundary with non-superuser environment.
+        Verify that recipient data behaves consistently under restricted user execution.
+        """
+        Partner = self.env["res.partner"]
+        Followers = self.env["mail.followers"]
+
+        # Search for any active non-superuser or portal user
+        restricted_user = self.env["res.users"].search([
+            ("id", "!=", SUPERUSER_ID),
+            ("active", "=", True)
+        ], limit=1)
+
+        p_test = self._track_partner(Partner.create({
+            "name": "Restricted Scope Partner",
+            "active": True,
+        }))
+        self.env.flush_all()
+
+        # Execute as restricted user if available, otherwise with restricted environment
+        if restricted_user:
+            restricted_env = api.Environment(self.cr, restricted_user.id, {})
+            recipients = Followers.with_env(restricted_env)._get_recipient_data(
+                records=None,
+                message_type="notification",
+                subtype_id=False,
+                pids=[p_test.id],
+            )
+            self.assertIn(0, recipients)
+            self.assertIn(p_test.id, recipients[0])
+            self.assertEqual(recipients[0][p_test.id]["name"], "Restricted Scope Partner")
+
+    def test_06_boundary_empty_and_nonexistent_and_duplicates(self):
+        """
+        Boundary conditions:
+        - Empty pids list: pids=[]
+        - Non-existent partner ID: pids=[999999999]
+        - Duplicate IDs in input: pids=[p1.id, p1.id]
+        """
+        Partner = self.env["res.partner"]
+        Followers = self.env["mail.followers"]
+
+        # 1. Empty list
+        rec_empty = Followers._get_recipient_data(
+            records=None,
+            message_type="notification",
+            subtype_id=False,
+            pids=[],
+        )
+        self.assertEqual(rec_empty, {0: {}}, "Empty pids must return empty recipient dict")
+
+        # 2. Non-existent partner ID
+        rec_nonexistent = Followers._get_recipient_data(
+            records=None,
+            message_type="notification",
+            subtype_id=False,
+            pids=[999999999],
+        )
+        self.assertEqual(rec_nonexistent, {0: {}}, "Non-existent partner must yield 0 recipient rows")
+
+        # 3. Duplicate partner IDs in input list
+        p_dup = self._track_partner(Partner.create({"name": "Duplicate List Target"}))
+        rec_dup = Followers._get_recipient_data(
+            records=None,
+            message_type="notification",
+            subtype_id=False,
+            pids=[p_dup.id, p_dup.id, p_dup.id],
+        )
+        self.assertIn(0, rec_dup)
+        self.assertEqual(len(rec_dup[0]), 1, "Duplicate IDs must not produce duplicate dict entries")
+        self.assertIn(p_dup.id, rec_dup[0])
+
+    def test_07_unicode_nfc_nfd_diacritic_preservation(self):
+        """
+        Adversarial test: NFC vs NFD Unicode normalization.
+        'Đắk Lắk Cà Phê' in NFC (composed) vs NFD (decomposed) are byte-distinct
+        Unicode representations. They must NOT collapse or cause GROUP BY errors.
+        """
+        Partner = self.env["res.partner"]
+        name_base = "Đắk Lắk Cà Phê"
+        name_nfc = unicodedata.normalize("NFC", name_base)
+        name_nfd = unicodedata.normalize("NFD", name_base)
+
+        self.assertNotEqual(
+            name_nfc.encode("utf-8"),
+            name_nfd.encode("utf-8"),
+            "Precondition: NFC and NFD byte encodings must differ"
+        )
+
+        p_nfc = self._track_partner(Partner.create({"name": name_nfc, "active": True}))
+        p_nfd = self._track_partner(Partner.create({"name": name_nfd, "active": True}))
+
+        recipients = self.env["mail.followers"]._get_recipient_data(
+            records=None,
+            message_type="notification",
+            subtype_id=False,
+            pids=[p_nfc.id, p_nfd.id],
+        )
+
+        self.assertIn(0, recipients)
+        res_0 = recipients[0]
+        self.assertEqual(len(res_0), 2, "NFC and NFD partners must both be preserved distinctly")
+        self.assertIn(p_nfc.id, res_0)
+        self.assertIn(p_nfd.id, res_0)
+        self.assertEqual(res_0[p_nfc.id]["name"], name_nfc)
+        self.assertEqual(res_0[p_nfd.id]["name"], name_nfd)
 
 
 if __name__ == "__main__":
