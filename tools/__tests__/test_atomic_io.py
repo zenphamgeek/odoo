@@ -125,14 +125,29 @@ class TestAtomicIO(unittest.TestCase):
 
         os.open = failing_open
         try:
-            with warnings.catch_warnings(record=True) as w:
+            with warnings.catch_warnings(record=True) as w, self.assertLogs("atomic_io", level="WARNING") as cm:
                 warnings.simplefilter("always")
                 atomic_write_text(target, "content_with_warning")
                 self.assertTrue(target.exists())
                 self.assertTrue(any(issubclass(item.category, RuntimeWarning) for item in w))
                 self.assertTrue(any("crash durability not guaranteed" in str(item.message) for item in w))
+                self.assertTrue(any("Directory fsync failed" in log_msg for log_msg in cm.output))
         finally:
             os.open = orig_open
+
+    def test_atomic_write_tightens_preexisting_loose_parent_dir(self):
+        """Finding 1 Phase 1: Tightens pre-existing loose parent directory permissions (0o755 -> 0o700) for sensitive files."""
+        loose_dir = self.dir_path / "loose_parent"
+        loose_dir.mkdir(mode=0o755, exist_ok=True)
+        os.chmod(loose_dir, 0o755)
+        self.assertEqual(loose_dir.stat().st_mode & 0o777, 0o755)
+
+        target = loose_dir / "secret_key.json"
+        atomic_write_text(target, '{"secret": 1}', mode=0o600)
+        self.assertTrue(target.exists())
+        self.assertEqual(target.stat().st_mode & 0o777, 0o600)
+        # Parent directory permissions must have been tightened to 0o700
+        self.assertEqual(loose_dir.stat().st_mode & 0o777, 0o700)
 
 if __name__ == "__main__":
     unittest.main()

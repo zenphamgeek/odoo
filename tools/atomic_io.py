@@ -14,10 +14,13 @@ Guarantees:
 8. Exception-safe temporary file cleanup.
 """
 
+import logging
 import os
 import tempfile
 import warnings
 from pathlib import Path
+
+logger = logging.getLogger("atomic_io")
 
 def atomic_write_text(target: Path | str, data: str, encoding: str = "utf-8", mode: int | None = None) -> None:
     """
@@ -27,17 +30,32 @@ def atomic_write_text(target: Path | str, data: str, encoding: str = "utf-8", mo
     Flushes and fsyncs both the file descriptor and the parent directory for crash durability.
     """
     raw_target = Path(target)
+    parent_dir = raw_target.parent.resolve()
+    target = parent_dir / raw_target.name
 
-    # CWE-59: Refuse symlink redirection on sensitive targets
-    if mode is not None and raw_target.is_symlink():
-        raise PermissionError(f"Refusing to write sensitive file through symlink: {raw_target}")
-
-    target = raw_target.resolve()
-    parent_dir = target.parent
+    # CWE-59: Refuse symlink redirection on sensitive targets (check raw path and resolved target component)
+    if mode is not None and (raw_target.is_symlink() or os.path.islink(target) or target.is_symlink()):
+        raise PermissionError(f"Refusing to write sensitive file through symlink: {target}")
 
     # Guarantee parent chain exists; enforce 0o700 if target is sensitive
     dir_mode = 0o700 if (mode is not None and mode <= 0o600) else 0o755
     parent_dir.mkdir(parents=True, exist_ok=True, mode=dir_mode)
+
+    # If target is sensitive, verify parent directory permissions (Finding 1 Phase 1)
+    if mode is not None and mode <= 0o600:
+        st = parent_dir.stat()
+        if st.st_uid == os.getuid():
+            if st.st_mode & 0o077:
+                os.chmod(parent_dir, 0o700)
+        else:
+            if st.st_mode & 0o077:
+                logger.warning(
+                    "Sensitive target parent directory %s has loose permissions (%o) and is not owned by current user (uid=%s, dir_uid=%s)",
+                    parent_dir,
+                    st.st_mode & 0o777,
+                    os.getuid(),
+                    st.st_uid,
+                )
 
     fd, tmp = tempfile.mkstemp(dir=str(parent_dir), prefix=f".{target.name}.", suffix=".tmp")
     try:
@@ -63,7 +81,8 @@ def atomic_write_text(target: Path | str, data: str, encoding: str = "utf-8", mo
                 os.fsync(dir_fd)
             finally:
                 os.close(dir_fd)
-        except OSError:
+        except OSError as err:
+            logger.warning("Directory fsync failed for %s: %s; crash durability not guaranteed", parent_dir, err)
             warnings.warn(
                 f"directory fsync failed for {parent_dir}; crash durability not guaranteed",
                 RuntimeWarning,
