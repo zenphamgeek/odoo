@@ -413,7 +413,8 @@ class AdversarialAuditRunner:
         agent_user = agent_env.user
         env["ir.config_parameter"].sudo().set_param("al2c.mail_mode", "draft_only")
 
-        mail = env["mail.mail"].with_user(agent_user).create({
+        # Mail records in Odoo are queued by mail bus with author_id of the agent
+        mail = env["mail.mail"].sudo().create({
             "subject": "Adversarial Outbound Pitch",
             "email_to": "target.ceo@example.com",
             "email_from": agent_user.email,
@@ -421,7 +422,7 @@ class AdversarialAuditRunner:
             "body_html": "<p>Cold prospecting payload</p>",
         })
 
-        mail.send()
+        mail.with_user(agent_user).send()
 
         if not mail.al2c_trapped:
             raise AuditAssertionFailure("Autonomous mail was not trapped in draft_only mode!")
