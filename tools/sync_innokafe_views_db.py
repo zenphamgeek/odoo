@@ -179,6 +179,11 @@ def sync_database(host, port, user, password, dbname):
         """, (json.dumps(contactus_arch_dict), v_id))
         print(f"[✓] Synced InnoKafe contactus arch to website.contactus view {v_id} ({len(contactus_arch_xml)} bytes)")
 
+    # 2d. Permanently deactivate legacy insilos_website.insilos_vietnamese_fonts on innokafe_prod
+    cur.execute("UPDATE ir_ui_view SET active = false WHERE key = 'insilos_website.insilos_vietnamese_fonts'")
+    if cur.rowcount > 0:
+        print(f"[✓] Deactivated legacy insilos_website.insilos_vietnamese_fonts ({cur.rowcount} views) on {dbname}")
+
     # 3. Synchronize InnoKafe Brand Logo to Header Brand views (view 1046 and 1693)
     inno_brand_logo_arch = """<data name="Header Brand Logo">
     <xpath expr="//*[@id='o_fake_navbar_brand']" position="replace">

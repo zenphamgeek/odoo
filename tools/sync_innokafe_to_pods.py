@@ -37,6 +37,8 @@ MEDIA_ASSETS = [
     "enterprise/innokafe_website/static/src/img/branding/innokafe_logo_dark.svg",
     "enterprise/innokafe_website/static/src/img/branding/innokafe_logo_white.svg",
     "enterprise/innokafe_website/static/src/img/branding/innokafe_mark_symbol.svg",
+    "enterprise/innokafe_website/static/src/img/branding/innokafe_social_share_1200x630.jpg",
+    "enterprise/innokafe_website/static/src/img/branding/innokafe_social_share_1200x630.webp",
 ]
 
 WORKER_RELOAD_SCRIPT = """
@@ -215,10 +217,15 @@ chmod 0755 /app/insilos/tools/sync_innokafe_views_db.py /app/insilos/tools/safe_
 rm -f /tmp/innokafe_website_sync.tar.gz
 """
 
+    insilos_templates = os.path.join(ROOT_DIR, "enterprise", "insilos_website", "views", "website_templates.xml")
+
     for pod in pods:
         run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, tar_path, f"{pod}:/tmp/innokafe_website_sync.tar.gz"], check=True)
         run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, sync_tool, f"{pod}:/app/insilos/tools/sync_innokafe_views_db.py"], check=True)
         run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, warmup_tool, f"{pod}:/app/insilos/tools/safe_asset_warmup.py"], check=True)
+        if os.path.exists(insilos_templates):
+            run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, insilos_templates, f"{pod}:/app/insilos/enterprise/insilos_website/views/website_templates.xml"], check=True)
+            run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, insilos_templates, f"{pod}:/app/insilos/apps/insilos_website/views/website_templates.xml"], check=True)
         run_cmd(["kubectl", "exec", "-n", namespace, pod, "-c", container, "--", "sh", "-c", extract_script], check=True)
         print(f"[✓] Synchronized & verified SHA-256 on {pod}")
 
