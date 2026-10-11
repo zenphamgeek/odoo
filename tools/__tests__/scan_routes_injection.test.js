@@ -21,16 +21,37 @@ console.log('\n[Test 1] Verifying shell metacharacters do not execute injected c
 const canary = path.join(os.tmpdir(), `canary_${Date.now()}_${Math.random().toString(36).substring(7)}`);
 const payload = `http://127.0.0.1:1/ ; touch ${canary} ; #`;
 
+let scannerRan = false;
+let canaryExitCode = null;
+let canaryStderr = '';
+
 try {
   execFileSync('node', ['tools/scan_all_innokafe_routes.js', payload], {
     encoding: 'utf-8',
     timeout: 15000,
-    stdio: 'pipe'
+    stdio: ['pipe', 'pipe', 'pipe']
   });
-} catch (_) {
-  // Connection error to 127.0.0.1:1 or scanner exit is expected; canary creation is the failure condition.
+  canaryExitCode = 0;
+  scannerRan = true;
+} catch (err) {
+  if (err.code === 'ENOENT' || err.status === null || err.status === undefined) {
+    throw new Error(`Scanner failed to execute (not a security pass): ${err.message}`);
+  }
+  canaryExitCode = err.status;
+  canaryStderr = err.stderr ? err.stderr.toString() : '';
+  scannerRan = true;
 }
 
+assert.ok(scannerRan, 'SECURITY TEST INVALID: scanner never executed; canary result is meaningless.');
+assert.strictEqual(
+  canaryExitCode,
+  2,
+  `Expected scanner to reject injected URL with exit 2, got ${canaryExitCode}`
+);
+assert.ok(
+  canaryStderr.includes('Invalid base URL argument'),
+  `Expected stderr to contain rejection message, got: ${canaryStderr}`
+);
 assert.strictEqual(
   fs.existsSync(canary),
   false,
@@ -39,7 +60,7 @@ assert.strictEqual(
 if (fs.existsSync(canary)) {
   fs.unlinkSync(canary);
 }
-console.log('  [✓] PASS: No shell spawned, canary file was NOT created.');
+console.log('  [✓] PASS: Scanner executed, rejected metacharacters with exit code 2, and canary was NOT created.');
 
 // Test 2: Protocol Allowlist Enforcement (file://, javascript:, gopher://)
 const invalidProtocols = [
@@ -71,17 +92,18 @@ for (const badUrl of invalidProtocols) {
     `SECURITY REGRESSION: Protocol '${badUrl}' was not rejected with exit code 2 (got ${exitCode})`
   );
   assert.ok(
-    stderr.includes('[✗] Invalid base URL argument'),
+    stderr.includes('Invalid base URL'),
     `Expected stderr to contain rejection message for '${badUrl}', got: ${stderr}`
   );
   console.log(`  [✓] PASS: '${badUrl}' rejected cleanly with exit code 2.`);
 }
 
-// Test 3: Malformed Non-URL String Rejection
-console.log('\n[Test 3] Verifying malformed non-URL string rejection (exit code 2)...');
-const malformedUrls = ['not_a_valid_url', '://missing-scheme', '   '];
+// Test 3: Malformed Non-URL String & Empty Argument Rejection
+console.log('\n[Test 3] Verifying malformed non-URL and empty argument rejection (exit code 2)...');
+const malformedUrls = ['not_a_valid_url', '://missing-scheme', '   ', ''];
 for (const malformed of malformedUrls) {
   let exitCode = null;
+  let stderr = '';
   try {
     execFileSync('node', ['tools/scan_all_innokafe_routes.js', malformed], {
       encoding: 'utf-8',
@@ -91,6 +113,7 @@ for (const malformed of malformedUrls) {
     exitCode = 0;
   } catch (err) {
     exitCode = err.status;
+    stderr = err.stderr ? err.stderr.toString() : '';
   }
 
   assert.strictEqual(
@@ -98,7 +121,25 @@ for (const malformed of malformedUrls) {
     2,
     `SECURITY REGRESSION: Malformed URL '${malformed}' was not rejected with exit code 2 (got ${exitCode})`
   );
+  assert.ok(
+    stderr.includes('Invalid base URL'),
+    `Expected stderr to contain rejection message for '${malformed}', got: ${stderr}`
+  );
   console.log(`  [✓] PASS: '${malformed}' rejected cleanly with exit code 2.`);
+}
+
+// Test 4: Default Safe Invocation & Flag Validation
+console.log('\n[Test 4] Verifying default invocation and safe argument parsing (--validate-only)...');
+try {
+  const stdout = execFileSync('node', ['tools/scan_all_innokafe_routes.js', '--validate-only'], {
+    encoding: 'utf-8',
+    timeout: 5000,
+    stdio: ['pipe', 'pipe', 'pipe']
+  });
+  assert.ok(stdout.includes('Validated base URL: http://127.0.0.1:28071'), `Expected default URL validation, got: ${stdout}`);
+  console.log('  [✓] PASS: Default URL validated successfully with exit code 0.');
+} catch (err) {
+  throw new Error(`Failed to validate default URL: ${err.message}`);
 }
 
 console.log('\n' + '='.repeat(70));

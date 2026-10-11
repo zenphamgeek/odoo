@@ -3,9 +3,21 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-let rawBaseUrl = process.argv[2] || 'http://127.0.0.1:28071';
+const rawArgs = process.argv.slice(2);
+const isValidateOnly = rawArgs.includes('--validate-only');
+const nonFlagArgs = rawArgs.filter(a => !a.startsWith('--'));
+
+if (nonFlagArgs.length > 0 && (!nonFlagArgs[0] || !nonFlagArgs[0].trim())) {
+  console.error('[✗] Invalid base URL argument: base URL cannot be empty or whitespace');
+  process.exit(2);
+}
+
+const rawBaseUrl = nonFlagArgs[0] || 'http://127.0.0.1:28071';
 let baseUrl;
 try {
+  if (/[\s;`$|&<>"'\n\r\t\\]/.test(rawBaseUrl)) {
+    throw new Error('base URL contains forbidden characters or whitespace');
+  }
   const parsed = new URL(rawBaseUrl);
   if (!['http:', 'https:'].includes(parsed.protocol)) {
     throw new Error(`unsupported protocol: ${parsed.protocol}`);
@@ -14,6 +26,11 @@ try {
 } catch (e) {
   console.error(`[✗] Invalid base URL argument: ${e.message}`);
   process.exit(2);
+}
+
+if (isValidateOnly) {
+  console.log(`[✓] Validated base URL: ${baseUrl}`);
+  process.exit(0);
 }
 
 const routes = [
