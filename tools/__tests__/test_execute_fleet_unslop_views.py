@@ -21,9 +21,33 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
+from concurrent.futures import ProcessPoolExecutor
+import hashlib
+from unittest.mock import patch
+
+from tools.atomic_io import atomic_write_text
 from tools.execute_fleet_unslop_views import clean_file_content
 from tools.safe_xml import assert_markup_preserved, parse_xml_safe
 from tools.unslop_ledger import UnslopLedger
+
+
+def _ledger_concurrent_worker(args):
+    """Picklable worker for multiprocess ledger concurrency test."""
+    db_path_str, worker_id, num_writes = args
+    ledger = UnslopLedger(db_path=Path(db_path_str))
+    for i in range(num_writes):
+        rel_path = f"enterprise/worker_{worker_id}_file_{i}.xml"
+        sha = hashlib.sha256(f"content_{worker_id}_{i}".encode()).hexdigest()
+        ledger.record_entry(
+            rel_path=rel_path,
+            sha256_before=sha,
+            sha256_after=sha,
+            rule_fingerprint="fp_concurrent",
+            diff_chars=0,
+            status="clean",
+            notes=f"worker_{worker_id}",
+        )
+    return True
 
 
 class TestExecuteFleetUnslopViews(unittest.TestCase):
@@ -149,6 +173,121 @@ class TestExecuteFleetUnslopViews(unittest.TestCase):
             stats = ledger.get_stats()
             self.assertEqual(stats["total_tracked"], 1)
             self.assertEqual(stats["clean_count"], 1)
+
+    def test_assert_markup_preserved_rejects_xxe_system_file_read(self):
+        """CWE-611: XXE SYSTEM entity payload attempting to read local files must be strictly blocked."""
+        xxe_payload = (
+            '<?xml version="1.0" encoding="utf-8"?>\n'
+            '<!DOCTYPE root [\n'
+            '  <!ENTITY xxe SYSTEM "file:///etc/passwd">\n'
+            ']>\n'
+            '<odoo><template id="t1"><p>&xxe;</p></template></odoo>'
+        )
+        with self.assertRaises(ValueError) as ctx:
+            parse_xml_safe(xxe_payload)
+        self.assertIn("forbidden", str(ctx.exception).lower())
+
+    def test_assert_markup_preserved_rejects_parameter_entity_bomb(self):
+        """CWE-776: Parameter entity declaration must be rejected."""
+        pe_payload = (
+            '<?xml version="1.0"?>\n'
+            '<!DOCTYPE test [\n'
+            '  <!ENTITY % pe "<!ENTITY bomb \'payload\'>">\n'
+            '  %pe;\n'
+            ']>\n'
+            '<odoo><template id="t1"><p>&bomb;</p></template></odoo>'
+        )
+        with self.assertRaises(ValueError) as ctx:
+            parse_xml_safe(pe_payload)
+        self.assertIn("forbidden", str(ctx.exception).lower())
+
+    def test_assert_markup_preserved_rejects_quadratic_blowup_entity(self):
+        """CWE-776: Quadratic entity expansion bomb must be rejected."""
+        quad_payload = (
+            '<?xml version="1.0"?>\n'
+            '<!DOCTYPE root [\n'
+            '  <!ENTITY chunk "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa">\n'
+            ']>\n'
+            '<odoo><template id="t1"><p>&chunk;&chunk;&chunk;&chunk;</p></template></odoo>'
+        )
+        with self.assertRaises(ValueError) as ctx:
+            parse_xml_safe(quad_payload)
+        self.assertIn("forbidden", str(ctx.exception).lower())
+
+    def test_assert_markup_preserved_rejects_padding_bypass_attempt(self):
+        """CWE-611/CWE-776: Padding bypass (>8000 bytes before DOCTYPE) must NOT bypass safe_xml."""
+        padding = " " * 8000 + "<!-- " + "x" * 6000 + " -->\n"
+        bypassing_payload = (
+            padding + '<!DOCTYPE root [<!ENTITY secret "test">]><odoo><p>&secret;</p></odoo>'
+        )
+        with self.assertRaises(ValueError) as ctx:
+            parse_xml_safe(bypassing_payload)
+        self.assertIn("forbidden", str(ctx.exception).lower())
+
+    def test_unslop_ledger_concurrent_multiprocess_writes(self):
+        """CWE-367: Multi-process concurrent ledger writes execute without SQLite lock error."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_db = Path(tmpdir) / "test_concurrent.db"
+            # Pre-init
+            ledger = UnslopLedger(db_path=test_db)
+
+            num_workers = 4
+            writes_per_worker = 25
+            tasks = [
+                (str(test_db), w_id, writes_per_worker)
+                for w_id in range(num_workers)
+            ]
+
+            with ProcessPoolExecutor(max_workers=num_workers) as executor:
+                results = list(executor.map(_ledger_concurrent_worker, tasks))
+
+            self.assertTrue(all(results))
+
+            stats = ledger.get_stats()
+            self.assertEqual(stats["total_tracked"], num_workers * writes_per_worker)
+            self.assertEqual(stats["clean_count"], num_workers * writes_per_worker)
+            self.assertEqual(stats["audit_events"], num_workers * writes_per_worker)
+
+            # Integrity check
+            with ledger._get_connection() as con:
+                res = con.execute("PRAGMA integrity_check").fetchone()[0]
+                self.assertEqual(res, "ok")
+
+    def test_unslop_ledger_secure_permissions(self):
+        """Verifies that ledger DB and lock files are created with 0o600 permissions."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_db = Path(tmpdir) / "test_perms.db"
+            ledger = UnslopLedger(db_path=test_db)
+            ledger.record_entry("path/a", "s1", "s2", "fp1", 0)
+
+            db_mode = test_db.stat().st_mode & 0o777
+            self.assertEqual(
+                db_mode & 0o077, 0, f"DB has loose permissions: {oct(db_mode)}"
+            )
+
+            lock_mode = ledger.lock_path.stat().st_mode & 0o777
+            self.assertEqual(
+                lock_mode & 0o077, 0, f"Lock has loose permissions: {oct(lock_mode)}"
+            )
+
+    def test_atomic_write_crash_injection_leaves_original_intact(self):
+        """Crash injection: Simulated failure during write leaves original file completely untouched."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            target = Path(tmpdir) / "original_view.xml"
+            original_content = "<odoo><template id='t1'>Untouched</template></odoo>"
+            target.write_text(original_content, encoding="utf-8")
+
+            # Mock os.replace to raise an unhandled OSError
+            with patch("os.replace", side_effect=OSError("Simulated crash before rename")):
+                with self.assertRaises(OSError):
+                    atomic_write_text(target, "<odoo><template id='t1'>Corrupted</template></odoo>")
+
+            # Target file MUST remain exactly as original
+            self.assertEqual(target.read_text(encoding="utf-8"), original_content)
+
+            # No leftover .tmp files
+            tmp_files = list(Path(tmpdir).glob(".*.tmp"))
+            self.assertEqual(len(tmp_files), 0, f"Found leftover temp files: {tmp_files}")
 
 
 if __name__ == "__main__":

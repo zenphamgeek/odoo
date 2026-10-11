@@ -49,33 +49,55 @@ except ImportError:
 def check_forbidden_xml_declarations(raw_bytes: bytes) -> None:
     """
     Multi-encoding pre-parse denylist check.
-    Detects and rejects <!DOCTYPE and <!ENTITY across UTF-8, UTF-16-LE, UTF-16-BE,
-    and ASCII, preventing billion-laughs and quadratic expansion bombs before parsing.
+    Detects and rejects <!DOCTYPE, <!ENTITY, <!ELEMENT, and <!ATTLIST across UTF-8,
+    UTF-16-LE, UTF-16-BE, and ASCII across the ENTIRE buffer without truncation,
+    preventing padding bypasses, billion-laughs, and quadratic expansion bombs before parsing.
     """
-    # 1. Direct byte inspection for ASCII / UTF-8
-    upper_bytes = raw_bytes[:4096].upper()
-    if b"<!DOCTYPE" in upper_bytes or b"<!ENTITY" in upper_bytes:
+    # 1. Direct full-buffer byte inspection for ASCII / UTF-8 / normalized casing
+    upper_bytes = raw_bytes.upper()
+    if (
+        b"<!DOCTYPE" in upper_bytes
+        or b"<!ENTITY" in upper_bytes
+        or b"<!ELEMENT" in upper_bytes
+        or b"<!ATTLIST" in upper_bytes
+    ):
         raise ValueError(
             "XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)"
         )
 
-    # 2. Check for UTF-16 LE / BE byte patterns
-    # In UTF-16 LE: b'<\x00!\x00D\x00O\x00C\x00T\x00Y\x00P\x00E'
-    # In UTF-16 BE: b'\x00<\x00!\x00D\x00O\x00C\x00T\x00Y\x00P\x00E'
+    # 1b. Check for whitespace tolerance between <! and declaration keyword
+    import re
+    if re.search(rb"<!\s*(DOCTYPE|ENTITY|ELEMENT|ATTLIST)", upper_bytes):
+        raise ValueError(
+            "XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)"
+        )
+
+    # 2. Check for UTF-16 LE / BE byte patterns across entire buffer
     if (
-        b"<\x00!\x00D\x00O\x00C" in raw_bytes[:8192]
-        or b"\x00<\x00!\x00D\x00O\x00C" in raw_bytes[:8192]
-        or b"<\x00!\x00E\x00N\x00T" in raw_bytes[:8192]
-        or b"\x00<\x00!\x00E\x00N\x00T" in raw_bytes[:8192]
+        b"<\x00!\x00D\x00O\x00C" in raw_bytes
+        or b"\x00<\x00!\x00D\x00O\x00C" in raw_bytes
+        or b"<\x00!\x00E\x00N\x00T" in raw_bytes
+        or b"\x00<\x00!\x00E\x00N\x00T" in raw_bytes
+        or b"<\x00!\x00E\x00L\x00E" in raw_bytes
+        or b"\x00<\x00!\x00E\x00L\x00E" in raw_bytes
     ):
         raise ValueError(
             "XML DOCTYPE and ENTITY declarations are strictly forbidden in UTF-16 (CWE-611/CWE-776)"
         )
 
-    # 3. Defensive decode of head for any other variations (BOM / normalized text)
+    # 3. Defensive decode across entire buffer for any other encodings (UTF-8, Latin-1)
     try:
-        decoded_head = raw_bytes[:4096].decode("utf-8", errors="ignore").upper()
-        if "<!DOCTYPE" in decoded_head or "<!ENTITY" in decoded_head:
+        decoded_full = raw_bytes.decode("utf-8", errors="ignore").upper()
+        if (
+            "<!DOCTYPE" in decoded_full
+            or "<!ENTITY" in decoded_full
+            or "<!ELEMENT" in decoded_full
+            or "<!ATTLIST" in decoded_full
+        ):
+            raise ValueError(
+                "XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)"
+            )
+        if re.search(r"<!\s*(DOCTYPE|ENTITY|ELEMENT|ATTLIST)", decoded_full):
             raise ValueError(
                 "XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)"
             )
