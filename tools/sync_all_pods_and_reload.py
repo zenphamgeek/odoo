@@ -262,7 +262,8 @@ mkdir -p /var/lib/insilos/filestore/custom_addons/insilos_website \
          /app/insilos/enterprise/insilos_website \
          /app/insilos/enterprise/insilos_theme_genesis \
          /app/insilos/apps/insilos_website \
-         /app/insilos/apps/insilos_theme_genesis
+         /app/insilos/apps/insilos_theme_genesis \
+         /app/insilos/tools
 
 tar -xzf /tmp/insilos_website_sync.tar.gz -C /var/lib/insilos/filestore/custom_addons/insilos_website/
 tar -xzf /tmp/insilos_media_sync.tar.gz -C /var/lib/insilos/filestore/custom_addons/insilos_website/
@@ -278,7 +279,8 @@ tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/apps/insilos_the
 tar -xzf /tmp/insilos_adapter_sync.tar.gz -C /app/insilos/addons/insilos_adapter/ 2>/dev/null || true
 tar -xzf /tmp/insilos_adapter_sync.tar.gz -C /app/insilos/insilos_adapter/ 2>/dev/null || true
 
-chown -R insilos:insilos /var/lib/insilos/filestore/custom_addons /app/insilos/enterprise /app/insilos/apps /tmp/*.py 2>/dev/null || true
+chown -R insilos:insilos /var/lib/insilos/filestore/custom_addons /app/insilos/enterprise /app/insilos/apps /app/insilos/tools 2>/dev/null || true
+chmod 0755 /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py 2>/dev/null || true
 rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/manifest.sha256
 """
 
@@ -292,9 +294,10 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_theme, f"{pod}:/tmp/insilos_theme_genesis_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_adapter, f"{pod}:/tmp/insilos_adapter_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, manifest_path, f"{pod}:/tmp/manifest.sha256"])
-            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_innoria_views_db.py", f"{pod}:/tmp/sync_innoria_views_db.py"])
-            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_logos_to_assets_library.py", f"{pod}:/tmp/sync_logos_to_assets_library.py"])
-            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/safe_asset_warmup.py", f"{pod}:/tmp/safe_asset_warmup.py"])
+            # Copy tools into /app/insilos/tools (0755 non-world-writable)
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_innoria_views_db.py", f"{pod}:/app/insilos/tools/sync_innoria_views_db.py"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_logos_to_assets_library.py", f"{pod}:/app/insilos/tools/sync_logos_to_assets_library.py"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/safe_asset_warmup.py", f"{pod}:/app/insilos/tools/safe_asset_warmup.py"])
 
             # Verify and extract on pod server-side
             run_cmd([
@@ -351,7 +354,7 @@ def main():
         print(f"[*] Running view and asset sync on {lead_pod} (container: innoria)...")
         res = run_cmd([
             "kubectl", "exec", "-n", NAMESPACE, lead_pod, "-c", "innoria", "--",
-            "python3", "/tmp/sync_innoria_views_db.py", "prod_pod"
+            "python3", "/app/insilos/tools/sync_innoria_views_db.py", "prod_pod"
         ], check=False)
         print(res.stdout)
         if res.stderr:
@@ -359,7 +362,7 @@ def main():
 
         res_assets = run_cmd([
             "kubectl", "exec", "-n", NAMESPACE, lead_pod, "-c", "innoria", "--",
-            "python3", "/tmp/sync_logos_to_assets_library.py", "prod_pod"
+            "python3", "/app/insilos/tools/sync_logos_to_assets_library.py", "prod_pod"
         ], check=False)
         print(res_assets.stdout)
         if res_assets.stderr:
@@ -368,7 +371,7 @@ def main():
         print("\n[*] Pre-warming SCSS assets for innoria_prod...")
         res_warmup = run_cmd([
             "kubectl", "exec", "-n", NAMESPACE, lead_pod, "-c", "innoria", "--",
-            "python3", "/tmp/safe_asset_warmup.py", "innoria_prod"
+            "python3", "/app/insilos/tools/safe_asset_warmup.py", "innoria_prod"
         ], check=False)
         print(res_warmup.stdout)
         if res_warmup.stderr:
@@ -380,7 +383,7 @@ def main():
         print(f"[*] Running view sync on {lead_insilos} for insilos_ind_inno_ai...")
         res_sync_insilos = run_cmd([
             "kubectl", "exec", "-n", NAMESPACE, lead_insilos, "-c", "insilos", "--",
-            "python3", "/tmp/sync_innoria_views_db.py", "prod_pod", "insilos_ind_inno_ai"
+            "python3", "/app/insilos/tools/sync_innoria_views_db.py", "prod_pod", "insilos_ind_inno_ai"
         ], check=False)
         print(res_sync_insilos.stdout)
         if res_sync_insilos.stderr:
@@ -389,7 +392,7 @@ def main():
         print(f"[*] Pre-warming SCSS assets on {lead_insilos} for insilos_ind_inno_ai...")
         res_warmup2 = run_cmd([
             "kubectl", "exec", "-n", NAMESPACE, lead_insilos, "-c", "insilos", "--",
-            "python3", "/tmp/safe_asset_warmup.py", "insilos_ind_inno_ai"
+            "python3", "/app/insilos/tools/safe_asset_warmup.py", "insilos_ind_inno_ai"
         ], check=False)
         print(res_warmup2.stdout)
         if res_warmup2.stderr:

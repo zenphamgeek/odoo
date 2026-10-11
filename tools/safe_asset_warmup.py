@@ -49,8 +49,8 @@ def warmup_database_assets(dbname="innoria_prod"):
     registry = Registry(dbname)
     with registry.cursor() as cr:
         env = api.Environment(cr, SUPERUSER_ID, {})
-        # Clear stale asset bundle attachments so new SCSS changes compile fresh
-        cr.execute("DELETE FROM ir_attachment WHERE url LIKE '/web/assets/%';")
+        # Clear stale asset bundle attachments so new SCSS changes compile fresh (scoped to ir.ui.view bundles)
+        cr.execute("DELETE FROM ir_attachment WHERE res_model = 'ir.ui.view' AND public = true AND url LIKE '/web/assets/%';")
         print("[✓] Cleared previous /web/assets attachments from database.")
 
         bundles = [

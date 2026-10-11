@@ -511,9 +511,15 @@ def sync_database(host, port, user, password, dbname):
             """, (a_name, a_bundle, a_directive, a_path, a_seq))
         print(f"[✓] Synced asset: {a_name} ({a_path})")
 
-    # Invalidate cached bundle attachments so Odoo recompiles frontend CSS and JS
-    cur.execute("DELETE FROM ir_attachment WHERE url LIKE '%assets_frontend%' OR name LIKE '%assets_frontend%'")
-    print(f"[✓] Invalidated {cur.rowcount} cached frontend asset attachments for clean bundle recompilation")
+    # Invalidate cached bundle attachments strictly scoped to website 1 and ir.ui.view (FAIL-2 remediation)
+    cur.execute("""
+        DELETE FROM ir_attachment
+        WHERE res_model = 'ir.ui.view'
+          AND public = true
+          AND url ~ '^/web/assets/.*assets_frontend'
+          AND (website_id = 1 OR website_id IS NULL)
+    """)
+    print(f"[✓] Invalidated {cur.rowcount} cached frontend asset attachments for clean bundle recompilation (website_id=1)")
 
     conn.commit()
     conn.close()
@@ -522,7 +528,7 @@ def sync_database(host, port, user, password, dbname):
 if __name__ == '__main__':
     target = sys.argv[1] if len(sys.argv) > 1 else 'local'
     if target == 'local':
-        sync_database('127.0.0.1', 5434, 'odoo', '1NN0R1@2026', 'innokafe_prod')
+        sync_database('127.0.0.1', 5434, 'odoo', os.environ.get('INNOKAFE_DB_PASS', '1NN0R1@2026'), 'innokafe_prod')
     elif target == 'prod_pod':
         sync_database(
             os.environ.get('DB_HOST', 'pgbouncer-service'),

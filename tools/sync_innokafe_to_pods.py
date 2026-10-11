@@ -157,6 +157,17 @@ def compute_local_md5(rel_path: str) -> str:
     return h.hexdigest()
 
 
+def compute_local_sha256(file_path: str) -> str:
+    full_path = file_path if os.path.isabs(file_path) else os.path.join(ROOT_DIR, file_path)
+    if not os.path.exists(full_path):
+        raise FileNotFoundError(f"Local file not found: {full_path}")
+    h = hashlib.sha256()
+    with open(full_path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
 def discover_active_pods(namespace: str = NAMESPACE) -> List[str]:
     print("\n=== STAGE 0. DISCOVERING ACTIVE KUBERNETES PODS ===")
     pod_out = run_cmd(
@@ -186,18 +197,21 @@ def package_and_distribute(pods: List[str], namespace: str = NAMESPACE, containe
 
     sync_tool = os.path.join(ROOT_DIR, "tools", "sync_innokafe_views_db.py")
     warmup_tool = os.path.join(ROOT_DIR, "tools", "safe_asset_warmup.py")
+    sync_sha = compute_local_sha256(sync_tool)
+    warmup_sha = compute_local_sha256(warmup_tool)
 
     deploy_procs = []
     for pod in pods:
         pcmd = (
             f"kubectl cp -n {namespace} -c {container} {tar_path} {pod}:/tmp/innokafe_website_sync.tar.gz && "
-            f"kubectl cp -n {namespace} -c {container} {sync_tool} {pod}:/tmp/sync_innokafe_views_db.py && "
-            f"kubectl cp -n {namespace} -c {container} {warmup_tool} {pod}:/tmp/safe_asset_warmup.py && "
+            f"kubectl cp -n {namespace} -c {container} {sync_tool} {pod}:/app/insilos/tools/sync_innokafe_views_db.py && "
+            f"kubectl cp -n {namespace} -c {container} {warmup_tool} {pod}:/app/insilos/tools/safe_asset_warmup.py && "
             f"kubectl exec -n {namespace} {pod} -c {container} -- sh -c '"
-            f"mkdir -p /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website && "
+            f"mkdir -p /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website /app/insilos/tools && "
             f"tar -xzf /tmp/innokafe_website_sync.tar.gz -C /app/insilos/enterprise/innokafe_website/ && "
             f"tar -xzf /tmp/innokafe_website_sync.tar.gz -C /app/insilos/apps/innokafe_website/ && "
-            f"chown -R insilos:insilos /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website /tmp/sync_innokafe_views_db.py /tmp/safe_asset_warmup.py && "
+            f"chown -R insilos:insilos /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website /app/insilos/tools/sync_innokafe_views_db.py /app/insilos/tools/safe_asset_warmup.py && "
+            f"chmod 0755 /app/insilos/tools/sync_innokafe_views_db.py /app/insilos/tools/safe_asset_warmup.py && "
             f"rm -f /tmp/innokafe_website_sync.tar.gz'"
         )
         p = subprocess.Popen(pcmd, shell=True)
@@ -246,11 +260,27 @@ def verify_md5_parity(pods: List[str], namespace: str = NAMESPACE, container: st
     print("\n[✓] 100% Cryptographic MD5 parity confirmed across all 3 pods.")
 
 
+def verify_pod_script_sha256(pod: str, remote_path: str, expected_sha: str, namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
+    cmd = f"kubectl exec -n {namespace} {pod} -c {container} -- sha256sum {remote_path}"
+    res = run_cmd(cmd, check=True)
+    actual_sha = res.stdout.strip().split()[0]
+    if actual_sha != expected_sha:
+        raise RuntimeError(
+            f"Security Invariant Violated: SHA-256 mismatch for {remote_path} on {pod}!\n"
+            f"Expected: {expected_sha}\nGot:      {actual_sha}"
+        )
+    print(f"  [✓] SHA-256 verified for {remote_path} on {pod}: {actual_sha[:16]}...")
+
+
 def sync_db_views(lead_pod: str, namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
     print(f"\n=== STAGE 3. DATABASE VIEWS SYNCHRONIZATION ON LEAD POD ({lead_pod}) ===")
+    sync_tool = os.path.join(ROOT_DIR, "tools", "sync_innokafe_views_db.py")
+    expected_sha = compute_local_sha256(sync_tool)
+    verify_pod_script_sha256(lead_pod, "/app/insilos/tools/sync_innokafe_views_db.py", expected_sha, namespace, container)
+
     res_sync = subprocess.run([
         "kubectl", "exec", "-n", namespace, lead_pod, "-c", container, "--",
-        "python3", "/tmp/sync_innokafe_views_db.py", "prod_pod"
+        "python3", "/app/insilos/tools/sync_innokafe_views_db.py", "prod_pod"
     ], capture_output=True, text=True, timeout=60)
     print(res_sync.stdout.strip())
     if res_sync.stderr.strip():
@@ -266,18 +296,24 @@ def prewarm_assets(pods: List[str], namespace: str = NAMESPACE, container: str =
     pod_kafe = pods[0]
     pod_ria = pods[1] if len(pods) > 1 else pods[0]
 
+    warmup_tool = os.path.join(ROOT_DIR, "tools", "safe_asset_warmup.py")
+    expected_sha = compute_local_sha256(warmup_tool)
+    verify_pod_script_sha256(pod_kafe, "/app/insilos/tools/safe_asset_warmup.py", expected_sha, namespace, container)
+    if pod_ria != pod_kafe:
+        verify_pod_script_sha256(pod_ria, "/app/insilos/tools/safe_asset_warmup.py", expected_sha, namespace, container)
+
     print(f"[*] Pre-warming asset bundles:")
     print(f"    • Pod {pod_kafe}: innokafe_prod")
     print(f"    • Pod {pod_ria}: innoria_prod")
 
     proc_kafe = subprocess.Popen(
         ["kubectl", "exec", "-n", namespace, pod_kafe, "-c", container, "--",
-         "python3", "/tmp/safe_asset_warmup.py", "innokafe_prod"],
+         "python3", "/app/insilos/tools/safe_asset_warmup.py", "innokafe_prod"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
     proc_ria = subprocess.Popen(
         ["kubectl", "exec", "-n", namespace, pod_ria, "-c", container, "--",
-         "python3", "/tmp/safe_asset_warmup.py", "innoria_prod"],
+         "python3", "/app/insilos/tools/safe_asset_warmup.py", "innoria_prod"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
 
