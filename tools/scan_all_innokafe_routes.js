@@ -15,13 +15,23 @@ if (nonFlagArgs.length > 0 && (!nonFlagArgs[0] || !nonFlagArgs[0].trim())) {
 const rawBaseUrl = nonFlagArgs[0] || 'http://127.0.0.1:28071';
 let baseUrl;
 try {
-  const RAW_URL_DENYLIST = /[\s;`$()|&<>"'\n\r\t\\]/;
+  // Block literal metachars AND percent-encoding so payloads cannot be smuggled
+  // in an alternate representation that is decoded by a downstream sink.
+  const RAW_URL_DENYLIST = /[\s;`$()|&<>"'\n\r\t\\%{}\[\]*?!~^]/;
   if (RAW_URL_DENYLIST.test(rawBaseUrl)) {
-    throw new Error('base URL contains forbidden control/metacharacters or whitespace');
+    throw new Error('base URL contains forbidden control/metacharacters, encoding, or whitespace');
   }
   const parsed = new URL(rawBaseUrl);
   if (!['http:', 'https:'].includes(parsed.protocol)) {
     throw new Error(`unsupported protocol: ${parsed.protocol}`);
+  }
+  // Host allowlist: host (and optional :port) must only contain letters, digits, dots, hyphens
+  if (!/^[a-zA-Z0-9.\-]+(:\d{1,5})?$/.test(parsed.host)) {
+    throw new Error('host contains invalid characters');
+  }
+  // Canonicalization invariant: reject anything WHATWG normalization rewrote
+  if (parsed.href !== rawBaseUrl && parsed.href !== `${rawBaseUrl}/`) {
+    throw new Error('base URL is not in canonical form');
   }
   baseUrl = `${parsed.origin}${parsed.pathname.replace(/\/+$/, '')}`;
 } catch (e) {

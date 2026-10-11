@@ -64,9 +64,9 @@ for (const payload of injectionPayloads) {
     `Expected stderr to begin a line with the rejection marker, got: ${stderr}`
   );
 
-  // Scoped check for canary files matching this run in tmpdir
+  // Scoped check for canary files matching this run in tmpdir (including exact base matches)
   const base = path.basename(canaryBase);
-  const leakedCanaries = fs.readdirSync(os.tmpdir()).filter(f => f.startsWith(base) && f.length > base.length);
+  const leakedCanaries = fs.readdirSync(os.tmpdir()).filter(f => f.startsWith(base));
   const canaryCreated = leakedCanaries.length > 0;
 
   // Unconditional cleanup before assertion to prevent artifact leaks
@@ -196,6 +196,43 @@ try {
   assert.strictEqual(exitCode, 2, `Expected invalid URL with --validate-only to reject with exit code 2 (got ${exitCode})`);
   assert.ok(/^\[✗\] Invalid base URL/m.test(stderr), `Expected anchored rejection message, got: ${stderr}`);
   console.log('  [✓] PASS: Invalid URL with --validate-only rejected cleanly with exit code 2.');
+}
+
+// Test 5: Percent-Encoding Bypass & Canonicalization Invariants
+console.log('\n[Test 5] Verifying percent-encoding bypass & canonicalization rejections (exit code 2)...');
+const encodingPayloads = [
+  'http://127.0.0.1:28071/%60whoami%60',
+  'http://127.0.0.1:28071/%24%28id%29',
+  'http://127.0.0.1:28071/%26%26touch%20x',
+  'http://127.0.0.1:28071/%3Bwhoami',
+  'http://127.0.0.1:28071/foo/../bar',
+  'http://evil$host:28071'
+];
+for (const encUrl of encodingPayloads) {
+  let exitCode = null;
+  let stderr = '';
+  try {
+    execFileSync('node', ['tools/scan_all_innokafe_routes.js', encUrl], {
+      encoding: 'utf-8',
+      timeout: 5000,
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+    exitCode = 0;
+  } catch (err) {
+    exitCode = err.status;
+    stderr = err.stderr ? err.stderr.toString() : '';
+  }
+
+  assert.strictEqual(
+    exitCode,
+    2,
+    `SECURITY REGRESSION: URL '${encUrl}' was not rejected with exit code 2 (got ${exitCode})`
+  );
+  assert.ok(
+    /^\[✗\] Invalid base URL/m.test(stderr),
+    `Expected stderr to begin with rejection marker for '${encUrl}', got: ${stderr}`
+  );
+  console.log(`  [✓] PASS: '${encUrl}' rejected cleanly with exit code 2.`);
 }
 
 console.log('\n' + '='.repeat(70));
