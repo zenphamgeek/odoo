@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="0">
+    <record id="product_erp_starter" model="product.template">
+        <field name="name">Insilos ERP Starter Implementation (6 weeks)</field>
+        <field name="default_code">ERP-STARTER</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_erp_impl"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">erp</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_erp_starter"/>
+        <field name="description_sale">Fixed-price 6-week rollout of core finance, sales and inventory for SMEs.</field>
+        <field name="project_template_id" ref="tpl_erp_starter"/>
+    </record>
+    <record id="product_erp_growth" model="product.template">
+        <field name="name">Insilos ERP Growth Implementation</field>
+        <field name="default_code">ERP-GROWTH</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_erp_impl"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">milestones</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">erp</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_erp_growth"/>
+        <field name="description_sale">Milestone-billed implementation for growing companies with multi-module scope.</field>
+        <field name="project_template_id" ref="tpl_erp_growth"/>
+    </record>
+    <record id="product_erp_ent" model="product.template">
+        <field name="name">Insilos ERP Enterprise Implementation</field>
+        <field name="default_code">ERP-ENT</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_erp_impl"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">milestones</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">erp</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_erp_ent"/>
+        <field name="description_sale">Enterprise programme billed per Activate milestone; extra scope via CONSULT-HOUR (T&amp;M).</field>
+        <field name="project_template_id" ref="tpl_erp_ent"/>
+    </record>
+    <record id="product_saas_user_m" model="product.template">
+        <field name="name">Insilos ERP SaaS User (monthly)</field>
+        <field name="default_code">SAAS-USER-M</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_erp_saas"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="True"/>
+        <field name="al2c_product_line">erp</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_saas_user_m"/>
+        <field name="description_sale">Named user subscription, billed monthly per user.</field>
+    </record>
+    <record id="product_saas_hosting_pro" model="product.template">
+        <field name="name">Insilos ERP Hosting Pro (monthly)</field>
+        <field name="default_code">SAAS-HOSTING-PRO</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_erp_saas"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="True"/>
+        <field name="al2c_product_line">erp</field>
+        <field name="al2c_vat_class">vat_10</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_saas_hosting_pro"/>
+        <field name="description_sale">Dedicated managed hosting with daily backups and staging environment.</field>
+    </record>
+    <record id="product_saas_sla_plus" model="product.template">
+        <field name="name">Insilos SLA Plus (monthly)</field>
+        <field name="default_code">SAAS-SLA-PLUS</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_erp_saas"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="True"/>
+        <field name="al2c_product_line">erp</field>
+        <field name="al2c_vat_class">vat_8</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_saas_sla_plus"/>
+        <field name="description_sale">Extended support window and faster response targets on top of the standard SLA.</field>
+    </record>
+    <record id="product_grc_essentials" model="product.template">
+        <field name="name">GRC Essentials: ISO 27001 / Decree 13 Readiness</field>
+        <field name="default_code">GRC-ESSENTIALS</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_grc"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">grc</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_grc_essentials"/>
+        <field name="description_sale">Gap assessment and readiness programme for ISO/IEC 27001 and Decree 13/2023 on personal data protection.</field>
+        <field name="project_template_id" ref="tpl_grc_essentials"/>
+    </record>
+    <record id="product_grc_risk_register" model="product.template">
+        <field name="name">GRC Risk Register Setup</field>
+        <field name="default_code">GRC-RISK-REGISTER</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_grc"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">grc</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_grc_risk_register"/>
+        <field name="description_sale">Risk taxonomy, register and treatment workflow configured in the platform.</field>
+        <field name="project_template_id" ref="tpl_grc_risk"/>
+    </record>
+    <record id="product_grc_audit_pack" model="product.template">
+        <field name="name">GRC Audit Pack</field>
+        <field name="default_code">GRC-AUDIT-PACK</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_grc"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">milestones</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">grc</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_grc_audit_pack"/>
+        <field name="description_sale">Evidence collection, internal audit and certification-audit support, billed per milestone.</field>
+        <field name="project_template_id" ref="tpl_grc_audit"/>
+    </record>
+    <record id="product_ai_discovery" model="product.template">
+        <field name="name">AI Discovery Sprint (2 weeks)</field>
+        <field name="default_code">AI-DISCOVERY</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_custom"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">ai</field>
+        <field name="al2c_vat_class">vat_8</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_ai_discovery"/>
+        <field name="description_sale">Fixed 2-week sprint: use-case mapping, data readiness and value case.</field>
+        <field name="project_template_id" ref="tpl_ai_discovery"/>
+    </record>
+    <record id="product_ai_poc" model="product.template">
+        <field name="name">AI Proof of Concept</field>
+        <field name="default_code">AI-POC</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_custom"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">ai</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_ai_poc"/>
+        <field name="description_sale">Fixed-price proof of concept on customer data with success criteria agreed upfront.</field>
+        <field name="project_template_id" ref="tpl_ai_poc"/>
+    </record>
+    <record id="product_ai_pilot" model="product.template">
+        <field name="name">AI Pilot</field>
+        <field name="default_code">AI-PILOT</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_custom"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">milestones</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">ai</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_ai_pilot"/>
+        <field name="description_sale">Pilot with real users, billed per milestone.</field>
+        <field name="project_template_id" ref="tpl_ai_pilot"/>
+    </record>
+    <record id="product_ai_prod" model="product.template">
+        <field name="name">AI Production Rollout (time and materials)</field>
+        <field name="default_code">AI-PROD</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_custom"/>
+        <field name="uom_id" ref="uom.product_uom_hour"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">timesheet</field>
+        <field name="service_tracking">task_in_project</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">ai</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_ai_prod"/>
+        <field name="description_sale">Production hardening and rollout billed on timesheets; followed by AMS.</field>
+        <field name="project_template_id" ref="tpl_ai_prod"/>
+    </record>
+    <record id="product_mojo_app_sub" model="product.template">
+        <field name="name">Mojo AI App Subscription (monthly)</field>
+        <field name="default_code">MOJO-APP-SUB</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_mojo"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="True"/>
+        <field name="al2c_product_line">mojo</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_mojo_app_sub"/>
+        <field name="description_sale">Per-seat subscription to a Mojo AI application.</field>
+    </record>
+    <record id="product_mojo_tokens" model="product.template">
+        <field name="name">Mojo AI Token Pack (usage add-on, per 1M tokens)</field>
+        <field name="default_code">MOJO-TOKENS</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_mojo"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">mojo</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_mojo_tokens"/>
+        <field name="description_sale">Usage-based add-on billed on consumed token packs.</field>
+    </record>
+    <record id="product_mojo_onprem" model="product.template">
+        <field name="name">Mojo AI On-Premise License and Setup</field>
+        <field name="default_code">MOJO-ONPREM</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_mojo"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">mojo</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_mojo_onprem"/>
+        <field name="description_sale">Perpetual on-premise license with installation and hardening project.</field>
+        <field name="project_template_id" ref="tpl_mojo_onprem"/>
+    </record>
+    <record id="product_ams_bronze" model="product.template">
+        <field name="name">Application Managed Services Bronze (monthly)</field>
+        <field name="default_code">AMS-BRONZE</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_services"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="True"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">vat_8</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_ams_bronze"/>
+        <field name="description_sale">Business-hours support, 20 hours per month.</field>
+    </record>
+    <record id="product_ams_silver" model="product.template">
+        <field name="name">Application Managed Services Silver (monthly)</field>
+        <field name="default_code">AMS-SILVER</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_services"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="True"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">vat_8</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_ams_silver"/>
+        <field name="description_sale">Extended-hours support, 50 hours per month, quarterly release review.</field>
+    </record>
+    <record id="product_ams_gold" model="product.template">
+        <field name="name">Application Managed Services Gold (monthly)</field>
+        <field name="default_code">AMS-GOLD</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_services"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="True"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">vat_8</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_ams_gold"/>
+        <field name="description_sale">24x7 critical support, 120 hours per month, named service manager.</field>
+    </record>
+    <record id="product_training_day" model="product.template">
+        <field name="name">Training Day</field>
+        <field name="default_code">TRAINING-DAY</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_services"/>
+        <field name="uom_id" ref="uom.product_uom_day"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">vat_8</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_training_day"/>
+        <field name="description_sale">On-site or remote training day for up to 15 participants.</field>
+    </record>
+    <record id="product_consult_hour" model="product.template">
+        <field name="name">Consulting Hour (time and materials)</field>
+        <field name="default_code">CONSULT-HOUR</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_services"/>
+        <field name="uom_id" ref="uom.product_uom_hour"/>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">timesheet</field>
+        <field name="service_tracking">task_global_project</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">vat_8</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_consult_hour"/>
+        <field name="description_sale">Senior consultant hour billed on timesheets.</field>
+        <field name="project_id" ref="project_consulting_pool"/>
+    </record>
+    <!-- expose single variants as XML ids (insilos_al2c.product_<sku>_variant) for quotation template lines -->
+    <function model="product.template" name="_al2c_ensure_variant_xmlids"/>
+</data>
+</odoo>

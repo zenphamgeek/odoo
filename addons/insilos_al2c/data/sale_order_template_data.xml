@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="0">
+    <record id="sot_erp_starter" model="sale.order.template">
+        <field name="name">ERP Starter</field>
+        <field name="note">Standard terms apply. Quotes from this template are subject to deal-desk approval above 10% discount or 500M VND total contract value.</field>
+    </record>
+    <record id="sot_erp_starter_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_starter"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_erp_starter_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_erp_starter_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_starter"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_saas_user_m_variant"/>
+        <field name="product_uom_qty">10</field>
+    </record>
+    <record id="sot_erp_starter_line_2" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_starter"/>
+        <field name="sequence">30</field>
+        <field name="product_id" ref="product_training_day_variant"/>
+        <field name="product_uom_qty">2</field>
+    </record>
+    <record id="sot_erp_growth" model="sale.order.template">
+        <field name="name">ERP Growth</field>
+        <field name="note">Standard terms apply. Quotes from this template are subject to deal-desk approval above 10% discount or 500M VND total contract value.</field>
+    </record>
+    <record id="sot_erp_growth_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_growth"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_erp_growth_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_erp_growth_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_growth"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_saas_user_m_variant"/>
+        <field name="product_uom_qty">25</field>
+    </record>
+    <record id="sot_erp_growth_line_2" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_growth"/>
+        <field name="sequence">30</field>
+        <field name="product_id" ref="product_saas_hosting_pro_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_erp_growth_line_3" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_growth"/>
+        <field name="sequence">40</field>
+        <field name="product_id" ref="product_training_day_variant"/>
+        <field name="product_uom_qty">4</field>
+    </record>
+    <record id="sot_erp_ent" model="sale.order.template">
+        <field name="name">ERP Enterprise</field>
+        <field name="note">Standard terms apply. Quotes from this template are subject to deal-desk approval above 10% discount or 500M VND total contract value.</field>
+    </record>
+    <record id="sot_erp_ent_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_ent"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_erp_ent_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_erp_ent_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_ent"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_consult_hour_variant"/>
+        <field name="product_uom_qty">200</field>
+    </record>
+    <record id="sot_erp_ent_line_2" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_ent"/>
+        <field name="sequence">30</field>
+        <field name="product_id" ref="product_saas_user_m_variant"/>
+        <field name="product_uom_qty">100</field>
+    </record>
+    <record id="sot_erp_ent_line_3" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_ent"/>
+        <field name="sequence">40</field>
+        <field name="product_id" ref="product_saas_hosting_pro_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_erp_ent_line_4" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_erp_ent"/>
+        <field name="sequence">50</field>
+        <field name="product_id" ref="product_saas_sla_plus_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_grc_essentials" model="sale.order.template">
+        <field name="name">GRC Essentials</field>
+        <field name="note">Standard terms apply. Quotes from this template are subject to deal-desk approval above 10% discount or 500M VND total contract value.</field>
+    </record>
+    <record id="sot_grc_essentials_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_grc_essentials"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_grc_essentials_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_grc_essentials_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_grc_essentials"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_grc_risk_register_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_ai_poc" model="sale.order.template">
+        <field name="name">AI PoC</field>
+        <field name="note">Standard terms apply. Quotes from this template are subject to deal-desk approval above 10% discount or 500M VND total contract value.</field>
+    </record>
+    <record id="sot_ai_poc_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_ai_poc"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_ai_discovery_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_ai_poc_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_ai_poc"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_ai_poc_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_ai_pilot" model="sale.order.template">
+        <field name="name">AI Pilot</field>
+        <field name="note">Standard terms apply. Quotes from this template are subject to deal-desk approval above 10% discount or 500M VND total contract value.</field>
+    </record>
+    <record id="sot_ai_pilot_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_ai_pilot"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_ai_pilot_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_ai_pilot_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_ai_pilot"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_mojo_tokens_variant"/>
+        <field name="product_uom_qty">10</field>
+    </record>
+    <record id="sot_ai_prod" model="sale.order.template">
+        <field name="name">AI Production</field>
+        <field name="note">Standard terms apply. Quotes from this template are subject to deal-desk approval above 10% discount or 500M VND total contract value.</field>
+    </record>
+    <record id="sot_ai_prod_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_ai_prod"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_ai_prod_variant"/>
+        <field name="product_uom_qty">400</field>
+    </record>
+    <record id="sot_ai_prod_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_ai_prod"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_ams_silver_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+    <record id="sot_mojo_sub" model="sale.order.template">
+        <field name="name">Mojo App Subscription</field>
+        <field name="plan_id" ref="sale_subscription.subscription_plan_month"/>
+        <field name="note">Standard terms apply. Quotes from this template are subject to deal-desk approval above 10% discount or 500M VND total contract value.</field>
+    </record>
+    <record id="sot_mojo_sub_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_mojo_sub"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_mojo_app_sub_variant"/>
+        <field name="product_uom_qty">5</field>
+    </record>
+    <record id="sot_mojo_sub_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_mojo_sub"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_mojo_tokens_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
+</data>
+</odoo>

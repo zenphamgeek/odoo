@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="product_template_form_view_al2c" model="ir.ui.view">
+        <field name="name">product.template.form.al2c</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='categ_id']" position="after">
+                <field name="al2c_product_line"/>
+                <field name="al2c_knowledge_article_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

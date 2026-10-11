@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+    <!-- ERP-STARTER Claim Atoms -->
+    <record id="claim_erp_starter_scope" model="al2c.claim.atom">
+        <field name="name">ERP Starter 6-Week Fixed Delivery</field>
+        <field name="claim_text">Insilos ERP Starter is a fixed-price 6-week rollout covering core finance, sales, and inventory for single-entity SMEs.</field>
+        <field name="claim_type">sla</field>
+        <field name="sku_id" ref="product_erp_starter"/>
+        <field name="source_article_id" ref="kb_sku_erp_starter"/>
+        <field name="verification_state">verified</field>
+    </record>
+
+    <record id="claim_erp_starter_tax" model="al2c.claim.atom">
+        <field name="name">ERP Starter Law 48/2024 VAT Exemption</field>
+        <field name="claim_text">Software implementation and licensing for Insilos ERP Starter is categorized as Không chịu thuế (KCT) under Vietnam VAT Law 48/2024/QH15.</field>
+        <field name="claim_type">compliance</field>
+        <field name="sku_id" ref="product_erp_starter"/>
+        <field name="source_article_id" ref="kb_sku_erp_starter"/>
+        <field name="verification_state">verified</field>
+    </record>
+
+    <!-- ERP-GROWTH Claim Atoms -->
+    <record id="claim_erp_growth_milestones" model="al2c.claim.atom">
+        <field name="name">ERP Growth 5-Phase Activate Milestones</field>
+        <field name="claim_text">Insilos ERP Growth delivers through 5 Activate milestone phases weighted at 15% Prepare, 25% Explore, 35% Realize, 15% Deploy, and 10% Run.</field>
+        <field name="claim_type">pricing_rule</field>
+        <field name="sku_id" ref="product_erp_growth"/>
+        <field name="source_article_id" ref="kb_sku_erp_growth"/>
+        <field name="verification_state">verified</field>
+    </record>
+
+    <record id="claim_erp_growth_decree70" model="al2c.claim.atom">
+        <field name="name">ERP Growth Decree 70 Sign-off Protocol</field>
+        <field name="claim_text">All ERP Growth milestone billing strictly gates on verified customer acceptance certificates in accordance with Decree 70/2025/ND-CP.</field>
+        <field name="claim_type">compliance</field>
+        <field name="sku_id" ref="product_erp_growth"/>
+        <field name="source_article_id" ref="kb_sku_erp_growth"/>
+        <field name="verification_state">verified</field>
+    </record>
+
+    <!-- AI-POC Claim Atoms -->
+    <record id="claim_ai_poc_duration" model="al2c.claim.atom">
+        <field name="name">AI PoC 3-Week Rapid Feasibility</field>
+        <field name="claim_text">Insilos AI PoC provides rapid 3-week feasibility validation on customer-provided sample datasets with formal evaluation rubric.</field>
+        <field name="claim_type">sla</field>
+        <field name="sku_id" ref="product_ai_poc"/>
+        <field name="source_article_id" ref="kb_sku_ai_poc"/>
+        <field name="verification_state">verified</field>
+    </record>
+</data>
+</odoo>

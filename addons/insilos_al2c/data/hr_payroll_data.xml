@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Input Type for Commission (AL2C-PAY-001) -->
+    <record id="input_type_commission" model="hr.payslip.input.type">
+        <field name="name">Cash-Matched Sales Commission</field>
+        <field name="code">COMMISSION</field>
+    </record>
+
+    <!-- Vietnam Payroll Structure Type -->
+    <record id="structure_type_vn_employee" model="hr.payroll.structure.type">
+        <field name="name">Vietnam Enterprise Employee</field>
+        <field name="wage_type">monthly</field>
+    </record>
+
+    <!-- Vietnam 2026 Salary Structure (AL2C-PAY-002) -->
+    <record id="structure_vn_2026" model="hr.payroll.structure">
+        <field name="name">Vietnam 2026 Enterprise Salary Structure (5-Bracket PIT &amp; Statutory Insurance)</field>
+        <field name="code">VN_2026_STRUCTURE</field>
+        <field name="type_id" ref="structure_type_vn_employee"/>
+        <field name="schedule_pay">monthly</field>
+    </record>
+
+    <!-- Rule 1: Basic Wage -->
+    <record id="rule_vn_basic" model="hr.salary.rule">
+        <field name="name">Basic Salary</field>
+        <field name="code">BASIC</field>
+        <field name="category_id" ref="hr_payroll.BASIC"/>
+        <field name="struct_id" ref="structure_vn_2026"/>
+        <field name="sequence">10</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = contract.wage</field>
+    </record>
+
+    <!-- Rule 2: Cash-Matched Sales Commission -->
+    <record id="rule_vn_commission" model="hr.salary.rule">
+        <field name="name">Cash-Matched Sales Commission</field>
+        <field name="code">COMMISSION</field>
+        <field name="category_id" ref="hr_payroll.ALW"/>
+        <field name="struct_id" ref="structure_vn_2026"/>
+        <field name="sequence">20</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = inputs['COMMISSION'].amount if 'COMMISSION' in inputs else 0.0</field>
+    </record>
+
+    <!-- Rule 3: Gross Salary -->
+    <record id="rule_vn_gross" model="hr.salary.rule">
+        <field name="name">Gross Salary</field>
+        <field name="code">GROSS</field>
+        <field name="category_id" ref="hr_payroll.GROSS"/>
+        <field name="struct_id" ref="structure_vn_2026"/>
+        <field name="sequence">30</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['BASIC'] + categories['ALW']</field>
+    </record>
+
+    <!-- Rule 4: Statutory Mandatory Insurance -->
+    <record id="rule_vn_insurance" model="hr.salary.rule">
+        <field name="name">Employee Statutory Insurance (BHXH 8%, BHYT 1.5%, BHTN 1%)</field>
+        <field name="code">INS_EMP</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_vn_2026"/>
+        <field name="sequence">40</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -payslip._get_al2c_vn_insurance(categories['GROSS'])</field>
+    </record>
+
+    <!-- Rule 5: 2026 Family Deductions -->
+    <record id="rule_vn_ded_fam" model="hr.salary.rule">
+        <field name="name">Personal &amp; Dependent Deductions (2026 Reform: 15.5M / 6.2M)</field>
+        <field name="code">DED_FAM</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_vn_2026"/>
+        <field name="sequence">50</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">
+num_children = getattr(contract.employee_id, 'children', 0) or 0
+result = -(15500000.0 + num_children * 6200000.0)
+        </field>
+    </record>
+
+    <!-- Rule 6: 2026 5-Bracket PIT -->
+    <record id="rule_vn_pit" model="hr.salary.rule">
+        <field name="name">Personal Income Tax (PIT 2026 5-Bracket)</field>
+        <field name="code">PIT</field>
+        <field name="category_id" ref="hr_payroll.DED"/>
+        <field name="struct_id" ref="structure_vn_2026"/>
+        <field name="sequence">60</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = -payslip._get_al2c_vn_pit(categories['GROSS'], categories['INS_EMP'], categories['DED_FAM'])</field>
+    </record>
+
+    <!-- Rule 7: Net Salary -->
+    <record id="rule_vn_net" model="hr.salary.rule">
+        <field name="name">Net Take-Home Pay</field>
+        <field name="code">NET</field>
+        <field name="category_id" ref="hr_payroll.NET"/>
+        <field name="struct_id" ref="structure_vn_2026"/>
+        <field name="sequence">100</field>
+        <field name="amount_select">code</field>
+        <field name="amount_python_compute">result = categories['GROSS'] + categories['DED']</field>
+    </record>
+</odoo>

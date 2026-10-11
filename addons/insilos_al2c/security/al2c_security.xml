@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_al2c_agent" model="res.groups">
+        <field name="name">Autonomous Agent (AL2C)</field>
+        <field name="comment">Technical users operated by autonomous agents. Their quotations above the deal-desk thresholds need sales-manager approval, and they can never approve quotations themselves.</field>
+        <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
+    </record>
+</odoo>

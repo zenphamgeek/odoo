@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+    <!-- Workspace folders -->
+    <record id="folder_product_docs" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">Product Docs</field>
+        <field name="access_internal">view</field>
+        <field name="sequence">60</field>
+    </record>
+    <record id="folder_product_docs_erp" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">ERP</field>
+        <field name="folder_id" ref="folder_product_docs"/>
+        <field name="access_internal">view</field>
+        <field name="sequence">1</field>
+    </record>
+    <record id="folder_product_docs_grc" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">GRC</field>
+        <field name="folder_id" ref="folder_product_docs"/>
+        <field name="access_internal">view</field>
+        <field name="sequence">2</field>
+    </record>
+    <record id="folder_product_docs_ai" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">AI Solutions</field>
+        <field name="folder_id" ref="folder_product_docs"/>
+        <field name="access_internal">view</field>
+        <field name="sequence">3</field>
+    </record>
+    <record id="folder_product_docs_mojo" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">Mojo AI Apps</field>
+        <field name="folder_id" ref="folder_product_docs"/>
+        <field name="access_internal">view</field>
+        <field name="sequence">4</field>
+    </record>
+    <record id="folder_product_docs_svc" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">Services</field>
+        <field name="folder_id" ref="folder_product_docs"/>
+        <field name="access_internal">view</field>
+        <field name="sequence">5</field>
+    </record>
+    <record id="folder_proposals" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">Proposals</field>
+        <field name="access_internal">edit</field>
+        <field name="sequence">61</field>
+    </record>
+    <!-- Contracts: restricted (no internal or link access; document managers only) -->
+    <record id="folder_contracts" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">Contracts</field>
+        <field name="access_internal">none</field>
+        <field name="access_via_link">none</field>
+        <field name="is_access_via_link_hidden" eval="True"/>
+        <field name="sequence">62</field>
+    </record>
+    <record id="folder_deliverables" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">Deliverables</field>
+        <field name="access_internal">edit</field>
+        <field name="sequence">63</field>
+    </record>
+    <record id="folder_marketing_assets" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">Marketing Assets</field>
+        <field name="access_internal">edit</field>
+        <field name="sequence">64</field>
+    </record>
+    <record id="folder_compliance_evidence" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">Compliance Evidence</field>
+        <field name="access_internal">view</field>
+        <field name="sequence">65</field>
+    </record>
+
+    <!-- Tags: document type -->
+    <record id="tag_proposal" model="documents.tag">
+        <field name="name">L2C > Proposal</field>
+        <field name="sequence">20</field>
+    </record>
+    <record id="tag_contract" model="documents.tag">
+        <field name="name">L2C > Contract</field>
+        <field name="sequence">21</field>
+    </record>
+    <record id="tag_deliverable" model="documents.tag">
+        <field name="name">L2C > Deliverable</field>
+        <field name="sequence">22</field>
+    </record>
+    <record id="tag_marketing_asset" model="documents.tag">
+        <field name="name">L2C > Marketing Asset</field>
+        <field name="sequence">23</field>
+    </record>
+    <record id="tag_compliance_evidence" model="documents.tag">
+        <field name="name">L2C > Compliance Evidence</field>
+        <field name="sequence">24</field>
+    </record>
+    <record id="tag_product_spec" model="documents.tag">
+        <field name="name">L2C > Product Spec</field>
+        <field name="sequence">25</field>
+    </record>
+    <!-- Tags: confidentiality (confidential docs never enter the public content pipeline) -->
+    <record id="tag_conf_public" model="documents.tag">
+        <field name="name">Confidentiality > Public</field>
+        <field name="sequence">30</field>
+    </record>
+    <record id="tag_conf_internal" model="documents.tag">
+        <field name="name">Confidentiality > Internal</field>
+        <field name="sequence">31</field>
+    </record>
+    <record id="tag_conf_confidential" model="documents.tag">
+        <field name="name">Confidentiality > Confidential</field>
+        <field name="sequence">32</field>
+    </record>
+    <!-- Tags: product line -->
+    <record id="tag_line_erp" model="documents.tag">
+        <field name="name">Line > ERP</field>
+        <field name="sequence">40</field>
+    </record>
+    <record id="tag_line_grc" model="documents.tag">
+        <field name="name">Line > GRC</field>
+        <field name="sequence">41</field>
+    </record>
+    <record id="tag_line_ai" model="documents.tag">
+        <field name="name">Line > AI Solutions</field>
+        <field name="sequence">42</field>
+    </record>
+    <record id="tag_line_mojo" model="documents.tag">
+        <field name="name">Line > Mojo AI Apps</field>
+        <field name="sequence">43</field>
+    </record>
+    <record id="tag_line_svc" model="documents.tag">
+        <field name="name">Line > Services</field>
+        <field name="sequence">44</field>
+    </record>
+</data>
+</odoo>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+    <!-- Global kill-switch for every autonomous agent action -->
+    <record id="param_autonomy_enabled" model="ir.config_parameter">
+        <field name="key">al2c.autonomy_enabled</field>
+        <field name="value">True</field>
+    </record>
+    <!-- Max actions per agent per day (0 = unlimited) -->
+    <record id="param_agent_daily_budget" model="ir.config_parameter">
+        <field name="key">al2c.agent_daily_budget</field>
+        <field name="value">500</field>
+    </record>
+    <!-- Deal-desk thresholds: max line discount (%) and max total contract value (VND) -->
+    <record id="param_max_discount" model="ir.config_parameter">
+        <field name="key">al2c.max_discount</field>
+        <field name="value">10</field>
+    </record>
+    <record id="param_max_tcv" model="ir.config_parameter">
+        <field name="key">al2c.max_tcv</field>
+        <field name="value">500000000</field>
+    </record>
+    <!-- GOV-202 Dual-mode mail gate: 'draft_only' (cold outbound trapped as draft) vs 'engage' -->
+    <record id="param_mail_mode" model="ir.config_parameter">
+        <field name="key">al2c.mail_mode</field>
+        <field name="value">draft_only</field>
+    </record>
+</data>
+</odoo>

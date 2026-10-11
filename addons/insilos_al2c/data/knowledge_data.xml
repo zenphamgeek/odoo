@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+    <record id="kb_products" model="knowledge.article">
+        <field name="name">Products</field>
+        <field name="icon">📦</field>
+        <field name="internal_permission">write</field>
+        <field name="sequence">1</field>
+        <field name="body">&lt;h1&gt;Products&lt;/h1&gt;&lt;p&gt;Single source of truth per product line and SKU.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_industries" model="knowledge.article">
+        <field name="name">Industries</field>
+        <field name="icon">🏭</field>
+        <field name="internal_permission">write</field>
+        <field name="sequence">2</field>
+        <field name="body">&lt;h1&gt;Industries&lt;/h1&gt;&lt;p&gt;Vertical playbooks, regulations and reference processes.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_playbooks" model="knowledge.article">
+        <field name="name">Playbooks</field>
+        <field name="icon">📘</field>
+        <field name="internal_permission">write</field>
+        <field name="sequence">3</field>
+        <field name="body">&lt;h1&gt;Playbooks&lt;/h1&gt;&lt;p&gt;How we sell and deliver.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_battlecards" model="knowledge.article">
+        <field name="name">Battlecards</field>
+        <field name="icon">⚔️</field>
+        <field name="internal_permission">write</field>
+        <field name="sequence">4</field>
+        <field name="body">&lt;h1&gt;Battlecards&lt;/h1&gt;&lt;p&gt;Competitive positioning, refreshed at least every 30 days.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_rfp" model="knowledge.article">
+        <field name="name">RFP Library</field>
+        <field name="icon">🗂️</field>
+        <field name="internal_permission">write</field>
+        <field name="sequence">5</field>
+        <field name="body">&lt;h1&gt;RFP Library&lt;/h1&gt;&lt;p&gt;Approved answers for tenders and security questionnaires.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_postmortems" model="knowledge.article">
+        <field name="name">Post-mortems</field>
+        <field name="icon">🔁</field>
+        <field name="internal_permission">write</field>
+        <field name="sequence">6</field>
+        <field name="body">&lt;h1&gt;Post-mortems&lt;/h1&gt;&lt;p&gt;Project close reviews and win/loss analyses.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_compliance" model="knowledge.article">
+        <field name="name">Compliance</field>
+        <field name="icon">🛡️</field>
+        <field name="internal_permission">write</field>
+        <field name="sequence">7</field>
+        <field name="body">&lt;h1&gt;Compliance&lt;/h1&gt;&lt;p&gt;Regulatory references and internal controls.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_line_erp" model="knowledge.article">
+        <field name="name">ERP</field>
+        <field name="parent_id" ref="kb_products"/>
+        <field name="sequence">1</field>
+        <field name="body">&lt;h1&gt;ERP&lt;/h1&gt;&lt;p&gt;Product line overview for ERP.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_line_grc" model="knowledge.article">
+        <field name="name">GRC</field>
+        <field name="parent_id" ref="kb_products"/>
+        <field name="sequence">2</field>
+        <field name="body">&lt;h1&gt;GRC&lt;/h1&gt;&lt;p&gt;Product line overview for GRC.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_line_ai" model="knowledge.article">
+        <field name="name">AI Solutions</field>
+        <field name="parent_id" ref="kb_products"/>
+        <field name="sequence">3</field>
+        <field name="body">&lt;h1&gt;AI Solutions&lt;/h1&gt;&lt;p&gt;Product line overview for AI Solutions.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_line_mojo" model="knowledge.article">
+        <field name="name">Mojo AI Apps</field>
+        <field name="parent_id" ref="kb_products"/>
+        <field name="sequence">4</field>
+        <field name="body">&lt;h1&gt;Mojo AI Apps&lt;/h1&gt;&lt;p&gt;Product line overview for Mojo AI Apps.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_line_svc" model="knowledge.article">
+        <field name="name">Services</field>
+        <field name="parent_id" ref="kb_products"/>
+        <field name="sequence">5</field>
+        <field name="body">&lt;h1&gt;Services&lt;/h1&gt;&lt;p&gt;Product line overview for Services.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_erp_starter" model="knowledge.article">
+        <field name="name">ERP-STARTER · Insilos ERP Starter Implementation (6 weeks)</field>
+        <field name="parent_id" ref="kb_line_erp"/>
+        <field name="sequence">1</field>
+        <field name="body">&lt;h1&gt;ERP-STARTER · Insilos ERP Starter Implementation (6 weeks)&lt;/h1&gt;&lt;p&gt;Fixed-price 6-week rollout of core finance, sales and inventory for SMEs.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_erp_growth" model="knowledge.article">
+        <field name="name">ERP-GROWTH · Insilos ERP Growth Implementation</field>
+        <field name="parent_id" ref="kb_line_erp"/>
+        <field name="sequence">2</field>
+        <field name="body">&lt;h1&gt;ERP-GROWTH · Insilos ERP Growth Implementation&lt;/h1&gt;&lt;p&gt;Milestone-billed implementation for growing companies with multi-module scope.&lt;/p&gt;&lt;p&gt;Service policy: delivered_milestones; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_erp_ent" model="knowledge.article">
+        <field name="name">ERP-ENT · Insilos ERP Enterprise Implementation</field>
+        <field name="parent_id" ref="kb_line_erp"/>
+        <field name="sequence">3</field>
+        <field name="body">&lt;h1&gt;ERP-ENT · Insilos ERP Enterprise Implementation&lt;/h1&gt;&lt;p&gt;Enterprise programme billed per Activate milestone; extra scope via CONSULT-HOUR (T&amp;amp;M).&lt;/p&gt;&lt;p&gt;Service policy: delivered_milestones; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_saas_user_m" model="knowledge.article">
+        <field name="name">SAAS-USER-M · Insilos ERP SaaS User (monthly)</field>
+        <field name="parent_id" ref="kb_line_erp"/>
+        <field name="sequence">4</field>
+        <field name="body">&lt;h1&gt;SAAS-USER-M · Insilos ERP SaaS User (monthly)&lt;/h1&gt;&lt;p&gt;Named user subscription, billed monthly per user.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: no; recurring: yes; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_saas_hosting_pro" model="knowledge.article">
+        <field name="name">SAAS-HOSTING-PRO · Insilos ERP Hosting Pro (monthly)</field>
+        <field name="parent_id" ref="kb_line_erp"/>
+        <field name="sequence">5</field>
+        <field name="body">&lt;h1&gt;SAAS-HOSTING-PRO · Insilos ERP Hosting Pro (monthly)&lt;/h1&gt;&lt;p&gt;Dedicated managed hosting with daily backups and staging environment.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: no; recurring: yes; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_saas_sla_plus" model="knowledge.article">
+        <field name="name">SAAS-SLA-PLUS · Insilos SLA Plus (monthly)</field>
+        <field name="parent_id" ref="kb_line_erp"/>
+        <field name="sequence">6</field>
+        <field name="body">&lt;h1&gt;SAAS-SLA-PLUS · Insilos SLA Plus (monthly)&lt;/h1&gt;&lt;p&gt;Extended support window and faster response targets on top of the standard SLA.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: no; recurring: yes; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_grc_essentials" model="knowledge.article">
+        <field name="name">GRC-ESSENTIALS · GRC Essentials: ISO 27001 / Decree 13 Readiness</field>
+        <field name="parent_id" ref="kb_line_grc"/>
+        <field name="sequence">7</field>
+        <field name="body">&lt;h1&gt;GRC-ESSENTIALS · GRC Essentials: ISO 27001 / Decree 13 Readiness&lt;/h1&gt;&lt;p&gt;Gap assessment and readiness programme for ISO/IEC 27001 and Decree 13/2023 on personal data protection.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_grc_risk_register" model="knowledge.article">
+        <field name="name">GRC-RISK-REGISTER · GRC Risk Register Setup</field>
+        <field name="parent_id" ref="kb_line_grc"/>
+        <field name="sequence">8</field>
+        <field name="body">&lt;h1&gt;GRC-RISK-REGISTER · GRC Risk Register Setup&lt;/h1&gt;&lt;p&gt;Risk taxonomy, register and treatment workflow configured in the platform.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_grc_audit_pack" model="knowledge.article">
+        <field name="name">GRC-AUDIT-PACK · GRC Audit Pack</field>
+        <field name="parent_id" ref="kb_line_grc"/>
+        <field name="sequence">9</field>
+        <field name="body">&lt;h1&gt;GRC-AUDIT-PACK · GRC Audit Pack&lt;/h1&gt;&lt;p&gt;Evidence collection, internal audit and certification-audit support, billed per milestone.&lt;/p&gt;&lt;p&gt;Service policy: delivered_milestones; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_ai_discovery" model="knowledge.article">
+        <field name="name">AI-DISCOVERY · AI Discovery Sprint (2 weeks)</field>
+        <field name="parent_id" ref="kb_line_ai"/>
+        <field name="sequence">10</field>
+        <field name="body">&lt;h1&gt;AI-DISCOVERY · AI Discovery Sprint (2 weeks)&lt;/h1&gt;&lt;p&gt;Fixed 2-week sprint: use-case mapping, data readiness and value case.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_ai_poc" model="knowledge.article">
+        <field name="name">AI-POC · AI Proof of Concept</field>
+        <field name="parent_id" ref="kb_line_ai"/>
+        <field name="sequence">11</field>
+        <field name="body">&lt;h1&gt;AI-POC · AI Proof of Concept&lt;/h1&gt;&lt;p&gt;Fixed-price proof of concept on customer data with success criteria agreed upfront.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_ai_pilot" model="knowledge.article">
+        <field name="name">AI-PILOT · AI Pilot</field>
+        <field name="parent_id" ref="kb_line_ai"/>
+        <field name="sequence">12</field>
+        <field name="body">&lt;h1&gt;AI-PILOT · AI Pilot&lt;/h1&gt;&lt;p&gt;Pilot with real users, billed per milestone.&lt;/p&gt;&lt;p&gt;Service policy: delivered_milestones; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_ai_prod" model="knowledge.article">
+        <field name="name">AI-PROD · AI Production Rollout (time and materials)</field>
+        <field name="parent_id" ref="kb_line_ai"/>
+        <field name="sequence">13</field>
+        <field name="body">&lt;h1&gt;AI-PROD · AI Production Rollout (time and materials)&lt;/h1&gt;&lt;p&gt;Production hardening and rollout billed on timesheets; followed by AMS.&lt;/p&gt;&lt;p&gt;Service policy: delivered_timesheet; tracking: task_in_project; recurring: no; unit: hour.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_mojo_app_sub" model="knowledge.article">
+        <field name="name">MOJO-APP-SUB · Mojo AI App Subscription (monthly)</field>
+        <field name="parent_id" ref="kb_line_mojo"/>
+        <field name="sequence">14</field>
+        <field name="body">&lt;h1&gt;MOJO-APP-SUB · Mojo AI App Subscription (monthly)&lt;/h1&gt;&lt;p&gt;Per-seat subscription to a Mojo AI application.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: no; recurring: yes; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_mojo_tokens" model="knowledge.article">
+        <field name="name">MOJO-TOKENS · Mojo AI Token Pack (usage add-on, per 1M tokens)</field>
+        <field name="parent_id" ref="kb_line_mojo"/>
+        <field name="sequence">15</field>
+        <field name="body">&lt;h1&gt;MOJO-TOKENS · Mojo AI Token Pack (usage add-on, per 1M tokens)&lt;/h1&gt;&lt;p&gt;Usage-based add-on billed on consumed token packs.&lt;/p&gt;&lt;p&gt;Service policy: delivered_manual; tracking: no; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_mojo_onprem" model="knowledge.article">
+        <field name="name">MOJO-ONPREM · Mojo AI On-Premise License and Setup</field>
+        <field name="parent_id" ref="kb_line_mojo"/>
+        <field name="sequence">16</field>
+        <field name="body">&lt;h1&gt;MOJO-ONPREM · Mojo AI On-Premise License and Setup&lt;/h1&gt;&lt;p&gt;Perpetual on-premise license with installation and hardening project.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_ams_bronze" model="knowledge.article">
+        <field name="name">AMS-BRONZE · Application Managed Services Bronze (monthly)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">17</field>
+        <field name="body">&lt;h1&gt;AMS-BRONZE · Application Managed Services Bronze (monthly)&lt;/h1&gt;&lt;p&gt;Business-hours support, 20 hours per month.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: no; recurring: yes; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_ams_silver" model="knowledge.article">
+        <field name="name">AMS-SILVER · Application Managed Services Silver (monthly)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">18</field>
+        <field name="body">&lt;h1&gt;AMS-SILVER · Application Managed Services Silver (monthly)&lt;/h1&gt;&lt;p&gt;Extended-hours support, 50 hours per month, quarterly release review.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: no; recurring: yes; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_ams_gold" model="knowledge.article">
+        <field name="name">AMS-GOLD · Application Managed Services Gold (monthly)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">19</field>
+        <field name="body">&lt;h1&gt;AMS-GOLD · Application Managed Services Gold (monthly)&lt;/h1&gt;&lt;p&gt;24x7 critical support, 120 hours per month, named service manager.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: no; recurring: yes; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_training_day" model="knowledge.article">
+        <field name="name">TRAINING-DAY · Training Day</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">20</field>
+        <field name="body">&lt;h1&gt;TRAINING-DAY · Training Day&lt;/h1&gt;&lt;p&gt;On-site or remote training day for up to 15 participants.&lt;/p&gt;&lt;p&gt;Service policy: ordered_prepaid; tracking: no; recurring: no; unit: day.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_consult_hour" model="knowledge.article">
+        <field name="name">CONSULT-HOUR · Consulting Hour (time and materials)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">21</field>
+        <field name="body">&lt;h1&gt;CONSULT-HOUR · Consulting Hour (time and materials)&lt;/h1&gt;&lt;p&gt;Senior consultant hour billed on timesheets.&lt;/p&gt;&lt;p&gt;Service policy: delivered_timesheet; tracking: task_global_project; recurring: no; unit: hour.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_ind_0" model="knowledge.article">
+        <field name="name">Manufacturing</field>
+        <field name="parent_id" ref="kb_industries"/>
+        <field name="sequence">1</field>
+        <field name="body">&lt;h1&gt;Manufacturing&lt;/h1&gt;&lt;p&gt;Industry notes for Manufacturing: pains, processes, regulations, references.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_ind_1" model="knowledge.article">
+        <field name="name">Distribution and Retail</field>
+        <field name="parent_id" ref="kb_industries"/>
+        <field name="sequence">2</field>
+        <field name="body">&lt;h1&gt;Distribution and Retail&lt;/h1&gt;&lt;p&gt;Industry notes for Distribution and Retail: pains, processes, regulations, references.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_ind_2" model="knowledge.article">
+        <field name="name">Financial Services</field>
+        <field name="parent_id" ref="kb_industries"/>
+        <field name="sequence">3</field>
+        <field name="body">&lt;h1&gt;Financial Services&lt;/h1&gt;&lt;p&gt;Industry notes for Financial Services: pains, processes, regulations, references.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_ind_3" model="knowledge.article">
+        <field name="name">Food and Beverage</field>
+        <field name="parent_id" ref="kb_industries"/>
+        <field name="sequence">4</field>
+        <field name="body">&lt;h1&gt;Food and Beverage&lt;/h1&gt;&lt;p&gt;Industry notes for Food and Beverage: pains, processes, regulations, references.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_ind_4" model="knowledge.article">
+        <field name="name">Professional Services</field>
+        <field name="parent_id" ref="kb_industries"/>
+        <field name="sequence">5</field>
+        <field name="body">&lt;h1&gt;Professional Services&lt;/h1&gt;&lt;p&gt;Industry notes for Professional Services: pains, processes, regulations, references.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_ind_5" model="knowledge.article">
+        <field name="name">Public Sector</field>
+        <field name="parent_id" ref="kb_industries"/>
+        <field name="sequence">6</field>
+        <field name="body">&lt;h1&gt;Public Sector&lt;/h1&gt;&lt;p&gt;Industry notes for Public Sector: pains, processes, regulations, references.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_playbook_sales" model="knowledge.article">
+        <field name="name">Sales</field>
+        <field name="parent_id" ref="kb_playbooks"/>
+        <field name="sequence">1</field>
+        <field name="body">&lt;h1&gt;Sales&lt;/h1&gt;&lt;p&gt;Lead-to-cash sales playbook: ICP, BANT for SMB, MEDDICC for enterprise, quotation templates, deal desk thresholds (discount above 10% or TCV above 500M VND).&lt;/p&gt;</field>
+    </record>
+    <record id="kb_playbook_delivery" model="knowledge.article">
+        <field name="name">Delivery</field>
+        <field name="parent_id" ref="kb_playbooks"/>
+        <field name="sequence">2</field>
+        <field name="body">&lt;h1&gt;Delivery&lt;/h1&gt;&lt;p&gt;Activate delivery method: Prepare, Explore, Realize, Deploy, Run. Milestone acceptance and change-request flow.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_compliance_0" model="knowledge.article">
+        <field name="name">Decree 13/2023 Personal Data Protection</field>
+        <field name="parent_id" ref="kb_compliance"/>
+        <field name="sequence">1</field>
+        <field name="body">&lt;h1&gt;Decree 13/2023 Personal Data Protection&lt;/h1&gt;&lt;p&gt;Lawful basis, consent, data-subject requests, cross-border transfer.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_compliance_1" model="knowledge.article">
+        <field name="name">E-invoice: Decree 123/2020, Circular 78, Decree 70/2025</field>
+        <field name="parent_id" ref="kb_compliance"/>
+        <field name="sequence">2</field>
+        <field name="body">&lt;h1&gt;E-invoice: Decree 123/2020, Circular 78, Decree 70/2025&lt;/h1&gt;&lt;p&gt;Issuance via certified provider; adjustments need human approval.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_compliance_2" model="knowledge.article">
+        <field name="name">ISO/IEC 27001 Controls</field>
+        <field name="parent_id" ref="kb_compliance"/>
+        <field name="sequence">3</field>
+        <field name="body">&lt;h1&gt;ISO/IEC 27001 Controls&lt;/h1&gt;&lt;p&gt;Control mapping and evidence locations.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_compliance_3" model="knowledge.article">
+        <field name="name">AI Governance</field>
+        <field name="parent_id" ref="kb_compliance"/>
+        <field name="sequence">4</field>
+        <field name="body">&lt;h1&gt;AI Governance&lt;/h1&gt;&lt;p&gt;Kill-switch, per-agent budget, deal-desk thresholds, logging of agent actions.&lt;/p&gt;</field>
+    </record>
+</data>
+</odoo>
