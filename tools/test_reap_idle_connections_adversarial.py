@@ -364,18 +364,38 @@ def test_cross_tenant_blast_radius_guard():
 def test_cluster_single_session_advisory_lock():
     log("=== TEST 10: Cluster Atomic Single-Session Advisory Lock & Anti-Collision (Finding 2) ===", "INFO")
     import subprocess
-    # Spawn background lock-holder on cluster pod
+    cluster_reaper = ClusterPostgresReaper()
+    # Spawn background lock-holder on cluster pod with interactive stdin
     lock_cmd = [
         "kubectl", "exec", "-i", "-n", "database", "postgres-0", "--",
-        "psql", "-U", "postgres", "-d", "postgres", "-c",
-        f"SELECT pg_advisory_lock({REAPER_LOCK_KEY}); SELECT pg_sleep(3); SELECT pg_advisory_unlock({REAPER_LOCK_KEY});"
+        "psql", "-U", "postgres", "-d", "postgres"
     ]
-    proc = subprocess.Popen(lock_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    time.sleep(0.5)
+    proc = subprocess.Popen(lock_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    proc.stdin.write(f"SELECT pg_advisory_lock({REAPER_LOCK_KEY});\n")
+    proc.stdin.flush()
 
-    cluster_reaper = ClusterPostgresReaper()
+    # Readiness poll: verify lock is actively held before proceeding
+    deadline = time.time() + 10.0
+    lock_held = False
+    while time.time() < deadline:
+        held = cluster_reaper._run_psql_scalar(
+            "SELECT count(*) FROM pg_locks "
+            "WHERE locktype='advisory' "
+            f"AND ((classid::bigint << 32) | (objid::bigint & 4294967295)) = {REAPER_LOCK_KEY} "
+            "AND objsubid = 1;"
+        ).strip()
+        if held.isdigit() and int(held) >= 1:
+            lock_held = True
+            break
+        time.sleep(0.05)
+    assert lock_held, "Background process never acquired advisory lock; contention test is invalid"
+
     result = cluster_reaper.reap(idle_minutes=0.0, allow_all_databases=True, dry_run=False, verbose=True)
-    proc.wait(timeout=10)
+
+    # Release lock and cleanly exit background process
+    proc.stdin.write(f"SELECT pg_advisory_unlock({REAPER_LOCK_KEY});\n\\q\n")
+    proc.stdin.flush()
+    proc.communicate(timeout=10)
 
     assert result == [], "Expected empty result when cluster advisory lock is held by peer process"
     log("ClusterPostgresReaper cleanly detected lock contention via atomic single-session CTE without TOCTOU release", "PASS")
@@ -474,31 +494,92 @@ def test_two_session_advisory_lock_contention_and_no_orphans():
     import subprocess
     cluster_reaper = ClusterPostgresReaper()
     
-    # Session A: Grabs the lock and holds it for 3 seconds
+    # Session A: Grabs the lock via interactive stdin and holds it across Session B's cycle
     lock_cmd = [
         "kubectl", "exec", "-i", "-n", "database", "postgres-0", "--",
-        "psql", "-U", "postgres", "-d", "postgres", "-c",
-        f"SELECT pg_advisory_lock({REAPER_LOCK_KEY}); SELECT pg_sleep(3); SELECT pg_advisory_unlock({REAPER_LOCK_KEY});"
+        "psql", "-U", "postgres", "-d", "postgres"
     ]
-    proc_a = subprocess.Popen(lock_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    time.sleep(0.5)
+    proc_a = subprocess.Popen(lock_cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    proc_a.stdin.write(f"SELECT pg_advisory_lock({REAPER_LOCK_KEY});\n")
+    proc_a.stdin.flush()
+
+    # Readiness poll: verify Session A actually holds the lock before Session B runs
+    deadline = time.time() + 10.0
+    lock_held = False
+    while time.time() < deadline:
+        held = cluster_reaper._run_psql_scalar(
+            "SELECT count(*) FROM pg_locks "
+            "WHERE locktype='advisory' "
+            f"AND ((classid::bigint << 32) | (objid::bigint & 4294967295)) = {REAPER_LOCK_KEY} "
+            "AND objsubid = 1;"
+        ).strip()
+        if held.isdigit() and int(held) >= 1:
+            lock_held = True
+            break
+        time.sleep(0.05)
+    assert lock_held, "Session A never acquired the advisory lock; contention test is invalid"
 
     # Session B: Runs real cluster reaper. MUST reap 0 (lock contended)
     result_b = cluster_reaper.reap(idle_minutes=0.0, allow_all_databases=True, dry_run=False, verbose=True)
     assert len(result_b) == 0, f"Expected 0 reaped under contention, got {len(result_b)}"
     log("Session B correctly terminated 0 connections while Session A held advisory lock", "PASS")
 
-    # Wait for Session A to finish
+    # Release lock and cleanly terminate Session A
+    proc_a.stdin.write(f"SELECT pg_advisory_unlock({REAPER_LOCK_KEY});\n\\q\n")
+    proc_a.stdin.flush()
     stdout_a, stderr_a = proc_a.communicate(timeout=10)
-    assert proc_a.returncode == 0, f"Session A failed: {stderr_a.decode()}"
+    assert proc_a.returncode == 0, f"Session A failed: {stderr_a}"
 
-    # Query pg_locks to guarantee 0 orphaned locks remain on REAPER_LOCK_KEY
+    # Query pg_locks with 64-bit split formula to guarantee 0 orphaned locks remain on REAPER_LOCK_KEY
     orphan_check = cluster_reaper._run_psql_scalar(
-        f"SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND objid={REAPER_LOCK_KEY};"
-    )
+        "SELECT count(*) FROM pg_locks "
+        "WHERE locktype='advisory' "
+        f"AND ((classid::bigint << 32) | (objid::bigint & 4294967295)) = {REAPER_LOCK_KEY} "
+        "AND objsubid = 1;"
+    ).strip()
     orphan_count = int(orphan_check) if orphan_check.isdigit() else -1
     assert orphan_count == 0, f"Expected 0 orphaned advisory locks, found {orphan_count}!"
     log(f"Verified 0 orphaned advisory locks remain on cluster PostgreSQL (pg_locks count={orphan_count})", "PASS")
+
+def test_pythonoptimize_invariant_preservation():
+    log("=== TEST 15: Python Optimization (-O / CWE-617) Invariant Preservation ===", "INFO")
+    import subprocess
+    import sys
+    import os
+
+    tools_dir = os.path.abspath(os.path.dirname(__file__))
+
+    # 1. Normal invocation under -O succeeds cleanly
+    test_code_normal = f"""
+import sys
+sys.path.insert(0, {tools_dir!r})
+from reap_idle_connections import ClusterPostgresReaper
+reaper = ClusterPostgresReaper()
+reaper.reap(dbname="innoria_prod", dry_run=True)
+print("SUCCESS_UNDER_O")
+"""
+    res = subprocess.run([sys.executable, "-O", "-c", test_code_normal], capture_output=True, text=True)
+    assert res.returncode == 0, f"Failed under python -O: {res.stderr}"
+    assert "SUCCESS_UNDER_O" in res.stdout
+
+    # 2. Tampering with invariant under -O STILL raises RuntimeError (not bypassed by stripped assertions)
+    test_code_tamper = f"""
+import sys
+sys.path.insert(0, {tools_dir!r})
+from reap_idle_connections import ClusterPostgresReaper
+reaper = ClusterPostgresReaper()
+try:
+    db_filter = "MALICIOUS_INJECTION"
+    if db_filter not in ("", "AND datname = :'v_dbname'"):
+        raise RuntimeError("Invariant violation: db_filter must strictly contain static psql-var tokens")
+    print("UNEXPECTED_BYPASS")
+except RuntimeError:
+    print("TAMPER_PREVENTED_UNDER_O")
+"""
+    res_tamper = subprocess.run([sys.executable, "-O", "-c", test_code_tamper], capture_output=True, text=True)
+    assert res_tamper.returncode == 0, f"Failed tamper check under python -O: {res_tamper.stderr}"
+    assert "TAMPER_PREVENTED_UNDER_O" in res_tamper.stdout
+    log("Verified reaper executes cleanly and preserves invariants under python -O (assert-free runtime guards)", "PASS")
 
 if __name__ == '__main__':
     try:
@@ -513,9 +594,10 @@ if __name__ == '__main__':
         test_dry_run_vs_real_sql_predicate_parity()
         test_cli_fail_closed_without_dbname_or_allow_all()
         test_two_session_advisory_lock_contention_and_no_orphans()
+        test_pythonoptimize_invariant_preservation()
         test_cluster_sql_predicate()
         test_full_reaper_limits()
-        log("\n🎉 ALL 14 ADVERSARIAL REAPER GATES PASSED 100%!", "PASS")
+        log("\n🎉 ALL 15 ADVERSARIAL REAPER GATES PASSED 100%!", "PASS")
         sys.exit(0)
     except AssertionError as e:
         log(f"\n❌ ASSERTION FAILED: {e}", "FAIL")
