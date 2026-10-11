@@ -40,7 +40,7 @@ if not all_targets:
 print("\n=== 1. PACKAGING targeted insilos_website, theme, and media ARCHIVES ===")
 tar_path_website = "/tmp/insilos_website_sync.tar.gz"
 run_cmd(
-    f"tar --exclude='static/src/video' --exclude='static/src/img' --exclude='static/src/docs' -czf {tar_path_website} -C enterprise/insilos_website "
+    f"tar --exclude='static/src/video' --exclude='static/src/img' --exclude='static/src/docs' -chzf {tar_path_website} -C enterprise/insilos_website "
     f"__manifest__.py controllers views static/src/scss static/src/js static/src/icons",
     check=True
 )
