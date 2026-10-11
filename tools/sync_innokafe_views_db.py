@@ -573,12 +573,18 @@ def sync_database(host, port, user, password, dbname):
 if __name__ == '__main__':
     target = sys.argv[1] if len(sys.argv) > 1 else 'local'
     if target == 'local':
-        sync_database('127.0.0.1', 5434, 'odoo', os.environ.get('INNOKAFE_DB_PASS', '1NN0R1@2026'), 'innokafe_prod')
+        db_pass = os.environ.get('INNOKAFE_DB_PASS') or os.environ.get('PGPASSWORD')
+        if not db_pass:
+            sys.exit("FATAL: INNOKAFE_DB_PASS or PGPASSWORD environment variable is not set; refusing to connect with an empty password.")
+        sync_database('127.0.0.1', 5434, 'odoo', db_pass, 'innokafe_prod')
     elif target == 'prod_pod':
+        db_pass = os.environ.get('PGPASSWORD') or os.environ.get('INNOKAFE_DB_PASS')
+        if not db_pass:
+            sys.exit("FATAL: PGPASSWORD or INNOKAFE_DB_PASS environment variable is not set; refusing to connect with an empty password.")
         sync_database(
             os.environ.get('DB_HOST', 'pgbouncer-service'),
             int(os.environ.get('DB_PORT', 6432)),
             os.environ.get('DB_USER', 'insilos'),
-            os.environ.get('PGPASSWORD', ''),
+            db_pass,
             'innokafe_prod'
         )

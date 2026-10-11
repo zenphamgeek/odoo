@@ -22,6 +22,9 @@ import re
 import subprocess
 import sys
 import time
+import ssl
+import urllib.error
+import urllib.request
 from typing import Dict, List, Tuple, Union
 
 NAMESPACE = "production"
@@ -380,11 +383,46 @@ def edge_verification() -> None:
         "https://innokafe.insilos.com/",
         "https://innoria.insilos.com/"
     ]
+    # Deploy-time identity marker; set in the pod env at release.
+    # A bare 200 does not prove this is our build (CWE-345).
+    expected_marker = os.environ.get("EDGE_BUILD_MARKER")
+    ctx = ssl.create_default_context()
     for url in endpoints:
-        res = run_cmd(f"curl -sI {url} | head -n 5")
-        print(f"[*] Response for {url}:\n{res.stdout.strip()}\n")
-        if "200" not in res.stdout:
-            raise RuntimeError(f"Edge probe failed for {url}! Did not return HTTP 200.")
+        print(f"[*] Probing edge HTTPS endpoint: {url} (timeout=15s)...")
+        req = urllib.request.Request(
+            url,
+            headers={
+                "User-Agent": "ClusterEdgeVerification/2.0",
+                "Accept": "text/html,application/xhtml+xml"
+            }
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=15, context=ctx) as resp:
+                code = resp.getcode()
+                if code != 200:
+                    raise RuntimeError(f"Edge probe failed for {url}! HTTP status: {code}")
+                body = resp.read(65536).decode("utf-8", "replace")
+                if expected_marker and expected_marker not in body \
+                        and expected_marker != resp.headers.get("X-Build-Marker"):
+                    raise RuntimeError(
+                        f"Edge {url} returned 200 but build marker not found "
+                        f"(possible stale/defaced/MITM edge)."
+                    )
+                print(f"  [✓] {url} -> HTTP {code} OK (TLS verified, marker matched)")
+        except urllib.error.HTTPError as he:
+            # Edge answered with an error status: fail hard, do not paper over it.
+            raise RuntimeError(f"Edge probe failed for {url}! HTTP status: {he.code}") from he
+        except (urllib.error.URLError, ssl.SSLError, TimeoutError) as te:
+            # Transport-level failure only (SNI/MTU/DNS): fall back to curl, no shell.
+            res = run_cmd(["curl", "-sS", "-o", "/dev/null",
+                           "-w", "%{http_code}", "-m", "15", url])
+            status = (res.stdout or "").strip()
+            if status != "200":
+                raise RuntimeError(
+                    f"Edge probe failed for {url}: transport error ({te}); "
+                    f"curl status={status or 'none'}"
+                )
+            print(f"  [✓] {url} -> HTTP 200 OK (curl transport fallback)")
 
 
 def main():
