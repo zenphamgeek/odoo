@@ -38,13 +38,18 @@ def extract_template_arch(xml_path, template_id, full_key):
 
 def sync_database(host, port, user, password, dbname):
     print(f"[*] Connecting to {dbname} on {host}:{port} as {user}...")
-    conn = psycopg2.connect(
-        host=host,
-        port=port,
-        user=user,
-        password=password,
-        dbname=dbname
-    )
+    try:
+        conn = psycopg2.connect(
+            host=host,
+            port=port,
+            user=user,
+            password=password,
+            dbname=dbname,
+            connect_timeout=10
+        )
+    except psycopg2.Error as e:
+        err_msg = e.pgerror.strip() if e.pgerror else str(e)
+        raise SystemExit(f"[FATAL] DB connect failed to {dbname} on {host}:{port} ({e.pgcode or 'conn_err'}): {err_msg}") from None
     cur = conn.cursor()
 
     if os.path.exists("/app/insilos/enterprise/innokafe_website"):

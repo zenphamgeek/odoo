@@ -86,6 +86,26 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
             # Should not raise
             edge_verification()
 
+    @patch('sync_innokafe_to_pods.urllib.request.urlopen')
+    def test_build_marker_hmac_header_match(self, mock_urlopen):
+        """#5: When X-Edge-Build header matches EDGE_BUILD_MARKER via HMAC, verification succeeds."""
+        mock_resp = MagicMock()
+        mock_resp.getcode.return_value = 200
+        mock_resp.read.return_value = b"<html>Opaque SPA HTML without inline marker</html>"
+        mock_resp.headers = {"X-Edge-Build": "sig-release-2026-xyz"}
+        mock_resp.__enter__.return_value = mock_resp
+        mock_urlopen.return_value = mock_resp
+
+        with patch.dict(os.environ, {"EDGE_BUILD_MARKER": "sig-release-2026-xyz"}):
+            edge_verification()
+
+    def test_empty_pods_guard_raises_cwe20(self):
+        """#6: Empty pods list raises RuntimeError instead of IndexError."""
+        from sync_innokafe_to_pods import prewarm_assets
+        with self.assertRaises(RuntimeError) as ctx:
+            prewarm_assets([])
+        self.assertIn("Zero active pods resolved", str(ctx.exception))
+
 
 if __name__ == '__main__':
     unittest.main()

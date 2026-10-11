@@ -17,6 +17,7 @@ Executes:
 """
 
 import hashlib
+import hmac
 import os
 import re
 import subprocess
@@ -303,6 +304,8 @@ def sync_db_views(lead_pod: str, namespace: str = NAMESPACE, container: str = CO
 def prewarm_assets(pods: List[str], namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
     print("\n=== STAGE 4. ATOMIC ASSET PRE-WARMING ===")
     t0 = time.time()
+    if not pods:
+        raise RuntimeError("[FATAL] Zero active pods resolved for pre-warming (CWE-20).")
     pod_kafe = pods[0]
 
     warmup_tool = os.path.join(ROOT_DIR, "tools", "safe_asset_warmup.py")
@@ -389,12 +392,15 @@ def edge_verification() -> None:
                 if code != 200:
                     raise RuntimeError(f"Edge probe failed for {url}! HTTP status: {code}")
                 body = resp.read(65536).decode("utf-8", "replace")
-                if expected_marker and expected_marker not in body \
-                        and expected_marker != resp.headers.get("X-Build-Marker"):
-                    raise RuntimeError(
-                        f"Edge {url} returned 200 but build marker not found "
-                        f"(possible stale/defaced/MITM edge)."
-                    )
+                if expected_marker:
+                    header_marker = resp.headers.get("X-Build-Marker") or resp.headers.get("X-Edge-Build")
+                    has_header_match = bool(header_marker and hmac.compare_digest(header_marker, expected_marker))
+                    has_body_match = expected_marker in body
+                    if not (has_header_match or has_body_match):
+                        raise RuntimeError(
+                            f"Edge {url} returned 200 but build marker not found "
+                            f"(possible stale/defaced/MITM edge)."
+                        )
                 print(f"  [✓] {url} -> HTTP {code} OK (TLS verified, marker matched)")
         except urllib.error.HTTPError as he:
             # Edge answered with an error status: fail hard, do not paper over it.
@@ -421,6 +427,8 @@ def main():
 
     try:
         pods = discover_active_pods(NAMESPACE)
+        if not pods:
+            raise RuntimeError(f"[FATAL] Zero active pods discovered in namespace '{NAMESPACE}'; aborting pipeline (CWE-20).")
         package_and_distribute(pods, NAMESPACE, CONTAINER)
         verify_md5_parity(pods, NAMESPACE, CONTAINER)
         sync_db_views(pods[0], NAMESPACE, CONTAINER)
