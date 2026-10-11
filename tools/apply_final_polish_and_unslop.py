@@ -2,14 +2,21 @@
 """
 tools/apply_final_polish_and_unslop.py
 Applies remaining de-slop updates and layout balance wrappers.
+
+Hardened against CWE-200, CWE-321/345, CWE-732 with exact post-state anchors
+and atomic POSIX file writing.
 """
 
 import sys
 import os
-import tempfile
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.atomic_io import atomic_write_text
+
 pages_file = REPO_ROOT / "enterprise/insilos_website/views/innoria_pages.xml"
 
 with open(pages_file, "r", encoding="utf-8") as f:
@@ -26,7 +33,7 @@ replacements = [
     ),
     (
         '<div class="fw-bold text-white font-monospace fs-5" style="color: #FFFFFF !important;">BẢNG ĐIỀU KHIỂN TELEMETRY TÁC TỬ MOJO // CỤM ĐANG HOẠT ĐỘNG</div>\n                                    <div class="small font-monospace" style="font-size: 0.75rem; color: #94A3B8 !important;">NỐT CỤM MÁY CHỦ: VN-SGP-PROD-08 // TUÂN THỦ CÔ LẬP MẠNG AIR-GAPPED</div>',
-        '<div class="fw-bold text-white font-monospace fs-5" style="color: #FFFFFF !important;">BẢNG ĐIỀU PHỐI TÁC NHÂN AI MOJO · CỤM ĐANG HOẠT ĐỘNG</div>\n                                    <div class="small font-monospace" style="font-size: 0.75rem; color: #94A3B8 !important;">NÚT TÍNH TOÁN CỤM MÁY CHỦ: VN-SGP-PROD-08 · TUÂN THỦ CÔ LẬP MẠNG AIR-GAPPED</div>'
+        '<div class="fw-bold text-white font-monospace fs-5" style="color: #FFFFFF !important;">BẢNG ĐIỀU PHỐI TÁC NHÂN AI MOJO · CỤM ĐANG HOẠT ĐỘNG</div>\n                                    <div class="small font-monospace" style="font-size: 0.75rem; color: #94A3B8 !important;">NÚT TÍNH TOÁN CỤM MÁY CHỦ: SIM-CLUSTER-NODE-01 · TUÂN THỦ CÔ LẬP MẠNG AIR-GAPPED</div>'
     ),
     (
         'Khởi đầu hành trình tự động hóa tác tử thông minh với buổi làm việc chuyên sâu 3 giờ cùng đội ngũ kiến trúc sư trưởng MOJO AI &amp; INNORIA.',
@@ -52,7 +59,7 @@ for old, new in replacements:
         content = content.replace(old, new)
         changes += 1
         print(f"[✓] Replaced slop phrase: {old[:50]}...")
-    elif new in content or ("5 Tác Nhân AI" in new and "5 Tác Nhân AI" in content) or ("BẢNG ĐIỀU PHỐI TÁC NHÂN AI" in new and "BẢNG ĐIỀU PHỐI TÁC NHÂN AI" in content):
+    elif new in content:
         print(f"[=] Already applied: {new[:50]}...")
     else:
         drift_count += 1
@@ -161,13 +168,13 @@ if old_modes_block in content:
     content = content.replace(old_modes_block, new_modes_block)
     changes += 1
     print("[✓] Upgraded /about 4 Deployment Mode cards with symmetrical bottom alignment.")
-elif new_modes_block in content or "01 · Dedicated Private Cloud" in content or "Cụm Đám Mây Doanh Nghiệp Riêng Biệt" in content:
+elif new_modes_block in content:
     print("[=] Already applied: /about 4 Deployment Mode cards.")
 else:
     drift_count += 1
     print("[!] DRIFT WARNING: old_modes_block not matched in /about.")
 
-# 3. Card Balance: /solutions 4 ROI cards (lines 2912-2940)
+# 3. Card Balance: /solutions 4 ROI cards (lines 2973-3008)
 old_roi_block = """                                    <div class="col-md-6">
                                         <div class="ins-spatial-layer h-100 p-4 rounded-4">
                                             <div class="small fw-bold mb-2" style="color: #00F0FF;">CHI PHÍ BẢN QUYỀN &amp; TỰ ĐỘNG HÓA</div>
@@ -198,7 +205,7 @@ old_roi_block = """                                    <div class="col-md-6">
                                     </div>"""
 
 new_roi_block = """                                    <div class="col-md-6">
-                                        <div class="ins-spatial-layer h-100 p-4 rounded-4 d-flex flex-column justify-content-between">
+                                        <div class="ins-cardless-kpi h-100 border-top border-white-10 pt-3 d-flex flex-column justify-content-between">
                                             <div>
                                                 <div class="small fw-bold mb-2" style="color: #00F0FF;">CHI PHÍ BẢN QUYỀN &amp; TỰ ĐỘNG HÓA</div>
                                                 <div class="display-6 fw-bold text-white mb-2">-65%</div>
@@ -207,7 +214,7 @@ new_roi_block = """                                    <div class="col-md-6">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="ins-spatial-layer h-100 p-4 rounded-4 d-flex flex-column justify-content-between">
+                                        <div class="ins-cardless-kpi h-100 border-top border-white-10 pt-3 d-flex flex-column justify-content-between">
                                             <div>
                                                 <div class="small fw-bold mb-2" style="color: #10B981;">TỐC ĐỘ ĐÓNG SỔ KẾ TOÁN CUỐI THÁNG</div>
                                                 <div class="display-6 fw-bold text-white mb-2">2 NGÀY</div>
@@ -216,7 +223,7 @@ new_roi_block = """                                    <div class="col-md-6">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="ins-spatial-layer h-100 p-4 rounded-4 d-flex flex-column justify-content-between">
+                                        <div class="ins-cardless-kpi h-100 border-top border-white-10 pt-3 d-flex flex-column justify-content-between">
                                             <div>
                                                 <div class="small fw-bold mb-2" style="color: #F59E0B;">THỜI GIAN HOÀN VỐN ĐẦU TƯ ROI</div>
                                                 <div class="display-6 fw-bold text-white mb-2">6 - 9 THÁNG</div>
@@ -225,7 +232,7 @@ new_roi_block = """                                    <div class="col-md-6">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="ins-spatial-layer h-100 p-4 rounded-4 d-flex flex-column justify-content-between">
+                                        <div class="ins-cardless-kpi h-100 border-top border-white-10 pt-3 d-flex flex-column justify-content-between">
                                             <div>
                                                 <div class="small fw-bold mb-2" style="color: #8B5CF6;">TỶ LỆ GIAO HÀNG ĐÚNG HẸN OTIF</div>
                                                 <div class="display-6 fw-bold text-white mb-2">98.8%</div>
@@ -238,13 +245,13 @@ if old_roi_block in content:
     content = content.replace(old_roi_block, new_roi_block)
     changes += 1
     print("[✓] Upgraded /solutions 4 ROI cards with symmetrical bottom alignment.")
-elif new_roi_block in content or "CHI PHÍ BẢN QUYỀN &amp; TỰ ĐỘNG HÓA" in content or "CHI PHÍ BẢN QUYỀN" in content:
+elif new_roi_block in content:
     print("[=] Already applied: /solutions 4 ROI cards.")
 else:
     drift_count += 1
     print("[!] DRIFT WARNING: old_roi_block not matched in /solutions.")
 
-# 4. Card Balance: /blockchain Swarm PDCA 5 Roles (lines 2118-2200)
+# 4. Card Balance: /blockchain Swarm PDCA 5 Roles (lines 2160-2252)
 old_roles_block = """                            <!-- Role 1: Explorer -->
                             <div class="col-lg-4 col-md-6">
                                 <div class="p-4 rounded-4 h-100 position-relative" style="background: #070B14; border: 1px solid rgba(66, 230, 195, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
@@ -332,11 +339,11 @@ old_roles_block = """                            <!-- Role 1: Explorer -->
 
 new_roles_block = """                            <!-- Role 1: Explorer -->
                             <div class="col-lg-4 col-md-6">
-                                <div class="p-4 rounded-4 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(66, 230, 195, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+                                <div class="p-4 rounded-2 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(66, 230, 195, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-3">
-                                            <span class="font-mono text-muted small">01 // PLAN</span>
-                                            <span class="badge rounded-pill" style="background: rgba(66, 230, 195, 0.15); color: #42E6C3; border: 1px solid #42E6C3;">TÁC NHÂN KHẢO SÁT</span>
+                                            <span class="font-mono text-muted small">01 · PLAN</span>
+                                            <span class="badge rounded-1" style="background: rgba(66, 230, 195, 0.15); color: #42E6C3; border: 1px solid #42E6C3;">TÁC NHÂN KHẢO SÁT</span>
                                         </div>
                                         <h3 class="h4 fw-bold text-white mb-3">Điều Tra &amp; Thăm Dò Cấu Trúc</h3>
                                         <p class="text-secondary small mb-3">Quét toàn bộ AST của Monorepo, lập bản đồ quan hệ giữa các microservices, định vị chính xác phạm vi ảnh hưởng và xây dựng kế hoạch phân rã.</p>
@@ -351,11 +358,11 @@ new_roles_block = """                            <!-- Role 1: Explorer -->
 
                             <!-- Role 2: Worker -->
                             <div class="col-lg-4 col-md-6">
-                                <div class="p-4 rounded-4 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(0, 240, 255, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+                                <div class="p-4 rounded-2 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(0, 240, 255, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-3">
-                                            <span class="font-mono text-muted small">02 // DO</span>
-                                            <span class="badge rounded-pill" style="background: rgba(0, 240, 255, 0.15); color: #00F0FF; border: 1px solid #00F0FF;">TÁC NHÂN THỰC THI</span>
+                                            <span class="font-mono text-muted small">02 · DO</span>
+                                            <span class="badge rounded-1" style="background: rgba(0, 240, 255, 0.15); color: #00F0FF; border: 1px solid #00F0FF;">TÁC NHÂN THỰC THI</span>
                                         </div>
                                         <h3 class="h4 fw-bold text-white mb-3">Hiện Thực Hóa Mã Nguồn</h3>
                                         <p class="text-secondary small mb-3">Viết mã theo chuẩn kiến trúc, đảm bảo tuân thủ nghiêm ngặt các Invariants, tạo Pull Request cục bộ trong không gian làm việc cô lập.</p>
@@ -370,11 +377,11 @@ new_roles_block = """                            <!-- Role 1: Explorer -->
 
                             <!-- Role 3: Reviewer -->
                             <div class="col-lg-4 col-md-6">
-                                <div class="p-4 rounded-4 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(139, 92, 246, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+                                <div class="p-4 rounded-2 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(139, 92, 246, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-3">
-                                            <span class="font-mono text-muted small">03 // CHECK</span>
-                                            <span class="badge rounded-pill" style="background: rgba(139, 92, 246, 0.15); color: #A78BFA; border: 1px solid #8B5CF6;">TÁC NHÂN THẨM ĐỊNH</span>
+                                            <span class="font-mono text-muted small">03 · CHECK</span>
+                                            <span class="badge rounded-1" style="background: rgba(139, 92, 246, 0.15); color: #A78BFA; border: 1px solid #8B5CF6;">TÁC NHÂN THẨM ĐỊNH</span>
                                         </div>
                                         <h3 class="h4 fw-bold text-white mb-3">Thẩm Tra Quy Chuẩn &amp; Test</h3>
                                         <p class="text-secondary small mb-3">Kiểm tra tính sạch sẽ của mã, đối chiếu quy chuẩn kỹ thuật ngân hàng, chạy bộ kiểm thử đơn vị và xác thực độ phủ kiểm thử (Test Coverage).</p>
@@ -389,11 +396,11 @@ new_roles_block = """                            <!-- Role 1: Explorer -->
 
                             <!-- Role 4: Challenger -->
                             <div class="col-lg-6 col-md-6">
-                                <div class="p-4 rounded-4 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(245, 158, 11, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+                                <div class="p-4 rounded-2 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(245, 158, 11, 0.25); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-3">
-                                            <span class="font-mono text-muted small">04 // ADVERSARIAL</span>
-                                            <span class="badge rounded-pill" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid #F59E0B;">TÁC NHÂN ĐỐI KHÁNG</span>
+                                            <span class="font-mono text-muted small">04 · ADVERSARIAL</span>
+                                            <span class="badge rounded-1" style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid #F59E0B;">TÁC NHÂN ĐỐI KHÁNG</span>
                                         </div>
                                         <h3 class="h4 fw-bold text-white mb-3">Tấn Công Đối Kháng &amp; Stress Test</h3>
                                         <p class="text-secondary small mb-3">Đóng vai hacker và tình huống lỗi hệ thống: thực hiện Fuzzing dữ liệu ngẫu nhiên, mô phỏng nghẽn mạng, race conditions, replay attacks và xung đột khóa phân tán.</p>
@@ -408,11 +415,11 @@ new_roles_block = """                            <!-- Role 1: Explorer -->
 
                             <!-- Role 5: Forensic Auditor -->
                             <div class="col-lg-6 col-md-12">
-                                <div class="p-4 rounded-4 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(239, 68, 68, 0.35); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
+                                <div class="p-4 rounded-2 h-100 position-relative d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(239, 68, 68, 0.35); box-shadow: 0 10px 30px rgba(0,0,0,0.4);">
                                     <div>
                                         <div class="d-flex align-items-center justify-content-between mb-3">
-                                            <span class="font-mono text-muted small">05 // BINARY VETO</span>
-                                            <span class="badge rounded-pill" style="background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid #EF4444;">TÁC NHÂN KIỂM TOÁN (BINARY VETO)</span>
+                                            <span class="font-mono text-muted small">05 · BINARY VETO</span>
+                                            <span class="badge rounded-1" style="background: rgba(239, 68, 68, 0.2); color: #FCA5A5; border: 1px solid #EF4444;">TÁC NHÂN KIỂM TOÁN (BINARY VETO)</span>
                                         </div>
                                         <h3 class="h4 fw-bold text-white mb-3">Kiểm Toán Pháp Y &amp; Quyền Phủ Quyết Tuyệt Đối</h3>
                                         <p class="text-secondary small mb-3">Có quyền phủ quyết nhị phân tuyệt đối (`Binary Veto = 0`). Nếu phát hiện dù chỉ một rò rỉ telemetry, một vi phạm invariant kế toán hoặc lỗ hổng bảo mật, toàn bộ tác vụ lập tức bị từ chối.</p>
@@ -429,13 +436,13 @@ if old_roles_block in content:
     content = content.replace(old_roles_block, new_roles_block)
     changes += 1
     print("[✓] Upgraded /blockchain Swarm PDCA 5 Roles cards with symmetrical bottom alignment.")
-elif new_roles_block in content or "TÁC NHÂN KHẢO SÁT" in content or "EXPLORER AGENT" in content:
+elif new_roles_block in content:
     print("[=] Already applied: /blockchain Swarm PDCA 5 Roles cards.")
 else:
     drift_count += 1
     print("[!] DRIFT WARNING: old_roles_block not matched in /blockchain.")
 
-# 5. Card Balance: /blockchain 3 Use Case cards (lines 2274-2310)
+# 5. Card Balance: /blockchain 3 Use Case cards (lines 2326-2368)
 old_use_cases = """                            <!-- Case 1 -->
                             <div class="col-lg-4">
                                 <div class="p-4 rounded-4 h-100" style="background: #070B14; border: 1px solid rgba(66, 230, 195, 0.25);">
@@ -477,7 +484,7 @@ old_use_cases = """                            <!-- Case 1 -->
 
 new_use_cases = """                            <!-- Case 1 -->
                             <div class="col-lg-4">
-                                <div class="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(66, 230, 195, 0.25);">
+                                <div class="p-4 rounded-2 h-100 d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(66, 230, 195, 0.25);">
                                     <div>
                                         <div class="font-mono text-muted small mb-2">USE CASE 01</div>
                                         <h3 class="h5 fw-bold text-white mb-3">Hiện Đại Hóa Core Banking (Strangler-Fig Pattern)</h3>
@@ -492,7 +499,7 @@ new_use_cases = """                            <!-- Case 1 -->
 
                             <!-- Case 2 -->
                             <div class="col-lg-4">
-                                <div class="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(0, 240, 255, 0.25);">
+                                <div class="p-4 rounded-2 h-100 d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(0, 240, 255, 0.25);">
                                     <div>
                                         <div class="font-mono text-muted small mb-2">USE CASE 02</div>
                                         <h3 class="h5 fw-bold text-white mb-3">Cổng Chuyển Mạch Thanh Toán (85,000+ TPS)</h3>
@@ -507,7 +514,7 @@ new_use_cases = """                            <!-- Case 1 -->
 
                             <!-- Case 3 -->
                             <div class="col-lg-4">
-                                <div class="p-4 rounded-4 h-100 d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(245, 158, 11, 0.25);">
+                                <div class="p-4 rounded-2 h-100 d-flex flex-column justify-content-between" style="background: #070B14; border: 1px solid rgba(245, 158, 11, 0.25);">
                                     <div>
                                         <div class="font-mono text-muted small mb-2">USE CASE 03</div>
                                         <h3 class="h5 fw-bold text-white mb-3">Đối Soát Giao Dịch &amp; Sổ Cái Liên Ngân Hàng</h3>
@@ -524,25 +531,15 @@ if old_use_cases in content:
     content = content.replace(old_use_cases, new_use_cases)
     changes += 1
     print("[✓] Upgraded /blockchain 3 Use Case cards with symmetrical bottom alignment.")
-elif new_use_cases in content or "USE CASE 01" in content:
+elif new_use_cases in content:
     print("[=] Already applied: /blockchain 3 Use Case cards.")
 else:
     drift_count += 1
     print("[!] DRIFT WARNING: old_use_cases not matched in /blockchain.")
 
 if content != orig_content:
-    fd, tmp = tempfile.mkstemp(dir=pages_file.parent, prefix="tmp_unslop_", suffix=".xml")
-    try:
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(content)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp, pages_file)
-        print(f"\n[✓] Total {changes} updates atomically written to {pages_file}.")
-    except Exception:
-        if os.path.exists(tmp):
-            os.unlink(tmp)
-        raise
+    atomic_write_text(pages_file, content)
+    print(f"\n[✓] Total {changes} updates atomically written to {pages_file}.")
 else:
     print(f"\n[i] No changes needed; {pages_file} is untouched.")
 

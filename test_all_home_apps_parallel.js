@@ -9,11 +9,20 @@ async function getAppList() {
   const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await context.newPage();
 
-  await page.request.post('http://localhost:28069/web/session/authenticate', {
+  const authRes = await context.request.post('http://localhost:28069/web/session/authenticate', {
     data: { jsonrpc: '2.0', params: { db: 'odoo20_dev', login: 'admin', password: 'admin' } }
   });
+  if (!authRes.ok()) throw new Error('Authentication failed');
+  const cookies = await context.cookies();
+  const sid = cookies.find(c => c.name === 'session_id' || c.name === 'insilos_session_id')?.value;
+  if (sid) {
+    await context.addCookies([
+      { name: 'session_id', value: sid, domain: 'localhost', path: '/' },
+      { name: 'insilos_session_id', value: sid, domain: 'localhost', path: '/' },
+    ]);
+  }
 
-  await page.goto('http://localhost:28069/insilos', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto('http://localhost:28069/web', { waitUntil: 'domcontentloaded', timeout: 60000 });
   await page.waitForSelector('.o_app', { timeout: 20000 });
 
   const apps = await page.$$eval('.o_app', els =>
@@ -99,10 +108,18 @@ async function main() {
 
   // Authenticate once and extract session state
   const authContext = await browser.newContext();
-  const authPage = await authContext.newPage();
-  await authPage.request.post('http://localhost:28069/web/session/authenticate', {
+  const authRes = await authContext.request.post('http://localhost:28069/web/session/authenticate', {
     data: { jsonrpc: '2.0', params: { db: 'odoo20_dev', login: 'admin', password: 'admin' } }
   });
+  if (!authRes.ok()) throw new Error('Authentication failed');
+  const cookies = await authContext.cookies();
+  const sid = cookies.find(c => c.name === 'session_id' || c.name === 'insilos_session_id')?.value;
+  if (sid) {
+    await authContext.addCookies([
+      { name: 'session_id', value: sid, domain: 'localhost', path: '/' },
+      { name: 'insilos_session_id', value: sid, domain: 'localhost', path: '/' },
+    ]);
+  }
   const storageState = await authContext.storageState();
   await authContext.close();
 
