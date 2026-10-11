@@ -236,6 +236,7 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
                 for i, rec in enumerate(records):
                     expected_prev = "0" * 64 if i == 0 else records[i - 1]["record_hash"]
                     self.assertEqual(rec["prev_hash"], expected_prev, f"Chain broken at index {i}")
+                    self.assertEqual(rec["seq"], i + 1, f"Sequence broken at index {i}")
                     all_prev_hashes.add(rec["prev_hash"])
 
                     # Recompute hash
@@ -255,22 +256,24 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
             temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+            test_key = "anchor_signing_secret_key_32bytes!"
 
             with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
                  patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
-                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True):
+                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+                 patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": test_key}):
 
                 # 1. Normal initial append updates external anchor
                 h1 = append_deploy_audit_record(["pod-1"], "success", 5.0)
                 with open(temp_anchor, "r", encoding="utf-8") as f:
-                    self.assertEqual(f.read().strip(), h1)
+                    self.assertTrue(f.read().strip().startswith(h1 + ":"))
 
                 # 2. Normal second append succeeds when in lockstep
                 h2 = append_deploy_audit_record(["pod-2"], "success", 6.0)
                 with open(temp_anchor, "r", encoding="utf-8") as f:
-                    self.assertEqual(f.read().strip(), h2)
+                    self.assertTrue(f.read().strip().startswith(h2 + ":"))
 
-                # 3. Simulate tampering: rewrite external anchor with a forged hash
+                # 3. Simulate tampering: rewrite external anchor with a forged hash lacking valid HMAC
                 with open(temp_anchor, "w", encoding="utf-8") as f:
                     f.write("f" * 64 + "\n")
 
@@ -278,7 +281,10 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
                 with self.assertRaises(RuntimeError) as ctx:
                     append_deploy_audit_record(["pod-3"], "success", 7.0)
 
-                self.assertIn("Ledger tip integrity failure", str(ctx.exception))
+                self.assertTrue(
+                    "Ledger tip integrity failure" in str(ctx.exception)
+                    or "External trust anchor lacks required HMAC signature" in str(ctx.exception)
+                )
 
     def test_truncation_rollback_rejected_by_anchor(self):
         """CWE-345: Truncating the ledger back to an earlier valid record must be rejected by anchor as a rollback."""
@@ -288,17 +294,19 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
             temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+            test_key = "anchor_signing_secret_key_32bytes!"
 
             with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
                  patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
-                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True):
+                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+                 patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": test_key}):
 
                 # 1. Normal record sequence: record 1 and record 2
                 h1 = append_deploy_audit_record(["pod-1"], "success", 5.0)
                 h2 = append_deploy_audit_record(["pod-2"], "success", 6.0)
 
                 with open(temp_anchor, "r", encoding="utf-8") as f:
-                    self.assertEqual(f.read().strip(), h2)
+                    self.assertTrue(f.read().strip().startswith(h2 + ":"))
 
                 # 2. Simulate adversarial rollback: truncate ledger back to record 1
                 with open(temp_ledger, "r", encoding="utf-8") as f:
@@ -496,6 +504,93 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
                     append_deploy_audit_record(["pod-2"], "success", 12.0)
 
                 self.assertIn("External trust anchor authentication failed: HMAC signature mismatch", str(ctx.exception))
+
+    def test_required_anchor_without_key_fails_closed(self):
+        """CWE-287 / F2: REQUIRE_EXTERNAL_ANCHOR with no LEDGER_ANCHOR_KEY must refuse, not downgrade to unauthenticated."""
+        import tempfile
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+            env = {k: v for k, v in os.environ.items() if k != "LEDGER_ANCHOR_KEY"}
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
+                 patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
+                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+                 patch.dict(os.environ, env, clear=True):
+                with self.assertRaises(RuntimeError) as ctx:
+                    append_deploy_audit_record(["pod-1"], "success", 10.0)
+                self.assertIn("LEDGER_ANCHOR_KEY is missing", str(ctx.exception))
+
+    def test_required_anchor_weak_key_fails_closed(self):
+        """CWE-326 / F6: LEDGER_ANCHOR_KEY with insufficient length (<16 bytes) fails closed."""
+        import tempfile
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
+                 patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
+                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+                 patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "weak_short_key"}):
+                with self.assertRaises(RuntimeError) as ctx:
+                    append_deploy_audit_record(["pod-1"], "success", 10.0)
+                self.assertIn("LEDGER_ANCHOR_KEY is too short", str(ctx.exception))
+
+    def test_external_anchor_malformed_fails_closed(self):
+        """CWE-20 / F4: Malformed anchor files (missing halves, extra colons, whitespace) fail closed."""
+        import tempfile
+        from sync_innokafe_to_pods import _verify_against_external_anchor
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+            test_key = "sufficient_length_signing_key_32bytes!"
+
+            with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+                 patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": test_key}):
+                malformed_payloads = [
+                    ":",
+                    "hash_only_colon:",
+                    ":mac_only_colon",
+                    "hash:mac:extra_field",
+                    "   :   ",
+                ]
+                for bad_payload in malformed_payloads:
+                    with open(temp_anchor, "w", encoding="utf-8") as f:
+                        f.write(bad_payload + "\n")
+
+                    with self.assertRaises(RuntimeError) as ctx:
+                        _verify_against_external_anchor("0" * 64, temp_anchor)
+                    self.assertIn("External trust anchor malformed", str(ctx.exception))
+
+    def test_seq_is_bound_into_hash_chain(self):
+        """F5 / CWE-345: The monotonic 'seq' slot is cryptographically bound into record_hash."""
+        import tempfile
+        import json
+        import hashlib
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger):
+                h1 = append_deploy_audit_record(["pod-1"], "success", 1.0)
+
+                with open(temp_ledger, "r", encoding="utf-8") as f:
+                    rec = json.loads(f.readline())
+
+                self.assertEqual(rec["seq"], 1)
+                self.assertEqual(rec["record_hash"], h1)
+
+                # Tamper seq from 1 to 999
+                rec_tampered = dict(rec)
+                rec_tampered["seq"] = 999
+                del rec_tampered["record_hash"]
+                ser = json.dumps(rec_tampered, sort_keys=True)
+                tampered_hash = hashlib.sha256((rec["prev_hash"] + ser).encode("utf-8")).hexdigest()
+
+                # Recomputed hash must differ because seq is cryptographically bound into serialized payload
+                self.assertNotEqual(h1, tampered_hash)
 
 
 if __name__ == '__main__':

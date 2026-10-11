@@ -484,6 +484,18 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
     """Two-person rule / External trust anchor verification with HMAC integrity (CWE-345 / F5)."""
     if not REQUIRE_EXTERNAL_ANCHOR:
         return
+
+    anchor_key = os.environ.get("LEDGER_ANCHOR_KEY", "").encode("utf-8")
+    if not anchor_key:
+        raise RuntimeError(
+            "REQUIRE_EXTERNAL_ANCHOR is set but LEDGER_ANCHOR_KEY is missing; "
+            "refusing to operate without an authenticated anchor (CWE-287)"
+        )
+    if len(anchor_key) < 16:
+        raise RuntimeError(
+            "LEDGER_ANCHOR_KEY is too short (minimum 16 bytes required for HMAC security, CWE-326)"
+        )
+
     if not os.path.exists(anchor_path):
         return
     try:
@@ -492,20 +504,21 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
         if not ext_anchor:
             return
 
-        anchor_key = os.environ.get("LEDGER_ANCHOR_KEY", "").encode("utf-8")
         if ":" in ext_anchor:
-            anchor_hash, anchor_mac = ext_anchor.split(":", 1)
-            if anchor_key:
-                expected_mac = hmac.new(anchor_key, anchor_hash.encode("utf-8"), hashlib.sha256).hexdigest()
-                if not hmac.compare_digest(anchor_mac.lower(), expected_mac.lower()):
-                    raise RuntimeError(
-                        "External trust anchor authentication failed: HMAC signature mismatch! "
-                        "(Forged or tampered external anchor, CWE-345)"
-                    )
+            parts = ext_anchor.split(":")
+            if len(parts) != 2 or not parts[0].strip() or not parts[1].strip():
+                raise RuntimeError("External trust anchor malformed; failing closed (CWE-20)")
+            anchor_hash, anchor_mac = parts[0].strip(), parts[1].strip()
+            expected_mac = hmac.new(anchor_key, anchor_hash.encode("utf-8"), hashlib.sha256).hexdigest()
+            if not hmac.compare_digest(anchor_mac.lower(), expected_mac.lower()):
+                raise RuntimeError(
+                    "External trust anchor authentication failed: HMAC signature mismatch! "
+                    "(Forged or tampered external anchor, CWE-345)"
+                )
         else:
-            anchor_hash = ext_anchor
-            if anchor_key and os.environ.get("ENV") == "prod" and os.environ.get("STRICT_ANCHOR_AUTH") == "1":
-                raise RuntimeError("LEDGER_ANCHOR_KEY configured but external anchor lacks HMAC signature (CWE-345)!")
+            raise RuntimeError(
+                "External trust anchor lacks required HMAC signature while key is configured (CWE-345)!"
+            )
 
         if anchor_hash and local_tip and not hmac.compare_digest(anchor_hash.lower(), local_tip.lower()):
             raise RuntimeError(
@@ -521,6 +534,18 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
 
 def _update_external_anchor(record_hash: str, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
     """Updates external trust anchor atomically via tempfile + os.replace + fsync with HMAC (WARN-3)."""
+    if REQUIRE_EXTERNAL_ANCHOR:
+        anchor_key = os.environ.get("LEDGER_ANCHOR_KEY", "").encode("utf-8")
+        if not anchor_key:
+            raise RuntimeError(
+                "REQUIRE_EXTERNAL_ANCHOR is set but LEDGER_ANCHOR_KEY is missing; "
+                "refusing to operate without an authenticated anchor (CWE-287)"
+            )
+        if len(anchor_key) < 16:
+            raise RuntimeError(
+                "LEDGER_ANCHOR_KEY is too short (minimum 16 bytes required for HMAC security, CWE-326)"
+            )
+
     anchor_dir = os.path.dirname(os.path.abspath(anchor_path)) or "."
     os.makedirs(anchor_dir, exist_ok=True)
     fd, tmp_path = tempfile.mkstemp(dir=anchor_dir, prefix=".anchor_tmp_")
