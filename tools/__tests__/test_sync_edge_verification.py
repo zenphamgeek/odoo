@@ -606,8 +606,10 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
             "pod; rm -rf /",
             "pod\n{\"injected\": true}",
             "pod-1\n",            # trailing newline — $-anchor bypass attempt (S-01)
+            "pod-1\r",            # carriage return — CR terminal whitespace bypass attempt (S-01)
             "pod-1\t",            # trailing tab
             "\x00pod",           # NUL byte
+            "pod/../etc",         # path traversal attempt into path-join sinks
             ".leading-dot",
             "trailing-dot.",
             "double..dot",
@@ -632,8 +634,11 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
             temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
             temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
 
+            test_key = "a" * 32
             with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
-                 patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor):
+                 patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
+                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+                 patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": test_key}):
 
                 append_deploy_audit_record(["pod-1"], "success", 1.0)
                 append_deploy_audit_record(["pod-2"], "success", 2.0)
@@ -665,14 +670,23 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
                     verify_audit_ledger(temp_ledger, temp_anchor)
                 self.assertIn("sequence violation", str(ctx.exception))
 
-                # 3. Delete middle record
+                # 3. Delete middle record: strictly triggers sequence violation
                 records_deleted = [clean_records[0], clean_records[2]]
                 with open(temp_ledger, "w", encoding="utf-8") as f:
                     for r in records_deleted:
                         f.write(json.dumps(r) + "\n")
                 with self.assertRaises(RuntimeError) as ctx:
                     verify_audit_ledger(temp_ledger, temp_anchor)
-                self.assertTrue("sequence violation" in str(ctx.exception) or "hash-chain broken" in str(ctx.exception))
+                self.assertIn("sequence violation", str(ctx.exception))
+
+                # 4. Tail truncation: drop last record; must fail against external anchor (S-08)
+                records_tail_truncated = clean_records[:-1]
+                with open(temp_ledger, "w", encoding="utf-8") as f:
+                    for r in records_tail_truncated:
+                        f.write(json.dumps(r) + "\n")
+                with self.assertRaises(RuntimeError) as ctx:
+                    verify_audit_ledger(temp_ledger, temp_anchor)
+                self.assertIn("Ledger tip integrity failure", str(ctx.exception))
 
     def test_multiprocess_concurrent_append_deploy_audit_record(self):
         """A6 / S-02 / CWE-362: True OS multi-process concurrency with safe env passing prevents ledger forks."""
@@ -781,6 +795,10 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
                     with self.assertRaises(TimeoutError) as ctx:
                         append_deploy_audit_record(["pod-1"], "success", 1.0)
                     self.assertIn("timed out after 0.1s", str(ctx.exception))
+                    self.assertFalse(
+                        os.path.exists(temp_ledger),
+                        "Fail-Closed verification: No records must be written on lock acquisition timeout (CWE-833)"
+                    )
             finally:
                 fcntl.flock(hold_fd, fcntl.LOCK_UN)
                 os.close(hold_fd)
