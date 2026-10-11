@@ -245,6 +245,11 @@ class MailFollowers(models.Model):
 
      WHERE partner.id IN %s
   GROUP BY partner.id,
+           partner.active,
+           partner.email_normalized,
+           partner.lang,
+           partner.name,
+           partner.partner_share,
            sub_user.uid,
            sub_user.share,
            sub_user.notification_type,
@@ -297,6 +302,11 @@ class MailFollowers(models.Model):
 
      WHERE partner.id IN %s
   GROUP BY partner.id,
+           partner.active,
+           partner.email_normalized,
+           partner.lang,
+           partner.name,
+           partner.partner_share,
            sub_user.uid,
            sub_user.share,
            sub_user.notification_type,
