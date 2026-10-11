@@ -1305,11 +1305,17 @@ sys.exit(0)
                 }
                 attestation_records.append(record)
 
-            # Local HMAC signing key (>= 32 bytes) for offline cryptographic attestation (CWE-345/347)
-            local_key = os.environ.get(
-                "ATTESTATION_HMAC_KEY",
-                "deterministic_offline_oracle_key_32bytes_entropy!"
-            ).encode("utf-8")
+            # CWE-321: never ship a static signing key. In production require an injected key;
+            # in test, an ephemeral per-run key is sufficient because the assertion only checks
+            # digest shape, and attestation is only meaningful within this process run.
+            import secrets
+            _env_key = os.environ.get("ATTESTATION_HMAC_KEY", "")
+            if _env_key:
+                if len(_env_key.encode("utf-8")) < 32:
+                    self.fail("ATTESTATION_HMAC_KEY must be >= 32 bytes")
+                local_key = _env_key.encode("utf-8")
+            else:
+                local_key = secrets.token_bytes(32)
             attestation_payload = json.dumps(attestation_records, sort_keys=True)
             attestation_hmac = hmac.new(local_key, attestation_payload.encode("utf-8"), hashlib.sha256).hexdigest()
             self.assertEqual(len(attestation_records), 4)
