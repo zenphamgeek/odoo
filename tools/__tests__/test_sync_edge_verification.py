@@ -592,6 +592,105 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
                 # Recomputed hash must differ because seq is cryptographically bound into serialized payload
                 self.assertNotEqual(h1, tampered_hash)
 
+    def test_validate_pod_identifier(self):
+        """A7 / CWE-20/78/88: Pod identifiers must strictly adhere to RFC 1123 DNS subdomain labels."""
+        from sync_innokafe_to_pods import validate_pod_identifier
+
+        # Valid RFC 1123 pod identifiers
+        valid_pods = ["pod-1", "insilos-saas-app-6ffc759bc9-djcxk", "app.worker.0", "web-123"]
+        for p in valid_pods:
+            self.assertEqual(validate_pod_identifier(p), p)
+
+        # Malicious or malformed pod identifiers must raise ValueError
+        invalid_pods = [
+            "pod; rm -rf /",
+            "pod\n{\"injected\": true}",
+            "POD_UPPERCASE",
+            "-leading-dash",
+            "trailing-dash-",
+            "pod with spaces",
+            "a" * 65,  # exceeds 63 chars
+        ]
+        for bad_p in invalid_pods:
+            with self.assertRaises(ValueError):
+                validate_pod_identifier(bad_p)
+
+    def test_verify_audit_ledger_detects_corruptions(self):
+        """Full-Chain Merkle Audit: verify_audit_ledger verifies unbroken chain and detects corruptions."""
+        import tempfile
+        import json
+        from sync_innokafe_to_pods import append_deploy_audit_record, verify_audit_ledger
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
+                 patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor):
+
+                append_deploy_audit_record(["pod-1"], "success", 1.0)
+                append_deploy_audit_record(["pod-2"], "success", 2.0)
+                append_deploy_audit_record(["pod-3"], "success", 3.0)
+
+                # Valid chain passes
+                self.assertTrue(verify_audit_ledger(temp_ledger, temp_anchor))
+
+                # Read records to tamper
+                with open(temp_ledger, "r", encoding="utf-8") as f:
+                    records = [json.loads(line) for line in f if line.strip()]
+
+                # Tamper interior record status
+                records[1]["status"] = "tampered_failure"
+                with open(temp_ledger, "w", encoding="utf-8") as f:
+                    for r in records:
+                        f.write(json.dumps(r) + "\n")
+
+                with self.assertRaises(RuntimeError) as ctx:
+                    verify_audit_ledger(temp_ledger, temp_anchor)
+                self.assertIn("Audit ledger cryptographic corruption", str(ctx.exception))
+
+    def test_multiprocess_concurrent_append_deploy_audit_record(self):
+        """A6 / CWE-362: True OS multi-process concurrency with fcntl.flock prevents ledger forks and duplicate seq."""
+        import tempfile
+        import subprocess
+        import sys
+        import json
+        from sync_innokafe_to_pods import verify_audit_ledger, ROOT_DIR
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+
+            worker_script = f"""
+import sys, os
+sys.path.insert(0, '{ROOT_DIR}/tools')
+from unittest.mock import patch
+import sync_innokafe_to_pods
+
+with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", "{temp_ledger}"), \\
+     patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", "{temp_anchor}"):
+    sync_innokafe_to_pods.append_deploy_audit_record([f"pod-proc-{{sys.argv[1]}}"], "success", 1.0)
+"""
+            num_procs = 5
+            procs = []
+            for i in range(num_procs):
+                p = subprocess.Popen([sys.executable, "-c", worker_script, str(i)])
+                procs.append(p)
+
+            for p in procs:
+                p.wait()
+                self.assertEqual(p.returncode, 0)
+
+            # Full-chain Merkle integrity check over all concurrent multi-process writes
+            self.assertTrue(verify_audit_ledger(temp_ledger, temp_anchor))
+
+            with open(temp_ledger, "r", encoding="utf-8") as f:
+                records = [json.loads(line) for line in f if line.strip()]
+
+            self.assertEqual(len(records), num_procs)
+            for idx, rec in enumerate(records):
+                self.assertEqual(rec["seq"], idx + 1)
+
 
 if __name__ == '__main__':
     unittest.main()

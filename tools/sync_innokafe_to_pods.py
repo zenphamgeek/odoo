@@ -188,6 +188,17 @@ def compute_local_sha256(file_path: str) -> str:
     return h.hexdigest()
 
 
+K8S_POD_REGEX = re.compile(r"^[a-z0-9]([a-z0-9.-]{0,61}[a-z0-9])?$")
+
+
+def validate_pod_identifier(pod: str) -> str:
+    """Validates pod name against RFC 1123 DNS subdomain label standard (CWE-20/78/88)."""
+    cleaned = pod.strip()
+    if not K8S_POD_REGEX.match(cleaned):
+        raise ValueError(f"Invalid pod identifier '{pod}': must conform to RFC 1123 DNS subdomain label (CWE-20)")
+    return cleaned
+
+
 def discover_active_pods(namespace: str = NAMESPACE) -> List[str]:
     print("\n=== STAGE 0. DISCOVERING ACTIVE KUBERNETES PODS ===")
     pod_out = run_cmd(
@@ -196,7 +207,7 @@ def discover_active_pods(namespace: str = NAMESPACE) -> List[str]:
         check=True
     )
     raw_pods = [p.strip() for p in pod_out.stdout.split() if p.strip()]
-    pods = [p for p in raw_pods if re.match(r"^[a-zA-Z0-9.-]+$", p)]
+    pods = [validate_pod_identifier(p) for p in raw_pods if K8S_POD_REGEX.match(p)]
     print(f"[✓] Found {len(pods)} running pods: {pods}")
     if not pods:
         raise RuntimeError(f"No running insilos-saas pods found in namespace {namespace}! Aborting.")
@@ -471,9 +482,27 @@ def _read_ledger_tip_entry(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[dic
     return None
 
 
+def _load_anchor_key() -> bytes:
+    """Loads external trust anchor signing key from environment (CWE-259 / CWE-798 / CWE-326).
+    Enforces minimum 32 bytes (256-bit entropy) with zero default fallbacks.
+    """
+    raw = os.environ.get("LEDGER_ANCHOR_KEY", "")
+    if not raw:
+        if REQUIRE_EXTERNAL_ANCHOR:
+            raise RuntimeError(
+                "REQUIRE_EXTERNAL_ANCHOR is set but LEDGER_ANCHOR_KEY is missing; "
+                "refusing to operate without an authenticated anchor (CWE-287)"
+            )
+        return b""
+    key = raw.encode("utf-8")
+    if len(key) < 32:
+        raise RuntimeError("LEDGER_ANCHOR_KEY is too short (must be >= 32 bytes, CWE-326)")
+    return key
+
+
 def _format_anchor_payload(record_hash: str) -> str:
     """Formats anchor payload with optional HMAC signature if LEDGER_ANCHOR_KEY is set (CWE-345 / F3)."""
-    key = os.environ.get("LEDGER_ANCHOR_KEY", "").encode("utf-8")
+    key = _load_anchor_key()
     if key:
         mac = hmac.new(key, record_hash.encode("utf-8"), hashlib.sha256).hexdigest()
         return f"{record_hash}:{mac}\n"
@@ -481,21 +510,11 @@ def _format_anchor_payload(record_hash: str) -> str:
 
 
 def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
-    """Two-person rule / External trust anchor verification with HMAC integrity (CWE-345 / F5)."""
+    """Two-person rule / External trust anchor verification with constant-time HMAC integrity (CWE-345 / CWE-208 / F5)."""
     if not REQUIRE_EXTERNAL_ANCHOR:
         return
 
-    anchor_key = os.environ.get("LEDGER_ANCHOR_KEY", "").encode("utf-8")
-    if not anchor_key:
-        raise RuntimeError(
-            "REQUIRE_EXTERNAL_ANCHOR is set but LEDGER_ANCHOR_KEY is missing; "
-            "refusing to operate without an authenticated anchor (CWE-287)"
-        )
-    if len(anchor_key) < 16:
-        raise RuntimeError(
-            "LEDGER_ANCHOR_KEY is too short (minimum 16 bytes required for HMAC security, CWE-326)"
-        )
-
+    anchor_key = _load_anchor_key()
     if not os.path.exists(anchor_path):
         return
     try:
@@ -510,6 +529,7 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
                 raise RuntimeError("External trust anchor malformed; failing closed (CWE-20)")
             anchor_hash, anchor_mac = parts[0].strip(), parts[1].strip()
             expected_mac = hmac.new(anchor_key, anchor_hash.encode("utf-8"), hashlib.sha256).hexdigest()
+            # Constant-time comparison on both HMAC signature and tip hash (CWE-208)
             if not hmac.compare_digest(anchor_mac.lower(), expected_mac.lower()):
                 raise RuntimeError(
                     "External trust anchor authentication failed: HMAC signature mismatch! "
@@ -534,17 +554,7 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
 
 def _update_external_anchor(record_hash: str, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
     """Updates external trust anchor atomically via tempfile + os.replace + fsync with HMAC (WARN-3)."""
-    if REQUIRE_EXTERNAL_ANCHOR:
-        anchor_key = os.environ.get("LEDGER_ANCHOR_KEY", "").encode("utf-8")
-        if not anchor_key:
-            raise RuntimeError(
-                "REQUIRE_EXTERNAL_ANCHOR is set but LEDGER_ANCHOR_KEY is missing; "
-                "refusing to operate without an authenticated anchor (CWE-287)"
-            )
-        if len(anchor_key) < 16:
-            raise RuntimeError(
-                "LEDGER_ANCHOR_KEY is too short (minimum 16 bytes required for HMAC security, CWE-326)"
-            )
+    _load_anchor_key()
 
     anchor_dir = os.path.dirname(os.path.abspath(anchor_path)) or "."
     os.makedirs(anchor_dir, exist_ok=True)
@@ -569,10 +579,48 @@ def _update_external_anchor(record_hash: str, anchor_path: str = EXTERNAL_ANCHOR
                 pass
 
 
+def verify_audit_ledger(ledger_path: str = AUDIT_LEDGER_PATH, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> bool:
+    """Full-chain Merkle integrity auditor (A6). Walks entire ledger verifying:
+    1. Unbroken sequence monotonicity (seq=1, 2, 3...)
+    2. Unbroken cryptographic hash-chaining (prev_hash == previous record_hash)
+    3. External trust anchor agreement with constant-time HMAC verification.
+    Returns True if valid; raises RuntimeError on integrity violation.
+    """
+    if not os.path.exists(ledger_path):
+        return True
+
+    with open(ledger_path, "r", encoding="utf-8") as f:
+        records = [json.loads(line) for line in f if line.strip()]
+
+    if not records:
+        return True
+
+    expected_prev = "0" * 64
+    for idx, rec in enumerate(records):
+        expected_seq = idx + 1
+        if rec.get("seq") != expected_seq:
+            raise RuntimeError(f"Audit ledger sequence violation at index {idx}: expected {expected_seq}, found {rec.get('seq')}")
+        if rec.get("prev_hash") != expected_prev:
+            raise RuntimeError(f"Audit ledger hash-chain broken at index {idx}: expected prev {expected_prev[:16]}, found {rec.get('prev_hash', '')[:16]}")
+
+        body = {k: v for k, v in rec.items() if k != "record_hash"}
+        ser = json.dumps(body, sort_keys=True)
+        computed_hash = hashlib.sha256((expected_prev + ser).encode("utf-8")).hexdigest()
+        if rec.get("record_hash") != computed_hash:
+            raise RuntimeError(f"Audit ledger cryptographic corruption at index {idx}: computed {computed_hash[:16]}, recorded {rec.get('record_hash', '')[:16]}")
+
+        expected_prev = computed_hash
+
+    tip_hash = records[-1]["record_hash"]
+    _verify_against_external_anchor(tip_hash, anchor_path)
+    return True
+
+
 def append_deploy_audit_record(pods: List[str], status: str, duration_sec: float) -> str:
     """Appends an immutable, hash-chained release receipt satisfying regulatory 72h audit trails.
     Acquires an exclusive OS flock across the critical section to prevent concurrency races (CWE-362 / F4).
     """
+    validated_pods = [validate_pod_identifier(p) for p in pods]
     lock_path = AUDIT_LEDGER_PATH + ".lock"
     os.makedirs(os.path.dirname(os.path.abspath(AUDIT_LEDGER_PATH)), exist_ok=True)
     fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
@@ -592,7 +640,7 @@ def append_deploy_audit_record(pods: List[str], status: str, duration_sec: float
             "seq": seq,
             "prev_hash": prev_hash,
             "namespace": NAMESPACE,
-            "pods": pods,
+            "pods": validated_pods,
             "media_assets_count": len(MEDIA_ASSETS),
             "status": status,
             "duration_sec": duration_sec,
@@ -707,6 +755,16 @@ def edge_verification() -> None:
 
 
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "verify-ledger":
+        print("[*] Auditing deployment ledger and external trust anchor integrity...")
+        try:
+            verify_audit_ledger()
+            print("[✓] Audit ledger sequence, Merkle hash-chain, and HMAC anchor 100% verified.")
+            sys.exit(0)
+        except Exception as e:
+            print(f"[!] Audit ledger verification failed: {e}", file=sys.stderr)
+            sys.exit(1)
+
     t0 = time.time()
     print("=" * 75)
     print("🚀 INNOKAFE SYNC TO PODS — PRODUCTION CLUSTER PIPELINE")
