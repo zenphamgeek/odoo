@@ -67,7 +67,7 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
         """FAIL-1: Curl fallback returning non-200 or error must fail hard (CWE-345 / CWE-601)."""
         import ssl
         mock_urlopen.side_effect = ssl.SSLError("SNI failure")
-        mock_run_cmd.return_value = MagicMock(returncode=22, stdout="<html>InnoKafe Server Error</html>\n500", stderr="error 500")
+        mock_run_cmd.return_value = MagicMock(returncode=22, stdout="", stderr="curl: (22) The requested URL returned error: 500")
 
         with self.assertRaises(RuntimeError) as ctx:
             edge_verification()
@@ -202,6 +202,83 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
                 ser2 = json.dumps(rec2_copy, sort_keys=True)
                 expected_h2 = hashlib.sha256((h1 + ser2).encode("utf-8")).hexdigest()
                 self.assertEqual(h2, expected_h2)
+
+    def test_concurrent_append_deploy_audit_record_prevents_fork(self):
+        """F4 / CWE-362: Concurrent appends with flock must produce an unbroken, unforked hash-chain."""
+        import tempfile
+        import json
+        import hashlib
+        from concurrent.futures import ThreadPoolExecutor
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger):
+                num_workers = 10
+
+                def worker_task(idx):
+                    return append_deploy_audit_record([f"pod-{idx}"], "success", 1.0 + idx)
+
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    futures = [executor.submit(worker_task, i) for i in range(num_workers)]
+                    results = [f.result() for f in futures]
+
+                self.assertEqual(len(results), num_workers)
+
+                # Verify all records in ledger
+                with open(temp_ledger, "r", encoding="utf-8") as f:
+                    records = [json.loads(line) for line in f if line.strip()]
+
+                self.assertEqual(len(records), num_workers)
+
+                # Verify unbroken linear chain with zero forks
+                all_prev_hashes = set()
+                for i, rec in enumerate(records):
+                    expected_prev = "0" * 64 if i == 0 else records[i - 1]["record_hash"]
+                    self.assertEqual(rec["prev_hash"], expected_prev, f"Chain broken at index {i}")
+                    all_prev_hashes.add(rec["prev_hash"])
+
+                    # Recompute hash
+                    body = {k: v for k, v in rec.items() if k != "record_hash"}
+                    ser = json.dumps(body, sort_keys=True)
+                    expected_hash = hashlib.sha256((expected_prev + ser).encode("utf-8")).hexdigest()
+                    self.assertEqual(rec["record_hash"], expected_hash)
+
+                # Exactly num_workers distinct prev_hashes (no two workers read the same tip)
+                self.assertEqual(len(all_prev_hashes), num_workers)
+
+    def test_external_anchor_prevents_tampered_ledger(self):
+        """F5 / CWE-345: External trust anchor must detect tampered or forked ledger file."""
+        import tempfile
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
+                 patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
+                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True):
+
+                # 1. Normal initial append updates external anchor
+                h1 = append_deploy_audit_record(["pod-1"], "success", 5.0)
+                with open(temp_anchor, "r", encoding="utf-8") as f:
+                    self.assertEqual(f.read().strip(), h1)
+
+                # 2. Normal second append succeeds when in lockstep
+                h2 = append_deploy_audit_record(["pod-2"], "success", 6.0)
+                with open(temp_anchor, "r", encoding="utf-8") as f:
+                    self.assertEqual(f.read().strip(), h2)
+
+                # 3. Simulate tampering: rewrite external anchor with a forged hash
+                with open(temp_anchor, "w", encoding="utf-8") as f:
+                    f.write("f" * 64 + "\n")
+
+                # 4. Next append must reject tampered state
+                with self.assertRaises(RuntimeError) as ctx:
+                    append_deploy_audit_record(["pod-3"], "success", 7.0)
+
+                self.assertIn("Ledger tip integrity failure", str(ctx.exception))
 
 
 if __name__ == '__main__':

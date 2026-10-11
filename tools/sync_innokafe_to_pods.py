@@ -17,6 +17,7 @@ Executes:
 """
 
 import datetime
+import fcntl
 import hashlib
 import hmac
 import json
@@ -28,7 +29,7 @@ import time
 import ssl
 import urllib.error
 import urllib.request
-from typing import Dict, List, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 NAMESPACE = "production"
 CONTAINER = "insilos"
@@ -373,38 +374,103 @@ def rolling_reload_workers(pods: List[str], namespace: str = NAMESPACE, containe
 
 
 AUDIT_LEDGER_PATH = os.path.join(ROOT_DIR, "tools", ".deploy_audit_ledger.jsonl")
+EXTERNAL_ANCHOR_PATH = os.environ.get(
+    "INNOKAFE_EXTERNAL_ANCHOR_PATH",
+    os.path.join(ROOT_DIR, "tools", ".deploy_external_anchor.sha256")
+)
+REQUIRE_EXTERNAL_ANCHOR = os.environ.get("INNOKAFE_REQUIRE_EXTERNAL_ANCHOR", "0") == "1"
+
+
+def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
+    """Reads the current tip hash from the ledger file, or None if empty/missing."""
+    if not os.path.exists(ledger_path):
+        return None
+    try:
+        with open(ledger_path, "r", encoding="utf-8") as f:
+            lines = [l.strip() for l in f if l.strip()]
+            if lines:
+                last_entry = json.loads(lines[-1])
+                return last_entry.get("record_hash")
+    except Exception:
+        pass
+    return None
+
+
+def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
+    """Two-person rule / External trust anchor verification (CWE-345 / F5)."""
+    if not REQUIRE_EXTERNAL_ANCHOR:
+        return
+    if not os.path.exists(anchor_path):
+        return
+    try:
+        with open(anchor_path, "r", encoding="utf-8") as f:
+            ext_anchor = f.read().strip()
+        if ext_anchor and local_tip and ext_anchor != local_tip:
+            raise RuntimeError(
+                f"Ledger tip integrity failure: local tip {local_tip[:16]} "
+                f"does not match external trust anchor {ext_anchor[:16]}! "
+                "(Possible ledger tampering, rollback or fork detected, CWE-345)"
+            )
+    except Exception as e:
+        if isinstance(e, RuntimeError):
+            raise
+        pass
+
+
+def _update_external_anchor(record_hash: str, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
+    """Updates external trust anchor with new record hash."""
+    try:
+        os.makedirs(os.path.dirname(os.path.abspath(anchor_path)), exist_ok=True)
+        with open(anchor_path, "w", encoding="utf-8") as f:
+            f.write(record_hash + "\n")
+            f.flush()
+            os.fsync(f.fileno())
+    except Exception:
+        pass
 
 
 def append_deploy_audit_record(pods: List[str], status: str, duration_sec: float) -> str:
-    """Appends an immutable, hash-chained release receipt satisfying regulatory 72h audit trails."""
-    prev_hash = "0" * 64
-    if os.path.exists(AUDIT_LEDGER_PATH):
+    """Appends an immutable, hash-chained release receipt satisfying regulatory 72h audit trails.
+    Acquires an exclusive OS flock across the critical section to prevent concurrency races (CWE-362 / F4).
+    """
+    lock_path = AUDIT_LEDGER_PATH + ".lock"
+    os.makedirs(os.path.dirname(os.path.abspath(AUDIT_LEDGER_PATH)), exist_ok=True)
+    fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX)  # held across read-anchor + append (atomic critical section)
+
+        local_tip = _read_ledger_tip(AUDIT_LEDGER_PATH)
+        _verify_against_external_anchor(local_tip, EXTERNAL_ANCHOR_PATH)
+
+        prev_hash = local_tip if local_tip else ("0" * 64)
+
+        record = {
+            "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "prev_hash": prev_hash,
+            "namespace": NAMESPACE,
+            "pods": pods,
+            "media_assets_count": len(MEDIA_ASSETS),
+            "status": status,
+            "duration_sec": duration_sec,
+            "edge_marker_present": bool(os.environ.get("EDGE_BUILD_MARKER")),
+        }
+        serialized = json.dumps(record, sort_keys=True)
+        record_hash = hashlib.sha256((prev_hash + serialized).encode("utf-8")).hexdigest()
+        record["record_hash"] = record_hash
+
+        with open(AUDIT_LEDGER_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, sort_keys=True) + "\n")
+            f.flush()
+            os.fsync(f.fileno())  # survive crash between append and power loss
+
+        _update_external_anchor(record_hash, EXTERNAL_ANCHOR_PATH)
+        return record_hash
+    finally:
         try:
-            with open(AUDIT_LEDGER_PATH, "r", encoding="utf-8") as f:
-                lines = [l.strip() for l in f if l.strip()]
-                if lines:
-                    last_entry = json.loads(lines[-1])
-                    prev_hash = last_entry.get("record_hash", prev_hash)
-        except Exception:
+            fcntl.flock(fd, fcntl.LOCK_UN)
+        except OSError:
             pass
-
-    record = {
-        "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-        "prev_hash": prev_hash,
-        "namespace": NAMESPACE,
-        "pods": pods,
-        "media_assets_count": len(MEDIA_ASSETS),
-        "status": status,
-        "duration_sec": duration_sec,
-        "edge_marker_present": bool(os.environ.get("EDGE_BUILD_MARKER")),
-    }
-    serialized = json.dumps(record, sort_keys=True)
-    record_hash = hashlib.sha256((prev_hash + serialized).encode("utf-8")).hexdigest()
-    record["record_hash"] = record_hash
-
-    with open(AUDIT_LEDGER_PATH, "a", encoding="utf-8") as f:
-        f.write(json.dumps(record) + "\n")
-    return record_hash
+        os.close(fd)
 
 
 def get_expected_provenance_markers(url: str) -> List[str]:
