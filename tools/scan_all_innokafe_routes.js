@@ -15,8 +15,9 @@ if (nonFlagArgs.length > 0 && (!nonFlagArgs[0] || !nonFlagArgs[0].trim())) {
 const rawBaseUrl = nonFlagArgs[0] || 'http://127.0.0.1:28071';
 let baseUrl;
 try {
-  if (/[\s;`$|&<>"'\n\r\t\\]/.test(rawBaseUrl)) {
-    throw new Error('base URL contains forbidden characters or whitespace');
+  const RAW_URL_DENYLIST = /[\s;`$()|&<>"'\n\r\t\\]/;
+  if (RAW_URL_DENYLIST.test(rawBaseUrl)) {
+    throw new Error('base URL contains forbidden control/metacharacters or whitespace');
   }
   const parsed = new URL(rawBaseUrl);
   if (!['http:', 'https:'].includes(parsed.protocol)) {

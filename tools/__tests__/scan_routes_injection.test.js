@@ -53,18 +53,20 @@ for (const payload of injectionPayloads) {
   }
 
   assert.ok(scannerRan, 'SECURITY TEST INVALID: scanner never executed; canary result is meaningless.');
+  assert.notStrictEqual(exitCode, 0, `Security failure: process must not exit 0 for payload: ${payload}`);
   assert.strictEqual(
     exitCode,
     2,
     `Expected scanner to reject injected URL with exit 2, got ${exitCode} for payload: ${payload}`
   );
   assert.ok(
-    /\[✗\] Invalid base URL/.test(stderr),
-    `Expected stderr to contain anchored rejection message, got: ${stderr}`
+    /^\[✗\] Invalid base URL/m.test(stderr),
+    `Expected stderr to begin a line with the rejection marker, got: ${stderr}`
   );
 
-  // Check any matching canary files in tmpdir
-  const leakedCanaries = fs.readdirSync(os.tmpdir()).filter(f => f.startsWith(path.basename(canaryBase)));
+  // Scoped check for canary files matching this run in tmpdir
+  const base = path.basename(canaryBase);
+  const leakedCanaries = fs.readdirSync(os.tmpdir()).filter(f => f.startsWith(base) && f.length > base.length);
   const canaryCreated = leakedCanaries.length > 0;
 
   // Unconditional cleanup before assertion to prevent artifact leaks
@@ -112,8 +114,8 @@ for (const badUrl of invalidProtocols) {
     `SECURITY REGRESSION: Protocol '${badUrl}' was not rejected with exit code 2 (got ${exitCode})`
   );
   assert.ok(
-    /\[✗\] Invalid base URL/.test(stderr),
-    `Expected stderr to contain anchored rejection message for '${badUrl}', got: ${stderr}`
+    /^\[✗\] Invalid base URL/m.test(stderr),
+    `Expected stderr to begin a line with the rejection marker for '${badUrl}', got: ${stderr}`
   );
   console.log(`  [✓] PASS: '${badUrl}' rejected cleanly with exit code 2.`);
 }
@@ -142,8 +144,8 @@ for (const malformed of malformedUrls) {
     `SECURITY REGRESSION: Malformed URL '${malformed}' was not rejected with exit code 2 (got ${exitCode})`
   );
   assert.ok(
-    /\[✗\] Invalid base URL/.test(stderr),
-    `Expected stderr to contain anchored rejection message for '${malformed}', got: ${stderr}`
+    /^\[✗\] Invalid base URL/m.test(stderr),
+    `Expected stderr to begin a line with the rejection marker for '${malformed}', got: ${stderr}`
   );
   console.log(`  [✓] PASS: '${malformed}' rejected cleanly with exit code 2.`);
 }
@@ -192,7 +194,7 @@ try {
     stderr = err.stderr ? err.stderr.toString() : '';
   }
   assert.strictEqual(exitCode, 2, `Expected invalid URL with --validate-only to reject with exit code 2 (got ${exitCode})`);
-  assert.ok(/\[✗\] Invalid base URL/.test(stderr), `Expected anchored rejection message, got: ${stderr}`);
+  assert.ok(/^\[✗\] Invalid base URL/m.test(stderr), `Expected anchored rejection message, got: ${stderr}`);
   console.log('  [✓] PASS: Invalid URL with --validate-only rejected cleanly with exit code 2.');
 }
 
