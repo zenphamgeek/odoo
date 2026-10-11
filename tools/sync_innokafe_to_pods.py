@@ -40,6 +40,27 @@ CONTAINER = "insilos"
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 
+class ProvenanceError(RuntimeError):
+    """Raised when filesystem provenance verification fails (CWE-59 / CWE-426)."""
+    pass
+
+
+def assert_no_symlink_in_provenance(path: str) -> None:
+    """CWE-59: Rejects if any ancestor component or leaf is a symlink.
+    Deterministic, walks from path up to filesystem root without case-folding ambiguity (Findings C & E).
+    """
+    p = os.path.abspath(path)
+    while True:
+        if os.path.islink(p):
+            raise ProvenanceError(
+                f"symlink detected in tools provenance path, unverifiable: {p}"
+            )
+        parent = os.path.dirname(p)
+        if parent == p:  # reached filesystem root
+            return
+        p = parent
+
+
 def compute_runtime_provenance_seal() -> str:
     """Computes a SHA-256 seal over the realpath of this module and its physical content.
     Prevents runtime module swapping or symlink substitution during long-running daemon ticks (CWE-426).
@@ -459,6 +480,7 @@ def assert_deploy_preflight_security() -> None:
             "or explicitly set INNOKAFE_ALLOW_DEGRADED_AUDIT=1 for offline local dev."
         )
     if REQUIRE_EXTERNAL_ANCHOR:
+        assert_no_symlink_in_provenance(os.path.dirname(__file__))
         key = _load_anchor_key()
         if not key or len(key) < 32:
             raise RuntimeError("Deploy pipeline requires a 256-bit (>= 32 bytes) LEDGER_ANCHOR_KEY (CWE-326).")
