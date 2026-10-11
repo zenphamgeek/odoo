@@ -95,6 +95,44 @@ class TestAtomicIO(unittest.TestCase):
         self.assertEqual(target.read_text(encoding="utf-8"), '{"status": "ok"}')
         mode = target.stat().st_mode & 0o777
         self.assertEqual(mode, 0o600)
+        # Verify parent directory is restricted to 0o700 for sensitive targets
+        parent_mode = target.parent.stat().st_mode & 0o777
+        self.assertEqual(parent_mode, 0o700)
+
+    def test_atomic_write_refuses_symlink_for_sensitive_targets(self):
+        """CWE-59: Refuses writing sensitive files through symlink."""
+        real_file = self.dir_path / "real_file.txt"
+        real_file.write_text("INITIAL_CONTENT", encoding="utf-8")
+        symlink_target = self.dir_path / "symlink_file.txt"
+        symlink_target.symlink_to(real_file)
+
+        with self.assertRaises(PermissionError):
+            atomic_write_text(symlink_target, "MALICIOUS_OVERWRITE", mode=0o600)
+
+        # Real file was not overwritten
+        self.assertEqual(real_file.read_text(encoding="utf-8"), "INITIAL_CONTENT")
+
+    def test_atomic_write_warns_on_dir_fsync_oserror(self):
+        """WARN-3: Directory fsync failures surface via RuntimeWarning."""
+        import warnings
+        target = self.dir_path / "warn_fsync.txt"
+        orig_open = os.open
+
+        def failing_open(path, flags, *args):
+            if flags & getattr(os, "O_DIRECTORY", 0):
+                raise OSError("Simulated mount without dir fsync support")
+            return orig_open(path, flags, *args)
+
+        os.open = failing_open
+        try:
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter("always")
+                atomic_write_text(target, "content_with_warning")
+                self.assertTrue(target.exists())
+                self.assertTrue(any(issubclass(item.category, RuntimeWarning) for item in w))
+                self.assertTrue(any("crash durability not guaranteed" in str(item.message) for item in w))
+        finally:
+            os.open = orig_open
 
 if __name__ == "__main__":
     unittest.main()
