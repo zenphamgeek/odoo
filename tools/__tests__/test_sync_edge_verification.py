@@ -106,6 +106,36 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
             prewarm_assets([])
         self.assertIn("Zero active pods resolved", str(ctx.exception))
 
+    def test_require_secret_raises_on_missing_env(self):
+        """CWE-259: _require_secret must raise SystemExit if secrets are missing."""
+        from sync_innokafe_views_db import _require_secret
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(SystemExit) as ctx:
+                _require_secret(["TEST_NON_EXISTENT_KEY"])
+            self.assertIn("Missing required secret environment variable", str(ctx.exception))
+
+    def test_require_secret_returns_valid_value(self):
+        """CWE-259: _require_secret returns secret from environment without leaking."""
+        from sync_innokafe_views_db import _require_secret
+        with patch.dict(os.environ, {"SECRET_KEY_A": "my-secret-token"}):
+            val = _require_secret(["NON_EXISTENT", "SECRET_KEY_A"])
+            self.assertEqual(val, "my-secret-token")
+
+    @patch('sync_innokafe_to_pods.urllib.request.urlopen')
+    def test_default_probe_rejects_page_missing_brand_provenance(self, mock_urlopen):
+        """CWE-345: When no EDGE_BUILD_MARKER is set, edge probe must reject responses without InnoKafe brand provenance."""
+        mock_resp = MagicMock()
+        mock_resp.getcode.return_value = 200
+        mock_resp.read.return_value = b"<html>Welcome to Nginx generic 200 page</html>"
+        mock_resp.headers = {}
+        mock_resp.__enter__.return_value = mock_resp
+        mock_urlopen.return_value = mock_resp
+
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaises(RuntimeError) as ctx:
+                edge_verification()
+            self.assertIn("missing application provenance marker", str(ctx.exception))
+
 
 if __name__ == '__main__':
     unittest.main()
