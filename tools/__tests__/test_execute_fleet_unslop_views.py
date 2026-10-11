@@ -465,8 +465,8 @@ class TestExecuteFleetUnslopViews(unittest.TestCase):
                 acquired = True
             self.assertTrue(acquired, "Failed to acquire lock: previous lock was not cleanly released")
 
-    def test_sale_order_create_invoices_signature_rejects_typo_kwargs(self):
-        """F-1 / CWE-20: SaleOrder._create_invoices rejects unexpected keyword arguments with TypeError."""
+    def test_sale_order_create_invoices_signature_is_pinned(self):
+        """F-1 / CWE-20: SaleOrder._create_invoices signature is pinned; no **kwargs allowed."""
         import ast
 
         sale_order_path = ROOT_DIR / "addons" / "sale" / "models" / "sale_order.py"
@@ -479,15 +479,21 @@ class TestExecuteFleetUnslopViews(unittest.TestCase):
                 break
 
         self.assertIsNotNone(found_func, "Could not find _create_invoices in sale_order.py")
-        # Check that kwarg is None (no **kwargs allowed)
+        # Check that vararg and kwarg are strictly None (no *args or **kwargs allowed)
+        self.assertIsNone(
+            found_func.args.vararg,
+            "SaleOrder._create_invoices must not have *args parameter",
+        )
         self.assertIsNone(
             found_func.args.kwarg,
-            "SaleOrder._create_invoices must not have **kwargs parameter to prevent silent argument swallowing"
+            "SaleOrder._create_invoices must not have **kwargs parameter to prevent silent argument swallowing (F-1)",
         )
         arg_names = [arg.arg for arg in found_func.args.args]
-        self.assertIn("self", arg_names)
-        self.assertIn("final", arg_names)
-        self.assertIn("grouped", arg_names)
+        self.assertEqual(
+            arg_names,
+            ["self", "final", "grouped"],
+            "Accounting boundary signature drifted; exact parameter list must be ['self', 'final', 'grouped']",
+        )
 
 
 if __name__ == "__main__":
