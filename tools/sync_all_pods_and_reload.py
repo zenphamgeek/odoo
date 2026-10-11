@@ -279,7 +279,13 @@ tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/apps/insilos_the
 tar -xzf /tmp/insilos_adapter_sync.tar.gz -C /app/insilos/addons/insilos_adapter/ 2>/dev/null || true
 tar -xzf /tmp/insilos_adapter_sync.tar.gz -C /app/insilos/insilos_adapter/ 2>/dev/null || true
 
-chown -R insilos:insilos /var/lib/insilos/filestore/custom_addons /app/insilos/enterprise /app/insilos/apps /app/insilos/tools 2>/dev/null || true
+chown -R insilos:insilos /var/lib/insilos/filestore/custom_addons/insilos_website \
+                        /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis \
+                        /app/insilos/enterprise/insilos_website \
+                        /app/insilos/enterprise/insilos_theme_genesis \
+                        /app/insilos/apps/insilos_website \
+                        /app/insilos/apps/insilos_theme_genesis \
+                        /app/insilos/tools 2>/dev/null || true
 chmod 0755 /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py 2>/dev/null || true
 rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/manifest.sha256
 """

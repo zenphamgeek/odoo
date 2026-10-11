@@ -1,9 +1,21 @@
 #!/usr/bin/env node
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const baseUrl = process.argv[2] || 'http://127.0.0.1:28071';
+let rawBaseUrl = process.argv[2] || 'http://127.0.0.1:28071';
+let baseUrl;
+try {
+  const parsed = new URL(rawBaseUrl);
+  if (!['http:', 'https:'].includes(parsed.protocol)) {
+    throw new Error(`unsupported protocol: ${parsed.protocol}`);
+  }
+  baseUrl = `${parsed.origin}${parsed.pathname.replace(/\/+$/, '')}`;
+} catch (e) {
+  console.error(`[✗] Invalid base URL argument: ${e.message}`);
+  process.exit(2);
+}
+
 const routes = [
   '/',
   '/story',
@@ -19,6 +31,7 @@ console.log(`Target: ${baseUrl}`);
 console.log('='.repeat(70));
 
 const results = [];
+const scannerScript = path.resolve(__dirname, '..', '.agents', 'skills', 'screenshot-pixels-scan', 'scripts', 'pixel_layout_scanner.js');
 
 for (const route of routes) {
   const slug = route === '/' ? 'home' : route.replace('/', '');
@@ -28,8 +41,13 @@ for (const route of routes) {
   const url = `${baseUrl}${route}`;
   console.log(`\n▶ Scanning ${route} (${url})...`);
   try {
-    const cmd = `node /home/zen/O20/.agents/skills/screenshot-pixels-scan/scripts/pixel_layout_scanner.js --url ${url} --viewports desktop,mobile --output ${outDir}`;
-    const out = execSync(cmd, { encoding: 'utf-8', timeout: 120000 });
+    const args = [
+      scannerScript,
+      '--url', url,
+      '--viewports', 'desktop,mobile',
+      '--output', outDir
+    ];
+    const out = execFileSync('node', args, { encoding: 'utf-8', timeout: 120000 });
     
     // Check summary json
     const summaryFile = path.join(outDir, 'pixel_scan_summary.json');
