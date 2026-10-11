@@ -1,20 +1,29 @@
 #!/usr/bin/env python3
 """
 Adversarial Security Test Suite for Pod Sync Packaging & Symlink Defense.
-Verifies protections against CWE-59 (Symlink Traversal), CWE-538 (Data Exfiltration),
-CWE-377 (Insecure Temp File / TOCTOU), and CWE-400 (Resource Exhaustion).
+Verifies protections against CWE-78 (Command Injection), CWE-367 (TOCTOU),
+CWE-59 (Symlink Traversal), CWE-538 (Data Exfiltration), CWE-377 (Insecure Temp File),
+CWE-400 (Resource Exhaustion), and Content-Addressed Digest Pinning.
 """
 
+import hashlib
 import os
-import sys
-import tempfile
 import shutil
 import subprocess
+import sys
+import tempfile
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
-from tools.sync_all_pods_and_reload import assert_no_escaping_symlinks, MAX_ARCHIVE_SIZE_BYTES
+from tools.sync_all_pods_and_reload import (
+    assert_no_escaping_symlinks,
+    assert_tree_size,
+    compute_sha256,
+    freeze_and_audit_members,
+    run_cmd,
+    MAX_ARCHIVE_SIZE_BYTES,
+)
 
 def run_gate(gate_name, test_fn):
     print(f"\n[⚡] Running {gate_name}...")
@@ -107,9 +116,60 @@ def test_gate7_temporary_staging_cleanup():
         shutil.rmtree(staging, ignore_errors=True)
     assert not os.path.exists(staging)
 
+def test_gate8_cwe78_shell_sink_rejection():
+    """Gate 8: run_cmd strictly rejects raw string commands with TypeError (CWE-78)."""
+    try:
+        run_cmd("echo 'attempting shell injection'")
+        raise AssertionError("Failed to reject shell string command!")
+    except TypeError as e:
+        assert "run_cmd requires an argv list[str]" in str(e)
+    # Valid list command succeeds
+    res = run_cmd(["echo", "safe_execution"], check=True)
+    assert res.stdout.strip() == "safe_execution"
+
+def test_gate9_cwe367_toctou_snapshot_freeze():
+    """Gate 9: freeze_and_audit_members produces an isolated snapshot with zero link leaks."""
+    with tempfile.TemporaryDirectory() as src:
+        f = os.path.join(src, "module.py")
+        with open(f, "w") as fp:
+            fp.write("print('hello')")
+        with tempfile.TemporaryDirectory() as dest:
+            frozen = os.path.join(dest, "frozen")
+            freeze_and_audit_members(src, ["module.py"], frozen)
+            assert os.path.exists(os.path.join(frozen, "module.py"))
+            # Modify src after freeze; frozen copy remains unchanged
+            with open(f, "w") as fp:
+                fp.write("malicious payload")
+            with open(os.path.join(frozen, "module.py"), "r") as fp:
+                assert fp.read() == "print('hello')"
+
+def test_gate10_cwe400_tree_size_ceiling_pre_package():
+    """Gate 10: assert_tree_size fails closed before packaging if source exceeds limit."""
+    with tempfile.TemporaryDirectory() as root:
+        f = os.path.join(root, "big.bin")
+        with open(f, "wb") as fp:
+            fp.write(b"0" * 1024)
+        # Limit 500 bytes should raise RuntimeError
+        try:
+            assert_tree_size(root, 500)
+            raise AssertionError("Failed to enforce tree size ceiling!")
+        except RuntimeError as e:
+            assert "Source tree exceeds ceiling before packaging" in str(e)
+        # Limit 2000 bytes passes
+        total = assert_tree_size(root, 2000)
+        assert total == 1024
+
+def test_gate11_sha256_digest_pinning():
+    """Gate 11: compute_sha256 produces deterministic, verifiable digests."""
+    with tempfile.NamedTemporaryFile() as tf:
+        tf.write(b"known content for sha256 test")
+        tf.flush()
+        expected = hashlib.sha256(b"known content for sha256 test").hexdigest()
+        assert compute_sha256(tf.name) == expected
+
 def main():
     print("[⚡] ======================================================================")
-    print("[⚡] Pod Sync Packaging Adversarial Security Verification Suite")
+    print("[⚡] Pod Sync Packaging Adversarial Security Verification Suite (11 Gates)")
     print("[⚡] ======================================================================")
     gates = [
         ("Gate 1: Existing Production Modules Symlink Invariant", test_gate1_existing_modules),
@@ -119,6 +179,10 @@ def main():
         ("Gate 5: Missing Optional Members Handled Safely", test_gate5_missing_optional_members),
         ("Gate 6: Archive Size Ceiling Enforced (CWE-400)", test_gate6_archive_size_ceiling),
         ("Gate 7: Staging Directory Isolation & Cleanup (CWE-377)", test_gate7_temporary_staging_cleanup),
+        ("Gate 8: Shell String Rejection & Safe Argv Execution (CWE-78)", test_gate8_cwe78_shell_sink_rejection),
+        ("Gate 9: TOCTOU Snapshot Freeze Isolation (CWE-367)", test_gate9_cwe367_toctou_snapshot_freeze),
+        ("Gate 10: Pre-Packaging Tree Size Ceiling Enforcement (CWE-400)", test_gate10_cwe400_tree_size_ceiling_pre_package),
+        ("Gate 11: Content-Addressed SHA-256 Digest Pinning", test_gate11_sha256_digest_pinning),
     ]
 
     all_pass = True
