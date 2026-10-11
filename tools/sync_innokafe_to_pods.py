@@ -495,7 +495,7 @@ def _update_external_anchor(record_hash: str, anchor_path: str = EXTERNAL_ANCHOR
             f.flush()
             os.fsync(f.fileno())
         os.replace(tmp_path, anchor_path)  # atomic POSIX rename
-        dir_fd = os.open(anchor_dir, os.O_RDONLY)
+        dir_fd = os.open(anchor_dir, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
         try:
             os.fsync(dir_fd)
         finally:

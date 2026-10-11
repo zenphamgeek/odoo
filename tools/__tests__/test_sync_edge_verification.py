@@ -280,6 +280,41 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
 
                 self.assertIn("Ledger tip integrity failure", str(ctx.exception))
 
+    def test_truncation_rollback_rejected_by_anchor(self):
+        """CWE-345: Truncating the ledger back to an earlier valid record must be rejected by anchor as a rollback."""
+        import tempfile
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
+                 patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
+                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True):
+
+                # 1. Normal record sequence: record 1 and record 2
+                h1 = append_deploy_audit_record(["pod-1"], "success", 5.0)
+                h2 = append_deploy_audit_record(["pod-2"], "success", 6.0)
+
+                with open(temp_anchor, "r", encoding="utf-8") as f:
+                    self.assertEqual(f.read().strip(), h2)
+
+                # 2. Simulate adversarial rollback: truncate ledger back to record 1
+                with open(temp_ledger, "r", encoding="utf-8") as f:
+                    lines = f.readlines()
+                self.assertEqual(len(lines), 2)
+
+                with open(temp_ledger, "w", encoding="utf-8") as f:
+                    f.write(lines[0])  # drop record 2
+
+                # 3. Next append must detect that the local tip (h1) does not match the anchor (h2)
+                with self.assertRaises(RuntimeError) as ctx:
+                    append_deploy_audit_record(["pod-3"], "success", 7.0)
+
+                self.assertIn("Ledger tip integrity failure", str(ctx.exception))
+                self.assertIn("Possible ledger tampering, rollback or fork detected", str(ctx.exception))
+
     def test_read_ledger_tip_o1_reverse_seek(self):
         """WARN-2: _read_ledger_tip reads the tip in O(1) with bounded byte reads (<= 16384 bytes)."""
         import tempfile
@@ -303,7 +338,8 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
 
             def tracked_open(*args, **kwargs):
                 f_obj = original_open(*args, **kwargs)
-                if "b" in args[1] if len(args) > 1 else kwargs.get("mode", ""):
+                mode = args[1] if len(args) > 1 else kwargs.get("mode", "r")
+                if "b" in mode:
                     orig_read = f_obj.read
                     def tracked_read(*r_args, **r_kwargs):
                         data = orig_read(*r_args, **r_kwargs)
