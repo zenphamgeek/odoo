@@ -410,7 +410,11 @@ LOCAL_INTEGRITY_ANCHOR_PATH = os.path.join(ROOT_DIR, "tools", ".deploy_external_
 # If INNOKAFE_EXTERNAL_ANCHOR_PATH is configured, use it.
 # Otherwise, fall back to LOCAL_INTEGRITY_ANCHOR_PATH in degraded local mode with a security notice.
 _configured_anchor = os.environ.get("INNOKAFE_EXTERNAL_ANCHOR_PATH")
-REQUIRE_EXTERNAL_ANCHOR = os.environ.get("INNOKAFE_REQUIRE_EXTERNAL_ANCHOR", "0") == "1"
+# Secure-by-default in production environment (CWE-636)
+REQUIRE_EXTERNAL_ANCHOR = os.environ.get(
+    "INNOKAFE_REQUIRE_EXTERNAL_ANCHOR",
+    "1" if os.environ.get("ENV") == "prod" else "0"
+) == "1"
 
 if _configured_anchor:
     EXTERNAL_ANCHOR_PATH = _configured_anchor
@@ -422,6 +426,23 @@ else:
             "For full tamper-resistance, configure INNOKAFE_EXTERNAL_ANCHOR_PATH outside repo write boundary.",
             file=sys.stderr
         )
+
+
+def assert_deploy_preflight_security() -> None:
+    """Pre-flight security assertions before any deployment mutation (CWE-636 / CWE-287 / CWE-326).
+    Enforces that release pipeline refuses to execute in unanchored/fail-open mode unless
+    INNOKAFE_ALLOW_DEGRADED_AUDIT=1 is explicitly declared for offline local test environments.
+    """
+    if not REQUIRE_EXTERNAL_ANCHOR and os.environ.get("INNOKAFE_ALLOW_DEGRADED_AUDIT") != "1":
+        raise RuntimeError(
+            "Deploy pipeline refuses to execute in unanchored/fail-open mode (CWE-636). "
+            "Configure INNOKAFE_REQUIRE_EXTERNAL_ANCHOR=1 and provide a valid LEDGER_ANCHOR_KEY (>= 32 bytes), "
+            "or explicitly set INNOKAFE_ALLOW_DEGRADED_AUDIT=1 for offline local dev."
+        )
+    if REQUIRE_EXTERNAL_ANCHOR:
+        key = _load_anchor_key()
+        if not key or len(key) < 32:
+            raise RuntimeError("Deploy pipeline requires a 256-bit (>= 32 bytes) LEDGER_ANCHOR_KEY (CWE-326).")
 
 
 def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
@@ -803,6 +824,7 @@ def main():
     print("=" * 75)
 
     try:
+        assert_deploy_preflight_security()
         pods = discover_active_pods(NAMESPACE)
         if not pods:
             raise RuntimeError(f"[FATAL] Zero active pods discovered in namespace '{NAMESPACE}'; aborting pipeline (CWE-20).")

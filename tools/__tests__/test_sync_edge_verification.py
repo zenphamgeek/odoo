@@ -803,6 +803,84 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
                 fcntl.flock(hold_fd, fcntl.LOCK_UN)
                 os.close(hold_fd)
 
+    def test_rejects_undersized_anchor_key(self):
+        """CWE-521/326: HMAC anchor key below minimum entropy must be refused, not silently accepted."""
+        from sync_innokafe_to_pods import append_deploy_audit_record
+        with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+             patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "short"}):
+            with self.assertRaises((ValueError, RuntimeError)) as ctx:
+                append_deploy_audit_record(["pod-1"], "success", 1.0)
+            self.assertIn("too short", str(ctx.exception).lower())
+
+    def test_deploy_preflight_security_fails_closed_without_anchor(self):
+        """CWE-636: Deploy pipeline must fail closed when REQUIRE_EXTERNAL_ANCHOR is false unless degraded mode is explicitly allowed."""
+        from sync_innokafe_to_pods import assert_deploy_preflight_security
+        with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", False), \
+             patch.dict(os.environ, {"INNOKAFE_ALLOW_DEGRADED_AUDIT": "0"}):
+            with self.assertRaises(RuntimeError) as ctx:
+                assert_deploy_preflight_security()
+            self.assertIn("refuses to execute in unanchored/fail-open mode", str(ctx.exception))
+
+    def test_deploy_preflight_security_passes_with_anchor_and_key(self):
+        """CWE-636 / CWE-326: Pre-flight check succeeds when REQUIRE_EXTERNAL_ANCHOR is true and valid key (>= 32 bytes) is set."""
+        from sync_innokafe_to_pods import assert_deploy_preflight_security
+        with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+             patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "a" * 32}):
+            # Must succeed without raising
+            assert_deploy_preflight_security()
+
+    def test_deploy_preflight_security_passes_with_explicit_degraded_override(self):
+        """CWE-636: Pre-flight check permits offline local dev only when explicitly opted in via INNOKAFE_ALLOW_DEGRADED_AUDIT=1."""
+        from sync_innokafe_to_pods import assert_deploy_preflight_security
+        with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", False), \
+             patch.dict(os.environ, {"INNOKAFE_ALLOW_DEGRADED_AUDIT": "1"}):
+            # Must succeed without raising
+            assert_deploy_preflight_security()
+
+    def test_deploy_preflight_security_prod_default(self):
+        """CWE-636: In production environment (ENV=prod), REQUIRE_EXTERNAL_ANCHOR defaults to enabled."""
+        import importlib, sync_innokafe_to_pods as m
+        try:
+            env_dict = dict(os.environ)
+            env_dict["ENV"] = "prod"
+            if "INNOKAFE_REQUIRE_EXTERNAL_ANCHOR" in env_dict:
+                del env_dict["INNOKAFE_REQUIRE_EXTERNAL_ANCHOR"]
+            with patch.dict(os.environ, env_dict, clear=True):
+                importlib.reload(m)
+                self.assertTrue(m.REQUIRE_EXTERNAL_ANCHOR, "Anchor verification must default to enabled in prod environment")
+        finally:
+            env_restore = dict(os.environ)
+            env_restore.pop("ENV", None)
+            env_restore.pop("INNOKAFE_REQUIRE_EXTERNAL_ANCHOR", None)
+            with patch.dict(os.environ, env_restore, clear=True):
+                importlib.reload(m)
+
+    def test_mutation_oracle_kills_regex_and_entropy_mutants(self):
+        """Zero-Fake-Pass Mutation Testing: Proves that subtle corruptions to regex anchors and entropy thresholds fail (CWE-20 / CWE-326)."""
+        import re
+        from sync_innokafe_to_pods import validate_pod_identifier, _load_anchor_key, _POD_LABEL_RE
+
+        # Mutant 1: Weak regex with $ instead of \Z
+        weak_re = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
+        # In re, $ matches before trailing newline, whereas \Z never matches trailing newline
+        self.assertIsNotNone(weak_re.match("pod-1\n"), "Mutant would survive by matching trailing newline")
+        self.assertIsNone(_POD_LABEL_RE.fullmatch("pod-1\n"), "Actual _POD_LABEL_RE kills mutant by rejecting trailing newline")
+        with self.assertRaises(ValueError):
+            validate_pod_identifier("pod-1\n")
+
+        # Mutant 2: Relaxed entropy threshold (< 32 bytes)
+        with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True):
+            for bad_len in [0, 1, 16, 31]:
+                with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "x" * bad_len}):
+                    with self.assertRaises(RuntimeError) as ctx:
+                        _load_anchor_key()
+                    err = str(ctx.exception)
+                    self.assertTrue("missing" in err or "too short" in err)
+
+            # Unmutated threshold accepts >= 32 bytes
+            with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "x" * 32}):
+                self.assertEqual(_load_anchor_key(), b"x" * 32)
+
 
 if __name__ == '__main__':
     unittest.main()
