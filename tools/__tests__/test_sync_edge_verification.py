@@ -634,7 +634,7 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
             temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
             temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
 
-            test_key = "a" * 32
+            test_key = "sufficient_entropy_signing_key_32b!"
             with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
                  patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
                  patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
@@ -711,10 +711,14 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
      patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", os.environ["TMP_ANCHOR"]):
     sync_innokafe_to_pods.append_deploy_audit_record([f"pod-proc-{sys.argv[1]}"], "success", 1.0)
 """
-            child_env = dict(os.environ)
-            child_env["SYNC_TOOLS_DIR"] = os.path.join(ROOT_DIR, "tools")
-            child_env["TMP_LEDGER"] = temp_ledger
-            child_env["TMP_ANCHOR"] = temp_anchor
+            child_env = {
+                "SYNC_TOOLS_DIR": os.path.join(ROOT_DIR, "tools"),
+                "TMP_LEDGER": temp_ledger,
+                "TMP_ANCHOR": temp_anchor,
+                "PATH": os.environ.get("PATH", ""),
+                "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
+                "PYTHONPATH": os.environ.get("PYTHONPATH", ""),
+            }
 
             num_procs = 5
             procs = []
@@ -723,7 +727,7 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
                 procs.append(p)
 
             for p in procs:
-                p.wait()
+                p.wait(timeout=30)
                 self.assertEqual(p.returncode, 0)
 
             # Full-chain Merkle integrity check over all concurrent multi-process writes
@@ -825,7 +829,7 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
         """CWE-636 / CWE-326: Pre-flight check succeeds when REQUIRE_EXTERNAL_ANCHOR is true and valid key (>= 32 bytes) is set."""
         from sync_innokafe_to_pods import assert_deploy_preflight_security
         with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
-             patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "a" * 32}):
+             patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "sufficient_entropy_signing_key_32b!"}):
             # Must succeed without raising
             assert_deploy_preflight_security()
 
@@ -838,24 +842,47 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
             assert_deploy_preflight_security()
 
     def test_deploy_preflight_security_prod_default(self):
-        """CWE-636: In production environment (ENV=prod), REQUIRE_EXTERNAL_ANCHOR defaults to enabled in isolated process."""
+        """CWE-636 / CWE-617 / CWE-833 / CWE-532: In prod (ENV=prod), REQUIRE_EXTERNAL_ANCHOR defaults to enabled in isolated, bounded, non-assert child."""
         import subprocess
         import sys
         from sync_innokafe_to_pods import ROOT_DIR
 
+        # F1 fix: Never gate security proofs on assert across process boundaries (python -O strips assert)
         proc_script = """
 import os, sys
 sys.path.insert(0, os.path.join(os.environ["REPO_ROOT"], "tools"))
 import sync_innokafe_to_pods as m
-assert m.REQUIRE_EXTERNAL_ANCHOR is True, "Must default to True under ENV=prod"
+if m.REQUIRE_EXTERNAL_ANCHOR is not True:
+    sys.stderr.write(
+        f"FAIL: REQUIRE_EXTERNAL_ANCHOR must default to True under ENV=prod, got {m.REQUIRE_EXTERNAL_ANCHOR!r}\\n"
+    )
+    sys.exit(1)
+sys.exit(0)
 """
-        env = dict(os.environ)
-        env["REPO_ROOT"] = ROOT_DIR
-        env["ENV"] = "prod"
-        env.pop("INNOKAFE_REQUIRE_EXTERNAL_ANCHOR", None)
-        env.pop("PYTEST_CURRENT_TEST", None)
+        # F4 fix: Minimal allowlisted environment; zero credentials or parent env leakage (CWE-532)
+        env = {
+            "REPO_ROOT": ROOT_DIR,
+            "ENV": "prod",
+            "PATH": os.environ.get("PATH", ""),
+            "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
+            "PYTHONPATH": os.environ.get("PYTHONPATH", ""),
+        }
 
-        res = subprocess.run([sys.executable, "-c", proc_script], env=env, capture_output=True, text=True)
+        # F2 fix: Bounded execution with timeout to prevent CI deadlock (CWE-833)
+        try:
+            res = subprocess.run(
+                [sys.executable, "-c", proc_script],
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=30,
+            )
+        except subprocess.TimeoutExpired as exc:
+            self.fail(
+                "Preflight import blocked >30s under ENV=prod — module import must not "
+                f"perform blocking network I/O (stealth-mode violation): {exc}"
+            )
+
         self.assertEqual(res.returncode, 0, f"Subprocess validation failed:\nStdout: {res.stdout}\nStderr: {res.stderr}")
 
     def test_mutation_oracle_kills_regex_and_entropy_mutants(self):
@@ -871,7 +898,7 @@ assert m.REQUIRE_EXTERNAL_ANCHOR is True, "Must default to True under ENV=prod"
         with self.assertRaises(ValueError):
             validate_pod_identifier("pod-1\n")
 
-        # Mutant 2: Relaxed entropy threshold (< 32 bytes)
+        # Mutant 2: Relaxed byte length threshold (< 32 bytes)
         with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True):
             for bad_len in [0, 1, 16, 31]:
                 with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "x" * bad_len}):
@@ -880,19 +907,25 @@ assert m.REQUIRE_EXTERNAL_ANCHOR is True, "Must default to True under ENV=prod"
                     err = str(ctx.exception)
                     self.assertTrue("missing" in err or "too short" in err)
 
-            # Unmutated threshold accepts >= 32 bytes
+            # Mutant 3: Low-entropy repeated-byte key ("x" * 32, distinct=1 < 8) MUST FAIL (CWE-326)
             with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "x" * 32}):
-                self.assertEqual(_load_anchor_key(), b"x" * 32)
+                with self.assertRaises(RuntimeError) as ctx:
+                    _load_anchor_key()
+                self.assertIn("insufficient entropy", str(ctx.exception))
 
-            # Mutant 3: Multibyte UTF-8 byte entropy vs character length (CWE-326)
-            # 16 2-byte Vietnamese characters ('đ') = 32 bytes in UTF-8: MUST PASS
-            multibyte_valid = "đ" * 16
-            self.assertEqual(len(multibyte_valid), 16, "Character length is 16")
-            self.assertEqual(len(multibyte_valid.encode("utf-8")), 32, "Byte length is 32")
+            # Valid high-entropy key with >= 32 bytes and >= 8 distinct bytes MUST PASS
+            high_entropy_key = "sufficient_entropy_signing_key_32b!"
+            with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": high_entropy_key}):
+                self.assertEqual(_load_anchor_key(), high_entropy_key.encode("utf-8"))
+
+            # Mutant 4: Multibyte UTF-8 byte entropy vs character length (CWE-326)
+            multibyte_valid = "đậu_bắp_cà_phê_specialty_32b_ok"
+            self.assertGreaterEqual(len(multibyte_valid.encode("utf-8")), 32)
+            self.assertGreaterEqual(len(set(multibyte_valid.encode("utf-8"))), 8)
             with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": multibyte_valid}):
                 self.assertEqual(_load_anchor_key(), multibyte_valid.encode("utf-8"))
 
-            # 15 2-byte Vietnamese characters ('đ') = 30 bytes in UTF-8: MUST FAIL
+            # 15 2-byte Vietnamese characters ('đ' * 15) = 30 bytes in UTF-8: MUST FAIL length check
             multibyte_undersized = "đ" * 15
             with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": multibyte_undersized}):
                 with self.assertRaises(RuntimeError) as ctx:

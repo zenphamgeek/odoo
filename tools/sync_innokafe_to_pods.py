@@ -536,6 +536,11 @@ def _load_anchor_key() -> bytes:
     key = raw.encode("utf-8")
     if len(key) < 32:
         raise RuntimeError(f"LEDGER_ANCHOR_KEY is too short: {len(key)} bytes < 32 minimum (CWE-326)")
+    distinct_bytes = len(set(key))
+    if distinct_bytes < 8:
+        raise RuntimeError(
+            f"LEDGER_ANCHOR_KEY has insufficient entropy: {distinct_bytes} distinct bytes < 8 minimum (CWE-326)"
+        )
     return key
 
 
