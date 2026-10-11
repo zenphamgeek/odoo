@@ -677,10 +677,10 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
 
 
 def _update_external_anchor(record_hash: str, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
-    """Updates external trust anchor atomically via atomic_write_text with HMAC and permission preservation (WARN-3)."""
+    """Updates external trust anchor atomically via atomic_write_text with HMAC and restrictive permissions 0o600 (WARN-3, CWE-276/732)."""
     _load_anchor_key()
     payload = _format_anchor_payload(record_hash)
-    atomic_write_text(anchor_path, payload)
+    atomic_write_text(anchor_path, payload, mode=0o600)
 
 
 def verify_audit_ledger(ledger_path: str = AUDIT_LEDGER_PATH, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> bool:

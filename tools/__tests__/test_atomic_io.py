@@ -79,5 +79,22 @@ class TestAtomicIO(unittest.TestCase):
         tmp_files = list(self.dir_path.glob(".*.tmp"))
         self.assertEqual(len(tmp_files), 0)
 
+    def test_atomic_write_explicit_mode_and_dir_fsync(self):
+        """CWE-276/732: Explicit mode parameter (e.g. 0o600 for HMAC trust anchors) is enforced even on first creation."""
+        target = self.dir_path / "sensitive_anchor.json"
+        atomic_write_text(target, '{"anchor": "secure_hmac"}', mode=0o600)
+        self.assertTrue(target.exists())
+        mode = target.stat().st_mode & 0o777
+        self.assertEqual(mode, 0o600)
+
+    def test_atomic_write_creates_missing_nested_parent_dirs(self):
+        """Finding 1: atomic_write_text creates missing parent directories recursively without FileNotFoundError."""
+        target = self.dir_path / "nested" / "deep" / "anchor.json"
+        atomic_write_text(target, '{"status": "ok"}', mode=0o600)
+        self.assertTrue(target.exists())
+        self.assertEqual(target.read_text(encoding="utf-8"), '{"status": "ok"}')
+        mode = target.stat().st_mode & 0o777
+        self.assertEqual(mode, 0o600)
+
 if __name__ == "__main__":
     unittest.main()
