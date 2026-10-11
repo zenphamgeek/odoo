@@ -46,9 +46,7 @@ TARGET_FILES = [
     "enterprise/insilos_industry_showcase/views/templates.xml",
 ]
 
-def clean_file_content(filepath: str, text: str) -> str:
-    original = text
-
+def clean_file_content(text: str) -> str:
     # 1. Clean titles: "<t t-set="additional_title">... — ...</t>"
     def replace_title_emdash(m):
         full = m.group(0)
@@ -77,17 +75,32 @@ def clean_file_content(filepath: str, text: str) -> str:
     text = text.replace('<span class="token-comment">//', '<span class="token-comment">#')
 
     # 7. Clean specific AI copy phrases
-    text = text.replace("Doanh nghiệp không thiếu phần mềm, họ bị giam cầm trong những ốc đảo rời rạc.",
-                        "Doanh nghiệp không thiếu phần mềm, họ bị giam cầm trong những ốc đảo rời rạc.")
     text = text.replace("sai số không tính bằng phần trăm, nó được đo bằng",
                         "sai số không tính bằng phần trăm, mà đo bằng")
 
     return text
 
+def assert_markup_preserved(before: str, after: str, rel_path: str) -> None:
+    """
+    F3 Guard: Fail if the transform changed anything but text or attribute character data.
+    Verifies that the tag hierarchy and attribute key topology remain 100% identical.
+    Encodes to UTF-8 bytes to safely handle files with XML encoding declarations (F1).
+    """
+    def skeleton(xml_text: str):
+        root = ET.fromstring(xml_text.encode("utf-8"))
+        return [(el.tag, tuple(sorted(el.attrib.keys()))) for el in root.iter()]
+
+    before_skel = skeleton(before)
+    after_skel = skeleton(after)
+    if before_skel != after_skel:
+        raise ValueError(f"STRUCTURAL DRIFT in {rel_path}: transform altered element/attribute topology")
+
 def main():
     print("=== LAUNCHING FULL CODEBASE VIEW UNSLOP ENGINE ===")
-    total_modified = 0
+    staged = []
 
+    # Phase 1: Read, transform, validate, and check structural equivalence for ALL files.
+    # NO WRITES OCCUR IN PHASE 1 (F2 Two-Phase Batch Transaction).
     for rel_path in TARGET_FILES:
         full_path = ROOT_DIR / rel_path
         if not full_path.exists():
@@ -95,25 +108,32 @@ def main():
             continue
 
         raw_text = full_path.read_text(encoding="utf-8")
-        cleaned_text = clean_file_content(rel_path, raw_text)
+        cleaned_text = clean_file_content(raw_text)
 
         if cleaned_text != raw_text:
-            # Validate XML before writing
+            # F1 & F3: Encode to bytes so XML encoding declarations don't raise ValueError,
+            # and verify tag/attribute topology is fully preserved.
             try:
-                ET.fromstring(cleaned_text)
-            except ET.ParseError as e:
-                print(f"[✗] XML VALIDATION ERROR in {rel_path}: {e}")
+                assert_markup_preserved(raw_text, cleaned_text, rel_path)
+            except (ET.ParseError, ValueError) as e:
+                print(f"[✗] VALIDATION ERROR in {rel_path}: {e}")
+                print("[✗] ABORTING: Zero files written. Working tree unchanged.")
                 sys.exit(1)
 
-            # Atomic write with permission preservation
-            atomic_write_text(full_path, cleaned_text, encoding="utf-8")
-            diff_chars = len(cleaned_text) - len(raw_text)
-            print(f"[✓] Unslop applied cleanly to {rel_path} (len diff: {diff_chars}, XML valid)")
-            total_modified += 1
+            staged.append((full_path, rel_path, cleaned_text, len(cleaned_text) - len(raw_text)))
         else:
             print(f"[-] No slop found in {rel_path}")
 
-    print(f"\n[✓] Full unslop completed: {total_modified} files updated and verified.")
+    # Phase 2: All files passed Phase 1 validation. Execute atomic writes.
+    if staged:
+        print(f"\n[*] Phase 1 passed (100% valid). Committing atomic writes for {len(staged)} files...")
+        for full_path, rel_path, cleaned_text, diff_chars in staged:
+            atomic_write_text(full_path, cleaned_text, encoding="utf-8")
+            print(f"[✓] Unslop committed to {rel_path} (len diff: {diff_chars}, XML valid)")
+    else:
+        print("\n[✓] All target files are already clean and verified.")
+
+    print(f"\n[✓] Full unslop completed: {len(staged)} files updated and verified.")
     return 0
 
 if __name__ == "__main__":
