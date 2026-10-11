@@ -572,7 +572,7 @@ def _load_anchor_key() -> bytes:
 def _format_anchor_payload(record_hash: str) -> str:
     """Formats anchor payload with optional HMAC signature if LEDGER_ANCHOR_KEY is set (CWE-345 / F3)."""
     key = _load_anchor_key()
-    if key:
+    if key and len(key) >= 32:
         mac = hmac.new(key, record_hash.encode("utf-8"), hashlib.sha256).hexdigest()
         return f"{record_hash}:{mac}\n"
     return f"{record_hash}\n"
@@ -584,6 +584,8 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
         return
 
     anchor_key = _load_anchor_key()
+    if not anchor_key or len(anchor_key) < 32:
+        raise RuntimeError("External trust anchor authentication requires a valid (>= 32 bytes) LEDGER_ANCHOR_KEY (CWE-347)")
     if not os.path.exists(anchor_path):
         return
     try:

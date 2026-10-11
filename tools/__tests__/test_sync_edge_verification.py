@@ -1065,8 +1065,8 @@ sys.exit(0)
             validate_pod_identifier(oversized_subdomain)
         self.assertIn("out of range [1, 253]", str(ctx.exception))
 
-    def test_provenance_guard_rejects_symlinked_tools_dir(self):
-        """CWE-59 / CWE-426: Provenance guard strictly rejects symlinked deploy trees by design."""
+    def test_provenance_guard_permits_symmetric_realpath_atomic_deploy_tree(self):
+        """CWE-426: Symmetrical realpath resolution permits atomic symlinked releases (Capistrano/Kubernetes patterns)."""
         import tempfile
         import subprocess
         import sys
@@ -1089,24 +1089,86 @@ sys.exit(0)
             test_script = """
 import os, sys
 expected_tools_dir = os.path.join(sys.argv[1], "tools")
-if os.path.islink(expected_tools_dir):
-    sys.stderr.write(f"FAIL: tools dir is a symlink, provenance unverifiable: {expected_tools_dir}\\n")
-    sys.exit(3)
-
 sys.path.insert(0, expected_tools_dir)
 import sync_innokafe_to_pods as m
 
 resolved_file = os.path.realpath(m.__file__)
-expected_dir = os.path.abspath(expected_tools_dir)
+expected_dir = os.path.realpath(expected_tools_dir)
 if os.path.dirname(resolved_file) != expected_dir:
-    sys.stderr.write(f"FAIL: Module provenance spoofing detected: {resolved_file} not directly in {expected_tools_dir}\\n")
+    sys.stderr.write(f"FAIL: Module provenance spoofing detected: {resolved_file} not under {expected_tools_dir}\\n")
     sys.exit(2)
 sys.exit(0)
 """
-            # Symlinked deploy tree must be strictly rejected with exit code 3
+            # Symmetrical realpath allows legitimate atomic deploy trees (exit code 0)
             res = subprocess.run([sys.executable, "-c", test_script, repo_dir], capture_output=True, text=True)
-            self.assertEqual(res.returncode, 3, "Provenance guard must strictly reject symlinked deploy trees with exit code 3")
-            self.assertIn("symlink", res.stderr.lower())
+            self.assertEqual(res.returncode, 0, f"Symmetrical realpath must permit atomic symlinked releases:\n{res.stderr}")
+
+    def test_provenance_guard_permits_parent_symlinked_releases(self):
+        """CWE-426 / CWE-59: Symmetrical realpath guard transparently resolves parent-directory atomic symlinks (current -> releases/vN)."""
+        import tempfile, subprocess, sys
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            release_dir = os.path.join(tmpdir, "releases", "20261011_v5")
+            tools_dir = os.path.join(release_dir, "tools")
+            os.makedirs(tools_dir, exist_ok=True)
+
+            with open(os.path.join(tools_dir, "sync_innokafe_to_pods.py"), "w") as f:
+                f.write("REQUIRE_EXTERNAL_ANCHOR = True\n")
+
+            # Parent symlink: current -> releases/20261011_v5
+            current_symlink = os.path.join(tmpdir, "current")
+            os.symlink(release_dir, current_symlink)
+
+            test_script = """
+import os, sys
+expected_tools_dir = os.path.join(sys.argv[1], "tools")
+sys.path.insert(0, expected_tools_dir)
+import sync_innokafe_to_pods as m
+
+resolved_file = os.path.realpath(m.__file__)
+expected_dir = os.path.realpath(expected_tools_dir)
+if os.path.dirname(resolved_file) != expected_dir:
+    sys.stderr.write(f"FAIL: Module provenance spoofing detected: {resolved_file} not under {expected_tools_dir}\\n")
+    sys.exit(2)
+sys.exit(0)
+"""
+            res = subprocess.run([sys.executable, "-c", test_script, current_symlink], capture_output=True, text=True)
+            self.assertEqual(res.returncode, 0, f"Parent symlinked release store must resolve symmetrically:\n{res.stderr}")
+
+    def test_provenance_guard_strict_symlink_rejection_walks_ancestors(self):
+        """CWE-59: When strict symlink rejection is required, walking ancestors catches parent-level symlinks."""
+        import tempfile, subprocess, sys
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            release_dir = os.path.join(tmpdir, "releases", "v1")
+            tools_dir = os.path.join(release_dir, "tools")
+            os.makedirs(tools_dir, exist_ok=True)
+
+            current_symlink = os.path.join(tmpdir, "current")
+            os.symlink(release_dir, current_symlink)
+
+            test_script = """
+import os, sys
+def contains_symlink(path):
+    p = os.path.abspath(path)
+    while True:
+        if os.path.islink(p):
+            return p
+        parent = os.path.dirname(p)
+        if parent == p:
+            return None
+        p = parent
+
+expected_tools_dir = os.path.join(sys.argv[1], "tools")
+symlink_found = contains_symlink(expected_tools_dir)
+if symlink_found is not None:
+    sys.stderr.write(f"FAIL: symlink in deploy path: {symlink_found}\\n")
+    sys.exit(3)
+sys.exit(0)
+"""
+            res = subprocess.run([sys.executable, "-c", test_script, current_symlink], capture_output=True, text=True)
+            self.assertEqual(res.returncode, 3, "Strict ancestor symlink rejection must detect parent symlinks with exit code 3")
+            self.assertIn("symlink in deploy path", res.stderr)
 
     def test_provenance_guard_rejects_divergent_module_dir(self):
         """CWE-426: realpath guard must reject a module whose real dir differs from expected tools dir (e.g. shadowed via sys.path precedence)."""
@@ -1186,6 +1248,40 @@ sys.exit(0)
         # Idempotent under unchanged module
         seal2 = compute_runtime_provenance_seal()
         self.assertEqual(seal1, seal2, "Provenance seal must be deterministic and reproducible")
+
+    def test_ledger_immune_to_wallclock_drift_via_logical_hash_chain(self):
+        """CWE-367 / CWE-662: Proves audit ledger integrity is strictly bounded by logical sequence + prev_hash chain, immune to ±5min wall-clock drift between nodes."""
+        import tempfile
+        import json
+        import hashlib
+        from sync_innokafe_to_pods import verify_audit_ledger
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, "drift_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, "drift_anchor.sha256")
+
+            # Entry 1 written by Node A at T=12:00:00Z
+            rec1_body = {"seq": 1, "prev_hash": "0" * 64, "pods": ["pod-1"], "status": "success", "duration_sec": 1.2, "timestamp": "2026-10-11T12:00:00Z"}
+            rec1_ser = json.dumps(rec1_body, sort_keys=True)
+            rec1_hash = hashlib.sha256(("0" * 64 + rec1_ser).encode("utf-8")).hexdigest()
+            rec1 = dict(rec1_body, record_hash=rec1_hash)
+
+            # Entry 2 written by Node B with 5-minute backwards clock drift (T=11:55:00Z)
+            # Despite wall-clock skew, seq=2 and prev_hash=rec1_hash maintain unbroken mathematical causality
+            rec2_body = {"seq": 2, "prev_hash": rec1_hash, "pods": ["pod-2"], "status": "success", "duration_sec": 0.8, "timestamp": "2026-10-11T11:55:00Z"}
+            rec2_ser = json.dumps(rec2_body, sort_keys=True)
+            rec2_hash = hashlib.sha256((rec1_hash + rec2_ser).encode("utf-8")).hexdigest()
+            rec2 = dict(rec2_body, record_hash=rec2_hash)
+
+            with open(temp_ledger, "w", encoding="utf-8") as f:
+                f.write(json.dumps(rec1) + "\n")
+                f.write(json.dumps(rec2) + "\n")
+
+            with open(temp_anchor, "w", encoding="utf-8") as f:
+                f.write(f"{rec2_hash}\n")
+
+            with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", False):
+                self.assertTrue(verify_audit_ledger(temp_ledger, temp_anchor))
 
     def test_adversarial_path_normalization_differential_oracle(self):
         """CWE-426 Differential Normalization: Tests path traversal, Unicode, and sibling directory variations."""
