@@ -838,25 +838,28 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
             assert_deploy_preflight_security()
 
     def test_deploy_preflight_security_prod_default(self):
-        """CWE-636: In production environment (ENV=prod), REQUIRE_EXTERNAL_ANCHOR defaults to enabled."""
-        import importlib, sync_innokafe_to_pods as m
-        try:
-            env_dict = dict(os.environ)
-            env_dict["ENV"] = "prod"
-            if "INNOKAFE_REQUIRE_EXTERNAL_ANCHOR" in env_dict:
-                del env_dict["INNOKAFE_REQUIRE_EXTERNAL_ANCHOR"]
-            with patch.dict(os.environ, env_dict, clear=True):
-                importlib.reload(m)
-                self.assertTrue(m.REQUIRE_EXTERNAL_ANCHOR, "Anchor verification must default to enabled in prod environment")
-        finally:
-            env_restore = dict(os.environ)
-            env_restore.pop("ENV", None)
-            env_restore.pop("INNOKAFE_REQUIRE_EXTERNAL_ANCHOR", None)
-            with patch.dict(os.environ, env_restore, clear=True):
-                importlib.reload(m)
+        """CWE-636: In production environment (ENV=prod), REQUIRE_EXTERNAL_ANCHOR defaults to enabled in isolated process."""
+        import subprocess
+        import sys
+        from sync_innokafe_to_pods import ROOT_DIR
+
+        proc_script = """
+import os, sys
+sys.path.insert(0, os.path.join(os.environ["REPO_ROOT"], "tools"))
+import sync_innokafe_to_pods as m
+assert m.REQUIRE_EXTERNAL_ANCHOR is True, "Must default to True under ENV=prod"
+"""
+        env = dict(os.environ)
+        env["REPO_ROOT"] = ROOT_DIR
+        env["ENV"] = "prod"
+        env.pop("INNOKAFE_REQUIRE_EXTERNAL_ANCHOR", None)
+        env.pop("PYTEST_CURRENT_TEST", None)
+
+        res = subprocess.run([sys.executable, "-c", proc_script], env=env, capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0, f"Subprocess validation failed:\nStdout: {res.stdout}\nStderr: {res.stderr}")
 
     def test_mutation_oracle_kills_regex_and_entropy_mutants(self):
-        """Zero-Fake-Pass Mutation Testing: Proves that subtle corruptions to regex anchors and entropy thresholds fail (CWE-20 / CWE-326)."""
+        """Zero-Fake-Pass Mutation Testing: Proves that subtle corruptions to regex anchors and byte entropy thresholds fail (CWE-20 / CWE-326)."""
         import re
         from sync_innokafe_to_pods import validate_pod_identifier, _load_anchor_key, _POD_LABEL_RE
 
@@ -880,6 +883,48 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
             # Unmutated threshold accepts >= 32 bytes
             with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": "x" * 32}):
                 self.assertEqual(_load_anchor_key(), b"x" * 32)
+
+            # Mutant 3: Multibyte UTF-8 byte entropy vs character length (CWE-326)
+            # 16 2-byte Vietnamese characters ('đ') = 32 bytes in UTF-8: MUST PASS
+            multibyte_valid = "đ" * 16
+            self.assertEqual(len(multibyte_valid), 16, "Character length is 16")
+            self.assertEqual(len(multibyte_valid.encode("utf-8")), 32, "Byte length is 32")
+            with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": multibyte_valid}):
+                self.assertEqual(_load_anchor_key(), multibyte_valid.encode("utf-8"))
+
+            # 15 2-byte Vietnamese characters ('đ') = 30 bytes in UTF-8: MUST FAIL
+            multibyte_undersized = "đ" * 15
+            with patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": multibyte_undersized}):
+                with self.assertRaises(RuntimeError) as ctx:
+                    _load_anchor_key()
+                self.assertIn("30 bytes < 32 minimum", str(ctx.exception))
+
+    def test_run_cmd_rejects_string_commands_cwe78(self):
+        """CWE-78: run_cmd strictly requires List[str] argv and rejects shell strings."""
+        from sync_innokafe_to_pods import run_cmd
+
+        with self.assertRaises(TypeError) as ctx:
+            run_cmd("echo 'attempted shell injection'")
+        self.assertIn("run_cmd requires a List[str]", str(ctx.exception))
+
+    def test_validate_pod_identifier_length_bounds(self):
+        """CWE-20: Pod identifier enforces total DNS subdomain length bound [1, 253] and label bound [1, 63]."""
+        from sync_innokafe_to_pods import validate_pod_identifier
+
+        # Max valid single label: 63 chars
+        max_label = "a" * 63
+        self.assertEqual(validate_pod_identifier(max_label), max_label)
+
+        # Oversized label: 64 chars
+        with self.assertRaises(ValueError):
+            validate_pod_identifier("a" * 64)
+
+        # Total length > 253 chars
+        oversized_subdomain = "a" * 60 + "." + "b" * 60 + "." + "c" * 60 + "." + "d" * 60 + "." + "e" * 20
+        self.assertGreater(len(oversized_subdomain), 253)
+        with self.assertRaises(ValueError) as ctx:
+            validate_pod_identifier(oversized_subdomain)
+        self.assertIn("out of range [1, 253]", str(ctx.exception))
 
 
 if __name__ == '__main__':

@@ -156,11 +156,11 @@ print("[✓] Pod local health probes passed for all tenant hosts.", flush=True)
 """
 
 
-def run_cmd(cmd: Union[str, List[str]], check: bool = False, timeout: int = 120) -> subprocess.CompletedProcess:
-    if isinstance(cmd, list):
-        res = subprocess.run(cmd, shell=False, capture_output=True, text=True, timeout=timeout)
-    else:
-        res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
+def run_cmd(cmd: List[str], check: bool = False, timeout: int = 120) -> subprocess.CompletedProcess:
+    """Executes a command strictly via argv list without shell interpolation (CWE-78 / CWE-88)."""
+    if not isinstance(cmd, list) or not all(isinstance(arg, str) for arg in cmd):
+        raise TypeError(f"run_cmd requires a List[str] of argv arguments, got {type(cmd).__name__} (CWE-78)")
+    res = subprocess.run(cmd, shell=False, capture_output=True, text=True, timeout=timeout)
     if check and res.returncode != 0:
         raise RuntimeError(f"Command failed ({res.returncode}): {cmd}\nStdout: {res.stdout}\nStderr: {res.stderr}")
     return res
@@ -535,7 +535,7 @@ def _load_anchor_key() -> bytes:
         return b""
     key = raw.encode("utf-8")
     if len(key) < 32:
-        raise RuntimeError("LEDGER_ANCHOR_KEY is too short (must be >= 32 bytes, CWE-326)")
+        raise RuntimeError(f"LEDGER_ANCHOR_KEY is too short: {len(key)} bytes < 32 minimum (CWE-326)")
     return key
 
 
