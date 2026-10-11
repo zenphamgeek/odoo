@@ -899,10 +899,20 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
         proc_script = """
 import os, sys
 expected_tools_dir = os.path.join(os.environ["REPO_ROOT"], "tools")
+
+# Finding F / CWE-367 / ACE Prevention: The guard MUST fire before any import from the untrusted dir,
+# else module-level code runs before verification.
+# This check is deliberately self-contained; it cannot import the module it guards.
+if os.path.realpath(expected_tools_dir) != os.path.abspath(expected_tools_dir):
+    sys.stderr.write(
+        f"FAIL: symlink detected in tools provenance path (pre-import): {expected_tools_dir}\\n"
+    )
+    sys.exit(3)
+
 sys.path.insert(0, expected_tools_dir)
 import sync_innokafe_to_pods as m
 
-# CWE-59 / Finding C & D: Enforce production provenance guard pre and post import
+# Defense-in-depth: richer production guard, post-import verification of loaded module file (CWE-367)
 try:
     m.assert_no_symlink_in_provenance(expected_tools_dir)
     m.assert_no_symlink_in_provenance(m.__file__)
@@ -1182,6 +1192,12 @@ sys.exit(0)
         test_guard_script = """
 import os, sys
 tools_dir = os.path.join(sys.argv[1], "tools")
+
+# Pre-import gate: reject symlinks BEFORE adding to sys.path or importing (CWE-367 / ACE prevention)
+if os.path.realpath(tools_dir) != os.path.abspath(tools_dir):
+    sys.stderr.write(f"FAIL: symlink detected in tools provenance path (pre-import): {tools_dir}\\n")
+    sys.exit(3)
+
 sys.path.insert(0, tools_dir)
 from sync_innokafe_to_pods import assert_no_symlink_in_provenance, ProvenanceError
 try:
@@ -1235,12 +1251,13 @@ sys.exit(0)
                 if expected_code == 3:
                     self.assertIn("symlink detected in tools provenance path", res.stderr)
 
-    def test_differential_provenance_oracle_with_signed_attestation(self):
-        """Entropy Contract: Differential provenance oracle comparing ancestor-walk vs normcase realpath/abspath over fuzzed matrix."""
-        import tempfile, json, hashlib
+    def test_differential_provenance_oracle_with_hmac_attestation(self):
+        """Entropy Contract: Differential provenance oracle comparing ancestor-walk vs normcase realpath/abspath with HMAC attestation (CWE-345)."""
+        import tempfile, json, hashlib, hmac
         from sync_innokafe_to_pods import assert_no_symlink_in_provenance, ProvenanceError
 
         def reference_oracle_has_symlink(path: str) -> bool:
+            assert os.path.isabs(path), "oracle requires absolute input for determinism"
             return os.path.normcase(os.path.realpath(path)) != os.path.normcase(os.path.abspath(path))
 
         with tempfile.TemporaryDirectory() as raw_tmp:
@@ -1288,11 +1305,63 @@ sys.exit(0)
                 }
                 attestation_records.append(record)
 
+            # Local HMAC signing key (>= 32 bytes) for offline cryptographic attestation (CWE-345/347)
+            local_key = os.environ.get(
+                "ATTESTATION_HMAC_KEY",
+                "deterministic_offline_oracle_key_32bytes_entropy!"
+            ).encode("utf-8")
             attestation_payload = json.dumps(attestation_records, sort_keys=True)
-            attestation_sha = hashlib.sha256(attestation_payload.encode("utf-8")).hexdigest()
+            attestation_hmac = hmac.new(local_key, attestation_payload.encode("utf-8"), hashlib.sha256).hexdigest()
             self.assertEqual(len(attestation_records), 4)
             self.assertTrue(all(r["oracle_agreement"] for r in attestation_records))
-            self.assertEqual(len(attestation_sha), 64)
+            self.assertEqual(len(attestation_hmac), 64)
+
+    def test_provenance_meta_path_finder_blocks_symlink_before_module_exec(self):
+        """CWE-59 / CWE-367: ProvenanceGuardFinder on sys.meta_path intercepts and raises ProvenanceError before bytecode execution."""
+        import tempfile, subprocess, sys, shutil
+        from sync_innokafe_to_pods import ROOT_DIR
+
+        test_finder_script = """
+import os, sys, importlib
+tools_dir = sys.argv[1]
+sys.path.insert(0, tools_dir)
+from sync_innokafe_to_pods import install_provenance_meta_path_guard, ProvenanceError
+install_provenance_meta_path_guard(tools_dir)
+
+# Attempt to import module residing in a symlinked path
+try:
+    import symlinked_victim_module
+    sys.stderr.write("FAIL: module loaded despite symlinked origin!\\n")
+    sys.exit(1)
+except ProvenanceError as e:
+    sys.stderr.write(f"SUCCESS: MetaPathFinder intercepted import: {e}\\n")
+    sys.exit(3)
+except Exception as e:
+    sys.stderr.write(f"Unexpected error: {e}\\n")
+    sys.exit(2)
+"""
+        with tempfile.TemporaryDirectory() as raw_tmp:
+            tmpdir = os.path.realpath(raw_tmp)
+            real_tree = os.path.join(tmpdir, "real_store", "tools")
+            os.makedirs(real_tree, exist_ok=True)
+            shutil.copy(os.path.join(ROOT_DIR, "tools", "sync_innokafe_to_pods.py"), os.path.join(real_tree, "sync_innokafe_to_pods.py"))
+
+            # Create an external directory with a module that writes a canary file when executed
+            external_dir = os.path.join(tmpdir, "external_evil")
+            os.makedirs(external_dir, exist_ok=True)
+            canary_path = os.path.join(tmpdir, "canary.txt")
+            with open(os.path.join(external_dir, "symlinked_victim_module.py"), "w") as f:
+                f.write(f"with open({canary_path!r}, 'w') as cf: cf.write('ACE EXECUTED')\\n")
+
+            # Symlink the victim module inside real_tree
+            symlink_module = os.path.join(real_tree, "symlinked_victim_module.py")
+            os.symlink(os.path.join(external_dir, "symlinked_victim_module.py"), symlink_module)
+
+            res = subprocess.run([sys.executable, "-c", test_finder_script, real_tree], capture_output=True, text=True)
+            self.assertEqual(res.returncode, 3, f"MetaPathFinder must reject symlinked module with exit code 3:\\nStderr: {res.stderr}")
+            self.assertIn("MetaPathFinder intercepted import", res.stderr)
+            # CRITICAL: Canary file must NEVER be created because bytecode execution was blocked before load (CWE-367 / Zero ACE)
+            self.assertFalse(os.path.exists(canary_path), "ACE Prevention Violation: module code executed before provenance check!")
 
     def test_provenance_guard_rejects_divergent_module_dir(self):
         """CWE-426: realpath guard must reject a module whose real dir differs from expected tools dir (e.g. shadowed via sys.path precedence)."""

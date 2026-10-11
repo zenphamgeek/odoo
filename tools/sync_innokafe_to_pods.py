@@ -20,6 +20,8 @@ import datetime
 import fcntl
 import hashlib
 import hmac
+import importlib.abc
+import importlib.machinery
 import json
 import logging
 import os
@@ -59,6 +61,30 @@ def assert_no_symlink_in_provenance(path: str) -> None:
         if parent == p:  # reached filesystem root
             return
         p = parent
+
+
+class ProvenanceGuardFinder(importlib.abc.MetaPathFinder):
+    """CWE-59 / CWE-426 / CWE-367: MetaPathFinder that inspects every module spec origin
+    and rejects any symlinked provenance path BEFORE Python loads or executes bytecode.
+    """
+    def __init__(self, trusted_root: str = ROOT_DIR):
+        self._root = os.path.realpath(trusted_root)
+
+    def find_spec(self, name, path=None, target=None):
+        spec = importlib.machinery.PathFinder.find_spec(name, path, target)
+        if spec and spec.origin and spec.origin not in (None, "built-in", "frozen"):
+            # Enforce provenance on modules in the repo root or tools
+            if spec.origin.startswith(self._root) or "sync_innokafe" in spec.origin:
+                assert_no_symlink_in_provenance(spec.origin)
+        return spec
+
+
+def install_provenance_meta_path_guard(root: str = ROOT_DIR) -> None:
+    """Installs ProvenanceGuardFinder at sys.meta_path[0] to structurally close TOCTOU races."""
+    for finder in sys.meta_path:
+        if isinstance(finder, ProvenanceGuardFinder):
+            return
+    sys.meta_path.insert(0, ProvenanceGuardFinder(root))
 
 
 def compute_runtime_provenance_seal() -> str:
@@ -481,6 +507,7 @@ def assert_deploy_preflight_security() -> None:
         )
     if REQUIRE_EXTERNAL_ANCHOR:
         assert_no_symlink_in_provenance(os.path.dirname(__file__))
+        install_provenance_meta_path_guard(ROOT_DIR)
         key = _load_anchor_key()
         if not key or len(key) < 32:
             raise RuntimeError("Deploy pipeline requires a 256-bit (>= 32 bytes) LEDGER_ANCHOR_KEY (CWE-326).")
