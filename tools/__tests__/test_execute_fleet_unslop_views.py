@@ -71,5 +71,25 @@ class TestExecuteFleetUnslopViews(unittest.TestCase):
             assert_markup_preserved(before, after_dropped_attrib, "test_attrib.xml")
         self.assertIn("STRUCTURAL DRIFT", str(ctx.exception))
 
+    def test_assert_markup_preserved_rejects_entity_expansion_bomb(self):
+        """CWE-776: billion-laughs style payload must not expand or hang."""
+        bomb = (
+            '<?xml version="1.0"?>'
+            '<!DOCTYPE lolz [<!ENTITY lol "lol">'
+            '<!ENTITY lol2 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">'
+            '<!ENTITY lol3 "&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;&lol2;">]>'
+            '<odoo><template id="t1"><p>&lol3;</p></template></odoo>'
+        )
+        with self.assertRaises((ValueError, Exception)):
+            assert_markup_preserved(bomb, bomb, "bomb.xml")
+
+    def test_clean_file_content_type_guard(self):
+        """F-C (CWE-628): Raises TypeError if non-string argument is passed."""
+        with self.assertRaises(TypeError):
+            clean_file_content(123)  # type: ignore
+
+        with self.assertRaises(TypeError):
+            clean_file_content(["path", "content"])  # type: ignore
+
 if __name__ == "__main__":
     unittest.main()

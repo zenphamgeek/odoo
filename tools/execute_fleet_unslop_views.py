@@ -46,26 +46,44 @@ TARGET_FILES = [
     "enterprise/insilos_industry_showcase/views/templates.xml",
 ]
 
+try:
+    from lxml import etree
+    _SAFE_LXML_PARSER = etree.XMLParser(
+        resolve_entities=False,  # Block XXE / external entity resolution (CWE-611)
+        no_network=True,         # No network fetch of DTDs
+        dtd_validation=False,
+        load_dtd=False,
+        huge_tree=False,         # Keep libxml2's expansion limits active (CWE-776)
+    )
+except ImportError:
+    etree = None
+    _SAFE_LXML_PARSER = None
+
 def clean_file_content(text: str) -> str:
+    # F-C: Type guard prevents accidental positional argument swap
+    if not isinstance(text, str):
+        raise TypeError(f"clean_file_content expects str, got {type(text).__name__}")
+
+    # F-B: ReDoS-bounded character classes and linear horizontal whitespace [ \t]*
     # 1. Clean titles: "<t t-set="additional_title">... — ...</t>"
     def replace_title_emdash(m):
         full = m.group(0)
         return full.replace(" — ", " | ")
 
-    text = re.sub(r'<t t-set="additional_title">[^<]+</t>', replace_title_emdash, text)
+    text = re.sub(r'<t t-set="additional_title">[^<]{1,500}</t>', replace_title_emdash, text)
 
     # 2. Clean template name attributes: 'name="... — ..."'
     def replace_name_emdash(m):
         full = m.group(0)
         return full.replace(" — ", " | ")
 
-    text = re.sub(r'<template[^>]+name="[^"]+"', replace_name_emdash, text)
+    text = re.sub(r'<template[^>]{1,500}name="[^"]{1,500}"', replace_name_emdash, text)
 
     # 3. Clean specific numbered steps: "01 — Scope" -> "01. Scope"
-    text = re.sub(r'(\d{2})\s*—\s*', r'\1. ', text)
+    text = re.sub(r'(\d{2})[ \t]*—[ \t]*', r'\1. ', text)
 
     # 4. Clean specific location pairs: "Hải Phòng — Vũng Tàu" -> "Hải Phòng - Vũng Tàu"
-    text = re.sub(r'([A-Za-zÀ-ỹ0-9]+)\s*—\s*([A-Za-zÀ-ỹ0-9]+)', r'\1 - \2', text)
+    text = re.sub(r'([A-Za-zÀ-ỹ0-9]+)[ \t]*—[ \t]*([A-Za-zÀ-ỹ0-9]+)', r'\1 - \2', text)
 
     # 5. Clean remaining em-dashes: " — " -> ", " or ": "
     text = text.replace(" — ", ", ")
@@ -80,18 +98,34 @@ def clean_file_content(text: str) -> str:
 
     return text
 
+def parse_xml_safe(xml_text: str | bytes) -> list[tuple[str, tuple[str, ...]]]:
+    """
+    Safely parses XML and returns element tag and sorted attribute topology.
+    Enforces strict defenses against:
+    - CWE-611: XXE (External Entity Injection)
+    - CWE-776: Billion-Laughs / Quadratic Entity Expansion Bombs
+    """
+    raw_bytes = xml_text.encode("utf-8") if isinstance(xml_text, str) else xml_text
+
+    # Proactively block DOCTYPE / ENTITY declarations to eliminate billion-laughs bombs before parsing
+    if b"<!DOCTYPE" in raw_bytes or b"<!ENTITY" in raw_bytes:
+        raise ValueError("XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)")
+
+    if etree is not None and _SAFE_LXML_PARSER is not None:
+        root = etree.fromstring(raw_bytes, parser=_SAFE_LXML_PARSER)
+        return [(el.tag, tuple(sorted(el.attrib.keys()))) for el in root.iter()]
+    else:
+        root = ET.fromstring(raw_bytes)
+        return [(el.tag, tuple(sorted(el.attrib.keys()))) for el in root.iter()]
+
 def assert_markup_preserved(before: str, after: str, rel_path: str) -> None:
     """
     F3 Guard: Fail if the transform changed anything but text or attribute character data.
     Verifies that the tag hierarchy and attribute key topology remain 100% identical.
     Encodes to UTF-8 bytes to safely handle files with XML encoding declarations (F1).
     """
-    def skeleton(xml_text: str):
-        root = ET.fromstring(xml_text.encode("utf-8"))
-        return [(el.tag, tuple(sorted(el.attrib.keys()))) for el in root.iter()]
-
-    before_skel = skeleton(before)
-    after_skel = skeleton(after)
+    before_skel = parse_xml_safe(before)
+    after_skel = parse_xml_safe(after)
     if before_skel != after_skel:
         raise ValueError(f"STRUCTURAL DRIFT in {rel_path}: transform altered element/attribute topology")
 
