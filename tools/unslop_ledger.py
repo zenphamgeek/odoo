@@ -28,8 +28,9 @@ class UnslopLedger:
     Hardened with inter-process fcntl locks and strict 0o600 permissions.
     """
 
-    def __init__(self, db_path: Optional[Path] = None):
+    def __init__(self, db_path: Optional[Path] = None, base_dir: Optional[Path] = None):
         self.db_path = db_path or LEDGER_DB_PATH
+        self.base_dir = Path(base_dir).resolve() if base_dir else None
         self.lock_path = self.db_path.with_suffix(".lock")
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._ensure_secure_dir(self.db_path.parent)
@@ -151,19 +152,44 @@ class UnslopLedger:
         return hashlib.sha256(data).hexdigest()
 
     @staticmethod
-    def _validate_rel_path(rel_path: str) -> None:
+    def _validate_rel_path(rel_path: str, base_dir: Optional[Path] = None) -> str:
         """
-        Validates rel_path against path traversal (CWE-22) and NUL byte injection (CWE-626).
+        Validates and canonicalizes rel_path against path traversal (CWE-22),
+        symlink escapes (CWE-59), backslash separator bypasses, and NUL byte injection (CWE-626).
+        Returns normalized forward-slash relative path.
         """
         if not isinstance(rel_path, str):
             raise TypeError(f"rel_path must be a str, got {type(rel_path).__name__}")
         if "\x00" in rel_path:
             raise ValueError("rel_path contains forbidden NUL character (CWE-626)")
-        p = Path(rel_path)
-        if p.is_absolute() or rel_path.startswith("/") or rel_path.startswith("\\"):
+
+        import re
+        if re.match(r"^[a-zA-Z]:", rel_path):
+            raise ValueError(f"rel_path contains forbidden drive letter: {rel_path}")
+
+        # Normalize backslashes to forward slashes
+        clean_path = rel_path.replace("\\", "/")
+
+        if clean_path.startswith("/"):
             raise ValueError(f"rel_path must be relative, got: {rel_path}")
-        if ".." in p.parts:
+
+        # Path normalization check
+        norm = os.path.normpath(clean_path)
+        if norm == ".." or norm.startswith("../") or "/../" in norm or norm.startswith("/"):
             raise ValueError(f"rel_path contains directory traversal ('..'): {rel_path}")
+
+        # If base_dir is provided, verify candidate does not escape base_dir via symlink (CWE-59)
+        if base_dir is not None:
+            resolved_base = Path(base_dir).resolve()
+            candidate = (resolved_base / norm).resolve()
+            try:
+                candidate.relative_to(resolved_base)
+            except ValueError:
+                raise ValueError(
+                    f"rel_path escapes base directory via symlink or traversal: {rel_path}"
+                )
+
+        return norm
 
     @staticmethod
     def _validate_metadata(rule_fingerprint: str, status: str) -> None:
@@ -182,7 +208,7 @@ class UnslopLedger:
         Returns True if the current file content matches a previously verified clean
         state produced under the exact same rule fingerprint.
         """
-        self._validate_rel_path(rel_path)
+        rel_path = self._validate_rel_path(rel_path, self.base_dir)
         self._validate_metadata(rule_fingerprint, "clean")
         with self._flock_shared():
             with self._get_connection() as con:
@@ -216,7 +242,7 @@ class UnslopLedger:
         notes: str = "",
     ) -> None:
         """Records an unslop transformation or clean verification into the ledger."""
-        self._validate_rel_path(rel_path)
+        rel_path = self._validate_rel_path(rel_path, self.base_dir)
         self._validate_metadata(rule_fingerprint, status)
         now = time.time()
         with self._flock_exclusive():
@@ -279,7 +305,7 @@ class UnslopLedger:
         with self._flock_shared():
             with self._get_connection() as con:
                 for rel_path, current_sha in files:
-                    self._validate_rel_path(rel_path)
+                    rel_path = self._validate_rel_path(rel_path, self.base_dir)
                     row = con.execute(
                         "SELECT sha256_after, status FROM unslop_ledger WHERE rel_path = ?",
                         (rel_path,),

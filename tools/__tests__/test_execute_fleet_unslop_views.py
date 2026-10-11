@@ -405,6 +405,90 @@ class TestExecuteFleetUnslopViews(unittest.TestCase):
             # Test 3: Disabled mode -> returns empty
             self.assertEqual(len(ledger.detect_anomalies(drifted_files, enabled=False)), 0)
 
+    def test_ledger_rejects_symlink_escape(self):
+        """CWE-59: A rel_path resolving outside the ledger base directory via symlink is strictly rejected."""
+        with tempfile.TemporaryDirectory() as root_tmp:
+            base_dir = Path(root_tmp) / "safe_workspace"
+            base_dir.mkdir()
+            outside_dir = Path(root_tmp) / "outside"
+            outside_dir.mkdir()
+            secret_file = outside_dir / "secret.key"
+            secret_file.write_text("SUPER_SECRET_PAYLOAD", encoding="utf-8")
+
+            # Create symlink inside base_dir pointing to external target
+            symlink_in_base = base_dir / "symlink_escape.xml"
+            os.symlink(str(secret_file), str(symlink_in_base))
+
+            test_db = base_dir / "test_symlink.db"
+            ledger = UnslopLedger(db_path=test_db, base_dir=base_dir)
+            sha = hashlib.sha256(b"dummy").hexdigest()
+
+            with self.assertRaises(ValueError) as ctx:
+                ledger.record_entry("symlink_escape.xml", sha, sha, "fp1", 0)
+            self.assertIn("escapes base directory", str(ctx.exception).lower())
+
+    def test_ledger_rejects_backslash_and_dotslash_normalization(self):
+        """CWE-22: 'views\\..\\..\\etc\\passwd' and './../x' are rejected after normalization."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_db = Path(tmpdir) / "test_norm.db"
+            ledger = UnslopLedger(db_path=test_db)
+            sha = hashlib.sha256(b"dummy").hexdigest()
+
+            evasive_paths = [
+                "views\\..\\..\\etc\\passwd",
+                "./../x",
+                "enterprise/views/../../../shadow",
+                "views/./../../etc/hosts",
+                "C:\\Windows\\System32\\calc.exe",
+            ]
+
+            for evil_path in evasive_paths:
+                with self.assertRaises(ValueError, msg=f"Failed to reject: {evil_path}"):
+                    ledger.record_entry(evil_path, sha, sha, "fp1", 0)
+
+    def test_ledger_lock_released_on_exception(self):
+        """CWE-667 / CWE-833: An exception mid-write releases fcntl lock so subsequent calls never deadlock."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_db = Path(tmpdir) / "test_lock_crash.db"
+            ledger = UnslopLedger(db_path=test_db)
+
+            # Intentionally simulate exception inside exclusive lock
+            try:
+                with ledger._flock_exclusive(timeout_sec=5.0):
+                    raise RuntimeError("Simulated process crash / interruption during write")
+            except RuntimeError:
+                pass
+
+            # Subsequent call MUST acquire lock immediately without TimeoutError
+            acquired = False
+            with ledger._flock_exclusive(timeout_sec=0.5):
+                acquired = True
+            self.assertTrue(acquired, "Failed to acquire lock: previous lock was not cleanly released")
+
+    def test_sale_order_create_invoices_signature_rejects_typo_kwargs(self):
+        """F-1 / CWE-20: SaleOrder._create_invoices rejects unexpected keyword arguments with TypeError."""
+        import ast
+
+        sale_order_path = ROOT_DIR / "addons" / "sale" / "models" / "sale_order.py"
+        tree = ast.parse(sale_order_path.read_text(encoding="utf-8"))
+
+        found_func = None
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name == "_create_invoices":
+                found_func = node
+                break
+
+        self.assertIsNotNone(found_func, "Could not find _create_invoices in sale_order.py")
+        # Check that kwarg is None (no **kwargs allowed)
+        self.assertIsNone(
+            found_func.args.kwarg,
+            "SaleOrder._create_invoices must not have **kwargs parameter to prevent silent argument swallowing"
+        )
+        arg_names = [arg.arg for arg in found_func.args.args]
+        self.assertIn("self", arg_names)
+        self.assertIn("final", arg_names)
+        self.assertIn("grouped", arg_names)
+
 
 if __name__ == "__main__":
     unittest.main()
