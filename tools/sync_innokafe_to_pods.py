@@ -22,7 +22,7 @@ import re
 import subprocess
 import sys
 import time
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Union
 
 NAMESPACE = "production"
 CONTAINER = "insilos"
@@ -139,8 +139,11 @@ print("[✓] Pod local health probes passed for all tenant hosts.", flush=True)
 """
 
 
-def run_cmd(cmd: str, check: bool = False, timeout: int = 120) -> subprocess.CompletedProcess:
-    res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
+def run_cmd(cmd: Union[str, List[str]], check: bool = False, timeout: int = 120) -> subprocess.CompletedProcess:
+    if isinstance(cmd, list):
+        res = subprocess.run(cmd, shell=False, capture_output=True, text=True, timeout=timeout)
+    else:
+        res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
     if check and res.returncode != 0:
         raise RuntimeError(f"Command failed ({res.returncode}): {cmd}\nStdout: {res.stdout}\nStderr: {res.stderr}")
     return res
@@ -171,7 +174,8 @@ def compute_local_sha256(file_path: str) -> str:
 def discover_active_pods(namespace: str = NAMESPACE) -> List[str]:
     print("\n=== STAGE 0. DISCOVERING ACTIVE KUBERNETES PODS ===")
     pod_out = run_cmd(
-        f"kubectl get pods -n {namespace} -l app=insilos-saas --field-selector=status.phase=Running -o jsonpath='{{.items[*].metadata.name}}'",
+        ["kubectl", "get", "pods", "-n", namespace, "-l", "app=insilos-saas",
+         "--field-selector=status.phase=Running", "-o", "jsonpath={.items[*].metadata.name}"],
         check=True
     )
     raw_pods = [p.strip() for p in pod_out.stdout.split() if p.strip()]
@@ -190,44 +194,33 @@ def package_and_distribute(pods: List[str], namespace: str = NAMESPACE, containe
         raise FileNotFoundError(f"Source directory not found: {src_dir}")
 
     # Package entire module directory including all media assets and metadata
-    cmd = f"tar -czf {tar_path} -C {src_dir} ."
-    run_cmd(cmd, check=True)
+    tar_cmd = ["tar", "-czf", tar_path, "-C", src_dir, "."]
+    run_cmd(tar_cmd, check=True)
     tar_size = os.path.getsize(tar_path)
-    print(f"[✓] Created {tar_path} ({tar_size} bytes)")
+    tar_sha = compute_local_sha256(tar_path)
+    print(f"[✓] Created {tar_path} ({tar_size} bytes, SHA-256: {tar_sha[:16]}...)")
 
     sync_tool = os.path.join(ROOT_DIR, "tools", "sync_innokafe_views_db.py")
     warmup_tool = os.path.join(ROOT_DIR, "tools", "safe_asset_warmup.py")
     sync_sha = compute_local_sha256(sync_tool)
     warmup_sha = compute_local_sha256(warmup_tool)
 
-    deploy_procs = []
+    extract_script = f"""set -e
+echo "{tar_sha}  /tmp/innokafe_website_sync.tar.gz" | sha256sum -c -
+mkdir -p /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website /app/insilos/tools
+tar -xzf /tmp/innokafe_website_sync.tar.gz -C /app/insilos/enterprise/innokafe_website/
+tar -xzf /tmp/innokafe_website_sync.tar.gz -C /app/insilos/apps/innokafe_website/
+chown -R insilos:insilos /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website /app/insilos/tools
+chmod 0755 /app/insilos/tools/sync_innokafe_views_db.py /app/insilos/tools/safe_asset_warmup.py
+rm -f /tmp/innokafe_website_sync.tar.gz
+"""
+
     for pod in pods:
-        pcmd = (
-            f"kubectl cp -n {namespace} -c {container} {tar_path} {pod}:/tmp/innokafe_website_sync.tar.gz && "
-            f"kubectl cp -n {namespace} -c {container} {sync_tool} {pod}:/app/insilos/tools/sync_innokafe_views_db.py && "
-            f"kubectl cp -n {namespace} -c {container} {warmup_tool} {pod}:/app/insilos/tools/safe_asset_warmup.py && "
-            f"kubectl exec -n {namespace} {pod} -c {container} -- sh -c '"
-            f"mkdir -p /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website /app/insilos/tools && "
-            f"tar -xzf /tmp/innokafe_website_sync.tar.gz -C /app/insilos/enterprise/innokafe_website/ && "
-            f"tar -xzf /tmp/innokafe_website_sync.tar.gz -C /app/insilos/apps/innokafe_website/ && "
-            f"chown -R insilos:insilos /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website /app/insilos/tools/sync_innokafe_views_db.py /app/insilos/tools/safe_asset_warmup.py && "
-            f"chmod 0755 /app/insilos/tools/sync_innokafe_views_db.py /app/insilos/tools/safe_asset_warmup.py && "
-            f"rm -f /tmp/innokafe_website_sync.tar.gz'"
-        )
-        p = subprocess.Popen(pcmd, shell=True)
-        deploy_procs.append((pod, p))
-
-    failures = []
-    for pod, p in deploy_procs:
-        p.wait()
-        if p.returncode != 0:
-            print(f"[✗] Failed deployment on {pod} (exit code {p.returncode})")
-            failures.append(pod)
-        else:
-            print(f"[✓] Synchronized files & tools to {pod}")
-
-    if failures:
-        raise RuntimeError(f"Distribution failed on pods: {failures}")
+        run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, tar_path, f"{pod}:/tmp/innokafe_website_sync.tar.gz"], check=True)
+        run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, sync_tool, f"{pod}:/app/insilos/tools/sync_innokafe_views_db.py"], check=True)
+        run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, warmup_tool, f"{pod}:/app/insilos/tools/safe_asset_warmup.py"], check=True)
+        run_cmd(["kubectl", "exec", "-n", namespace, pod, "-c", container, "--", "sh", "-c", extract_script], check=True)
+        print(f"[✓] Synchronized & verified SHA-256 on {pod}")
 
 
 def verify_md5_parity(pods: List[str], namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
@@ -244,7 +237,7 @@ def verify_md5_parity(pods: List[str], namespace: str = NAMESPACE, container: st
         for asset in MEDIA_ASSETS:
             subpath = asset.replace("enterprise/innokafe_website/", "")
             pod_file = f"/app/insilos/enterprise/innokafe_website/{subpath}"
-            cmd = f"kubectl exec -n {namespace} {pod} -c {container} -- md5sum {pod_file}"
+            cmd = ["kubectl", "exec", "-n", namespace, pod, "-c", container, "--", "md5sum", pod_file]
             res = run_cmd(cmd)
             if res.returncode != 0:
                 raise RuntimeError(f"Missing file on {pod}: {pod_file}")
@@ -261,7 +254,7 @@ def verify_md5_parity(pods: List[str], namespace: str = NAMESPACE, container: st
 
 
 def verify_pod_script_sha256(pod: str, remote_path: str, expected_sha: str, namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
-    cmd = f"kubectl exec -n {namespace} {pod} -c {container} -- sha256sum {remote_path}"
+    cmd = ["kubectl", "exec", "-n", namespace, pod, "-c", container, "--", "sha256sum", remote_path]
     res = run_cmd(cmd, check=True)
     actual_sha = res.stdout.strip().split()[0]
     if actual_sha != expected_sha:
