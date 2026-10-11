@@ -736,8 +736,8 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
                         try:
                             p.kill()
                             p.wait(timeout=5)
-                        except Exception:
-                            pass
+                        except Exception as e:
+                            sys.stderr.write(f"WARN: failed to reap child pid={p.pid}: {e!r}\n")
 
             # Full-chain Merkle integrity check over all concurrent multi-process writes
             self.assertTrue(verify_audit_ledger(temp_ledger, temp_anchor))
@@ -836,6 +836,15 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
                     _load_anchor_key()
                 self.assertIn("LEDGER_ANCHOR_KEY is missing", str(ctx.exception))
 
+    def test_no_static_default_key_even_with_external_anchor_off(self):
+        """CWE-259 / CWE-798: With REQUIRE_EXTERNAL_ANCHOR False and unset key, returns b'' and never a hardcoded secret."""
+        from sync_innokafe_to_pods import _load_anchor_key
+        with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", False):
+            env_without_key = {k: v for k, v in os.environ.items() if k != "LEDGER_ANCHOR_KEY"}
+            with patch.dict(os.environ, env_without_key, clear=True):
+                key = _load_anchor_key()
+                self.assertEqual(key, b"", "Must return empty bytes in degraded local mode; zero hardcoded fallback credentials")
+
     def test_deploy_preflight_security_fails_closed_without_anchor(self):
         """CWE-636: Deploy pipeline must fail closed when REQUIRE_EXTERNAL_ANCHOR is false unless degraded mode is explicitly allowed."""
         from sync_innokafe_to_pods import assert_deploy_preflight_security
@@ -862,22 +871,23 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
             assert_deploy_preflight_security()
 
     def test_deploy_preflight_security_prod_default(self):
-        """CWE-636 / CWE-617 / CWE-833 / CWE-532 / CWE-426: In prod, REQUIRE_EXTERNAL_ANCHOR defaults to True in isolated child with module provenance guard."""
+        """CWE-636 / CWE-617 / CWE-833 / CWE-532 / CWE-426: In prod, REQUIRE_EXTERNAL_ANCHOR defaults to True in isolated child with realpath dirname provenance guard."""
         import subprocess
         import sys
         from sync_innokafe_to_pods import ROOT_DIR
 
         # F1 fix: Explicit exit codes instead of assert (assert stripped under python -O)
-        # Provenance guard (CWE-426): Ensure child imports exclusively from repo tools directory
+        # Provenance guard (CWE-426): Ensure child imports strictly from expected tools dir via realpath/dirname
         proc_script = """
 import os, sys
 expected_tools_dir = os.path.join(os.environ["REPO_ROOT"], "tools")
 sys.path.insert(0, expected_tools_dir)
 import sync_innokafe_to_pods as m
 
-resolved_file = os.path.abspath(m.__file__)
-if not resolved_file.startswith(os.path.abspath(expected_tools_dir)):
-    sys.stderr.write(f"FAIL: Module provenance spoofing detected: {resolved_file} not in {expected_tools_dir}\\n")
+resolved_file = os.path.realpath(m.__file__)
+expected_dir = os.path.realpath(expected_tools_dir)
+if os.path.dirname(resolved_file) != expected_dir:
+    sys.stderr.write(f"FAIL: Module provenance spoofing detected: {resolved_file} not directly in {expected_tools_dir}\\n")
     sys.exit(2)
 
 if m.REQUIRE_EXTERNAL_ANCHOR is not True:
@@ -911,6 +921,53 @@ sys.exit(0)
             )
 
         self.assertEqual(res.returncode, 0, f"Subprocess validation failed:\nStdout: {res.stdout}\nStderr: {res.stderr}")
+
+    def test_provenance_guard_rejects_sibling_prefix_and_symlink_spoofing(self):
+        """CWE-426 / CWE-22: Provenance guard strictly rejects sibling prefix directories and symlinks."""
+        import tempfile
+        import subprocess
+        import sys
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            expected_dir = os.path.join(tmpdir, "tools")
+            sibling_dir = os.path.join(tmpdir, "tools_evil")
+            os.makedirs(expected_dir, exist_ok=True)
+            os.makedirs(sibling_dir, exist_ok=True)
+
+            # Sibling spoofed file: /tmp/.../tools_evil/spoofed_module.py
+            spoofed_file = os.path.join(sibling_dir, "spoofed_module.py")
+            with open(spoofed_file, "w") as f:
+                f.write("REQUIRE_EXTERNAL_ANCHOR = True\n")
+
+            # Symlink spoofed file: /tmp/.../tools/symlinked_module.py -> /tmp/.../tools_evil/spoofed_module.py
+            symlinked_file = os.path.join(expected_dir, "symlinked_module.py")
+            os.symlink(spoofed_file, symlinked_file)
+
+            test_script = """
+import os, sys
+expected_dir = os.path.realpath(sys.argv[1])
+module_path = sys.argv[2]
+
+import importlib.util
+spec = importlib.util.spec_from_file_location("m", module_path)
+m = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(m)
+
+resolved_file = os.path.realpath(m.__file__)
+if os.path.dirname(resolved_file) != expected_dir:
+    sys.stderr.write(f"FAIL: Module provenance spoofing detected: {resolved_file} not in {expected_dir}\\n")
+    sys.exit(2)
+sys.exit(0)
+"""
+            # 1. Sibling prefix directory must be rejected by provenance guard (exit code 2)
+            res1 = subprocess.run([sys.executable, "-c", test_script, expected_dir, spoofed_file], capture_output=True, text=True)
+            self.assertEqual(res1.returncode, 2, "Sibling prefix directory must be rejected by provenance guard")
+            self.assertIn("Module provenance spoofing detected", res1.stderr)
+
+            # 2. Symlink pointing outside expected_dir must resolve realpath and exit with code 2
+            res2 = subprocess.run([sys.executable, "-c", test_script, expected_dir, symlinked_file], capture_output=True, text=True)
+            self.assertEqual(res2.returncode, 2, "Symlink pointing outside expected_dir must be rejected by provenance guard")
+            self.assertIn("Module provenance spoofing detected", res2.stderr)
 
     def test_mutation_oracle_kills_regex_and_entropy_mutants(self):
         """Zero-Fake-Pass Mutation Testing: Proves that subtle corruptions to regex anchors and byte entropy thresholds fail (CWE-20 / CWE-326)."""
