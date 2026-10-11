@@ -10,8 +10,14 @@ Eliminates:
 
 import re
 import os
-import tempfile
-import xml.etree.ElementTree as ET
+import sys
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
+from tools.atomic_io import atomic_write_text
 
 def clean_file(path, replacements):
     if not os.path.exists(path):
@@ -28,19 +34,8 @@ def clean_file(path, replacements):
             content = pattern.sub(repl, content)
 
     if content != orig:
-        dir_path = os.path.dirname(os.path.abspath(path))
-        fd, tmp = tempfile.mkstemp(dir=dir_path, prefix="tmp_unslop_", suffix=".tmp")
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as f:
-                f.write(content)
-                f.flush()
-                os.fsync(f.fileno())
-            os.replace(tmp, path)
-            print(f"[✓] Atomically refactored: {path}")
-        except Exception:
-            if os.path.exists(tmp):
-                os.unlink(tmp)
-            raise
+        atomic_write_text(path, content)
+        print(f"[✓] Atomically refactored: {path}")
     else:
         print(f"[-] No changes needed: {path}")
 

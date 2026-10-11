@@ -40,6 +40,10 @@ from typing import Dict, List, Optional, Tuple, Union
 NAMESPACE = "production"
 CONTAINER = "insilos"
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+from tools.atomic_io import atomic_write_text
 
 
 class ProvenanceError(RuntimeError):
@@ -673,30 +677,10 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
 
 
 def _update_external_anchor(record_hash: str, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
-    """Updates external trust anchor atomically via tempfile + os.replace + fsync with HMAC (WARN-3)."""
+    """Updates external trust anchor atomically via atomic_write_text with HMAC and permission preservation (WARN-3)."""
     _load_anchor_key()
-
-    anchor_dir = os.path.dirname(os.path.abspath(anchor_path)) or "."
-    os.makedirs(anchor_dir, exist_ok=True)
-    fd, tmp_path = tempfile.mkstemp(dir=anchor_dir, prefix=".anchor_tmp_")
-    try:
-        payload = _format_anchor_payload(record_hash)
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(payload)
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp_path, anchor_path)  # atomic POSIX rename
-        dir_fd = os.open(anchor_dir, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
-        try:
-            os.fsync(dir_fd)
-        finally:
-            os.close(dir_fd)
-    except Exception:
-        if os.path.exists(tmp_path):
-            try:
-                os.unlink(tmp_path)
-            except OSError:
-                pass
+    payload = _format_anchor_payload(record_hash)
+    atomic_write_text(anchor_path, payload)
 
 
 def verify_audit_ledger(ledger_path: str = AUDIT_LEDGER_PATH, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> bool:
