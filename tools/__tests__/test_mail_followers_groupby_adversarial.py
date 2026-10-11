@@ -21,15 +21,25 @@ if ROOT_DIR not in sys.path:
 import odoo
 from odoo import SUPERUSER_ID, api
 
-_PROD_TOKENS = ("prod", "production", "live", "main")
+# Unambiguous markers: a name containing these is never disposable, even concatenated.
+_PROD_SUBSTRINGS = ("prod", "production")
+# Ambiguous markers: real words embed them ('maintenance', 'domain'), so match whole tokens only.
+_PROD_TOKENS = ("main", "master")
 
 
 def _looks_like_production(db_name: str) -> bool:
     """
-    Token-boundary match: 'maintenance' -> {'maintenance'}, not 'main'.
-    Avoids CWE-20 over-matching while strictly blocking production databases.
+    Two-tier guard (CWE-20):
+      - substring for unambiguous markers -> blocks 'proddb', 'prodclone', 'production2024'
+      - regex prefix/boundary for 'live' -> blocks 'live', 'liveserver', 'odoo_live' but allows 'delivery_qa'
+      - token-boundary for ambiguous markers -> allows 'maintenance', 'domain_test'
     """
-    tokens = set(re.split(r"[^a-z0-9]+", db_name.lower()))
+    low = db_name.lower()
+    if any(sub in low for sub in _PROD_SUBSTRINGS):
+        return True
+    if re.search(r"(^|_|-)live($|_|-|server|db|[0-9])", low):
+        return True
+    tokens = set(re.split(r"[^a-z0-9]+", low))
     return any(tok in tokens for tok in _PROD_TOKENS)
 
 
@@ -80,6 +90,7 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         self.cr = self.registry.cursor()
         self.env = api.Environment(self.cr, SUPERUSER_ID, {})
         self._created_partner_ids = []
+        self._created_follower_ids = []
 
     def tearDown(self):
         rollback_error = None
@@ -96,23 +107,30 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
 
         # Empirical pollution proof on an independent connection - runs even if rollback raised
         leaked = []
-        if self._created_partner_ids:
+        tracked = {
+            "res_partner": self._created_partner_ids,
+            "mail_followers": getattr(self, "_created_follower_ids", []),
+        }
+        if any(ids for ids in tracked.values()):
             registry = getattr(self, "registry", None)
             if registry is None:
                 raise RuntimeError(
                     "Pollution-proof aborted: self.registry unavailable; cannot verify isolation."
                 )
             with registry.cursor() as fresh_cr:
-                fresh_cr.execute(
-                    "SELECT id FROM res_partner WHERE id = ANY(%s)",
-                    (list(self._created_partner_ids),),
-                )
-                leaked = [row[0] for row in fresh_cr.fetchall()]
+                fresh_cr.execute("SET LOCAL statement_timeout = '5s'")
+                for table, ids in tracked.items():
+                    if not ids:
+                        continue
+                    fresh_cr.execute(
+                        f"SELECT id FROM {table} WHERE id = ANY(%s)", (list(ids),)
+                    )
+                    leaked += [(table, row[0]) for row in fresh_cr.fetchall()]
 
         if rollback_error is not None:
             raise AssertionError(f"Isolation rollback FAILED (connection released): {rollback_error!r}")
         if leaked:
-            raise AssertionError(f"Isolation breach: partner rows persisted after rollback: {leaked}")
+            raise AssertionError(f"Isolation breach: records persisted after rollback: {leaked}")
 
     def test_00_empty_pids_boundary_preservation(self):
         """
@@ -313,11 +331,12 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
         self._created_partner_ids.extend([target_rec.id, p_follower.id, p_non_follower.id])
 
         # Add follower using dynamic model name
-        Followers.create({
+        fol = Followers.create({
             "res_model": target_rec._name,
             "res_id": target_rec.id,
             "partner_id": p_follower.id,
         })
+        self._created_follower_ids.append(fol.id)
         self.env.flush_all()
 
         recipients = Followers._get_recipient_data(
@@ -452,22 +471,33 @@ class TestMailFollowersGroupByAdversarial(unittest.TestCase):
 
     def test_09_blast_radius_guard_token_precision(self):
         """
-        Unit verification of the blast-radius token boundary classifier.
+        Unit verification of the two-tier blast-radius classifier.
         Ensures:
-        - Exact production tokens ('prod', 'production', 'live', 'main') are blocked.
-        - Token-delimited names ('innokafe_prod', 'odoo-live', 'db_main') are blocked.
-        - Legitimate non-production substrings ('innokafe_maintenance', 'delivery_qa') are permitted.
+        - Substring production markers ('proddb', 'production2024', 'liveserver', 'prodclone') are blocked.
+        - Exact ambiguous tokens ('main', 'master', 'innokafe_main') are blocked.
+        - Legitimate non-production substrings ('innokafe_maintenance', 'delivery_qa', 'domain_test') are permitted.
         """
-        self.assertTrue(_looks_like_production("main"))
+        # Tier 1: Concatenated and substring unambiguous markers
         self.assertTrue(_looks_like_production("prod"))
         self.assertTrue(_looks_like_production("production"))
         self.assertTrue(_looks_like_production("live"))
+        self.assertTrue(_looks_like_production("proddb"))
+        self.assertTrue(_looks_like_production("production2024"))
+        self.assertTrue(_looks_like_production("liveserver"))
+        self.assertTrue(_looks_like_production("prodclone"))
         self.assertTrue(_looks_like_production("innokafe_prod"))
-        self.assertTrue(_looks_like_production("my-main-db"))
         self.assertTrue(_looks_like_production("system_live_test"))
 
+        # Tier 2: Ambiguous markers (token boundary)
+        self.assertTrue(_looks_like_production("main"))
+        self.assertTrue(_looks_like_production("master"))
+        self.assertTrue(_looks_like_production("my-main-db"))
+        self.assertTrue(_looks_like_production("innokafe_master"))
+
+        # Legitimate non-production names containing substrings of ambiguous markers
         self.assertFalse(_looks_like_production("innokafe_maintenance"))
         self.assertFalse(_looks_like_production("delivery_qa"))
+        self.assertFalse(_looks_like_production("domain_test"))
         self.assertFalse(_looks_like_production("innokafe_test"))
         self.assertFalse(_looks_like_production("odoo20_dev"))
         self.assertFalse(_looks_like_production("insilos20_dev"))
