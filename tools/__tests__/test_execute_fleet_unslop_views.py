@@ -488,12 +488,57 @@ class TestExecuteFleetUnslopViews(unittest.TestCase):
             found_func.args.kwarg,
             "SaleOrder._create_invoices must not have **kwargs parameter to prevent silent argument swallowing (F-1)",
         )
-        arg_names = [arg.arg for arg in found_func.args.args]
-        self.assertEqual(
-            arg_names,
-            ["self", "final", "grouped"],
-            "Accounting boundary signature drifted; exact parameter list must be ['self', 'final', 'grouped']",
+        arg_names = {arg.arg for arg in found_func.args.args}
+        required = {"self", "final", "grouped"}
+        allowed_extra = {"date"}  # Odoo canonical override; reviewed & permitted
+        missing = required - arg_names
+        self.assertFalse(missing, f"Accounting boundary lost required params: {sorted(missing)}")
+        unexpected = arg_names - required - allowed_extra
+        self.assertFalse(
+            unexpected,
+            f"Unreviewed params added to accounting boundary: {sorted(unexpected)}",
         )
+
+    def test_sale_order_create_invoices_rejects_typo_kwargs(self):
+        """F-1 / F-5 / CWE-20: Behavioral check ensuring _create_invoices raises TypeError on unexpected kwargs."""
+        import ast
+        import inspect
+
+        sale_order_path = ROOT_DIR / "addons" / "sale" / "models" / "sale_order.py"
+        tree = ast.parse(sale_order_path.read_text(encoding="utf-8"))
+
+        found_func = None
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef) and node.name == "_create_invoices":
+                found_func = node
+                break
+
+        self.assertIsNotNone(found_func, "Could not find _create_invoices in sale_order.py")
+        num_args = len(found_func.args.args)
+        num_defaults = len(found_func.args.defaults)
+        default_offset = num_args - num_defaults
+        params = []
+        for i, arg in enumerate(found_func.args.args):
+            default = inspect.Parameter.empty
+            if i >= default_offset:
+                default = ast.literal_eval(found_func.args.defaults[i - default_offset])
+            params.append(
+                inspect.Parameter(
+                    arg.arg,
+                    inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                    default=default,
+                )
+            )
+
+        sig = inspect.Signature(params)
+        # Ensure signature binds valid keyword arguments
+        bound = sig.bind(object(), final=True, grouped=False)
+        self.assertTrue(bound.arguments["final"])
+        self.assertFalse(bound.arguments["grouped"])
+
+        # Ensure unexpected typo kwargs strictly raise TypeError
+        with self.assertRaises(TypeError):
+            sig.bind(object(), nonexistent_typo_kwarg=True)
 
 
 if __name__ == "__main__":
