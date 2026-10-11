@@ -238,6 +238,9 @@ rm -f /tmp/innokafe_website_sync.tar.gz
             run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, insilos_templates, f"{pod}:/app/insilos/enterprise/insilos_website/views/website_templates.xml"], check=True)
             run_cmd(["kubectl", "cp", "-n", namespace, "-c", container, insilos_templates, f"{pod}:/app/insilos/apps/insilos_website/views/website_templates.xml"], check=True)
         run_cmd(["kubectl", "exec", "-n", namespace, pod, "-c", container, "--", "sh", "-c", extract_script], check=True)
+        # Supply-chain integrity gate: verify SHA-256 for all distributed scripts across all pods (CWE-494)
+        verify_pod_script_sha256(pod, "/app/insilos/tools/sync_innokafe_views_db.py", sync_sha, namespace, container)
+        verify_pod_script_sha256(pod, "/app/insilos/tools/safe_asset_warmup.py", warmup_sha, namespace, container)
         print(f"[✓] Synchronized & verified SHA-256 on {pod}")
 
 
@@ -376,6 +379,8 @@ def edge_verification() -> None:
     # Deploy-time identity marker; set in the pod env at release.
     # A bare 200 does not prove this is our build (CWE-345).
     expected_marker = os.environ.get("EDGE_BUILD_MARKER")
+    # Mandatory application provenance markers ensuring response is the newly deployed InnoKafe site
+    REQUIRED_PROVENANCE_MARKERS = ["InnoKafe", "innokafe_website"]
     ctx = ssl.create_default_context()
     for url in endpoints:
         print(f"[*] Probing edge HTTPS endpoint: {url} (timeout=15s)...")
@@ -391,7 +396,8 @@ def edge_verification() -> None:
                 code = resp.getcode()
                 if code != 200:
                     raise RuntimeError(f"Edge probe failed for {url}! HTTP status: {code}")
-                body = resp.read(65536).decode("utf-8", "replace")
+                body = resp.read(131072).decode("utf-8", "replace")
+                verified_markers = []
                 if expected_marker:
                     header_marker = resp.headers.get("X-Build-Marker") or resp.headers.get("X-Edge-Build")
                     has_header_match = bool(header_marker and hmac.compare_digest(header_marker, expected_marker))
@@ -399,23 +405,38 @@ def edge_verification() -> None:
                     if not (has_header_match or has_body_match):
                         raise RuntimeError(
                             f"Edge {url} returned 200 but build marker not found "
-                            f"(possible stale/defaced/MITM edge)."
+                            f"(possible stale/defaced/MITM edge, CWE-345)."
                         )
-                print(f"  [✓] {url} -> HTTP {code} OK (TLS verified, marker matched)")
+                    verified_markers.append(f"build_marker:{expected_marker[:8]}...")
+                
+                # Check required provenance content markers (CWE-345)
+                for marker in REQUIRED_PROVENANCE_MARKERS:
+                    if marker not in body:
+                        raise RuntimeError(
+                            f"Edge {url} returned 200 but missing required provenance marker '{marker}' (CWE-345)!"
+                        )
+                    verified_markers.append(f"marker:{marker}")
+
+                prov_desc = ", ".join(verified_markers)
+                print(f"  [✓] {url} -> HTTP {code} OK (TLS verified, provenance verified: [{prov_desc}])")
         except urllib.error.HTTPError as he:
             # Edge answered with an error status: fail hard, do not paper over it.
             raise RuntimeError(f"Edge probe failed for {url}! HTTP status: {he.code}") from he
         except (urllib.error.URLError, ssl.SSLError, TimeoutError) as te:
-            # Transport-level failure only (SNI/MTU/DNS): fall back to curl, no shell.
-            res = run_cmd(["curl", "-sS", "-o", "/dev/null",
-                           "-w", "%{http_code}", "-m", "15", url])
-            status = (res.stdout or "").strip()
-            if status != "200":
+            # Transport-level failure only (SNI/MTU/DNS): fall back to curl, verify status and markers.
+            res = run_cmd(["curl", "-sSL", "-m", "15", url])
+            curl_body = res.stdout or ""
+            if res.returncode != 0 or not curl_body:
                 raise RuntimeError(
                     f"Edge probe failed for {url}: transport error ({te}); "
-                    f"curl status={status or 'none'}"
+                    f"curl returned code {res.returncode}"
                 )
-            print(f"  [✓] {url} -> HTTP 200 OK (curl transport fallback)")
+            for marker in REQUIRED_PROVENANCE_MARKERS:
+                if marker not in curl_body:
+                    raise RuntimeError(
+                        f"Edge {url} curl transport fallback failed: missing provenance marker '{marker}' (CWE-345)!"
+                    )
+            print(f"  [✓] {url} -> HTTP 200 OK (curl transport fallback, provenance verified)")
 
 
 def main():

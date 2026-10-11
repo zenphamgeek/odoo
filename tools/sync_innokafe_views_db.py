@@ -36,6 +36,18 @@ def extract_template_arch(xml_path, template_id, full_key):
     # Convert primary <template> to standard Odoo QWeb root <t t-name="...">
     return f'<t t-name="{full_key}"{name_attr}>{body}</t>', view_name
 
+def _require_secret(env_names: list, context_label: str = "database authentication") -> str:
+    """Safely retrieves secrets strictly from environment variables without logging or exposing via argv."""
+    for name in env_names:
+        val = os.environ.get(name)
+        if val:
+            return val
+    names_str = " or ".join(env_names)
+    raise SystemExit(
+        f"[FATAL] Missing required secret environment variable ({names_str}) for {context_label}. "
+        "Refusing to connect with empty or default credentials (CWE-259/CWE-214)."
+    )
+
 def sync_database(host, port, user, password, dbname):
     print(f"[*] Connecting to {dbname} on {host}:{port} as {user}...")
     try:
@@ -410,7 +422,28 @@ def sync_database(host, port, user, password, dbname):
     activated_innokafe = cur.rowcount
     print(f"[✓] Activated {activated_innokafe} innokafe views")
 
-    # 8. Configure website domain, clean SEO metadata, and primary Vietnamese language
+    # 8. Dynamically resolve target website by domain or brand name (preventing multi-tenant blast radius / CWE-639)
+    cur.execute("""
+        SELECT id FROM website 
+        WHERE domain ILIKE '%innokafe.com%' 
+           OR name ILIKE '%innokafe%' 
+        ORDER BY (domain ILIKE '%innokafe.com%') DESC, id ASC 
+        LIMIT 1
+    """)
+    web_row = cur.fetchone()
+    if web_row:
+        website_id = web_row[0]
+    else:
+        cur.execute("SELECT id FROM website ORDER BY id ASC LIMIT 1")
+        fallback_row = cur.fetchone()
+        website_id = fallback_row[0] if fallback_row else 1
+    print(f"[*] Target website resolved dynamically: id={website_id}")
+
+    # Resolve target company by relation or name
+    cur.execute("SELECT company_id FROM website WHERE id = %s", (website_id,))
+    c_row = cur.fetchone()
+    company_id = c_row[0] if c_row and c_row[0] else 1
+
     # Ensure vi_VN language is active
     cur.execute("UPDATE res_lang SET active = true WHERE code = 'vi_VN'")
     cur.execute("SELECT id FROM res_lang WHERE code = 'vi_VN'")
@@ -425,21 +458,21 @@ def sync_database(host, port, user, password, dbname):
             default_lang_id = %s,
             auto_redirect_lang = false,
             custom_code_head = NULL
-        WHERE id = 1
-    """, (vi_lang_id,))
+        WHERE id = %s
+    """, (vi_lang_id, website_id))
 
     cur.execute("""
         UPDATE res_company
         SET name = 'InnoKafe Specialty Coffee & Roastery',
             email = 'hello@innokafe.com',
             phone = '+84 28 7300 6688'
-        WHERE id = 1
-    """)
+        WHERE id = %s
+    """, (company_id,))
 
-    # Enforce single language vi_VN for Website 1 (eliminates /en/en and disables multilingual router)
-    cur.execute("DELETE FROM website_lang_rel WHERE website_id = 1")
-    cur.execute("INSERT INTO website_lang_rel (website_id, lang_id) VALUES (1, %s)", (vi_lang_id,))
-    print(f"[✓] Configured website 1 (https://innokafe.com, default_lang vi_VN={vi_lang_id}) and cleaned custom_code_head")
+    # Enforce single language vi_VN for target Website (eliminates /en/en and disables multilingual router)
+    cur.execute("DELETE FROM website_lang_rel WHERE website_id = %s", (website_id,))
+    cur.execute("INSERT INTO website_lang_rel (website_id, lang_id) VALUES (%s, %s)", (website_id, vi_lang_id))
+    print(f"[✓] Configured website {website_id} (https://innokafe.com, default_lang vi_VN={vi_lang_id}) and cleaned custom_code_head")
 
     # 8b. Add 301 Permanent Redirects for legacy /en and /en/en routes to root routes
     legacy_redirects = [
@@ -453,7 +486,7 @@ def sync_database(host, port, user, password, dbname):
         ('/en/contactus', '/contactus'),
     ]
     for url_from, url_to in legacy_redirects:
-        cur.execute("SELECT id FROM website_rewrite WHERE website_id = 1 AND url_from = %s", (url_from,))
+        cur.execute("SELECT id FROM website_rewrite WHERE website_id = %s AND url_from = %s", (website_id, url_from))
         rw_row = cur.fetchone()
         if rw_row:
             cur.execute("""
@@ -464,9 +497,9 @@ def sync_database(host, port, user, password, dbname):
         else:
             cur.execute("""
                 INSERT INTO website_rewrite (name, website_id, url_from, url_to, redirect_type, active, sequence, create_uid, write_uid, create_date, write_date)
-                VALUES (%s, 1, %s, %s, '301', true, 10, 1, 1, NOW(), NOW())
-            """, (f"Redirect {url_from} to {url_to}", url_from, url_to))
-    print(f"[✓] Synced {len(legacy_redirects)} legacy /en routes 301 redirects in website_rewrite")
+                VALUES (%s, %s, %s, %s, '301', true, 10, 1, 1, NOW(), NOW())
+            """, (f"Redirect {url_from} to {url_to}", website_id, url_from, url_to))
+    print(f"[✓] Synced {len(legacy_redirects)} legacy /en routes 301 redirects in website_rewrite for website {website_id}")
 
     # 9. Synchronize website.page records
     pages_to_sync = [
@@ -489,13 +522,13 @@ def sync_database(host, port, user, password, dbname):
         cur.execute("""
             UPDATE website_page
             SET view_id = %s, name = %s::jsonb, is_published = true, write_date = NOW()
-            WHERE url::text LIKE %s
-        """, (v_id, json.dumps(title_dict), f'%"{p_url}"%'))
+            WHERE url::text LIKE %s AND (website_id = %s OR website_id IS NULL)
+        """, (v_id, json.dumps(title_dict), f'%"{p_url}"%', website_id))
         if cur.rowcount == 0:
             cur.execute("""
                 INSERT INTO website_page (name, url, view_id, website_id, is_published, website_indexed, create_uid, write_uid, create_date, write_date)
-                VALUES (%s::jsonb, %s::jsonb, %s, 1, true, true, 1, 1, NOW(), NOW())
-            """, (json.dumps(title_dict), json.dumps(url_dict), v_id))
+                VALUES (%s::jsonb, %s::jsonb, %s, %s, true, true, 1, 1, NOW(), NOW())
+            """, (json.dumps(title_dict), json.dumps(url_dict), v_id, website_id))
         print(f"[✓] Page {p_url} mapped to view {v_id} ({p_title}) - updated {cur.rowcount} website_page records")
 
     # 10. Clean up and deduplicate navigation menu items
@@ -511,13 +544,15 @@ def sync_database(host, port, user, password, dbname):
     cur.execute("DELETE FROM website_menu WHERE parent_id IN (1, 3)")
     print("[✓] Cleared duplicate children under menu root (parent_id 1, 3)")
 
-    # Ensure parent menu for Website 1 exists
-    cur.execute("SELECT id FROM website_menu WHERE parent_id IS NULL AND website_id = 1 LIMIT 1")
+    # Ensure parent menu for resolved website exists
+    cur.execute("SELECT id FROM website_menu WHERE parent_id IS NULL AND website_id = %s LIMIT 1", (website_id,))
     parent_row = cur.fetchone()
     if parent_row:
         top_menu_id = parent_row[0]
     else:
-        top_menu_id = 3
+        cur.execute("SELECT id FROM website_menu WHERE parent_id IS NULL LIMIT 1")
+        p_fallback = cur.fetchone()
+        top_menu_id = p_fallback[0] if p_fallback else 3
 
     inno_menus = [
         ("Trang chủ", "/", 10),
@@ -532,9 +567,9 @@ def sync_database(host, port, user, password, dbname):
         name_dict = {"en_US": name_vn, "vi_VN": name_vn}
         cur.execute("""
             INSERT INTO website_menu (name, manual_url, sequence, parent_id, website_id, create_uid, write_uid, create_date, write_date)
-            VALUES (%s::jsonb, %s, %s, %s, 1, 1, 1, NOW(), NOW())
+            VALUES (%s::jsonb, %s, %s, %s, %s, 1, 1, NOW(), NOW())
             RETURNING id
-        """, (json.dumps(name_dict), url_path, seq, top_menu_id))
+        """, (json.dumps(name_dict), url_path, seq, top_menu_id, website_id))
         new_m_id = cur.fetchone()[0]
         print(f"[✓] Created clean menu {new_m_id}: {name_vn} ({url_path}, seq {seq}) under parent {top_menu_id}")
 
@@ -572,8 +607,8 @@ def sync_database(host, port, user, password, dbname):
         fsize = len(raw_bytes)
         cur.execute("""
             SELECT id FROM ir_attachment 
-            WHERE res_model = 'website' AND res_field = 'social_default_image' AND res_id = 1;
-        """)
+            WHERE res_model = 'website' AND res_field = 'social_default_image' AND res_id = %s;
+        """, (website_id,))
         ex_att = cur.fetchone()
         if ex_att:
             cur.execute("""
@@ -582,27 +617,27 @@ def sync_database(host, port, user, password, dbname):
                     file_size = %s, checksum = %s, write_date = NOW()
                 WHERE id = %s;
             """, (psycopg2.Binary(raw_bytes), fsize, chk, ex_att[0]))
-            print(f"[✓] Updated social_default_image attachment {ex_att[0]}")
+            print(f"[✓] Updated social_default_image attachment {ex_att[0]} for website {website_id}")
         else:
             cur.execute("""
                 INSERT INTO ir_attachment (name, res_model, res_field, res_id, type, db_datas, mimetype, file_size, checksum, public, website_id, create_uid, write_uid, create_date, write_date)
-                VALUES ('innokafe_social_share_1200x630.jpg', 'website', 'social_default_image', 1, 'binary', %s, 'image/jpeg', %s, %s, true, 1, 1, 1, NOW(), NOW())
+                VALUES ('innokafe_social_share_1200x630.jpg', 'website', 'social_default_image', %s, 'binary', %s, 'image/jpeg', %s, %s, true, %s, 1, 1, NOW(), NOW())
                 RETURNING id;
-            """, (psycopg2.Binary(raw_bytes), fsize, chk))
+            """, (website_id, psycopg2.Binary(raw_bytes), fsize, chk, website_id))
             new_att_id = cur.fetchone()[0]
-            print(f"[✓] Created social_default_image attachment {new_att_id}")
-        cur.execute("UPDATE website SET has_social_default_image = true WHERE id = 1;")
-        print("[✓] Verified website 1 has_social_default_image = True")
+            print(f"[✓] Created social_default_image attachment {new_att_id} for website {website_id}")
+        cur.execute("UPDATE website SET has_social_default_image = true WHERE id = %s;", (website_id,))
+        print(f"[✓] Verified website {website_id} has_social_default_image = True")
 
-    # Invalidate cached bundle attachments strictly scoped to website 1 and ir.ui.view (FAIL-2 remediation)
+    # Invalidate cached bundle attachments strictly scoped to resolved website and ir.ui.view (FAIL-2 remediation)
     cur.execute("""
         DELETE FROM ir_attachment
         WHERE res_model = 'ir.ui.view'
           AND public = true
           AND url ~ '^/web/assets/.*assets_frontend'
-          AND (website_id = 1 OR website_id IS NULL)
-    """)
-    print(f"[✓] Invalidated {cur.rowcount} cached frontend asset attachments for clean bundle recompilation (website_id=1)")
+          AND (website_id = %s OR website_id IS NULL)
+    """, (website_id,))
+    print(f"[✓] Invalidated {cur.rowcount} cached frontend asset attachments for clean bundle recompilation (website_id={website_id})")
 
     conn.commit()
     conn.close()
@@ -611,18 +646,18 @@ def sync_database(host, port, user, password, dbname):
 if __name__ == '__main__':
     target = sys.argv[1] if len(sys.argv) > 1 else 'local'
     if target == 'local':
-        db_pass = os.environ.get('INNOKAFE_DB_PASS') or os.environ.get('PGPASSWORD')
-        if not db_pass:
-            sys.exit("FATAL: INNOKAFE_DB_PASS or PGPASSWORD environment variable is not set; refusing to connect with an empty password.")
-        sync_database('127.0.0.1', 5434, 'odoo', db_pass, 'innokafe_prod')
+        db_pass = _require_secret(['INNOKAFE_DB_PASS', 'PGPASSWORD'], "local database synchronization")
+        db_host = os.environ.get('INNOKAFE_DB_HOST', '127.0.0.1')
+        db_port = int(os.environ.get('INNOKAFE_DB_PORT', '5434'))
+        db_user = os.environ.get('INNOKAFE_DB_USER', 'odoo')
+        db_name = os.environ.get('INNOKAFE_DB_NAME', 'innokafe_prod')
+        sync_database(db_host, db_port, db_user, db_pass, db_name)
     elif target == 'prod_pod':
-        db_pass = os.environ.get('PGPASSWORD') or os.environ.get('INNOKAFE_DB_PASS')
-        if not db_pass:
-            sys.exit("FATAL: PGPASSWORD or INNOKAFE_DB_PASS environment variable is not set; refusing to connect with an empty password.")
-        sync_database(
-            os.environ.get('DB_HOST', 'pgbouncer-service'),
-            int(os.environ.get('DB_PORT', 6432)),
-            os.environ.get('DB_USER', 'insilos'),
-            db_pass,
-            'innokafe_prod'
-        )
+        db_pass = _require_secret(['PGPASSWORD', 'INNOKAFE_DB_PASS'], "production pod database synchronization")
+        db_host = os.environ.get('DB_HOST', 'pgbouncer-service')
+        db_port = int(os.environ.get('DB_PORT', '6432'))
+        db_user = os.environ.get('DB_USER', 'insilos')
+        db_name = os.environ.get('DB_NAME', 'innokafe_prod')
+        sync_database(db_host, db_port, db_user, db_pass, db_name)
+    else:
+        raise SystemExit(f"[FATAL] Unknown target environment: '{target}'. Supported: local, prod_pod.")

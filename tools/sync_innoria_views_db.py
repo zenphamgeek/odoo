@@ -164,15 +164,21 @@ def sync_database(host, port, user, password, dbname):
 if __name__ == '__main__':
     target = sys.argv[1] if len(sys.argv) > 1 else 'cluster'
     if target == 'cluster':
-        sync_database('127.0.0.1', 5433, 'postgres', None, 'innoria_prod')
+        sync_database('127.0.0.1', 5433, 'postgres', os.environ.get('PGPASSWORD'), 'innoria_prod')
     elif target == 'local':
-        sync_database('127.0.0.1', 5434, 'odoo', '1NN0R1@2026', 'innoria_prod')
+        db_pass = os.environ.get('INNORIA_DB_PASS') or os.environ.get('PGPASSWORD')
+        if not db_pass:
+            sys.exit("FATAL: INNORIA_DB_PASS or PGPASSWORD environment variable is not set; refusing to connect with an empty password.")
+        sync_database('127.0.0.1', 5434, 'odoo', db_pass, 'innoria_prod')
     elif target == 'prod_pod':
         dbname = sys.argv[2] if len(sys.argv) > 2 else 'innoria_prod'
+        db_pass = os.environ.get('PGPASSWORD') or os.environ.get('INNORIA_DB_PASS')
+        if not db_pass:
+            sys.exit("FATAL: PGPASSWORD or INNORIA_DB_PASS environment variable is not set; refusing to connect with an empty password.")
         sync_database(
             os.environ.get('DB_HOST', 'pgbouncer-service'),
             int(os.environ.get('DB_PORT', 6432)),
             os.environ.get('DB_USER', 'insilos'),
-            os.environ.get('PGPASSWORD', ''),
+            db_pass,
             dbname
         )
