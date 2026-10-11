@@ -605,18 +605,25 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
         invalid_pods = [
             "pod; rm -rf /",
             "pod\n{\"injected\": true}",
+            "pod-1\n",            # trailing newline — $-anchor bypass attempt (S-01)
+            "pod-1\t",            # trailing tab
+            "\x00pod",           # NUL byte
+            ".leading-dot",
+            "trailing-dot.",
+            "double..dot",
             "POD_UPPERCASE",
             "-leading-dash",
             "trailing-dash-",
             "pod with spaces",
-            "a" * 65,  # exceeds 63 chars
+            "a" * 65,            # label exceeds 63 chars (S-07)
+            "",                  # empty string
         ]
         for bad_p in invalid_pods:
             with self.assertRaises(ValueError):
                 validate_pod_identifier(bad_p)
 
     def test_verify_audit_ledger_detects_corruptions(self):
-        """Full-Chain Merkle Audit: verify_audit_ledger verifies unbroken chain and detects corruptions."""
+        """Full-Chain Merkle Audit: verify_audit_ledger detects interior, tail, seq, and deletion corruptions (S-08)."""
         import tempfile
         import json
         from sync_innokafe_to_pods import append_deploy_audit_record, verify_audit_ledger
@@ -635,22 +642,40 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
                 # Valid chain passes
                 self.assertTrue(verify_audit_ledger(temp_ledger, temp_anchor))
 
-                # Read records to tamper
                 with open(temp_ledger, "r", encoding="utf-8") as f:
-                    records = [json.loads(line) for line in f if line.strip()]
+                    clean_records = [json.loads(line) for line in f if line.strip()]
 
-                # Tamper interior record status
-                records[1]["status"] = "tampered_failure"
+                # 1. Tamper interior record status
+                records_interior = [dict(r) for r in clean_records]
+                records_interior[1]["status"] = "tampered_failure"
                 with open(temp_ledger, "w", encoding="utf-8") as f:
-                    for r in records:
+                    for r in records_interior:
                         f.write(json.dumps(r) + "\n")
-
                 with self.assertRaises(RuntimeError) as ctx:
                     verify_audit_ledger(temp_ledger, temp_anchor)
                 self.assertIn("Audit ledger cryptographic corruption", str(ctx.exception))
 
+                # 2. Tamper seq sequence order
+                records_seq = [dict(r) for r in clean_records]
+                records_seq[1]["seq"] = 99
+                with open(temp_ledger, "w", encoding="utf-8") as f:
+                    for r in records_seq:
+                        f.write(json.dumps(r) + "\n")
+                with self.assertRaises(RuntimeError) as ctx:
+                    verify_audit_ledger(temp_ledger, temp_anchor)
+                self.assertIn("sequence violation", str(ctx.exception))
+
+                # 3. Delete middle record
+                records_deleted = [clean_records[0], clean_records[2]]
+                with open(temp_ledger, "w", encoding="utf-8") as f:
+                    for r in records_deleted:
+                        f.write(json.dumps(r) + "\n")
+                with self.assertRaises(RuntimeError) as ctx:
+                    verify_audit_ledger(temp_ledger, temp_anchor)
+                self.assertTrue("sequence violation" in str(ctx.exception) or "hash-chain broken" in str(ctx.exception))
+
     def test_multiprocess_concurrent_append_deploy_audit_record(self):
-        """A6 / CWE-362: True OS multi-process concurrency with fcntl.flock prevents ledger forks and duplicate seq."""
+        """A6 / S-02 / CWE-362: True OS multi-process concurrency with safe env passing prevents ledger forks."""
         import tempfile
         import subprocess
         import sys
@@ -661,20 +686,26 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
             temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
             temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
 
-            worker_script = f"""
+            # Safe script using os.environ, zero f-string interpolation into source (S-02)
+            worker_script = """
 import sys, os
-sys.path.insert(0, '{ROOT_DIR}/tools')
+sys.path.insert(0, os.environ["SYNC_TOOLS_DIR"])
 from unittest.mock import patch
 import sync_innokafe_to_pods
 
-with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", "{temp_ledger}"), \\
-     patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", "{temp_anchor}"):
-    sync_innokafe_to_pods.append_deploy_audit_record([f"pod-proc-{{sys.argv[1]}}"], "success", 1.0)
+with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]), \\
+     patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", os.environ["TMP_ANCHOR"]):
+    sync_innokafe_to_pods.append_deploy_audit_record([f"pod-proc-{sys.argv[1]}"], "success", 1.0)
 """
+            child_env = dict(os.environ)
+            child_env["SYNC_TOOLS_DIR"] = os.path.join(ROOT_DIR, "tools")
+            child_env["TMP_LEDGER"] = temp_ledger
+            child_env["TMP_ANCHOR"] = temp_anchor
+
             num_procs = 5
             procs = []
             for i in range(num_procs):
-                p = subprocess.Popen([sys.executable, "-c", worker_script, str(i)])
+                p = subprocess.Popen([sys.executable, "-c", worker_script, str(i)], env=child_env)
                 procs.append(p)
 
             for p in procs:
@@ -690,6 +721,69 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", "{temp_ledger}"), \\
             self.assertEqual(len(records), num_procs)
             for idx, rec in enumerate(records):
                 self.assertEqual(rec["seq"], idx + 1)
+
+    def test_anchor_key_never_leaked_to_logs_or_errors(self):
+        """S-06 / CWE-259/532: LEDGER_ANCHOR_KEY is never leaked to logging or error exception strings."""
+        import tempfile
+        import logging
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        secret_key = "super_confidential_secret_key_32bytes_value!"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+
+            log_records = []
+            class CapturingHandler(logging.Handler):
+                def emit(self, record):
+                    log_records.append(self.format(record))
+
+            handler = CapturingHandler()
+            logging.getLogger().addHandler(handler)
+            try:
+                with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
+                     patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
+                     patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+                     patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": secret_key}):
+
+                    append_deploy_audit_record(["pod-1"], "success", 1.0)
+
+                    # Trigger error path with forged anchor
+                    with open(temp_anchor, "w", encoding="utf-8") as f:
+                        f.write("0" * 64 + ":" + "f" * 64 + "\n")
+
+                    try:
+                        append_deploy_audit_record(["pod-2"], "success", 2.0)
+                    except Exception as exc:
+                        self.assertNotIn(secret_key, str(exc), "Secret key must not appear in exception messages")
+
+                    for log_msg in log_records:
+                        self.assertNotIn(secret_key, log_msg, "Secret key must not be emitted to log records")
+            finally:
+                logging.getLogger().removeHandler(handler)
+
+    def test_flock_timeout_raises_timeout_error(self):
+        """S-03 / CWE-833: Bounded flock acquisition times out and raises TimeoutError when lock is held."""
+        import tempfile
+        import fcntl
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            lock_path = temp_ledger + ".lock"
+
+            # Pre-lock with exclusive flock from another file descriptor
+            hold_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+            fcntl.flock(hold_fd, fcntl.LOCK_EX)
+            try:
+                with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
+                     patch.dict(os.environ, {"LEDGER_LOCK_TIMEOUT_S": "0.1"}):
+                    with self.assertRaises(TimeoutError) as ctx:
+                        append_deploy_audit_record(["pod-1"], "success", 1.0)
+                    self.assertIn("timed out after 0.1s", str(ctx.exception))
+            finally:
+                fcntl.flock(hold_fd, fcntl.LOCK_UN)
+                os.close(hold_fd)
 
 
 if __name__ == '__main__':

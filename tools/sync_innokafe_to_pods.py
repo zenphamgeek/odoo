@@ -188,15 +188,28 @@ def compute_local_sha256(file_path: str) -> str:
     return h.hexdigest()
 
 
-K8S_POD_REGEX = re.compile(r"^[a-z0-9]([a-z0-9.-]{0,61}[a-z0-9])?$")
+_POD_LABEL_RE = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?\Z")
 
 
 def validate_pod_identifier(pod: str) -> str:
-    """Validates pod name against RFC 1123 DNS subdomain label standard (CWE-20/78/88)."""
-    cleaned = pod.strip()
-    if not K8S_POD_REGEX.match(cleaned):
-        raise ValueError(f"Invalid pod identifier '{pod}': must conform to RFC 1123 DNS subdomain label (CWE-20)")
-    return cleaned
+    """Validates pod name against RFC 1123 DNS subdomain label standard (CWE-20/78/88).
+    Enforces per-label 63-char limit, total 253-char limit, and rejects any whitespace/control chars.
+    """
+    if not isinstance(pod, str):
+        raise ValueError("Pod identifier must be a string (CWE-20)")
+    if not pod:
+        raise ValueError("Pod identifier cannot be empty (CWE-20)")
+    # Reject ANY control/whitespace up front (trailing newlines, tabs, NUL bytes)
+    if pod != pod.strip() or any(c.isspace() or ord(c) < 32 or ord(c) == 127 for c in pod):
+        raise ValueError(f"Pod identifier contains whitespace or control characters: {pod!r} (CWE-20)")
+    if not (1 <= len(pod) <= 253):
+        raise ValueError(f"Pod identifier length out of range [1, 253]: {len(pod)} (CWE-20)")
+
+    labels = pod.split(".")
+    for label in labels:
+        if not (1 <= len(label) <= 63) or not _POD_LABEL_RE.fullmatch(label):
+            raise ValueError(f"Invalid RFC 1123 DNS label {label!r} in pod identifier '{pod}' (CWE-20)")
+    return pod
 
 
 def discover_active_pods(namespace: str = NAMESPACE) -> List[str]:
@@ -207,7 +220,12 @@ def discover_active_pods(namespace: str = NAMESPACE) -> List[str]:
         check=True
     )
     raw_pods = [p.strip() for p in pod_out.stdout.split() if p.strip()]
-    pods = [validate_pod_identifier(p) for p in raw_pods if K8S_POD_REGEX.match(p)]
+    pods = []
+    for p in raw_pods:
+        try:
+            pods.append(validate_pod_identifier(p))
+        except ValueError:
+            continue
     print(f"[✓] Found {len(pods)} running pods: {pods}")
     if not pods:
         raise RuntimeError(f"No running insilos-saas pods found in namespace {namespace}! Aborting.")
@@ -625,7 +643,20 @@ def append_deploy_audit_record(pods: List[str], status: str, duration_sec: float
     os.makedirs(os.path.dirname(os.path.abspath(AUDIT_LEDGER_PATH)), exist_ok=True)
     fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
     try:
-        fcntl.flock(fd, fcntl.LOCK_EX)  # held across read-anchor + append (atomic critical section)
+        # Bounded advisory lock acquisition to prevent indefinite hangs if a writer crashes (S-03 / CWE-833)
+        lock_timeout = float(os.environ.get("LEDGER_LOCK_TIMEOUT_S", "15.0"))
+        deadline = time.monotonic() + lock_timeout
+        while True:
+            try:
+                fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except (BlockingIOError, OSError):
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(
+                        f"Deploy audit ledger lock acquisition timed out after {lock_timeout}s; "
+                        "another release writer may be stuck holding flock (CWE-833)"
+                    )
+                time.sleep(0.02)
 
         tip_entry = _read_ledger_tip_entry(AUDIT_LEDGER_PATH)
         local_tip = str(tip_entry["record_hash"]).lower() if tip_entry and "record_hash" in tip_entry else None
