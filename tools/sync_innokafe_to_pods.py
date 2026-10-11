@@ -21,6 +21,7 @@ import fcntl
 import hashlib
 import hmac
 import json
+import logging
 import os
 import re
 import subprocess
@@ -532,6 +533,11 @@ def _load_anchor_key() -> bytes:
                 "REQUIRE_EXTERNAL_ANCHOR is set but LEDGER_ANCHOR_KEY is missing; "
                 "refusing to operate without an authenticated anchor (CWE-287)"
             )
+        logging.warning(
+            "[!] [SECURITY WARNING] Operating in unkeyed degraded local mode (CWE-636): "
+            "LEDGER_ANCHOR_KEY is unset and REQUIRE_EXTERNAL_ANCHOR is disabled. "
+            "Audit ledger HMAC signing is inactive."
+        )
         return b""
     key = raw.encode("utf-8")
     if len(key) < 32:
