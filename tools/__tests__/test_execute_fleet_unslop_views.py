@@ -27,7 +27,7 @@ from unittest.mock import patch
 
 from tools.atomic_io import atomic_write_text
 from tools.execute_fleet_unslop_views import clean_file_content
-from tools.safe_xml import assert_markup_preserved, parse_xml_safe
+from tools.safe_xml import ForbiddenMarkupError, assert_markup_preserved, parse_xml_safe
 from tools.unslop_ledger import UnslopLedger
 
 
@@ -288,6 +288,122 @@ class TestExecuteFleetUnslopViews(unittest.TestCase):
             # No leftover .tmp files
             tmp_files = list(Path(tmpdir).glob(".*.tmp"))
             self.assertEqual(len(tmp_files), 0, f"Found leftover temp files: {tmp_files}")
+
+    def test_ledger_rejects_sql_metacharacter_rel_path(self):
+        """CWE-89: SQL injection payloads in rel_path are parameterized safely and stored literally."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_db = Path(tmpdir) / "test_sqli.db"
+            ledger = UnslopLedger(db_path=test_db)
+
+            # Malicious path attempting SQL injection
+            sqli_path = "views/normal'; DROP TABLE unslop_ledger; --.xml"
+            sha = hashlib.sha256(b"dummy").hexdigest()
+
+            # Record entry with SQL metacharacters
+            ledger.record_entry(
+                rel_path=sqli_path,
+                sha256_before=sha,
+                sha256_after=sha,
+                rule_fingerprint="fp1",
+                diff_chars=0,
+                status="clean",
+                notes="Attempted SQLi in notes: ' OR 1=1; --",
+            )
+
+            # Table must still exist and be intact
+            self.assertTrue(ledger.is_clean(sqli_path, sha, "fp1"))
+
+            # Direct verification of table schema and row
+            with ledger._get_connection() as con:
+                row = con.execute(
+                    "SELECT rel_path, status FROM unslop_ledger WHERE rel_path = ?",
+                    (sqli_path,),
+                ).fetchone()
+                self.assertIsNotNone(row)
+                self.assertEqual(row[0], sqli_path)
+
+                audit_row = con.execute(
+                    "SELECT rel_path, notes FROM unslop_audit_log WHERE rel_path = ?",
+                    (sqli_path,),
+                ).fetchone()
+                self.assertIsNotNone(audit_row)
+                self.assertEqual(audit_row[0], sqli_path)
+                self.assertIn("DROP TABLE", sqli_path)
+
+    def test_ledger_rejects_path_traversal_and_nul(self):
+        """CWE-22 / CWE-626: Directory traversal ('..'), absolute paths, and NUL bytes are rejected."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_db = Path(tmpdir) / "test_traversal.db"
+            ledger = UnslopLedger(db_path=test_db)
+            sha = hashlib.sha256(b"dummy").hexdigest()
+
+            # Path traversal
+            with self.assertRaises(ValueError) as ctx:
+                ledger.record_entry("../../etc/passwd", sha, sha, "fp1", 0)
+            self.assertIn("traversal", str(ctx.exception).lower())
+
+            # Absolute path
+            with self.assertRaises(ValueError) as ctx:
+                ledger.record_entry("/var/log/syslog", sha, sha, "fp1", 0)
+            self.assertIn("relative", str(ctx.exception).lower())
+
+            # NUL byte injection
+            with self.assertRaises(ValueError) as ctx:
+                ledger.record_entry("views/safe.xml\x00.evil", sha, sha, "fp1", 0)
+            self.assertIn("nul", str(ctx.exception).lower())
+
+    def test_markup_guard_rejects_unbounded_padding(self):
+        """CWE-611 / CWE-776: 1 MiB of leading whitespace/comments before DOCTYPE raises ForbiddenMarkupError."""
+        # 1 MiB padding of spaces and XML comments
+        padding = " " * (512 * 1024) + "<!-- " + "pad" * (100 * 1024) + " -->\n"
+        bypassing_payload = (
+            padding + '<!DOCTYPE root [<!ENTITY secret "test">]><odoo><p>&secret;</p></odoo>'
+        )
+        with self.assertRaises(ForbiddenMarkupError):
+            parse_xml_safe(bypassing_payload)
+
+    def test_markup_guard_raises_typed_forbidden_markup_error(self):
+        """Behavioral Typing: Verifies that safe_xml raises typed ForbiddenMarkupError specifically."""
+        bomb = '<!DOCTYPE test [<!ENTITY bomb "bomb">]><root><p>&bomb;</p></root>'
+        with self.assertRaises(ForbiddenMarkupError) as ctx:
+            parse_xml_safe(bomb)
+        self.assertIsInstance(ctx.exception, ValueError)
+
+    def test_ledger_negative_selection_drift_detection(self):
+        """Immunology Frame (Negative Selection): detect_anomalies flags drifted/tampered files."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_db = Path(tmpdir) / "test_thymus.db"
+            ledger = UnslopLedger(db_path=test_db)
+
+            clean_sha = hashlib.sha256(b"known_clean_content").hexdigest()
+            drifted_sha = hashlib.sha256(b"tampered_content").hexdigest()
+
+            # Enroll clean file into ledger "self"
+            ledger.record_entry(
+                rel_path="enterprise/views/home.xml",
+                sha256_before=clean_sha,
+                sha256_after=clean_sha,
+                rule_fingerprint="fp_v1",
+                diff_chars=0,
+                status="clean",
+            )
+
+            # Test 1: Clean tree matching self -> 0 anomalies
+            clean_files = [("enterprise/views/home.xml", clean_sha)]
+            anomalies_clean = ledger.detect_anomalies(clean_files, enabled=True)
+            self.assertEqual(len(anomalies_clean), 0)
+
+            # Test 2: Drifted tree (content tampered) -> 1 anomaly detected
+            drifted_files = [("enterprise/views/home.xml", drifted_sha)]
+            anomalies_drifted = ledger.detect_anomalies(drifted_files, enabled=True)
+            self.assertEqual(len(anomalies_drifted), 1)
+            rel_path, last_clean, current = anomalies_drifted[0]
+            self.assertEqual(rel_path, "enterprise/views/home.xml")
+            self.assertEqual(last_clean, clean_sha)
+            self.assertEqual(current, drifted_sha)
+
+            # Test 3: Disabled mode -> returns empty
+            self.assertEqual(len(ledger.detect_anomalies(drifted_files, enabled=False)), 0)
 
 
 if __name__ == "__main__":

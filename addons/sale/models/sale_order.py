@@ -2029,7 +2029,7 @@ class SaleOrder(models.Model):
 
         return moves
 
-    def _create_invoices(self, final=False, grouped=False):
+    def _create_invoices(self, final=False, grouped=False, **kwargs):
         """Create invoice(s) for the given Sales Order(s).
 
         :param bool final: if True, refunds will be generated if necessary

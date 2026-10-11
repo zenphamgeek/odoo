@@ -46,6 +46,17 @@ except ImportError:
     defused_ET = None
 
 
+class ForbiddenMarkupError(ValueError):
+    """
+    Raised when forbidden XML markup (e.g. DOCTYPE, ENTITY, DTD declarations)
+    is detected in input, preventing CWE-611 / CWE-776 exploits.
+    """
+    pass
+
+
+MAX_XML_PAYLOAD_BYTES = 20 * 1024 * 1024  # 20 MiB safety boundary (CWE-400 / DoS defense)
+
+
 def check_forbidden_xml_declarations(raw_bytes: bytes) -> None:
     """
     Multi-encoding pre-parse denylist check.
@@ -53,6 +64,11 @@ def check_forbidden_xml_declarations(raw_bytes: bytes) -> None:
     UTF-16-LE, UTF-16-BE, and ASCII across the ENTIRE buffer without truncation,
     preventing padding bypasses, billion-laughs, and quadratic expansion bombs before parsing.
     """
+    if len(raw_bytes) > MAX_XML_PAYLOAD_BYTES:
+        raise ForbiddenMarkupError(
+            f"XML payload exceeds maximum safe boundary ({len(raw_bytes)} > {MAX_XML_PAYLOAD_BYTES} bytes)"
+        )
+
     # 1. Direct full-buffer byte inspection for ASCII / UTF-8 / normalized casing
     upper_bytes = raw_bytes.upper()
     if (
@@ -61,14 +77,14 @@ def check_forbidden_xml_declarations(raw_bytes: bytes) -> None:
         or b"<!ELEMENT" in upper_bytes
         or b"<!ATTLIST" in upper_bytes
     ):
-        raise ValueError(
+        raise ForbiddenMarkupError(
             "XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)"
         )
 
     # 1b. Check for whitespace tolerance between <! and declaration keyword
     import re
     if re.search(rb"<!\s*(DOCTYPE|ENTITY|ELEMENT|ATTLIST)", upper_bytes):
-        raise ValueError(
+        raise ForbiddenMarkupError(
             "XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)"
         )
 
@@ -81,7 +97,7 @@ def check_forbidden_xml_declarations(raw_bytes: bytes) -> None:
         or b"<\x00!\x00E\x00L\x00E" in raw_bytes
         or b"\x00<\x00!\x00E\x00L\x00E" in raw_bytes
     ):
-        raise ValueError(
+        raise ForbiddenMarkupError(
             "XML DOCTYPE and ENTITY declarations are strictly forbidden in UTF-16 (CWE-611/CWE-776)"
         )
 
@@ -94,13 +110,15 @@ def check_forbidden_xml_declarations(raw_bytes: bytes) -> None:
             or "<!ELEMENT" in decoded_full
             or "<!ATTLIST" in decoded_full
         ):
-            raise ValueError(
+            raise ForbiddenMarkupError(
                 "XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)"
             )
         if re.search(r"<!\s*(DOCTYPE|ENTITY|ELEMENT|ATTLIST)", decoded_full):
-            raise ValueError(
+            raise ForbiddenMarkupError(
                 "XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)"
             )
+    except ForbiddenMarkupError:
+        raise
     except Exception:
         pass
 

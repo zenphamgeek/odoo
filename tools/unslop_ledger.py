@@ -107,8 +107,9 @@ class UnslopLedger:
                 os.close(fd)
 
     def _get_connection(self) -> sqlite3.Connection:
-        con = sqlite3.connect(str(self.db_path), timeout=10.0)
+        con = sqlite3.connect(str(self.db_path), timeout=30.0)
         con.execute("PRAGMA journal_mode=WAL")
+        con.execute("PRAGMA busy_timeout=30000")
         con.execute("PRAGMA synchronous=NORMAL")
         return con
 
@@ -149,6 +150,31 @@ class UnslopLedger:
         data = content.encode("utf-8") if isinstance(content, str) else content
         return hashlib.sha256(data).hexdigest()
 
+    @staticmethod
+    def _validate_rel_path(rel_path: str) -> None:
+        """
+        Validates rel_path against path traversal (CWE-22) and NUL byte injection (CWE-626).
+        """
+        if not isinstance(rel_path, str):
+            raise TypeError(f"rel_path must be a str, got {type(rel_path).__name__}")
+        if "\x00" in rel_path:
+            raise ValueError("rel_path contains forbidden NUL character (CWE-626)")
+        p = Path(rel_path)
+        if p.is_absolute() or rel_path.startswith("/") or rel_path.startswith("\\"):
+            raise ValueError(f"rel_path must be relative, got: {rel_path}")
+        if ".." in p.parts:
+            raise ValueError(f"rel_path contains directory traversal ('..'): {rel_path}")
+
+    @staticmethod
+    def _validate_metadata(rule_fingerprint: str, status: str) -> None:
+        """Validates metadata bounds and checks for NUL characters."""
+        if not isinstance(rule_fingerprint, str) or not isinstance(status, str):
+            raise TypeError("Metadata fields must be strings")
+        if "\x00" in rule_fingerprint or "\x00" in status:
+            raise ValueError("Metadata contains forbidden NUL character")
+        if len(rule_fingerprint) > 256 or len(status) > 64:
+            raise ValueError("Metadata field exceeds maximum allowed length")
+
     def is_clean(
         self, rel_path: str, current_sha256: str, rule_fingerprint: str
     ) -> bool:
@@ -156,6 +182,8 @@ class UnslopLedger:
         Returns True if the current file content matches a previously verified clean
         state produced under the exact same rule fingerprint.
         """
+        self._validate_rel_path(rel_path)
+        self._validate_metadata(rule_fingerprint, "clean")
         with self._flock_shared():
             with self._get_connection() as con:
                 row = con.execute(
@@ -188,6 +216,8 @@ class UnslopLedger:
         notes: str = "",
     ) -> None:
         """Records an unslop transformation or clean verification into the ledger."""
+        self._validate_rel_path(rel_path)
+        self._validate_metadata(rule_fingerprint, status)
         now = time.time()
         with self._flock_exclusive():
             with self._get_connection() as con:
@@ -230,6 +260,35 @@ class UnslopLedger:
                     ),
                 )
             self._ensure_secure_file(self.db_path)
+
+    def detect_anomalies(
+        self, files: list[tuple[str, str]], *, enabled: bool = True
+    ) -> list[tuple[str, Optional[str], str]]:
+        """
+        Negative-selection drift check (Immunology Frame).
+        Flags tracked files whose current sha256 differs from the last recorded clean 'self' set.
+        Args:
+            files: list of (rel_path, current_sha256) tuples.
+            enabled: boolean flag to toggle anomaly detection.
+        Returns:
+            list of (rel_path, last_clean_sha, current_sha256) for anomalous/drifted files.
+        """
+        if not enabled:
+            return []
+        anomalies = []
+        with self._flock_shared():
+            with self._get_connection() as con:
+                for rel_path, current_sha in files:
+                    self._validate_rel_path(rel_path)
+                    row = con.execute(
+                        "SELECT sha256_after, status FROM unslop_ledger WHERE rel_path = ?",
+                        (rel_path,),
+                    ).fetchone()
+                    if row:
+                        last_clean_sha, status = row
+                        if status == "clean" and last_clean_sha != current_sha:
+                            anomalies.append((rel_path, last_clean_sha, current_sha))
+        return anomalies
 
     def get_stats(self) -> Dict[str, Any]:
         """Returns overview statistics from the unslop ledger."""
