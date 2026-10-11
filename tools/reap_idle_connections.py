@@ -361,7 +361,7 @@ class ClusterPostgresReaper:
         # one unified backend session, completely eliminating TOCTOU session release.
         # Single-sourced with CLUSTER_CANDIDATE_COLUMNS and CLUSTER_REAP_PREDICATE (prevents dry-run drift).
         # Enforces strict data-dependent CTE execution order (lock -> candidates -> terminated -> term_summary -> released).
-        # Evaluates 'unlocked' with COALESCE to prevent query planner CTE pruning and guarantee non-null booleans.
+        # Three-state telemetry: unlocked=true (released), unlocked=false (release failed), unlocked=null (never acquired).
         psql_vars["v_lock_key"] = str(REAPER_LOCK_KEY)
         unified_sql = f"""
             WITH lock AS (
@@ -371,7 +371,8 @@ class ClusterPostgresReaper:
                 SELECT
                     {CLUSTER_CANDIDATE_COLUMNS}
                 FROM pg_stat_activity
-                WHERE (SELECT acquired FROM lock) = true
+                CROSS JOIN lock
+                WHERE lock.acquired = true
                   AND {CLUSTER_REAP_PREDICATE.format(db_filter=db_filter)}
                 ORDER BY state_change ASC
             ),
@@ -397,7 +398,11 @@ class ClusterPostgresReaper:
             )
             SELECT json_build_object(
                 'lock_acquired', (SELECT acquired FROM lock),
-                'unlocked', COALESCE((SELECT bool_and(unlocked) FROM released), true),
+                'unlocked', CASE
+                    WHEN (SELECT acquired FROM lock)
+                    THEN COALESCE((SELECT bool_and(unlocked) FROM released), false)
+                    ELSE null
+                END,
                 'records', COALESCE((SELECT json_agg(t) FROM terminated t), '[]'::json)
             );
         """
@@ -412,6 +417,9 @@ class ClusterPostgresReaper:
         if not result_obj.get('lock_acquired', False):
             log("Another cluster reaper process holds the advisory lock (REAPER_LOCK_KEY). Skipping cycle.", 'WARN')
             return []
+
+        if result_obj.get('unlocked') is False:
+            log("CRITICAL: Failed to release cluster advisory lock (REAPER_LOCK_KEY)!", 'ERROR')
 
         candidates = result_obj.get('records', []) or []
         reaped_records = []
