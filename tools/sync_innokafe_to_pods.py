@@ -25,6 +25,7 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 import ssl
 import urllib.error
@@ -374,23 +375,43 @@ def rolling_reload_workers(pods: List[str], namespace: str = NAMESPACE, containe
 
 
 AUDIT_LEDGER_PATH = os.path.join(ROOT_DIR, "tools", ".deploy_audit_ledger.jsonl")
+LOCAL_INTEGRITY_ANCHOR_PATH = os.path.join(ROOT_DIR, "tools", ".deploy_external_anchor.sha256")
 EXTERNAL_ANCHOR_PATH = os.environ.get(
     "INNOKAFE_EXTERNAL_ANCHOR_PATH",
-    os.path.join(ROOT_DIR, "tools", ".deploy_external_anchor.sha256")
+    LOCAL_INTEGRITY_ANCHOR_PATH
 )
 REQUIRE_EXTERNAL_ANCHOR = os.environ.get("INNOKAFE_REQUIRE_EXTERNAL_ANCHOR", "0") == "1"
 
 
 def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
-    """Reads the current tip hash from the ledger file, or None if empty/missing."""
+    """Reads the current tip hash from the ledger file in O(1) time using reverse chunk seek.
+    Resilient against torn partial lines at EOF from ungraceful process terminations (WARN-2 & WARN-3).
+    """
     if not os.path.exists(ledger_path):
         return None
     try:
-        with open(ledger_path, "r", encoding="utf-8") as f:
-            lines = [l.strip() for l in f if l.strip()]
-            if lines:
-                last_entry = json.loads(lines[-1])
-                return last_entry.get("record_hash")
+        file_size = os.path.getsize(ledger_path)
+        if file_size == 0:
+            return None
+
+        # Seek up to 16384 bytes from the end of the file for O(1) tip lookup
+        chunk_size = min(16384, file_size)
+        with open(ledger_path, "rb") as f:
+            f.seek(file_size - chunk_size)
+            raw_tail = f.read(chunk_size)
+
+        lines = raw_tail.decode("utf-8", errors="replace").splitlines()
+        for line in reversed(lines):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                entry = json.loads(line)
+                if isinstance(entry, dict) and "record_hash" in entry:
+                    return entry["record_hash"]
+            except Exception:
+                # Torn partial line at EOF from a previous crash/power cut; continue searching backwards
+                continue
     except Exception:
         pass
     return None
@@ -418,15 +439,27 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
 
 
 def _update_external_anchor(record_hash: str, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
-    """Updates external trust anchor with new record hash."""
+    """Updates external trust anchor atomically via tempfile + os.replace + fsync (WARN-3)."""
+    anchor_dir = os.path.dirname(os.path.abspath(anchor_path)) or "."
+    os.makedirs(anchor_dir, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(dir=anchor_dir, prefix=".anchor_tmp_")
     try:
-        os.makedirs(os.path.dirname(os.path.abspath(anchor_path)), exist_ok=True)
-        with open(anchor_path, "w", encoding="utf-8") as f:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(record_hash + "\n")
             f.flush()
             os.fsync(f.fileno())
+        os.replace(tmp_path, anchor_path)  # atomic POSIX rename
+        dir_fd = os.open(anchor_dir, os.O_RDONLY)
+        try:
+            os.fsync(dir_fd)
+        finally:
+            os.close(dir_fd)
     except Exception:
-        pass
+        if os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
 
 
 def append_deploy_audit_record(pods: List[str], status: str, duration_sec: float) -> str:

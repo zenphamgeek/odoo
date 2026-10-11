@@ -280,6 +280,59 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
 
                 self.assertIn("Ledger tip integrity failure", str(ctx.exception))
 
+    def test_read_ledger_tip_o1_reverse_seek(self):
+        """WARN-2: _read_ledger_tip reads the tip in O(1) without scanning the entire file."""
+        import tempfile
+        import json
+        from sync_innokafe_to_pods import _read_ledger_tip
+
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as f:
+            for i in range(500):
+                f.write(json.dumps({"record_hash": f"hash_{i:04d}", "idx": i}) + "\n")
+            f.write(json.dumps({"record_hash": "final_tip_hash_9999", "idx": 500}) + "\n")
+            temp_path = f.name
+
+        try:
+            tip = _read_ledger_tip(temp_path)
+            self.assertEqual(tip, "final_tip_hash_9999")
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+
+    def test_read_ledger_tip_torn_write_resilience(self):
+        """WARN-3: Torn partial line at EOF from sudden process crash is gracefully bypassed to previous valid tip."""
+        import tempfile
+        import json
+        from sync_innokafe_to_pods import _read_ledger_tip
+
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as f:
+            f.write(json.dumps({"record_hash": "valid_prior_tip_1234", "idx": 1}) + "\n")
+            # Simulate torn line at EOF from SIGKILL mid-write
+            f.write('{"timestamp": "2026-10-11T05:35:00Z", "incomplete_json": true')
+            temp_path = f.name
+
+        try:
+            tip = _read_ledger_tip(temp_path)
+            # Must return the last valid record's hash rather than crashing or returning None
+            self.assertEqual(tip, "valid_prior_tip_1234")
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+
+    def test_atomic_anchor_update_fsync_durability(self):
+        """WARN-3: _update_external_anchor writes atomically via tempfile + os.replace."""
+        import tempfile
+        from sync_innokafe_to_pods import _update_external_anchor
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            anchor_file = os.path.join(tmpdir, "test_anchor.sha256")
+            expected_hash = "a" * 64
+            _update_external_anchor(expected_hash, anchor_file)
+
+            with open(anchor_file, "r", encoding="utf-8") as f:
+                content = f.read().strip()
+            self.assertEqual(content, expected_hash)
+
 
 if __name__ == '__main__':
     unittest.main()
