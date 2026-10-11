@@ -281,20 +281,65 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
                 self.assertIn("Ledger tip integrity failure", str(ctx.exception))
 
     def test_read_ledger_tip_o1_reverse_seek(self):
-        """WARN-2: _read_ledger_tip reads the tip in O(1) without scanning the entire file."""
+        """WARN-2: _read_ledger_tip reads the tip in O(1) with bounded byte reads (<= 16384 bytes)."""
         import tempfile
         import json
         from sync_innokafe_to_pods import _read_ledger_tip
 
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as f:
             for i in range(500):
-                f.write(json.dumps({"record_hash": f"hash_{i:04d}", "idx": i}) + "\n")
-            f.write(json.dumps({"record_hash": "final_tip_hash_9999", "idx": 500}) + "\n")
+                f.write(json.dumps({"record_hash": f"{i:064d}", "idx": i}) + "\n")
+            final_hash = "f" * 64
+            f.write(json.dumps({"record_hash": final_hash, "idx": 500}) + "\n")
             temp_path = f.name
 
         try:
+            total_file_size = os.path.getsize(temp_path)
+            self.assertGreater(total_file_size, 30000, "File must be larger than 16KB chunk window")
+
+            # Instrument file read to assert <= 16384 bytes are read
+            original_open = open
+            bytes_read_tracker = []
+
+            def tracked_open(*args, **kwargs):
+                f_obj = original_open(*args, **kwargs)
+                if "b" in args[1] if len(args) > 1 else kwargs.get("mode", ""):
+                    orig_read = f_obj.read
+                    def tracked_read(*r_args, **r_kwargs):
+                        data = orig_read(*r_args, **r_kwargs)
+                        bytes_read_tracker.append(len(data))
+                        return data
+                    f_obj.read = tracked_read
+                return f_obj
+
+            with patch("builtins.open", side_effect=tracked_open):
+                tip = _read_ledger_tip(temp_path)
+
+            self.assertEqual(tip, final_hash)
+            self.assertTrue(len(bytes_read_tracker) > 0)
+            self.assertLessEqual(sum(bytes_read_tracker), 16384, "O(1) read must be bounded by 16KB")
+        finally:
+            if os.path.exists(temp_path):
+                os.unlink(temp_path)
+
+    def test_read_ledger_tip_oversized_record_fallback(self):
+        """WARN-2 / CWE-20: Oversized records (> 16KB) fall back to streaming scan and are never dropped."""
+        import tempfile
+        import json
+        from sync_innokafe_to_pods import _read_ledger_tip
+
+        with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as f:
+            f.write(json.dumps({"record_hash": "a" * 64, "idx": 1}) + "\n")
+            # Create a single huge record exceeding 25 KB
+            huge_payload = "x" * 25000
+            expected_tip = "e" * 64
+            f.write(json.dumps({"record_hash": expected_tip, "idx": 2, "huge_data": huge_payload}) + "\n")
+            temp_path = f.name
+
+        try:
+            self.assertGreater(os.path.getsize(temp_path), 25000)
             tip = _read_ledger_tip(temp_path)
-            self.assertEqual(tip, "final_tip_hash_9999")
+            self.assertEqual(tip, expected_tip, "Must successfully resolve oversized record >16KB via fallback")
         finally:
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
@@ -306,21 +351,21 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
         from sync_innokafe_to_pods import _read_ledger_tip
 
         with tempfile.NamedTemporaryFile("w", encoding="utf-8", delete=False) as f:
-            f.write(json.dumps({"record_hash": "valid_prior_tip_1234", "idx": 1}) + "\n")
+            valid_tip = "b" * 64
+            f.write(json.dumps({"record_hash": valid_tip, "idx": 1}) + "\n")
             # Simulate torn line at EOF from SIGKILL mid-write
             f.write('{"timestamp": "2026-10-11T05:35:00Z", "incomplete_json": true')
             temp_path = f.name
 
         try:
             tip = _read_ledger_tip(temp_path)
-            # Must return the last valid record's hash rather than crashing or returning None
-            self.assertEqual(tip, "valid_prior_tip_1234")
+            self.assertEqual(tip, valid_tip)
         finally:
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
 
     def test_atomic_anchor_update_fsync_durability(self):
-        """WARN-3: _update_external_anchor writes atomically via tempfile + os.replace."""
+        """WARN-3: _update_external_anchor writes atomically via tempfile + os.replace with zero leftover tmp files."""
         import tempfile
         from sync_innokafe_to_pods import _update_external_anchor
 
@@ -332,6 +377,10 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
             with open(anchor_file, "r", encoding="utf-8") as f:
                 content = f.read().strip()
             self.assertEqual(content, expected_hash)
+
+            # Assert no leftover temp files in directory
+            leftovers = [name for name in os.listdir(tmpdir) if name.startswith(".anchor_tmp_")]
+            self.assertEqual(leftovers, [], "All temp files must be cleanly renamed or unlinked")
 
 
 if __name__ == '__main__':

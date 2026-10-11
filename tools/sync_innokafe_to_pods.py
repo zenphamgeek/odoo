@@ -376,16 +376,28 @@ def rolling_reload_workers(pods: List[str], namespace: str = NAMESPACE, containe
 
 AUDIT_LEDGER_PATH = os.path.join(ROOT_DIR, "tools", ".deploy_audit_ledger.jsonl")
 LOCAL_INTEGRITY_ANCHOR_PATH = os.path.join(ROOT_DIR, "tools", ".deploy_external_anchor.sha256")
-EXTERNAL_ANCHOR_PATH = os.environ.get(
-    "INNOKAFE_EXTERNAL_ANCHOR_PATH",
-    LOCAL_INTEGRITY_ANCHOR_PATH
-)
+
+# Trust Anchor Resolution (CWE-668 / F5):
+# If INNOKAFE_EXTERNAL_ANCHOR_PATH is configured, use it.
+# Otherwise, fall back to LOCAL_INTEGRITY_ANCHOR_PATH in degraded local mode with a security notice.
+_configured_anchor = os.environ.get("INNOKAFE_EXTERNAL_ANCHOR_PATH")
 REQUIRE_EXTERNAL_ANCHOR = os.environ.get("INNOKAFE_REQUIRE_EXTERNAL_ANCHOR", "0") == "1"
+
+if _configured_anchor:
+    EXTERNAL_ANCHOR_PATH = _configured_anchor
+else:
+    EXTERNAL_ANCHOR_PATH = LOCAL_INTEGRITY_ANCHOR_PATH
+    if REQUIRE_EXTERNAL_ANCHOR and not os.environ.get("PYTEST_CURRENT_TEST"):
+        print(
+            "[*] [SECURITY NOTICE] Trust anchor is co-located in repository tools directory (degraded local mode, CWE-668). "
+            "For full tamper-resistance, configure INNOKAFE_EXTERNAL_ANCHOR_PATH outside repo write boundary.",
+            file=sys.stderr
+        )
 
 
 def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
     """Reads the current tip hash from the ledger file in O(1) time using reverse chunk seek.
-    Resilient against torn partial lines at EOF from ungraceful process terminations (WARN-2 & WARN-3).
+    Resilient against torn partial lines at EOF and oversized single records (>16KB) (WARN-2 & WARN-3).
     """
     if not os.path.exists(ledger_path):
         return None
@@ -400,7 +412,18 @@ def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
             f.seek(file_size - chunk_size)
             raw_tail = f.read(chunk_size)
 
-        lines = raw_tail.decode("utf-8", errors="replace").splitlines()
+        try:
+            # Strict UTF-8 decode (avoid errors="replace" inventing corrupt tokens, CWE-20)
+            text_tail = raw_tail.decode("utf-8")
+        except UnicodeDecodeError:
+            # If the chunk boundary sliced through a multi-byte character, strip up to the first newline
+            first_nl = raw_tail.find(b"\n")
+            if first_nl != -1:
+                text_tail = raw_tail[first_nl + 1:].decode("utf-8", errors="ignore")
+            else:
+                text_tail = ""
+
+        lines = text_tail.splitlines()
         for line in reversed(lines):
             line = line.strip()
             if not line:
@@ -408,10 +431,33 @@ def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
             try:
                 entry = json.loads(line)
                 if isinstance(entry, dict) and "record_hash" in entry:
-                    return entry["record_hash"]
+                    rec_hash = str(entry["record_hash"])
+                    if len(rec_hash) == 64 and all(c in "0123456789abcdefABCDEF" for c in rec_hash):
+                        return rec_hash.lower()
             except Exception:
                 # Torn partial line at EOF from a previous crash/power cut; continue searching backwards
                 continue
+
+        # If 16KB tail chunk didn't yield a valid record but file is larger than chunk (e.g. oversized record >16KB),
+        # fall back to a full file scan so large records are never dropped or treated as a fresh chain (CWE-20)
+        if file_size > chunk_size:
+            with open(ledger_path, "r", encoding="utf-8", errors="ignore") as f:
+                last_valid_hash = None
+                for line in f:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        entry = json.loads(line)
+                        if isinstance(entry, dict) and "record_hash" in entry:
+                            h = str(entry["record_hash"])
+                            if len(h) == 64:
+                                last_valid_hash = h.lower()
+                    except Exception:
+                        continue
+                if last_valid_hash:
+                    return last_valid_hash
+
     except Exception:
         pass
     return None
@@ -426,7 +472,7 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
     try:
         with open(anchor_path, "r", encoding="utf-8") as f:
             ext_anchor = f.read().strip()
-        if ext_anchor and local_tip and ext_anchor != local_tip:
+        if ext_anchor and local_tip and ext_anchor.lower() != local_tip.lower():
             raise RuntimeError(
                 f"Ledger tip integrity failure: local tip {local_tip[:16]} "
                 f"does not match external trust anchor {ext_anchor[:16]}! "
