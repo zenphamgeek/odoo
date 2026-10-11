@@ -1,20 +1,23 @@
 #!/usr/bin/env python3
 """
 tools/execute_fleet_unslop_views.py
+===================================
 Full Codebase PDCA Unslop Engine for Insilos Enterprise & Vertical Industry Views.
-Purges:
-- All em-dashes (—) across titles, subtitles, headings, and comments.
-- Robotic slashes (//) in comments and labels.
-- AI clichés and tells in Vietnamese and English copy.
-Guarantees:
-- POSIX atomic writes (atomic_write_text).
-- XML well-formedness validation on 100% of modified files.
+
+Architectural Invariants & Hardening:
+- Content-Addressed Idempotency: Uses UnslopLedger to skip verified clean files instantly.
+- CWE-611 / CWE-776 Protection: Uses shared tools.safe_xml (multi-encoding denylist + lxml/defusedxml).
+- CWE-1333 ReDoS Mitigation: Linear horizontal spacing [ \\t]* and bounded character sets {1,2000}.
+- CWE-628 Type Guard: Strict isinstance check on clean_file_content.
+- F1/F3 Structural Topology Invariant: Guarantees element tags and attribute keys remain 100% identical.
+- F2 Two-Phase Batch Transaction: Verifies 100% of target files before committing any atomic writes.
 """
 
+import hashlib
+import logging
 import os
 import re
 import sys
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 # Add project root to sys.path
@@ -22,6 +25,14 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
 from tools.atomic_io import atomic_write_text
+from tools.safe_xml import assert_markup_preserved, parse_xml_safe
+from tools.unslop_ledger import UnslopLedger
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+logger = logging.getLogger("unslop_views")
+
+# Static rule fingerprint for content-addressed idempotency
+RULE_FINGERPRINT = "unslop_v2.5_safe_xml_bounds_2000"
 
 TARGET_FILES = [
     "enterprise/insilos_website/views/home.xml",
@@ -46,94 +57,78 @@ TARGET_FILES = [
     "enterprise/insilos_industry_showcase/views/templates.xml",
 ]
 
-try:
-    from lxml import etree
-    _SAFE_LXML_PARSER = etree.XMLParser(
-        resolve_entities=False,  # Block XXE / external entity resolution (CWE-611)
-        no_network=True,         # No network fetch of DTDs
-        dtd_validation=False,
-        load_dtd=False,
-        huge_tree=False,         # Keep libxml2's expansion limits active (CWE-776)
-    )
-except ImportError:
-    etree = None
-    _SAFE_LXML_PARSER = None
 
 def clean_file_content(text: str) -> str:
-    # F-C: Type guard prevents accidental positional argument swap
+    """
+    Purges em-dashes, robotic slashes, and AI tells while preserving markup structure.
+    Enforces strict ReDoS bounds and type-safety guards.
+    """
     if not isinstance(text, str):
         raise TypeError(f"clean_file_content expects str, got {type(text).__name__}")
 
-    # F-B: ReDoS-bounded character classes and linear horizontal whitespace [ \t]*
     # 1. Clean titles: "<t t-set="additional_title">... — ...</t>"
     def replace_title_emdash(m):
         full = m.group(0)
         return full.replace(" — ", " | ")
 
-    text = re.sub(r'<t t-set="additional_title">[^<]{1,500}</t>', replace_title_emdash, text)
+    text = re.sub(
+        r'<t t-set="additional_title">[^<]{1,2000}</t>',
+        replace_title_emdash,
+        text,
+    )
 
     # 2. Clean template name attributes: 'name="... — ..."'
     def replace_name_emdash(m):
         full = m.group(0)
         return full.replace(" — ", " | ")
 
-    text = re.sub(r'<template[^>]{1,500}name="[^"]{1,500}"', replace_name_emdash, text)
+    text = re.sub(
+        r'<template[^>]{1,2000}name="[^"]{1,2000}"',
+        replace_name_emdash,
+        text,
+    )
 
     # 3. Clean specific numbered steps: "01 — Scope" -> "01. Scope"
     text = re.sub(r'(\d{2})[ \t]*—[ \t]*', r'\1. ', text)
 
     # 4. Clean specific location pairs: "Hải Phòng — Vũng Tàu" -> "Hải Phòng - Vũng Tàu"
-    text = re.sub(r'([A-Za-zÀ-ỹ0-9]+)[ \t]*—[ \t]*([A-Za-zÀ-ỹ0-9]+)', r'\1 - \2', text)
+    text = re.sub(
+        r'([A-Za-zÀ-ỹ0-9]+)[ \t]*—[ \t]*([A-Za-zÀ-ỹ0-9]+)',
+        r'\1 - \2',
+        text,
+    )
 
     # 5. Clean remaining em-dashes: " — " -> ", " or ": "
     text = text.replace(" — ", ", ")
     text = text.replace("—", "-")
 
     # 6. Clean robotic slashes in token-comments: "// Insilos" -> "# Insilos"
-    text = text.replace('<span class="token-comment">//', '<span class="token-comment">#')
+    text = text.replace(
+        '<span class="token-comment">//', '<span class="token-comment">#'
+    )
 
     # 7. Clean specific AI copy phrases
-    text = text.replace("sai số không tính bằng phần trăm, nó được đo bằng",
-                        "sai số không tính bằng phần trăm, mà đo bằng")
+    text = text.replace(
+        "sai số không tính bằng phần trăm, nó được đo bằng",
+        "sai số không tính bằng phần trăm, mà đo bằng",
+    )
+
+    # Correctness check: log if an em-dash somehow remains
+    if "—" in text:
+        logger.warning(
+            "WARN-3: Residual em-dash detected after clean_file_content passes"
+        )
 
     return text
 
-def parse_xml_safe(xml_text: str | bytes) -> list[tuple[str, tuple[str, ...]]]:
-    """
-    Safely parses XML and returns element tag and sorted attribute topology.
-    Enforces strict defenses against:
-    - CWE-611: XXE (External Entity Injection)
-    - CWE-776: Billion-Laughs / Quadratic Entity Expansion Bombs
-    """
-    raw_bytes = xml_text.encode("utf-8") if isinstance(xml_text, str) else xml_text
 
-    # Proactively block DOCTYPE / ENTITY declarations to eliminate billion-laughs bombs before parsing
-    if b"<!DOCTYPE" in raw_bytes or b"<!ENTITY" in raw_bytes:
-        raise ValueError("XML DOCTYPE and ENTITY declarations are strictly forbidden (CWE-611/CWE-776)")
-
-    if etree is not None and _SAFE_LXML_PARSER is not None:
-        root = etree.fromstring(raw_bytes, parser=_SAFE_LXML_PARSER)
-        return [(el.tag, tuple(sorted(el.attrib.keys()))) for el in root.iter()]
-    else:
-        root = ET.fromstring(raw_bytes)
-        return [(el.tag, tuple(sorted(el.attrib.keys()))) for el in root.iter()]
-
-def assert_markup_preserved(before: str, after: str, rel_path: str) -> None:
-    """
-    F3 Guard: Fail if the transform changed anything but text or attribute character data.
-    Verifies that the tag hierarchy and attribute key topology remain 100% identical.
-    Encodes to UTF-8 bytes to safely handle files with XML encoding declarations (F1).
-    """
-    before_skel = parse_xml_safe(before)
-    after_skel = parse_xml_safe(after)
-    if before_skel != after_skel:
-        raise ValueError(f"STRUCTURAL DRIFT in {rel_path}: transform altered element/attribute topology")
-
-def main():
+def main() -> int:
     print("=== LAUNCHING FULL CODEBASE VIEW UNSLOP ENGINE ===")
+    ledger = UnslopLedger()
     staged = []
+    skipped_clean = 0
 
-    # Phase 1: Read, transform, validate, and check structural equivalence for ALL files.
+    # Phase 1: Read, check ledger idempotency, transform, validate structural equivalence.
     # NO WRITES OCCUR IN PHASE 1 (F2 Two-Phase Batch Transaction).
     for rel_path in TARGET_FILES:
         full_path = ROOT_DIR / rel_path
@@ -142,6 +137,13 @@ def main():
             continue
 
         raw_text = full_path.read_text(encoding="utf-8")
+        current_sha = UnslopLedger.compute_sha256(raw_text)
+
+        # Content-addressed idempotency check: skip if already verified clean under current rules
+        if ledger.is_clean(rel_path, current_sha, RULE_FINGERPRINT):
+            skipped_clean += 1
+            continue
+
         cleaned_text = clean_file_content(raw_text)
 
         if cleaned_text != raw_text:
@@ -149,26 +151,70 @@ def main():
             # and verify tag/attribute topology is fully preserved.
             try:
                 assert_markup_preserved(raw_text, cleaned_text, rel_path)
-            except (ET.ParseError, ValueError) as e:
+            except Exception as e:
                 print(f"[✗] VALIDATION ERROR in {rel_path}: {e}")
                 print("[✗] ABORTING: Zero files written. Working tree unchanged.")
-                sys.exit(1)
+                return 1
 
-            staged.append((full_path, rel_path, cleaned_text, len(cleaned_text) - len(raw_text)))
+            post_sha = UnslopLedger.compute_sha256(cleaned_text)
+            diff_chars = len(cleaned_text) - len(raw_text)
+            staged.append(
+                (full_path, rel_path, cleaned_text, current_sha, post_sha, diff_chars)
+            )
         else:
-            print(f"[-] No slop found in {rel_path}")
+            # File is already clean in source: record in ledger to accelerate future runs
+            ledger.record_entry(
+                rel_path=rel_path,
+                sha256_before=current_sha,
+                sha256_after=current_sha,
+                rule_fingerprint=RULE_FINGERPRINT,
+                diff_chars=0,
+                status="clean",
+                notes="Verified clean during scan",
+            )
+            print(f"[-] No slop found in {rel_path} (ledger recorded)")
 
-    # Phase 2: All files passed Phase 1 validation. Execute atomic writes.
+    if skipped_clean > 0:
+        print(
+            f"[*] Content-Addressed Ledger: {skipped_clean} files skipped (verified clean under {RULE_FINGERPRINT})"
+        )
+
+    # Phase 2: All files passed Phase 1 validation. Execute atomic writes and update ledger.
     if staged:
-        print(f"\n[*] Phase 1 passed (100% valid). Committing atomic writes for {len(staged)} files...")
-        for full_path, rel_path, cleaned_text, diff_chars in staged:
+        print(
+            f"\n[*] Phase 1 passed (100% valid). Committing atomic writes for {len(staged)} files..."
+        )
+        for (
+            full_path,
+            rel_path,
+            cleaned_text,
+            sha_before,
+            sha_after,
+            diff_chars,
+        ) in staged:
             atomic_write_text(full_path, cleaned_text, encoding="utf-8")
-            print(f"[✓] Unslop committed to {rel_path} (len diff: {diff_chars}, XML valid)")
+            ledger.record_entry(
+                rel_path=rel_path,
+                sha256_before=sha_before,
+                sha256_after=sha_after,
+                rule_fingerprint=RULE_FINGERPRINT,
+                diff_chars=diff_chars,
+                status="clean",
+                notes="Automated unslop atomic write",
+            )
+            print(
+                f"[✓] Unslop committed to {rel_path} (len diff: {diff_chars}, XML valid)"
+            )
     else:
         print("\n[✓] All target files are already clean and verified.")
 
-    print(f"\n[✓] Full unslop completed: {len(staged)} files updated and verified.")
+    stats = ledger.get_stats()
+    print(
+        f"\n[✓] Full unslop completed: {len(staged)} files updated, "
+        f"{stats['clean_count']} total clean files tracked in tamper-evident ledger."
+    )
     return 0
+
 
 if __name__ == "__main__":
     sys.exit(main())
