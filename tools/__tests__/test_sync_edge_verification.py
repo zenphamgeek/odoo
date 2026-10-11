@@ -418,7 +418,87 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
             leftovers = [name for name in os.listdir(tmpdir) if name.startswith(".anchor_tmp_")]
             self.assertEqual(leftovers, [], "All temp files must be cleanly renamed or unlinked")
 
+    def test_audit_record_monotonic_sequence(self):
+        """Merkle Sequence: Each audit record contains a strictly incrementing monotonic 'seq' slot."""
+        import tempfile
+        import json
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger):
+                append_deploy_audit_record(["pod-1"], "success", 1.0)
+                append_deploy_audit_record(["pod-2"], "success", 2.0)
+                append_deploy_audit_record(["pod-3"], "success", 3.0)
+
+                with open(temp_ledger, "r", encoding="utf-8") as f:
+                    records = [json.loads(line) for line in f if line.strip()]
+
+                self.assertEqual(len(records), 3)
+                self.assertEqual(records[0]["seq"], 1)
+                self.assertEqual(records[1]["seq"], 2)
+                self.assertEqual(records[2]["seq"], 3)
+
+    def test_external_anchor_hmac_authentication(self):
+        """CWE-345 / F3: When LEDGER_ANCHOR_KEY is set, anchor stores <hash>:<hmac> and verifies authenticated tip."""
+        import tempfile
+        import hmac
+        import hashlib
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        test_key = "super_secret_anchor_signing_key_32bytes!"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
+                 patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
+                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+                 patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": test_key}):
+
+                h1 = append_deploy_audit_record(["pod-1"], "success", 10.0)
+
+                with open(temp_anchor, "r", encoding="utf-8") as f:
+                    anchor_content = f.read().strip()
+
+                self.assertIn(":", anchor_content)
+                stored_hash, stored_mac = anchor_content.split(":", 1)
+                self.assertEqual(stored_hash, h1)
+                expected_mac = hmac.new(test_key.encode("utf-8"), h1.encode("utf-8"), hashlib.sha256).hexdigest()
+                self.assertEqual(stored_mac, expected_mac)
+
+                # Subsequent append succeeds with verified HMAC
+                h2 = append_deploy_audit_record(["pod-2"], "success", 12.0)
+                self.assertNotEqual(h1, h2)
+
+    def test_external_anchor_tampered_hmac_fails(self):
+        """CWE-345 / F3: Tampered HMAC signature in external anchor fails closed."""
+        import tempfile
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        test_key = "super_secret_anchor_signing_key_32bytes!"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            temp_anchor = os.path.join(tmpdir, ".deploy_external_anchor.sha256")
+
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger), \
+                 patch("sync_innokafe_to_pods.EXTERNAL_ANCHOR_PATH", temp_anchor), \
+                 patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True), \
+                 patch.dict(os.environ, {"LEDGER_ANCHOR_KEY": test_key}):
+
+                h1 = append_deploy_audit_record(["pod-1"], "success", 10.0)
+
+                # Attacker forges the anchor with an invalid HMAC signature
+                with open(temp_anchor, "w", encoding="utf-8") as f:
+                    f.write(f"{h1}:deadbeefbadf00d0000000000000000000000000000000000000000000000000\n")
+
+                with self.assertRaises(RuntimeError) as ctx:
+                    append_deploy_audit_record(["pod-2"], "success", 12.0)
+
+                self.assertIn("External trust anchor authentication failed: HMAC signature mismatch", str(ctx.exception))
+
 
 if __name__ == '__main__':
     unittest.main()
+
 

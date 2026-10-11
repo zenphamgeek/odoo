@@ -399,6 +399,14 @@ def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
     """Reads the current tip hash from the ledger file in O(1) time using reverse chunk seek.
     Resilient against torn partial lines at EOF and oversized single records (>16KB) (WARN-2 & WARN-3).
     """
+    entry = _read_ledger_tip_entry(ledger_path)
+    if entry and "record_hash" in entry:
+        return str(entry["record_hash"]).lower()
+    return None
+
+
+def _read_ledger_tip_entry(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[dict]:
+    """Reads the last valid JSONL record entry from the audit ledger in bounded O(1) time."""
     if not os.path.exists(ledger_path):
         return None
     try:
@@ -433,7 +441,7 @@ def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
                 if isinstance(entry, dict) and "record_hash" in entry:
                     rec_hash = str(entry["record_hash"])
                     if len(rec_hash) == 64 and all(c in "0123456789abcdefABCDEF" for c in rec_hash):
-                        return rec_hash.lower()
+                        return entry
             except Exception:
                 # Torn partial line at EOF from a previous crash/power cut; continue searching backwards
                 continue
@@ -442,7 +450,7 @@ def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
         # fall back to a full file scan so large records are never dropped or treated as a fresh chain (CWE-20)
         if file_size > chunk_size:
             with open(ledger_path, "r", encoding="utf-8", errors="ignore") as f:
-                last_valid_hash = None
+                last_valid_entry = None
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -452,19 +460,28 @@ def _read_ledger_tip(ledger_path: str = AUDIT_LEDGER_PATH) -> Optional[str]:
                         if isinstance(entry, dict) and "record_hash" in entry:
                             h = str(entry["record_hash"])
                             if len(h) == 64:
-                                last_valid_hash = h.lower()
+                                last_valid_entry = entry
                     except Exception:
                         continue
-                if last_valid_hash:
-                    return last_valid_hash
+                if last_valid_entry:
+                    return last_valid_entry
 
     except Exception:
         pass
     return None
 
 
+def _format_anchor_payload(record_hash: str) -> str:
+    """Formats anchor payload with optional HMAC signature if LEDGER_ANCHOR_KEY is set (CWE-345 / F3)."""
+    key = os.environ.get("LEDGER_ANCHOR_KEY", "").encode("utf-8")
+    if key:
+        mac = hmac.new(key, record_hash.encode("utf-8"), hashlib.sha256).hexdigest()
+        return f"{record_hash}:{mac}\n"
+    return f"{record_hash}\n"
+
+
 def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
-    """Two-person rule / External trust anchor verification (CWE-345 / F5)."""
+    """Two-person rule / External trust anchor verification with HMAC integrity (CWE-345 / F5)."""
     if not REQUIRE_EXTERNAL_ANCHOR:
         return
     if not os.path.exists(anchor_path):
@@ -472,10 +489,28 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
     try:
         with open(anchor_path, "r", encoding="utf-8") as f:
             ext_anchor = f.read().strip()
-        if ext_anchor and local_tip and ext_anchor.lower() != local_tip.lower():
+        if not ext_anchor:
+            return
+
+        anchor_key = os.environ.get("LEDGER_ANCHOR_KEY", "").encode("utf-8")
+        if ":" in ext_anchor:
+            anchor_hash, anchor_mac = ext_anchor.split(":", 1)
+            if anchor_key:
+                expected_mac = hmac.new(anchor_key, anchor_hash.encode("utf-8"), hashlib.sha256).hexdigest()
+                if not hmac.compare_digest(anchor_mac.lower(), expected_mac.lower()):
+                    raise RuntimeError(
+                        "External trust anchor authentication failed: HMAC signature mismatch! "
+                        "(Forged or tampered external anchor, CWE-345)"
+                    )
+        else:
+            anchor_hash = ext_anchor
+            if anchor_key and os.environ.get("ENV") == "prod" and os.environ.get("STRICT_ANCHOR_AUTH") == "1":
+                raise RuntimeError("LEDGER_ANCHOR_KEY configured but external anchor lacks HMAC signature (CWE-345)!")
+
+        if anchor_hash and local_tip and not hmac.compare_digest(anchor_hash.lower(), local_tip.lower()):
             raise RuntimeError(
                 f"Ledger tip integrity failure: local tip {local_tip[:16]} "
-                f"does not match external trust anchor {ext_anchor[:16]}! "
+                f"does not match external trust anchor {anchor_hash[:16]}! "
                 "(Possible ledger tampering, rollback or fork detected, CWE-345)"
             )
     except Exception as e:
@@ -485,13 +520,14 @@ def _verify_against_external_anchor(local_tip: Optional[str], anchor_path: str =
 
 
 def _update_external_anchor(record_hash: str, anchor_path: str = EXTERNAL_ANCHOR_PATH) -> None:
-    """Updates external trust anchor atomically via tempfile + os.replace + fsync (WARN-3)."""
+    """Updates external trust anchor atomically via tempfile + os.replace + fsync with HMAC (WARN-3)."""
     anchor_dir = os.path.dirname(os.path.abspath(anchor_path)) or "."
     os.makedirs(anchor_dir, exist_ok=True)
     fd, tmp_path = tempfile.mkstemp(dir=anchor_dir, prefix=".anchor_tmp_")
     try:
+        payload = _format_anchor_payload(record_hash)
         with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(record_hash + "\n")
+            f.write(payload)
             f.flush()
             os.fsync(f.fileno())
         os.replace(tmp_path, anchor_path)  # atomic POSIX rename
@@ -518,13 +554,17 @@ def append_deploy_audit_record(pods: List[str], status: str, duration_sec: float
     try:
         fcntl.flock(fd, fcntl.LOCK_EX)  # held across read-anchor + append (atomic critical section)
 
-        local_tip = _read_ledger_tip(AUDIT_LEDGER_PATH)
+        tip_entry = _read_ledger_tip_entry(AUDIT_LEDGER_PATH)
+        local_tip = str(tip_entry["record_hash"]).lower() if tip_entry and "record_hash" in tip_entry else None
         _verify_against_external_anchor(local_tip, EXTERNAL_ANCHOR_PATH)
 
         prev_hash = local_tip if local_tip else ("0" * 64)
+        prev_seq = int(tip_entry.get("seq", 0)) if tip_entry and "seq" in tip_entry else 0
+        seq = prev_seq + 1
 
         record = {
             "timestamp": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            "seq": seq,
             "prev_hash": prev_hash,
             "namespace": NAMESPACE,
             "pods": pods,
