@@ -42,10 +42,10 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
     @patch('sync_innokafe_to_pods.run_cmd')
     @patch('sync_innokafe_to_pods.urllib.request.urlopen')
     def test_transport_error_falls_back_to_curl_argv(self, mock_urlopen, mock_run_cmd):
-        """F3 & F4: Transport failure (e.g. SSLError) retries via curl argv list with exact 200 check."""
+        """F3 & F4 & FAIL-1: Transport failure retries via curl argv list with --fail, --max-redirs 0 and exact 200 check."""
         import ssl
         mock_urlopen.side_effect = ssl.SSLError("SNI handshake failure")
-        mock_run_cmd.return_value = MagicMock(returncode=0, stdout="200\n", stderr="")
+        mock_run_cmd.return_value = MagicMock(returncode=0, stdout="<html>InnoKafe InnoRia</html>\n200", stderr="")
 
         edge_verification()
 
@@ -54,7 +54,24 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
         called_cmd = mock_run_cmd.call_args[0][0]
         self.assertIsInstance(called_cmd, list, "run_cmd must receive an argv list, not a shell string")
         self.assertEqual(called_cmd[0], "curl")
-        self.assertIn("%{http_code}", called_cmd)
+        self.assertIn("--fail", called_cmd)
+        self.assertIn("--max-redirs", called_cmd)
+        self.assertIn("0", called_cmd)
+        self.assertIn("--proto", called_cmd)
+        self.assertIn("=https", called_cmd)
+        self.assertIn("\n%{http_code}", called_cmd)
+
+    @patch('sync_innokafe_to_pods.run_cmd')
+    @patch('sync_innokafe_to_pods.urllib.request.urlopen')
+    def test_curl_fallback_non_200_fails_hard(self, mock_urlopen, mock_run_cmd):
+        """FAIL-1: Curl fallback returning non-200 or error must fail hard (CWE-345 / CWE-601)."""
+        import ssl
+        mock_urlopen.side_effect = ssl.SSLError("SNI failure")
+        mock_run_cmd.return_value = MagicMock(returncode=22, stdout="<html>InnoKafe Server Error</html>\n500", stderr="error 500")
+
+        with self.assertRaises(RuntimeError) as ctx:
+            edge_verification()
+        self.assertIn("curl exit=22", str(ctx.exception))
 
     @patch('sync_innokafe_to_pods.urllib.request.urlopen')
     def test_build_marker_mismatch_fails_integrity_check(self, mock_urlopen):
@@ -136,6 +153,57 @@ class TestEdgeVerificationHardening(TestCase := unittest.TestCase):
                 edge_verification()
             self.assertIn("missing application provenance marker", str(ctx.exception))
 
+    def test_append_deploy_audit_record_hash_chain(self):
+        """Audit Ledger: append_deploy_audit_record enforces rolling SHA-256 hash-chain integrity."""
+        import tempfile
+        import json
+        import hashlib
+        from sync_innokafe_to_pods import append_deploy_audit_record
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_ledger = os.path.join(tmpdir, ".deploy_audit_ledger.jsonl")
+            with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", temp_ledger):
+                # First append
+                h1 = append_deploy_audit_record(["pod-a", "pod-b"], "success", 12.34)
+                self.assertEqual(len(h1), 64)
+                self.assertTrue(all(c in "0123456789abcdef" for c in h1))
+
+                # Verify first record contents
+                with open(temp_ledger, "r", encoding="utf-8") as f:
+                    lines = [json.loads(line) for line in f if line.strip()]
+                self.assertEqual(len(lines), 1)
+                rec1 = lines[0]
+                self.assertEqual(rec1["prev_hash"], "0" * 64)
+                self.assertEqual(rec1["record_hash"], h1)
+                self.assertEqual(rec1["pods"], ["pod-a", "pod-b"])
+                self.assertEqual(rec1["status"], "success")
+
+                # Verify cryptographic hash of rec1
+                rec1_copy = {k: v for k, v in rec1.items() if k != "record_hash"}
+                ser1 = json.dumps(rec1_copy, sort_keys=True)
+                expected_h1 = hashlib.sha256(("0" * 64 + ser1).encode("utf-8")).hexdigest()
+                self.assertEqual(h1, expected_h1)
+
+                # Second append
+                h2 = append_deploy_audit_record(["pod-a", "pod-b", "pod-c"], "success", 18.5)
+                self.assertEqual(len(h2), 64)
+                self.assertNotEqual(h1, h2)
+
+                # Verify second record contents and prev_hash chaining
+                with open(temp_ledger, "r", encoding="utf-8") as f:
+                    lines = [json.loads(line) for line in f if line.strip()]
+                self.assertEqual(len(lines), 2)
+                rec2 = lines[1]
+                self.assertEqual(rec2["prev_hash"], h1)
+                self.assertEqual(rec2["record_hash"], h2)
+
+                # Verify cryptographic hash of rec2
+                rec2_copy = {k: v for k, v in rec2.items() if k != "record_hash"}
+                ser2 = json.dumps(rec2_copy, sort_keys=True)
+                expected_h2 = hashlib.sha256((h1 + ser2).encode("utf-8")).hexdigest()
+                self.assertEqual(h2, expected_h2)
+
 
 if __name__ == '__main__':
     unittest.main()
+
