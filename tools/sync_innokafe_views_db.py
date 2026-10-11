@@ -503,7 +503,7 @@ def sync_database(host, port, user, password, dbname):
 
     # 9. Synchronize website.page records
     pages_to_sync = [
-        ("/", "homepage", "InnoKafe — Cà Phê Việt Nam Nguyên Bản"),
+        ("/", "homepage", "InnoKafe, Cà Phê Việt Nam Nguyên Bản"),
         ("/story", "story_page", "Di Sản Nông Trại & Farm to Cup"),
         ("/products", "products_page", "Sản Phẩm Cà Phê Đặc Sản"),
         ("/taste-profiler", "taste_profiler_page", "Tìm Gu Cà Phê Của Bạn"),
