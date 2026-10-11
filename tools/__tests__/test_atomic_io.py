@@ -149,5 +149,65 @@ class TestAtomicIO(unittest.TestCase):
         # Parent directory permissions must have been tightened to 0o700
         self.assertEqual(loose_dir.stat().st_mode & 0o777, 0o700)
 
+    def test_atomic_write_refuses_non_owned_loose_directory_without_override(self):
+        """Trust Boundary: Refuses to write sensitive files into non-owned loose parent directories by default."""
+        loose_dir = self.dir_path / "alien_dir"
+        loose_dir.mkdir(mode=0o755, exist_ok=True)
+        os.chmod(loose_dir, 0o755)
+
+        target = loose_dir / "blocked_secret.json"
+        # Mock os.fstat on directory to simulate ownership by another UID (e.g. uid=9999)
+        orig_fstat = os.fstat
+
+        def mock_fstat(fd):
+            st = orig_fstat(fd)
+            # If checking directory, simulate non-owned directory
+            if stat.S_ISDIR(st.st_mode):
+                class MockStat:
+                    st_uid = 99999
+                    st_mode = st.st_mode | 0o055
+                    st_dev = st.st_dev
+                    st_ino = st.st_ino
+                return MockStat()
+            return st
+
+        os.fstat = mock_fstat
+        try:
+            with self.assertRaises(PermissionError) as ctx:
+                atomic_write_text(target, '{"blocked": true}', mode=0o600)
+            self.assertIn("Refusing to write sensitive file into non-owned", str(ctx.exception))
+            self.assertFalse(target.exists())
+        finally:
+            os.fstat = orig_fstat
+
+    def test_atomic_write_permits_non_owned_loose_directory_with_override(self):
+        """Trust Boundary: Permits writing sensitive file into non-owned directory only with explicit allow_untrusted_parent=True."""
+        loose_dir = self.dir_path / "alien_dir_override"
+        loose_dir.mkdir(mode=0o755, exist_ok=True)
+        os.chmod(loose_dir, 0o755)
+
+        target = loose_dir / "permitted_secret.json"
+        orig_fstat = os.fstat
+
+        def mock_fstat(fd):
+            st = orig_fstat(fd)
+            if stat.S_ISDIR(st.st_mode):
+                class MockStat:
+                    st_uid = 99999
+                    st_mode = st.st_mode | 0o055
+                    st_dev = st.st_dev
+                    st_ino = st.st_ino
+                return MockStat()
+            return st
+
+        os.fstat = mock_fstat
+        try:
+            with self.assertLogs("atomic_io", level="WARNING") as cm:
+                atomic_write_text(target, '{"permitted": true}', mode=0o600, allow_untrusted_parent=True)
+            self.assertTrue(target.exists())
+            self.assertTrue(any("explicit override" in log_msg for log_msg in cm.output))
+        finally:
+            os.fstat = orig_fstat
+
 if __name__ == "__main__":
     unittest.main()

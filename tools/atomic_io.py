@@ -22,7 +22,13 @@ from pathlib import Path
 
 logger = logging.getLogger("atomic_io")
 
-def atomic_write_text(target: Path | str, data: str, encoding: str = "utf-8", mode: int | None = None) -> None:
+def atomic_write_text(
+    target: Path | str,
+    data: str,
+    encoding: str = "utf-8",
+    mode: int | None = None,
+    allow_untrusted_parent: bool = False,
+) -> None:
     """
     Atomically writes string data to target file.
     Creates temporary file in the same parent directory to guarantee atomic rename across POSIX mounts.
@@ -41,21 +47,30 @@ def atomic_write_text(target: Path | str, data: str, encoding: str = "utf-8", mo
     dir_mode = 0o700 if (mode is not None and mode <= 0o600) else 0o755
     parent_dir.mkdir(parents=True, exist_ok=True, mode=dir_mode)
 
-    # If target is sensitive, verify parent directory permissions (Finding 1 Phase 1)
+    # If target is sensitive, verify parent directory permissions on held descriptor (CWE-367 TOCTOU closed)
     if mode is not None and mode <= 0o600:
-        st = parent_dir.stat()
-        if st.st_uid == os.getuid():
-            if st.st_mode & 0o077:
-                os.chmod(parent_dir, 0o700)
-        else:
-            if st.st_mode & 0o077:
+        dfd = os.open(str(parent_dir), os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | getattr(os, "O_NOFOLLOW", 0))
+        try:
+            st = os.fstat(dfd)
+            if st.st_uid == os.getuid():
+                if st.st_mode & 0o077:
+                    os.fchmod(dfd, st.st_mode & ~0o077)
+            elif (st.st_mode & 0o077) and not allow_untrusted_parent:
+                raise PermissionError(
+                    f"Refusing to write sensitive file into non-owned, group/other-accessible directory {parent_dir} "
+                    f"(dir_mode={st.st_mode & 0o777:o}, dir_uid={st.st_uid}, uid={os.getuid()}). "
+                    f"Pass allow_untrusted_parent=True to override."
+                )
+            elif st.st_mode & 0o077:
                 logger.warning(
-                    "Sensitive target parent directory %s has loose permissions (%o) and is not owned by current user (uid=%s, dir_uid=%s)",
+                    "Writing sensitive file into non-owned loose directory %s (mode=%o, dir_uid=%s, uid=%s) under explicit override.",
                     parent_dir,
                     st.st_mode & 0o777,
-                    os.getuid(),
                     st.st_uid,
+                    os.getuid(),
                 )
+        finally:
+            os.close(dfd)
 
     fd, tmp = tempfile.mkstemp(dir=str(parent_dir), prefix=f".{target.name}.", suffix=".tmp")
     try:
