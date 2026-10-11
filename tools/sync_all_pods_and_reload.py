@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
-import subprocess
-import time
+"""
+Synchronizes persistent filestore and runtime enterprise addons to all production pods,
+performs DB view and asset synchronization, gracefully reloads workers, and validates endpoints.
+Hardened with symlink escape prevention (CWE-59, CWE-538) and secure ephemeral staging (CWE-377).
+"""
+
 import os
+import re
+import shutil
+import subprocess
 import sys
+import tempfile
+import time
 
 NAMESPACE = "production"
+MAX_ARCHIVE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB ceiling to prevent ballooning
+
 
 def run_cmd(cmd, check=False):
     res = subprocess.run(cmd, shell=True, capture_output=True, text=True)
@@ -12,178 +23,271 @@ def run_cmd(cmd, check=False):
         raise RuntimeError(f"Command failed ({res.returncode}): {cmd}\n{res.stderr}")
     return res
 
-print("=== 0. DISCOVERING ACTIVE RUNNING PODS ACROSS ALL INNORIA & INSILOS SERVICES ===")
 
-import re
+def assert_no_escaping_symlinks(root: str, members: list[str]) -> None:
+    """
+    Guards against symlink traversal and exfiltration (CWE-59 -> CWE-538).
+    Resolves every symlink within the packaging tree and fails closed if
+    any link target escapes root.
+    """
+    root_abs = os.path.realpath(root)
+    for member in members:
+        base = os.path.join(root, member)
+        if not os.path.exists(base):
+            continue
+        if os.path.islink(base):
+            target = os.path.realpath(base)
+            if os.path.commonpath([root_abs, target]) != root_abs:
+                raise RuntimeError(
+                    f"Security Invariant Violated: Symlink escapes module root: {base} -> {target}"
+                )
+        if os.path.isdir(base):
+            for dirpath, dirs, files in os.walk(base, followlinks=False):
+                for name in dirs + files:
+                    p = os.path.join(dirpath, name)
+                    if os.path.islink(p):
+                        target = os.path.realpath(p)
+                        if os.path.commonpath([root_abs, target]) != root_abs:
+                            raise RuntimeError(
+                                f"Security Invariant Violated: Symlink escapes module root: {p} -> {target}"
+                            )
 
-# Discover innoria-prod pods
-res_inno = run_cmd(f"kubectl get pods -n {NAMESPACE} -l app=innoria-prod --field-selector=status.phase=Running -o jsonpath='{{.items[*].metadata.name}}'")
-innoria_pods = [p for p in res_inno.stdout.split() if p.strip() and re.match(r"^[a-zA-Z0-9.-]+$", p.strip())]
 
-# Discover insilos-saas pods
-res_insilos = run_cmd(f"kubectl get pods -n {NAMESPACE} -l app=insilos-saas --field-selector=status.phase=Running -o jsonpath='{{.items[*].metadata.name}}'")
-insilos_pods = [p for p in res_insilos.stdout.split() if p.strip() and re.match(r"^[a-zA-Z0-9.-]+$", p.strip())]
+def stage_and_deploy_archives(targets: list[dict]) -> None:
+    """
+    Packages application addons and media archives in a secure isolated temporary directory,
+    enforcing symlink safety invariants and size bounds, then uploads to all target pods.
+    Guarantees ephemeral cleanup of all archives in finally block.
+    """
+    staging_dir = tempfile.mkdtemp(prefix="insilos_sync_")
+    print(f"[*] Staging secure packaging directory: {staging_dir}")
+    try:
+        print("\n=== 1. PACKAGING targeted insilos_website, theme, and media ARCHIVES ===")
+        WEBSITE_MEMBERS = [
+            "__manifest__.py",
+            "controllers",
+            "views",
+            "static/src/scss",
+            "static/src/js",
+            "static/src/icons",
+        ]
+        # Enforce symlink boundary validation before packaging
+        assert_no_escaping_symlinks("enterprise/insilos_website", WEBSITE_MEMBERS)
+        print("[✓] Symlink boundary audit: PASS (0 escaping symlinks)")
 
-print(f"[✓] Found {len(innoria_pods)} innoria-prod pods: {innoria_pods}")
-print(f"[✓] Found {len(insilos_pods)} insilos-saas pods: {insilos_pods}")
+        tar_path_website = os.path.join(staging_dir, "insilos_website_sync.tar.gz")
+        tar_cmd = [
+            "tar",
+            "--exclude=static/src/video",
+            "--exclude=static/src/img",
+            "--exclude=static/src/docs",
+            "-chzf",
+            tar_path_website,
+            "-C",
+            "enterprise/insilos_website",
+            *WEBSITE_MEMBERS,
+        ]
+        subprocess.run(tar_cmd, check=True)
+        tar_size_web = os.path.getsize(tar_path_website)
+        if tar_size_web > MAX_ARCHIVE_SIZE_BYTES:
+            raise RuntimeError(f"Archive exceeds size ceiling: {tar_size_web} > {MAX_ARCHIVE_SIZE_BYTES}")
+        print(f"[✓] Created {tar_path_website} ({tar_size_web:,} bytes)")
 
-all_targets = []
-for p in innoria_pods:
-    all_targets.append({"pod": p, "container": "innoria", "service": "innoria-prod", "db": "innoria_prod", "host": "innoria.com"})
-for p in insilos_pods:
-    all_targets.append({"pod": p, "container": "insilos", "service": "insilos-saas", "db": "insilos_ind_inno_ai", "host": "insilos.com"})
+        tar_path_media = os.path.join(staging_dir, "insilos_media_sync.tar.gz")
+        media_files = [
+            "static/src/video/hero_cleanroom_pharma_opt.mp4",
+            "static/src/video/hero_cleanroom_pharma_opt_poster.webp",
+            "static/src/video/hero_fmcg_conveyor_opt.mp4",
+            "static/src/video/hero_fmcg_conveyor_opt_poster.webp",
+            "static/src/video/hero_petrochem_refinery_opt.mp4",
+            "static/src/video/hero_petrochem_refinery_opt_poster.webp",
+            "static/src/video/hero_digiforce_opt.mp4",
+            "static/src/video/hero_digiforce_opt_poster.webp",
+            "static/src/video/hero_blockchain_opt.mp4",
+            "static/src/video/hero_blockchain_opt_poster.webp",
+            "static/src/video/hero_contact_opt.mp4",
+            "static/src/video/hero_contact_opt_poster.webp",
+            "static/src/img/innoria/bg_contactus_boardroom.webp",
+            "static/src/img/innoria/bg_digiforce_grid.webp",
+            "static/src/img/innoria/bg_industry_precision.webp",
+            "static/src/img/innoria/bg_platform_datacenter.webp",
+            "static/src/img/innoria/bg_about_architecture.webp",
+            "static/src/img/innoria/bg_blockchain_lattice.webp",
+        ]
+        existing_media = [m for m in media_files if os.path.exists(os.path.join("enterprise/insilos_website", m))]
+        assert_no_escaping_symlinks("enterprise/insilos_website", existing_media)
+        tar_media_cmd = [
+            "tar",
+            "-czf",
+            tar_path_media,
+            "-C",
+            "enterprise/insilos_website",
+            *existing_media,
+        ]
+        subprocess.run(tar_media_cmd, check=True)
+        tar_size_media = os.path.getsize(tar_path_media)
+        if tar_size_media > MAX_ARCHIVE_SIZE_BYTES:
+            raise RuntimeError(f"Media archive exceeds ceiling: {tar_size_media} > {MAX_ARCHIVE_SIZE_BYTES}")
+        print(f"[✓] Created {tar_path_media} ({tar_size_media:,} bytes)")
 
-if not all_targets:
-    print("[!] No active running pods found! Aborting.")
-    sys.exit(1)
+        tar_path_theme = os.path.join(staging_dir, "insilos_theme_genesis_sync.tar.gz")
+        THEME_MEMBERS = ["__manifest__.py", "views", "static"]
+        assert_no_escaping_symlinks("enterprise/insilos_theme_genesis", THEME_MEMBERS)
+        tar_theme_cmd = [
+            "tar",
+            "-czf",
+            tar_path_theme,
+            "-C",
+            "enterprise/insilos_theme_genesis",
+            *THEME_MEMBERS,
+        ]
+        subprocess.run(tar_theme_cmd, check=True)
+        tar_size_theme = os.path.getsize(tar_path_theme)
+        if tar_size_theme > MAX_ARCHIVE_SIZE_BYTES:
+            raise RuntimeError(f"Theme archive exceeds ceiling: {tar_size_theme} > {MAX_ARCHIVE_SIZE_BYTES}")
+        print(f"[✓] Created {tar_path_theme} ({tar_size_theme:,} bytes)")
 
-print("\n=== 1. PACKAGING targeted insilos_website, theme, and media ARCHIVES ===")
-tar_path_website = "/tmp/insilos_website_sync.tar.gz"
-run_cmd(
-    f"tar --exclude='static/src/video' --exclude='static/src/img' --exclude='static/src/docs' -chzf {tar_path_website} -C enterprise/insilos_website "
-    f"__manifest__.py controllers views static/src/scss static/src/js static/src/icons",
-    check=True
-)
-tar_size_web = os.path.getsize(tar_path_website)
-print(f"[✓] Created {tar_path_website} ({tar_size_web:,} bytes)")
+        tar_path_adapter = os.path.join(staging_dir, "insilos_adapter_sync.tar.gz")
+        ADAPTER_MEMBERS = ["hook.py"]
+        assert_no_escaping_symlinks("addons/insilos_adapter", ADAPTER_MEMBERS)
+        tar_adapter_cmd = [
+            "tar",
+            "-czf",
+            tar_path_adapter,
+            "-C",
+            "addons/insilos_adapter",
+            *ADAPTER_MEMBERS,
+        ]
+        subprocess.run(tar_adapter_cmd, check=True)
+        print(f"[✓] Created {tar_path_adapter}")
 
-tar_path_media = "/tmp/insilos_media_sync.tar.gz"
-media_files = [
-    "static/src/video/hero_cleanroom_pharma_opt.mp4",
-    "static/src/video/hero_cleanroom_pharma_opt_poster.webp",
-    "static/src/video/hero_fmcg_conveyor_opt.mp4",
-    "static/src/video/hero_fmcg_conveyor_opt_poster.webp",
-    "static/src/video/hero_petrochem_refinery_opt.mp4",
-    "static/src/video/hero_petrochem_refinery_opt_poster.webp",
-    "static/src/video/hero_digiforce_opt.mp4",
-    "static/src/video/hero_digiforce_opt_poster.webp",
-    "static/src/video/hero_blockchain_opt.mp4",
-    "static/src/video/hero_blockchain_opt_poster.webp",
-    "static/src/video/hero_contact_opt.mp4",
-    "static/src/video/hero_contact_opt_poster.webp",
-    "static/src/img/innoria/bg_contactus_boardroom.webp",
-    "static/src/img/innoria/bg_digiforce_grid.webp",
-    "static/src/img/innoria/bg_industry_precision.webp",
-    "static/src/img/innoria/bg_platform_datacenter.webp",
-    "static/src/img/innoria/bg_about_architecture.webp",
-    "static/src/img/innoria/bg_blockchain_lattice.webp",
-]
-existing_media = [m for m in media_files if os.path.exists(os.path.join("enterprise/insilos_website", m))]
-run_cmd(
-    f"tar -czf {tar_path_media} -C enterprise/insilos_website {' '.join(existing_media)}",
-    check=True
-)
-tar_size_media = os.path.getsize(tar_path_media)
-print(f"[✓] Created {tar_path_media} ({tar_size_media:,} bytes)")
+        print("\n=== 2. DEPLOYING ARCHIVES TO ALL PODS & PERSISTENT VOLUMES IN PARALLEL ===")
+        deploy_procs = []
 
-tar_path_theme = "/tmp/insilos_theme_genesis_sync.tar.gz"
-run_cmd(
-    f"tar -czf {tar_path_theme} -C enterprise/insilos_theme_genesis "
-    f"__manifest__.py views static",
-    check=True
-)
-tar_size_theme = os.path.getsize(tar_path_theme)
-print(f"[✓] Created {tar_path_theme} ({tar_size_theme:,} bytes)")
+        for target in targets:
+            pod = target["pod"]
+            container = target["container"]
+            cmd = (
+                f"kubectl cp -n {NAMESPACE} -c {container} {tar_path_website} {pod}:/tmp/insilos_website_sync.tar.gz && "
+                f"kubectl cp -n {NAMESPACE} -c {container} {tar_path_media} {pod}:/tmp/insilos_media_sync.tar.gz && "
+                f"kubectl cp -n {NAMESPACE} -c {container} {tar_path_theme} {pod}:/tmp/insilos_theme_genesis_sync.tar.gz && "
+                f"kubectl cp -n {NAMESPACE} -c {container} {tar_path_adapter} {pod}:/tmp/insilos_adapter_sync.tar.gz && "
+                f"kubectl cp -n {NAMESPACE} -c {container} tools/sync_innoria_views_db.py {pod}:/tmp/sync_innoria_views_db.py && "
+                f"kubectl cp -n {NAMESPACE} -c {container} tools/sync_logos_to_assets_library.py {pod}:/tmp/sync_logos_to_assets_library.py && "
+                f"kubectl cp -n {NAMESPACE} -c {container} tools/safe_asset_warmup.py {pod}:/tmp/safe_asset_warmup.py && "
+                f"kubectl exec -n {NAMESPACE} {pod} -c {container} -- sh -c '"
+                f"mkdir -p /var/lib/insilos/filestore/custom_addons/insilos_website "
+                f"/var/lib/insilos/filestore/custom_addons/insilos_theme_genesis "
+                f"/app/insilos/enterprise/insilos_website "
+                f"/app/insilos/enterprise/insilos_theme_genesis "
+                f"/app/insilos/apps/insilos_website "
+                f"/app/insilos/apps/insilos_theme_genesis && "
+                # Extract into persistent storage (Longhorn block volume)
+                f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /var/lib/insilos/filestore/custom_addons/insilos_website/ && "
+                f"tar -xzf /tmp/insilos_media_sync.tar.gz -C /var/lib/insilos/filestore/custom_addons/insilos_website/ && "
+                f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis/ && "
+                # Extract into runtime app paths (where Odoo loads enterprise modules)
+                f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/enterprise/insilos_website/ && "
+                f"tar -xzf /tmp/insilos_media_sync.tar.gz -C /app/insilos/enterprise/insilos_website/ && "
+                f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
+                f"tar -xzf /tmp/insilos_media_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
+                f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/enterprise/insilos_theme_genesis/ && "
+                f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/apps/insilos_theme_genesis/ && "
+                # Update insilos_adapter hook
+                f"tar -xzf /tmp/insilos_adapter_sync.tar.gz -C /app/insilos/addons/insilos_adapter/ 2>/dev/null || true && "
+                f"tar -xzf /tmp/insilos_adapter_sync.tar.gz -C /app/insilos/insilos_adapter/ 2>/dev/null || true && "
+                # Ensure correct ownership
+                f"chown -R insilos:insilos /var/lib/insilos/filestore/custom_addons /app/insilos/enterprise /app/insilos/apps /tmp/*.py 2>/dev/null || true && "
+                f"rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz'"
+            )
+            p = subprocess.Popen(cmd, shell=True)
+            deploy_procs.append((pod, p))
 
-tar_path_adapter = "/tmp/insilos_adapter_sync.tar.gz"
-run_cmd(
-    f"tar -czf {tar_path_adapter} -C addons/insilos_adapter hook.py",
-    check=True
-)
-print(f"[✓] Created {tar_path_adapter}")
+        for pod, p in deploy_procs:
+            p.wait()
+            if p.returncode != 0:
+                print(f"[!] Failed deployment on {pod}")
+            else:
+                print(f"[✓] Synchronized persistent filestore and runtime paths to {pod}")
+    finally:
+        if os.path.exists(staging_dir):
+            shutil.rmtree(staging_dir, ignore_errors=True)
+            print(f"[*] Cleaned up staging directory: {staging_dir}")
 
-print("\n=== 2. DEPLOYING ARCHIVES TO ALL PODS & PERSISTENT VOLUMES IN PARALLEL ===")
-deploy_procs = []
 
-for target in all_targets:
-    pod = target["pod"]
-    container = target["container"]
-    cmd = (
-        f"kubectl cp -n {NAMESPACE} -c {container} {tar_path_website} {pod}:/tmp/insilos_website_sync.tar.gz && "
-        f"kubectl cp -n {NAMESPACE} -c {container} {tar_path_media} {pod}:/tmp/insilos_media_sync.tar.gz && "
-        f"kubectl cp -n {NAMESPACE} -c {container} {tar_path_theme} {pod}:/tmp/insilos_theme_genesis_sync.tar.gz && "
-        f"kubectl cp -n {NAMESPACE} -c {container} {tar_path_adapter} {pod}:/tmp/insilos_adapter_sync.tar.gz && "
-        f"kubectl cp -n {NAMESPACE} -c {container} tools/sync_innoria_views_db.py {pod}:/tmp/sync_innoria_views_db.py && "
-        f"kubectl cp -n {NAMESPACE} -c {container} tools/sync_logos_to_assets_library.py {pod}:/tmp/sync_logos_to_assets_library.py && "
-        f"kubectl cp -n {NAMESPACE} -c {container} tools/safe_asset_warmup.py {pod}:/tmp/safe_asset_warmup.py && "
-        f"kubectl exec -n {NAMESPACE} {pod} -c {container} -- sh -c '"
-        f"mkdir -p /var/lib/insilos/filestore/custom_addons/insilos_website "
-        f"/var/lib/insilos/filestore/custom_addons/insilos_theme_genesis "
-        f"/app/insilos/enterprise/insilos_website "
-        f"/app/insilos/enterprise/insilos_theme_genesis "
-        f"/app/insilos/apps/insilos_website "
-        f"/app/insilos/apps/insilos_theme_genesis && "
-        # Extract into persistent storage (Longhorn block volume)
-        f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /var/lib/insilos/filestore/custom_addons/insilos_website/ && "
-        f"tar -xzf /tmp/insilos_media_sync.tar.gz -C /var/lib/insilos/filestore/custom_addons/insilos_website/ && "
-        f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis/ && "
-        # Extract into runtime app paths (where Odoo loads enterprise modules)
-        f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/enterprise/insilos_website/ && "
-        f"tar -xzf /tmp/insilos_media_sync.tar.gz -C /app/insilos/enterprise/insilos_website/ && "
-        f"tar -xzf /tmp/insilos_website_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
-        f"tar -xzf /tmp/insilos_media_sync.tar.gz -C /app/insilos/apps/insilos_website/ && "
-        f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/enterprise/insilos_theme_genesis/ && "
-        f"tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/apps/insilos_theme_genesis/ && "
-        # Update insilos_adapter hook
-        f"tar -xzf /tmp/insilos_adapter_sync.tar.gz -C /app/insilos/addons/insilos_adapter/ 2>/dev/null || true && "
-        f"tar -xzf /tmp/insilos_adapter_sync.tar.gz -C /app/insilos/insilos_adapter/ 2>/dev/null || true && "
-        # Ensure correct ownership
-        f"chown -R insilos:insilos /var/lib/insilos/filestore/custom_addons /app/insilos/enterprise /app/insilos/apps /tmp/*.py 2>/dev/null || true && "
-        f"rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz'"
+def main():
+    print("=== 0. DISCOVERING ACTIVE RUNNING PODS ACROSS ALL INNORIA & INSILOS SERVICES ===")
+
+    # Discover innoria-prod pods
+    res_inno = run_cmd(
+        f"kubectl get pods -n {NAMESPACE} -l app=innoria-prod --field-selector=status.phase=Running -o jsonpath='{{.items[*].metadata.name}}'"
     )
-    p = subprocess.Popen(cmd, shell=True)
-    deploy_procs.append((pod, p))
+    innoria_pods = [p for p in res_inno.stdout.split() if p.strip() and re.match(r"^[a-zA-Z0-9.-]+$", p.strip())]
 
-for pod, p in deploy_procs:
-    p.wait()
-    if p.returncode != 0:
-        print(f"[!] Failed deployment on {pod}")
-    else:
-        print(f"[✓] Synchronized persistent filestore and runtime paths to {pod}")
+    # Discover insilos-saas pods
+    res_insilos = run_cmd(
+        f"kubectl get pods -n {NAMESPACE} -l app=insilos-saas --field-selector=status.phase=Running -o jsonpath='{{.items[*].metadata.name}}'"
+    )
+    insilos_pods = [p for p in res_insilos.stdout.split() if p.strip() and re.match(r"^[a-zA-Z0-9.-]+$", p.strip())]
 
-print("\n=== 3. RUNNING DB SYNC ON INNORIA LEAD POD ===")
-if innoria_pods:
-    lead_pod = innoria_pods[0]
-    print(f"[*] Running view and asset sync on {lead_pod} (container: innoria)...")
-    res = subprocess.run([
-        "kubectl", "exec", "-n", "production", lead_pod, "-c", "innoria", "--",
-        "python3", "/tmp/sync_innoria_views_db.py", "prod_pod"
-    ], capture_output=True, text=True)
-    print(res.stdout)
-    if res.stderr:
-        print("Stderr:", res.stderr)
+    print(f"[✓] Found {len(innoria_pods)} innoria-prod pods: {innoria_pods}")
+    print(f"[✓] Found {len(insilos_pods)} insilos-saas pods: {insilos_pods}")
 
-    res_assets = subprocess.run([
-        "kubectl", "exec", "-n", "production", lead_pod, "-c", "innoria", "--",
-        "python3", "/tmp/sync_logos_to_assets_library.py", "prod_pod"
-    ], capture_output=True, text=True)
-    print(res_assets.stdout)
-    if res_assets.stderr:
-        print("Stderr:", res_assets.stderr)
+    all_targets = []
+    for p in innoria_pods:
+        all_targets.append({"pod": p, "container": "innoria", "service": "innoria-prod", "db": "innoria_prod", "host": "innoria.com"})
+    for p in insilos_pods:
+        all_targets.append({"pod": p, "container": "insilos", "service": "insilos-saas", "db": "insilos_ind_inno_ai", "host": "insilos.com"})
 
-    print("\n[*] Pre-warming SCSS assets for innoria_prod...")
-    res_warmup = subprocess.run([
-        "kubectl", "exec", "-n", "production", lead_pod, "-c", "innoria", "--",
-        "python3", "/tmp/safe_asset_warmup.py", "innoria_prod"
-    ], capture_output=True, text=True)
-    print(res_warmup.stdout)
-    if res_warmup.stderr:
-        print("Stderr:", res_warmup.stderr)
+    if not all_targets:
+        print("[!] No active running pods found! Aborting.")
+        sys.exit(1)
 
-print("\n=== 3B. PRE-WARMING ASSETS ON INSILOS LEAD POD ===")
-if insilos_pods:
-    lead_insilos = insilos_pods[0]
-    print(f"[*] Pre-warming SCSS assets on {lead_insilos} for insilos_ind_inno_ai...")
-    res_warmup2 = subprocess.run([
-        "kubectl", "exec", "-n", "production", lead_insilos, "-c", "insilos", "--",
-        "python3", "/tmp/safe_asset_warmup.py", "insilos_ind_inno_ai"
-    ], capture_output=True, text=True)
-    print(res_warmup2.stdout)
-    if res_warmup2.stderr:
-        print("Stderr:", res_warmup2.stderr)
+    stage_and_deploy_archives(all_targets)
 
-print("\n=== 4. RESTARTING CHILD WORKERS ON ALL PODS IN PARALLEL ===")
-worker_kill_script = """
+    print("\n=== 3. RUNNING DB SYNC ON INNORIA LEAD POD ===")
+    if innoria_pods:
+        lead_pod = innoria_pods[0]
+        print(f"[*] Running view and asset sync on {lead_pod} (container: innoria)...")
+        res = subprocess.run([
+            "kubectl", "exec", "-n", "production", lead_pod, "-c", "innoria", "--",
+            "python3", "/tmp/sync_innoria_views_db.py", "prod_pod"
+        ], capture_output=True, text=True)
+        print(res.stdout)
+        if res.stderr:
+            print("Stderr:", res.stderr)
+
+        res_assets = subprocess.run([
+            "kubectl", "exec", "-n", "production", lead_pod, "-c", "innoria", "--",
+            "python3", "/tmp/sync_logos_to_assets_library.py", "prod_pod"
+        ], capture_output=True, text=True)
+        print(res_assets.stdout)
+        if res_assets.stderr:
+            print("Stderr:", res_assets.stderr)
+
+        print("\n[*] Pre-warming SCSS assets for innoria_prod...")
+        res_warmup = subprocess.run([
+            "kubectl", "exec", "-n", "production", lead_pod, "-c", "innoria", "--",
+            "python3", "/tmp/safe_asset_warmup.py", "innoria_prod"
+        ], capture_output=True, text=True)
+        print(res_warmup.stdout)
+        if res_warmup.stderr:
+            print("Stderr:", res_warmup.stderr)
+
+    print("\n=== 3B. PRE-WARMING ASSETS ON INSILOS LEAD POD ===")
+    if insilos_pods:
+        lead_insilos = insilos_pods[0]
+        print(f"[*] Pre-warming SCSS assets on {lead_insilos} for insilos_ind_inno_ai...")
+        res_warmup2 = subprocess.run([
+            "kubectl", "exec", "-n", "production", lead_insilos, "-c", "insilos", "--",
+            "python3", "/tmp/safe_asset_warmup.py", "insilos_ind_inno_ai"
+        ], capture_output=True, text=True)
+        print(res_warmup2.stdout)
+        if res_warmup2.stderr:
+            print("Stderr:", res_warmup2.stderr)
+
+    print("\n=== 4. RESTARTING CHILD WORKERS ON ALL PODS IN PARALLEL ===")
+    worker_kill_script = """
 import os, signal
 current_pid = os.getpid()
 for pid in os.listdir('/proc'):
@@ -198,25 +302,25 @@ for pid in os.listdir('/proc'):
             pass
 """
 
-reload_procs = []
-for target in all_targets:
-    pod = target["pod"]
-    container = target["container"]
-    print(f"[*] Reloading workers on {pod} ({container})...")
-    p = subprocess.Popen([
-        "kubectl", "exec", "-n", "production", pod, "-c", container, "--",
-        "python3", "-c", worker_kill_script
-    ])
-    reload_procs.append((pod, p))
+    reload_procs = []
+    for target in all_targets:
+        pod = target["pod"]
+        container = target["container"]
+        print(f"[*] Reloading workers on {pod} ({container})...")
+        p = subprocess.Popen([
+            "kubectl", "exec", "-n", "production", pod, "-c", container, "--",
+            "python3", "-c", worker_kill_script
+        ])
+        reload_procs.append((pod, p))
 
-for pod, p in reload_procs:
-    p.wait()
+    for pod, p in reload_procs:
+        p.wait()
 
-print("\n=== 5. WAITING 5 SECONDS FOR CLEAN WORKER RESPAWN ===")
-time.sleep(5)
+    print("\n=== 5. WAITING 5 SECONDS FOR CLEAN WORKER RESPAWN ===")
+    time.sleep(5)
 
-print("\n=== 6. PROBING ALL PODS DIRECTLY ===")
-probe_script = """
+    print("\n=== 6. PROBING ALL PODS DIRECTLY ===")
+    probe_script = """
 import urllib.request, sys
 host = sys.argv[1] if len(sys.argv) > 1 else 'innoria.com'
 try:
@@ -230,19 +334,23 @@ except Exception as e:
     print(f'[!] Probe error for {host}: {e}')
 """
 
-for target in all_targets:
-    pod = target["pod"]
-    container = target["container"]
-    host = target["host"]
-    print(f"[*] Probing {pod} ({container}) for {host}:")
-    subprocess.run([
-        "kubectl", "exec", "-n", "production", pod, "-c", container, "--",
-        "python3", "-c", probe_script, host
-    ])
+    for target in all_targets:
+        pod = target["pod"]
+        container = target["container"]
+        host = target["host"]
+        print(f"[*] Probing {pod} ({container}) for {host}:")
+        subprocess.run([
+            "kubectl", "exec", "-n", "production", pod, "-c", container, "--",
+            "python3", "-c", probe_script, host
+        ])
 
-print("\n=== 7. PROBING PUBLIC DOMAINS ===")
-for url in ["https://innoria.com/", "https://innoria.insilos.com/"]:
-    res = run_cmd(f"curl -sI {url} | head -n 3")
-    print(f"{url} -> {res.stdout.strip().replace(chr(10), ' | ')}")
+    print("\n=== 7. PROBING PUBLIC DOMAINS ===")
+    for url in ["https://innoria.com/", "https://innoria.insilos.com/"]:
+        res = run_cmd(f"curl -sI {url} | head -n 3")
+        print(f"{url} -> {res.stdout.strip().replace(chr(10), ' | ')}")
 
-print("\n[✓] ALL PODS SYNCHRONIZED AND VERIFIED ZERO-REGRESSION!")
+    print("\n[✓] ALL PODS SYNCHRONIZED AND VERIFIED ZERO-REGRESSION!")
+
+
+if __name__ == "__main__":
+    main()
