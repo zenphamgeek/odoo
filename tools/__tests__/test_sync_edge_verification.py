@@ -726,9 +726,18 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
                 p = subprocess.Popen([sys.executable, "-c", worker_script, str(i)], env=child_env)
                 procs.append(p)
 
-            for p in procs:
-                p.wait(timeout=30)
-                self.assertEqual(p.returncode, 0)
+            try:
+                for p in procs:
+                    p.wait(timeout=30)
+                    self.assertEqual(p.returncode, 0)
+            finally:
+                for p in procs:
+                    if p.poll() is None:
+                        try:
+                            p.kill()
+                            p.wait(timeout=5)
+                        except Exception:
+                            pass
 
             # Full-chain Merkle integrity check over all concurrent multi-process writes
             self.assertTrue(verify_audit_ledger(temp_ledger, temp_anchor))
@@ -816,6 +825,17 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
                 append_deploy_audit_record(["pod-1"], "success", 1.0)
             self.assertIn("too short", str(ctx.exception).lower())
 
+    def test_no_default_key_fallback_when_unset(self):
+        """CWE-259 / CWE-798: Zero hardcoded fallback credentials when LEDGER_ANCHOR_KEY is unset."""
+        from sync_innokafe_to_pods import _load_anchor_key
+
+        with patch("sync_innokafe_to_pods.REQUIRE_EXTERNAL_ANCHOR", True):
+            env_without_key = {k: v for k, v in os.environ.items() if k != "LEDGER_ANCHOR_KEY"}
+            with patch.dict(os.environ, env_without_key, clear=True):
+                with self.assertRaises(RuntimeError) as ctx:
+                    _load_anchor_key()
+                self.assertIn("LEDGER_ANCHOR_KEY is missing", str(ctx.exception))
+
     def test_deploy_preflight_security_fails_closed_without_anchor(self):
         """CWE-636: Deploy pipeline must fail closed when REQUIRE_EXTERNAL_ANCHOR is false unless degraded mode is explicitly allowed."""
         from sync_innokafe_to_pods import assert_deploy_preflight_security
@@ -842,16 +862,24 @@ with patch("sync_innokafe_to_pods.AUDIT_LEDGER_PATH", os.environ["TMP_LEDGER"]),
             assert_deploy_preflight_security()
 
     def test_deploy_preflight_security_prod_default(self):
-        """CWE-636 / CWE-617 / CWE-833 / CWE-532: In prod (ENV=prod), REQUIRE_EXTERNAL_ANCHOR defaults to enabled in isolated, bounded, non-assert child."""
+        """CWE-636 / CWE-617 / CWE-833 / CWE-532 / CWE-426: In prod, REQUIRE_EXTERNAL_ANCHOR defaults to True in isolated child with module provenance guard."""
         import subprocess
         import sys
         from sync_innokafe_to_pods import ROOT_DIR
 
-        # F1 fix: Never gate security proofs on assert across process boundaries (python -O strips assert)
+        # F1 fix: Explicit exit codes instead of assert (assert stripped under python -O)
+        # Provenance guard (CWE-426): Ensure child imports exclusively from repo tools directory
         proc_script = """
 import os, sys
-sys.path.insert(0, os.path.join(os.environ["REPO_ROOT"], "tools"))
+expected_tools_dir = os.path.join(os.environ["REPO_ROOT"], "tools")
+sys.path.insert(0, expected_tools_dir)
 import sync_innokafe_to_pods as m
+
+resolved_file = os.path.abspath(m.__file__)
+if not resolved_file.startswith(os.path.abspath(expected_tools_dir)):
+    sys.stderr.write(f"FAIL: Module provenance spoofing detected: {resolved_file} not in {expected_tools_dir}\\n")
+    sys.exit(2)
+
 if m.REQUIRE_EXTERNAL_ANCHOR is not True:
     sys.stderr.write(
         f"FAIL: REQUIRE_EXTERNAL_ANCHOR must default to True under ENV=prod, got {m.REQUIRE_EXTERNAL_ANCHOR!r}\\n"
@@ -859,13 +887,12 @@ if m.REQUIRE_EXTERNAL_ANCHOR is not True:
     sys.exit(1)
 sys.exit(0)
 """
-        # F4 fix: Minimal allowlisted environment; zero credentials or parent env leakage (CWE-532)
+        # F4 fix: Minimal allowlisted environment without PYTHONPATH (prevents shadowing or credential leaks)
         env = {
             "REPO_ROOT": ROOT_DIR,
             "ENV": "prod",
             "PATH": os.environ.get("PATH", ""),
             "SYSTEMROOT": os.environ.get("SYSTEMROOT", ""),
-            "PYTHONPATH": os.environ.get("PYTHONPATH", ""),
         }
 
         # F2 fix: Bounded execution with timeout to prevent CI deadlock (CWE-833)
