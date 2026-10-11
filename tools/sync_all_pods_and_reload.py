@@ -377,6 +377,15 @@ def main():
     print("\n=== 3B. PRE-WARMING ASSETS ON INSILOS LEAD POD ===")
     if insilos_pods:
         lead_insilos = insilos_pods[0]
+        print(f"[*] Running view sync on {lead_insilos} for insilos_ind_inno_ai...")
+        res_sync_insilos = run_cmd([
+            "kubectl", "exec", "-n", NAMESPACE, lead_insilos, "-c", "insilos", "--",
+            "python3", "/tmp/sync_innoria_views_db.py", "prod_pod", "insilos_ind_inno_ai"
+        ], check=False)
+        print(res_sync_insilos.stdout)
+        if res_sync_insilos.stderr:
+            print("Stderr:", res_sync_insilos.stderr)
+
         print(f"[*] Pre-warming SCSS assets on {lead_insilos} for insilos_ind_inno_ai...")
         res_warmup2 = run_cmd([
             "kubectl", "exec", "-n", NAMESPACE, lead_insilos, "-c", "insilos", "--",

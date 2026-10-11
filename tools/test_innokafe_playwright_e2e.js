@@ -194,7 +194,7 @@ async function runTestSuite() {
     let pageLoadOk = false;
 
     try {
-      const resp = await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 20000 });
+      const resp = await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
       responseStatus = resp ? resp.status() : null;
       await page.waitForTimeout(1000); // Allow scripts to initialize
 

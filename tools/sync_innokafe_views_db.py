@@ -166,6 +166,19 @@ def sync_database(host, port, user, password, dbname):
         """, (json.dumps(homepage_arch_dict), v_id))
         print(f"[✓] Synced InnoKafe homepage arch to website.innokafe-homepage view {v_id}")
 
+    # 2c. Also sync to website.contactus (view 981) so default contactus route renders InnoKafe design
+    contactus_arch_xml, cu_name = extract_template_arch(xml_contactus, "contactus_page", "website.contactus")
+    contactus_arch_dict = {"en_US": contactus_arch_xml}
+    cur.execute("SELECT id FROM ir_ui_view WHERE key = 'website.contactus'")
+    for row in cur.fetchall():
+        v_id = row[0]
+        cur.execute("""
+            UPDATE ir_ui_view
+            SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
+            WHERE id = %s
+        """, (json.dumps(contactus_arch_dict), v_id))
+        print(f"[✓] Synced InnoKafe contactus arch to website.contactus view {v_id} ({len(contactus_arch_xml)} bytes)")
+
     # 3. Synchronize InnoKafe Brand Logo to Header Brand views (view 1046 and 1693)
     inno_brand_logo_arch = """<data name="Header Brand Logo">
     <xpath expr="//*[@id='o_fake_navbar_brand']" position="replace">
@@ -473,6 +486,34 @@ def sync_database(host, port, user, password, dbname):
         """, (json.dumps(name_dict), url_path, seq, top_menu_id))
         new_m_id = cur.fetchone()[0]
         print(f"[✓] Created clean menu {new_m_id}: {name_vn} ({url_path}, seq {seq}) under parent {top_menu_id}")
+
+    # 11. Synchronize ir_asset records and bust frontend bundle cache
+    assets_to_sync = [
+        ("InnoKafe Liquid Spatial SCSS", "web.assets_frontend", "append", "innokafe_website/static/src/scss/innokafe_liquid_spatial.scss", 100),
+        ("InnoKafe Theme SCSS", "web.assets_frontend", "append", "innokafe_website/static/src/scss/innokafe_theme.scss", 101),
+        ("InnoKafe Taste Profiler JS", "web.assets_frontend", "append", "innokafe_website/static/src/js/taste_profiler.js", 102),
+        ("InnoKafe B2B Solutions JS", "web.assets_frontend", "append", "innokafe_website/static/src/js/b2b_solutions.js", 103),
+    ]
+
+    for a_name, a_bundle, a_directive, a_path, a_seq in assets_to_sync:
+        cur.execute("SELECT id FROM ir_asset WHERE path = %s AND bundle = %s", (a_path, a_bundle))
+        existing_asset = cur.fetchone()
+        if existing_asset:
+            cur.execute("""
+                UPDATE ir_asset
+                SET name = %s, directive = %s, sequence = %s, active = true, write_date = NOW()
+                WHERE id = %s
+            """, (a_name, a_directive, a_seq, existing_asset[0]))
+        else:
+            cur.execute("""
+                INSERT INTO ir_asset (name, bundle, directive, path, sequence, active, create_uid, write_uid, create_date, write_date)
+                VALUES (%s, %s, %s, %s, %s, true, 1, 1, NOW(), NOW())
+            """, (a_name, a_bundle, a_directive, a_path, a_seq))
+        print(f"[✓] Synced asset: {a_name} ({a_path})")
+
+    # Invalidate cached bundle attachments so Odoo recompiles frontend CSS and JS
+    cur.execute("DELETE FROM ir_attachment WHERE url LIKE '%assets_frontend%' OR name LIKE '%assets_frontend%'")
+    print(f"[✓] Invalidated {cur.rowcount} cached frontend asset attachments for clean bundle recompilation")
 
     conn.commit()
     conn.close()

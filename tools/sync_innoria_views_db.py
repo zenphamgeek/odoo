@@ -24,6 +24,9 @@ def extract_template_arch(xml_path, template_id, full_key):
     open_tag = match.group(1)
     body = match.group(2)
     
+    if 'inherit_id=' in open_tag:
+        return f'<data>{body}</data>'
+
     name_match = re.search(r'name=["\']([^"\']+)["\']', open_tag)
     name_attr = f' name="{name_match.group(1)}"' if name_match else ''
     
@@ -62,6 +65,7 @@ def sync_database(host, port, user, password, dbname):
     xml_snippets = os.path.join(module_dir, "views/snippets_3d.xml")
     xml_pages = os.path.join(module_dir, "views/innoria_pages.xml")
     xml_cctv = os.path.join(module_dir, "views/snippets_cctv.xml")
+    xml_templates = os.path.join(module_dir, "views/website_templates.xml")
 
     targets = [
         ("innoria_navbar", "insilos_website.innoria_navbar", xml_homepage),
@@ -71,6 +75,11 @@ def sync_database(host, port, user, password, dbname):
         ("s_innoria_3d_architecture_deck", "insilos_website.s_innoria_3d_architecture_deck", xml_snippets),
         ("s_innoria_3d_solutions_erp", "insilos_website.s_innoria_3d_solutions_erp", xml_snippets),
         ("s_innoria_3d_erp_shift", "insilos_website.s_innoria_3d_erp_shift", xml_snippets),
+        ("s_insilos_3d_digital_twin", "insilos_website.s_insilos_3d_digital_twin", xml_snippets),
+        ("s_insilos_3d_logistics_radar", "insilos_website.s_insilos_3d_logistics_radar", xml_snippets),
+        ("s_insilos_3d_factory_roi", "insilos_website.s_insilos_3d_factory_roi", xml_snippets),
+        ("insilos_megamenu_desktop", "insilos_website.insilos_megamenu_desktop", xml_templates),
+        ("insilos_megamenu_mobile", "insilos_website.insilos_megamenu_mobile", xml_templates),
         ("s_insilos_cctv_ai_camera", "insilos_website.s_insilos_cctv_ai_camera", xml_cctv),
         ("insilos_about_page", "insilos_website.insilos_about_page", xml_pages),
         ("insilos_platform_page", "insilos_website.insilos_platform_page", xml_pages),
@@ -87,15 +96,15 @@ def sync_database(host, port, user, password, dbname):
         
         # Check if view exists
         cur.execute("SELECT id, name FROM ir_ui_view WHERE key = %s", (key,))
-        row = cur.fetchone()
-        if row:
-            view_id, name = row
-            cur.execute("""
-                UPDATE ir_ui_view
-                SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
-                WHERE id = %s
-            """, (json.dumps(arch_dict), view_id))
-            print(f"[✓] Updated view {view_id} ({key}) - {len(arch_xml)} bytes (active=True, arch_fs=NULL)")
+        rows = cur.fetchall()
+        if rows:
+            for view_id, name in rows:
+                cur.execute("""
+                    UPDATE ir_ui_view
+                    SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
+                    WHERE id = %s
+                """, (json.dumps(arch_dict), view_id))
+                print(f"[✓] Updated view {view_id} ({key}) - {len(arch_xml)} bytes (active=True, arch_fs=NULL)")
         else:
             cur.execute("""
                 INSERT INTO ir_ui_view (name, key, type, mode, priority, active, arch_updated, arch_db, arch_fs, create_uid, write_uid, create_date, write_date)
@@ -159,10 +168,11 @@ if __name__ == '__main__':
     elif target == 'local':
         sync_database('127.0.0.1', 5434, 'odoo', '1NN0R1@2026', 'innoria_prod')
     elif target == 'prod_pod':
+        dbname = sys.argv[2] if len(sys.argv) > 2 else 'innoria_prod'
         sync_database(
             os.environ.get('DB_HOST', 'pgbouncer-service'),
             int(os.environ.get('DB_PORT', 6432)),
             os.environ.get('DB_USER', 'insilos'),
             os.environ.get('PGPASSWORD', ''),
-            'innoria_prod'
+            dbname
         )
