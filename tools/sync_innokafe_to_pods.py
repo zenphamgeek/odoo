@@ -42,6 +42,13 @@ MEDIA_ASSETS = [
     "enterprise/innokafe_website/static/src/img/branding/innokafe_mark_symbol.svg",
     "enterprise/innokafe_website/static/src/img/branding/innokafe_social_share_1200x630.jpg",
     "enterprise/innokafe_website/static/src/img/branding/innokafe_social_share_1200x630.webp",
+    "enterprise/innokafe_website/static/src/img/photography/cooling_tray_artisan_roast.webp",
+    "enterprise/innokafe_website/static/src/img/photography/natural_raised_beds_drying.webp",
+    "enterprise/innokafe_website/static/src/img/photography/bar_warm_amber_wood_interior.webp",
+    "enterprise/innokafe_website/static/src/img/photography/barista_pourover_v60_flow.webp",
+    "enterprise/innokafe_website/static/src/img/photography/sensory_cupping_flight.webp",
+    "enterprise/innokafe_website/static/src/img/photography/farm_cherries_ripe.webp",
+    "enterprise/innokafe_website/static/src/img/photography/farm_plantation_mist.webp",
 ]
 
 WORKER_RELOAD_SCRIPT = """
@@ -100,7 +107,6 @@ LOCAL_HEALTH_PROBE_SCRIPT = """
 import urllib.request, time, sys
 
 targets = [
-    ('innoria.insilos.com', 'Innoria SaaS'),
     ('innokafe.insilos.com', 'InnoKafe Specialty Coffee (Tenant)'),
     ('innokafe.com', 'InnoKafe Brand Official')
 ]
@@ -298,49 +304,31 @@ def prewarm_assets(pods: List[str], namespace: str = NAMESPACE, container: str =
     print("\n=== STAGE 4. ATOMIC ASSET PRE-WARMING ===")
     t0 = time.time()
     pod_kafe = pods[0]
-    pod_ria = pods[1] if len(pods) > 1 else pods[0]
 
     warmup_tool = os.path.join(ROOT_DIR, "tools", "safe_asset_warmup.py")
     expected_sha = compute_local_sha256(warmup_tool)
     verify_pod_script_sha256(pod_kafe, "/app/insilos/tools/safe_asset_warmup.py", expected_sha, namespace, container)
-    if pod_ria != pod_kafe:
-        verify_pod_script_sha256(pod_ria, "/app/insilos/tools/safe_asset_warmup.py", expected_sha, namespace, container)
 
-    print(f"[*] Pre-warming asset bundles:")
-    print(f"    • Pod {pod_kafe}: innokafe_prod")
-    print(f"    • Pod {pod_ria}: innoria_prod")
+    print(f"[*] Pre-warming asset bundles strictly for innokafe_prod on Pod {pod_kafe}:")
 
     proc_kafe = subprocess.Popen(
         ["kubectl", "exec", "-n", namespace, pod_kafe, "-c", container, "--",
          "python3", "/app/insilos/tools/safe_asset_warmup.py", "innokafe_prod"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
-    proc_ria = subprocess.Popen(
-        ["kubectl", "exec", "-n", namespace, pod_ria, "-c", container, "--",
-         "python3", "/app/insilos/tools/safe_asset_warmup.py", "innoria_prod"],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-    )
 
     out_kafe, err_kafe = proc_kafe.communicate()
-    out_ria, err_ria = proc_ria.communicate()
 
     print(f"\n--- Output from {pod_kafe} (innokafe_prod) ---")
     print(out_kafe.strip())
     if err_kafe.strip():
         print("Stderr:", err_kafe.strip())
 
-    print(f"\n--- Output from {pod_ria} (innoria_prod) ---")
-    print(out_ria.strip())
-    if err_ria.strip():
-        print("Stderr:", err_ria.strip())
-
     if proc_kafe.returncode != 0:
         raise RuntimeError(f"Asset pre-warming failed on innokafe_prod (code {proc_kafe.returncode})")
-    if proc_ria.returncode != 0:
-        raise RuntimeError(f"Asset pre-warming failed on innoria_prod (code {proc_ria.returncode})")
 
     dur = round(time.time() - t0, 2)
-    print(f"\n[✓] Safe asset warmup completed concurrently in {dur}s.")
+    print(f"\n[✓] Safe asset warmup for innokafe_prod completed in {dur}s.")
 
 
 def rolling_reload_workers(pods: List[str], namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
@@ -380,8 +368,7 @@ def edge_verification() -> None:
     print("\n=== STAGE 6. EXTERNAL EDGE HTTPS SMOKE PROBES ===")
     endpoints = [
         "https://innokafe.com/",
-        "https://innokafe.insilos.com/",
-        "https://innoria.insilos.com/"
+        "https://innokafe.insilos.com/"
     ]
     # Deploy-time identity marker; set in the pod env at release.
     # A bare 200 does not prove this is our build (CWE-345).

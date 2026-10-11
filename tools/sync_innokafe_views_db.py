@@ -418,6 +418,7 @@ def sync_database(host, port, user, password, dbname):
             domain = 'https://innokafe.com',
             name = 'InnoKafe Specialty Coffee',
             default_lang_id = %s,
+            auto_redirect_lang = false,
             custom_code_head = NULL
         WHERE id = 1
     """, (vi_lang_id,))
@@ -555,6 +556,38 @@ def sync_database(host, port, user, password, dbname):
                 VALUES (%s, %s, %s, %s, %s, true, 1, 1, NOW(), NOW())
             """, (a_name, a_bundle, a_directive, a_path, a_seq))
         print(f"[✓] Synced asset: {a_name} ({a_path})")
+
+    # Synchronize website social default share image into ir.attachment
+    social_img_path = os.path.join(innokafe_dir, "static", "src", "img", "branding", "innokafe_social_share_1200x630.jpg")
+    if os.path.exists(social_img_path):
+        import hashlib
+        with open(social_img_path, 'rb') as f:
+            raw_bytes = f.read()
+        chk = hashlib.sha1(raw_bytes).hexdigest()
+        fsize = len(raw_bytes)
+        cur.execute("""
+            SELECT id FROM ir_attachment 
+            WHERE res_model = 'website' AND res_field = 'social_default_image' AND res_id = 1;
+        """)
+        ex_att = cur.fetchone()
+        if ex_att:
+            cur.execute("""
+                UPDATE ir_attachment 
+                SET db_datas = %s, mimetype = 'image/jpeg', name = 'innokafe_social_share_1200x630.jpg', 
+                    file_size = %s, checksum = %s, write_date = NOW()
+                WHERE id = %s;
+            """, (psycopg2.Binary(raw_bytes), fsize, chk, ex_att[0]))
+            print(f"[✓] Updated social_default_image attachment {ex_att[0]}")
+        else:
+            cur.execute("""
+                INSERT INTO ir_attachment (name, res_model, res_field, res_id, type, db_datas, mimetype, file_size, checksum, public, website_id, create_uid, write_uid, create_date, write_date)
+                VALUES ('innokafe_social_share_1200x630.jpg', 'website', 'social_default_image', 1, 'binary', %s, 'image/jpeg', %s, %s, true, 1, 1, 1, NOW(), NOW())
+                RETURNING id;
+            """, (psycopg2.Binary(raw_bytes), fsize, chk))
+            new_att_id = cur.fetchone()[0]
+            print(f"[✓] Created social_default_image attachment {new_att_id}")
+        cur.execute("UPDATE website SET has_social_default_image = true WHERE id = 1;")
+        print("[✓] Verified website 1 has_social_default_image = True")
 
     # Invalidate cached bundle attachments strictly scoped to website 1 and ir.ui.view (FAIL-2 remediation)
     cur.execute("""
