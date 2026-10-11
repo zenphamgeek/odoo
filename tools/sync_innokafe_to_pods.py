@@ -98,7 +98,8 @@ import urllib.request, time, sys
 
 targets = [
     ('innoria.insilos.com', 'Innoria SaaS'),
-    ('innokafe.insilos.com', 'InnoKafe Specialty Coffee')
+    ('innokafe.insilos.com', 'InnoKafe Specialty Coffee (Tenant)'),
+    ('innokafe.com', 'InnoKafe Brand Official')
 ]
 
 max_retries = 8
@@ -375,6 +376,7 @@ def rolling_reload_workers(pods: List[str], namespace: str = NAMESPACE, containe
 def edge_verification() -> None:
     print("\n=== STAGE 6. EXTERNAL EDGE HTTPS SMOKE PROBES ===")
     endpoints = [
+        "https://innokafe.com/",
         "https://innokafe.insilos.com/",
         "https://innoria.insilos.com/"
     ]

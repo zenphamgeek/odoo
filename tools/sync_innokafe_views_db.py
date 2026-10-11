@@ -104,7 +104,7 @@ def sync_database(host, port, user, password, dbname):
 
     for tmpl_id, key, xml_path in targets:
         arch_xml, view_name = extract_template_arch(xml_path, tmpl_id, key)
-        arch_dict = {"en_US": arch_xml}
+        arch_dict = {"vi_VN": arch_xml, "en_US": arch_xml}
         
         # Check if view exists
         cur.execute("SELECT id, name FROM ir_ui_view WHERE key = %s", (key,))
@@ -133,7 +133,7 @@ def sync_database(host, port, user, password, dbname):
 
     # 1. Sync InnoKafe homepage arch directly to website.homepage (views 980 and 1688)
     homepage_arch_xml, hp_name = extract_template_arch(xml_home, "homepage", "website.homepage")
-    homepage_arch_dict = {"en_US": homepage_arch_xml}
+    homepage_arch_dict = {"vi_VN": homepage_arch_xml, "en_US": homepage_arch_xml}
     cur.execute("SELECT id FROM ir_ui_view WHERE key = 'website.homepage'")
     for row in cur.fetchall():
         v_id = row[0]
@@ -168,7 +168,7 @@ def sync_database(host, port, user, password, dbname):
 
     # 2c. Also sync to website.contactus (view 981) so default contactus route renders InnoKafe design
     contactus_arch_xml, cu_name = extract_template_arch(xml_contactus, "contactus_page", "website.contactus")
-    contactus_arch_dict = {"en_US": contactus_arch_xml}
+    contactus_arch_dict = {"vi_VN": contactus_arch_xml, "en_US": contactus_arch_xml}
     cur.execute("SELECT id FROM ir_ui_view WHERE key = 'website.contactus'")
     for row in cur.fetchall():
         v_id = row[0]
@@ -196,7 +196,7 @@ def sync_database(host, port, user, password, dbname):
         UPDATE ir_ui_view
         SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
         WHERE id = 1046 OR key = 'website.option_header_brand_logo'
-    """, (json.dumps({"en_US": inno_brand_logo_arch}),))
+    """, (json.dumps({"vi_VN": inno_brand_logo_arch, "en_US": inno_brand_logo_arch}),))
     print("[✓] Updated website.option_header_brand_logo (view 1046) with InnoKafe vector SVG brand logo")
 
     # Also update website.template_header_default (views 1005 and 1693) to include glass style and direct InnoKafe brand
@@ -241,7 +241,7 @@ def sync_database(host, port, user, password, dbname):
         UPDATE ir_ui_view
         SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
         WHERE key = 'website.template_header_default'
-    """, (json.dumps({"en_US": inno_header_default_arch}),))
+    """, (json.dumps({"vi_VN": inno_header_default_arch, "en_US": inno_header_default_arch}),))
     print("[✓] Updated website.template_header_default (views 1005, 1693) with InnoKafe header brand & glass nav")
 
     # 4. Synchronize Header Hotline (website.header_text_element views 1133 and 2495)
@@ -261,7 +261,7 @@ def sync_database(host, port, user, password, dbname):
         UPDATE ir_ui_view
         SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
         WHERE key = 'website.header_text_element'
-    """, (json.dumps({"en_US": inno_hotline_arch}),))
+    """, (json.dumps({"vi_VN": inno_hotline_arch, "en_US": inno_hotline_arch}),))
     print("[✓] Updated website.header_text_element with InnoKafe Tasting Bar Hotline (+84 28 7300 6688)")
 
     # 5. Synchronize InnoKafe Luxury Footer (website.footer_custom views 1059 and 1696)
@@ -338,7 +338,7 @@ def sync_database(host, port, user, password, dbname):
                                 </li>
                                 <li class="d-flex align-items-center gap-2">
                                     <i class="fa fa-envelope text-warning"/>
-                                    <span><strong>Email:</strong> <a href="mailto:hello@innokafe.insilos.com" class="text-white text-decoration-none">hello@innokafe.insilos.com</a></span>
+                                    <span><strong>Email:</strong> <a href="mailto:hello@innokafe.com" class="text-white text-decoration-none">hello@innokafe.com</a></span>
                                 </li>
                             </ul>
                             <div class="d-flex align-items-center gap-3">
@@ -372,7 +372,7 @@ def sync_database(host, port, user, password, dbname):
         UPDATE ir_ui_view
         SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
         WHERE key = 'website.footer_custom'
-    """, (json.dumps({"en_US": inno_footer_arch}),))
+    """, (json.dumps({"vi_VN": inno_footer_arch, "en_US": inno_footer_arch}),))
     print("[✓] Updated website.footer_custom (views 1059, 1696) with InnoKafe Luxury Footer")
 
     # 6. Deactivate competing Insilos Enterprise headers, megamenus, footers and corporate snippets
@@ -405,22 +405,62 @@ def sync_database(host, port, user, password, dbname):
     activated_innokafe = cur.rowcount
     print(f"[✓] Activated {activated_innokafe} innokafe views")
 
-    # 8. Configure website domain and company branding
+    # 8. Configure website domain, clean SEO metadata, and primary Vietnamese language
+    # Ensure vi_VN language is active
+    cur.execute("UPDATE res_lang SET active = true WHERE code = 'vi_VN'")
+    cur.execute("SELECT id FROM res_lang WHERE code = 'vi_VN'")
+    vi_lang_row = cur.fetchone()
+    vi_lang_id = vi_lang_row[0] if vi_lang_row else 91
+
     cur.execute("""
         UPDATE website
         SET homepage_url = '/',
-            domain = 'https://innokafe.insilos.com',
-            name = 'InnoKafe Specialty Coffee'
+            domain = 'https://innokafe.com',
+            name = 'InnoKafe Specialty Coffee',
+            default_lang_id = %s,
+            custom_code_head = NULL
         WHERE id = 1
-    """)
+    """, (vi_lang_id,))
+
     cur.execute("""
         UPDATE res_company
         SET name = 'InnoKafe Specialty Coffee & Roastery',
-            email = 'hello@innokafe.insilos.com',
+            email = 'hello@innokafe.com',
             phone = '+84 28 7300 6688'
         WHERE id = 1
     """)
-    print("[✓] Configured website 1 and res_company 1 with InnoKafe brand profile")
+
+    # Enforce single language vi_VN for Website 1 (eliminates /en/en and disables multilingual router)
+    cur.execute("DELETE FROM website_lang_rel WHERE website_id = 1")
+    cur.execute("INSERT INTO website_lang_rel (website_id, lang_id) VALUES (1, %s)", (vi_lang_id,))
+    print(f"[✓] Configured website 1 (https://innokafe.com, default_lang vi_VN={vi_lang_id}) and cleaned custom_code_head")
+
+    # 8b. Add 301 Permanent Redirects for legacy /en and /en/en routes to root routes
+    legacy_redirects = [
+        ('/en', '/'),
+        ('/en/', '/'),
+        ('/en/en', '/'),
+        ('/en/story', '/story'),
+        ('/en/products', '/products'),
+        ('/en/taste-profiler', '/taste-profiler'),
+        ('/en/solutions-b2b', '/solutions-b2b'),
+        ('/en/contactus', '/contactus'),
+    ]
+    for url_from, url_to in legacy_redirects:
+        cur.execute("SELECT id FROM website_rewrite WHERE website_id = 1 AND url_from = %s", (url_from,))
+        rw_row = cur.fetchone()
+        if rw_row:
+            cur.execute("""
+                UPDATE website_rewrite
+                SET url_to = %s, redirect_type = '301', active = true, write_date = NOW()
+                WHERE id = %s
+            """, (url_to, rw_row[0]))
+        else:
+            cur.execute("""
+                INSERT INTO website_rewrite (name, website_id, url_from, url_to, redirect_type, active, sequence, create_uid, write_uid, create_date, write_date)
+                VALUES (%s, 1, %s, %s, '301', true, 10, 1, 1, NOW(), NOW())
+            """, (f"Redirect {url_from} to {url_to}", url_from, url_to))
+    print(f"[✓] Synced {len(legacy_redirects)} legacy /en routes 301 redirects in website_rewrite")
 
     # 9. Synchronize website.page records
     pages_to_sync = [
@@ -438,8 +478,8 @@ def sync_database(host, port, user, password, dbname):
         if not v_row:
             continue
         v_id = v_row[0]
-        title_dict = {"en_US": p_title, "vi_VN": p_title}
-        url_dict = {"en_US": p_url}
+        title_dict = {"vi_VN": p_title, "en_US": p_title}
+        url_dict = {"vi_VN": p_url, "en_US": p_url}
         cur.execute("""
             UPDATE website_page
             SET view_id = %s, name = %s::jsonb, is_published = true, write_date = NOW()
