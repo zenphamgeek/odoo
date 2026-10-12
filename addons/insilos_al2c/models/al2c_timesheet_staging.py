@@ -12,6 +12,7 @@ import logging
 from datetime import datetime, date, timedelta
 
 import weakref
+import threading
 from collections.abc import Mapping
 
 import psycopg2
@@ -23,6 +24,8 @@ from odoo.exceptions import UserError, ValidationError
 _logger = logging.getLogger(__name__)
 
 _CURSOR_DUPLICATE_REGISTRY = weakref.WeakKeyDictionary()
+_CURSOR_REGISTRY_LOCK = threading.Lock()
+_CURSOR_TEARDOWN_REGISTERED = weakref.WeakSet()
 
 
 class _IdempotentDuplicateDescriptor:
@@ -40,11 +43,19 @@ class _IdempotentDuplicateDescriptor:
         if env is not None:
             ctx = getattr(env, 'context', None)
             if ctx is not None and hasattr(ctx, 'get') and ctx.get('al2c_idempotent_duplicate'):
+                _logger.info(
+                    "al2c idempotent-duplicate honored from context on %s(id=%s), uid=%s",
+                    getattr(instance, '_name', '?'),
+                    getattr(instance, 'id', None),
+                    getattr(env, 'uid', None),
+                )
                 return True
             cr = getattr(env, 'cr', None)
             rec_id = getattr(instance, 'id', None)
-            if cr is not None and rec_id and cr in _CURSOR_DUPLICATE_REGISTRY:
-                return rec_id in _CURSOR_DUPLICATE_REGISTRY[cr]
+            if cr is not None and isinstance(rec_id, int):
+                with _CURSOR_REGISTRY_LOCK:
+                    ids = _CURSOR_DUPLICATE_REGISTRY.get(cr)
+                return bool(ids) and rec_id in ids
         return False
 
     def __set__(self, instance, value):
@@ -55,21 +66,32 @@ class _IdempotentDuplicateDescriptor:
         env = getattr(instance, 'env', None)
         rec_id = getattr(instance, 'id', None)
         cr = getattr(env, 'cr', None) if env is not None else None
-        if cr is not None and rec_id:
+        if cr is not None and isinstance(rec_id, int):
             try:
-                if bool(value):
-                    if cr not in _CURSOR_DUPLICATE_REGISTRY:
-                        _CURSOR_DUPLICATE_REGISTRY[cr] = set()
-                        if hasattr(cr, 'postcommit') and hasattr(cr.postcommit, 'add'):
-                            cr.postcommit.add(lambda: _CURSOR_DUPLICATE_REGISTRY.pop(cr, None))
-                        if hasattr(cr, 'prerollback') and hasattr(cr.prerollback, 'add'):
-                            cr.prerollback.add(lambda: _CURSOR_DUPLICATE_REGISTRY.pop(cr, None))
-                    _CURSOR_DUPLICATE_REGISTRY[cr].add(rec_id)
-                else:
-                    if cr in _CURSOR_DUPLICATE_REGISTRY:
-                        _CURSOR_DUPLICATE_REGISTRY[cr].discard(rec_id)
+                with _CURSOR_REGISTRY_LOCK:
+                    if bool(value):
+                        ids = _CURSOR_DUPLICATE_REGISTRY.setdefault(cr, set())
+                        if cr not in _CURSOR_TEARDOWN_REGISTERED:
+                            _CURSOR_TEARDOWN_REGISTERED.add(cr)
+                            _cr = cr
+                            def _cleanup(_cr=_cr):
+                                with _CURSOR_REGISTRY_LOCK:
+                                    _CURSOR_DUPLICATE_REGISTRY.pop(_cr, None)
+                            if hasattr(cr, 'postcommit') and hasattr(cr.postcommit, 'add'):
+                                cr.postcommit.add(_cleanup)
+                            if hasattr(cr, 'prerollback') and hasattr(cr.prerollback, 'add'):
+                                cr.prerollback.add(_cleanup)
+                        ids.add(rec_id)
+                    else:
+                        ids = _CURSOR_DUPLICATE_REGISTRY.get(cr)
+                        if ids is not None:
+                            ids.discard(rec_id)
             except TypeError:
-                pass
+                _logger.warning(
+                    "al2c idempotent-duplicate registry: unhashable cursor/id "
+                    "(cr=%r rec_id=%r); flag kept in instance __dict__ only",
+                    type(cr).__name__, rec_id,
+                )
 
 
 class Al2cTimesheetStaging(models.Model):

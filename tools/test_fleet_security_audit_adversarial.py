@@ -1130,6 +1130,42 @@ def test_timesheet_staging_ambiguity_and_idempotency_guards():
     t_cr1.commit()
     assert t_cr1 not in _CURSOR_DUPLICATE_REGISTRY or len(_CURSOR_DUPLICATE_REGISTRY[t_cr1]) == 0, "Commit must evict cursor duplicate registry"
 
+    # F3 Callback deduplication test: repeated sets must not accumulate callbacks
+    t_cr3 = MockTransCursor()
+    t_env3 = MockTransEnv(cr=t_cr3)
+    rec3_a = MockSlotsRecord(t_env3, 801)
+    rec3_b = MockSlotsRecord(t_env3, 802)
+    rec3_a._is_idempotent_duplicate = True
+    rec3_b._is_idempotent_duplicate = True
+    assert len(t_cr3.postcommit) == 1, f"Teardown callback must be registered exactly once, got {len(t_cr3.postcommit)}"
+
+    # F4 NewId / non-int id guard: NewId instances must not pollute integer cursor registry
+    class MockNewId:
+        def __repr__(self): return '<NewId 0x123>'
+    rec_newid = MockSlotsRecord(t_env3, MockNewId())
+    rec_newid._is_idempotent_duplicate = True
+    assert rec_newid._is_idempotent_duplicate is False, "Non-integer NewId must not match cursor registry"
+
+    # F2 Multi-threaded concurrency test under threading lock
+    import threading
+    concurrency_errors = []
+    def _worker(thread_idx):
+        try:
+            th_cr = MockTransCursor()
+            th_env = MockTransEnv(cr=th_cr)
+            for item_idx in range(50):
+                r = MockSlotsRecord(th_env, thread_idx * 1000 + item_idx)
+                r._is_idempotent_duplicate = True
+                assert r._is_idempotent_duplicate is True
+            th_cr.commit()
+        except Exception as exc:
+            concurrency_errors.append(exc)
+
+    threads = [threading.Thread(target=_worker, args=(i,)) for i in range(10)]
+    for th in threads: th.start()
+    for th in threads: th.join()
+    assert not concurrency_errors, f"Thread-safety violation in registry: {concurrency_errors}"
+
     # Context fallback test with frozendict / dict
     ctx_env = MockTransEnv(context={'al2c_idempotent_duplicate': True})
     rec_ctx = MockSlotsRecord(ctx_env, 777)
