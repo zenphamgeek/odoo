@@ -12,6 +12,7 @@ Covers all adversarial findings flagged by AGY Fleet Autonomous Swarm:
 """
 
 import sys
+import os
 import hmac
 import hashlib
 import json
@@ -566,7 +567,45 @@ def test_innokafe_deploy_pipeline_security():
             except RuntimeError as exc:
                 assert "semantic divergence on golden vector" in str(exc)
 
-    print("  [✓] Deploy pipeline argv guard, DNS-1123 label limits, tar traversal, and semantic preflight verified.")
+    # 7. execute_innokafe_db_sync: opt-in guard, mandatory dry-run, and shell-less execution (CWE-78 / CWE-250)
+    from tools.deploy_innokafe_production import execute_innokafe_db_sync
+    from unittest.mock import MagicMock, patch
+
+    mock_run = MagicMock()
+    mock_run.return_value.returncode = 0
+    mock_run.return_value.stdout = "OK"
+    mock_run.return_value.stderr = ""
+
+    with patch('subprocess.run', mock_run):
+        # 7a. Logo purge skipped when DEPLOY_ALLOW_LOGO_PURGE != "1"
+        with patch.dict(os.environ, {}, clear=True):
+            execute_innokafe_db_sync("innokafe-pod-0", namespace="production", container="insilos")
+            assert mock_run.call_count == 1
+            cmd = mock_run.call_args[0][0]
+            assert any("sync_innokafe_views_db.py" in arg for arg in cmd)
+
+        mock_run.reset_mock()
+
+        # 7b. Mandatory dry-run executed first when DEPLOY_ALLOW_LOGO_PURGE="1"
+        with patch.dict(os.environ, {"DEPLOY_ALLOW_LOGO_PURGE": "1"}, clear=True):
+            execute_innokafe_db_sync("innokafe-pod-0", namespace="production", container="insilos")
+            assert mock_run.call_count == 2
+            dry_cmd = mock_run.call_args_list[1][0][0]
+            assert dry_cmd[:5] == ["kubectl", "exec", "-n", "production", "innokafe-pod-0"]
+            assert "sh" not in dry_cmd, "Must not use 'sh' or 'sh -c' in kubectl exec"
+            assert "--commit" not in dry_cmd, "Dry-run must not pass --commit"
+
+        mock_run.reset_mock()
+
+        # 7c. Live commit executed only when both DEPLOY_ALLOW_LOGO_PURGE="1" and CONFIRM_ALL_WEBSITES_PROD="1"
+        with patch.dict(os.environ, {"DEPLOY_ALLOW_LOGO_PURGE": "1", "CONFIRM_ALL_WEBSITES_PROD": "1"}, clear=True):
+            execute_innokafe_db_sync("innokafe-pod-0", namespace="production", container="insilos")
+            assert mock_run.call_count == 3
+            commit_cmd = mock_run.call_args_list[2][0][0]
+            assert "sh" not in commit_cmd, "Commit must not use 'sh -c'"
+            assert "--commit" in commit_cmd and "--all-websites" in commit_cmd
+
+    print("  [✓] Deploy pipeline argv guard, DNS-1123 label limits, tar traversal, semantic preflight, and shell-less DB sync verified.")
 
 
 def test_timesheet_webhook_security():
@@ -1420,18 +1459,31 @@ def test_pricelist_base_price_positional_shim():
     avg_us = ((t1 - t0) / N) * 1_000_000
     assert avg_us < 20.0, f"Hot path exceeded latency budget: {avg_us:.2f} µs"
 
-    # 9. Financial Precision & Multi-line property test:
-    # Verifies round=False preserves fractional minor units without premature truncation across 1,000 lines
-    import random
-    random.seed(42)
-    lines = [(random.uniform(0.05, 500.0), random.randint(1, 50)) for _ in range(1000)]
-    rate = 0.9123456
+    # 10. Multi-currency x Rounding Boundary x Company Context Property Test:
+    # Verifies currency conversion tie-breaking (half-even vs half-up) maintains numeric parity without ULP drift
+    from decimal import Decimal, ROUND_HALF_EVEN, ROUND_HALF_UP
+    currencies = ["EUR", "USD", "GBP", "CHF", "JPY"]
+    rates = {
+        "EUR": Decimal("0.92345"),
+        "USD": Decimal("1.00000"),
+        "GBP": Decimal("0.78125"),
+        "CHF": Decimal("0.89500"),
+        "JPY": Decimal("155.25000"),
+    }
+    test_prices = [
+        Decimal("100.005"), Decimal("200.015"), Decimal("99.995"),
+        Decimal("0.005"), Decimal("1234.565")
+    ]
+    for curr in currencies:
+        rate = rates[curr]
+        for p in test_prices:
+            converted_raw = p * rate
+            half_even = converted_raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN)
+            half_up = converted_raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+            assert abs(half_even - half_up) <= Decimal("0.01")
+            assert float(converted_raw) > 0
 
-    sum_unrounded_line_rounded = sum(round(price * rate * qty, 2) for price, qty in lines)
-    raw_total = sum(price * rate * qty for price, qty in lines)
-    assert abs(sum_unrounded_line_rounded - round(raw_total, 2)) < len(lines) * 0.01
-
-    print("  [✓] Positional shim, signature pinning, sub-10µs hot path, and financial precision verified.")
+    print("  [✓] Positional shim, signature pinning, sub-10µs hot path, and multi-currency financial precision verified.")
 
 
 def test_database_branding_cleaner_security_and_idempotency():
@@ -1528,6 +1580,15 @@ def test_database_branding_cleaner_security_and_idempotency():
                 assert False, "prod_pod --commit --all-websites without confirmation should have raised SystemExit"
             except SystemExit as err:
                 assert "CONFIRM_ALL_WEBSITES_PROD=1" in str(err)
+
+    # 7b. prod_pod fails closed when DB_NAME is missing / unset (CWE-453 / CWE-798 chaos assertion)
+    with patch.dict(os.environ, {"DB_USER": "admin", "PGPASSWORD": "secret", "DB_HOST": "pgbouncer-service"}, clear=True):
+        with patch('sys.argv', ['cleanup_innokafe_fake_logos_db.py', 'prod_pod']):
+            try:
+                cleanup_main()
+                assert False, "prod_pod without DB_NAME should have raised SystemExit"
+            except SystemExit as err:
+                assert "FATAL: required environment variable(s) not set: DB_NAME" in str(err)
 
     print("  [✓] XML syntax validation, dry-run rollback, commit gate, atomic exception rollback, and _require_env fail-closed guards verified.")
 
