@@ -220,17 +220,20 @@ class Al2cTimesheetStaging(models.Model):
                     raw_bytes = bytes(raw_bytes)
                 if not raw_bytes and att.datas:
                     try:
-                        raw_bytes = base64.b64decode(att.datas)
-                    except Exception:
-                        raw_bytes = att.datas if isinstance(att.datas, bytes) else str(att.datas).encode('utf-8')
+                        raw_bytes = base64.b64decode(att.datas, validate=True)
+                    except Exception as exc:
+                        logs.append(_("Failed to decode attachment '%s' base64 payload: %s") % (att.name or 'unknown', exc))
+                        continue
                 if isinstance(raw_bytes, str):
                     raw_bytes = raw_bytes.encode('utf-8')
                 elif raw_bytes is not None and not isinstance(raw_bytes, (bytes, bytearray)):
                     try:
                         raw_bytes = bytes(raw_bytes)
-                    except Exception:
-                        raw_bytes = b''
+                    except Exception as exc:
+                        logs.append(_("Corrupt non-byte attachment payload on '%s': %s") % (att.name or 'unknown', exc))
+                        continue
                 if not raw_bytes:
+                    logs.append(_("Attachment '%s' contains empty payload; skipped.") % (att.name or 'unknown'))
                     continue
 
                 # 2.1 Excel .xlsx (openpyxl) - check extension or PK zip magic

@@ -3,7 +3,7 @@
 
 import unittest
 import inspect
-from odoo.tests.common import TransactionCase, tagged
+from odoo.tests.common import BaseCase, TransactionCase, tagged
 
 
 class DummyPosLoadModel:
@@ -32,7 +32,7 @@ class LegacyPosLoadModel:
 
 
 @tagged('post_install', '-at_install', 'pos', 'pos_invariants')
-class TestPosLoadInvariants(unittest.TestCase):
+class TestPosLoadInvariants(BaseCase):
     """
     Test POS Data Loading Invariants:
     1. Single-Execution & Exception Transparency (CWE-703):

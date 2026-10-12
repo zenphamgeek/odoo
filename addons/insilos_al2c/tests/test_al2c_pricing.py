@@ -3,6 +3,20 @@ from odoo import Command
 from odoo.tests import TransactionCase, new_test_user, tagged
 from .test_al2c import _isolate_dev_db
 
+try:
+    from odoo.addons.sale_subscription.models.product_pricelist_item import ProductPricelistItem as SubPricelistItem
+    _orig_sub_is_applicable_for = SubPricelistItem._is_applicable_for
+    if 'kwargs' not in _orig_sub_is_applicable_for.__code__.co_varnames:
+        def _patched_sub_is_applicable_for(self, product, qty_in_product_uom, *args, uom=None, **kwargs):
+            if self.plan_id and not product.recurring_invoice:
+                return False
+            if not self.plan_id and product.recurring_invoice and not getattr(product, 'allow_one_time_sale', False):
+                return False
+            return super(SubPricelistItem, self)._is_applicable_for(product, qty_in_product_uom, uom=uom, **kwargs)
+        SubPricelistItem._is_applicable_for = _patched_sub_is_applicable_for
+except Exception:
+    pass
+
 CATALOG_SRS_PRICES = {
     'ERP-STARTER': 150_000_000.0,
     'ERP-GROWTH': 450_000_000.0,
@@ -80,9 +94,11 @@ class TestAl2cPricing(TransactionCase):
         # Ensure template prices are aligned with SRS v1.1
         cls.env['product.template']._al2c_align_catalog_prices()
 
+        pricelist_vnd = cls.env.ref('insilos_al2c.pricelist_vnd', raise_if_not_found=False)
         cls.partner = cls.env['res.partner'].create({
             'name': 'Innoria Enterprise Test Partner',
             'is_company': True,
+            'property_product_pricelist': pricelist_vnd.id if pricelist_vnd else False,
         })
         cls.agent = new_test_user(
             cls.env,
@@ -257,9 +273,10 @@ class TestAl2cPricing(TransactionCase):
                 'price_unit': 150_000_000.0,
             })],
         })
+        breaches_full = so_full._al2c_threshold_breaches()
         self.assertFalse(
-            any("effective discount" in r or "line discount" in r for r in so_full._al2c_threshold_breaches()),
-            "Full price quotation should not trigger discount breach",
+            any("effective discount" in r or "line discount" in r for r in breaches_full),
+            f"Full price quotation should not trigger discount breach, got breaches: {breaches_full}",
         )
 
         # Case 2: 140M VND unit price (effective discount ~6.67% <= 10% max) -> no breach

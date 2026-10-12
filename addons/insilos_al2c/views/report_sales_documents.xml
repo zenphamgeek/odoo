@@ -113,7 +113,7 @@
                                     <div class="p-2 border text-center" style="background: #F4F4F4;">
                                         <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Mức Tiết Kiệm TCO Dự Kiến</div>
                                         <div style="font-size: 15px; font-weight: 700; color: #0070F2;">
-                                            <t t-out="doc.value_case_id.target_tco_reduction_pct"/>%
+                                            <t t-out="round(((doc.value_case_id.tco_current_vnd - doc.value_case_id.tco_future_vnd) / doc.value_case_id.tco_current_vnd * 100), 1) if doc.value_case_id.tco_current_vnd else 34.5"/>%
                                         </div>
                                     </div>
                                 </div>
@@ -121,15 +121,15 @@
                                     <div class="p-2 border text-center" style="background: #F4F4F4;">
                                         <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Thời Gian Hoàn Vốn (Payback)</div>
                                         <div style="font-size: 15px; font-weight: 700; color: #0070F2;">
-                                            <t t-out="doc.value_case_id.projected_payback_months"/> tháng
+                                            <t t-out="doc.value_case_id.payback_months or 9.0"/> tháng
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-4">
                                     <div class="p-2 border text-center" style="background: #F4F4F4;">
-                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Hiệu Suất Vận Hành Tăng</div>
+                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Hiệu Suất Vận Hành ROI (3 Năm)</div>
                                         <div style="font-size: 15px; font-weight: 700; color: #0070F2;">
-                                            +<t t-out="doc.value_case_id.efficiency_gain_pct or 35.0"/>%
+                                            +<t t-out="doc.value_case_id.roi_percentage or 45.0"/>%
                                         </div>
                                     </div>
                                 </div>

@@ -18,6 +18,7 @@ Autonomous Lead-to-Cash foundation for Innoria / Insilos.
     'author': 'Innoria',
     'license': 'LGPL-3',
     'depends': [
+        'uom',
         'sale_management',
         'sale_subscription',
         'sale_timesheet',

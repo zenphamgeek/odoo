@@ -9,6 +9,21 @@ if 'kwargs' not in _orig_create_invoices.__code__.co_varnames:
         return _orig_create_invoices(self, final=final, grouped=grouped)
     BaseSaleOrder._create_invoices = _patched_create_invoices
 
+# Defensive hardening: ensure sale_subscription ProductPricelistItem._is_applicable_for accepts uom/kwargs in Odoo 20
+try:
+    from odoo.addons.sale_subscription.models.product_pricelist_item import ProductPricelistItem as SubPricelistItem
+    _orig_sub_is_applicable_for = SubPricelistItem._is_applicable_for
+    if 'kwargs' not in _orig_sub_is_applicable_for.__code__.co_varnames:
+        def _patched_sub_is_applicable_for(self, product, qty_in_product_uom, *args, uom=None, **kwargs):
+            if self.plan_id and not product.recurring_invoice:
+                return False
+            if not self.plan_id and product.recurring_invoice and not getattr(product, 'allow_one_time_sale', False):
+                return False
+            return super(SubPricelistItem, self)._is_applicable_for(product, qty_in_product_uom, uom=uom, **kwargs)
+        SubPricelistItem._is_applicable_for = _patched_sub_is_applicable_for
+except Exception:
+    pass
+
 AGENT_GROUP = 'insilos_al2c.group_al2c_agent'
 APPROVER_GROUP = 'sales_team.group_sale_manager'
 CPQ_AGENT = 'CPQ Agent'
@@ -140,12 +155,20 @@ class SaleOrder(models.Model):
                     disc=round(line.discount, 2), prod=prod_name, max=max_discount))
                 break
                 
-            # Effective discount against base list price
+            # Effective discount against base list price (VND catalog scale per SRS v1.1)
             base_price = line.product_id.list_price if line.product_id else 0.0
-            prod_cur = line.product_id.currency_id or company.currency_id
             order_cur = self.currency_id or company.currency_id
-            if base_price > 0 and prod_cur != order_cur:
-                base_price = prod_cur._convert(base_price, order_cur, company, (self.date_order or fields.Datetime.now()).date())
+            vnd = self.env.ref('base.VND', raise_if_not_found=False)
+            if getattr(line.product_id, 'al2c_product_line', False) or (vnd and base_price >= 100_000):
+                base_cur = vnd or company.currency_id
+            else:
+                base_cur = line.product_id.currency_id or company.currency_id
+
+            if base_price > 0 and base_cur and order_cur and base_cur != order_cur:
+                date = (self.date_order or fields.Datetime.now()).date()
+                base_price = base_cur.with_context(active_test=False)._convert(
+                    base_price, order_cur, company, date, round=False
+                )
             if base_price > 0 and line.price_unit < base_price:
                 eff_disc = (1.0 - (line.price_unit * (1.0 - line.discount / 100.0) / base_price)) * 100.0
                 if eff_disc > max_discount:

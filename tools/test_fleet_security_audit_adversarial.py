@@ -801,6 +801,58 @@ def test_core_integrity_and_pdpd_erasure_tombstone():
     print("  [✓] Zero core patch invariant, report PDF/ACL gating, and Decree 13/2023 Merkle tombstone verified.")
 
 
+def test_uom_financial_precision_and_attachment_guards():
+    print("[TEST UOM & ATTACHMENT INGRESS] UoM Rounding Invariants & Strict Attachment Decoding")
+    import ast
+    from unittest.mock import MagicMock
+    from odoo.exceptions import ValidationError
+
+    # 1. Manifest Dependency Guard: 'uom' must be declared in depends
+    manifest_path = 'addons/insilos_al2c/__manifest__.py'
+    with open(manifest_path, 'r', encoding='utf-8') as f:
+        manifest_data = ast.literal_eval(f.read())
+    assert 'uom' in manifest_data.get('depends', []), "addons/insilos_al2c/__manifest__.py must declare 'uom' in depends!"
+
+    # 2. UoM Rounding Field & Constraint Guard
+    from odoo.addons.insilos_al2c.models.product_template import UomUom
+    rounding_field = getattr(UomUom, 'rounding', None)
+    assert rounding_field is not None, "UomUom must define rounding compatibility shim"
+    assert rounding_field.required is True, "UomUom.rounding must enforce required=True to prevent sub-unit drift"
+
+    # Test constraint logic directly
+    mock_uom = MagicMock(spec=UomUom)
+    mock_uom.__iter__.return_value = [mock_uom]
+    mock_uom.name = "Test Unit"
+
+    # Zero or negative rounding must raise ValidationError
+    for invalid_val in [0.0, -0.01, 0, None, False]:
+        mock_uom.rounding = invalid_val
+        try:
+            UomUom._check_rounding_positive(mock_uom)
+            raise AssertionError(f"Expected ValidationError for invalid rounding {invalid_val}, but none was raised")
+        except ValidationError:
+            pass  # Expected
+
+    # Positive rounding must pass
+    for valid_val in [0.01, 0.001, 1.0, 0.0001]:
+        mock_uom.rounding = valid_val
+        UomUom._check_rounding_positive(mock_uom)
+
+    # 3. Attachment Strict Decoding: verify corrupt base64 is caught and logged, not silently parsed
+    from odoo.addons.insilos_al2c.models.al2c_timesheet_staging import Al2cTimesheetStaging
+    mock_staging = MagicMock(spec=Al2cTimesheetStaging)
+    mock_staging.__iter__.return_value = [mock_staging]
+    mock_staging.employee_id = False
+    mock_staging.sender_email = 'test@enterprise.vn'
+    mock_staging._resolve_consultant.return_value = False
+    mock_staging.attachment_ids = [MagicMock(name='corrupt.xlsx', raw=None, datas='not_valid_b64@@@!!!')]
+    mock_staging.raw_email_body = ''
+    Al2cTimesheetStaging.action_parse_content(mock_staging)
+    assert 'Failed to decode attachment' in mock_staging.parse_log
+
+    print("  [✓] UoM manifest dependency, required=True constraint, and strict attachment decoding verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -820,8 +872,9 @@ def main():
     test_innokafe_deploy_pipeline_security()
     test_timesheet_webhook_security()
     test_core_integrity_and_pdpd_erasure_tombstone()
+    test_uom_financial_precision_and_attachment_guards()
     print("=" * 80)
-    print("ALL 15 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 16 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 

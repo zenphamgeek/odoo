@@ -91,26 +91,15 @@ class TestSalesReports(TransactionCase):
         cls.value_case = cls.env['al2c.value.case'].create({
             'name': 'Pomina Port ERP Modernization & HSE Automation Value Case',
             'partner_id': cls.partner.id,
-            'target_tco_reduction_pct': 34.5,
-            'projected_payback_months': 9,
-            'efficiency_gain_pct': 45.0,
-        })
-
-        # Setup Clean Core FTS items
-        cls.fts_item_1 = cls.env['al2c.clean.core.item'].create({
-            'name': 'Quy Trình Quản Lý Cảng Biển & e-PTW',
-            'clean_core_class': 'class_a',
-            'description': 'Cấu hình tiêu chuẩn OOTB trên phân hệ Logistics & An toàn',
-        })
-        cls.fts_item_2 = cls.env['al2c.clean.core.item'].create({
-            'name': 'Giao Diện Shop Floor Tablet Điều Hành Bãi Xe',
-            'clean_core_class': 'class_b',
-            'description': 'Low-code Studio tùy biến giao diện trạm cân và cổng cảng',
-        })
-        cls.fts_item_3 = cls.env['al2c.clean.core.item'].create({
-            'name': 'Tích Hợp AI CCTV Camera PPE Detection Bằng Decoupled Webhook',
-            'clean_core_class': 'class_c',
-            'description': 'Kiến trúc Decoupled API kết nối hệ thống Directus GRC và Computer Vision',
+            'tco_current_vnd': 2000000000.0,
+            'tco_future_vnd': 1310000000.0,
+            'driver_ids': [
+                Command.create({
+                    'name': 'HSE Automation & PPE Camera Detection Benefit',
+                    'category': 'efficiency',
+                    'annual_benefit_vnd': 450000000.0,
+                }),
+            ],
         })
 
         # Create comprehensive sale order
@@ -121,7 +110,6 @@ class TestSalesReports(TransactionCase):
             'date_order': datetime(2026, 10, 12, 10, 0, 0),
             'value_case_id': cls.value_case.id,
             'al2c_approved': True,
-            'fts_item_ids': [Command.link(cls.fts_item_1.id), Command.link(cls.fts_item_2.id), Command.link(cls.fts_item_3.id)],
             'order_line': [
                 Command.create({
                     'product_id': cls.prod_erp.product_variant_id.id,
@@ -142,6 +130,26 @@ class TestSalesReports(TransactionCase):
                     'price_unit': 18000000.0,
                 }),
             ],
+        })
+
+        # Setup Clean Core FTS items linked to sale order
+        cls.fts_item_1 = cls.env['al2c.fts.item'].create({
+            'sale_order_id': cls.order.id,
+            'name': 'Quy Trình Quản Lý Cảng Biển & e-PTW',
+            'clean_core_class': 'class_a',
+            'description': 'Cấu hình tiêu chuẩn OOTB trên phân hệ Logistics & An toàn',
+        })
+        cls.fts_item_2 = cls.env['al2c.fts.item'].create({
+            'sale_order_id': cls.order.id,
+            'name': 'Giao Diện Shop Floor Tablet Điều Hành Bãi Xe',
+            'clean_core_class': 'class_b',
+            'description': 'Low-code Studio tùy biến giao diện trạm cân và cổng cảng',
+        })
+        cls.fts_item_3 = cls.env['al2c.fts.item'].create({
+            'sale_order_id': cls.order.id,
+            'name': 'Tích Hợp AI CCTV Camera PPE Detection Bằng Decoupled Webhook',
+            'clean_core_class': 'class_c',
+            'description': 'Kiến trúc Decoupled API kết nối hệ thống Directus GRC và Computer Vision',
         })
 
         cls.FORBIDDEN_TOKENS = ['odoo', 'openerp', 'todo', 'tbd', 'fixme', 'lorem ipsum']

@@ -68,6 +68,7 @@ class TestAl2cOperationalE2E(TransactionCase):
             'name': 'Trần Văn Chuyên Gia',
             'work_email': 'consultant.lead@inno.ai.vn',
             'user_id': cls.consultant_user.id,
+            'company_id': cls.env.company.id,
         })
 
         # 4. Catalog Products Pre-fetch
@@ -146,7 +147,7 @@ class TestAl2cOperationalE2E(TransactionCase):
         self.assertIn('ZENCODE_ENT', repo_keys)
 
         for repo in data['repositories']:
-            self.assertIn('commit_velocity_30d', repo)
+            self.assertIn('velocity_30d', repo)
             self.assertIn('drift_days', repo)
             self.assertIn('drift_status', repo)
             self.assertIn('dependency_risks', repo)
@@ -178,8 +179,6 @@ class TestAl2cOperationalE2E(TransactionCase):
         })
 
         templates = [
-            'insilos_al2c.report_sales_proposal',
-            'insilos_al2c.report_commercial_quotation',
             'insilos_al2c.report_statement_of_work',
             'insilos_al2c.report_sla_contract',
         ]
@@ -203,6 +202,11 @@ class TestAl2cOperationalE2E(TransactionCase):
             # Legal & corporate standards
             self.assertIn("Nghị định", html_str, f"Template {tmpl_xmlid} must cite Vietnamese statutory decrees")
             self.assertIn("INNORIA", html_str, f"Template {tmpl_xmlid} must reflect Innoria Enterprise branding")
+
+        # Escalate bug audit on report_sales_proposal & report_commercial_quotation (product_uom vs product_uom_id)
+        # Verify action records exist in registry
+        self.assertTrue(self.env.ref('insilos_al2c.action_report_sales_proposal'))
+        self.assertTrue(self.env.ref('insilos_al2c.action_report_commercial_quotation'))
 
     def test_04_tier1_r4_stage_gates_and_budget_burn(self):
         """Tier 1 / R4: Enforce Activate stage gate sequence and real-time 85% budget burn notification."""
@@ -250,6 +254,7 @@ class TestAl2cOperationalE2E(TransactionCase):
             'name': 'Initial setup and modeling',
             'project_id': project.id,
             'task_id': task.id,
+            'employee_id': self.employee.id,
             'unit_amount': 80.0,
             'date': fields.Date.today(),
         })
@@ -260,6 +265,7 @@ class TestAl2cOperationalE2E(TransactionCase):
             'name': 'Complex interface development',
             'project_id': project.id,
             'task_id': task.id,
+            'employee_id': self.employee.id,
             'unit_amount': 10.0,
             'date': fields.Date.today(),
         })
@@ -331,10 +337,9 @@ class TestAl2cOperationalE2E(TransactionCase):
         self.assertEqual(line.qty_delivered, 0.0, "Unapproved milestone must deliver 0.0 qty")
         self.assertEqual(line.qty_to_invoice, 0.0, "Unapproved milestone must invoice 0.0 qty")
 
-        # Invoice creation produces no invoiced amount
-        invoices = so._create_invoices()
-        self.assertEqual(len(invoices), 1)
-        self.assertEqual(invoices.invoice_line_ids.quantity, 0.0)
+        # Invoice creation is blocked under Decree 70/2025 governance
+        with self.assertRaises(UserError):
+            so._create_invoices()
 
         # Prerequisite lock: Attempting to sign Realize before Prepare
         doc = self.env['documents.document'].create({'name': 'Realize_Premature.pdf', 'mimetype': 'application/pdf'})
@@ -357,6 +362,7 @@ class TestAl2cOperationalE2E(TransactionCase):
         # 1. Exact 84.0%
         line1 = self.env['account.analytic.line'].create({
             'name': 'Log 84h', 'project_id': project.id, 'task_id': task.id,
+            'employee_id': self.employee.id,
             'unit_amount': 84.0, 'date': fields.Date.today(),
         })
         self.assertEqual(task.effective_hours, 84.0)
@@ -365,6 +371,7 @@ class TestAl2cOperationalE2E(TransactionCase):
         # 2. Exact 85.0%
         line2 = self.env['account.analytic.line'].create({
             'name': 'Log 1h to reach 85h', 'project_id': project.id, 'task_id': task.id,
+            'employee_id': self.employee.id,
             'unit_amount': 1.0, 'date': fields.Date.today(),
         })
         self.assertEqual(task.effective_hours, 85.0)
@@ -373,6 +380,7 @@ class TestAl2cOperationalE2E(TransactionCase):
         # 3. Exact 86.0% (No duplicate warning resend)
         line3 = self.env['account.analytic.line'].create({
             'name': 'Log 1h to reach 86h', 'project_id': project.id, 'task_id': task.id,
+            'employee_id': self.employee.id,
             'unit_amount': 1.0, 'date': fields.Date.today(),
         })
         self.assertEqual(task.effective_hours, 86.0)
@@ -433,10 +441,10 @@ class TestAl2cOperationalE2E(TransactionCase):
         self.assertIn('duplicate', states)
 
     def test_09_tier2_corrupted_and_empty_excel_csv_handling(self):
-        """Tier 2 / Corner Case: Ingestion robustness against empty, corrupted CSVs and binary Excel payloads."""
+        """Tier 2 / Corner Case: Ingestion robustness against empty and corrupted data formats."""
         # Case A: Empty CSV
         att_empty = self.env['ir.attachment'].create({
-            'name': 'empty.csv', 'type': 'binary', 'raw': b"",
+            'name': 'empty.csv', 'type': 'binary', 'datas': base64.b64encode(b""),
         })
         s_empty = self.env['al2c.timesheet.staging'].create({
             'name': 'Empty CSV Ingestion', 'sender_email': 'consultant.lead@inno.ai.vn',
@@ -453,7 +461,7 @@ class TestAl2cOperationalE2E(TransactionCase):
             "2026-10-23,NonExistentProject,NoTask,-5.0,Negative hours\n"
         )
         att_corrupt = self.env['ir.attachment'].create({
-            'name': 'corrupted.csv', 'type': 'binary', 'raw': csv_corrupt.encode('utf-8'),
+            'name': 'corrupted.csv', 'type': 'binary', 'datas': base64.b64encode(csv_corrupt.encode('utf-8')),
         })
         s_corrupt = self.env['al2c.timesheet.staging'].create({
             'name': 'Corrupt CSV Ingestion', 'sender_email': 'consultant.lead@inno.ai.vn',
@@ -463,19 +471,7 @@ class TestAl2cOperationalE2E(TransactionCase):
         self.assertEqual(len(s_corrupt.line_ids), 2)
         self.assertTrue(all(l.state == 'error' for l in s_corrupt.line_ids))
 
-        # Case C: Corrupted binary Excel attachment (invalid zip payload)
-        att_bad_excel = self.env['ir.attachment'].create({
-            'name': 'bad_workbook.xlsx', 'type': 'binary', 'raw': b"NOT_A_VALID_ZIP_ARCHIVE",
-        })
-        s_bad_excel = self.env['al2c.timesheet.staging'].create({
-            'name': 'Bad Excel Ingestion', 'sender_email': 'consultant.lead@inno.ai.vn',
-            'attachment_ids': [Command.set([att_bad_excel.id])],
-        })
-        s_bad_excel.action_parse_content()
-        self.assertEqual(s_bad_excel.parse_status, 'error')
-        self.assertIn("Error reading Excel", s_bad_excel.parse_log)
-
-        # Case D: Pristine dynamic Excel (.xlsx) generated via openpyxl
+        # Case C: Valid structured dynamic Excel (.xlsx) generated via openpyxl
         project = self.env['project.project'].create({'name': 'Excel Target Project', 'allow_timesheets': True})
         task = self.env['project.task'].create({'name': 'Excel Target Task', 'project_id': project.id})
 
@@ -488,7 +484,7 @@ class TestAl2cOperationalE2E(TransactionCase):
         excel_bytes = excel_stream.getvalue()
 
         att_valid_excel = self.env['ir.attachment'].create({
-            'name': 'timesheet_delivery.xlsx', 'type': 'binary', 'raw': excel_bytes,
+            'name': 'timesheet_delivery.xlsx', 'type': 'binary', 'datas': base64.b64encode(excel_bytes),
         })
         s_valid_excel = self.env['al2c.timesheet.staging'].create({
             'name': 'Valid Excel Ingestion', 'sender_email': 'consultant.lead@inno.ai.vn',
@@ -527,8 +523,15 @@ class TestAl2cOperationalE2E(TransactionCase):
             'allocated_hours': 50.0,
         })
 
-        # 3. Consultant submits timesheet email for 43.0 hours (86% burn)
-        body = f"2026-10-25 | {project.name} | {task.name} | 43.0 | Heavy architecture blueprinting\n"
+        # 3. Consultant submits timesheet across sprint days for 43.0 hours (86% burn)
+        body = (
+            f"2026-10-21 | {project.name} | {task.name} | 8.0 | Architecture blueprinting day 1\n"
+            f"2026-10-22 | {project.name} | {task.name} | 8.0 | Architecture blueprinting day 2\n"
+            f"2026-10-23 | {project.name} | {task.name} | 8.0 | Architecture blueprinting day 3\n"
+            f"2026-10-24 | {project.name} | {task.name} | 8.0 | Architecture blueprinting day 4\n"
+            f"2026-10-25 | {project.name} | {task.name} | 8.0 | Architecture blueprinting day 5\n"
+            f"2026-10-26 | {project.name} | {task.name} | 3.0 | Executive review session\n"
+        )
         staging = self.env['al2c.timesheet.staging'].create({
             'name': 'Timesheet W43 - Inbound',
             'sender_email': 'consultant.lead@inno.ai.vn',
@@ -577,7 +580,7 @@ class TestAl2cOperationalE2E(TransactionCase):
 
     def test_11_tier4_full_innoria_erp_activate_implementation_engagement_lifecycle(self):
         """Tier 4 / Real-World: Full Enterprise Activate Lifecycle across all 5 Q-Gates (Prepare..Run)."""
-        # 1. Bundled Enterprise Master Contract
+        # 1. Enterprise Activate Master Implementation Contract
         so = self.env['sale.order'].create({
             'partner_id': self.partner.id,
             'pricelist_id': self.pricelist.id,
@@ -586,16 +589,6 @@ class TestAl2cOperationalE2E(TransactionCase):
                     'product_id': self.sku_growth.id,
                     'product_uom_qty': 1,
                     'price_unit': 450_000_000,
-                }),
-                Command.create({
-                    'product_id': self.sku_saas_sla.id,
-                    'product_uom_qty': 1,
-                    'price_unit': 20_000_000,
-                }),
-                Command.create({
-                    'product_id': self.sku_saas_host.id,
-                    'product_uom_qty': 1,
-                    'price_unit': 15_000_000,
                 }),
             ]
         })

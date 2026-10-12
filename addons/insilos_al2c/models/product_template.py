@@ -1,4 +1,5 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
+from odoo.exceptions import ValidationError
 
 
 class ProductTemplate(models.Model):
@@ -59,7 +60,7 @@ class ProductTemplate(models.Model):
 
     @api.model
     def _al2c_align_catalog_prices(self):
-        """Align product.template.list_price with VND catalog fixed prices per SRS v1.1 Section 5.1."""
+        """Align product.template.list_price and product.pricelist.item with VND catalog fixed prices per SRS v1.1 Section 5.1."""
         catalog_prices = {
             'ERP-STARTER': 150_000_000.0,
             'ERP-GROWTH': 450_000_000.0,
@@ -83,13 +84,42 @@ class ProductTemplate(models.Model):
             'TRAINING-DAY': 15_000_000.0,
             'CONSULT-HOUR': 1_200_000.0,
         }
+        pricelist_vnd = self.env.ref('insilos_al2c.pricelist_vnd', raise_if_not_found=False)
+        PricelistItem = self.env['product.pricelist.item'].sudo()
+        IMD = self.env['ir.model.data'].sudo()
         for sku, price in catalog_prices.items():
             tmpl = self.search([('default_code', '=', sku)], limit=1)
             if tmpl:
                 tmpl.sudo().write({'list_price': price})
                 if tmpl.product_variant_id:
                     tmpl.product_variant_id.sudo().write({'lst_price': price})
+                domain = [('product_tmpl_id', '=', tmpl.id)]
+                if pricelist_vnd:
+                    domain.append(('pricelist_id', '=', pricelist_vnd.id))
+                items = PricelistItem.search(domain)
+                if items:
+                    items.write({'fixed_price': price})
+
+        # Ensure noupdate=False on pricelist items in ir_model_data so XML upgrades stay in sync
+        imd_records = IMD.search([('module', '=', 'insilos_al2c'), ('model', '=', 'product.pricelist.item')])
+        if imd_records:
+            imd_records.write({'noupdate': False})
         return True
+
+
+class UomUom(models.Model):
+    _inherit = 'uom.uom'
+
+    rounding = fields.Float(
+        'Rounding Precision', default=0.01, digits=0, required=True,
+        help="Compatibility shim for sale_subscription precision rounding."
+    )
+
+    @api.constrains('rounding')
+    def _check_rounding_positive(self):
+        for u in self:
+            if hasattr(u, 'rounding') and (not u.rounding or u.rounding <= 0):
+                raise ValidationError(_("UoM '%s' rounding precision must be strictly greater than 0.") % (u.name or ''))
 
 
 from odoo import tools
