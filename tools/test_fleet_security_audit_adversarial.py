@@ -1640,7 +1640,32 @@ def test_database_branding_cleaner_security_and_idempotency():
             except SystemExit as err:
                 assert "FATAL: required environment variable(s) not set: DB_NAME" in str(err)
 
-    print("  [✓] XML syntax validation, dry-run rollback, commit gate, atomic exception rollback, and _require_env fail-closed guards verified.")
+    # 7c. local target fails closed when DB_HOST is non-loopback and ALLOW_REMOTE_LOCAL is unset (topology leak / blast radius guard)
+    with patch.dict(os.environ, {"DB_HOST": "10.0.0.5", "PGPASSWORD": "secret"}, clear=True):
+        with patch('sys.argv', ['cleanup_innokafe_fake_logos_db.py', 'local']):
+            try:
+                cleanup_main()
+                assert False, "local target with remote host should have raised SystemExit"
+            except SystemExit as err:
+                assert "refusing: --target local with non-loopback DB_HOST" in str(err)
+
+    # 8. AST Static Analysis on Database Queries: Zero String Interpolation in SQL (CWE-89 parameterization proof)
+    import ast
+    with open('tools/cleanup_innokafe_fake_logos_db.py', 'r') as f:
+        tree = ast.parse(f.read(), filename='tools/cleanup_innokafe_fake_logos_db.py')
+
+    execute_calls = [
+        node for node in ast.walk(tree)
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr == 'execute'
+    ]
+    assert len(execute_calls) >= 15, f"Expected at least 15 cur.execute calls, found {len(execute_calls)}"
+    for call in execute_calls:
+        sql_arg = call.args[0]
+        assert isinstance(sql_arg, ast.Constant) and isinstance(sql_arg.value, str), (
+            f"Line {call.lineno}: Non-constant SQL statement detected (potential CWE-89 injection): {ast.dump(sql_arg)}"
+        )
+
+    print("  [✓] XML syntax validation, dry-run rollback, commit gate, atomic exception rollback, _require_env fail-closed, and AST SQL parameterization verified.")
 
 
 def test_ast_secret_evasion_linter():
@@ -1726,14 +1751,16 @@ def test_ast_secret_evasion_linter():
 
 
 def test_namespace_alias_contract():
-    print("[TEST NAMESPACE ALIAS CANARY] Upstream/Fork Model Identity & Fail-Closed Resolver")
+    print("[TEST NAMESPACE ALIAS CANARY] Upstream/Fork Model Identity, Fail-Closed Resolver & Differential Oracle")
     from tools.tests.test_namespace_alias_contract import (
         test_pricelist_model_identity,
         test_fail_closed_resolver_contract,
+        test_differential_pricing_oracle,
     )
     test_pricelist_model_identity()
     test_fail_closed_resolver_contract()
-    print("  [✓] Model identity and fail-closed resolver contract verified.")
+    test_differential_pricing_oracle()
+    print("  [✓] Model identity, fail-closed resolver contract, and differential pricing oracle verified.")
 
 
 def main():

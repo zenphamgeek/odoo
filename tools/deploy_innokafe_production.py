@@ -402,6 +402,10 @@ def _preflight_pricelist_shim(pricelist_tool: str) -> None:
             computed = ProductPricelistItem._compute_base_price(
                 item, product, 1.0, mock_uom, *args, **kwargs
             )
+            if c_usd.last_convert_call is None:
+                raise RuntimeError(
+                    f"_convert never invoked for {target_curr.name}; shim bypassed currency conversion"
+                )
             if c_usd.last_convert_call != (100.0, target_curr, exp_date, False):
                 raise RuntimeError(
                     f"Conversion argument contract mismatch: got {c_usd.last_convert_call}, "
@@ -414,6 +418,19 @@ def _preflight_pricelist_shim(pricelist_tool: str) -> None:
                 f"Refusing deploy: pricelist shim semantic divergence on golden vector: "
                 f"args={args}, kwargs={kwargs}: {exc}"
             ) from exc
+
+    # Boundary conditions: extreme magnitude (1e12 VND) and sub-cent precision (0.01 EUR)
+    p_large = _ConcreteProduct(43, 1e12, c_usd)
+    c_usd.last_convert_call = None
+    res_large = ProductPricelistItem._compute_base_price(item, p_large, 1.0, mock_uom, '2026-10-15', currency=c_vnd)
+    if abs(res_large - 2.5e16) > 1e-3 or c_usd.last_convert_call != (1e12, c_vnd, '2026-10-15', False):
+        raise RuntimeError(f"Extreme magnitude precision failure: got {res_large}")
+
+    p_small = _ConcreteProduct(44, 0.01, c_usd)
+    c_usd.last_convert_call = None
+    res_small = ProductPricelistItem._compute_base_price(item, p_small, 1.0, mock_uom, '2026-10-16', currency=c_eur)
+    if abs(res_small - 0.0092) > 1e-9 or c_usd.last_convert_call != (0.01, c_eur, '2026-10-16', False):
+        raise RuntimeError(f"Sub-cent precision failure: got {res_small}")
 
     try:
         ProductPricelistItem._compute_base_price(

@@ -274,6 +274,7 @@ def _require_env(*names: str) -> str:
 def main():
     parser = argparse.ArgumentParser(description="Zero-DDL Database Clean-up for InnoKafe Vector Logo Branding.")
     parser.add_argument("target", choices=["local", "prod_pod"], nargs="?", default="local", help="Target environment (default: local)")
+    parser.add_argument("-v", "--verbose", action="store_true", default=False, help="Enable verbose diagnostic output")
     parser.add_argument("--commit", action="store_true", default=False, help="Persist changes to database (default: dry-run with rollback)")
     parser.add_argument("--all-websites", action="store_true", default=False, help="Overwrite all website COW copies of brand logo view (default: single tenant view)")
     args = parser.parse_args()
@@ -285,7 +286,12 @@ def main():
         user = os.environ.get("DB_USER", "insilos")  # dev-local default role; not a credential
         password = _require_env("PGPASSWORD", "DB_PASSWORD")
         dbname = os.environ.get("DB_NAME", "innokafe_prod")
-        print(f"[cleanup] connecting as role={user!r} db={dbname!r} host={host}:{port}")
+        if args.verbose:
+            print(f"[cleanup] connecting as role={user!r} db={dbname!r} host={host}:{port}")
+
+        # Defense-in-depth: guard against pointing a "local" run at remote prod coordinates without explicit override
+        if host not in ("127.0.0.1", "localhost", "::1") and not os.environ.get("ALLOW_REMOTE_LOCAL"):
+            sys.exit("FATAL: refusing: --target local with non-loopback DB_HOST (set ALLOW_REMOTE_LOCAL=1 to override)")
     else:  # prod_pod
         host = os.environ.get("DB_HOST", "pgbouncer-service")
         port = int(os.environ.get("DB_PORT", 6432))
