@@ -164,6 +164,64 @@ async function run() {
     assert(!drawerFakeText, 'Slide-over Cart Drawer has exactly 0 fake text logos');
 
     await mobileContext.close();
+
+    // =====================================================================
+    // 3. BOUNDARY VIEWPORT STRESS & ZERO HORIZONTAL OVERFLOW
+    // =====================================================================
+    console.log('\n[STAGE 3] Multi-Viewport Boundary Stress & Zero Horizontal Overflow');
+    const STRESS_VIEWPORTS = [
+      { name: 'Desktop Widescreen', width: 1920, height: 1080 },
+      { name: 'Desktop Standard', width: 1440, height: 900 },
+      { name: 'Tablet Portrait', width: 768, height: 1024 },
+      { name: 'Mobile Standard', width: 375, height: 812 },
+      { name: 'Minimum Boundary Mobile', width: 320, height: 568 }
+    ];
+
+    for (const vp of STRESS_VIEWPORTS) {
+      console.log(`\n--- Auditing Boundary Viewport: ${vp.name} (${vp.width}x${vp.height}) ---`);
+      const ctx = await browser.newContext({
+        viewport: { width: vp.width, height: vp.height },
+        isMobile: vp.width < 768,
+        userAgent: vp.width < 768
+          ? 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148'
+          : 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
+      });
+      const p = await ctx.newPage();
+      await safeNavigate(p, `${TARGET_URL}/`);
+      await p.waitForTimeout(300);
+
+      // 3.1 Zero Horizontal Overflow Invariant (scrollWidth <= clientWidth)
+      const overflow = await p.evaluate(() => {
+        return Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      });
+      assert(
+        overflow === 0,
+        `Zero horizontal overflow on ${vp.name} (Overflow: ${overflow}px, Expected: 0px)`
+      );
+
+      // 3.2 Navbar Logo Bounding Box Validity (inspecting active/visible navbar brand logo)
+      const logoBox = await p.$$eval('.navbar-brand img', imgs => {
+        for (const el of imgs) {
+          const r = el.getBoundingClientRect();
+          if (r.width > 0 && r.height > 0) {
+            return {
+              width: Math.round(r.width),
+              height: Math.round(r.height),
+              visible: true,
+              src: el.src
+            };
+          }
+        }
+        return { width: 0, height: 0, visible: false, src: '' };
+      }).catch(() => ({ width: 0, height: 0, visible: false, src: '' }));
+
+      assert(
+        logoBox.visible && logoBox.width >= 40 && logoBox.height <= 55 && logoBox.src.includes('innokafe_logo_master.svg'),
+        `Active navbar vector logo valid on ${vp.name} (w: ${logoBox.width}px, h: ${logoBox.height}px, max-h: 55px)`
+      );
+
+      await ctx.close();
+    }
   } finally {
     await browser.close();
   }
