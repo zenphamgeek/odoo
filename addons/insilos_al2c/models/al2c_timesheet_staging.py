@@ -20,6 +20,28 @@ from odoo.exceptions import UserError, ValidationError
 _logger = logging.getLogger(__name__)
 
 
+class _IdempotentDuplicateDescriptor:
+    """Descriptor that defaults to False on class level, reflects context on records,
+    and preserves assigned attribute values without triggering read-only slot errors."""
+    def __init__(self):
+        self._values = {}
+
+    def __get__(self, instance, owner=None):
+        if instance is None:
+            return False
+        inst_id = id(instance)
+        if inst_id in self._values:
+            return self._values[inst_id]
+        env = getattr(instance, 'env', None)
+        if env and hasattr(env, 'context') and isinstance(env.context, dict):
+            return bool(env.context.get('al2c_idempotent_duplicate', False))
+        return False
+
+    def __set__(self, instance, value):
+        if instance is not None:
+            self._values[id(instance)] = bool(value)
+
+
 class Al2cTimesheetStaging(models.Model):
     _name = 'al2c.timesheet.staging'
     _description = 'AL2C Timesheet Staging & Ingestion Buffer'
@@ -33,14 +55,23 @@ class Al2cTimesheetStaging(models.Model):
         'External nonce must be unique.',
     )
 
-    _is_idempotent_duplicate = False
+    _is_idempotent_duplicate = _IdempotentDuplicateDescriptor()
 
     def _auto_init(self):
         super()._auto_init()
+        # Buffering duplicates in staging is allowed, but a given fingerprint
+        # may be COMMITTED/APPROVED to the analytic ledger at most once. Enforce that at the
+        # DB level so the race-rescue in commit has a real IntegrityError to catch under concurrent ingestion.
         self.env.cr.execute("""
             ALTER TABLE al2c_timesheet_staging 
             DROP CONSTRAINT IF EXISTS al2c_timesheet_staging_dedup_fingerprint_unique;
+
+            CREATE UNIQUE INDEX IF NOT EXISTS
+                al2c_timesheet_staging_dedup_approved_uniq
+            ON al2c_timesheet_staging (dedup_fingerprint)
+            WHERE state = 'approved' AND dedup_fingerprint IS NOT NULL;
         """)
+
 
 
     name = fields.Char(string='Submission Subject', required=True, tracking=True)
@@ -199,11 +230,11 @@ class Al2cTimesheetStaging(models.Model):
 
         def _lookup():
             if nonce:
-                rec = self.search([('external_nonce', '=', nonce)], limit=1)
+                rec = self.search([('external_nonce', '=', nonce)], order='id asc', limit=1)
                 if rec:
                     return rec
             if fingerprint:
-                rec = self.search([('dedup_fingerprint', '=', fingerprint)], limit=1)
+                rec = self.search([('dedup_fingerprint', '=', fingerprint)], order='id asc', limit=1)
                 if rec:
                     return rec
             return False
@@ -216,7 +247,10 @@ class Al2cTimesheetStaging(models.Model):
                     rec = rec.with_context(al2c_idempotent_duplicate=True)
                 except Exception:
                     pass
-            rec._is_idempotent_duplicate = True
+            try:
+                rec._is_idempotent_duplicate = True
+            except Exception:
+                pass
             return rec
 
         existing = _lookup()
@@ -760,11 +794,19 @@ class Al2cTimesheetStaging(models.Model):
         if committed_count == 0:
             raise UserError(_("All eligible lines were skipped as duplicates during commit."))
 
-        self.write({
-            'state': 'approved',
-            'approved_by_id': self.env.uid,
-            'approved_date': fields.Datetime.now(),
-        })
+        try:
+            with self.env.cr.savepoint():
+                self.write({
+                    'state': 'approved',
+                    'approved_by_id': self.env.uid,
+                    'approved_date': fields.Datetime.now(),
+                })
+        except (pg_errors.UniqueViolation, IntegrityError):
+            self.write({
+                'state': 'duplicate',
+                'rejection_reason': _("Duplicate commit collision: an identical timesheet payload has already been approved and committed to the analytic ledger.")
+            })
+            raise UserError(_("Duplicate commit collision: an identical timesheet payload has already been approved and committed."))
 
         telemetry_msg = _(
             "Timesheet approved & committed by %s: %d lines (%.2f hours) written to analytic ledger. "
