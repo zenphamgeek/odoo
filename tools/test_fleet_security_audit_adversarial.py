@@ -576,6 +576,17 @@ def test_innokafe_deploy_pipeline_security():
     mock_run.return_value.stdout = "OK"
     mock_run.return_value.stderr = ""
 
+    def assert_shell_less_payload(argv):
+        assert "--" in argv, f"Command must separate kubectl flags from remote command with '--': {argv}"
+        dash_idx = argv.index("--")
+        payload = argv[dash_idx + 1:]
+        forbidden_shells = {"sh", "bash", "/bin/sh", "/bin/bash", "zsh", "dash", "-c"}
+        shell_metachars = {";", "|", "&", "$", ">", "<", "\n", "`"}
+        for arg in payload:
+            assert arg not in forbidden_shells, f"Forbidden shell binary or flag in payload: {arg!r}"
+            assert not any(c in arg for c in shell_metachars), f"Shell metacharacter detected in payload arg: {arg!r}"
+        assert payload[0] in {"python3", "env"}, f"Payload must start with direct executable or env, got {payload[0]!r}"
+
     with patch('subprocess.run', mock_run):
         # 7a. Logo purge skipped when DEPLOY_ALLOW_LOGO_PURGE != "1"
         with patch.dict(os.environ, {}, clear=True):
@@ -583,6 +594,7 @@ def test_innokafe_deploy_pipeline_security():
             assert mock_run.call_count == 1
             cmd = mock_run.call_args[0][0]
             assert any("sync_innokafe_views_db.py" in arg for arg in cmd)
+            assert_shell_less_payload(cmd)
 
         mock_run.reset_mock()
 
@@ -592,8 +604,8 @@ def test_innokafe_deploy_pipeline_security():
             assert mock_run.call_count == 2
             dry_cmd = mock_run.call_args_list[1][0][0]
             assert dry_cmd[:5] == ["kubectl", "exec", "-n", "production", "innokafe-pod-0"]
-            assert "sh" not in dry_cmd, "Must not use 'sh' or 'sh -c' in kubectl exec"
             assert "--commit" not in dry_cmd, "Dry-run must not pass --commit"
+            assert_shell_less_payload(dry_cmd)
 
         mock_run.reset_mock()
 
@@ -602,8 +614,27 @@ def test_innokafe_deploy_pipeline_security():
             execute_innokafe_db_sync("innokafe-pod-0", namespace="production", container="insilos")
             assert mock_run.call_count == 3
             commit_cmd = mock_run.call_args_list[2][0][0]
-            assert "sh" not in commit_cmd, "Commit must not use 'sh -c'"
             assert "--commit" in commit_cmd and "--all-websites" in commit_cmd
+            assert_shell_less_payload(commit_cmd)
+
+        mock_run.reset_mock()
+
+        # 7d. Dry-run abort barrier: if dry-run fails (returncode != 0), RuntimeError is raised and commit is never called
+        res_sync_ok = MagicMock(returncode=0, stdout="OK", stderr="")
+        res_dry_fail = MagicMock(returncode=1, stdout="", stderr="Audit error: connection failed")
+        mock_run.side_effect = [res_sync_ok, res_dry_fail]
+
+        with patch.dict(os.environ, {"DEPLOY_ALLOW_LOGO_PURGE": "1", "CONFIRM_ALL_WEBSITES_PROD": "1"}, clear=True):
+            try:
+                execute_innokafe_db_sync("innokafe-pod-0", namespace="production", container="insilos")
+                assert False, "execute_innokafe_db_sync must abort when pre-op dry-run fails"
+            except RuntimeError as exc:
+                assert "Logo purge pre-op dry-run failed" in str(exc) or "dry-run" in str(exc).lower()
+
+            assert mock_run.call_count == 2, f"Expected exactly 2 subprocess calls before abort, got {mock_run.call_count}"
+            for called_args in mock_run.call_args_list:
+                cmd = called_args[0][0]
+                assert "--commit" not in cmd, f"Security Violation: --commit invoked despite dry-run failure! Cmd: {cmd}"
 
     print("  [✓] Deploy pipeline argv guard, DNS-1123 label limits, tar traversal, semantic preflight, and shell-less DB sync verified.")
 
@@ -1459,29 +1490,48 @@ def test_pricelist_base_price_positional_shim():
     avg_us = ((t1 - t0) / N) * 1_000_000
     assert avg_us < 20.0, f"Hot path exceeded latency budget: {avg_us:.2f} µs"
 
-    # 10. Multi-currency x Rounding Boundary x Company Context Property Test:
-    # Verifies currency conversion tie-breaking (half-even vs half-up) maintains numeric parity without ULP drift
+    # 10. Multi-currency x Rounding Boundary x Currency Precision Golden Test:
+    # Verifies currency conversion and tie-breaking (banker's ROUND_HALF_EVEN vs ROUND_HALF_UP)
+    # against golden expectations respecting authentic currency precision (JPY: 0 decimals / 1, EUR/USD/GBP/CHF: 2 decimals / 0.01).
     from decimal import Decimal, ROUND_HALF_EVEN, ROUND_HALF_UP
-    currencies = ["EUR", "USD", "GBP", "CHF", "JPY"]
-    rates = {
-        "EUR": Decimal("0.92345"),
-        "USD": Decimal("1.00000"),
-        "GBP": Decimal("0.78125"),
-        "CHF": Decimal("0.89500"),
-        "JPY": Decimal("155.25000"),
+    currency_meta = {
+        "EUR": {"rate": Decimal("0.92345"), "exp": Decimal("0.01")},
+        "USD": {"rate": Decimal("1.00000"), "exp": Decimal("0.01")},
+        "GBP": {"rate": Decimal("0.78125"), "exp": Decimal("0.01")},
+        "CHF": {"rate": Decimal("0.89500"), "exp": Decimal("0.01")},
+        "JPY": {"rate": Decimal("155.25000"), "exp": Decimal("1")},
     }
-    test_prices = [
-        Decimal("100.005"), Decimal("200.015"), Decimal("99.995"),
-        Decimal("0.005"), Decimal("1234.565")
-    ]
-    for curr in currencies:
-        rate = rates[curr]
-        for p in test_prices:
-            converted_raw = p * rate
-            half_even = converted_raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_EVEN)
-            half_up = converted_raw.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-            assert abs(half_even - half_up) <= Decimal("0.01")
-            assert float(converted_raw) > 0
+    golden_expectations = {
+        # USD: 1.00000 rate - half-way tie breaking test (100.005 -> 100.00 even vs 100.01 up; 200.015 -> 200.02 even vs 200.02 up)
+        ("USD", Decimal("100.005")): (Decimal("100.00"), Decimal("100.01")),
+        ("USD", Decimal("200.015")): (Decimal("200.02"), Decimal("200.02")),
+        ("USD", Decimal("99.995")): (Decimal("100.00"), Decimal("100.00")),
+        ("USD", Decimal("0.005")): (Decimal("0.00"), Decimal("0.01")),
+        ("USD", Decimal("1234.565")): (Decimal("1234.56"), Decimal("1234.57")),
+        # EUR: 0.92345 rate - 2 decimals precision
+        ("EUR", Decimal("100.005")): (Decimal("92.35"), Decimal("92.35")),
+        ("EUR", Decimal("200.015")): (Decimal("184.70"), Decimal("184.70")),
+        ("EUR", Decimal("99.995")): (Decimal("92.34"), Decimal("92.34")),
+        # GBP: 0.78125 rate - 2 decimals precision
+        ("GBP", Decimal("10.000")): (Decimal("7.81"), Decimal("7.81")),
+        ("GBP", Decimal("100.005")): (Decimal("78.13"), Decimal("78.13")),
+        # CHF: 0.89500 rate - 2 decimals precision
+        ("CHF", Decimal("100.005")): (Decimal("89.50"), Decimal("89.50")),
+        # JPY: 155.25000 rate - 0 decimal precision (quantize to 1) - half-way tie breaking (1552.5 -> 1552 even vs 1553 up)
+        ("JPY", Decimal("10.000")): (Decimal("1552"), Decimal("1553")),
+        ("JPY", Decimal("100.005")): (Decimal("15526"), Decimal("15526")),
+        ("JPY", Decimal("200.015")): (Decimal("31052"), Decimal("31052")),
+        ("JPY", Decimal("99.995")): (Decimal("15524"), Decimal("15524")),
+    }
+
+    for (curr, p), (expected_he, expected_hu) in golden_expectations.items():
+        meta = currency_meta[curr]
+        converted_raw = p * meta["rate"]
+        half_even = converted_raw.quantize(meta["exp"], rounding=ROUND_HALF_EVEN)
+        half_up = converted_raw.quantize(meta["exp"], rounding=ROUND_HALF_UP)
+        assert half_even == expected_he, f"Golden mismatch on {curr} p={p} HALF_EVEN: expected {expected_he}, got {half_even}"
+        assert half_up == expected_hu, f"Golden mismatch on {curr} p={p} HALF_UP: expected {expected_hu}, got {half_up}"
+        assert float(converted_raw) > 0
 
     print("  [✓] Positional shim, signature pinning, sub-10µs hot path, and multi-currency financial precision verified.")
 
@@ -1675,6 +1725,17 @@ def test_ast_secret_evasion_linter():
     print("  [✓] All 12 evasion vectors (Add, JoinedStr, str.join, Mod, Secret-Digest Zero-Leak, Comment-Scope, AST-Floor, Prose-Immunity, Suppression-Ledger) verified.")
 
 
+def test_namespace_alias_contract():
+    print("[TEST NAMESPACE ALIAS CANARY] Upstream/Fork Model Identity & Fail-Closed Resolver")
+    from tools.tests.test_namespace_alias_contract import (
+        test_pricelist_model_identity,
+        test_fail_closed_resolver_contract,
+    )
+    test_pricelist_model_identity()
+    test_fail_closed_resolver_contract()
+    print("  [✓] Model identity and fail-closed resolver contract verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -1701,8 +1762,9 @@ def main():
     test_pricelist_base_price_positional_shim()
     test_database_branding_cleaner_security_and_idempotency()
     test_ast_secret_evasion_linter()
+    test_namespace_alias_contract()
     print("=" * 80)
-    print("ALL 22 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 23 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 

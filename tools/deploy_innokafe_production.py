@@ -318,6 +318,24 @@ def verify_md5_parity(pods: List[str], namespace: str = NAMESPACE, container: st
     print("\n[✓] 100% Cryptographic MD5 parity confirmed across all pods.")
 
 
+def _resolve_pricelist_model():
+    """Fail-closed model resolver: resolves ProductPricelistItem from fork or upstream.
+
+    Raises SystemExit if neither namespace is resolvable, preventing silent parity bypass.
+    """
+    try:
+        from insilos.addons.product.models.product_pricelist_item import ProductPricelistItem
+        return ProductPricelistItem
+    except ModuleNotFoundError:
+        try:
+            from odoo.addons.product.models.product_pricelist_item import ProductPricelistItem
+            return ProductPricelistItem
+        except ModuleNotFoundError as exc:
+            raise SystemExit(
+                f"preflight: pricelist namespace unresolved; refusing to deploy ({exc})"
+            ) from exc
+
+
 def _preflight_pricelist_shim(pricelist_tool: str) -> None:
     """Pre-flight verification for product_pricelist_item.py.
     1. Syntax verification via py_compile.
@@ -331,41 +349,64 @@ def _preflight_pricelist_shim(pricelist_tool: str) -> None:
         raise RuntimeError(f"Refusing deploy: pricelist shim failed to compile: {exc}")
 
     # Semantic parity verification using isolated execution against golden vectors
-    from unittest.mock import MagicMock
-    from insilos.addons.product.models.product_pricelist_item import ProductPricelistItem
+    ProductPricelistItem = _resolve_pricelist_model()
 
-    mock_item = MagicMock(spec=ProductPricelistItem)
-    mock_item.base = 'list_price'
-    mock_product = MagicMock()
-    mock_product.id = 42
+    class _ConcreteCurrency:
+        def __init__(self, name: str, rate_multiplier: float):
+            self.name = name
+            self.rate_multiplier = rate_multiplier
+            self.last_convert_call = None
 
-    c_usd = MagicMock(name='USD')
-    c_vnd = MagicMock(name='VND')
-    c_eur = MagicMock(name='EUR')
-    for c in (c_usd, c_vnd, c_eur):
-        c.ensure_one.return_value = True
+        def ensure_one(self):
+            return True
 
-    mock_product.currency_id = c_usd
-    mock_product._price_compute.return_value = {42: 100.0}
-    mock_uom = MagicMock()
+        def _convert(self, from_amount: float, to_curr: "_ConcreteCurrency", date=None, round=False) -> float:
+            self.last_convert_call = (from_amount, to_curr, date, round)
+            return from_amount * to_curr.rate_multiplier
+
+    class _ConcretePricelistItem:
+        def __init__(self, base: str = "list_price"):
+            self.base = base
+            self.currency_id = None
+            self.base_pricelist_id = None
+            self.env = None
+
+    class _ConcreteProduct:
+        def __init__(self, pid: int, price: float, currency: _ConcreteCurrency):
+            self.id = pid
+            self._price = price
+            self.currency_id = currency
+            self.cost_currency_id = currency
+
+        def _price_compute(self, rule_base, uom=None):
+            return {self.id: self._price}
+
+    item = _ConcretePricelistItem("list_price")
+    c_usd = _ConcreteCurrency("USD", 1.0)
+    c_vnd = _ConcreteCurrency("VND", 25000.0)
+    c_eur = _ConcreteCurrency("EUR", 0.92)
+    product = _ConcreteProduct(42, 100.0, c_usd)
+    mock_uom = object()
 
     golden_vectors = [
-        (('2026-10-15',), {'currency': c_vnd}, c_vnd, '2026-10-15', 25000.0),
-        (('2026-10-16', c_eur), {}, c_eur, '2026-10-16', 0.92),
-        ((), {'date': '2026-10-17', 'currency': c_vnd}, c_vnd, '2026-10-17', 25000.0),
-        (('2026-10-01',), {'date': '2026-10-18', 'currency': c_eur}, c_eur, '2026-10-18', 0.92),
+        (('2026-10-15',), {'currency': c_vnd}, c_vnd, '2026-10-15', 2500000.0),
+        (('2026-10-16', c_eur), {}, c_eur, '2026-10-16', 92.0),
+        ((), {'date': '2026-10-17', 'currency': c_vnd}, c_vnd, '2026-10-17', 2500000.0),
+        (('2026-10-01',), {'date': '2026-10-18', 'currency': c_eur}, c_eur, '2026-10-18', 92.0),
     ]
 
-    for args, kwargs, target_curr, exp_date, factor in golden_vectors:
-        c_usd._convert.reset_mock()
-        expected_price = 100.0 * factor
-        c_usd._convert.return_value = expected_price
+    for args, kwargs, target_curr, exp_date, expected_price in golden_vectors:
+        c_usd.last_convert_call = None
 
         try:
             computed = ProductPricelistItem._compute_base_price(
-                mock_item, mock_product, 1.0, mock_uom, *args, **kwargs
+                item, product, 1.0, mock_uom, *args, **kwargs
             )
-            c_usd._convert.assert_called_with(100.0, target_curr, date=exp_date, round=False)
+            if c_usd.last_convert_call != (100.0, target_curr, exp_date, False):
+                raise RuntimeError(
+                    f"Conversion argument contract mismatch: got {c_usd.last_convert_call}, "
+                    f"expected (100.0, {target_curr.name}, {exp_date}, False)"
+                )
             if abs(computed - expected_price) > 1e-9:
                 raise RuntimeError(f"got {computed}, expected {expected_price}")
         except Exception as exc:
@@ -376,7 +417,7 @@ def _preflight_pricelist_shim(pricelist_tool: str) -> None:
 
     try:
         ProductPricelistItem._compute_base_price(
-            mock_item, mock_product, 1.0, mock_uom, '2026-10-16', c_eur, 'third_arg_overflow'
+            item, product, 1.0, mock_uom, '2026-10-16', c_eur, 'third_arg_overflow'
         )
         raise RuntimeError("Refusing deploy: pricelist shim failed to reject > 2 positional args")
     except TypeError:

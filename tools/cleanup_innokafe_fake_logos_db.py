@@ -282,13 +282,14 @@ def main():
     if args.target == "local":
         host = os.environ.get("DB_HOST", "127.0.0.1")
         port = int(os.environ.get("DB_PORT", 5434))
-        user = os.environ.get("DB_USER", "insilos")
+        user = os.environ.get("DB_USER", "insilos")  # dev-local default role; not a credential
         password = _require_env("PGPASSWORD", "DB_PASSWORD")
         dbname = os.environ.get("DB_NAME", "innokafe_prod")
+        print(f"[cleanup] connecting as role={user!r} db={dbname!r} host={host}:{port}")
     else:  # prod_pod
         host = os.environ.get("DB_HOST", "pgbouncer-service")
         port = int(os.environ.get("DB_PORT", 6432))
-        user = _require_env("DB_USER")
+        user = _require_env("DB_USER")  # no implicit role in prod; must be explicit
         password = _require_env("PGPASSWORD", "DB_PASSWORD")
         dbname = _require_env("DB_NAME")
 
