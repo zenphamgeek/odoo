@@ -1,4 +1,4 @@
-from odoo import Command
+from odoo import Command, fields
 from odoo.exceptions import AccessError, UserError
 from odoo.tests import TransactionCase, new_test_user, tagged
 
@@ -222,7 +222,13 @@ class TestAl2cGovernance(TransactionCase):
     def test_agent_tcv_requires_approval(self):
         so = self._so(self.agent)
         limit = so._al2c_max_tcv_company_currency()
-        so.order_line.price_unit = limit * 1.5
+        company = so.company_id or self.env.company
+        if so.currency_id != company.currency_id:
+            so.order_line.price_unit = company.currency_id._convert(
+                limit * 1.5, so.currency_id, company, fields.Date.today()
+            )
+        else:
+            so.order_line.price_unit = limit * 1.5
         self.assertGreater(so._al2c_amount_total_company_currency(), limit)
         with self.assertRaises(UserError):
             so.with_user(self.agent).action_confirm()

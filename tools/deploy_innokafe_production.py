@@ -328,11 +328,9 @@ def _resolve_pricelist_model():
         return ProductPricelistItem
     except ModuleNotFoundError:
         try:
-            import importlib
-            upstream_pkg = ".".join(["od" + "oo", "addons", "product", "models", "product_pricelist_item"])
-            mod = importlib.import_module(upstream_pkg)
-            return getattr(mod, "ProductPricelistItem")
-        except (ModuleNotFoundError, AttributeError) as exc:
+            from odoo.addons.product.models.product_pricelist_item import ProductPricelistItem
+            return ProductPricelistItem
+        except ModuleNotFoundError as exc:
             raise SystemExit(
                 f"preflight: pricelist namespace unresolved; refusing to deploy ({exc})"
             ) from exc

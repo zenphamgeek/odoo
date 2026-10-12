@@ -54,7 +54,7 @@
                             </div>
                             <div class="col-6">
                                 <div style="background: #F4F4F4; border-left: 3px solid #0ABBDB; padding: 12px; border-radius: 2px;">
-                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #525252; margin-bottom: 4px;">Đơn Vị Tư Vấn <t t-out="'&amp;'"/> Kiến Trúc Giải Pháp</div>
+                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #525252; margin-bottom: 4px;">Đơn Vị Tư Vấn &amp; Kiến Trúc Giải Pháp</div>
                                     <div style="font-size: 13px; font-weight: 700; color: #161616;">INNORIA ENTERPRISE PLATFORM</div>
                                     <div style="font-size: 11px; color: #525252; margin-top: 2px;">
                                         Đại diện: <strong t-out="doc.user_id.name or 'Solution Architect Lead'"/><br/>
@@ -68,7 +68,7 @@
                         <!-- Section 1: Executive Summary and Problem Context -->
                         <div class="mb-4">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                1. Mục Tiêu <t t-out="'&amp;'"/> Phạm Vi Fit-to-Standard (Clean Core)
+                                1. Mục Tiêu &amp; Phạm Vi Fit-to-Standard (Clean Core)
                             </h5>
                             <p style="font-size: 11px; line-height: 1.6; color: #393939; margin-bottom: 8px;">
                                 Bản đề xuất này định hình kiến trúc chuyển đổi toàn diện dựa trên nền tảng Insilos Enterprise O20, áp dụng phương pháp luận SAP Activate và chuẩn Clean-Core. Hệ thống giúp doanh nghiệp loại bỏ tình trạng phân mảnh dữ liệu, số hóa toàn trình từ Bán hàng (Lead) đến Thu tiền (Cash), đồng thời tối ưu hóa chi phí vận hành thông qua các tác tử AI tự động.
@@ -106,7 +106,7 @@
                         <!-- Section 3: Value Case and ROI -->
                         <div class="mb-4" t-if="doc.value_case_id">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                3. Lập Luận Giá Trị Kinh Tế <t t-out="'&amp;'"/> TCO / ROI (Economic Value Case)
+                                3. Lập Luận Giá Trị Kinh Tế &amp; TCO / ROI (Economic Value Case)
                             </h5>
                             <div class="row g-2 mb-2">
                                 <div class="col-4">
@@ -146,7 +146,7 @@
                                     <tr>
                                         <th style="width: 15%;">Giai Đoạn</th>
                                         <th style="width: 15%;">Trọng Số SOW</th>
-                                        <th style="width: 50%;">Mục Tiêu <t t-out="'&amp;'"/> Kết Quả Đầu Ra (Deliverables)</th>
+                                        <th style="width: 50%;">Mục Tiêu &amp; Kết Quả Đầu Ra (Deliverables)</th>
                                         <th style="width: 20%;">Điều Kiện Nghiệm Thu</th>
                                     </tr>
                                 </thead>
@@ -173,7 +173,7 @@
                                         <td><strong>4. Deploy</strong></td>
                                         <td>15% Tổng giá trị</td>
                                         <td>Đào tạo người dùng cuối, diễn tập chuyển đổi (Cutover), Go-Live</td>
-                                        <td>Biên bản UAT <t t-out="'&amp;'"/> Ký duyệt Go-Live</td>
+                                        <td>Biên bản UAT &amp; Ký duyệt Go-Live</td>
                                     </tr>
                                     <tr>
                                         <td><strong>5. Run</strong></td>
@@ -188,7 +188,7 @@
                         <!-- Section 5: Commercial Investment Overview -->
                         <div class="mb-4">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                5. Tổng Mức Đầu Tư <t t-out="'&amp;'"/> Dự Toán Chi Phí
+                                5. Tổng Mức Đầu Tư &amp; Dự Toán Chi Phí
                             </h5>
                             <table class="table table-sm table-striped" style="font-size: 10px;">
                                 <thead style="background: #161616; color: #FFFFFF;">
@@ -224,7 +224,7 @@
                         <!-- Statutory Privacy and Sign-Off -->
                         <div class="mt-4 pt-3 border-top" style="font-size: 9px; color: #6F6F6F;">
                             <div class="alert alert-light border p-2 mb-3">
-                                <strong>BẢO MẬT <t t-out="'&amp;'"/> TUÂN THỦ NGHỊ ĐỊNH 13/2023/NĐ-CP:</strong> Toàn bộ thông tin kiến trúc và giải pháp trong tài liệu này thuộc quyền sở hữu trí tuệ của UNG DUNG SANG TAO LLC và được cam kết bảo mật theo các quy định hiện hành của pháp luật Việt Nam.
+                                <strong>BẢO MẬT &amp; TUÂN THỦ NGHỊ ĐỊNH 13/2023/NĐ-CP:</strong> Toàn bộ thông tin kiến trúc và giải pháp trong tài liệu này thuộc quyền sở hữu trí tuệ của UNG DUNG SANG TAO LLC và được cam kết bảo mật theo các quy định hiện hành của pháp luật Việt Nam.
                             </div>
                             <div class="row text-center mt-4">
                                 <div class="col-6">
@@ -293,7 +293,7 @@
                             </div>
                             <div class="col-5">
                                 <div style="background: #F4F4F4; border-left: 3px solid #525252; padding: 10px 14px; border-radius: 2px; font-size: 10px;">
-                                    <div style="font-weight: 600; text-transform: uppercase; color: #525252;">Điều Khoản Thanh Toán <t t-out="'&amp;'"/> Giao Hàng</div>
+                                    <div style="font-weight: 600; text-transform: uppercase; color: #525252;">Điều Khoản Thanh Toán &amp; Giao Hàng</div>
                                     <div>Phương thức: Thanh toán theo mốc bàn giao SAP Activate</div>
                                     <div>Xuất hóa đơn: Nghị định 70/2025/NĐ-CP (sau nghiệm thu)</div>
                                     <div>Đồng tiền báo giá: <strong>Việt Nam Đồng (VND)</strong></div>
@@ -362,7 +362,7 @@
                                         <td class="text-end"><t t-out="'{:,.0f}'.format(doc.amount_untaxed)"/> VND</td>
                                     </tr>
                                     <tr>
-                                        <td>Thuế GTGT (Theo luật Thuế GTGT 48/2024 <t t-out="'&amp;'"/> NĐ 174):</td>
+                                        <td>Thuế GTGT (Theo luật Thuế GTGT 48/2024 &amp; NĐ 174):</td>
                                         <td class="text-end"><t t-out="'{:,.0f}'.format(doc.amount_tax)"/> VND</td>
                                     </tr>
                                     <tr style="border-top: 2px solid #161616; font-size: 13px;">
@@ -379,7 +379,7 @@
                         <div class="row text-center mt-5" style="font-size: 10px;">
                             <div class="col-6">
                                 <strong>XÁC NHẬN CỦA KHÁCH HÀNG</strong><br/>
-                                <small>(Đồng ý báo giá <t t-out="'&amp;'"/> khởi tạo hợp đồng)</small><br/><br/><br/>
+                                <small>(Đồng ý báo giá &amp; khởi tạo hợp đồng)</small><br/><br/><br/>
                             </div>
                             <div class="col-6">
                                 <strong>ĐẠI DIỆN INNORIA ENTERPRISE</strong><br/>
@@ -427,24 +427,24 @@
                         <!-- Project Governance -->
                         <div class="mb-4">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                1. Cơ Cấu Tổ Chức <t t-out="'&amp;'"/> Quản Trị Dự Án (Project Governance)
+                                1. Cơ Cấu Tổ Chức &amp; Quản Trị Dự Án (Project Governance)
                             </h5>
                             <p style="font-size: 10px; line-height: 1.5; color: #393939;">
-                                Dự án vận hành theo mô hình quản trị hai cấp (Ban Chỉ Đạo Steering Committee <t t-out="'&amp;'"/> Ban Quản Lý Dự Án PMO). Bất kỳ thay đổi nào liên quan đến phạm vi, tiến độ hoặc ngân sách phải tuân thủ quy trình Quản lý Thay đổi (Change Request) và có xác nhận của cả hai bên.
+                                Dự án vận hành theo mô hình quản trị hai cấp (Ban Chỉ Đạo Steering Committee &amp; Ban Quản Lý Dự Án PMO). Bất kỳ thay đổi nào liên quan đến phạm vi, tiến độ hoặc ngân sách phải tuân thủ quy trình Quản lý Thay đổi (Change Request) và có xác nhận của cả hai bên.
                             </p>
                         </div>
 
                         <!-- 5 Activate Phases Breakdown -->
                         <div class="mb-4">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                2. Chi Tiết 5 Giai Đoạn Bàn Giao <t t-out="'&amp;'"/> Tỷ Lệ Thanh Toán (SAP Activate)
+                                2. Chi Tiết 5 Giai Đoạn Bàn Giao &amp; Tỷ Lệ Thanh Toán (SAP Activate)
                             </h5>
                             <table class="table table-sm table-bordered" style="font-size: 10px;">
                                 <thead style="background: #161616; color: #FFFFFF;">
                                     <tr>
                                         <th style="width: 15%;">Giai Đoạn</th>
                                         <th style="width: 10%;" class="text-center">Trọng Số</th>
-                                        <th style="width: 45%;">Hạng Mục Công Việc <t t-out="'&amp;'"/> Bàn Giao Cốt Lõi</th>
+                                        <th style="width: 45%;">Hạng Mục Công Việc &amp; Bàn Giao Cốt Lõi</th>
                                         <th style="width: 30%;">Tiêu Chí Nghiệm Thu (Acceptance Token)</th>
                                     </tr>
                                 </thead>
@@ -453,7 +453,7 @@
                                         <td><strong>GĐ 1: Prepare</strong></td>
                                         <td class="text-center font-weight-bold">15%</td>
                                         <td>Khởi động dự án, thiết lập môi trường Cloud/Dev, Project Charter, thống nhất kế hoạch chi tiết.</td>
-                                        <td>Project Charter <t t-out="'&amp;'"/> Biên bản bàn giao hạ tầng được ký duyệt.</td>
+                                        <td>Project Charter &amp; Biên bản bàn giao hạ tầng được ký duyệt.</td>
                                     </tr>
                                     <tr>
                                         <td><strong>GĐ 2: Explore</strong></td>
@@ -465,19 +465,19 @@
                                         <td><strong>GĐ 3: Realize</strong></td>
                                         <td class="text-center font-weight-bold">35%</td>
                                         <td>Cấu hình hệ thống, tích hợp API/Mojo App, di chuyển dữ liệu ban đầu, kiểm thử tích hợp (SIT).</td>
-                                        <td>Biên bản nghiệm thu kỹ thuật SIT <t t-out="'&amp;'"/> Kiểm thử dữ liệu mẫu.</td>
+                                        <td>Biên bản nghiệm thu kỹ thuật SIT &amp; Kiểm thử dữ liệu mẫu.</td>
                                     </tr>
                                     <tr>
                                         <td><strong>GĐ 4: Deploy</strong></td>
                                         <td class="text-center font-weight-bold">15%</td>
                                         <td>Kiểm thử chấp nhận người dùng (UAT), đào tạo người dùng cuối, diễn tập cutover, chính thức Go-Live.</td>
-                                        <td><!-- Acceptance Invariant: Biên bản nghiệm thu UAT &amp; Biên bản Go-Live chính thức -->Biên bản nghiệm thu UAT <t t-out="'&amp;'"/> Biên bản Go-Live chính thức.</td>
+                                        <td>Biên bản nghiệm thu UAT &amp; Biên bản Go-Live chính thức.</td>
                                     </tr>
                                     <tr>
                                         <td><strong>GĐ 5: Run</strong></td>
                                         <td class="text-center font-weight-bold">10%</td>
                                         <td>Hỗ trợ Hypercare 30 ngày, đánh giá tối ưu hóa sau vận hành, chuyển giao cho đội ngũ vận hành AMS.</td>
-                                        <td>Biên bản kết thúc Hypercare <t t-out="'&amp;'"/> Đóng dự án bàn giao AMS.</td>
+                                        <td>Biên bản kết thúc Hypercare &amp; Đóng dự án bàn giao AMS.</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -486,7 +486,7 @@
                         <!-- Decree 70 Sign-off Protocol -->
                         <div class="mb-4">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                3. Quy Trình Nghiệm Thu <t t-out="'&amp;'"/> Điều Kiện Xuất Hóa Đơn (Nghị Định 70/2025/NĐ-CP)
+                                3. Quy Trình Nghiệm Thu &amp; Điều Kiện Xuất Hóa Đơn (Nghị Định 70/2025/NĐ-CP)
                             </h5>
                             <div class="p-2 border" style="background: #F4F4F4; font-size: 10px; line-height: 1.5;">
                                 Căn cứ Nghị định 70/2025/NĐ-CP và Nghị định 123/2020/NĐ-CP về hóa đơn điện tử: Các mốc thanh toán chỉ kích hoạt trạng thái ghi nhận doanh thu và xuất hóa đơn sau khi Biên bản Nghiệm thu mốc tương ứng được ký kết hợp lệ giữa đại diện có thẩm quyền của hai bên. Hệ thống ERP sẽ chặn hoàn toàn việc xuất hóa đơn tự động nếu thiếu chứng từ nghiệm thu đính kèm.
@@ -545,7 +545,7 @@
                         <!-- Incident Severity Matrix -->
                         <div class="mb-4">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                1. Ma Trận Phân Loại Sự Cố <t t-out="'&amp;'"/> Cam Kết Phản Hồi / Khắc Phục
+                                1. Ma Trận Phân Loại Sự Cố &amp; Cam Kết Phản Hồi / Khắc Phục
                             </h5>
                             <table class="table table-sm table-bordered" style="font-size: 10px;">
                                 <thead style="background: #161616; color: #FFFFFF;">
@@ -588,7 +588,7 @@
                         <!-- Availability and Credit Rebates -->
                         <div class="mb-4">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                2. Cam Kết Độ Sẵn Sàng (Uptime 99.9%) <t t-out="'&amp;'"/> Khấu Trừ Bồi Thường (Service Credits)
+                                2. Cam Kết Độ Sẵn Sàng (Uptime 99.9%) &amp; Khấu Trừ Bồi Thường (Service Credits)
                             </h5>
                             <p style="font-size: 10px; line-height: 1.5; color: #393939;">
                                 Innoria cam kết duy trì độ sẵn sàng của hạ tầng Cloud và ứng dụng tối thiểu <strong>99.9%</strong> mỗi tháng (loại trừ các kỳ bảo trì định kỳ đã thông báo trước). Trong trường hợp vi phạm cam kết, khách hàng được khấu trừ trực tiếp vào phí dịch vụ tháng kế tiếp:

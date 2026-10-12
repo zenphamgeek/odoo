@@ -391,3 +391,107 @@ class TestSalesReports(TransactionCase):
         h2 = empty_order._get_al2c_report_content_hash('insilos_al2c.report_commercial_quotation')
         self.assertEqual(h1, h2, "Content hash must be deterministic for identical document state")
         self.assertEqual(len(h1), 64, "Content hash must be valid 64-char SHA-256")
+
+    def test_07_clock_drift_and_monotonic_ordering_invariant(self):
+        """Swarm Invariant Audit:
+        Ensure SaleOrder._get_cached_report_attachment resolves multi-node proposal
+        and report attachment deduplication monotonically by primary key sequence (`id asc`),
+        NEVER relying on wall-clock timestamps (`create_date`) which are vulnerable
+        to NTP clock drift across distributed multi-node fleet workers.
+        """
+        import inspect
+        from unittest.mock import MagicMock
+        from odoo.addons.insilos_al2c.models.sale_order import SaleOrder
+
+        src = inspect.getsource(SaleOrder._get_cached_report_attachment)
+
+        # Invariant 1: Monotonic ID ordering must be strictly specified in attachment search
+        self.assertRegex(
+            src,
+            r"order=['\"]id\s+asc['\"]",
+            "_get_cached_report_attachment must enforce order='id asc' for monotonic deduplication",
+        )
+
+        # Invariant 2: Wall-clock timestamp ordering is strictly forbidden due to clock drift risk
+        self.assertNotRegex(
+            src,
+            r"order=['\"][^'\"]*create_date",
+            "_get_cached_report_attachment must NEVER order by create_date due to clock drift vulnerability",
+        )
+
+        # Invariant 3: Savepoint concurrency guard must be present around attachment creation
+        self.assertIn(
+            "self.env.cr.savepoint()",
+            src,
+            "Attachment creation must be wrapped inside a transaction savepoint to handle race collisions safely",
+        )
+
+        # Invariant 4: Functional contract test with simulated clock drift / multi-node race
+        mock_order = MagicMock()
+        mock_order._name = 'sale.order'
+        mock_order.id = 999
+        mock_order.company_id.id = 1
+        mock_order.amount_total = 1000.0
+        mock_order.currency_id.id = 1
+        mock_order.write_date = datetime(2026, 10, 15, 12, 0, 0)
+        mock_order.ensure_one.return_value = True
+
+        mock_att_model = MagicMock()
+        mock_env = MagicMock()
+        mock_env['ir.attachment'].sudo.return_value = mock_att_model
+        mock_order.env = mock_env
+
+        mock_existing = MagicMock(id=42, create_date=datetime(2026, 10, 15, 12, 5, 0))
+        mock_att_model.search.return_value = mock_existing
+
+        res = SaleOrder._get_cached_report_attachment(mock_order, 'insilos_al2c.report_sales_proposal')
+        self.assertEqual(res, mock_existing)
+
+        search_calls = mock_att_model.search.call_args_list
+        self.assertTrue(len(search_calls) > 0, "Attachment search must be called")
+        for sc in search_calls:
+            _, kwargs = sc
+            self.assertEqual(kwargs.get('order'), 'id asc', "Search must enforce order='id asc'")
+
+    def test_08_template_audit_zero_t_raw_sinks(self):
+        """Swarm Invariant Audit:
+        Audit all sales report XML templates to ensure:
+        1. Zero `t-raw` or `raw=` sinks (prevention of XSS / template injection).
+        2. Zero synthetic `<t t-out="'&amp;'"/>` noise (use standard valid XML &amp;).
+        3. All XML report views are well-formed and parse without error.
+        """
+        import os
+        import lxml.etree
+
+        views_dir = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', 'views'))
+        report_xmls = [
+            os.path.join(views_dir, 'report_sales_documents.xml'),
+            os.path.join(views_dir, 'report_templates.xml'),
+        ]
+
+        for xml_path in report_xmls:
+            self.assertTrue(os.path.exists(xml_path), f"Report template file missing: {xml_path}")
+            with open(xml_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+
+            # 1. Zero t-raw or raw= sinks
+            self.assertNotIn('t-raw', content, f"Insecure t-raw sink detected in {xml_path}")
+            self.assertNotIn('raw=', content, f"Insecure raw= sink detected in {xml_path}")
+
+            # 2. Zero artificial t-out ampersand noise
+            self.assertNotIn(
+                't-out="\'&amp;\'"',
+                content,
+                f"Synthetic t-out ampersand noise detected in {xml_path}; standard '&amp;' must be used",
+            )
+            self.assertNotIn(
+                't-out=\'"&amp;"\'',
+                content,
+                f"Synthetic t-out ampersand noise detected in {xml_path}; standard '&amp;' must be used",
+            )
+
+            # 3. XML must parse cleanly
+            try:
+                lxml.etree.fromstring(content.encode('utf-8'))
+            except Exception as e:
+                self.fail(f"XML parse failure in {xml_path}: {e}")

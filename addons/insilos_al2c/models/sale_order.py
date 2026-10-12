@@ -374,16 +374,21 @@ class SaleOrder(models.Model):
 
         import base64
         fname = filename or f"{self.name or 'report'}_{content_hash[:8]}.pdf"
-        return Attachment.create({
-            'name': fname,
-            'res_model': self._name,
-            'res_id': self.id,
-            'company_id': self.company_id.id if self.company_id else False,
-            'type': 'binary',
-            'datas': base64.b64encode(bytes(create_content)),
-            'description': desc,
-            'mimetype': 'application/pdf',
-        })
+        try:
+            with self.env.cr.savepoint():
+                return Attachment.create({
+                    'name': fname,
+                    'res_model': self._name,
+                    'res_id': self.id,
+                    'company_id': self.company_id.id if self.company_id else False,
+                    'type': 'binary',
+                    'datas': base64.b64encode(bytes(create_content)),
+                    'description': desc,
+                    'mimetype': 'application/pdf',
+                })
+        except Exception:
+            # Concurrency conflict / race collision rollback completed; return winning record
+            return Attachment.search(domain, order='id asc', limit=1)
 
     def _store_cached_report_attachment(
         self,

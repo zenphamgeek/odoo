@@ -64,7 +64,7 @@
                 <tr>
                     <td class="text-start align-middle" style="width: 75%;">
                         <div>
-                            <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử khởi tạo tự động theo Nghị định 123/2020/NĐ-CP <t t-out="'&amp;'"/> Nghị định 70/2025/NĐ-CP.
+                            <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử khởi tạo tự động theo Nghị định 123/2020/NĐ-CP &amp; Nghị định 70/2025/NĐ-CP.
                         </div>
                         <div style="color: #8D8D8D; margin-top: 2px;">
                             Bảo mật dữ liệu tuân thủ Nghị định 13/2023/NĐ-CP. Tra cứu tính hợp lệ tại cổng khách hàng: <span style="color: #0070F2;">https://innoria.com</span>
@@ -120,7 +120,7 @@
                     <tr>
                         <td class="text-start align-middle" style="width: 75%;">
                             <div>
-                                <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử chuẩn ISO/IEC 27001 <t t-out="'&amp;'"/> Nghị định 123/2020/NĐ-CP.
+                                <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử chuẩn ISO/IEC 27001 &amp; Nghị định 123/2020/NĐ-CP.
                             </div>
                             <div style="color: #8D8D8D; margin-top: 2px;">
                                 Bảo mật dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP. Tra cứu trực tuyến tại: <span style="color: #0070F2;">https://innoria.com</span>

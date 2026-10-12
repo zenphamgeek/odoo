@@ -1165,7 +1165,13 @@ def test_report_anti_genesis_and_escaping_mutation_matrix():
     assert cached_under_lock is mock_att_winning, "Re-check under lock must return winning attachment"
     assert mock_attachment_model.create.call_count == 0, "Must not create duplicate when winning attachment found under lock"
 
-    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), {len(xml_files)} XML files well-formed, content-hash idempotency, advisory-lock concurrency, trust-filter anti-poisoning, and strict &amp;/UoM invariants verified.")
+    # 8.5 Swarm What-If Invariants: Monotonic Ordering (Clock Drift Immunity) & Zero t-raw Sinks
+    test_case_invariants = TestSalesReports('test_01_report_sales_proposal_render')
+    test_case_invariants.test_07_clock_drift_and_monotonic_ordering_invariant()
+    test_case_invariants.test_08_template_audit_zero_t_raw_sinks()
+
+    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), {len(xml_files)} XML files well-formed, content-hash idempotency, advisory-lock concurrency, trust-filter anti-poisoning, clock-drift monotonic order, and strict &amp;/UoM invariants verified.")
+
 
 
 def test_pixel_scanner_command_injection_guard():

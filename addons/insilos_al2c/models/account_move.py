@@ -163,8 +163,9 @@ class AccountMove(models.Model):
             if existing:
                 continue
 
-            # Cash-matched base: untaxed signed amount
-            base_amount = move.amount_untaxed_signed
+            # Cash-matched base in invoice currency (signed for refunds)
+            sign = -1.0 if move.move_type == 'out_refund' else 1.0
+            base_amount = move.amount_untaxed * sign
             commission_amt = round(base_amount * (rate / 100.0), 0)
 
             sale_order = move.line_ids.sale_line_ids.order_id[:1] or False
@@ -173,6 +174,7 @@ class AccountMove(models.Model):
                 'employee_id': employee.id,
                 'invoice_id': move.id,
                 'sale_order_id': sale_order.id if sale_order else False,
+                'currency_id': move.currency_id.id,
                 'base_amount': base_amount,
                 'rate': rate,
                 'amount': commission_amt,
