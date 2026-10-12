@@ -43,12 +43,14 @@ NAMESPACE = "production"
 CONTAINER = "insilos"
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-_K8S_NAME_RE = re.compile(r"^[a-z0-9]([-a-z0-9.]{0,251}[a-z0-9])?$")
+_K8S_DNS1123_LABEL_RE = re.compile(r"^[a-z0-9]([-a-z0-9]*[a-z0-9])?$")
 
 
 def _safe_ident(value: str, field: str) -> str:
-    """Guards against shell injection and metacharacters in Kubernetes resource names (CWE-78, CWE-20)."""
-    if not isinstance(value, str) or not _K8S_NAME_RE.match(value):
+    """Guards against shell injection and metacharacters in Kubernetes resource names (CWE-78, CWE-20).
+    Enforces strict RFC 1123 DNS label constraints: <= 63 chars, lowercase alphanumeric and hyphens only.
+    """
+    if not isinstance(value, str) or len(value) > 63 or not _K8S_DNS1123_LABEL_RE.match(value):
         raise ValueError(f"Security Invariant Violated: Refusing unsafe {field!r}: {value!r}")
     return value
 
@@ -316,14 +318,82 @@ def verify_md5_parity(pods: List[str], namespace: str = NAMESPACE, container: st
     print("\n[✓] 100% Cryptographic MD5 parity confirmed across all pods.")
 
 
+def _preflight_pricelist_shim(pricelist_tool: str) -> None:
+    """Pre-flight verification for product_pricelist_item.py.
+    1. Syntax verification via py_compile.
+    2. Semantic parity verification against frozen golden pricing vectors.
+    3. Error bounds verification (>2 args TypeError).
+    """
+    import py_compile
+    try:
+        py_compile.compile(pricelist_tool, doraise=True)
+    except py_compile.PyCompileError as exc:
+        raise RuntimeError(f"Refusing deploy: pricelist shim failed to compile: {exc}")
+
+    # Semantic parity verification using isolated execution against golden vectors
+    from unittest.mock import MagicMock
+    from odoo.addons.product.models.product_pricelist_item import ProductPricelistItem
+
+    mock_item = MagicMock(spec=ProductPricelistItem)
+    mock_item.base = 'list_price'
+    mock_product = MagicMock()
+    mock_product.id = 42
+
+    c_usd = MagicMock(name='USD')
+    c_vnd = MagicMock(name='VND')
+    c_eur = MagicMock(name='EUR')
+    for c in (c_usd, c_vnd, c_eur):
+        c.ensure_one.return_value = True
+
+    mock_product.currency_id = c_usd
+    mock_product._price_compute.return_value = {42: 100.0}
+    mock_uom = MagicMock()
+
+    golden_vectors = [
+        (('2026-10-15',), {'currency': c_vnd}, c_vnd, '2026-10-15', 25000.0),
+        (('2026-10-16', c_eur), {}, c_eur, '2026-10-16', 0.92),
+        ((), {'date': '2026-10-17', 'currency': c_vnd}, c_vnd, '2026-10-17', 25000.0),
+        (('2026-10-01',), {'date': '2026-10-18', 'currency': c_eur}, c_eur, '2026-10-18', 0.92),
+    ]
+
+    for args, kwargs, target_curr, exp_date, factor in golden_vectors:
+        c_usd._convert.reset_mock()
+        expected_price = 100.0 * factor
+        c_usd._convert.return_value = expected_price
+
+        try:
+            computed = ProductPricelistItem._compute_base_price(
+                mock_item, mock_product, 1.0, mock_uom, *args, **kwargs
+            )
+            c_usd._convert.assert_called_with(100.0, target_curr, date=exp_date, round=False)
+            if abs(computed - expected_price) > 1e-9:
+                raise RuntimeError(f"got {computed}, expected {expected_price}")
+        except Exception as exc:
+            raise RuntimeError(
+                f"Refusing deploy: pricelist shim semantic divergence on golden vector: "
+                f"args={args}, kwargs={kwargs}: {exc}"
+            ) from exc
+
+    try:
+        ProductPricelistItem._compute_base_price(
+            mock_item, mock_product, 1.0, mock_uom, '2026-10-16', c_eur, 'third_arg_overflow'
+        )
+        raise RuntimeError("Refusing deploy: pricelist shim failed to reject > 2 positional args")
+    except TypeError:
+        pass
+
+
 def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
     step_banner(3, "Deploying Archive & Sync Tools to All Pods in Parallel")
     ns = _safe_ident(namespace, "namespace")
     co = _safe_ident(container, "container")
     validated_pods = [_safe_ident(p, "pod") for p in pods]
 
-    if not os.path.isfile(tar_path):
+    real_tar_path = os.path.realpath(tar_path)
+    if not os.path.isfile(real_tar_path):
         raise FileNotFoundError(f"Tar archive not found: {tar_path}")
+    if not (real_tar_path.startswith("/tmp/") or real_tar_path.startswith(ROOT_DIR)):
+        raise ValueError(f"Security Invariant Violated: tar_path must reside in /tmp or workspace: {tar_path!r}")
 
     sync_tool = os.path.join(ROOT_DIR, "tools", "sync_innokafe_views_db.py")
     warmup_tool = os.path.join(ROOT_DIR, "tools", "safe_asset_warmup.py")
@@ -335,11 +405,7 @@ def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAM
     if not os.path.isfile(pricelist_tool):
         raise FileNotFoundError(f"Pricelist item file not found: {pricelist_tool}")
 
-    import py_compile
-    try:
-        py_compile.compile(pricelist_tool, doraise=True)
-    except py_compile.PyCompileError as exc:
-        raise RuntimeError(f"Refusing deploy: pricelist shim failed to compile: {exc}")
+    _preflight_pricelist_shim(pricelist_tool)
 
     remote_script = (
         "mkdir -p /app/insilos/enterprise/innokafe_website "
@@ -360,32 +426,33 @@ def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAM
         "rm -f /tmp/innokafe_website_sync.tar.gz /tmp/product_pricelist_item.py"
     )
 
-    deploy_procs = []
-    for po in validated_pods:
-        cmd = [
-            "sh", "-c",
-            f"kubectl cp -n {shlex.quote(ns)} -c {shlex.quote(co)} "
-            f"{shlex.quote(tar_path)} {shlex.quote(po)}:/tmp/innokafe_website_sync.tar.gz && "
-            f"kubectl cp -n {shlex.quote(ns)} -c {shlex.quote(co)} "
-            f"{shlex.quote(sync_tool)} {shlex.quote(po)}:/tmp/sync_innokafe_views_db.py && "
-            f"kubectl cp -n {shlex.quote(ns)} -c {shlex.quote(co)} "
-            f"{shlex.quote(warmup_tool)} {shlex.quote(po)}:/tmp/safe_asset_warmup.py && "
-            f"kubectl cp -n {shlex.quote(ns)} -c {shlex.quote(co)} "
-            f"{shlex.quote(pricelist_tool)} {shlex.quote(po)}:/tmp/product_pricelist_item.py && "
-            f"kubectl exec -n {shlex.quote(ns)} {shlex.quote(po)} -c {shlex.quote(co)} -- "
-            f"sh -c {shlex.quote(remote_script)}"
+    import concurrent.futures
+
+    def _sync_pod(po: str) -> None:
+        files = [
+            (real_tar_path, "/tmp/innokafe_website_sync.tar.gz"),
+            (sync_tool, "/tmp/sync_innokafe_views_db.py"),
+            (warmup_tool, "/tmp/safe_asset_warmup.py"),
+            (pricelist_tool, "/tmp/product_pricelist_item.py"),
         ]
-        p = subprocess.Popen(cmd)
-        deploy_procs.append((po, p))
+        for src, dst in files:
+            cp_cmd = ["kubectl", "cp", "-n", ns, "-c", co, src, f"{po}:{dst}"]
+            run_cmd(cp_cmd, check=True)
+
+        exec_cmd = ["kubectl", "exec", "-n", ns, po, "-c", co, "--", "sh", "-c", remote_script]
+        run_cmd(exec_cmd, check=True)
 
     failures = []
-    for po, p in deploy_procs:
-        p.wait()
-        if p.returncode != 0:
-            print(f"[✗] Failed file synchronization to {po} (code {p.returncode})")
-            failures.append(po)
-        else:
-            print(f"[✓] Synchronized files and tools to {po}")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, len(validated_pods))) as executor:
+        future_to_pod = {executor.submit(_sync_pod, po): po for po in validated_pods}
+        for future in concurrent.futures.as_completed(future_to_pod):
+            po = future_to_pod[future]
+            try:
+                future.result()
+                print(f"[✓] Synchronized files and tools to {po}")
+            except Exception as exc:
+                print(f"[✗] Failed file synchronization to {po}: {exc}")
+                failures.append(po)
 
     if failures:
         raise RuntimeError(f"Distribution failed on pods: {failures}")
