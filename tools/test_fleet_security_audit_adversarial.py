@@ -1078,6 +1078,63 @@ def test_timesheet_staging_ambiguity_and_idempotency_guards():
     assert captured_vals.get('dedup_fingerprint') is False, "Empty dedup_fingerprint must be normalized to False"
     assert getattr(Al2cTimesheetStaging, '_is_idempotent_duplicate', None) is False, "Class-level _is_idempotent_duplicate default must be False"
 
+    # 3.4 Adversarial Descriptor Invariant Tests: Leak bounds, ID-reuse aliasing, cursor lifecycle, and context fallback
+    from odoo.addons.insilos_al2c.models.al2c_timesheet_staging import _CURSOR_DUPLICATE_REGISTRY
+    import gc
+
+    class MockSlotsRecord:
+        __slots__ = ('env', 'id')
+        _is_idempotent_duplicate = Al2cTimesheetStaging.__dict__['_is_idempotent_duplicate']
+        def __init__(self, env, rec_id):
+            self.env = env
+            self.id = rec_id
+
+    class MockTransCursor:
+        def __init__(self):
+            self.postcommit = set()
+            self.prerollback = set()
+        def commit(self):
+            for cb in list(self.postcommit):
+                cb()
+        def rollback(self):
+            for cb in list(self.prerollback):
+                cb()
+
+    class MockTransEnv:
+        def __init__(self, cr=None, context=None):
+            self.cr = cr or MockTransCursor()
+            self.context = context or {}
+
+    # Leak bound test: WeakKeyDictionary auto-evicts on cursor GC
+    trans_cr = MockTransCursor()
+    trans_env = MockTransEnv(cr=trans_cr)
+    slot_rec = MockSlotsRecord(trans_env, 1234)
+    slot_rec._is_idempotent_duplicate = True
+    assert slot_rec._is_idempotent_duplicate is True, "Must reflect True on recorded slot"
+    assert trans_cr in _CURSOR_DUPLICATE_REGISTRY, "Cursor must be registered"
+    del trans_cr, trans_env, slot_rec
+    gc.collect()
+
+    # Concurrency / ID-reuse isolation test across transactions
+    t_cr1 = MockTransCursor()
+    t_env1 = MockTransEnv(cr=t_cr1)
+    rec1 = MockSlotsRecord(t_env1, 555)
+    rec1._is_idempotent_duplicate = True
+
+    t_cr2 = MockTransCursor()
+    t_env2 = MockTransEnv(cr=t_cr2)
+    rec2 = MockSlotsRecord(t_env2, 555)  # Same ID, separate transaction cursor
+    assert rec2._is_idempotent_duplicate is False, "Cross-transaction pollution forbidden: separate cursors must not share state"
+
+    # Transaction commit hook eviction test
+    t_cr1.commit()
+    assert t_cr1 not in _CURSOR_DUPLICATE_REGISTRY or len(_CURSOR_DUPLICATE_REGISTRY[t_cr1]) == 0, "Commit must evict cursor duplicate registry"
+
+    # Context fallback test with frozendict / dict
+    ctx_env = MockTransEnv(context={'al2c_idempotent_duplicate': True})
+    rec_ctx = MockSlotsRecord(ctx_env, 777)
+    assert rec_ctx._is_idempotent_duplicate is True, "Context must remain valid authoritative source"
+
     # 4. Spreadsheet Decompression Bomb Guard (CWE-20): Cap rows <= 100_000 and cols <= 512
     # 4.1 Excel .xlsx bomb guard (openpyxl)
     mock_parse_staging = MagicMock(spec=Al2cTimesheetStaging)

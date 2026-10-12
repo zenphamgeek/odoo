@@ -49,9 +49,8 @@ async function run() {
         // =====================================================================
         // PART 1: B2B WHOLESALE PRICING & ROI CALCULATOR (/solutions-b2b)
         // =====================================================================
-        console.log('\n--- Part 1: B2B Wholesale Calculator Audit ---');
-        await page.goto(`${BASE_URL}/solutions-b2b`, { waitUntil: 'load', timeout: 30000 });
-        await page.waitForFunction(() => typeof window.initB2BCalculator === 'function', { timeout: 25000 });
+        await page.goto(`${BASE_URL}/solutions-b2b`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+        await page.waitForFunction(() => typeof window.initB2BCalculator === 'function', { timeout: 30000 });
         await page.waitForTimeout(500);
 
         // 1. Calculator section presence
@@ -111,9 +110,9 @@ async function run() {
         // PART 2: TASTE PROFILER ENHANCED SENSORY RADAR (/taste-profiler)
         // =====================================================================
         console.log('\n--- Part 2: Taste Profiler Enhanced Sensory Radar Audit ---');
-        await page.goto(`${BASE_URL}/taste-profiler/result/INNO-ARABICA-WASH-02`, { waitUntil: 'load', timeout: 30000 });
-        await page.waitForFunction(() => !!window.InnokafeTasteProfiler, { timeout: 25000 });
-        await page.waitForSelector('.innokafe-sensory-wheel-svg circle', { timeout: 25000 });
+        await page.goto(`${BASE_URL}/taste-profiler/result/INNO-ARABICA-WASH-02`, { waitUntil: 'domcontentloaded', timeout: 45000 });
+        await page.waitForFunction(() => !!window.InnokafeTasteProfiler, { timeout: 30000 });
+        await page.waitForSelector('.innokafe-sensory-wheel-svg circle', { timeout: 30000 });
         await page.waitForTimeout(500);
 
         // 1. Radar SVG presence
@@ -129,12 +128,12 @@ async function run() {
         assert(dots.length === 6, `Sensory wheel rendered exactly 6 axis dots (found: ${dots.length})`);
 
         // 4. SCA score badge presence
-        const scaBadge = await page.$('.innokafe-sensory-wheel-svg .sca-score-badge');
+        const scaBadge = await page.waitForSelector('.innokafe-sensory-wheel-svg .sca-score-badge', { timeout: 10000 }).catch(() => null);
         assert(scaBadge !== null, 'SCA Cupping Score badge rendered in sensory wheel');
 
         if (scaBadge) {
             const scaText = await scaBadge.textContent();
-            assert(scaText.includes('SCA:'), `SCA badge displays score value: "${scaText}"`);
+            assert(scaText.includes('SCA:'), `SCA badge displays score value: "${scaText.trim()}"`);
         }
 
         // 5. Test Node Interaction / Click

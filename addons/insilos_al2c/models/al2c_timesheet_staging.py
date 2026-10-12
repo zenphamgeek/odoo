@@ -11,6 +11,9 @@ import hashlib
 import logging
 from datetime import datetime, date, timedelta
 
+import weakref
+from collections.abc import Mapping
+
 import psycopg2
 from psycopg2 import errors as pg_errors, IntegrityError
 
@@ -19,31 +22,54 @@ from odoo.exceptions import UserError, ValidationError
 
 _logger = logging.getLogger(__name__)
 
+_CURSOR_DUPLICATE_REGISTRY = weakref.WeakKeyDictionary()
+
 
 class _IdempotentDuplicateDescriptor:
-    """Descriptor that defaults to False on class level, reflects context on records,
-    and supports test mock attribute assignment without unbounded memory leaks."""
-    def __init__(self):
-        self._values = {}
+    """Per-instance idempotent-duplicate flag.
+    Transaction-scoped via WeakKeyDictionary on DB cursor to prevent unbounded memory
+    leaks and CPython id() address-reuse aliasing. Falls back cleanly to context
+    and mock attributes for test doubles."""
 
     def __get__(self, instance, owner=None):
         if instance is None:
             return False
-        inst_id = id(instance)
-        if inst_id in self._values:
-            return self._values[inst_id]
         if hasattr(instance, '__dict__') and '_is_idempotent_duplicate_val' in instance.__dict__:
             return bool(instance.__dict__['_is_idempotent_duplicate_val'])
         env = getattr(instance, 'env', None)
-        if env and hasattr(env, 'context') and hasattr(env.context, 'get'):
-            return bool(env.context.get('al2c_idempotent_duplicate', False))
+        if env is not None:
+            ctx = getattr(env, 'context', None)
+            if ctx is not None and hasattr(ctx, 'get') and ctx.get('al2c_idempotent_duplicate'):
+                return True
+            cr = getattr(env, 'cr', None)
+            rec_id = getattr(instance, 'id', None)
+            if cr is not None and rec_id and cr in _CURSOR_DUPLICATE_REGISTRY:
+                return rec_id in _CURSOR_DUPLICATE_REGISTRY[cr]
         return False
 
     def __set__(self, instance, value):
-        if instance is not None:
-            self._values[id(instance)] = bool(value)
-            if hasattr(instance, '__dict__'):
-                instance.__dict__['_is_idempotent_duplicate_val'] = bool(value)
+        if instance is None:
+            return
+        if hasattr(instance, '__dict__'):
+            instance.__dict__['_is_idempotent_duplicate_val'] = bool(value)
+        env = getattr(instance, 'env', None)
+        rec_id = getattr(instance, 'id', None)
+        cr = getattr(env, 'cr', None) if env is not None else None
+        if cr is not None and rec_id:
+            try:
+                if bool(value):
+                    if cr not in _CURSOR_DUPLICATE_REGISTRY:
+                        _CURSOR_DUPLICATE_REGISTRY[cr] = set()
+                        if hasattr(cr, 'postcommit') and hasattr(cr.postcommit, 'add'):
+                            cr.postcommit.add(lambda: _CURSOR_DUPLICATE_REGISTRY.pop(cr, None))
+                        if hasattr(cr, 'prerollback') and hasattr(cr.prerollback, 'add'):
+                            cr.prerollback.add(lambda: _CURSOR_DUPLICATE_REGISTRY.pop(cr, None))
+                    _CURSOR_DUPLICATE_REGISTRY[cr].add(rec_id)
+                else:
+                    if cr in _CURSOR_DUPLICATE_REGISTRY:
+                        _CURSOR_DUPLICATE_REGISTRY[cr].discard(rec_id)
+            except TypeError:
+                pass
 
 
 class Al2cTimesheetStaging(models.Model):
