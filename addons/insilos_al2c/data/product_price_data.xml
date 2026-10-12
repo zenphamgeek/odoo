@@ -6,63 +6,71 @@
         <field name="currency_id" ref="base.VND"/>
         <field name="sequence">100</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_erp_starter')], {'list_price': 17716.54}]"/>
+    <!-- 1. ERP-STARTER: 150M VND -->
+    <function model="product.template" name="write" eval="[[ref('product_erp_starter')], {'list_price': 150000000.0}]"/>
     <record id="pricelist_vnd_product_erp_starter" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_erp_starter"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">450000000</field>
+        <field name="fixed_price">150000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_erp_growth')], {'list_price': 47244.09}]"/>
+    <!-- 2. ERP-GROWTH: 450M VND -->
+    <function model="product.template" name="write" eval="[[ref('product_erp_growth')], {'list_price': 450000000.0}]"/>
     <record id="pricelist_vnd_product_erp_growth" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_erp_growth"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">1200000000</field>
+        <field name="fixed_price">450000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_erp_ent')], {'list_price': 137795.28}]"/>
+    <!-- 3. ERP-ENT: 1,200M VND -->
+    <function model="product.template" name="write" eval="[[ref('product_erp_ent')], {'list_price': 1200000000.0}]"/>
     <record id="pricelist_vnd_product_erp_ent" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_erp_ent"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">3500000000</field>
+        <field name="fixed_price">1200000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_saas_user_m')], {'list_price': 23.62}]"/>
+    <!-- 4. SAAS-USER-M: 350,000 VND / month -->
+    <function model="product.template" name="write" eval="[[ref('product_saas_user_m')], {'list_price': 350000.0}]"/>
     <record id="pricelist_vnd_product_saas_user_m" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_saas_user_m"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">600000</field>
+        <field name="fixed_price">350000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_saas_hosting_pro')], {'list_price': 314.96}]"/>
+    <!-- 5. SAAS-HOSTING-PRO: 15,000,000 VND / month -->
+    <function model="product.template" name="write" eval="[[ref('product_saas_hosting_pro')], {'list_price': 15000000.0}]"/>
     <record id="pricelist_vnd_product_saas_hosting_pro" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_saas_hosting_pro"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">8000000</field>
+        <field name="fixed_price">15000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_saas_sla_plus')], {'list_price': 196.85}]"/>
+    <!-- 6. SAAS-SLA-PLUS: 20,000,000 VND / month -->
+    <function model="product.template" name="write" eval="[[ref('product_saas_sla_plus')], {'list_price': 20000000.0}]"/>
     <record id="pricelist_vnd_product_saas_sla_plus" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_saas_sla_plus"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">5000000</field>
+        <field name="fixed_price">20000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_grc_essentials')], {'list_price': 13779.53}]"/>
+    <!-- 7. GRC-ESSENTIALS: 180,000,000 VND -->
+    <function model="product.template" name="write" eval="[[ref('product_grc_essentials')], {'list_price': 180000000.0}]"/>
     <record id="pricelist_vnd_product_grc_essentials" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_grc_essentials"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">350000000</field>
+        <field name="fixed_price">180000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_grc_risk_register')], {'list_price': 4724.41}]"/>
+    <!-- 8. GRC-RISK-REGISTER: 120,000,000 VND -->
+    <function model="product.template" name="write" eval="[[ref('product_grc_risk_register')], {'list_price': 120000000.0}]"/>
     <record id="pricelist_vnd_product_grc_risk_register" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
@@ -70,7 +78,8 @@
         <field name="compute_price">fixed</field>
         <field name="fixed_price">120000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_grc_audit_pack')], {'list_price': 9842.52}]"/>
+    <!-- 9. GRC-AUDIT-PACK: 250,000,000 VND -->
+    <function model="product.template" name="write" eval="[[ref('product_grc_audit_pack')], {'list_price': 250000000.0}]"/>
     <record id="pricelist_vnd_product_grc_audit_pack" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
@@ -78,7 +87,8 @@
         <field name="compute_price">fixed</field>
         <field name="fixed_price">250000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_ai_discovery')], {'list_price': 3149.61}]"/>
+    <!-- 10. AI-DISCOVERY: 80,000,000 VND -->
+    <function model="product.template" name="write" eval="[[ref('product_ai_discovery')], {'list_price': 80000000.0}]"/>
     <record id="pricelist_vnd_product_ai_discovery" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
@@ -86,55 +96,62 @@
         <field name="compute_price">fixed</field>
         <field name="fixed_price">80000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_ai_poc')], {'list_price': 11811.02}]"/>
+    <!-- 11. AI-POC: 160,000,000 VND -->
+    <function model="product.template" name="write" eval="[[ref('product_ai_poc')], {'list_price': 160000000.0}]"/>
     <record id="pricelist_vnd_product_ai_poc" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_ai_poc"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">300000000</field>
+        <field name="fixed_price">160000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_ai_pilot')], {'list_price': 35433.07}]"/>
+    <!-- 12. AI-PILOT: 380,000,000 VND -->
+    <function model="product.template" name="write" eval="[[ref('product_ai_pilot')], {'list_price': 380000000.0}]"/>
     <record id="pricelist_vnd_product_ai_pilot" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_ai_pilot"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">900000000</field>
+        <field name="fixed_price">380000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_ai_prod')], {'list_price': 59.06}]"/>
+    <!-- 13. AI-PROD: 650,000 VND / hour -->
+    <function model="product.template" name="write" eval="[[ref('product_ai_prod')], {'list_price': 650000.0}]"/>
     <record id="pricelist_vnd_product_ai_prod" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_ai_prod"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">1500000</field>
+        <field name="fixed_price">650000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_mojo_app_sub')], {'list_price': 98.43}]"/>
+    <!-- 14. MOJO-APP-SUB: 25,000,000 VND / month -->
+    <function model="product.template" name="write" eval="[[ref('product_mojo_app_sub')], {'list_price': 25000000.0}]"/>
     <record id="pricelist_vnd_product_mojo_app_sub" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_mojo_app_sub"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">2500000</field>
+        <field name="fixed_price">25000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_mojo_tokens')], {'list_price': 19.69}]"/>
+    <!-- 15. MOJO-TOKENS: 10,000,000 VND / pack -->
+    <function model="product.template" name="write" eval="[[ref('product_mojo_tokens')], {'list_price': 10000000.0}]"/>
     <record id="pricelist_vnd_product_mojo_tokens" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_mojo_tokens"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">500000</field>
+        <field name="fixed_price">10000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_mojo_onprem')], {'list_price': 23622.05}]"/>
+    <!-- 16. MOJO-ONPREM: 500,000,000 VND -->
+    <function model="product.template" name="write" eval="[[ref('product_mojo_onprem')], {'list_price': 500000000.0}]"/>
     <record id="pricelist_vnd_product_mojo_onprem" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_mojo_onprem"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">600000000</field>
+        <field name="fixed_price">500000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_ams_bronze')], {'list_price': 590.55}]"/>
+    <!-- 17. AMS-BRONZE: 15,000,000 VND / month -->
+    <function model="product.template" name="write" eval="[[ref('product_ams_bronze')], {'list_price': 15000000.0}]"/>
     <record id="pricelist_vnd_product_ams_bronze" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
@@ -142,7 +159,8 @@
         <field name="compute_price">fixed</field>
         <field name="fixed_price">15000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_ams_silver')], {'list_price': 1377.95}]"/>
+    <!-- 18. AMS-SILVER: 35,000,000 VND / month -->
+    <function model="product.template" name="write" eval="[[ref('product_ams_silver')], {'list_price': 35000000.0}]"/>
     <record id="pricelist_vnd_product_ams_silver" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
@@ -150,29 +168,32 @@
         <field name="compute_price">fixed</field>
         <field name="fixed_price">35000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_ams_gold')], {'list_price': 2755.91}]"/>
+    <!-- 19. AMS-GOLD: 65,000,000 VND / month -->
+    <function model="product.template" name="write" eval="[[ref('product_ams_gold')], {'list_price': 65000000.0}]"/>
     <record id="pricelist_vnd_product_ams_gold" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_ams_gold"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">70000000</field>
+        <field name="fixed_price">65000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_training_day')], {'list_price': 472.44}]"/>
+    <!-- 20. TRAINING-DAY: 15,000,000 VND / day -->
+    <function model="product.template" name="write" eval="[[ref('product_training_day')], {'list_price': 15000000.0}]"/>
     <record id="pricelist_vnd_product_training_day" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_training_day"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">12000000</field>
+        <field name="fixed_price">15000000</field>
     </record>
-    <function model="product.template" name="write" eval="[[ref('product_consult_hour')], {'list_price': 70.87}]"/>
+    <!-- 21. CONSULT-HOUR: 1,200,000 VND / hour -->
+    <function model="product.template" name="write" eval="[[ref('product_consult_hour')], {'list_price': 1200000.0}]"/>
     <record id="pricelist_vnd_product_consult_hour" model="product.pricelist.item">
         <field name="pricelist_id" ref="pricelist_vnd"/>
         <field name="applied_on">1_product</field>
         <field name="product_tmpl_id" ref="product_consult_hour"/>
         <field name="compute_price">fixed</field>
-        <field name="fixed_price">1800000</field>
+        <field name="fixed_price">1200000</field>
     </record>
 </data>
 </odoo>
