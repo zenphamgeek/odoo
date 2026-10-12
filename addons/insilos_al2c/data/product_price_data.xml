@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-<data noupdate="1">
+<data noupdate="0">
     <record id="pricelist_vnd" model="product.pricelist">
         <field name="name">Insilos Catalog (VND)</field>
         <field name="currency_id" ref="base.VND"/>
@@ -195,5 +195,7 @@
         <field name="compute_price">fixed</field>
         <field name="fixed_price">1200000</field>
     </record>
+    <!-- Idempotent alignment of product.template list_price with SRS v1.1 Section 5.1 -->
+    <function model="product.template" name="_al2c_align_catalog_prices"/>
 </data>
 </odoo>

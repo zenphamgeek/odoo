@@ -109,10 +109,14 @@ class Al2cTimesheetWebhookController(http.Controller):
 
         # 5. Create staging record (scoped values only, never raw external dict)
         valid_channels = dict(StagingModel._fields['submission_channel'].selection)
+        consultant = StagingModel._resolve_consultant(sender)
+        user = consultant.user_id if consultant and consultant.user_id else False
         staging_vals = {
             'name': str(subject)[:200],
             'sender_email': str(sender)[:200],
             'submission_channel': channel if channel in valid_channels else 'api_webhook',
+            'employee_id': consultant.id if consultant else False,
+            'user_id': user.id if user else False,
             'raw_email_body': str(body),
             'raw_payload_json': json.dumps(payload),
             'dedup_fingerprint': fingerprint,
@@ -130,13 +134,25 @@ class Al2cTimesheetWebhookController(http.Controller):
             b64_content = att.get('content_base64') or att.get('content')
             if b64_content:
                 try:
-                    att_rec = Attachment.create({
+                    att_vals = {
                         'name': str(fname)[:100],
                         'res_model': 'al2c.timesheet.staging',
                         'res_id': staging.id,
                         'type': 'binary',
-                        'datas': b64_content,
-                    })
+                    }
+                    if isinstance(b64_content, str):
+                        try:
+                            # Verify if string is valid base64
+                            base64.b64decode(b64_content, validate=True)
+                            att_vals['datas'] = b64_content
+                        except Exception:
+                            att_vals['raw'] = b64_content.encode('utf-8')
+                    elif isinstance(b64_content, bytes):
+                        att_vals['raw'] = b64_content
+                    else:
+                        att_vals['raw'] = str(b64_content).encode('utf-8')
+
+                    att_rec = Attachment.create(att_vals)
                     staging.attachment_ids = [(4, att_rec.id)]
                 except Exception as ex:
                     _logger.warning("Could not attach timesheet file %s: %s", fname, str(ex))

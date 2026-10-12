@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
+from . import account_analytic_line
 
 
 class ResourceCalendar(models.Model):
@@ -52,28 +53,35 @@ class ProjectTask(models.Model):
                         effective=task.effective_hours,
                         allocated=task.allocated_hours,
                     )
-                    task.message_post(body=msg, subtype_xmlid='mail.mt_note')
+                    pm = task.project_id.user_id if task.project_id else False
+                    partner_ids = [pm.partner_id.id] if pm and pm.partner_id else []
+
+                    # 1. Post to task chatter
+                    task.message_post(body=msg, subtype_xmlid='mail.mt_note', partner_ids=partner_ids)
+
+                    # 2. Post to project chatter
                     if task.project_id:
-                        task.project_id.message_post(body=msg, subtype_xmlid='mail.mt_note')
+                        task.project_id.message_post(body=msg, subtype_xmlid='mail.mt_note', partner_ids=partner_ids)
+
+                    # 3. Schedule To-Do activity for Project Manager
+                    if pm:
+                        todo_type = self.env.ref('mail.mail_activity_data_todo', raise_if_not_found=False)
+                        if todo_type:
+                            existing_act = task.activity_ids.filtered(
+                                lambda a: a.activity_type_id == todo_type and a.summary == "AL2C Budget Burn Warning (>= 85%)"
+                            )
+                            if not existing_act:
+                                task.activity_schedule(
+                                    activity_type_id=todo_type.id,
+                                    summary=_("AL2C Budget Burn Warning (>= 85%)"),
+                                    note=msg,
+                                    user_id=pm.id,
+                                )
                 elif burn_ratio < 0.85 and task.al2c_burn_warning_sent:
                     task.al2c_burn_warning_sent = False
 
-
-class AccountAnalyticLine(models.Model):
-    _inherit = 'account.analytic.line'
-
-    @api.model_create_multi
-    def create(self, vals_list):
-        lines = super().create(vals_list)
-        tasks = lines.mapped('task_id').filtered(lambda t: t.allocated_hours > 0)
-        if tasks:
-            tasks._check_budget_burn_threshold()
-        return lines
-
     def write(self, vals):
         res = super().write(vals)
-        if 'unit_amount' in vals or 'task_id' in vals:
-            tasks = self.mapped('task_id').filtered(lambda t: t.allocated_hours > 0)
-            if tasks:
-                tasks._check_budget_burn_threshold()
+        if 'allocated_hours' in vals:
+            self.filtered(lambda t: t.allocated_hours > 0)._check_budget_burn_threshold()
         return res

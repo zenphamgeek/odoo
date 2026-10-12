@@ -7,6 +7,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_impl"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">150000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -25,6 +26,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_impl"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">450000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">delivery</field>
@@ -43,6 +45,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_impl"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">1200000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">delivery</field>
@@ -61,6 +64,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_saas"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">350000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -78,6 +82,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_saas"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">15000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -95,6 +100,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_saas"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">20000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -112,6 +118,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_grc"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">180000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -130,6 +137,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_grc"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">120000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -148,6 +156,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_grc"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">250000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">delivery</field>
@@ -166,6 +175,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">80000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -184,6 +194,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">160000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -202,6 +213,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">380000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">delivery</field>
@@ -220,6 +232,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
         <field name="uom_id" ref="uom.product_uom_hour"/>
+        <field name="list_price">650000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">delivery</field>
@@ -238,6 +251,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_mojo"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">25000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -255,6 +269,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_mojo"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">10000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">delivery</field>
@@ -272,6 +287,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_mojo"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">500000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -290,6 +306,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">15000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -307,6 +324,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">35000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -324,6 +342,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
         <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">65000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -341,6 +360,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
         <field name="uom_id" ref="uom.product_uom_day"/>
+        <field name="list_price">15000000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">order</field>
@@ -358,6 +378,7 @@
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
         <field name="uom_id" ref="uom.product_uom_hour"/>
+        <field name="list_price">1200000.0</field>
         <field name="sale_ok" eval="True"/>
         <field name="purchase_ok" eval="False"/>
         <field name="invoice_policy">delivery</field>

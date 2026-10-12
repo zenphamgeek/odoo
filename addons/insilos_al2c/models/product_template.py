@@ -57,3 +57,46 @@ class ProductTemplate(models.Model):
                 })
         return True
 
+    @api.model
+    def _al2c_align_catalog_prices(self):
+        """Align product.template.list_price with VND catalog fixed prices per SRS v1.1 Section 5.1."""
+        catalog_prices = {
+            'ERP-STARTER': 150_000_000.0,
+            'ERP-GROWTH': 450_000_000.0,
+            'ERP-ENT': 1_200_000_000.0,
+            'SAAS-USER-M': 350_000.0,
+            'SAAS-HOSTING-PRO': 15_000_000.0,
+            'SAAS-SLA-PLUS': 20_000_000.0,
+            'GRC-ESSENTIALS': 180_000_000.0,
+            'GRC-RISK-REGISTER': 120_000_000.0,
+            'GRC-AUDIT-PACK': 250_000_000.0,
+            'AI-DISCOVERY': 80_000_000.0,
+            'AI-POC': 160_000_000.0,
+            'AI-PILOT': 380_000_000.0,
+            'AI-PROD': 650_000.0,
+            'MOJO-APP-SUB': 25_000_000.0,
+            'MOJO-TOKENS': 10_000_000.0,
+            'MOJO-ONPREM': 500_000_000.0,
+            'AMS-BRONZE': 15_000_000.0,
+            'AMS-SILVER': 35_000_000.0,
+            'AMS-GOLD': 65_000_000.0,
+            'TRAINING-DAY': 15_000_000.0,
+            'CONSULT-HOUR': 1_200_000.0,
+        }
+        for sku, price in catalog_prices.items():
+            tmpl = self.search([('default_code', '=', sku)], limit=1)
+            if tmpl:
+                tmpl.sudo().write({'list_price': price})
+                if tmpl.product_variant_id:
+                    tmpl.product_variant_id.sudo().write({'lst_price': price})
+        return True
+
+
+from odoo import tools
+if tools.config.get('test_enable') or tools.config.get('test_tags'):
+    try:
+        from ..tests import test_al2c_pricing  # noqa: F401
+    except Exception:
+        pass
+
+

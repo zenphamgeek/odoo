@@ -20,6 +20,7 @@ from werkzeug.exceptions import BadRequest
 import werkzeug.urls
 
 from odoo.addons.auth_oauth.controllers.main import _is_safe_local_redirect
+from odoo.addons.insilos_al2c.tests.test_route_authz_snapshot import PUBLIC_ALLOWLIST
 
 
 def test_f1_oauth_open_redirect():
@@ -444,7 +445,6 @@ def test_runtime_gateway_ip_spoof_rejection():
 def test_route_authorization_snapshot_guard():
     print("[TEST ROUTE AUTHZ] CWE-862/863: Controller Authorization Snapshot Guard")
     from odoo.http import Controller
-    from odoo.addons.insilos_al2c.tests.test_route_authz_snapshot import PUBLIC_ALLOWLIST
 
     # Verify that dangerous internal admin or reporting paths are NEVER in the public allowlist
     banned_paths = [
@@ -659,6 +659,146 @@ def test_timesheet_webhook_security():
     print("  [✓] Timesheet webhook HMAC, replay skew, size cap, and idempotency verified.")
 
 
+def test_core_integrity_and_pdpd_erasure_tombstone():
+    print("[TEST PDPD & CORE INTEGRITY] Decree 13/2023/ND-CP Erasure Tombstone & Zero-Core-Patch Invariant")
+    import xml.etree.ElementTree as ET
+    from unittest.mock import MagicMock
+
+    # 1. Zero Core Patch Invariant: Verify core files contain zero unauthorized in-tree edits
+    with open('odoo/addons/base/models/ir_module.py', 'r', encoding='utf-8') as f:
+        core_ir_module = f.read()
+    assert 'innokafe_prod' not in core_ir_module, "Core ir_module.py must not contain tenant-specific logic!"
+
+    with open('addons/web/controllers/utils.py', 'r', encoding='utf-8') as f:
+        core_utils = f.read()
+    assert "_legacy_alias = 'od' + 'oo'" not in core_utils, "Core utils.py must not contain synthetic alias obfuscation!"
+
+    # 2. Report Action Security Invariant: All statutory reports must be qweb-pdf and gated by groups_id
+    tree = ET.parse('addons/insilos_al2c/data/ir_actions_report_data.xml')
+    root = tree.getroot()
+    report_records = root.findall(".//record[@model='ir.actions.report']")
+    assert len(report_records) >= 4, f"Expected at least 4 report action records, found {len(report_records)}"
+    for r in report_records:
+        r_id = r.get('id')
+        r_type = r.find("field[@name='report_type']")
+        assert r_type is not None and r_type.text == 'qweb-pdf', f"Report {r_id} must have report_type='qweb-pdf' (got {r_type.text if r_type is not None else None})"
+        groups_id = r.find("field[@name='groups_id']")
+        assert groups_id is not None and 'sales_team.group_sale_salesman' in groups_id.get('eval', ''), f"Report {r_id} must restrict access via groups_id sales_team.group_sale_salesman"
+
+    # 3. PDPD Decree 13/2023/ND-CP Right-to-be-Forgotten & Merkle Tombstone Engine
+    from odoo.addons.insilos_al2c.models.al2c_pdpd_erasure import ResPartner, Al2cPdpdErasureTombstone
+
+    mock_partner = MagicMock(spec=ResPartner)
+    mock_partner.id = 1001
+    mock_partner.name = "Nguyen Van Khach"
+    mock_partner.email = "khach.hang@enterprise.vn"
+    mock_partner.phone = "+84901234567"
+    mock_partner.ensure_one = MagicMock()
+
+    mock_att1 = MagicMock(id=501, name="De_Xuat_Giai_Phap_SO001.pdf")
+    mock_att2 = MagicMock(id=502, name="Bao_Gia_SO001.pdf")
+    mock_msg1 = MagicMock(id=801, body="Please send invoice to khach.hang@enterprise.vn", subject="Quotation")
+    mock_msg2 = MagicMock(id=802, body="Contact phone is +84901234567", subject="Delivery")
+    mock_stg1 = MagicMock(id=901, raw_email_body="2026-10-12 | Khach Hang | 4.0h", sender_email="khach.hang@enterprise.vn")
+
+    mock_attachments = MagicMock()
+    mock_attachments.__iter__.return_value = [mock_att1, mock_att2]
+    mock_attachments.__len__.return_value = 2
+    mock_attachments.unlink = MagicMock()
+
+    mock_remaining = MagicMock()
+    mock_remaining.__bool__.return_value = False
+    mock_remaining.__len__.return_value = 0
+
+    att_call_count = 0
+    def search_att_side_effect(domain):
+        nonlocal att_call_count
+        att_call_count += 1
+        if att_call_count == 1:
+            return mock_attachments
+        return mock_remaining
+
+    mock_att_model = MagicMock()
+    mock_att_model.search.side_effect = search_att_side_effect
+
+    mock_mail_message = MagicMock()
+    mock_mail_message.search.return_value = [mock_msg1, mock_msg2]
+
+    mock_staging_model = MagicMock()
+    mock_staging_model.search.return_value = [mock_stg1]
+
+    mock_sale_order = MagicMock()
+    mock_sale_order.search.return_value = MagicMock(ids=[701])
+
+    mock_config_param = MagicMock()
+    mock_config_param.sudo().get_param.return_value = "statutory_test_secret_pdpd_2026_xyz"
+
+    mock_tombstone_created = []
+    def fake_tombstone_create(vals):
+        rec = MagicMock(spec=Al2cPdpdErasureTombstone)
+        rec.id = 77
+        rec.request_reference = vals['request_reference']
+        rec.pre_erasure_merkle_root = vals['pre_erasure_merkle_root']
+        rec.records_purged_count = vals['records_purged_count']
+        rec.proof_signature = vals['proof_signature']
+        mock_tombstone_created.append(rec)
+        return rec
+
+    mock_tombstone_model = MagicMock()
+    mock_tombstone_model.sudo().create.side_effect = fake_tombstone_create
+
+    models = {
+        'ir.attachment': mock_att_model,
+        'mail.message': mock_mail_message,
+        'al2c.timesheet.staging': mock_staging_model,
+        'sale.order': mock_sale_order,
+        'ir.config_parameter': mock_config_param,
+        'al2c.pdpd.erasure.tombstone': mock_tombstone_model,
+    }
+
+    mock_env = MagicMock()
+    mock_env.__getitem__.side_effect = lambda k: models.get(k, MagicMock())
+    mock_env.__contains__.side_effect = lambda k: k in models
+    mock_partner.env = mock_env
+
+    # Execute PDPD erasure
+    tombstone = ResPartner.action_pdpd_right_to_be_forgotten(mock_partner, request_ref="PDPD-2026-TEST01")
+
+    # Assertions:
+    # A. Attachments were unlinked
+    mock_attachments.unlink.assert_called_once()
+    # B. Message bodies were sanitized with statutory marker
+    for msg in [mock_msg1, mock_msg2]:
+        msg.write.assert_called_with({
+            'body': '<p><em>[DỮ LIỆU ĐÃ ĐƯỢC XÓA THEO NGHỊ ĐỊNH 13/2023/NĐ-CP - PII PURGED]</em></p>',
+            'subject': '[PDPD PURGED]',
+        })
+    # C. Staging payloads were scrubbed
+    mock_stg1.write.assert_called_once()
+    stg_write_vals = mock_stg1.write.call_args[0][0]
+    assert stg_write_vals['raw_email_body'] == '[PURGED PER DECREE 13/2023/ND-CP]'
+    assert 'anonymized_' in stg_write_vals['sender_email']
+
+    # D. Partner core was anonymized and deactivated
+    mock_partner.write.assert_called_once()
+    partner_vals = mock_partner.write.call_args[0][0]
+    assert partner_vals['name'].startswith('ANONYMIZED_SUBJECT_')
+    assert partner_vals['email'] is False
+    assert partner_vals['phone'] is False
+    assert partner_vals['active'] is False
+    assert partner_vals['pdpd_erasure_status'] == 'erased'
+
+    # E. Cryptographic Tombstone Proof generated
+    assert len(mock_tombstone_created) == 1
+    tb = mock_tombstone_created[0]
+    assert tb.request_reference == "PDPD-2026-TEST01"
+    assert len(tb.pre_erasure_merkle_root) == 64  # SHA-256
+    assert tb.records_purged_count == 6  # 2 att + 2 msg + 1 stg + 1 partner
+    assert len(tb.proof_signature) == 64  # HMAC-SHA256
+
+    print("  [✓] Zero core patch invariant, report PDF/ACL gating, and Decree 13/2023 Merkle tombstone verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -677,8 +817,9 @@ def main():
     test_pod_sync_orchestrator_security()
     test_innokafe_deploy_pipeline_security()
     test_timesheet_webhook_security()
+    test_core_integrity_and_pdpd_erasure_tombstone()
     print("=" * 80)
-    print("ALL 14 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 15 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 

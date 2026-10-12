@@ -24,3 +24,6 @@ from . import analytic_mixin
 from . import al2c_tech_asset
 from . import al2c_runtime_incident
 from . import al2c_timesheet_staging
+from . import al2c_pdpd_erasure
+from . import sale_order_line
+from . import account_analytic_line

@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================================================================
+         AL2C ENTERPRISE SALES DOCUMENT SUITE (R3)
+         Architecture: IBM Carbon Typography & SAP Fiori Horizon Standards
+         Accents: Horizon Sapphire (#0070F2) to Tech Cyan (#0ABBDB)
+         Statutory: Decree 13/2023/ND-CP, Decree 70/2025/ND-CP & Decree 123/2020/ND-CP
+         Zero Platform Genesis: 100% Clean Enterprise Signature
+         ===================================================================== -->
+
+    <!-- =====================================================================
+         1. TEMPLATE 1: EXECUTIVE SALES PROPOSAL (BẢN ĐỀ XUẤT GIẢI PHÁP)
+         ===================================================================== -->
+    <template id="report_sales_proposal">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="insilos_al2c.external_layout_ibm_sap">
+                    <div class="page" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616; padding-bottom: 24px;">
+                        
+                        <!-- Document Title Block -->
+                        <div class="mb-4 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 11px; font-weight: 600; color: #0070F2; text-transform: uppercase; letter-spacing: 0.05em;">
+                                        Enterprise Solution Architecture Proposal
+                                    </span>
+                                    <h2 class="mt-1 mb-0" style="font-weight: 700; color: #161616;">
+                                        BẢN ĐỀ XUẤT GIẢI PHÁP CHUYỂN ĐỔI SỐ
+                                    </h2>
+                                </div>
+                                <div class="text-end">
+                                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 13px; font-weight: 600; background: #F4F4F4; border: 1px solid #E0E0E0; padding: 4px 8px; border-radius: 3px;">
+                                        <t t-out="doc.name"/>
+                                    </span>
+                                    <div class="text-muted" style="font-size: 10px; margin-top: 4px;">
+                                        Ngày phát hành: <t t-out="doc.date_order.strftime('%d/%m/%Y') if doc.date_order else ''"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Customer & Solution Metadata -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <div style="background: #F4F4F4; border-left: 3px solid #0070F2; padding: 12px; border-radius: 2px;">
+                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #525252; margin-bottom: 4px;">Khách Hàng / Doanh Nghiệp Mục Tiêu</div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #161616;" t-out="doc.partner_id.name"/>
+                                    <div style="font-size: 11px; color: #525252; margin-top: 2px;">
+                                        <span t-if="doc.partner_id.vat">MST: <strong t-out="doc.partner_id.vat"/><br/></span>
+                                        <span t-if="doc.partner_id.street" t-out="doc.partner_id.street"/>, <span t-if="doc.partner_id.city" t-out="doc.partner_id.city"/><br/>
+                                        <span t-if="doc.partner_id.email" t-out="doc.partner_id.email"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div style="background: #F4F4F4; border-left: 3px solid #0ABBDB; padding: 12px; border-radius: 2px;">
+                                    <div style="font-size: 10px; font-weight: 600; text-transform: uppercase; color: #525252; margin-bottom: 4px;">Đơn Vị Tư Vấn &amp; Kiến Trúc Giải Pháp</div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #161616;">INNORIA ENTERPRISE PLATFORM</div>
+                                    <div style="font-size: 11px; color: #525252; margin-top: 2px;">
+                                        Đại diện: <strong t-out="doc.user_id.name or 'Solution Architect Lead'"/><br/>
+                                        Email: <span t-out="doc.user_id.email or 'contact@innoria.com'"/><br/>
+                                        Tiêu chuẩn: SAP Activate · ISO/IEC 27001 · Decree 13 Compliance
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 1: Executive Summary & Problem Context -->
+                        <div class="mb-4">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                1. Mục Tiêu &amp; Phạm Vi Fit-to-Standard (Clean Core)
+                            </h5>
+                            <p style="font-size: 11px; line-height: 1.6; color: #393939; margin-bottom: 8px;">
+                                Bản đề xuất này định hình kiến trúc chuyển đổi toàn diện dựa trên nền tảng Insilos Enterprise O20, áp dụng phương pháp luận SAP Activate và chuẩn Clean-Core. Hệ thống giúp doanh nghiệp loại bỏ tình trạng phân mảnh dữ liệu, số hóa toàn trình từ Bán hàng (Lead) đến Thu tiền (Cash), đồng thời tối ưu hóa chi phí vận hành thông qua các tác tử AI tự động.
+                            </p>
+                        </div>
+
+                        <!-- Section 2: Clean Core Extensibility Matrix -->
+                        <div class="mb-4" t-if="doc.fts_item_ids">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                2. Ma Trận Phạm Vi Extensibility (Fit-to-Standard Clean Core)
+                            </h5>
+                            <table class="table table-sm table-bordered" style="font-size: 10px;">
+                                <thead style="background: #F4F4F4; color: #161616;">
+                                    <tr>
+                                        <th style="width: 40%;">Hạng Mục Yêu Cầu</th>
+                                        <th style="width: 25%;">Phân Loại Clean Core</th>
+                                        <th style="width: 35%;">Giải Pháp Kiến Trúc</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="doc.fts_item_ids" t-as="item">
+                                        <td><strong t-out="item.name"/></td>
+                                        <td>
+                                            <span t-if="item.clean_core_class == 'class_a'" class="badge bg-success">Class A: Chuẩn OOTB</span>
+                                            <span t-elif="item.clean_core_class == 'class_b'" class="badge bg-info text-dark">Class B: Low-Code Studio</span>
+                                            <span t-elif="item.clean_core_class == 'class_c'" class="badge bg-primary">Class C: Decoupled API</span>
+                                            <span t-else="" class="badge bg-danger">Class D: Core Exception</span>
+                                        </td>
+                                        <td t-out="item.description or item.justification or 'Cấu hình tiêu chuẩn theo quy trình ERP'"/>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Section 3: Value Case & ROI -->
+                        <div class="mb-4" t-if="doc.value_case_id">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                3. Lập Luận Giá Trị Kinh Tế &amp; TCO / ROI (Economic Value Case)
+                            </h5>
+                            <div class="row g-2 mb-2">
+                                <div class="col-4">
+                                    <div class="p-2 border text-center" style="background: #F4F4F4;">
+                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Mức Tiết Kiệm TCO Dự Kiến</div>
+                                        <div style="font-size: 15px; font-weight: 700; color: #0070F2;">
+                                            <t t-out="doc.value_case_id.target_tco_reduction_pct"/>%
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2 border text-center" style="background: #F4F4F4;">
+                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Thời Gian Hoàn Vốn (Payback)</div>
+                                        <div style="font-size: 15px; font-weight: 700; color: #0070F2;">
+                                            <t t-out="doc.value_case_id.projected_payback_months"/> tháng
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="p-2 border text-center" style="background: #F4F4F4;">
+                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Hiệu Suất Vận Hành Tăng</div>
+                                        <div style="font-size: 15px; font-weight: 700; color: #0070F2;">
+                                            +<t t-out="doc.value_case_id.efficiency_gain_pct or 35.0"/>%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: SAP Activate 5-Phase Roadmap -->
+                        <div class="mb-4">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                4. Lộ Trình Triển Khai 5 Giai Đoạn SAP Activate
+                            </h5>
+                            <table class="table table-sm table-bordered" style="font-size: 10px;">
+                                <thead style="background: #F4F4F4; color: #161616;">
+                                    <tr>
+                                        <th style="width: 15%;">Giai Đoạn</th>
+                                        <th style="width: 15%;">Trọng Số SOW</th>
+                                        <th style="width: 50%;">Mục Tiêu &amp; Kết Quả Đầu Ra (Deliverables)</th>
+                                        <th style="width: 20%;">Điều Kiện Nghiệm Thu</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>1. Prepare</strong></td>
+                                        <td>15% Tổng giá trị</td>
+                                        <td>Khởi động dự án, thiết lập hạ tầng Cloud/Dev, Project Charter</td>
+                                        <td>Biên bản bàn giao hạ tầng</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>2. Explore</strong></td>
+                                        <td>25% Tổng giá trị</td>
+                                        <td>Hội thảo Fit-to-Standard, thiết kế chi tiết quy trình BPDD</td>
+                                        <td>Ký duyệt tài liệu Solution Design</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>3. Realize</strong></td>
+                                        <td>35% Tổng giá trị</td>
+                                        <td>Cấu hình hệ thống, tích hợp API, di chuyển dữ liệu, SIT</td>
+                                        <td>Biên bản nghiệm thu SIT nội bộ</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>4. Deploy</strong></td>
+                                        <td>15% Tổng giá trị</td>
+                                        <td>Đào tạo người dùng cuối, diễn tập chuyển đổi (Cutover), Go-Live</td>
+                                        <td>Biên bản UAT &amp; Ký duyệt Go-Live</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>5. Run</strong></td>
+                                        <td>10% Tổng giá trị</td>
+                                        <td>Hỗ trợ Hypercare 30 ngày, đối soát vận hành, chuyển giao</td>
+                                        <td>Biên bản đóng dự án chính thức</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Section 5: Commercial Investment Overview -->
+                        <div class="mb-4">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                5. Tổng Mức Đầu Tư &amp; Dự Toán Chi Phí
+                            </h5>
+                            <table class="table table-sm table-striped" style="font-size: 10px;">
+                                <thead style="background: #161616; color: #FFFFFF;">
+                                    <tr>
+                                        <th>Hạng Mục Dịch Vụ / License</th>
+                                        <th class="text-center">Số Lượng</th>
+                                        <th class="text-end">Đơn Giá (VND)</th>
+                                        <th class="text-end">Thành Tiền (VND)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr t-foreach="doc.order_line" t-as="line">
+                                        <td>
+                                            <strong t-out="line.product_id.name"/><br/>
+                                            <small class="text-muted" t-out="line.name"/>
+                                        </td>
+                                        <td class="text-center"><t t-out="line.product_uom_qty"/> <t t-out="line.product_uom.name"/></td>
+                                        <td class="text-end"><t t-out="'{:,.0f}'.format(line.price_unit)"/></td>
+                                        <td class="text-end font-weight-bold"><t t-out="'{:,.0f}'.format(line.price_subtotal)"/></td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="border-top: 2px solid #161616;">
+                                        <td colspan="3" class="text-end"><strong>Tổng Giá Trị Hợp Đồng (Chưa VAT):</strong></td>
+                                        <td class="text-end" style="font-size: 12px; font-weight: 700; color: #0070F2;">
+                                            <t t-out="'{:,.0f}'.format(doc.amount_untaxed)"/> VND
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- Statutory Privacy & Sign-Off -->
+                        <div class="mt-4 pt-3 border-top" style="font-size: 9px; color: #6F6F6F;">
+                            <div class="alert alert-light border p-2 mb-3">
+                                <strong>BẢO MẬT &amp; TUÂN THỦ NGHỊ ĐỊNH 13/2023/NĐ-CP:</strong> Toàn bộ thông tin kiến trúc và giải pháp trong tài liệu này thuộc quyền sở hữu trí tuệ của UNG DUNG SANG TAO LLC và được cam kết bảo mật theo các quy định hiện hành của pháp luật Việt Nam.
+                            </div>
+                            <div class="row text-center mt-4">
+                                <div class="col-6">
+                                    <strong>ĐẠI DIỆN KHÁCH HÀNG</strong><br/>
+                                    <small>(Ký và ghi rõ họ tên)</small><br/><br/><br/>
+                                </div>
+                                <div class="col-6">
+                                    <strong>ĐẠI DIỆN INNORIA ENTERPRISE</strong><br/>
+                                    <small>(Ký và ghi rõ họ tên)</small><br/><br/><br/>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- =====================================================================
+         2. TEMPLATE 2: OFFICIAL COMMERCIAL QUOTATION (BÁO GIÁ THƯƠNG MẠI)
+         ===================================================================== -->
+    <template id="report_commercial_quotation">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="insilos_al2c.external_layout_ibm_sap">
+                    <div class="page" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616; padding-bottom: 24px;">
+                        
+                        <!-- Header Banner -->
+                        <div class="mb-4 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 11px; font-weight: 600; color: #0070F2; text-transform: uppercase; letter-spacing: 0.05em;">
+                                        Official Commercial Quotation
+                                    </span>
+                                    <h2 class="mt-1 mb-0" style="font-weight: 700; color: #161616;">
+                                        BÁO GIÁ THƯƠNG MẠI CHÍNH THỨC
+                                    </h2>
+                                </div>
+                                <div class="text-end">
+                                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 13px; font-weight: 700; background: #0070F2; color: #FFFFFF; padding: 4px 8px; border-radius: 3px;">
+                                        <t t-out="doc.name"/>
+                                    </span>
+                                    <div class="text-muted" style="font-size: 10px; margin-top: 4px;">
+                                        Hiệu lực báo giá: 30 ngày kể từ <t t-out="doc.date_order.strftime('%d/%m/%Y') if doc.date_order else ''"/>
+                                    </div>
+                                    <div t-if="doc.al2c_approved" class="mt-1">
+                                        <span class="badge bg-success" style="font-size: 9px;">DEAL DESK VERIFIED · SOD COMPLIANT</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Customer Info Box -->
+                        <div class="row mb-4">
+                            <div class="col-7">
+                                <div style="background: #F4F4F4; border-left: 3px solid #0070F2; padding: 10px 14px; border-radius: 2px;">
+                                    <div style="font-size: 9px; font-weight: 600; text-transform: uppercase; color: #525252;">Đơn Vị Nhận Báo Giá</div>
+                                    <div style="font-size: 13px; font-weight: 700; color: #161616;" t-out="doc.partner_id.name"/>
+                                    <div style="font-size: 10px; color: #525252; margin-top: 2px;">
+                                        <span t-if="doc.partner_id.vat">Mã số thuế: <strong style="color: #161616;" t-out="doc.partner_id.vat"/> · </span>
+                                        <span t-if="doc.partner_id.phone">ĐT: <t t-out="doc.partner_id.phone"/><br/></span>
+                                        <span t-if="doc.partner_id.street" t-out="doc.partner_id.street"/>, <span t-if="doc.partner_id.city" t-out="doc.partner_id.city"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <div style="background: #F4F4F4; border-left: 3px solid #525252; padding: 10px 14px; border-radius: 2px; font-size: 10px;">
+                                    <div style="font-weight: 600; text-transform: uppercase; color: #525252;">Điều Khoản Thanh Toán &amp; Giao Hàng</div>
+                                    <div>Phương thức: Thanh toán theo mốc bàn giao SAP Activate</div>
+                                    <div>Xuất hóa đơn: Nghị định 70/2025/NĐ-CP (sau nghiệm thu)</div>
+                                    <div>Đồng tiền báo giá: <strong>Việt Nam Đồng (VND)</strong></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quotation Lines Table -->
+                        <table class="table table-sm table-bordered mb-3" style="font-size: 10px;">
+                            <thead style="background: #161616; color: #FFFFFF;">
+                                <tr>
+                                    <th style="width: 5%;" class="text-center">STT</th>
+                                    <th style="width: 45%;">Hạng Mục Cung Cấp</th>
+                                    <th style="width: 10%;" class="text-center">Thuế Suất</th>
+                                    <th style="width: 10%;" class="text-center">Số Lượng</th>
+                                    <th style="width: 15%;" class="text-end">Đơn Giá (VND)</th>
+                                    <th style="width: 15%;" class="text-end">Thành Tiền (VND)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="idx" t-value="1"/>
+                                <tr t-foreach="doc.order_line" t-as="line">
+                                    <td class="text-center"><t t-out="idx"/><t t-set="idx" t-value="idx + 1"/></td>
+                                    <td>
+                                        <strong t-out="line.product_id.name"/><br/>
+                                        <span class="text-muted" style="font-size: 9px;" t-out="line.name"/>
+                                    </td>
+                                    <td class="text-center">
+                                        <span t-if="line.product_id.al2c_vat_class == 'kct'" class="badge bg-secondary">KCT</span>
+                                        <span t-elif="line.product_id.al2c_vat_class == 'vat_8'" class="badge bg-info text-dark">VAT 8%</span>
+                                        <span t-else="" class="badge bg-light text-dark">VAT 10%</span>
+                                    </td>
+                                    <td class="text-center"><t t-out="line.product_uom_qty"/> <t t-out="line.product_uom.name"/></td>
+                                    <td class="text-end"><t t-out="'{:,.0f}'.format(line.price_unit)"/></td>
+                                    <td class="text-end font-weight-bold"><t t-out="'{:,.0f}'.format(line.price_subtotal)"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <!-- Totals & VietQR Payment Box -->
+                        <div class="row g-3 mb-4">
+                            <!-- VietQR Napas247 Card -->
+                            <div class="col-6">
+                                <div class="p-3 border rounded" style="background: #F4F4F4;">
+                                    <div class="d-flex align-items-center mb-2">
+                                        <img src="https://img.vietqr.io/image/970436-0071001234567-compact2.png" style="max-height: 80px; width: auto; margin-right: 12px;" alt="VietQR Napas247"/>
+                                        <div style="font-size: 9px; line-height: 1.4;">
+                                            <strong style="color: #0070F2;">CỔNG THANH TOÁN NAPAS247 CHÍNH THỨC</strong><br/>
+                                            Ngân hàng: <strong>Vietcombank (VCB)</strong><br/>
+                                            Số tài khoản: <strong>0071001234567</strong><br/>
+                                            Chủ TK: <strong>CONG TY TNHH UNG DUNG SANG TAO</strong><br/>
+                                            Nội dung CK: <strong t-out="doc.name"/>
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 8px; color: #525252;">
+                                        * Quét mã QR qua ứng dụng ngân hàng để tự động điền số tài khoản, số tiền và nội dung đối soát.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Statutory Tax Schedule & Grand Total -->
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless" style="font-size: 11px;">
+                                    <tr>
+                                        <td>Cộng tiền hàng (Chưa thuế):</td>
+                                        <td class="text-end"><t t-out="'{:,.0f}'.format(doc.amount_untaxed)"/> VND</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Thuế GTGT (Theo luật Thuế GTGT 48/2024 &amp; NĐ 174):</td>
+                                        <td class="text-end"><t t-out="'{:,.0f}'.format(doc.amount_tax)"/> VND</td>
+                                    </tr>
+                                    <tr style="border-top: 2px solid #161616; font-size: 13px;">
+                                        <td><strong>TỔNG CỘNG THANH TOÁN:</strong></td>
+                                        <td class="text-end" style="font-weight: 700; color: #0070F2;">
+                                            <t t-out="'{:,.0f}'.format(doc.amount_total)"/> VND
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Formal Sign-Off Footer -->
+                        <div class="row text-center mt-5" style="font-size: 10px;">
+                            <div class="col-6">
+                                <strong>XÁC NHẬN CỦA KHÁCH HÀNG</strong><br/>
+                                <small>(Đồng ý báo giá &amp; khởi tạo hợp đồng)</small><br/><br/><br/>
+                            </div>
+                            <div class="col-6">
+                                <strong>ĐẠI DIỆN INNORIA ENTERPRISE</strong><br/>
+                                <small>(Ký và đóng dấu)</small><br/><br/><br/>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- =====================================================================
+         3. TEMPLATE 3: STATEMENT OF WORK (PHỤ LỤC PHẠM VI CÔNG VIỆC SOW)
+         ===================================================================== -->
+    <template id="report_statement_of_work">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="insilos_al2c.external_layout_ibm_sap">
+                    <div class="page" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616; padding-bottom: 24px;">
+                        
+                        <!-- SOW Header -->
+                        <div class="mb-4 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 11px; font-weight: 600; color: #0070F2; text-transform: uppercase; letter-spacing: 0.05em;">
+                                        SAP Activate Project Scope Annex
+                                    </span>
+                                    <h2 class="mt-1 mb-0" style="font-weight: 700; color: #161616;">
+                                        PHỤ LỤC PHẠM VI CÔNG VIỆC (SOW)
+                                    </h2>
+                                </div>
+                                <div class="text-end">
+                                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 13px; font-weight: 700; background: #F4F4F4; border: 1px solid #E0E0E0; padding: 4px 8px; border-radius: 3px;">
+                                        SOW-<t t-out="doc.name"/>
+                                    </span>
+                                    <div class="text-muted" style="font-size: 10px; margin-top: 4px;">
+                                        Kèm theo Hợp đồng số: <t t-out="doc.name"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Project Governance -->
+                        <div class="mb-4">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                1. Cơ Cấu Tổ Chức &amp; Quản Trị Dự Án (Project Governance)
+                            </h5>
+                            <p style="font-size: 10px; line-height: 1.5; color: #393939;">
+                                Dự án vận hành theo mô hình quản trị hai cấp (Ban Chỉ Đạo Steering Committee &amp; Ban Quản Lý Dự Án PMO). Bất kỳ thay đổi nào liên quan đến phạm vi, tiến độ hoặc ngân sách phải tuân thủ quy trình Quản lý Thay đổi (Change Request) và có xác nhận của cả hai bên.
+                            </p>
+                        </div>
+
+                        <!-- 5 Activate Phases Breakdown -->
+                        <div class="mb-4">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                2. Chi Tiết 5 Giai Đoạn Bàn Giao &amp; Tỷ Lệ Thanh Toán (SAP Activate)
+                            </h5>
+                            <table class="table table-sm table-bordered" style="font-size: 10px;">
+                                <thead style="background: #161616; color: #FFFFFF;">
+                                    <tr>
+                                        <th style="width: 15%;">Giai Đoạn</th>
+                                        <th style="width: 10%;" class="text-center">Trọng Số</th>
+                                        <th style="width: 45%;">Hạng Mục Công Việc &amp; Bàn Giao Cốt Lõi</th>
+                                        <th style="width: 30%;">Tiêu Chí Nghiệm Thu (Acceptance Token)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>GĐ 1: Prepare</strong></td>
+                                        <td class="text-center font-weight-bold">15%</td>
+                                        <td>Khởi động dự án, thiết lập môi trường Cloud/Dev, Project Charter, thống nhất kế hoạch chi tiết.</td>
+                                        <td>Project Charter &amp; Biên bản bàn giao hạ tầng được ký duyệt.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>GĐ 2: Explore</strong></td>
+                                        <td class="text-center font-weight-bold">25%</td>
+                                        <td>Hội thảo Fit-to-Standard, lập tài liệu thiết kế quy trình (BPDD), ma trận phân quyền, backlog phát triển.</td>
+                                        <td>Tài liệu Business Process Design Document (BPDD) được ký duyệt.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>GĐ 3: Realize</strong></td>
+                                        <td class="text-center font-weight-bold">35%</td>
+                                        <td>Cấu hình hệ thống, tích hợp API/Mojo App, di chuyển dữ liệu ban đầu, kiểm thử tích hợp (SIT).</td>
+                                        <td>Biên bản nghiệm thu kỹ thuật SIT &amp; Kiểm thử dữ liệu mẫu.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>GĐ 4: Deploy</strong></td>
+                                        <td class="text-center font-weight-bold">15%</td>
+                                        <td>Kiểm thử chấp nhận người dùng (UAT), đào tạo người dùng cuối, diễn tập cutover, chính thức Go-Live.</td>
+                                        <td>Biên bản nghiệm thu UAT &amp; Biên bản Go-Live chính thức.</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>GĐ 5: Run</strong></td>
+                                        <td class="text-center font-weight-bold">10%</td>
+                                        <td>Hỗ trợ Hypercare 30 ngày, đánh giá tối ưu hóa sau vận hành, chuyển giao cho đội ngũ vận hành AMS.</td>
+                                        <td>Biên bản kết thúc Hypercare &amp; Đóng dự án bàn giao AMS.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Decree 70 Sign-off Protocol -->
+                        <div class="mb-4">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                3. Quy Trình Nghiệm Thu &amp; Điều Kiện Xuất Hóa Đơn (Nghị Định 70/2025/NĐ-CP)
+                            </h5>
+                            <div class="p-2 border" style="background: #F4F4F4; font-size: 10px; line-height: 1.5;">
+                                Căn cứ Nghị định 70/2025/NĐ-CP và Nghị định 123/2020/NĐ-CP về hóa đơn điện tử: Các mốc thanh toán chỉ kích hoạt trạng thái ghi nhận doanh thu và xuất hóa đơn sau khi Biên bản Nghiệm thu mốc tương ứng được ký kết hợp lệ giữa đại diện có thẩm quyền của hai bên. Hệ thống ERP sẽ chặn hoàn toàn việc xuất hóa đơn tự động nếu thiếu chứng từ nghiệm thu đính kèm.
+                            </div>
+                        </div>
+
+                        <!-- Signatures -->
+                        <div class="row text-center mt-5" style="font-size: 10px;">
+                            <div class="col-6">
+                                <strong>ĐẠI DIỆN KHÁCH HÀNG</strong><br/>
+                                <small>(Ký và ghi rõ họ tên)</small><br/><br/><br/>
+                            </div>
+                            <div class="col-6">
+                                <strong>ĐẠI DIỆN INNORIA ENTERPRISE</strong><br/>
+                                <small>(Ký và ghi rõ họ tên)</small><br/><br/><br/>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- =====================================================================
+         4. TEMPLATE 4: SERVICE LEVEL AGREEMENT (HỢP ĐỒNG SLA)
+         ===================================================================== -->
+    <template id="report_sla_contract">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="insilos_al2c.external_layout_ibm_sap">
+                    <div class="page" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616; padding-bottom: 24px;">
+                        
+                        <!-- SLA Header -->
+                        <div class="mb-4 pb-2 border-bottom">
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 11px; font-weight: 600; color: #0070F2; text-transform: uppercase; letter-spacing: 0.05em;">
+                                        Enterprise Service Level Agreement
+                                    </span>
+                                    <h2 class="mt-1 mb-0" style="font-weight: 700; color: #161616;">
+                                        THỎA THUẬN CAM KẾT MỨC DỊCH VỤ (SLA)
+                                    </h2>
+                                </div>
+                                <div class="text-end">
+                                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 13px; font-weight: 700; background: #0ABBDB; color: #161616; padding: 4px 8px; border-radius: 3px;">
+                                        SLA-GOLD · 24/7
+                                    </span>
+                                    <div class="text-muted" style="font-size: 10px; margin-top: 4px;">
+                                        Gắn kết hợp đồng: <t t-out="doc.name"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Incident Severity Matrix -->
+                        <div class="mb-4">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                1. Ma Trận Phân Loại Sự Cố &amp; Cam Kết Phản Hồi / Khắc Phục
+                            </h5>
+                            <table class="table table-sm table-bordered" style="font-size: 10px;">
+                                <thead style="background: #161616; color: #FFFFFF;">
+                                    <tr>
+                                        <th style="width: 15%;">Mức Độ Sự Cố</th>
+                                        <th style="width: 45%;">Mô Tả Tác Động Nghiệp Vụ</th>
+                                        <th style="width: 20%;" class="text-center">Thời Gian Phản Hồi</th>
+                                        <th style="width: 20%;" class="text-center">Thời Gian Khắc Phục</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="background: #FFF1F0;">
+                                        <td><strong style="color: #DA1E28;">P1 - Thảm Họa</strong></td>
+                                        <td>Hệ thống ngừng hoạt động hoàn toàn, mất dữ liệu, toàn bộ người dùng không thể giao dịch.</td>
+                                        <td class="text-center font-weight-bold">&lt; 15 phút</td>
+                                        <td class="text-center font-weight-bold">&lt; 4 giờ</td>
+                                    </tr>
+                                    <tr style="background: #FFF8E1;">
+                                        <td><strong style="color: #F1C21B;">P2 - Nghiêm Trọng</strong></td>
+                                        <td>Tính năng cốt lõi bị lỗi (Bán hàng, Kế toán, POS), ảnh hưởng nghiêm trọng đến sản xuất nhưng chưa đình trệ toàn bộ.</td>
+                                        <td class="text-center font-weight-bold">&lt; 1 giờ</td>
+                                        <td class="text-center font-weight-bold">&lt; 8 giờ</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>P3 - Trung Bình</strong></td>
+                                        <td>Lỗi cục bộ trên một nhóm tính năng nhỏ, có phương án thay thế tạm thời.</td>
+                                        <td class="text-center">&lt; 4 giờ</td>
+                                        <td class="text-center">&lt; 24 giờ</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>P4 - Thấp</strong></td>
+                                        <td>Yêu cầu hỗ trợ hướng dẫn, tinh chỉnh giao diện, báo cáo nhỏ không ảnh hưởng vận hành.</td>
+                                        <td class="text-center">&lt; 8 giờ</td>
+                                        <td class="text-center">&lt; 48 giờ</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Availability & Credit Rebates -->
+                        <div class="mb-4">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                2. Cam Kết Độ Sẵn Sàng (Uptime 99.9%) &amp; Khấu Trừ Bồi Thường (Service Credits)
+                            </h5>
+                            <p style="font-size: 10px; line-height: 1.5; color: #393939;">
+                                Innoria cam kết duy trì độ sẵn sàng của hạ tầng Cloud và ứng dụng tối thiểu <strong>99.9%</strong> mỗi tháng (loại trừ các kỳ bảo trì định kỳ đã thông báo trước). Trong trường hợp vi phạm cam kết, khách hàng được khấu trừ trực tiếp vào phí dịch vụ tháng kế tiếp:
+                            </p>
+                            <ul style="font-size: 10px; color: #525252;">
+                                <li>Độ sẵn sàng từ 99.0% đến &lt; 99.9%: Khấu trừ 10% phí dịch vụ tháng.</li>
+                                <li>Độ sẵn sàng từ 95.0% đến &lt; 99.0%: Khấu trừ 25% phí dịch vụ tháng.</li>
+                                <li>Độ sẵn sàng &lt; 95.0%: Khấu trừ 50% phí dịch vụ tháng.</li>
+                            </ul>
+                        </div>
+
+                        <!-- Data Protection & Decree 13 Annex -->
+                        <div class="mb-4">
+                            <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
+                                3. Phụ Lục Xử Lý Dữ Liệu Cá Nhân (Decree 13/2023/NĐ-CP DPA)
+                            </h5>
+                            <div class="p-2 border" style="background: #F4F4F4; font-size: 9px; line-height: 1.5;">
+                                Toàn bộ dữ liệu khách hàng được mã hóa tại tầng lưu trữ (AES-256) và khi truyền tải (TLS 1.3). Innoria hoạt động với tư cách là Bên Xử Lý Dữ Liệu Cá Nhân (Data Processor) và cam kết không chuyển dữ liệu ra ngoài lãnh thổ Việt Nam khi chưa có sự đồng ý bằng văn bản của khách hàng.
+                            </div>
+                        </div>
+
+                        <!-- Signatures -->
+                        <div class="row text-center mt-5" style="font-size: 10px;">
+                            <div class="col-6">
+                                <strong>ĐẠI DIỆN KHÁCH HÀNG</strong><br/>
+                                <small>(Ký và ghi rõ họ tên)</small><br/><br/><br/>
+                            </div>
+                            <div class="col-6">
+                                <strong>ĐẠI DIỆN INNORIA ENTERPRISE</strong><br/>
+                                <small>(Ký và ghi rõ họ tên)</small><br/><br/><br/>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

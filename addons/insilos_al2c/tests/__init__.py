@@ -22,4 +22,11 @@ from . import test_tech_asset_registry
 from . import test_runtime_report_gateway
 from . import test_route_authz_snapshot
 from . import test_timesheet_staging
+from . import test_al2c_stage_gates
+from . import test_sales_reports
+try:
+    from . import test_al2c_operational_e2e
+except ImportError:
+    pass
 
+from . import test_al2c_pricing

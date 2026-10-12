@@ -298,6 +298,80 @@ class SaleOrderLine(models.Model):
         'sale_line_id',
         string='Milestones',
     )
+    al2c_vat_class = fields.Selection(
+        [
+            ('kct', 'KCT Software (VAT Exempt - Law 48/2024/QH15)'),
+            ('vat_8', 'IT Services 8% (Decree 174/2025/ND-CP)'),
+            ('vat_10', 'Standard 10% (Infrastructure / Hosting / Hardware)'),
+        ],
+        string='VAT Classification',
+        compute='_compute_al2c_vat_class',
+        store=True,
+        readonly=False,
+        index=True,
+        help="Statutory Vietnamese tax classification mapped from product template under Law 48/2024 and Decree 174/2025.",
+    )
+
+    @api.depends('product_id', 'product_id.al2c_vat_class')
+    def _compute_al2c_vat_class(self):
+        for line in self:
+            if line.product_id and line.product_id.al2c_vat_class:
+                line.al2c_vat_class = line.product_id.al2c_vat_class
+            elif not line.al2c_vat_class:
+                line.al2c_vat_class = 'kct'
+
+    def _al2c_get_tax_for_vat_class(self, company, vat_class):
+        """Map statutory al2c_vat_class to appropriate account.tax record for company."""
+        Tax = self.env['account.tax'].sudo()
+        domain = [('type_tax_use', '=', 'sale')]
+        if company:
+            domain.append(('company_id', '=', company.id))
+
+        if vat_class == 'kct':
+            # Law 48/2024/QH15: VAT Exempt Software (0% VAT or exempt)
+            kct_tax = Tax.search(domain + [('amount', '=', 0.0), ('name', 'ilike', 'KCT')], limit=1)
+            if not kct_tax:
+                kct_tax = Tax.search(domain + [('amount', '=', 0.0)], limit=1)
+            return kct_tax or Tax.browse()
+
+        elif vat_class == 'vat_8':
+            # Decree 174/2025/ND-CP: 8% IT Services tax
+            tax_8 = Tax.search(domain + [('amount', '=', 8.0)], limit=1)
+            if not tax_8 and company:
+                tax_8 = Tax.create({
+                    'name': 'Thuế GTGT 8% (Nghị định 174/2025/NĐ-CP)',
+                    'amount': 8.0,
+                    'amount_type': 'percent',
+                    'type_tax_use': 'sale',
+                    'company_id': company.id,
+                })
+            return tax_8
+
+        elif vat_class == 'vat_10':
+            # Standard 10% Infrastructure / Hosting tax
+            tax_10 = Tax.search(domain + [('amount', '=', 10.0)], limit=1)
+            if not tax_10 and company:
+                tax_10 = Tax.create({
+                    'name': 'Thuế GTGT 10% (Bán hàng)',
+                    'amount': 10.0,
+                    'amount_type': 'percent',
+                    'type_tax_use': 'sale',
+                    'company_id': company.id,
+                })
+            return tax_10
+
+        return Tax.browse()
+
+    @api.depends('al2c_vat_class')
+    def _compute_tax_ids(self):
+        super()._compute_tax_ids()
+        for line in self:
+            if line.env.context.get('skip_al2c_tax_mapping'):
+                continue
+            vat_class = line.al2c_vat_class or (line.product_id and line.product_id.al2c_vat_class)
+            if vat_class:
+                company = line.company_id or line.order_id.company_id or self.env.company
+                line.tax_ids = line._al2c_get_tax_for_vat_class(company, vat_class)
 
     @api.depends('milestone_ids.al2c_billing_eligible')
     def _compute_qty_delivered(self):
