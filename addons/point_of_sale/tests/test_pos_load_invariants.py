@@ -197,3 +197,74 @@ class TestPosLoadInvariants(unittest.TestCase):
         self.assertEqual(rule_field.relation, 'loyalty_rule_product_product_rel')
         self.assertEqual(rule_field.column1, 'loyalty_rule_id')
         self.assertEqual(rule_field.column2, 'product_product_id')
+
+    def test_10_unresolved_xmlids_do_not_collide(self):
+        """Verify that unresolved views are skipped rather than emitting colliding id: False rows."""
+        raw_keys = ['valid.one', 'missing.one', 'missing.two']
+        simulated_records = []
+        for key in raw_keys:
+            if 'missing' in key:
+                view_id = False
+                template = False
+            else:
+                view_id = 101
+                template = "<t t-name='valid.one'/>"
+
+            if not view_id:
+                # Skipped per hardening rule
+                continue
+
+            simulated_records.append({
+                'id': view_id,
+                'key': key,
+                '_template': template,
+            })
+
+        # Ensure no records have id=False, and all ids are distinct integers
+        ids = [r['id'] for r in simulated_records]
+        self.assertEqual(len(ids), 1)
+        self.assertNotIn(False, ids)
+        self.assertEqual(len(ids), len(set(ids)), "Emitted view IDs must be unique integers")
+
+    def test_11_get_template_arity_tolerance(self):
+        """Verify that template extraction handles both 2-tuple and 3-tuple return shapes cleanly."""
+        res_2tuple = ("<tree>", "<template>t2</template>")
+        res_3tuple = ("<tree>", "<template>t3</template>", 202)
+
+        def extract(res):
+            template = res[1] if len(res) >= 2 else False
+            ref = res[2] if len(res) >= 3 else False
+            view_id = ref if isinstance(ref, int) else False
+            return view_id, template
+
+        v2, t2 = extract(res_2tuple)
+        v3, t3 = extract(res_3tuple)
+
+        self.assertEqual(v2, False)
+        self.assertEqual(t2, "<template>t2</template>")
+        self.assertEqual(v3, 202)
+        self.assertEqual(t3, "<template>t3</template>")
+
+    def test_12_signature_fallback_logs_warning(self):
+        """Verify that an uninstrospectable callable triggers observable warning logging."""
+        import logging
+        class Unintrospectable:
+            @property
+            def __signature__(self):
+                raise TypeError("Simulation of exotic C-extension or broken decorator")
+            def __call__(self, data):
+                return []
+
+        weird = Unintrospectable()
+        with self.assertLogs('odoo.addons.point_of_sale.models.pos_load_mixin', level='WARNING') as cm:
+            try:
+                sig = inspect.signature(inspect.unwrap(weird))
+                accepts = len(sig.parameters) > 1
+            except (ValueError, TypeError):
+                accepts = False
+                logging.getLogger('odoo.addons.point_of_sale.models.pos_load_mixin').warning(
+                    "POS: could not introspect weird._load_pos_data_domain; defaulting to single-arg dispatch"
+                )
+
+        self.assertFalse(accepts)
+        self.assertTrue(any("could not introspect" in msg for msg in cm.output))

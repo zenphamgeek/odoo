@@ -1,9 +1,12 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import inspect
+import logging
 from collections import defaultdict
 
 from odoo import api, models
 from math import floor
+
+_logger = logging.getLogger(__name__)
 
 
 class PosLoadMixin(models.AbstractModel):
@@ -93,6 +96,10 @@ class PosLoadMixin(models.AbstractModel):
             )
         except (ValueError, TypeError):
             accepts_config = False
+            _logger.warning(
+                "POS: could not introspect %s._load_pos_data_domain; defaulting to single-arg dispatch",
+                self._name,
+            )
 
         domain = (
             self._load_pos_data_domain(adapted_data, config)

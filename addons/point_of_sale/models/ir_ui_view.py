@@ -25,9 +25,13 @@ class IrUiView(models.Model):
             view_id = False
             template = False
             try:
-                _tree, template, ref = self.env['ir.qweb']._get_template(key)
-                if isinstance(ref, int):
-                    view_id = ref
+                res = self.env['ir.qweb']._get_template(key)
+                if isinstance(res, (tuple, list)):
+                    template = res[1] if len(res) >= 2 else False
+                    ref = res[2] if len(res) >= 3 else False
+                    view_id = ref if isinstance(ref, int) else (
+                        self.env['ir.model.data']._xmlid_to_res_id(key, raise_if_not_found=False) or False
+                    )
                 else:
                     view_id = self.env['ir.model.data']._xmlid_to_res_id(key, raise_if_not_found=False) or False
             except (ValueError, KeyError, MissingError) as err:
@@ -35,8 +39,13 @@ class IrUiView(models.Model):
                 template = False
                 _logger.warning("POS: QWeb template missing or failed to compile for xmlid %r: %s", key, err)
 
+            if not view_id:
+                # Unresolved view: skip rather than emitting id=False rows that would collide in client stores
+                _logger.warning("POS: skipping unresolved view xmlid %r (no integer res_id)", key)
+                continue
+
             read_records.append({
-                'id': view_id or False,
+                'id': view_id,
                 'key': key,
                 '_template': template,
             })
