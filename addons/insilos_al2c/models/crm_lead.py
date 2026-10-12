@@ -56,6 +56,18 @@ class CrmLead(models.Model):
         tracking=True,
     )
 
+    value_case_id = fields.Many2one(
+        'al2c.value.case',
+        string='Enterprise Value Case',
+        copy=False,
+        tracking=True,
+    )
+    fts_item_ids = fields.One2many(
+        'al2c.fts.item',
+        'lead_id',
+        string='Fit-to-Standard Scope Items',
+    )
+
     @api.depends(
         'al2c_bant_budget', 'al2c_bant_budget_amount',
         'al2c_bant_authority', 'al2c_meddicc_economic_buyer',

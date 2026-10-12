@@ -1,0 +1,186 @@
+/* =====================================================================
+   INNORIA / INSILOS ENTERPRISE CUSTOMER PORTAL STYLING
+   Standards: IBM Carbon Design Language & SAP Fiori Horizon Standards
+   Typography: System native / IBM Carbon sans-serif & monospace
+   Tokens: --o-theme-primary, --portal-primary-color
+   ===================================================================== */
+
+:root {
+    --al2c-sap-blue: #0070F2;
+    --al2c-sap-cyan: #0ABBDB;
+    --al2c-sap-dark: #12171C;
+    --al2c-carbon-gray-10: var(--insilos-bg-subtle, #F4F4F4);
+    --al2c-carbon-gray-20: var(--insilos-border-subtle, #E0E0E0);
+    --al2c-carbon-gray-70: var(--insilos-text-muted, #525252);
+    --al2c-carbon-gray-100: var(--insilos-text-primary, #161616);
+    --al2c-card-bg: var(--insilos-bg-card, var(--o-view-background, #FFFFFF));
+}
+
+[data-bs-theme="dark"],
+body.o_dark_mode,
+.o_dark_mode {
+    --al2c-carbon-gray-10: var(--insilos-bg-subtle, #1E293B);
+    --al2c-carbon-gray-20: var(--insilos-border-subtle, rgba(255, 255, 255, 0.12));
+    --al2c-carbon-gray-70: var(--insilos-text-muted, #94A3B8);
+    --al2c-carbon-gray-100: var(--insilos-text-primary, #F8FAFC);
+    --al2c-card-bg: var(--insilos-bg-card, #111827);
+}
+
+/* 1. Header Gradient Accent Stripe */
+.al2c_portal_horizon_stripe {
+    height: 3px;
+    background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%);
+    width: 100%;
+    position: relative;
+    z-index: 1030;
+}
+
+/* 2. Enterprise Portal Navbar */
+.o_portal .navbar-brand.logo img {
+    max-height: 28px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* 3. IBM Carbon Enterprise Cards on Portal Home */
+.al2c-portal-cockpit {
+    margin-bottom: 2rem;
+}
+
+.al2c-portal-card {
+    background: var(--al2c-card-bg, var(--insilos-bg-card, var(--o-view-background)));
+    border: 1px solid var(--al2c-carbon-gray-20);
+    border-radius: 4px;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    text-decoration: none !important;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-color: var(--al2c-sap-blue);
+
+        .al2c-card-arrow {
+            color: var(--al2c-sap-blue);
+            transform: translateX(3px);
+        }
+    }
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: transparent;
+        transition: background 0.15s ease;
+    }
+
+    &:hover::before {
+        background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%);
+    }
+}
+
+.al2c-card-arrow {
+    transition: transform 0.15s ease, color 0.15s ease;
+    font-weight: 700;
+}
+
+/* 4. SAP Activate Milestone Indicator */
+.al2c-milestone-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    margin: 1.5rem 0;
+    padding: 0 0.5rem;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: 20px;
+        left: 2.5rem;
+        right: 2.5rem;
+        height: 2px;
+        background-color: var(--al2c-carbon-gray-20);
+        z-index: 1;
+    }
+}
+
+.al2c-milestone-step {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    background: var(--al2c-card-bg, #FFFFFF);
+    padding: 0 0.35rem;
+
+    .step-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.4rem;
+        font-weight: 700;
+        font-size: 13px;
+        border: 2px solid var(--al2c-carbon-gray-20);
+        background: var(--al2c-card-bg, #FFFFFF);
+        color: var(--al2c-carbon-gray-70);
+    }
+
+    &.completed .step-circle {
+        background: #0070F2;
+        border-color: #0070F2;
+        color: #FFFFFF;
+    }
+
+    &.current .step-circle {
+        border-color: #0070F2;
+        color: #0070F2;
+        box-shadow: 0 0 0 4px rgba(0, 112, 242, 0.15);
+    }
+
+    .step-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--al2c-carbon-gray-100);
+    }
+
+    .step-desc {
+        font-size: 10px;
+        color: var(--al2c-carbon-gray-70);
+    }
+}
+
+/* 5. Napas247 / VietQR Payment Box */
+.al2c-napas-box {
+    background: #F8F9FA;
+    border: 1px solid var(--al2c-carbon-gray-20);
+    border-radius: 6px;
+    padding: 1.25rem;
+
+    .napas-badge {
+        font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 2px;
+        background-color: #0070F2;
+        color: #FFFFFF;
+    }
+}
+
+/* 6. Dispute Notice Banner */
+.al2c-dispute-alert {
+    border-left: 4px solid #F1C21B;
+    background-color: #FFF8E1;
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}

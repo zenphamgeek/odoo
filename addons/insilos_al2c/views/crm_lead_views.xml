@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="crm_lead_view_form_al2c" model="ir.ui.view">
+        <field name="name">crm.lead.form.al2c</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="AL2C Autonomous Qualification &amp; Clean Core" name="al2c_qualification">
+                    <group>
+                        <group string="Qualification &amp; Sentiment">
+                            <field name="al2c_qualification_state" widget="badge"/>
+                            <field name="al2c_qualification_score" widget="progressbar"/>
+                            <field name="al2c_sentiment"/>
+                            <field name="al2c_touch_count"/>
+                            <field name="value_case_id"/>
+                        </group>
+                        <group string="BANT Framework">
+                            <field name="al2c_bant_budget"/>
+                            <field name="al2c_bant_budget_amount"/>
+                            <field name="al2c_bant_authority"/>
+                            <field name="al2c_bant_authority_name"/>
+                            <field name="al2c_bant_timeline"/>
+                            <field name="al2c_bant_need"/>
+                        </group>
+                    </group>
+                    <group string="MEDDICC Enterprise Framework">
+                        <group>
+                            <field name="al2c_meddicc_metrics"/>
+                            <field name="al2c_meddicc_economic_buyer"/>
+                            <field name="al2c_meddicc_champion"/>
+                        </group>
+                        <group>
+                            <field name="al2c_meddicc_decision_criteria"/>
+                            <field name="al2c_meddicc_decision_process"/>
+                            <field name="al2c_meddicc_identify_pain"/>
+                        </group>
+                    </group>
+                    <group string="Fit-to-Standard Clean Core Scope Items">
+                        <field name="fts_item_ids" nolabel="1">
+                            <list editable="bottom">
+                                <field name="clean_core_class"/>
+                                <field name="module"/>
+                                <field name="name"/>
+                                <field name="approved_by_architect"/>
+                                <field name="architect_user_id"/>
+                            </list>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

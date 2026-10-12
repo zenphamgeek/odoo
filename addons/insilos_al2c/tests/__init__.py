@@ -16,3 +16,8 @@ from . import test_discovery_briefing
 from . import test_marketing_asset
 from . import test_security_sod
 from . import test_learning_engine
+from . import test_council_additions
+from . import test_security_audit_deep
+from . import test_tech_asset_registry
+from . import test_runtime_report_gateway
+

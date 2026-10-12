@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================================================================
+         INNORIA / INSILOS ENTERPRISE CUSTOMER PORTAL TEMPLATES
+         Architecture: IBM Carbon Design System & SAP Fiori Horizon Standards
+         Branding: Official Web Innoria Logo (max-height: 28px)
+         Compliance: Zero third-party platform strings, ISO/IEC 27001, Decree 13/2023/ND-CP
+         Processes: SAP Activate 5-Phase Milestones, Napas247 VietQR, AL2C-INV-103 Dispute
+         ===================================================================== -->
+
+    <!-- 1. Master Frontend & Portal Layout Enhancement -->
+    <template id="portal_frontend_layout_inherit_al2c" inherit_id="portal.frontend_layout">
+        <!-- SAP Horizon 3px gradient header stripe and Small Web Innoria Logo in Header -->
+        <xpath expr="//header" position="replace">
+            <div class="al2c_portal_horizon_stripe" style="height: 3px; background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%); width: 100%; position: relative; z-index: 1050;"/>
+            <header t-if="not no_header" id="top" data-anchor="true">
+                <nav class="navbar navbar-expand navbar-light bg-light border-bottom">
+                    <div class="container">
+                        <a href="/my" class="navbar-brand logo d-flex align-items-center gap-2">
+                            <img src="/insilos_al2c/static/src/img/logo_innoria_header.svg" style="max-height: 28px; width: auto;" alt="Innoria Enterprise Portal" title="Innoria Enterprise Portal"/>
+                            <span class="badge bg-light text-dark border text-uppercase" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px; letter-spacing: 0.05em; font-weight: 600;">PORTAL</span>
+                        </a>
+                        <ul id="top_menu" class="nav navbar-nav ms-auto">
+                            <t t-call="portal.placeholder_user_sign_in" _item_class.f="nav-item" _link_class.f="nav-link"/>
+                            <t t-call="portal.user_dropdown" _user_name="true" _item_class.f="nav-item dropdown" _link_class.f="nav-link" _dropdown_menu_class.f="dropdown-menu-end"/>
+                        </ul>
+                    </div>
+                </nav>
+            </header>
+        </xpath>
+
+        <!-- Sovereign Enterprise Footer: ISO 27001, Decree 13/2023/ND-CP, UNG DUNG SANG TAO LLC -->
+        <xpath expr="//div[@id='footer']" position="replace">
+            <div id="footer" class="bg-dark text-white pt-4 pb-3 border-top" style="border-top-color: #262626 !important; background-color: #161616 !important;">
+                <div class="container">
+                    <div class="row gy-3 align-items-center justify-content-between pb-3 border-bottom" style="border-bottom-color: #393939 !important;">
+                        <div class="col-12 col-md-6 d-flex align-items-center gap-3">
+                            <img src="/insilos_al2c/static/src/img/logo_innoria_header.svg" style="max-height: 24px; filter: brightness(0) invert(1);" alt="Innoria Enterprise"/>
+                            <div class="text-white-50 small border-start ps-3" style="border-color: #393939 !important; font-size: 11px;">
+                                <strong class="text-white">CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO</strong> (UNG DUNG SANG TAO LLC)<br/>
+                                Nền tảng Quản trị Doanh nghiệp Tự chủ AL2C · Innoria Enterprise Platform
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6 text-md-end text-white-50" style="font-size: 11px;">
+                            <span class="badge bg-secondary text-light me-1" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">ISO/IEC 27001:2022</span>
+                            <span class="badge bg-secondary text-light" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">Nghị định 13/2023/NĐ-CP</span>
+                        </div>
+                    </div>
+                    <div class="row pt-3 text-white-50" style="font-size: 11px;">
+                        <div class="col-12 col-md-8">
+                            Bản quyền &amp;copy; <t t-out="datetime.date.today().year"/> CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO. Tất cả quyền được bảo lưu. Tuân thủ tiêu chuẩn an toàn thông tin &amp; bảo vệ dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP.
+                        </div>
+                        <div class="col-12 col-md-4 text-md-end">
+                            <span>Hỗ trợ kỹ thuật: <strong class="text-white">contact@innoria.com</strong> · <a href="https://innoria.com" target="_blank" class="text-info text-decoration-none">https://innoria.com</a></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+        <!-- Replace copyright column name -->
+        <xpath expr="//div[@name='footer_copyright_col']" position="replace">
+            <div name="footer_copyright_col" class="col-md text-center text-sm-start text-muted small" style="font-size: 11px;">
+                <span class="o_footer_copyright_name">
+                    CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO · Innoria Enterprise Platform
+                </span>
+                <t id="language_selector_hook"/>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- Global Zero-Platform Brand Promotion Override (Clean Sovereign Enterprise) -->
+    <template id="brand_promotion_message_inherit_al2c" inherit_id="web.brand_promotion_message">
+        <xpath expr="//t[@t-out]" position="replace">
+            <span style="font-size: 11px; color: #525252; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;">
+                ISO/IEC 27001 · SOVEREIGN
+            </span>
+        </xpath>
+    </template>
+
+    <!-- 2. Portal Home Cockpit with Clean IBM Carbon Enterprise Cards -->
+    <template id="portal_my_home_inherit_al2c" inherit_id="portal.portal_my_home">
+        <xpath expr="//div[hasclass('o_portal_my_home')]/div[hasclass('o_portal_docs')]" position="before">
+            <div class="al2c-portal-cockpit mb-4">
+                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                    <div>
+                        <h4 class="mb-0 fw-bold" style="color: #161616; letter-spacing: -0.02em;">Cổng Thông tin &amp; Dịch vụ Doanh nghiệp Innoria</h4>
+                        <div class="text-muted small mt-1">Quản lý báo giá, hợp đồng SOW, hóa đơn điện tử Nghị định 70/2025, tiến độ SAP Activate và giải quyết đối soát AL2C-INV-103.</div>
+                    </div>
+                    <div>
+                        <span class="badge bg-light text-dark border" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">ENTERPRISE COCKPIT</span>
+                    </div>
+                </div>
+
+                <!-- 4 IBM Carbon Enterprise Action Cards -->
+                <div class="row g-3">
+                    <!-- Card 1: Báo giá & Hợp đồng -->
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <a href="/my/quotes" class="al2c-portal-card p-3 shadow-sm">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-primary text-white" style="font-size: 10px; font-weight: 600;">AL2C SOW CONTRACTS</span>
+                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                            </div>
+                            <h6 class="fw-bold mb-1" style="color: #161616;">Báo giá &amp; Hợp đồng</h6>
+                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5;">
+                                Quản lý danh mục giải pháp, điều khoản dịch vụ SOW và tiến hành ký kết số trực tuyến.
+                            </p>
+                        </a>
+                    </div>
+
+                    <!-- Card 2: Hóa đơn & Đối soát -->
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <a href="/my/invoices" class="al2c-portal-card p-3 shadow-sm">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-success text-white" style="font-size: 10px; font-weight: 600;">NGHỊ ĐỊNH 70/2025</span>
+                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                            </div>
+                            <h6 class="fw-bold mb-1" style="color: #161616;">Hóa đơn &amp; Đối soát</h6>
+                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5;">
+                                Tra cứu hóa đơn điện tử xác thực CQT, tải file XML/PDF gốc và thanh toán Napas247.
+                            </p>
+                        </a>
+                    </div>
+
+                    <!-- Card 3: Dự án Triển khai SAP Activate -->
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <a href="/my/projects" class="al2c-portal-card p-3 shadow-sm">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-info text-white" style="font-size: 10px; font-weight: 600;">SAP ACTIVATE 5 PHASES</span>
+                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                            </div>
+                            <h6 class="fw-bold mb-1" style="color: #161616;">Dự án SAP Activate</h6>
+                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5;">
+                                Giám sát 5 giai đoạn: Prepare, Explore, Realize, Deploy, Run và phê duyệt nghiệm thu SOW.
+                            </p>
+                        </a>
+                    </div>
+
+                    <!-- Card 4: Khiếu nại & Tranh chấp Commercial Disputes -->
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <a href="/my/invoices" class="al2c-portal-card p-3 shadow-sm">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-warning text-dark" style="font-size: 10px; font-weight: 600;">AL2C-INV-103</span>
+                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                            </div>
+                            <h6 class="fw-bold mb-1" style="color: #161616;">Khiếu nại &amp; Đối soát</h6>
+                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5;">
+                                Cơ chế bảo vệ khách hàng: Gửi yêu cầu đối soát để lập tức đóng băng tiến trình dunning tự động.
+                            </p>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+    <!-- 3. Sales Order Portal Content Enhancement: SAP Activate Milestones & Napas247 -->
+    <template id="sale_order_portal_content_inherit_al2c" inherit_id="sale.sale_order_portal_content">
+        <!-- Top Horizon Accent stripe on SO introduction -->
+        <xpath expr="//div[@id='introduction']" position="before">
+            <div class="al2c_portal_horizon_stripe" style="height: 3px; background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%); width: 100%; border-top-left-radius: 4px; border-top-right-radius: 4px;"/>
+        </xpath>
+
+        <!-- SOW Framework Badge in Introduction -->
+        <xpath expr="//div[@id='introduction']//div[hasclass('d-flex')][1]" position="inside">
+            <div class="d-none d-md-flex align-items-center ms-auto">
+                <span class="badge bg-light text-dark border px-2 py-1" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">
+                    SAP ACTIVATE SOW · ISO 27001
+                </span>
+            </div>
+        </xpath>
+
+        <!-- Content Area: Milestones Roadmap & Napas247 Payment Box -->
+        <xpath expr="//div[@id='content']" position="inside">
+            <!-- SAP Activate 5-Phase Delivery Roadmap -->
+            <div class="border rounded p-3 p-lg-4 mt-3 bg-white shadow-sm">
+                <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
+                    <div>
+                        <h6 class="fw-bold mb-0" style="color: #161616;">Lộ trình Triển khai Chuẩn SAP Activate &amp; Nghiệm thu SOW</h6>
+                        <div class="text-muted small" style="font-size: 11px;">Khung phương pháp luận 5 giai đoạn bàn giao giải pháp bảo đảm chất lượng theo chuẩn Innoria Enterprise.</div>
+                    </div>
+                    <span class="badge bg-info text-white" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">
+                        AL2C-ACT-001
+                    </span>
+                </div>
+
+                <div class="row g-2 text-center">
+                    <div class="col">
+                        <div class="p-2 border rounded bg-light h-100">
+                            <span class="badge bg-primary text-white rounded-pill mb-1">1</span>
+                            <div class="fw-bold small" style="font-size: 12px; color: #161616;">Prepare</div>
+                            <div class="text-muted" style="font-size: 10px;">Khởi động &amp; Thiết lập</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-2 border rounded bg-light h-100">
+                            <span class="badge bg-primary text-white rounded-pill mb-1">2</span>
+                            <div class="fw-bold small" style="font-size: 12px; color: #161616;">Explore</div>
+                            <div class="text-muted" style="font-size: 10px;">Fit-to-Standard &amp; Gap</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-2 border rounded bg-light h-100">
+                            <span class="badge bg-primary text-white rounded-pill mb-1">3</span>
+                            <div class="fw-bold small" style="font-size: 12px; color: #161616;">Realize</div>
+                            <div class="text-muted" style="font-size: 10px;">Cấu hình &amp; Tích hợp SIT</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-2 border rounded bg-light h-100">
+                            <span class="badge bg-primary text-white rounded-pill mb-1">4</span>
+                            <div class="fw-bold small" style="font-size: 12px; color: #161616;">Deploy</div>
+                            <div class="text-muted" style="font-size: 10px;">UAT &amp; Go-Live</div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="p-2 border rounded bg-light h-100">
+                            <span class="badge bg-primary text-white rounded-pill mb-1">5</span>
+                            <div class="fw-bold small" style="font-size: 12px; color: #161616;">Run</div>
+                            <div class="text-muted" style="font-size: 10px;">Hypercare &amp; Vận hành</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Napas247 VietQR Payment & Settlement Card -->
+            <div class="border rounded p-3 p-lg-4 mt-3 bg-light shadow-sm">
+                <div class="row align-items-center gy-3">
+                    <div class="col-12 col-md-7">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-primary text-white" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">NAPAS247 VIETQR</span>
+                            <strong style="color: #161616; font-size: 13px;">Thanh toán &amp; Ký quỹ Hợp đồng Nhanh:</strong>
+                        </div>
+                        <table class="table table-sm table-borderless mb-0" style="font-size: 12px;">
+                            <tr>
+                                <td class="text-muted p-1" style="width: 35%;">Đơn vị thụ hưởng:</td>
+                                <td class="fw-bold p-1" style="color: #161616;">CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted p-1">Tài khoản ngân hàng:</td>
+                                <td class="fw-bold p-1" style="color: #0070F2;">0071001234567 <span class="fw-normal text-muted">(Vietcombank - CN TP.HCM)</span></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted p-1">Nội dung chuyển khoản:</td>
+                                <td class="fw-bold p-1"><code class="text-primary fs-6" t-out="sale_order.name"/></td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted p-1">Số tiền thanh toán:</td>
+                                <td class="fw-bold text-success p-1 fs-6" t-out="sale_order.amount_total" t-options="{'widget': 'monetary', 'display_currency': sale_order.currency_id}"/>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="col-12 col-md-5 text-center">
+                        <div class="p-2 bg-white border rounded d-inline-block shadow-sm">
+                            <img t-attf-src="https://img.vietqr.io/image/970436-0071001234567-compact2.png?amount={{ int(sale_order.amount_total) }}&amp;addInfo={{ sale_order.name }}&amp;accountName=CONG%20TY%20TNHH%20UNG%20DUNG%20SANG%20TAO"
+                                 alt="Napas247 VietQR"
+                                 style="max-height: 140px; width: auto;"
+                                 class="img-fluid"/>
+                            <div class="small text-muted mt-1" style="font-size: 10px;">Quét VietQR để thanh toán tự động qua App Ngân hàng</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clarification & SOW Dispute Safeguard -->
+            <div class="p-3 mt-3 border rounded bg-white small" style="border-left: 4px solid #0070F2 !important; font-size: 12px; color: #525252;">
+                <strong>QUY CHẾ GIẢI QUYẾT ĐỐI SOÁT AL2C-INV-103:</strong> Quý Khách hàng có quyền yêu cầu làm rõ điều khoản hoặc đề nghị đối soát phạm vi công việc bất kỳ lúc nào qua cổng thông tin hoặc email <strong style="color: #161616;">contact@innoria.com</strong>.
+            </div>
+        </xpath>
+    </template>
+
+    <!-- 4. Portal Invoice Page Enhancement: Napas247, VietQR, Decree 70 & AL2C-INV-103 Dispute Button -->
+    <template id="portal_invoice_page_inherit_al2c" inherit_id="account.portal_invoice_page">
+        <!-- Sidebar Enhancement: Napas247 Box & AL2C-INV-103 Dispute Button -->
+        <xpath expr="//t[@t-set='entries']//div[hasclass('d-flex')][1]" position="after">
+            <!-- AL2C-INV-103 Dispute Action Button / Status -->
+            <div class="mt-3">
+                <t t-if="invoice.al2c_has_open_dispute">
+                    <div class="alert alert-warning p-2 small text-center mb-0 border-warning">
+                        <div class="fw-bold text-dark"><i class="oi oi-clock me-1"/> Đang Đối Soát AL2C-INV-103</div>
+                        <div class="text-muted" style="font-size: 10px;">Tiến trình nhắc nợ Dunning đã được ĐÓNG BĂNG để bảo vệ quyền lợi đối tác.</div>
+                    </div>
+                </t>
+                <t t-elif="invoice.move_type == 'out_invoice' and invoice.state == 'posted' and invoice.payment_state not in ('paid', 'in_payment', 'reversed')">
+                    <button type="button" class="btn btn-outline-danger w-100 btn-sm py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal">
+                        <i class="oi oi-flag me-1"/> Khiếu nại / Đối soát AL2C-INV-103
+                    </button>
+                </t>
+            </div>
+
+            <!-- Napas247 VietQR Sidebar Widget -->
+            <div t-if="invoice.move_type == 'out_invoice' and invoice.state == 'posted' and invoice.payment_state not in ('paid', 'in_payment', 'reversed')" class="mt-3 p-2 bg-light border rounded text-center">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="badge bg-primary text-white" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 9px;">NAPAS247</span>
+                    <span class="text-muted" style="font-size: 10px;">Vietcombank</span>
+                </div>
+                <img t-attf-src="https://img.vietqr.io/image/970436-0071001234567-compact2.png?amount={{ int(invoice.amount_residual) }}&amp;addInfo={{ invoice.name }}&amp;accountName=CONG%20TY%20TNHH%20UNG%20DUNG%20SANG%20TAO"
+                     alt="Napas247 VietQR"
+                     style="max-height: 130px; width: auto;"
+                     class="img-fluid border rounded bg-white p-1 mb-2"/>
+                <div class="small text-start" style="font-size: 11px; line-height: 1.4;">
+                    <div>STK: <strong class="text-primary">0071001234567</strong></div>
+                    <div>Nội dung: <strong class="text-dark" t-out="invoice.name"/></div>
+                    <div>Số tiền: <strong class="text-success" t-out="invoice.amount_residual" t-options="{'widget': 'monetary', 'display_currency': invoice.currency_id}"/></div>
+                </div>
+            </div>
+        </xpath>
+
+        <!-- Content Area: Top Decree 70/2025 Verification & Dispute Notification Banner -->
+        <xpath expr="//div[hasclass('o_portal_html_view')]" position="before">
+            <!-- Active Dispute Banner (AL2C-INV-103) -->
+            <div t-if="invoice.al2c_has_open_dispute" class="al2c-dispute-alert shadow-sm">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-warning text-dark" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 11px;">AL2C-INV-103 ĐANG XỬ LÝ</span>
+                    <strong style="color: #8D660D;">Thông báo Đóng băng Dunning &amp; Đối soát Thương mại:</strong>
+                </div>
+                <div class="small" style="color: #4E342E; font-size: 12px; line-height: 1.5;">
+                    Hóa đơn này đang trong quy trình đối soát thương mại theo yêu cầu của Quý Khách hàng. Toàn bộ tiến trình nhắc nợ tự động (Dunning Ladder) đã được <strong>ĐÓNG BĂNG</strong> trên hệ thống nhằm bảo đảm tối đa quyền lợi đối tác. Đội ngũ Kế toán &amp; Ban Quản lý Dự án Innoria đang tiến hành kiểm tra và sẽ phản hồi biên bản đối soát trong thời gian sớm nhất.
+                </div>
+            </div>
+
+            <!-- Dispute Submitted Alert -->
+            <div t-if="request.params.get('dispute_submitted')" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <strong>✓ Yêu cầu đối soát / khiếu nại AL2C-INV-103 đã được ghi nhận:</strong> Hệ thống đã lập tức đóng băng tiến trình nhắc nợ tự động. Nhân sự phụ trách hợp đồng sẽ liên hệ trong vòng 24 giờ làm việc.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Decree 70/2025 E-Invoice Header & Verification Box -->
+            <div class="border rounded p-3 mb-3 bg-white shadow-sm" style="border-left: 4px solid #0070F2 !important;">
+                <div class="row align-items-center gy-2">
+                    <div class="col-12 col-md-8">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary text-white" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
+                            <span class="badge bg-light text-dark border" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">NGHỊ ĐỊNH 123/2020/NĐ-CP</span>
+                        </div>
+                        <div class="fw-bold mt-1" style="font-size: 14px; color: #161616;">
+                            Hóa Đơn Giá Trị Gia Tăng Điện Tử Khởi Tạo Tự Động
+                        </div>
+                        <div class="text-muted small" style="font-size: 11px;">
+                            Mẫu số &amp; Ký hiệu: <strong>1/001 - C26TIN</strong> · Số HĐ: <strong class="text-primary" t-out="invoice.name"/>
+                            <t t-if="invoice.al2c_einvoice_lookup_code">
+                                · Mã tra cứu CQT: <code t-out="invoice.al2c_einvoice_lookup_code"/>
+                            </t>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 text-md-end">
+                        <span class="badge bg-success-subtle text-success border border-success px-2 py-1" style="font-size: 11px;">
+                            ✓ Ký Số Doanh Nghiệp Hợp Lệ
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+
+        <!-- Append Dispute Modal Dialog inside sidebar container -->
+        <xpath expr="//div[hasclass('o_portal_invoice_sidebar')]" position="inside">
+            <div class="modal fade" id="al2cDisputeModal" tabindex="-1" aria-labelledby="al2cDisputeModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <form t-attf-action="/my/invoices/#{invoice.id}/dispute" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
+
+                            <div class="modal-header bg-light border-bottom">
+                                <h5 class="modal-title fw-bold" id="al2cDisputeModalLabel" style="font-size: 15px; color: #161616;">
+                                    <i class="oi oi-flag text-danger me-1"/> Khiếu nại / Đối soát Hóa đơn AL2C-INV-103
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="alert alert-info small mb-3" style="font-size: 12px;">
+                                    <strong>Quy chế bảo vệ đối tác:</strong> Ngay sau khi gửi yêu cầu, tiến trình nhắc nợ tự động (Dunning) của hóa đơn <strong t-out="invoice.name"/> sẽ được <strong>ĐÓNG BĂNG ngay lập tức</strong>.
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small">Lý do khiếu nại / đối soát:</label>
+                                    <select class="form-select form-select-sm" name="reason" required="required">
+                                        <option value="milestone_deliverable" selected="selected">Sai khác mốc bàn giao / Chất lượng nghiệm thu SOW</option>
+                                        <option value="timesheet_billing">Giờ công kỹ thuật (Timesheet) vượt định mức SOW</option>
+                                        <option value="rate_mismatch">Sai khác đơn giá hoặc chiết khấu thương mại</option>
+                                        <option value="administrative">Sai thông tin MST hoặc pháp nhân hành chính</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small">Số tiền yêu cầu đối soát (VNĐ):</label>
+                                    <input type="number" step="any" class="form-control form-control-sm" name="disputed_amount" t-att-value="invoice.amount_residual" required="required"/>
+                                    <div class="form-text" style="font-size: 11px;">Mặc định là số dư còn nợ trên hóa đơn. Quý Khách có thể điều chỉnh theo phần tiền thực tế đang tranh chấp.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold small">Nội dung giải trình chi tiết:</label>
+                                    <textarea class="form-control form-control-sm" name="note" rows="3" placeholder="Vui lòng cung cấp chi tiết hạng mục mốc SOW chưa đạt yêu cầu hoặc phần chênh lệch cần đối soát..." required="required"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer bg-light border-top">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+                                <button type="submit" class="btn btn-danger btn-sm fw-bold">
+                                    Gửi Yêu Cầu Đối Soát (Đóng Băng Dunning)
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </xpath>
+    </template>
+</odoo>

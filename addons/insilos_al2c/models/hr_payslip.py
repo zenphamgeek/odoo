@@ -199,3 +199,9 @@ class HrPayslip(models.Model):
         """Helper for Vietnamese salary rules to compute 2026 5-bracket PIT."""
         taxable = gross_amount - abs(insurance_amount) - abs(deduction_amount)
         return calculate_vn_2026_pit(taxable)
+
+    def action_payslip_done(self):
+        """AL2C-GOV-204 / AL2C-PAY-003: Human Disbursement Boundary."""
+        self.env['al2c.autonomy.guard']._al2c_check_method_allowed('hr.payslip', 'action_payslip_done')
+        return super().action_payslip_done()
+

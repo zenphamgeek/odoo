@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ============================================================ -->
+    <!-- AL2C RUNTIME INCIDENT: LIST VIEW                            -->
+    <!-- ============================================================ -->
+    <record id="view_al2c_runtime_incident_list" model="ir.ui.view">
+        <field name="name">al2c.runtime.incident.list</field>
+        <field name="model">al2c.runtime.incident</field>
+        <field name="arch" type="xml">
+            <list string="Runtime Error Incidents &amp; Telemetry" sample="1" decoration-danger="severity == 'critical'" decoration-warning="severity == 'high'">
+                <field name="incident_code"/>
+                <field name="name"/>
+                <field name="asset_id"/>
+                <field name="occurrence_count" string="Hits"/>
+                <field name="severity" widget="badge" decoration-danger="severity in ('critical', 'high')" decoration-warning="severity == 'medium'" decoration-info="severity == 'low'"/>
+                <field name="instance_id"/>
+                <field name="state" widget="badge" decoration-success="state == 'resolved'" decoration-warning="state == 'in_backlog'" decoration-info="state == 'new'"/>
+                <field name="improvement_id" optional="show"/>
+                <field name="last_seen_date"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- AL2C RUNTIME INCIDENT: KANBAN VIEW                          -->
+    <!-- ============================================================ -->
+    <record id="view_al2c_runtime_incident_kanban" model="ir.ui.view">
+        <field name="name">al2c.runtime.incident.kanban</field>
+        <field name="model">al2c.runtime.incident</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_dashboard" default_group_by="state" sample="1">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="incident_code"/>
+                <field name="asset_id"/>
+                <field name="occurrence_count"/>
+                <field name="severity"/>
+                <field name="instance_id"/>
+                <field name="last_seen_date"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click p-3 rounded shadow-sm border" style="background-color: var(--insilos-bg-card, #ffffff); border-color: var(--insilos-border-subtle, #e2e8f0);">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge text-bg-primary font-monospace"><t t-esc="record.incident_code.value"/></span>
+                                <span t-if="record.severity.raw_value == 'critical'" class="badge text-bg-danger">CRITICAL</span>
+                                <span t-elif="record.severity.raw_value == 'high'" class="badge text-bg-warning">HIGH</span>
+                                <span t-else="" class="badge text-bg-secondary"><t t-esc="record.severity.value"/></span>
+                            </div>
+                            <h5 class="fw-bold my-1 text-truncate" style="color: var(--insilos-text-main, #0f172a);">
+                                <t t-esc="record.name.value"/>
+                            </h5>
+                            <div class="small text-muted mb-2">
+                                🏢 <t t-esc="record.asset_id.value or 'Unmapped'"/> • 🌐 <code><t t-esc="record.instance_id.value or 'N/A'"/></code>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                                <span class="badge rounded-pill text-bg-light border">
+                                    🔥 <t t-esc="record.occurrence_count.value"/> Hits
+                                </span>
+                                <span class="small text-muted"><t t-esc="record.last_seen_date.value"/></span>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- AL2C RUNTIME INCIDENT: FORM VIEW                            -->
+    <!-- ============================================================ -->
+    <record id="view_al2c_runtime_incident_form" model="ir.ui.view">
+        <field name="name">al2c.runtime.incident.form</field>
+        <field name="model">al2c.runtime.incident</field>
+        <field name="arch" type="xml">
+            <form string="Runtime Error Incident">
+                <header>
+                    <button name="action_create_backlog_improvement" string="🚀 Convert to Backlog v2 Item" type="object" class="btn-primary" invisible="improvement_id != False"/>
+                    <button name="action_mark_resolved" string="✅ Mark Resolved" type="object" class="btn-success" invisible="state == 'resolved'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,triaged,in_backlog,resolved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Incident Title"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                        <h3>
+                            <span class="badge text-bg-primary me-2"><field name="incident_code"/></span>
+                            <span class="badge text-bg-secondary"><field name="asset_id"/></span>
+                        </h3>
+                    </div>
+                    <group>
+                        <group string="Classification &amp; Impact">
+                            <field name="severity" widget="badge"/>
+                            <field name="occurrence_count"/>
+                            <field name="first_seen_date"/>
+                            <field name="last_seen_date"/>
+                            <field name="improvement_id" readonly="1"/>
+                        </group>
+                        <group string="Runtime Environment Origin">
+                            <field name="instance_id"/>
+                            <field name="instance_url"/>
+                            <field name="server_version"/>
+                            <field name="client_info"/>
+                            <field name="user_identifier"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Stack Trace &amp; Message" name="traceback_tab">
+                            <separator string="Error Message"/>
+                            <field name="error_message" readonly="1"/>
+                            <separator string="Sanitized Traceback"/>
+                            <field name="traceback" readonly="1" class="font-monospace" style="background: var(--insilos-bg-subtle, #f8fafc); padding: 12px; border-radius: 6px;"/>
+                            <separator string="OWL Component Stack (if applicable)"/>
+                            <field name="component_stack" readonly="1" class="font-monospace"/>
+                        </page>
+                        <page string="Security Fingerprint" name="fingerprint_tab">
+                            <group>
+                                <field name="fingerprint" readonly="1" class="font-monospace"/>
+                                <field name="error_name" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- WINDOW ACTIONS & MENUS                                       -->
+    <!-- ============================================================ -->
+    <record id="action_al2c_runtime_incident" model="ir.actions.act_window">
+        <field name="name">Runtime Error Incidents</field>
+        <field name="res_model">al2c.runtime.incident</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No runtime incidents reported yet!
+            </p>
+            <p>
+                Incidents are ingested securely via <code>/api/v1/runtime-report</code> with HMAC validation and deduplication.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_al2c_runtime_incidents"
+              name="Runtime Incidents (Crash Reports)"
+              parent="menu_al2c_tech_asset_root"
+              action="action_al2c_runtime_incident"
+              sequence="25"/>
+</odoo>

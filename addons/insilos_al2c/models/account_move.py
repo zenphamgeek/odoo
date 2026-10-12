@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+from odoo.tools.sql import SQL
 
 
 class AccountMove(models.Model):
@@ -17,6 +18,22 @@ class AccountMove(models.Model):
         string='Last Dunning Action Date',
         copy=False,
     )
+
+    al2c_dispute_ids = fields.One2many(
+        'al2c.dispute',
+        'invoice_id',
+        string='Commercial Disputes',
+    )
+    al2c_has_open_dispute = fields.Boolean(
+        string='Has Open Dispute',
+        compute='_compute_al2c_has_open_dispute',
+        store=True,
+    )
+
+    @api.depends('al2c_dispute_ids.state')
+    def _compute_al2c_has_open_dispute(self):
+        for move in self:
+            move.al2c_has_open_dispute = any(d.state == 'open' for d in move.al2c_dispute_ids)
 
     # --- Decree 70/2025 E-Invoice Fields (AL2C-INV-001) ---
     al2c_einvoice_provider = fields.Selection([
@@ -99,8 +116,14 @@ class AccountMove(models.Model):
             )
         return True
 
+    def button_draft(self):
+        """AL2C-GOV-204: Autonomous agents cannot unpost or draft posted invoices."""
+        self.env['al2c.autonomy.guard']._al2c_check_method_allowed('account.move', 'button_draft')
+        return super().button_draft()
+
     def action_cancel_einvoice(self, reason=None):
         """Cancel statutory e-invoice under Decree 70/2025."""
+        self.env['al2c.autonomy.guard']._al2c_check_method_allowed('account.move', 'action_cancel_einvoice')
         adapter = self.env['al2c.einvoice.adapter']
         for move in self:
             if move.al2c_einvoice_state != 'issued':
@@ -167,6 +190,10 @@ class AccountMove(models.Model):
                 move.al2c_dunning_stage = 'current'
                 continue
 
+            # AL2C-INV-103: Freeze dunning progression if invoice has an active commercial dispute
+            if any(d.state == 'open' for d in move.al2c_dispute_ids):
+                continue
+
             due_date = move.invoice_date_due or move.invoice_date or today
             overdue_days = (today - due_date).days
 
@@ -194,3 +221,47 @@ class AccountMove(models.Model):
             ('payment_state', 'in', ('not_paid', 'partial')),
         ])
         return open_invoices._al2c_update_dunning_stage()
+
+    def action_send_al2c_dunning_notice(self):
+        """Send dunning notice email using AL2C Dunning template unless dispute is open."""
+        template = self.env.ref('insilos_al2c.email_template_al2c_dunning_notice', raise_if_not_found=False)
+        for move in self:
+            if move.al2c_has_open_dispute:
+                continue
+            if template and move.partner_id.email:
+                template.send_mail(move.id, force_send=True)
+        return True
+
+    @api.depends('partner_id')
+    def _compute_display_auto_complete(self):
+        po_model = self.env['purchase.order']
+        partner_model = self.env['res.partner']
+        partner_ids = self.mapped('partner_id').ids
+        if not partner_ids:
+            for move in self:
+                move.display_auto_complete_field = False
+            return
+
+        purchase_orders = po_model._search([
+            ('state', '=', 'purchase'),
+            ('invoice_status', 'in', ('to invoice', 'no'))
+        ], limit=1)
+        purchase_orders.add_where(SQL('%s.partner_id = %s.id', SQL.identifier(po_model._table), SQL.identifier(partner_model._table)))
+        partners = partner_model._search([
+            ('id', 'in', partner_ids),
+        ])
+        partners.add_where(SQL('EXISTS(%s)', purchase_orders.select()))
+        valid_partner_ids = {partner[0] for partner in self.env.execute_query(partners.select())}
+
+        for move in self:
+            move.display_auto_complete_field = move.partner_id.id in valid_partner_ids
+
+    @api.model
+    def get_views(self, views, options=None):
+        res = super().get_views(views, options=options)
+        if isinstance(res, dict) and 'models' in res:
+            if 'finance.journal.entry' in res['models'] and 'account.move' not in res['models']:
+                res['models']['account.move'] = res['models']['finance.journal.entry']
+            if 'finance.journal.line' in res['models'] and 'account.move.line' not in res['models']:
+                res['models']['account.move.line'] = res['models']['finance.journal.line']
+        return res

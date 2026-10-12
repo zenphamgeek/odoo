@@ -29,6 +29,17 @@ class SaleOrder(models.Model):
         string='Deal Desk Approval Required',
         compute='_compute_al2c_approval_required',
     )
+    value_case_id = fields.Many2one(
+        'al2c.value.case',
+        string='Enterprise Value Case',
+        copy=False,
+        tracking=True,
+    )
+    fts_item_ids = fields.One2many(
+        'al2c.fts.item',
+        'sale_order_id',
+        string='Fit-to-Standard Scope Items',
+    )
 
     # ------------------------------------------------------------------
     # Thresholds
@@ -181,9 +192,19 @@ class SaleOrder(models.Model):
                     "customer %(partner)s has %(count)d invoice(s) overdue by > 30 days",
                     partner=self.partner_id.display_name, count=overdue_count))
                     
+        # 5. Clean-Core Scope Check (AL2C-CRM-101)
+        unapproved_class_d = self.fts_item_ids.filtered(
+            lambda f: f.clean_core_class == 'class_d' and not f.approved_by_architect
+        )
+        if unapproved_class_d:
+            reasons.append(self.env._(
+                "order contains unapproved Class D (Clean-Core Prohibited) scope items: %(items)s",
+                items=", ".join(unapproved_class_d.mapped('name'))
+            ))
+
         return reasons
 
-    @api.depends('order_line.discount', 'order_line.price_unit', 'amount_untaxed', 'currency_id', 'user_id', 'create_uid', 'partner_id')
+    @api.depends('order_line.discount', 'order_line.price_unit', 'amount_untaxed', 'currency_id', 'user_id', 'create_uid', 'partner_id', 'fts_item_ids.clean_core_class', 'fts_item_ids.approved_by_architect')
     def _compute_al2c_approval_required(self):
         for order in self:
             order.al2c_approval_required = bool(
@@ -246,9 +267,53 @@ class SaleOrder(models.Model):
 
     def action_confirm(self):
         self._al2c_check_deal_desk(self.env._("confirmed"))
-        return super().action_confirm()
+        res = super().action_confirm()
+        for order in self:
+            if order.value_case_id and order.project_ids:
+                order.project_ids.write({'value_case_id': order.value_case_id.id})
+        return res
 
     def action_approve_deal_desk(self):
         """Action for sales manager to grant deal desk approval."""
+        self._al2c_check_method_allowed('sale.order', 'action_approve_deal_desk')
         self.write({'al2c_approved': True})
         return True
+
+    @api.model
+    def get_views(self, views, options=None):
+        res = super().get_views(views, options=options)
+        if isinstance(res, dict) and 'models' in res:
+            if 'order.header' in res['models'] and 'sale.order' not in res['models']:
+                res['models']['sale.order'] = res['models']['order.header']
+            if 'order.line' in res['models'] and 'sale.order.line' not in res['models']:
+                res['models']['sale.order.line'] = res['models']['order.line']
+        return res
+
+
+class SaleOrderLine(models.Model):
+    _inherit = 'sale.order.line'
+
+    def write(self, vals):
+        res = super().write(vals)
+        commercial_fields = {'price_unit', 'discount', 'product_uom_qty', 'product_id'}
+        if commercial_fields.intersection(vals.keys()):
+            for line in self:
+                if line.order_id and line.order_id.al2c_approved:
+                    line.order_id.sudo().write({'al2c_approved': False})
+        return res
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        lines = super().create(vals_list)
+        for line in lines:
+            if line.order_id and line.order_id.al2c_approved:
+                line.order_id.sudo().write({'al2c_approved': False})
+        return lines
+
+    def unlink(self):
+        orders = self.mapped('order_id').filtered(lambda o: o.al2c_approved)
+        res = super().unlink()
+        for order in orders:
+            order.sudo().write({'al2c_approved': False})
+        return res
+

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Value Case List View -->
+    <record id="view_al2c_value_case_tree" model="ir.ui.view">
+        <field name="name">al2c.value.case.list</field>
+        <field name="model">al2c.value.case</field>
+        <field name="arch" type="xml">
+            <list string="Enterprise Value Cases">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="tco_current_vnd"/>
+                <field name="tco_future_vnd"/>
+                <field name="net_annual_benefit_vnd"/>
+                <field name="roi_percentage"/>
+                <field name="payback_months"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Value Case Form View -->
+    <record id="view_al2c_value_case_form" model="ir.ui.view">
+        <field name="name">al2c.value.case.form</field>
+        <field name="model">al2c.value.case</field>
+        <field name="arch" type="xml">
+            <form string="Enterprise Value Case">
+                <header>
+                    <button name="action_quantify" string="Quantify &amp; Propose" type="object" class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_mark_realized" string="Confirm Value Realized" type="object" class="btn-success" invisible="state != 'signed_off'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,quantified,signed_off,realized"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Value Case Title"/>
+                        <h1>
+                            <field name="name" placeholder="e.g. Enterprise Value Case — Client Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Enterprise Stakeholders">
+                            <field name="partner_id"/>
+                            <field name="lead_id"/>
+                            <field name="company_currency" invisible="1"/>
+                        </group>
+                        <group string="Financial Impact Metrics">
+                            <field name="tco_current_vnd"/>
+                            <field name="tco_future_vnd"/>
+                            <field name="net_annual_benefit_vnd"/>
+                            <field name="roi_percentage"/>
+                            <field name="payback_months"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Quantitative Value Drivers" name="drivers">
+                            <field name="driver_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="category"/>
+                                    <field name="annual_benefit_vnd"/>
+                                    <field name="confidence_level"/>
+                                    <field name="notes"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Linked Contracts &amp; Projects" name="realization">
+                            <group>
+                                <field name="sale_order_ids" readonly="1"/>
+                                <field name="project_ids" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="action_al2c_value_case" model="ir.actions.act_window">
+        <field name="name">Enterprise Value Cases</field>
+        <field name="res_model">al2c.value.case</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first Enterprise Value Case!
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Items under CRM and Sales -->
+    <menuitem id="menu_al2c_value_case_crm"
+              name="Value Cases"
+              parent="crm.crm_menu_root"
+              action="action_al2c_value_case"
+              sequence="25"/>
+
+    <menuitem id="menu_al2c_value_case_sale"
+              name="Value Cases"
+              parent="sale.sale_menu_root"
+              action="action_al2c_value_case"
+              sequence="25"/>
+</odoo>

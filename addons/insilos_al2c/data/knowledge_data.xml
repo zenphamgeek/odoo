@@ -248,6 +248,14 @@
         <field name="sequence">1</field>
         <field name="body">&lt;h1&gt;Sales&lt;/h1&gt;&lt;p&gt;Lead-to-cash sales playbook: ICP, BANT for SMB, MEDDICC for enterprise, quotation templates, deal desk thresholds (discount above 10% or TCV above 500M VND).&lt;/p&gt;</field>
     </record>
+    <record id="kb_playbook_sales_al2c_user_guide" model="knowledge.article">
+        <field name="name">AL2C User Guide · Sổ Tay Vận Hành Lead-to-Cash (Toàn Diện)</field>
+        <field name="parent_id" ref="kb_playbook_sales"/>
+        <field name="icon">📖</field>
+        <field name="sequence">1</field>
+        <field name="internal_permission">write</field>
+        <field name="body">&lt;h1&gt;Sổ Tay Vận Hành &amp;amp; Hướng Dẫn Sử Dụng Nền Tảng Autonomous Lead-to-Cash (AL2C)&lt;/h1&gt;&lt;p&gt;Quy trình vận hành chuẩn hóa từ Tiềm năng (Lead) đến Thu tiền (Cash) tích hợp AI Autonomous và phương pháp luận quốc tế SAP Activate, BANT, MEDDICC, Nghị định 70/2025/NĐ-CP và cơ chế Dunning Freeze.&lt;/p&gt;</field>
+    </record>
     <record id="kb_playbook_delivery" model="knowledge.article">
         <field name="name">Delivery</field>
         <field name="parent_id" ref="kb_playbooks"/>

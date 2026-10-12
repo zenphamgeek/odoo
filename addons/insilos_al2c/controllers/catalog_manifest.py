@@ -12,6 +12,7 @@ class CatalogManifestController(http.Controller):
         Specification conforms to llmstxt.org standard.
         """
         products = request.env['product.template'].sudo().search([
+            ('active', '=', True),
             ('al2c_product_line', '!=', False),
             ('sale_ok', '=', True),
         ], order='al2c_product_line, default_code')
@@ -69,6 +70,7 @@ class CatalogManifestController(http.Controller):
     def llms_full_txt(self):
         """Full deep manifest with SKU pricing, billing policy, and Activate delivery milestones."""
         products = request.env['product.template'].sudo().search([
+            ('active', '=', True),
             ('al2c_product_line', '!=', False),
             ('sale_ok', '=', True),
         ], order='al2c_product_line, default_code')

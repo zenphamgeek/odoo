@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- 1. O20 Core ERP Platform -->
+        <record id="asset_o20_core" model="al2c.tech.asset">
+            <field name="name">Insilos O20 Core ERP Platform</field>
+            <field name="code">O20</field>
+            <field name="sequence">1</field>
+            <field name="repo_path">/home/zen/O20</field>
+            <field name="category">platform_core</field>
+            <field name="tech_stack">Python 3.12 / Odoo 20 LTS / OWL 2 / Bootstrap 5 SCSS / PostgreSQL</field>
+            <field name="complexity_rating">very_high</field>
+            <field name="primary_doc_path">/home/zen/O20/AGENTS.md</field>
+            <field name="state">active</field>
+        </record>
+
+        <!-- 2. Vertical Risk & Compliance GRC -->
+        <record id="asset_vertical_grc" model="al2c.tech.asset">
+            <field name="name">Insilos Vertical Risk &amp; Compliance GRC</field>
+            <field name="code">VERTICAL_RISK</field>
+            <field name="sequence">2</field>
+            <field name="repo_path">/home/zen/VerticalRisk</field>
+            <field name="category">grc_vertical</field>
+            <field name="tech_stack">TypeScript / Node.js / Vite / Vitest / Eramba GRC / PostgreSQL</field>
+            <field name="complexity_rating">high</field>
+            <field name="primary_doc_path">/home/zen/VerticalRisk/README.md</field>
+            <field name="state">active</field>
+        </record>
+
+        <!-- 3. Insilos Mobile Cross-Platform Client -->
+        <record id="asset_insilos_mobile" model="al2c.tech.asset">
+            <field name="name">Insilos Mobile Cross-Platform Client</field>
+            <field name="code">INSILOS_MOBILE</field>
+            <field name="sequence">3</field>
+            <field name="repo_path">/home/zen/insilos_mobile</field>
+            <field name="category">mobile_client</field>
+            <field name="tech_stack">Flutter 3.x / Dart / Mobo Vert Shell / Industrial HUD Telemetry</field>
+            <field name="complexity_rating">high</field>
+            <field name="primary_doc_path">/home/zen/insilos_mobile/SRS_Insilos_Mobo_Mobile.md</field>
+            <field name="state">active</field>
+        </record>
+
+        <!-- 4. Zencode Enterprise AI Swarm & Fleet Router -->
+        <record id="asset_zencode_ent" model="al2c.tech.asset">
+            <field name="name">Zencode Enterprise AI Swarm &amp; Fleet Router</field>
+            <field name="code">ZENCODE_ENT</field>
+            <field name="sequence">4</field>
+            <field name="repo_path">/home/zen/zencode-ent</field>
+            <field name="category">ai_swarm</field>
+            <field name="tech_stack">Python / FastAPI / SQLite / Pytest / Multi-Account Fleet Router</field>
+            <field name="complexity_rating">high</field>
+            <field name="primary_doc_path">/home/zen/zencode-ent/README.md</field>
+            <field name="state">active</field>
+        </record>
+    </data>
+</odoo>

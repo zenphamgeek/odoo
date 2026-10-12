@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================================================================
+         INNORIA / INSILOS ENTERPRISE EMAIL TEMPLATES & LAYOUTS
+         Architecture: IBM Carbon Design System & SAP Fiori Horizon Standards
+         Branding: Small Official Web Innoria Logo
+         Compliance: Zero-Signature, ISO/IEC 27001, Decree 13/2023/ND-CP
+         ===================================================================== -->
+
+    <!-- 1. Master Mail Notification Layout (Surgical Enhancement) -->
+    <template id="mail_notification_layout_inherit_al2c" inherit_id="mail.mail_notification_layout">
+        <!-- Top Horizon Accent Bar and Small Web Innoria Logo before notification summary -->
+        <xpath expr="//div[@summary='o_mail_notification']" position="before">
+            <div style="height: 4px; background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%); width: 100%; margin-bottom: 12px;"/>
+            <div style="padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid #E0E0E0;">
+                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                        <td align="left" valign="middle">
+                            <a href="https://innoria.com" target="_blank" style="text-decoration: none; display: inline-block;">
+                                <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 28px; width: auto; display: block; border: 0;" alt="Innoria Enterprise"/>
+                            </a>
+                        </td>
+                        <td align="right" valign="middle">
+                            <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px; font-weight: 700; color: #525252; background-color: #F4F4F4; border: 1px solid #E0E0E0; padding: 2px 6px; border-radius: 2px; letter-spacing: 0.05em;">
+                                ISO 27001 · SOVEREIGN
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </xpath>
+
+        <!-- Sovereign Enterprise Footer replacing Powered by -->
+        <xpath expr="//div[hasclass('o_signature')]" position="after">
+            <div style="margin-top: 24px; padding-top: 12px; border-top: 1px solid #E0E0E0; font-size: 11px; color: #6F6F6F; line-height: 1.5;">
+                <strong style="color: #161616;">Innoria Enterprise Platform</strong> · Tiêu chuẩn ISO/IEC 27001 · Bảo mật dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP.
+            </div>
+        </xpath>
+    </template>
+
+    <!-- 2. Master Mail Notification Light Layout (Surgical Enhancement) -->
+    <template id="mail_notification_light_inherit_al2c" inherit_id="mail.mail_notification_light">
+        <!-- Replace Header Logo with Small Web Innoria Logo -->
+        <xpath expr="//img[contains(@t-att-src, '/logo.png')]" position="replace">
+            <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 28px; width: auto; display: block; border: 0;" alt="Innoria Enterprise"/>
+        </xpath>
+
+        <!-- Replace Powered by row with Innoria Sovereign Footer -->
+        <xpath expr="//table[@role='presentation']/tr[last()]" position="replace">
+            <tr>
+                <td align="center" style="min-width: 590px; padding: 12px 0; font-size: 11px; color: #6F6F6F;">
+                    <strong style="color: #161616;">Innoria Enterprise Platform</strong> · Chuẩn ISO/IEC 27001 &amp; Nghị định 13/2023/NĐ-CP
+                    <span t-if="show_unfollow" id="mail_unfollow">
+                        | <a href="/mail/unfollow" style="color: #8D8D8D; text-decoration: underline;">Ngừng theo dõi</a>
+                    </span>
+                </td>
+            </tr>
+        </xpath>
+    </template>
+
+    <!-- Enable updating standard noupdate mail templates -->
+    <function model="ir.model.data" name="write">
+        <value model="ir.model.data" eval="obj().env['ir.model.data'].search([
+            ('module', 'in', ['sale', 'account', 'auth_signup']),
+            ('name', 'in', [
+                'email_template_edi_sale',
+                'email_template_edi_invoice',
+                'portal_set_password_email',
+                'set_password_email',
+                'mail_template_data_payment_receipt',
+            ])
+        ]).ids"/>
+        <value eval="{'noupdate': False}"/>
+    </function>
+
+    <!-- 3. IBM & SAP Fiori Horizon Quotation & Sales Order Email Template Override -->
+    <record id="sale.email_template_edi_sale" model="mail.template">
+        <field name="name">Sales: Send Quotation (Innoria IBM/SAP Standard)</field>
+        <field name="body_html" type="html">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616;">
+    <div style="margin-bottom: 16px;">
+        <span style="font-size: 15px; font-weight: 700; color: #161616;">Kính gửi Quý Khách hàng,</span>
+    </div>
+    <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #333333;">
+        <t t-if="object.state in ('draft', 'sent')">
+            Innoria xin trân trọng gửi tới Quý Đơn vị bảng <strong>Báo giá Giải pháp &amp; Dịch vụ</strong> mã số <strong style="color: #0070F2; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;" t-out="object.name"/> với tổng giá trị là <strong style="color: #161616;" t-out="format_amount(object.amount_total, object.currency_id)"/>.
+        </t>
+        <t t-else="">
+            Innoria xin thông báo đơn đặt hàng mã số <strong style="color: #0070F2; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;" t-out="object.name"/> với tổng giá trị là <strong style="color: #161616;" t-out="format_amount(object.amount_total, object.currency_id)"/> đã được xác nhận vào hệ thống điều hành.
+        </t>
+    </p>
+
+    <!-- SAP Fiori Summary Highlight Card -->
+    <div style="background-color: #F8F9FA; border: 1px solid #E0E0E0; border-left: 4px solid #0070F2; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; line-height: 1.6;">
+            <tr>
+                <td style="color: #525252; width: 40%;">Mã chứng từ:</td>
+                <td style="font-weight: 700; color: #161616; width: 60%;"><span t-out="object.name"/></td>
+            </tr>
+            <tr t-if="object.validity_date">
+                <td style="color: #525252;">Hiệu lực báo giá:</td>
+                <td style="font-weight: 600; color: #161616;"><span t-out="object.validity_date"/></td>
+            </tr>
+            <tr t-if="object.payment_term_id">
+                <td style="color: #525252;">Điều khoản thanh toán:</td>
+                <td style="font-weight: 600; color: #161616;"><span t-out="object.payment_term_id.name"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252; font-weight: 700;">Tổng tiền thanh toán (VAT):</td>
+                <td style="font-weight: 800; color: #0070F2; font-size: 15px;"><span t-out="format_amount(object.amount_total, object.currency_id)"/></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- CTA Button to Portal -->
+    <div style="text-align: center; margin: 24px 0;">
+        <a t-att-href="object.get_portal_url()" style="display: inline-block; background-color: #0070F2; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0, 112, 242, 0.3);">
+            Xem &amp; Ký Báo Giá Trực Tuyến
+        </a>
+    </div>
+
+    <p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.6; color: #525252;">
+        Chi tiết danh mục giải pháp và các điều khoản triển khai chuẩn SAP Activate được đính kèm trong tệp tài liệu PDF. Quý Khách hàng có thể phản hồi trực tiếp qua email này nếu cần làm rõ thêm bất kỳ thông tin nào.
+    </p>
+
+    <div style="margin-top: 20px; font-size: 13px; color: #161616;">
+        Trân trọng,<br/>
+        <strong>Đội ngũ Tư vấn Giải pháp Doanh nghiệp Innoria</strong>
+    </div>
+</div>
+        </field>
+    </record>
+
+    <!-- 4. IBM & SAP Fiori Horizon Customer Invoice Email Template Override -->
+    <record id="account.email_template_edi_invoice" model="mail.template">
+        <field name="name">Invoice: Sending (Innoria IBM/SAP Standard)</field>
+        <field name="body_html" type="html">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616;">
+    <div style="margin-bottom: 16px;">
+        <span style="font-size: 15px; font-weight: 700; color: #161616;">Kính gửi Quý Khách hàng,</span>
+    </div>
+    <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #333333;">
+        Innoria xin trân trọng thông báo và gửi tới Quý Đơn vị <strong>Hóa đơn Giá trị gia tăng (Điện tử)</strong> số <strong style="color: #0070F2; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;" t-out="object.name"/> với tổng số tiền cần thanh toán là <strong style="color: #161616;" t-out="format_amount(object.amount_total, object.currency_id)"/>.
+    </p>
+
+    <!-- SAP Fiori Invoice Summary Box -->
+    <div style="background-color: #F8F9FA; border: 1px solid #E0E0E0; border-left: 4px solid #0070F2; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; line-height: 1.6;">
+            <tr>
+                <td style="color: #525252; width: 40%;">Mẫu số &amp; Ký hiệu:</td>
+                <td style="font-weight: 700; color: #161616; width: 60%;">1/001 - C26TIN</td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Số hóa đơn:</td>
+                <td style="font-weight: 700; color: #0070F2;"><span t-out="object.name"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Ngày lập hóa đơn:</td>
+                <td style="font-weight: 600; color: #161616;"><span t-out="object.invoice_date"/></td>
+            </tr>
+            <tr t-if="object.invoice_date_due">
+                <td style="color: #525252;">Hạn thanh toán:</td>
+                <td style="font-weight: 600; color: #161616;"><span t-out="object.invoice_date_due"/></td>
+            </tr>
+            <tr style="border-top: 1px solid #E0E0E0;">
+                <td style="color: #525252; font-weight: 700; padding-top: 6px;">Tổng cộng tiền thanh toán:</td>
+                <td style="font-weight: 800; color: #0070F2; font-size: 15px; padding-top: 6px;"><span t-out="format_amount(object.amount_total, object.currency_id)"/></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Status & Banking Details -->
+    <t t-if="object.payment_state in ('paid', 'in_payment')">
+        <div style="background-color: #E6F4EA; border: 1px solid #A8DAB5; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #137333;">
+            <strong>✓ Hóa đơn này đã được thanh toán hoàn tất.</strong> Innoria chân thành cảm ơn sự hợp tác của Quý Khách hàng.
+        </div>
+    </t>
+    <t t-else="">
+        <div style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; line-height: 1.5;">
+            <strong style="color: #0070F2; text-transform: uppercase; font-size: 11px;">Thông tin chuyển khoản thanh toán:</strong><br/>
+            • Đơn vị thụ hưởng: <strong>CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO (INNORIA)</strong><br/>
+            • Số tài khoản: <strong>0071001234567</strong> tại <strong>Vietcombank - CN TP.HCM</strong><br/>
+            • Nội dung chuyển khoản: <strong style="color: #0070F2;"><t t-out="object.name"/></strong>
+        </div>
+    </t>
+
+    <!-- Portal Action -->
+    <div style="text-align: center; margin: 24px 0;">
+        <a t-att-href="object.get_portal_url()" style="display: inline-block; background-color: #0070F2; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0, 112, 242, 0.3);">
+            Tra Cứu Hóa Đơn Trực Tuyến
+        </a>
+    </div>
+
+    <p style="margin: 0 0 16px 0; font-size: 12px; line-height: 1.6; color: #6F6F6F;">
+        Tệp Hóa đơn Điện tử (PDF) và dữ liệu XML gốc đã được ký số bằng chứng thư số hợp lệ tuân thủ Nghị định 123/2020/NĐ-CP được đính kèm theo thư này.
+    </p>
+
+    <div style="margin-top: 20px; font-size: 13px; color: #161616;">
+        Trân trọng,<br/>
+        <strong>Bộ phận Kế toán &amp; Tài chính Doanh nghiệp Innoria</strong>
+    </div>
+</div>
+        </field>
+    </record>
+
+    <!-- 5. IBM Carbon & SAP Fiori Horizon Customer Portal Invitation Email Template Override -->
+    <record id="auth_signup.portal_set_password_email" model="mail.template">
+        <field name="name">Settings: New Portal User Invite (Innoria IBM/SAP Standard)</field>
+        <field name="subject">{{ object.company_id.name }} - Thư Mời Kích Hoạt Cổng Khách Hàng Doanh Nghiệp (Customer Portal)</field>
+        <field name="body_html" type="html">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616;">
+    <div style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #E0E0E0;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td align="left" valign="middle">
+                    <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 28px; width: auto; display: block; border: 0;" alt="Innoria Enterprise"/>
+                </td>
+                <td align="right" valign="middle">
+                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px; font-weight: 700; color: #525252; background-color: #F4F4F4; border: 1px solid #E0E0E0; padding: 2px 6px; border-radius: 2px; letter-spacing: 0.05em;">
+                        CUSTOMER PORTAL
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="margin-bottom: 16px;">
+        <span style="font-size: 15px; font-weight: 700; color: #161616;">Kính gửi Quý Khách hàng <t t-out="object.name"/>,</span>
+    </div>
+    <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #333333;">
+        Công ty TNHH Ứng Dụng Sáng Tạo (Innoria) trân trọng thông báo tài khoản truy cập <strong>Cổng Khách hàng Doanh nghiệp (Innoria Enterprise Portal)</strong> của Quý Đơn vị đã được khởi tạo thành công trên hệ sinh thái điều hành <strong t-out="object.company_id.name"/>.
+    </p>
+
+    <!-- IBM Carbon Credential Card -->
+    <div style="background-color: #F8F9FA; border: 1px solid #E0E0E0; border-left: 4px solid #0070F2; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px;">
+        <div style="font-size: 11px; font-weight: 700; color: #525252; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px;">Thông tin Tài khoản Quản trị Portal</div>
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; line-height: 1.6;">
+            <tr>
+                <td style="color: #525252; width: 40%;">Tên đăng nhập (Email):</td>
+                <td style="font-weight: 700; color: #0070F2; width: 60%;"><span t-out="object.email or object.login"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Tổ chức doanh nghiệp:</td>
+                <td style="font-weight: 600; color: #161616;"><span t-out="object.company_id.name"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Thời hạn kích hoạt liên kết:</td>
+                <td style="font-weight: 600; color: #161616;">
+                    <span t-out="(object.env['ir.config_parameter'].sudo().get_int('auth_signup.signup.validity.hours') or 144)//24"/> ngày
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Passwordless & Enterprise SSO Security Guide -->
+    <div style="background-color: #F4F4F4; border: 1px solid #E0E0E0; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; line-height: 1.6; color: #525252;">
+        <strong style="color: #161616; font-size: 12px;">Hướng dẫn Đăng nhập Một chạm &amp; Chuẩn Bảo mật:</strong>
+        <ul style="margin: 6px 0 0 0; padding-left: 20px;">
+            <li><strong>Đăng nhập Không mật khẩu (Passwordless / SSO):</strong> Cổng hỗ trợ đăng nhập qua liên kết bảo mật một lần hoặc định danh SSO doanh nghiệp (Google / Microsoft 365 Entra ID).</li>
+            <li><strong>Xác thực Hai Yếu Tố (2FA / TOTP):</strong> Sau khi kích hoạt tài khoản, Quý Khách hàng có thể thiết lập mã xác thực OTP tại mục <em>Bảo mật &amp; Kết nối</em> để bảo vệ tài khoản theo chuẩn ISO/IEC 27001.</li>
+            <li><strong>Quyền hạn trên Portal:</strong> Tra cứu hợp đồng SOW, phê duyệt mốc nghiệm thu SAP Activate, tra cứu hóa đơn điện tử Nghị định 70/2025/NĐ-CP và mở đối soát thương mại AL2C-INV-103.</li>
+        </ul>
+    </div>
+
+    <!-- Activation CTA Button -->
+    <div style="text-align: center; margin: 24px 0;">
+        <a t-att-href="object.partner_id._get_signup_url()" style="display: inline-block; background-color: #0070F2; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0, 112, 242, 0.3);">
+            Kích Hoạt Tài Khoản &amp; Đăng Nhập Portal
+        </a>
+    </div>
+
+    <p style="margin: 0 0 16px 0; font-size: 12px; line-height: 1.6; color: #6F6F6F;">
+        Nếu Quý Khách hàng không yêu cầu tạo tài khoản này, vui lòng bỏ qua thư này hoặc thông báo cho trung tâm hỗ trợ khách hàng của chúng tôi qua địa chỉ <strong>contact@innoria.com</strong>.
+    </p>
+
+    <div style="margin-top: 20px; font-size: 13px; color: #161616;">
+        Trân trọng,<br/>
+        <strong>Bộ phận Dịch vụ Khách hàng Doanh nghiệp Innoria</strong>
+    </div>
+</div>
+        </field>
+    </record>
+
+    <!-- 6. IBM Carbon User Invite Email Template Override -->
+    <record id="auth_signup.set_password_email" model="mail.template">
+        <field name="name">Settings: New User Invite (Innoria IBM/SAP Standard)</field>
+        <field name="subject">{{ object.company_id.name }} - Kích Hoạt Tài Khoản Hệ Thống Điều Hành Innoria Enterprise</field>
+        <field name="body_html" type="html">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616;">
+    <div style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #E0E0E0;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td align="left" valign="middle">
+                    <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 28px; width: auto; display: block; border: 0;" alt="Innoria Enterprise"/>
+                </td>
+                <td align="right" valign="middle">
+                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px; font-weight: 700; color: #525252; background-color: #F4F4F4; border: 1px solid #E0E0E0; padding: 2px 6px; border-radius: 2px; letter-spacing: 0.05em;">
+                        ENTERPRISE SSO
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="margin-bottom: 16px;">
+        <span style="font-size: 15px; font-weight: 700; color: #161616;">Kính gửi <t t-out="object.name"/>,</span>
+    </div>
+    <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #333333;">
+        Quý Nhân sự / Đối tác đã được cấp quyền truy cập hệ thống điều hành doanh nghiệp <strong><t t-out="object.company_id.name"/></strong> (Innoria Enterprise Platform).
+    </p>
+
+    <!-- IBM Carbon Card -->
+    <div style="background-color: #F8F9FA; border: 1px solid #E0E0E0; border-left: 4px solid #0070F2; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; line-height: 1.6;">
+            <tr>
+                <td style="color: #525252; width: 40%;">Tài khoản đăng nhập:</td>
+                <td style="font-weight: 700; color: #0070F2; width: 60%;"><span t-out="object.email or object.login"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Tổ chức:</td>
+                <td style="font-weight: 600; color: #161616;"><span t-out="object.company_id.name"/></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Activation CTA Button -->
+    <div style="text-align: center; margin: 24px 0;">
+        <a t-att-href="object.partner_id._get_signup_url()" style="display: inline-block; background-color: #0070F2; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0, 112, 242, 0.3);">
+            Kích Hoạt Tài Khoản Trực Tuyến
+        </a>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 13px; color: #161616;">
+        Trân trọng,<br/>
+        <strong>Ban Quản trị Hệ thống Innoria Enterprise</strong>
+    </div>
+</div>
+        </field>
+    </record>
+
+    <!-- 7. SAP Fiori Horizon Payment Receipt Email Template Override -->
+    <record id="account.mail_template_data_payment_receipt" model="mail.template">
+        <field name="name">Payment: Payment Receipt (Innoria SAP Standard)</field>
+        <field name="subject">{{ object.company_id.name }} - Biên Nhận Thanh Toán {{ object.name or '' }}</field>
+        <field name="body_html" type="html">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616;">
+    <div style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #E0E0E0;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td align="left" valign="middle">
+                    <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 28px; width: auto; display: block; border: 0;" alt="Innoria Enterprise"/>
+                </td>
+                <td align="right" valign="middle">
+                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px; font-weight: 700; color: #198038; background-color: #DEFBE6; border: 1px solid #A8DAB5; padding: 2px 6px; border-radius: 2px; letter-spacing: 0.05em;">
+                        PAYMENT RECEIPT
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="margin-bottom: 16px;">
+        <span style="font-size: 15px; font-weight: 700; color: #161616;">Kính gửi Quý Khách hàng <t t-out="object.partner_id.name"/>,</span>
+    </div>
+    <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #333333;">
+        Innoria xin trân trọng thông báo và xác nhận đã ghi nhận khoản thanh toán từ Quý Đơn vị vào hệ thống tài chính kế toán:
+    </p>
+
+    <!-- SAP Fiori Receipt Highlight Box -->
+    <div style="background-color: #F8F9FA; border: 1px solid #E0E0E0; border-left: 4px solid #198038; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; line-height: 1.6;">
+            <tr>
+                <td style="color: #525252; width: 40%;">Mã chứng từ thanh toán:</td>
+                <td style="font-weight: 700; color: #161616; width: 60%;"><span t-out="object.name"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Ngày thanh toán:</td>
+                <td style="font-weight: 600; color: #161616;"><span t-out="object.date"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Số tiền đã nhận:</td>
+                <td style="font-weight: 800; color: #198038; font-size: 16px;"><span t-out="format_amount(object.amount, object.currency_id)"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Phương thức thanh toán:</td>
+                <td style="font-weight: 600; color: #161616;">Chuyển khoản Napas247 / Vietcombank</td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Trạng thái đối soát:</td>
+                <td style="font-weight: 700; color: #198038;">✓ Đã đối soát &amp; Khớp số dư thành công</td>
+            </tr>
+            <tr t-if="object.reconciled_invoice_ids">
+                <td style="color: #525252;">Hóa đơn đối soát:</td>
+                <td style="font-weight: 600; color: #0070F2;">
+                    <t t-out="', '.join(object.reconciled_invoice_ids.mapped('name'))"/>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Portal Action -->
+    <div style="text-align: center; margin: 24px 0;">
+        <a t-att-href="object.reconciled_invoice_ids[:1].get_portal_url() if object.reconciled_invoice_ids else '/my/invoices'" style="display: inline-block; background-color: #0070F2; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0, 112, 242, 0.3);">
+            Tra Cứu Chứng Từ Trên Cổng Khách Hàng
+        </a>
+    </div>
+
+    <p style="margin: 0 0 16px 0; font-size: 12px; line-height: 1.6; color: #6F6F6F;">
+        Tệp Biên nhận Thanh toán (PDF) đính kèm theo thư này được phát hành bởi hệ thống điều hành Innoria Enterprise Platform tuân thủ quy chuẩn quản lý tài chính doanh nghiệp.
+    </p>
+
+    <div style="margin-top: 20px; font-size: 13px; color: #161616;">
+        Trân trọng cảm ơn sự tín nhiệm của Quý Khách hàng,<br/>
+        <strong>Bộ phận Kế toán &amp; Tài chính Doanh nghiệp Innoria</strong>
+    </div>
+</div>
+        </field>
+    </record>
+
+    <!-- 8. AL2C Automated Dunning Notice with Commercial Dispute Protection (AL2C-INV-103) -->
+    <record id="email_template_al2c_dunning_notice" model="mail.template">
+        <field name="name">AL2C: Dunning Notice &amp; Payment Reminder (SAP Fiori Horizon)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="subject">{{ object.company_id.name }} - Thông Báo Nhắc Hạn Thanh Toán Hóa Đơn {{ object.name }}</field>
+        <field name="email_from">{{ (object.invoice_user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}</field>
+        <field name="partner_to">{{ object.partner_id.id }}</field>
+        <field name="description">Sent to customers when invoices progress through AL2C dunning ladder with dispute protection mention</field>
+        <field name="email_layout_xmlid">mail.mail_notification_light</field>
+        <field name="body_html" type="html">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616;">
+    <div style="margin-bottom: 16px;">
+        <span style="font-size: 15px; font-weight: 700; color: #161616;">Kính gửi Quý Khách hàng <t t-out="object.partner_id.name"/>,</span>
+    </div>
+
+    <!-- Dunning Stage Callout Header -->
+    <div t-if="object.al2c_dunning_stage == 'd30_suspension'" style="background-color: #FFF1F0; border: 1px solid #FFCCC7; border-left: 4px solid #DA1E28; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #DA1E28;">
+        <strong>[CẢNH BÁO TẠM ĐÌNH CHỈ DỊCH VỤ D+30]:</strong> Hóa đơn <strong t-out="object.name"/> đã quá hạn 30 ngày. Vui lòng thanh toán hoặc phản hồi đối soát để tránh gián đoạn dịch vụ hệ thống.
+    </div>
+    <div t-elif="object.al2c_dunning_stage == 'd15_warning'" style="background-color: #FFF8E1; border: 1px solid #FFE082; border-left: 4px solid #F1C21B; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #8D660D;">
+        <strong>[THÔNG BÁO NHẮC NỢ LẦN 2 D+15]:</strong> Hóa đơn <strong t-out="object.name"/> đã quá hạn 15 ngày. Quý Khách hàng vui lòng sắp xếp thanh toán theo điều khoản hợp đồng.
+    </div>
+    <div t-else="" style="background-color: #EDF5FF; border: 1px solid #D0E2FF; border-left: 4px solid #0070F2; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #0043CE;">
+        <strong>[NHẮC HẠN THANH TOÁN ĐỊNH KỲ D+3]:</strong> Innoria xin gửi lời nhắc về khoản thanh toán đến hạn của Quý Đơn vị đối với hóa đơn <strong t-out="object.name"/>.
+    </div>
+
+    <!-- Invoice Summary Box -->
+    <div style="background-color: #F8F9FA; border: 1px solid #E0E0E0; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; line-height: 1.6;">
+            <tr>
+                <td style="color: #525252; width: 40%;">Số hóa đơn:</td>
+                <td style="font-weight: 700; color: #0070F2; width: 60%;"><span t-out="object.name"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Ngày lập hóa đơn:</td>
+                <td style="font-weight: 600; color: #161616;"><span t-out="object.invoice_date"/></td>
+            </tr>
+            <tr t-if="object.invoice_date_due">
+                <td style="color: #525252;">Hạn thanh toán gốc:</td>
+                <td style="font-weight: 700; color: #DA1E28;"><span t-out="object.invoice_date_due"/></td>
+            </tr>
+            <tr style="border-top: 1px solid #E0E0E0;">
+                <td style="color: #525252; font-weight: 700; padding-top: 6px;">Số tiền cần thanh toán:</td>
+                <td style="font-weight: 800; color: #0070F2; font-size: 16px; padding-top: 6px;"><span t-out="format_amount(object.amount_residual, object.currency_id)"/></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Napas247 Bank Transfer Details -->
+    <div style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; line-height: 1.6;">
+        <strong style="color: #0070F2; text-transform: uppercase; font-size: 11px;">Thông tin chuyển khoản thanh toán nhanh (Napas247):</strong><br/>
+        • Đơn vị thụ hưởng: <strong>CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO (INNORIA)</strong><br/>
+        • Số tài khoản: <strong>0071001234567</strong> tại <strong>Vietcombank - CN TP.HCM</strong><br/>
+        • Nội dung chuyển khoản: <strong style="color: #0070F2;"><t t-out="object.name"/></strong>
+    </div>
+
+    <!-- CRITICAL AL2C-INV-103 DISPUTE SAFEGUARD CLAUSE -->
+    <div style="background-color: #FFF8E1; border: 1px solid #FFE082; border-left: 4px solid #FF8F00; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px; font-size: 12px; line-height: 1.6; color: #4E342E;">
+        <div style="font-size: 12px; font-weight: 700; color: #D84315; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em;">
+            Cơ Chế Bảo Vệ Khách Hàng &amp; Đóng Băng Dunning (AL2C-INV-103)
+        </div>
+        <div>
+            Trường hợp Quý Đơn vị có bất kỳ bất đồng hay yêu cầu đối soát nào liên quan đến <strong>chất lượng mốc nghiệm thu (Milestone SOW)</strong>, <strong>giờ công kỹ thuật (Timesheet)</strong> hoặc đơn giá chiết khấu, Quý Khách hàng có thể nhấn nút <strong>Khiếu nại / Đối soát AL2C-INV-103</strong> trực tiếp trên Cổng Khách hàng trực tuyến.<br/>
+            <strong>Hệ thống cam kết: Ngay khi yêu cầu đối soát được gửi, toàn bộ tiến trình nhắc nợ (Dunning Ladder) trên hóa đơn này sẽ được ĐÓNG BĂNG tự động</strong> để hai bên tiến hành đối soát minh bạch mà không ảnh hưởng tới tiến độ dự án.
+        </div>
+    </div>
+
+    <!-- CTA Button to Portal -->
+    <div style="text-align: center; margin: 24px 0;">
+        <a t-att-href="object.get_portal_url()" style="display: inline-block; background-color: #0070F2; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0, 112, 242, 0.3);">
+            Truy Cập Hóa Đơn &amp; Mở Đối Soát Trực Tuyến
+        </a>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 13px; color: #161616;">
+        Trân trọng,<br/>
+        <strong>Bộ phận Tài chính &amp; Quản lý Hợp đồng Innoria</strong>
+    </div>
+</div>
+        </field>
+    </record>
+</odoo>

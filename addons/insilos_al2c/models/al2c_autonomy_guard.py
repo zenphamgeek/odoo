@@ -74,3 +74,28 @@ class Al2cAutonomyGuard(models.AbstractModel):
         else:
             Usage.create({'agent_name': agent_name, 'date': today, 'count': cost})
         return True
+
+    @api.model
+    def _al2c_check_method_allowed(self, model_name, method_name):
+        """
+        AL2C-GOV-204 Method-Level Deny-List:
+        Autonomous agents are strictly blocked from invoking high-risk sensitive methods:
+        - hr.payslip: action_payslip_done (Human HR/CFO release ceiling)
+        - account.move: button_draft (cannot unpost audited fiscal invoices)
+        - account.move: action_cancel_einvoice (cannot cancel certified tax invoices without CFO)
+        """
+        if self.env.user.has_group('insilos_al2c.group_al2c_agent') and not self.env.su:
+            denied_methods = {
+                'hr.payslip': ['action_payslip_done', 'action_validate'],
+                'account.move': ['button_draft', 'action_cancel_einvoice'],
+                'sale.order': ['action_approve_deal_desk'],
+                'al2c.dispute': ['action_resolve_dispute', 'action_cancel_dispute'],
+            }
+            if method_name in denied_methods.get(model_name, []):
+                from odoo.exceptions import AccessError
+                raise AccessError(self.env._(
+                    "Autonomous agent %(user)s is denied from calling %(method)s on %(model)s (AL2C-GOV-204 Segregation of Duties).",
+                    user=self.env.user.name, method=method_name, model=model_name
+                ))
+        return True
+

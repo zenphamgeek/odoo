@@ -25,6 +25,12 @@ class ProjectProject(models.Model):
         string='Last Risk Evaluation',
         readonly=True,
     )
+    value_case_id = fields.Many2one(
+        'al2c.value.case',
+        string='Enterprise Value Case',
+        copy=False,
+        tracking=True,
+    )
 
     def _create_missing_folders(self):
         # Project templates do not hold documents: the delivery project created from
