@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Timesheet Staging Tree View -->
+    <record id="al2c_timesheet_staging_view_tree" model="ir.ui.view">
+        <field name="name">al2c.timesheet.staging.tree</field>
+        <field name="model">al2c.timesheet.staging</field>
+        <field name="arch" type="xml">
+            <list string="Timesheet Ingestion Queue" decoration-danger="state == 'rejected'" decoration-warning="parse_status == 'partial_error'" decoration-success="state == 'approved'" decoration-info="state == 'parsed'">
+                <field name="name"/>
+                <field name="sender_email"/>
+                <field name="employee_id"/>
+                <field name="submission_channel"/>
+                <field name="submission_date"/>
+                <field name="line_count"/>
+                <field name="total_hours" sum="Total Hours"/>
+                <field name="parse_status" widget="badge"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-warning="state == 'parsed'" decoration-danger="state in ('rejected', 'duplicate')"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Timesheet Staging Form View -->
+    <record id="al2c_timesheet_staging_view_form" model="ir.ui.view">
+        <field name="name">al2c.timesheet.staging.form</field>
+        <field name="model">al2c.timesheet.staging</field>
+        <field name="arch" type="xml">
+            <form string="Timesheet Ingestion Staging">
+                <header>
+                    <button name="action_parse_content" string="🔄 Phân tích Nội dung / File đính kèm" type="object" class="btn-secondary" invisible="state in ('approved', 'rejected')"/>
+                    <button name="action_approve_and_commit" string="✅ Phê duyệt &amp; Ghi nhận Timesheet" type="object" class="btn-primary" invisible="state != 'parsed'"/>
+                    <button name="action_reject" string="❌ Từ chối" type="object" class="btn-secondary" invisible="state in ('approved', 'rejected')"/>
+                    <field name="state" widget="statusbar" statusbar_visible="received,parsed,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only" string="Tiêu đề Email / Yêu cầu"/>
+                        <h1>
+                            <field name="name" placeholder="Timesheet submission..."/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Nguồn Tiếp nhận">
+                            <field name="sender_email"/>
+                            <field name="submission_channel"/>
+                            <field name="submission_date"/>
+                            <field name="dedup_fingerprint" readonly="1" groups="base.group_no_one"/>
+                            <field name="external_nonce" readonly="1" groups="base.group_no_one"/>
+                        </group>
+                        <group string="Đối soát &amp; Phân bổ">
+                            <field name="employee_id"/>
+                            <field name="project_id"/>
+                            <field name="total_hours"/>
+                            <field name="line_count"/>
+                            <field name="parse_status" widget="badge"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Chi tiết Timesheet Chiết xuất" name="extracted_lines">
+                            <field name="line_ids">
+                                <list editable="bottom" decoration-danger="state == 'error'" decoration-success="state == 'committed'">
+                                    <field name="date"/>
+                                    <field name="employee_id"/>
+                                    <field name="project_id"/>
+                                    <field name="task_id"/>
+                                    <field name="name"/>
+                                    <field name="unit_amount" sum="Tổng giờ"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="validation_message" optional="show"/>
+                                    <field name="analytic_line_id" optional="hide"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Nội dung Email Gốc" name="raw_content">
+                            <group>
+                                <field name="raw_email_body" widget="text" placeholder="Raw body..."/>
+                                <field name="parse_log" readonly="1"/>
+                            </group>
+                        </page>
+                        <page string="Tệp Đính kèm" name="attachments">
+                            <field name="attachment_ids" widget="many2many_binary"/>
+                        </page>
+                        <page string="Nhật ký Phê duyệt" name="audit" invisible="state != 'approved'">
+                            <group>
+                                <field name="approved_by_id"/>
+                                <field name="approved_date"/>
+                                <field name="rejection_reason" invisible="state != 'rejected'"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Timesheet Staging Action -->
+    <record id="action_al2c_timesheet_staging" model="ir.actions.act_window">
+        <field name="name">Hàng đợi Timesheet Email &amp; PubSub</field>
+        <field name="res_model">al2c.timesheet.staging</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Chưa có dữ liệu timesheet nào trong hàng đợi tiếp nhận.
+            </p>
+            <p>
+                Hệ thống tự động tiếp nhận email gửi về info@inno.ai.vn hoặc qua API Webhook để chuyển hóa thành bảng chấm công.
+            </p>
+        </field>
+    </record>
+
+    <!-- Menu Item under Project / Operations -->
+    <menuitem id="menu_al2c_timesheet_staging"
+              name="Hàng đợi Timesheet Email"
+              parent="hr_timesheet.menu_hr_time_tracking"
+              action="action_al2c_timesheet_staging"
+              sequence="50"
+              groups="project.group_project_manager,sales_team.group_sale_manager"/>
+</odoo>

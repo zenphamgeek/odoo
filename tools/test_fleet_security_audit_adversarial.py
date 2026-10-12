@@ -535,6 +535,130 @@ def test_innokafe_deploy_pipeline_security():
     print("  [✓] Deploy pipeline argv guard and k8s identifier sanitization verified.")
 
 
+def test_timesheet_webhook_security():
+    print("[TEST TIMESHEET WEBHOOK] CWE-306, CWE-327, CWE-400: Timesheet Webhook HMAC & Replay Guard")
+    import time
+    from unittest.mock import MagicMock, patch
+    from odoo.addons.insilos_al2c.controllers import timesheet_webhook
+    from odoo.addons.insilos_al2c.controllers.timesheet_webhook import Al2cTimesheetWebhookController, _MAX_BODY
+
+    controller = Al2cTimesheetWebhookController()
+    test_secret = "test_webhook_secret_key_al2c_2026_xyz"
+
+    now = int(time.time())
+    valid_payload = json.dumps({
+        'sender': 'consultant.a@inno.ai.vn',
+        'subject': 'Timesheet Delivery via Webhook',
+        'body': '2026-10-16 | Innoria ERP Implementation | Explore Phase Architecture Workshop | 4.0 | Webhook test\n',
+        'nonce': 'unique_nonce_12345',
+    }).encode('utf-8')
+
+    sig = hmac.new(test_secret.encode('utf-8'), str(now).encode('utf-8') + b'.' + valid_payload, hashlib.sha256).hexdigest()
+
+    mock_env = MagicMock()
+    mock_config_param = MagicMock()
+    mock_config_param.get_param.return_value = test_secret
+    mock_staging = MagicMock()
+    mock_staging._fields = {'submission_channel': MagicMock(selection=[('email_pubsub', 'Email'), ('api_webhook', 'API')])}
+    mock_staging.search.return_value = []
+    mock_staging.compute_dedup_hash.return_value = "dummy_dedup_hash"
+    mock_rec = MagicMock(id=42, parse_status='success', line_count=1, total_hours=4.0)
+    mock_staging.create.return_value = mock_rec
+    mock_attachment = MagicMock()
+
+    models = {
+        'ir.config_parameter': mock_config_param,
+        'al2c.timesheet.staging': mock_staging,
+        'ir.attachment': mock_attachment,
+    }
+    mock_env.__getitem__.side_effect = lambda k: models.get(k, MagicMock())
+
+    # 1. Missing signature -> 401
+    mock_req = MagicMock()
+    mock_req.httprequest.method = 'POST'
+    mock_req.httprequest.get_data.return_value = valid_payload
+    mock_req.httprequest.headers = {}
+    mock_req.env.return_value = mock_env
+    with patch.object(timesheet_webhook, 'request', mock_req):
+        resp = controller.timesheet_ingest()
+        assert resp.status_code == 401, f"Expected 401 on missing signature, got {resp.status_code}"
+
+    # 2. Forged signature -> 401
+    mock_req = MagicMock()
+    mock_req.httprequest.method = 'POST'
+    mock_req.httprequest.get_data.return_value = valid_payload
+    mock_req.httprequest.headers = {
+        'X-Signature': 'deadbeef0000111122223333444455556666777788889999aaaabbbbccccdddd',
+        'X-Timestamp': str(now),
+    }
+    mock_req.env.return_value = mock_env
+    with patch.object(timesheet_webhook, 'request', mock_req):
+        resp = controller.timesheet_ingest()
+        assert resp.status_code == 401, f"Expected 401 on forged signature, got {resp.status_code}"
+
+    # 3. Timestamp skew (> 300s) -> 401
+    mock_req = MagicMock()
+    mock_req.httprequest.method = 'POST'
+    mock_req.httprequest.get_data.return_value = valid_payload
+    old_ts = str(now - 600)
+    old_sig = hmac.new(test_secret.encode('utf-8'), old_ts.encode('utf-8') + b'.' + valid_payload, hashlib.sha256).hexdigest()
+    mock_req.httprequest.headers = {
+        'X-Signature': old_sig,
+        'X-Timestamp': old_ts,
+    }
+    mock_req.env.return_value = mock_env
+    with patch.object(timesheet_webhook, 'request', mock_req):
+        resp = controller.timesheet_ingest()
+        assert resp.status_code == 401, f"Expected 401 on timestamp skew, got {resp.status_code}"
+
+    # 4. Oversized body -> 413
+    mock_req = MagicMock()
+    mock_req.httprequest.method = 'POST'
+    mock_req.httprequest.get_data.return_value = b'x' * (_MAX_BODY + 10)
+    mock_req.httprequest.headers = {
+        'X-Signature': sig,
+        'X-Timestamp': str(now),
+    }
+    mock_req.env.return_value = mock_env
+    with patch.object(timesheet_webhook, 'request', mock_req):
+        resp = controller.timesheet_ingest()
+        assert resp.status_code == 413, f"Expected 413 on oversized body, got {resp.status_code}"
+
+    # 5. Valid signature & payload -> 201
+    mock_req = MagicMock()
+    mock_req.httprequest.method = 'POST'
+    mock_req.httprequest.get_data.return_value = valid_payload
+    mock_req.httprequest.headers = {
+        'X-Signature': sig,
+        'X-Timestamp': str(now),
+    }
+    mock_req.env.return_value = mock_env
+    with patch.object(timesheet_webhook, 'request', mock_req):
+        resp = controller.timesheet_ingest()
+        assert resp.status_code == 201, f"Expected 201 on valid submission, got {resp.status_code}"
+        data = json.loads(resp.data.decode('utf-8'))
+        assert data['status'] == 'received'
+
+    # 6. Replay attack with existing nonce -> 200 duplicate
+    existing_rec = MagicMock(id=42)
+    mock_staging.search.return_value = existing_rec
+    mock_req = MagicMock()
+    mock_req.httprequest.method = 'POST'
+    mock_req.httprequest.get_data.return_value = valid_payload
+    mock_req.httprequest.headers = {
+        'X-Signature': sig,
+        'X-Timestamp': str(now),
+    }
+    mock_req.env.return_value = mock_env
+    with patch.object(timesheet_webhook, 'request', mock_req):
+        resp = controller.timesheet_ingest()
+        assert resp.status_code == 200, f"Expected 200 on duplicate nonce, got {resp.status_code}"
+        data = json.loads(resp.data.decode('utf-8'))
+        assert data['status'] == 'duplicate'
+
+    print("  [✓] Timesheet webhook HMAC, replay skew, size cap, and idempotency verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -552,8 +676,9 @@ def main():
     test_route_authorization_snapshot_guard()
     test_pod_sync_orchestrator_security()
     test_innokafe_deploy_pipeline_security()
+    test_timesheet_webhook_security()
     print("=" * 80)
-    print("ALL 13 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 14 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 

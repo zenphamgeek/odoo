@@ -39,13 +39,14 @@ PUBLIC_ALLOWLIST = frozenset([
     '/api/v1/hse/cems/telemetry',
     '/webhooks/cems-telemetry',
     '/insilos/webhooks/hs-events',
-    '/api/v1/pubsub/ingest',
-    '/insilos/pubsub/ingest',
+    # Timesheet Ingestion Webhook (info@inno.ai.vn pubsub / HMAC verified)
+    '/api/v1/timesheet/ingest',
+    '/api/v1/timesheet/ingest/',
 ])
 
 
 @tagged('post_install', '-at_install', 'insilos_al2c', 'security_audit')
-class TestRouteAuthzSnapshot(unittest.TestCase):
+class TestRouteAuthzSnapshot(TransactionCase):
     """
     Automated Developer-Workflow Guard & CI Security Gate:
     Verifies that no controller in insilos modules exposes unauthorized public endpoints.
