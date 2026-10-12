@@ -1484,7 +1484,50 @@ def test_database_branding_cleaner_security_and_idempotency():
             mock_conn.rollback.assert_called_once()
             mock_conn.close.assert_called_once()
 
-    print("  [✓] XML syntax validation, dry-run rollback, commit gate, and atomic exception rollback verified.")
+    # 6. Fail-Closed Credential Handling (_require_env CWE-798 / CWE-259)
+    from tools.cleanup_innokafe_fake_logos_db import _require_env
+    import os
+
+    # 6a. Unset environment variables raise SystemExit
+    with patch.dict(os.environ, {}, clear=True):
+        try:
+            _require_env("NON_EXISTENT_VAR_ABC", "NON_EXISTENT_VAR_XYZ")
+            assert False, "Should have raised SystemExit on missing env vars"
+        except SystemExit as err:
+            assert "FATAL: required environment variable(s) not set" in str(err)
+
+    # 6b. Whitespace-only values rejected as unset (CWE-20 / CWE-259)
+    with patch.dict(os.environ, {"EMPTY_SECRET": "   ", "TAB_SECRET": "\t\n  "}, clear=True):
+        try:
+            _require_env("EMPTY_SECRET", "TAB_SECRET")
+            assert False, "Should have raised SystemExit on whitespace-only secrets"
+        except SystemExit as err:
+            assert "FATAL: required environment variable(s) not set" in str(err)
+
+    # 6c. Valid secret returned trimmed
+    with patch.dict(os.environ, {"DB_PASSWORD": "  s0v3r31gn_p4ss  "}, clear=True):
+        res = _require_env("PGPASSWORD", "DB_PASSWORD")
+        assert res == "s0v3r31gn_p4ss"
+
+    # 7. Prod Pod Loopback & Blast Radius Guards (main target validation)
+    from tools.cleanup_innokafe_fake_logos_db import main as cleanup_main
+    with patch.dict(os.environ, {"DB_USER": "admin", "PGPASSWORD": "secret", "DB_NAME": "innokafe_prod", "DB_HOST": "127.0.0.1"}, clear=True):
+        with patch('sys.argv', ['cleanup_innokafe_fake_logos_db.py', 'prod_pod']):
+            try:
+                cleanup_main()
+                assert False, "prod_pod with loopback host should have raised SystemExit"
+            except SystemExit as err:
+                assert "prod_pod target resolved to a loopback host" in str(err)
+
+    with patch.dict(os.environ, {"DB_USER": "admin", "PGPASSWORD": "secret", "DB_NAME": "innokafe_prod", "DB_HOST": "pgbouncer-service"}, clear=True):
+        with patch('sys.argv', ['cleanup_innokafe_fake_logos_db.py', 'prod_pod', '--commit', '--all-websites']):
+            try:
+                cleanup_main()
+                assert False, "prod_pod --commit --all-websites without confirmation should have raised SystemExit"
+            except SystemExit as err:
+                assert "CONFIRM_ALL_WEBSITES_PROD=1" in str(err)
+
+    print("  [✓] XML syntax validation, dry-run rollback, commit gate, atomic exception rollback, and _require_env fail-closed guards verified.")
 
 
 def main():

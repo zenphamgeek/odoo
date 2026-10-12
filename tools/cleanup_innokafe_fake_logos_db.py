@@ -94,8 +94,10 @@ def clean_database(host, port, user, password, dbname, commit=False, all_website
         new_header_json = json.dumps({"en_US": navbar_vector_arch})
         new_header_hash = _hash_content(new_header_json)
 
-        where_clause = "WHERE (id = 1046 OR key = 'website.option_header_brand_logo')" if all_websites else "WHERE id = 1046"
-        cur.execute(f"SELECT id, key, arch_db::text FROM ir_ui_view {where_clause}")
+        if all_websites:
+            cur.execute("SELECT id, key, arch_db::text FROM ir_ui_view WHERE (id = 1046 OR key = 'website.option_header_brand_logo')")
+        else:
+            cur.execute("SELECT id, key, arch_db::text FROM ir_ui_view WHERE id = %s", (1046,))
         header_rows = cur.fetchall()
 
         for h_id, h_key, h_arch in header_rows:
@@ -257,6 +259,18 @@ def clean_database(host, port, user, password, dbname, commit=False, all_website
         conn.close()
 
 
+def _require_env(*names: str) -> str:
+    """Return the first non-empty, non-blank env var among names, or exit non-zero.
+    A destructive utility must never fall back to a hard-coded credential.
+    """
+    for name in names:
+        val = os.environ.get(name)
+        if val and val.strip():  # reject whitespace-only secrets
+            return val.strip()
+    joined = " / ".join(names)
+    sys.exit(f"FATAL: required environment variable(s) not set: {joined}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Zero-DDL Database Clean-up for InnoKafe Vector Logo Branding.")
     parser.add_argument("target", choices=["local", "prod_pod"], nargs="?", default="local", help="Target environment (default: local)")
@@ -264,19 +278,28 @@ def main():
     parser.add_argument("--all-websites", action="store_true", default=False, help="Overwrite all website COW copies of brand logo view (default: single tenant view)")
     args = parser.parse_args()
 
-    # Credential hygiene: pull from environment, never require on command line
+    # Credential hygiene: pull from environment, never require on command line, fail closed
     if args.target == "local":
         host = os.environ.get("DB_HOST", "127.0.0.1")
         port = int(os.environ.get("DB_PORT", 5434))
         user = os.environ.get("DB_USER", "odoo")
-        password = os.environ.get("PGPASSWORD") or os.environ.get("DB_PASSWORD") or "1NN0R1@2026"
+        password = _require_env("PGPASSWORD", "DB_PASSWORD")
         dbname = os.environ.get("DB_NAME", "innokafe_prod")
     else:  # prod_pod
         host = os.environ.get("DB_HOST", "pgbouncer-service")
         port = int(os.environ.get("DB_PORT", 6432))
-        user = os.environ.get("DB_USER", "insilos")
-        password = os.environ.get("PGPASSWORD") or os.environ.get("DB_PASSWORD", "")
-        dbname = os.environ.get("DB_NAME", "innokafe_prod")
+        user = _require_env("DB_USER")
+        password = _require_env("PGPASSWORD", "DB_PASSWORD")
+        dbname = _require_env("DB_NAME")
+
+        # Defense-in-depth: prod_pod target must never resolve to loopback
+        if host in ("127.0.0.1", "localhost", "::1"):
+            sys.exit("FATAL: prod_pod target resolved to a loopback host; refusing to run.")
+
+        # Defense-in-depth: overwriting all website COW copies on prod_pod requires explicit confirmation
+        if args.all_websites and args.commit:
+            if not os.environ.get("CONFIRM_ALL_WEBSITES_PROD"):
+                sys.exit("FATAL: --all-websites --commit on prod_pod requires CONFIRM_ALL_WEBSITES_PROD=1")
 
     clean_database(host, port, user, password, dbname, commit=args.commit, all_websites=args.all_websites)
 
