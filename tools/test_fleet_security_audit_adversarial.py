@@ -914,6 +914,7 @@ def test_report_anti_genesis_and_escaping_mutation_matrix():
 
     assert 'Biên bản nghiệm thu UAT &amp; Biên bản Go-Live chính thức' in xml_content, "SOW acceptance clause must use &amp;"
     assert 'Biên bản nghiệm thu UAT & Biên bản Go-Live chính thức' not in xml_content, "Raw '&' forbidden in XML SOW clause"
+    assert '&amp;amp;' not in xml_content, "Double-escaped '&amp;amp;' forbidden in XML reports"
 
     # 4. UoM Field Canonical Invariant: Odoo 20 uses product_uom_id on sale.order.line
     from odoo.addons.sale.models.sale_order_line import SaleOrderLine
@@ -928,6 +929,14 @@ def test_report_anti_genesis_and_escaping_mutation_matrix():
         raise AssertionError("Negative-selection escaping guard failed: unescaped '&' was not caught!")
     except AssertionError as e:
         assert "Escaping regression" in str(e), f"Unexpected error message: {e}"
+
+    # 5.1 Over-Escaping Double-Escape Guard: '&amp;amp;' must fail closed
+    double_escaped_html = '<html><head><title>Test</title></head><body><h1>A &amp;amp; B</h1></body></html>'
+    try:
+        tester._assert_zero_branding_tells(double_escaped_html, 'Double Escaping Test')
+        raise AssertionError("Double-escaping over-escape guard failed: '&amp;amp;' was not caught!")
+    except AssertionError as e:
+        assert "Over-escaping regression" in str(e), f"Unexpected error message: {e}"
 
     # Escaped valid entities must pass cleanly
     good_html = '<html><head><title>Test</title></head><body><h1>A &amp; B &lt; C &gt; D &quot;E&quot; &#123;F&#125;</h1></body></html>'

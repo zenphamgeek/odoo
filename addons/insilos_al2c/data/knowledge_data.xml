@@ -96,7 +96,7 @@
         <field name="name">ERP-ENT · Insilos ERP Enterprise Implementation</field>
         <field name="parent_id" ref="kb_line_erp"/>
         <field name="sequence">3</field>
-        <field name="body">&lt;h1&gt;ERP-ENT · Insilos ERP Enterprise Implementation&lt;/h1&gt;&lt;p&gt;Enterprise programme billed per Activate milestone; extra scope via CONSULT-HOUR (T&amp;amp;M).&lt;/p&gt;&lt;p&gt;Service policy: delivered_milestones; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
+        <field name="body">&lt;h1&gt;ERP-ENT · Insilos ERP Enterprise Implementation&lt;/h1&gt;&lt;p&gt;Enterprise programme billed per Activate milestone; extra scope via CONSULT-HOUR (T&amp;M).&lt;/p&gt;&lt;p&gt;Service policy: delivered_milestones; tracking: project_only; recurring: no; unit: unit.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
     </record>
     <record id="kb_sku_saas_user_m" model="knowledge.article">
         <field name="name">SAAS-USER-M · Insilos ERP SaaS User (monthly)</field>
@@ -254,7 +254,7 @@
         <field name="icon">📖</field>
         <field name="sequence">1</field>
         <field name="internal_permission">write</field>
-        <field name="body">&lt;h1&gt;Sổ Tay Vận Hành &amp;amp; Hướng Dẫn Sử Dụng Nền Tảng Autonomous Lead-to-Cash (AL2C)&lt;/h1&gt;&lt;p&gt;Quy trình vận hành chuẩn hóa từ Tiềm năng (Lead) đến Thu tiền (Cash) tích hợp AI Autonomous và phương pháp luận quốc tế SAP Activate, BANT, MEDDICC, Nghị định 70/2025/NĐ-CP và cơ chế Dunning Freeze.&lt;/p&gt;</field>
+        <field name="body">&lt;h1&gt;Sổ Tay Vận Hành &amp; Hướng Dẫn Sử Dụng Nền Tảng Autonomous Lead-to-Cash (AL2C)&lt;/h1&gt;&lt;p&gt;Quy trình vận hành chuẩn hóa từ Tiềm năng (Lead) đến Thu tiền (Cash) tích hợp AI Autonomous và phương pháp luận quốc tế SAP Activate, BANT, MEDDICC, Nghị định 70/2025/NĐ-CP và cơ chế Dunning Freeze.&lt;/p&gt;</field>
     </record>
     <record id="kb_playbook_delivery" model="knowledge.article">
         <field name="name">Delivery</field>

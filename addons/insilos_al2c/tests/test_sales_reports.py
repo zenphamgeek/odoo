@@ -194,6 +194,23 @@ class TestSalesReports(TransactionCase):
             f"Escaping regression in {context_name}: raw QWeb output contains an unescaped '&'.",
         )
 
+        # Layer 4: Over-escaping invariant (double-escape regression guard)
+        self.assertNotIn(
+            "&amp;amp;",
+            html_text,
+            f"Over-escaping regression in {context_name}: '&' was escaped twice (&amp;amp;).",
+        )
+        self.assertNotIn(
+            "&amp;lt;",
+            html_text,
+            f"Over-escaping regression in {context_name}: '<' was double-escaped.",
+        )
+        self.assertNotIn(
+            "&amp;gt;",
+            html_text,
+            f"Over-escaping regression in {context_name}: '>' was double-escaped.",
+        )
+
     def test_01_report_sales_proposal_render(self):
         """Test Executive Sales Proposal (Bản Đề Xuất Giải Pháp) compilation and content depth."""
         report_ref = 'insilos_al2c.action_report_sales_proposal'
