@@ -593,7 +593,7 @@ class ProductPricelistItem(models.Model):
         return price
 
     def _compute_base_price(
-        self, product, quantity, uom, *, currency=None, date=False, depth=0, base_prices=None, **kwargs
+        self, product, quantity, uom, *args, currency=None, date=False, depth=0, base_prices=None, **kwargs
     ):
         """Compute the base price for a given rule.
 
@@ -607,6 +607,19 @@ class ProductPricelistItem(models.Model):
         :returns: base price, expressed in provided pricelist currency
         :rtype: float
         """
+        # Backward-compat shim for legacy positional callers.
+        # Historical positional order was (date, currency); reject anything
+        # beyond that so argument swaps fail loud instead of mis-pricing.
+        if len(args) > 2:
+            raise TypeError(
+                "_compute_base_price() accepts at most 2 positional args after "
+                "uom (date, currency); got %d" % len(args)
+            )
+        if args and date is False:
+            date = args[0]
+        if len(args) >= 2 and currency is None:
+            currency = args[1]
+
         rule_base = self.base or 'list_price'
         if rule_base == 'pricelist' and self.base_pricelist_id:
             if base_prices:

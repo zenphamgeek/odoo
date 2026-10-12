@@ -327,10 +327,19 @@ def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAM
 
     sync_tool = os.path.join(ROOT_DIR, "tools", "sync_innokafe_views_db.py")
     warmup_tool = os.path.join(ROOT_DIR, "tools", "safe_asset_warmup.py")
+    pricelist_tool = os.path.join(ROOT_DIR, "addons", "product", "models", "product_pricelist_item.py")
     if not os.path.isfile(sync_tool):
         raise FileNotFoundError(f"Sync tool not found: {sync_tool}")
     if not os.path.isfile(warmup_tool):
         raise FileNotFoundError(f"Warmup tool not found: {warmup_tool}")
+    if not os.path.isfile(pricelist_tool):
+        raise FileNotFoundError(f"Pricelist item file not found: {pricelist_tool}")
+
+    import py_compile
+    try:
+        py_compile.compile(pricelist_tool, doraise=True)
+    except py_compile.PyCompileError as exc:
+        raise RuntimeError(f"Refusing deploy: pricelist shim failed to compile: {exc}")
 
     remote_script = (
         "mkdir -p /app/insilos/enterprise/innokafe_website "
@@ -339,10 +348,16 @@ def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAM
         "-C /app/insilos/enterprise/innokafe_website/ && "
         "tar --no-same-owner --no-same-permissions -xzf /tmp/innokafe_website_sync.tar.gz "
         "-C /app/insilos/apps/innokafe_website/ && "
+        "python3 -m py_compile /tmp/product_pricelist_item.py && "
+        "TGT=/app/insilos/addons/product/models/product_pricelist_item.py && "
+        "cp -a \"$TGT\" \"$TGT.bak.$(date +%s)\" && "
+        "install -m 644 /tmp/product_pricelist_item.py \"$TGT.new\" && "
+        "python3 -m py_compile \"$TGT.new\" && mv \"$TGT.new\" \"$TGT\" && "
         "chown -R insilos:insilos /app/insilos/enterprise/innokafe_website "
         "/app/insilos/apps/innokafe_website "
+        "/app/insilos/addons/product/models/product_pricelist_item.py "
         "/tmp/sync_innokafe_views_db.py /tmp/safe_asset_warmup.py && "
-        "rm -f /tmp/innokafe_website_sync.tar.gz"
+        "rm -f /tmp/innokafe_website_sync.tar.gz /tmp/product_pricelist_item.py"
     )
 
     deploy_procs = []
@@ -355,6 +370,8 @@ def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAM
             f"{shlex.quote(sync_tool)} {shlex.quote(po)}:/tmp/sync_innokafe_views_db.py && "
             f"kubectl cp -n {shlex.quote(ns)} -c {shlex.quote(co)} "
             f"{shlex.quote(warmup_tool)} {shlex.quote(po)}:/tmp/safe_asset_warmup.py && "
+            f"kubectl cp -n {shlex.quote(ns)} -c {shlex.quote(co)} "
+            f"{shlex.quote(pricelist_tool)} {shlex.quote(po)}:/tmp/product_pricelist_item.py && "
             f"kubectl exec -n {shlex.quote(ns)} {shlex.quote(po)} -c {shlex.quote(co)} -- "
             f"sh -c {shlex.quote(remote_script)}"
         ]
