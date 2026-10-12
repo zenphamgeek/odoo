@@ -214,6 +214,10 @@ class Al2cTimesheetStaging(models.Model):
             for att in rec.attachment_ids:
                 fname = (att.name or '').lower()
                 raw_bytes = getattr(att, 'raw', None)
+                if hasattr(raw_bytes, 'content'):
+                    raw_bytes = raw_bytes.content
+                elif hasattr(raw_bytes, '__bytes__') and not isinstance(raw_bytes, (bytes, bytearray)):
+                    raw_bytes = bytes(raw_bytes)
                 if not raw_bytes and att.datas:
                     try:
                         raw_bytes = base64.b64decode(att.datas)
@@ -221,6 +225,11 @@ class Al2cTimesheetStaging(models.Model):
                         raw_bytes = att.datas if isinstance(att.datas, bytes) else str(att.datas).encode('utf-8')
                 if isinstance(raw_bytes, str):
                     raw_bytes = raw_bytes.encode('utf-8')
+                elif raw_bytes is not None and not isinstance(raw_bytes, (bytes, bytearray)):
+                    try:
+                        raw_bytes = bytes(raw_bytes)
+                    except Exception:
+                        raw_bytes = b''
                 if not raw_bytes:
                     continue
 
