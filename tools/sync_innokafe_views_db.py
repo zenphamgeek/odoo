@@ -521,9 +521,9 @@ def sync_database(host, port, user, password, dbname):
         url_dict = {"vi_VN": p_url, "en_US": p_url}
         cur.execute("""
             UPDATE website_page
-            SET view_id = %s, name = %s::jsonb, is_published = true, write_date = NOW()
+            SET view_id = %s, name = %s::jsonb, url = %s::jsonb, is_published = true, write_date = NOW()
             WHERE url::text LIKE %s AND (website_id = %s OR website_id IS NULL)
-        """, (v_id, json.dumps(title_dict), f'%"{p_url}"%', website_id))
+        """, (v_id, json.dumps(title_dict), json.dumps(url_dict), f'%"{p_url}"%', website_id))
         if cur.rowcount == 0:
             cur.execute("""
                 INSERT INTO website_page (name, url, view_id, website_id, is_published, website_indexed, create_uid, write_uid, create_date, write_date)
