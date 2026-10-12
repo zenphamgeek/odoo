@@ -84,11 +84,16 @@ class PosLoadMixin(models.AbstractModel):
         fields = self._load_pos_data_fields(config)
         # Signature inspection prevents swallowing genuine TypeErrors inside custom domains (CWE-703)
         # and guarantees single-execution semantics.
-        sig = inspect.signature(self._load_pos_data_domain)
-        accepts_config = len(sig.parameters) > 1 or any(
-            p.kind in (p.VAR_POSITIONAL, p.VAR_KEYWORD)
-            for p in sig.parameters.values()
-        )
+        try:
+            unwrapped = inspect.unwrap(self._load_pos_data_domain)
+            sig = inspect.signature(unwrapped)
+            accepts_config = len(sig.parameters) > 1 or any(
+                p.kind in (p.VAR_POSITIONAL, p.VAR_KEYWORD)
+                for p in sig.parameters.values()
+            )
+        except (ValueError, TypeError):
+            accepts_config = False
+
         domain = (
             self._load_pos_data_domain(adapted_data, config)
             if accepts_config

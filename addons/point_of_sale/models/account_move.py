@@ -116,4 +116,6 @@ class AccountMove(models.Model):
 
     @api.model
     def _load_pos_data_domain(self, data, *args, **kwargs):
-        return False
+        # Match no records deterministically; bare False can be coerced to [] (match-all)
+        # by some search callers, potentially over-exposing financial moves.
+        return [('id', '=', False)]

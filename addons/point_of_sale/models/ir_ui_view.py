@@ -1,4 +1,8 @@
+import logging
 from odoo import api, models
+from odoo.exceptions import MissingError
+
+_logger = logging.getLogger(__name__)
 
 
 class IrUiView(models.Model):
@@ -6,8 +10,8 @@ class IrUiView(models.Model):
     _inherit = ['ir.ui.view', 'pos.load.mixin']
 
     @api.model
-    def _load_pos_data_domain(self, data):
-        return False
+    def _load_pos_data_domain(self, data, *args, **kwargs):
+        return [('id', '=', False)]
 
     @api.model
     def _load_pos_data_fields(self, config):
@@ -18,13 +22,21 @@ class IrUiView(models.Model):
         read_records = super()._load_pos_data_read(records, config)
 
         for key in self._get_xml_ids_to_load():
+            view_id = False
+            template = False
             try:
-                view_id, template = self.env['ir.qweb']._get_template(key)
-            except Exception:
-                view_id = self.env['ir.model.data']._xmlid_to_res_id(key) or False
+                _tree, template, ref = self.env['ir.qweb']._get_template(key)
+                if isinstance(ref, int):
+                    view_id = ref
+                else:
+                    view_id = self.env['ir.model.data']._xmlid_to_res_id(key, raise_if_not_found=False) or False
+            except (ValueError, KeyError, MissingError) as err:
+                view_id = self.env['ir.model.data']._xmlid_to_res_id(key, raise_if_not_found=False) or False
                 template = False
+                _logger.warning("POS: QWeb template missing or failed to compile for xmlid %r: %s", key, err)
+
             read_records.append({
-                'id': view_id or key,
+                'id': view_id or False,
                 'key': key,
                 '_template': template,
             })
