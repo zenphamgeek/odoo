@@ -5,9 +5,14 @@ import base64
 import csv
 import io
 import re
+import math
+import uuid
 import hashlib
 import logging
 from datetime import datetime, date, timedelta
+
+import psycopg2
+from psycopg2 import errors as pg_errors, IntegrityError
 
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
@@ -20,6 +25,20 @@ class Al2cTimesheetStaging(models.Model):
     _description = 'AL2C Timesheet Staging & Ingestion Buffer'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'id desc'
+
+    _dedup_fingerprint_unique = models.Constraint(
+        'UNIQUE (dedup_fingerprint)',
+        'Deduplication fingerprint must be unique.',
+    )
+    _external_nonce_unique = models.Constraint(
+        'UNIQUE (external_nonce)',
+        'External nonce must be unique.',
+    )
+
+    _sql_constraints = [
+        ('dedup_fingerprint_unique', 'UNIQUE (dedup_fingerprint)', 'Deduplication fingerprint must be unique.'),
+        ('external_nonce_unique', 'UNIQUE (external_nonce)', 'External nonce must be unique.'),
+    ]
 
     name = fields.Char(string='Submission Subject', required=True, tracking=True)
     sender_email = fields.Char(string='Sender Email', required=True, index=True, tracking=True)
@@ -53,7 +72,8 @@ class Al2cTimesheetStaging(models.Model):
     line_count = fields.Integer(string='Line Count', compute='_compute_totals', store=True)
 
     dedup_fingerprint = fields.Char(string='Deduplication Fingerprint', index=True, readonly=True)
-    external_nonce = fields.Char(string='External Nonce / Idempotency Key', index=True, readonly=True)
+    external_nonce = fields.Char(string='External Nonce / Idempotency Key', index=True, readonly=True,
+                                 default=lambda self: uuid.uuid4().hex)
     parse_status = fields.Selection([
         ('pending', 'Pending'),
         ('success', 'Successfully Parsed'),
@@ -95,42 +115,88 @@ class Al2cTimesheetStaging(models.Model):
         clean_email = email_match.group(0).lower() if email_match else clean_str.lower()
 
         # Tier 1: hr.employee directly
-        emp = self.env['hr.employee'].search([
+        emps = self.env['hr.employee'].search([
             '|', ('work_email', '=ilike', clean_email),
                  ('private_email', '=ilike', clean_email)
-        ], limit=1)
-        if emp:
-            return emp
+        ], order='id asc', limit=2)
+        if len(emps) > 1:
+            emp_ids = getattr(emps, 'ids', [e.id for e in emps if hasattr(e, 'id')])
+            _logger.warning("Ambiguous consultant email '%s' matches %d employees (IDs: %s); refusing silent attribution.", clean_email, len(emps), emp_ids)
+            return self.env['hr.employee']
+        elif len(emps) == 1:
+            return emps[0]
 
         # Tier 2: res.users -> hr.employee
-        user = self.env['res.users'].search([
+        users = self.env['res.users'].search([
             '|', ('login', '=ilike', clean_email),
                  ('email', '=ilike', clean_email)
-        ], limit=1)
-        if user:
+        ], order='id asc', limit=2)
+        if len(users) > 1:
+            user_ids = getattr(users, 'ids', [u.id for u in users if hasattr(u, 'id')])
+            _logger.warning("Ambiguous user email '%s' matches %d users (IDs: %s); refusing silent attribution.", clean_email, len(users), user_ids)
+            return self.env['hr.employee']
+        elif len(users) == 1:
+            user = users[0]
             if hasattr(user, 'employee_id') and user.employee_id:
                 return user.employee_id
-            emp = self.env['hr.employee'].search([('user_id', '=', user.id)], limit=1)
-            if emp:
-                return emp
+            emp = self.env['hr.employee'].search([('user_id', '=', user.id)], order='id asc', limit=2)
+            if len(emp) > 1:
+                e_ids = getattr(emp, 'ids', [e.id for e in emp if hasattr(e, 'id')])
+                _logger.warning("Ambiguous user ID %d links to %d employees (IDs: %s); refusing silent attribution.", user.id, len(emp), e_ids)
+                return self.env['hr.employee']
+            elif len(emp) == 1:
+                return emp[0]
 
-        # Tier 3: res.partner -> hr.employee
-        partner = self.env['res.partner'].search([('email', '=ilike', clean_email)], limit=1)
-        if partner:
-            emp = self.env['hr.employee'].search([
-                '|', ('work_contact_id', '=', partner.id),
-                     ('address_home_id', '=', partner.id)
-            ], limit=1)
-            if emp:
-                return emp
+        # Tier 3: hr.employee via linked partner email (work_contact_id, address_home_id)
+        # Directly searches hr.employee across both linked partner emails to avoid shadow unlinked partners
+        emps_t3 = self.env['hr.employee'].search([
+            '|', ('work_contact_id.email', '=ilike', clean_email),
+                 ('address_home_id.email', '=ilike', clean_email)
+        ], order='id asc', limit=2)
+        if len(emps_t3) > 1:
+            e_ids = getattr(emps_t3, 'ids', [e.id for e in emps_t3 if hasattr(e, 'id')])
+            _logger.warning("Ambiguous linked partner email '%s' matches %d employees (IDs: %s); refusing silent attribution.", clean_email, len(emps_t3), e_ids)
+            return self.env['hr.employee']
+        elif len(emps_t3) == 1:
+            return emps_t3[0]
 
         # Fallback by name if identifier is not an email
         if '@' not in clean_str:
-            emp = self.env['hr.employee'].search([('name', '=ilike', clean_str)], limit=1)
-            if emp:
-                return emp
+            name_emps = self.env['hr.employee'].search([('name', '=ilike', clean_str)], order='id asc', limit=2)
+            if len(name_emps) > 1:
+                n_ids = getattr(name_emps, 'ids', [e.id for e in name_emps if hasattr(e, 'id')])
+                _logger.warning("Ambiguous consultant name '%s' matches %d employees (IDs: %s); refusing silent attribution.", clean_str, len(name_emps), n_ids)
+                return self.env['hr.employee']
+            elif len(name_emps) == 1:
+                return name_emps[0]
 
         return self.env['hr.employee']
+
+    @api.model
+    def _create_idempotent(self, vals):
+        """Creates a staging record idempotently.
+        If external_nonce or dedup_fingerprint violates unique constraint under concurrent race,
+        rescues transaction using a database savepoint and retrieves the existing record.
+        """
+        val_dict = vals[0] if isinstance(vals, (list, tuple)) and vals else (vals if isinstance(vals, dict) else {})
+        nonce = val_dict.get('external_nonce')
+        fingerprint = val_dict.get('dedup_fingerprint')
+        try:
+            with self.env.cr.savepoint():
+                return self.create(vals)
+        except (pg_errors.UniqueViolation, IntegrityError, ValidationError) as exc:
+            _logger.info("Concurrent duplicate insertion prevented by idempotency constraint: %s", exc)
+            domain = []
+            if nonce:
+                domain = [('external_nonce', '=', nonce)]
+            elif fingerprint:
+                domain = [('dedup_fingerprint', '=', fingerprint)]
+            if domain:
+                existing = self.search(domain, limit=1)
+                if existing:
+                    existing._is_idempotent_duplicate = True
+                    return existing
+            raise
 
     @api.model
     def message_new(self, msg_dict, custom_values=None):
@@ -156,7 +222,8 @@ class Al2cTimesheetStaging(models.Model):
 
         # Check for existing duplicate staging by fingerprint
         existing = self.search([('dedup_fingerprint', '=', fingerprint)], limit=1)
-        initial_state = 'duplicate' if existing else 'received'
+        if existing:
+            return existing
 
         custom_values.update({
             'name': subject,
@@ -166,10 +233,17 @@ class Al2cTimesheetStaging(models.Model):
             'dedup_fingerprint': fingerprint,
             'employee_id': consultant.id if consultant else False,
             'user_id': user.id if user else False,
-            'state': initial_state,
+            'state': 'received',
         })
 
-        staging = super().message_new(msg_dict, custom_values=custom_values)
+        try:
+            with self.env.cr.savepoint():
+                staging = super().message_new(msg_dict, custom_values=custom_values)
+        except (pg_errors.UniqueViolation, IntegrityError, ValidationError):
+            existing = self.search([('dedup_fingerprint', '=', fingerprint)], limit=1)
+            if existing:
+                return existing
+            raise
 
         if msg_dict.get('attachments'):
             att_ids = []
@@ -242,6 +316,8 @@ class Al2cTimesheetStaging(models.Model):
                         import openpyxl
                         wb = openpyxl.load_workbook(filename=io.BytesIO(raw_bytes), data_only=True)
                         sheet = wb.active
+                        if sheet.max_row > 100_000 or sheet.max_column > 512:
+                            raise UserError(_("Spreadsheet exceeds safe size limits (%s x %s). Maximum allowed is 100,000 rows x 512 columns.") % (sheet.max_row, sheet.max_column))
                         rows = list(sheet.iter_rows(values_only=True))
                         if rows:
                             header = [str(c or '').strip().lower() for c in rows[0]]
@@ -257,6 +333,8 @@ class Al2cTimesheetStaging(models.Model):
                             has_parsed_attachment = True
                             logs.append(_("Parsed Excel .xlsx attachment (%s): %d rows extracted.") % (att.name, sheet_lines))
                             break
+                    except UserError:
+                        raise
                     except Exception as e:
                         logs.append(_("Error reading Excel .xlsx attachment %s: %s") % (att.name, str(e)))
 
@@ -266,6 +344,8 @@ class Al2cTimesheetStaging(models.Model):
                         import xlrd
                         book = xlrd.open_workbook(file_contents=raw_bytes)
                         sheet = book.sheet_by_index(0)
+                        if sheet.nrows > 100_000 or sheet.ncols > 512:
+                            raise UserError(_("Spreadsheet exceeds safe size limits (%s x %s). Maximum allowed is 100,000 rows x 512 columns.") % (sheet.nrows, sheet.ncols))
                         if sheet.nrows > 0:
                             header = [str(sheet.cell_value(0, c) or '').strip().lower() for c in range(sheet.ncols)]
                             sheet_lines = 0
@@ -281,8 +361,11 @@ class Al2cTimesheetStaging(models.Model):
                                         except Exception:
                                             pass
                                     elif c_type == xlrd.XL_CELL_NUMBER:
-                                        if val == int(val):
-                                            val = int(val)
+                                        try:
+                                            if not math.isnan(val) and not math.isinf(val) and val == int(val):
+                                                val = int(val)
+                                        except Exception:
+                                            pass
                                     if val is not None and str(val).strip() != '':
                                         is_empty = False
                                     row_values.append(val)
@@ -296,11 +379,16 @@ class Al2cTimesheetStaging(models.Model):
                             has_parsed_attachment = True
                             logs.append(_("Parsed Excel .xls attachment (%s): %d rows extracted.") % (att.name, sheet_lines))
                             break
+                    except UserError:
+                        raise
                     except Exception as e:
                         logs.append(_("Error reading Excel .xls attachment %s: %s") % (att.name, str(e)))
 
-                # 2.3 CSV attachment
-                elif fname.endswith(('.csv', '.txt')) or b',' in raw_bytes[:200] or b';' in raw_bytes[:200] or b'|' in raw_bytes[:200]:
+                # 2.3 CSV attachment - strictly validate tabular text extension or text mimetype and verify absence of null bytes
+                elif (
+                    fname.endswith(('.csv', '.txt', '.tsv')) or
+                    (bool(getattr(att, 'mimetype', False)) and att.mimetype.lower() in ('text/csv', 'text/plain', 'text/tab-separated-values', 'application/csv'))
+                ) and not fname.endswith(('.bin', '.exe', '.pdf', '.png', '.jpg', '.jpeg', '.gif', '.zip', '.tar', '.gz', '.7z', '.iso', '.doc', '.docx', '.mp4', '.mp3', '.pyc', '.so')) and b'\x00' not in raw_bytes[:512]:
                     try:
                         content = raw_bytes.decode('utf-8-sig', errors='replace')
                         first_line = content.splitlines()[0] if content.splitlines() else ''
@@ -312,15 +400,21 @@ class Al2cTimesheetStaging(models.Model):
                         csv_reader = csv.DictReader(io.StringIO(content), delimiter=delimiter)
                         csv_lines = 0
                         for row in csv_reader:
+                            csv_lines += 1
+                            if csv_lines > 100_000:
+                                raise UserError(_("Spreadsheet exceeds safe size limits (rows > 100,000)."))
                             line_val = rec._parse_row_dict(row, consultant)
                             if line_val:
                                 parsed_lines.append(line_val)
-                                csv_lines += 1
                         has_parsed_attachment = True
                         logs.append(_("Parsed CSV attachment (%s): %d rows extracted.") % (att.name, csv_lines))
                         break
+                    except UserError:
+                        raise
                     except Exception as e:
                         logs.append(_("Error reading CSV attachment %s: %s") % (att.name, str(e)))
+                else:
+                    logs.append(_("Attachment '%s' is not a recognized spreadsheet or delimited text format; skipped.") % (att.name or 'unknown'))
 
             # 3. Fallback: Parse structured text in email body if no attachment parsed
             if not has_parsed_attachment and rec.raw_email_body:
@@ -361,32 +455,37 @@ class Al2cTimesheetStaging(models.Model):
             # 4. Intra-batch and Cross-staging Duplicate Checks
             seen_tuples = set()
             for line_val in parsed_lines:
-                if line_val['state'] == 'valid':
-                    emp_id = line_val.get('employee_id')
-                    task_id = line_val.get('task_id')
-                    dt_key = str(line_val.get('date'))
-                    batch_key = (emp_id, task_id, dt_key)
+                emp_id = line_val.get('employee_id')
+                task_id = line_val.get('task_id')
+                dt_key = str(line_val.get('date'))
+                # If consultant is unresolved, use sender_email as dedup identifier
+                dedup_consultant_key = emp_id or (rec.sender_email.strip().lower() if rec.sender_email else 'anon')
+                batch_key = (dedup_consultant_key, task_id, dt_key)
 
-                    # Intra-batch check
-                    if batch_key in seen_tuples:
-                        line_val['state'] = 'duplicate'
-                        line_val['validation_message'] = _("Duplicate entry within the same submission batch.")
-                    else:
-                        seen_tuples.add(batch_key)
-                        # Cross-staging check
-                        if emp_id and task_id:
-                            other_staging = self.env['al2c.timesheet.staging.line'].search([
-                                ('staging_id', '!=', rec.id or 0),
-                                ('employee_id', '=', emp_id),
-                                ('task_id', '=', task_id),
-                                ('date', '=', line_val.get('date')),
-                                ('state', 'in', ['valid', 'committed']),
-                            ], limit=1)
-                            if other_staging:
-                                line_val['state'] = 'duplicate'
-                                line_val['validation_message'] = _(
-                                    "Duplicate: Identical entry recorded in staging #%d (Line #%d)."
-                                ) % (other_staging.staging_id.id, other_staging.id)
+                # Intra-batch check
+                if batch_key in seen_tuples:
+                    line_val['state'] = 'duplicate'
+                    line_val['validation_message'] = _("Duplicate entry within the same submission batch.")
+                else:
+                    seen_tuples.add(batch_key)
+                    # Cross-staging check
+                    if task_id:
+                        domain = [
+                            ('staging_id', '!=', rec.id or 0),
+                            ('task_id', '=', task_id),
+                            ('date', '=', line_val.get('date')),
+                            ('state', 'in', ['valid', 'committed', 'error', 'duplicate']),
+                        ]
+                        if emp_id:
+                            domain.append(('employee_id', '=', emp_id))
+                        elif rec.sender_email:
+                            domain.append(('staging_id.sender_email', '=ilike', rec.sender_email.strip()))
+                        other_staging = self.env['al2c.timesheet.staging.line'].search(domain, limit=1)
+                        if other_staging:
+                            line_val['state'] = 'duplicate'
+                            line_val['validation_message'] = _(
+                                "Duplicate: Identical entry recorded in staging #%d (Line #%d)."
+                            ) % (other_staging.staging_id.id, other_staging.id)
 
             # 5. Populate lines
             if parsed_lines:
@@ -416,20 +515,29 @@ class Al2cTimesheetStaging(models.Model):
         )
         line_employee = self._resolve_consultant(row_emp_str) if row_emp_str else default_employee
 
-        date_raw = norm.get('date') or norm.get('ngay') or norm.get('ngày') or norm.get('work_date') or fields.Date.today()
+        date_raw = norm.get('date') or norm.get('ngay') or norm.get('ngày') or norm.get('work_date')
         prj_raw = norm.get('project') or norm.get('du_an') or norm.get('dự án') or norm.get('project_code') or ''
         tsk_raw = norm.get('task') or norm.get('nhiem_vu') or norm.get('nhiệm vụ') or norm.get('task_name') or ''
-        hrs_raw = norm.get('hours') or norm.get('gio') or norm.get('giờ') or norm.get('unit_amount') or norm.get('so_gio') or 0.0
+        hrs_raw = norm.get('hours') or norm.get('gio') or norm.get('giờ') or norm.get('unit_amount') or norm.get('so_gio')
         desc_raw = norm.get('description') or norm.get('mo_ta') or norm.get('mô tả') or norm.get('name') or _("Timesheet delivery")
 
         # Parse date
-        parsed_date = fields.Date.today()
-        if isinstance(date_raw, datetime):
+        parsed_date = None
+        date_error = False
+        if date_raw is None or str(date_raw).strip() == '':
+            parsed_date = fields.Date.today()
+        elif isinstance(date_raw, datetime):
             parsed_date = date_raw.date()
         elif isinstance(date_raw, date):
             parsed_date = date_raw
-        elif isinstance(date_raw, (int, float)) and date_raw > 10000:
-            parsed_date = date(1899, 12, 30) + timedelta(days=int(date_raw))
+        elif isinstance(date_raw, (int, float)):
+            try:
+                if not math.isnan(date_raw) and not math.isinf(date_raw) and date_raw > 10000:
+                    parsed_date = date(1899, 12, 30) + timedelta(days=int(date_raw))
+                else:
+                    date_error = True
+            except Exception:
+                date_error = True
         elif isinstance(date_raw, str):
             clean_date = date_raw.strip()
             for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%m/%d/%Y', '%Y/%m/%d'):
@@ -438,16 +546,50 @@ class Al2cTimesheetStaging(models.Model):
                     break
                 except ValueError:
                     pass
+            if not parsed_date:
+                date_error = True
+        else:
+            date_error = True
 
-        # Parse hours
+        if date_error or not parsed_date:
+            parsed_date = fields.Date.today()
+
+        # Parse hours safely against NaN / Inf / non-numeric injection
         hours = 0.0
+        hrs_error = False
         if isinstance(hrs_raw, (int, float)):
-            hours = float(hrs_raw)
+            try:
+                if math.isnan(hrs_raw) or math.isinf(hrs_raw):
+                    hrs_error = True
+                    hours = 0.0
+                else:
+                    hours = float(hrs_raw)
+            except Exception:
+                hrs_error = True
+                hours = 0.0
         elif isinstance(hrs_raw, str):
             try:
-                hours = float(hrs_raw.strip().replace(',', '.'))
+                clean_hrs = hrs_raw.strip().replace(',', '.')
+                if clean_hrs.lower() in ('nan', 'inf', '-inf', 'none', 'null', ''):
+                    hrs_error = True
+                    hours = 0.0
+                else:
+                    val = float(clean_hrs)
+                    if math.isnan(val) or math.isinf(val):
+                        hrs_error = True
+                        hours = 0.0
+                    else:
+                        hours = val
             except (ValueError, TypeError):
+                hrs_error = True
                 hours = 0.0
+        else:
+            hrs_error = True
+            hours = 0.0
+
+        if hrs_error or math.isnan(hours) or math.isinf(hours):
+            hours = 0.0
+            hrs_error = True
 
         # Resolve Project
         project = None
@@ -473,14 +615,23 @@ class Al2cTimesheetStaging(models.Model):
 
         val_error = False
         state = 'valid'
-        if not project:
-            val_error = _("Target project not recognized: '%s'") % prj_raw
+        if hrs_error or hours <= 0:
+            val_error = _("Invalid duration: %s hours") % hrs_raw
             state = 'error'
-        elif hours <= 0:
-            val_error = _("Invalid duration: %.2f hours") % hours
-            state = 'error'
+            hours = 0.0
         elif hours > 24:
             val_error = _("Exceeded daily threshold: %.2f hours (> 24h)") % hours
+            state = 'error'
+        elif date_error:
+            val_error = _("Invalid date format: '%s'") % str(date_raw)
+            state = 'error'
+        elif not project:
+            val_error = _("Target project not recognized: '%s'") % prj_raw
+            state = 'error'
+        elif not line_employee:
+            consultant_email = str(row_emp_str).strip() if row_emp_str else ''
+            sender_id = (self.sender_email or '').strip() if (self and hasattr(self, 'sender_email')) else ''
+            val_error = _("Consultant identity unresolved from sender or row email: %s") % (consultant_email or sender_id or 'unknown')
             state = 'error'
 
         # Row-level deduplication against account.analytic.line
@@ -495,6 +646,10 @@ class Al2cTimesheetStaging(models.Model):
                 val_error = _("Duplicate: Consultant %s already has timesheet logged for task '%s' on %s (Analytic Line #%d)") % (
                     line_employee.name, task.name, parsed_date, existing_aal.id
                 )
+
+        # Safeguard: ensure hours is never NaN or Inf under any circumstances
+        if math.isnan(hours) or math.isinf(hours):
+            hours = 0.0
 
         return {
             'staging_id': self.id,

@@ -564,6 +564,7 @@ def test_timesheet_webhook_security():
     mock_staging.compute_dedup_hash.return_value = "dummy_dedup_hash"
     mock_rec = MagicMock(id=42, parse_status='success', line_count=1, total_hours=4.0)
     mock_staging.create.return_value = mock_rec
+    mock_staging._create_idempotent.side_effect = lambda vals: mock_staging.create(vals)
     mock_attachment = MagicMock()
 
     models = {
@@ -961,6 +962,170 @@ def test_pixel_scanner_command_injection_guard():
     print("  [✓] Pixel scanner URL validation and shell-less array execution prevent CWE-78 injection.")
 
 
+def test_timesheet_staging_ambiguity_and_idempotency_guards():
+    print("[TEST TIMESHEET STAGING GUARDS] CWE-285/863, CWE-362, CWE-20: Consultant Ambiguity, Idempotent Create & Spreadsheet Bounds")
+    from unittest.mock import MagicMock
+    import psycopg2
+    import io
+    import openpyxl
+    import xlrd
+    from odoo.addons.insilos_al2c.models.al2c_timesheet_staging import Al2cTimesheetStaging
+    from odoo.exceptions import UserError
+
+    # 1. Nonce Integrity Invariant: default external_nonce is callable and generates a valid 32-char hex UUID
+    assert callable(Al2cTimesheetStaging.external_nonce.default), "external_nonce.default must be callable"
+    sample_nonce = Al2cTimesheetStaging.external_nonce.default(None)
+    assert isinstance(sample_nonce, str) and len(sample_nonce) == 32, f"Expected 32-char hex UUID, got {sample_nonce!r}"
+    int(sample_nonce, 16)
+
+    # 2. Consultant Attribution Ambiguity (CWE-285/863): Refuse silent attribution on duplicate matches
+    mock_staging = MagicMock(spec=Al2cTimesheetStaging)
+    mock_emp_model = MagicMock()
+    mock_partner_model = MagicMock()
+    mock_user_model = MagicMock()
+
+    empty_emp = MagicMock()
+    empty_emp.__len__.return_value = 0
+    empty_emp.__bool__.return_value = False
+    mock_emp_model.return_value = empty_emp
+
+    mock_models = {
+        'hr.employee': mock_emp_model,
+        'res.partner': mock_partner_model,
+        'res.users': mock_user_model,
+    }
+    mock_env = MagicMock()
+    mock_env.__getitem__.side_effect = lambda k: mock_models.get(k, MagicMock())
+    mock_staging.env = mock_env
+
+    # 2.1 Ambiguous hr.employee -> must refuse silent attribution and return empty recordset
+    emp1 = MagicMock(id=101, name="Alice Inno")
+    emp2 = MagicMock(id=102, name="Alice Security")
+    mock_emp_model.search.return_value = [emp1, emp2]
+
+    res = Al2cTimesheetStaging._resolve_consultant(mock_staging, 'alice@inno.ai.vn')
+    assert len(res) == 0, f"CWE-285/863 Failure: Expected empty recordset on ambiguous employee match, got {res}"
+    call_kwargs = mock_emp_model.search.call_args.kwargs
+    assert call_kwargs.get('limit') == 2, "Cardinality probe must use limit=2"
+    assert call_kwargs.get('order') == 'id asc', "Cardinality probe must order by id asc"
+
+    # 2.2 Unambiguous hr.employee -> returns single employee
+    mock_emp_model.search.return_value = [emp1]
+    res_single = Al2cTimesheetStaging._resolve_consultant(mock_staging, 'alice@inno.ai.vn')
+    assert res_single == emp1, f"Expected single employee match, got {res_single}"
+
+    # 2.3 Ambiguous linked partner email in hr.employee -> must refuse silent attribution
+    mock_user_model.search.return_value = []
+    mock_emp_model.search.side_effect = [
+        [],           # Tier 1 search returns empty
+        [emp1, emp2], # Tier 3 hr.employee search via partner email returns 2 employees
+    ]
+
+    res_partner_ambig = Al2cTimesheetStaging._resolve_consultant(mock_staging, 'bob@inno.ai.vn')
+    assert len(res_partner_ambig) == 0, f"CWE-285/863 Failure: Expected empty recordset on ambiguous partner match, got {res_partner_ambig}"
+    t3_call_kwargs = mock_emp_model.search.call_args.kwargs
+    assert t3_call_kwargs.get('limit') == 2, "Tier 3 probe must use limit=2"
+    assert t3_call_kwargs.get('order') == 'id asc', "Tier 3 probe must order by id asc"
+    mock_emp_model.search.side_effect = None
+
+    # 3. Race-Safe Idempotent Create (CWE-362): Savepoint rescues UniqueViolation and returns existing record
+    mock_cr = MagicMock()
+    mock_savepoint = MagicMock()
+    mock_cr.savepoint.return_value.__enter__ = MagicMock(return_value=mock_savepoint)
+    mock_cr.savepoint.return_value.__exit__ = MagicMock(return_value=None)
+    mock_env.cr = mock_cr
+
+    existing_staging_rec = MagicMock(id=888, external_nonce='idemp-nonce-456')
+    def mock_create_race(vals):
+        raise psycopg2.errors.UniqueViolation("duplicate key value violates unique constraint")
+
+    mock_staging.create.side_effect = mock_create_race
+    mock_staging.search.return_value = existing_staging_rec
+
+    idemp_result = Al2cTimesheetStaging._create_idempotent(mock_staging, {'name': 'Race Test', 'external_nonce': 'idemp-nonce-456'})
+    assert idemp_result == existing_staging_rec, f"Expected existing record returned on race collision, got {idemp_result}"
+    assert mock_staging.search.call_args[0][0] == [('external_nonce', '=', 'idemp-nonce-456')]
+    assert mock_cr.savepoint.called, "Must execute create inside a database savepoint"
+
+    # 4. Spreadsheet Decompression Bomb Guard (CWE-20): Cap rows <= 100_000 and cols <= 512
+    # 4.1 Excel .xlsx bomb guard (openpyxl)
+    mock_parse_staging = MagicMock(spec=Al2cTimesheetStaging)
+    mock_parse_staging.__iter__.return_value = [mock_parse_staging]
+    mock_att_xlsx = MagicMock(name='bomb.xlsx')
+    mock_att_xlsx.name = 'bomb.xlsx'
+    wb_dummy = openpyxl.Workbook()
+    bio_dummy = io.BytesIO()
+    wb_dummy.save(bio_dummy)
+    mock_att_xlsx.raw = bio_dummy.getvalue()
+    mock_att_xlsx.datas = False
+
+    mock_parse_staging.attachment_ids = [mock_att_xlsx]
+    mock_parse_staging.employee_id = False
+    mock_parse_staging.sender_email = 'consultant@inno.ai.vn'
+    mock_parse_staging.line_ids = MagicMock()
+    mock_parse_staging._resolve_consultant.return_value = False
+
+    orig_load = openpyxl.load_workbook
+    def fake_load_bomb(*args, **kwargs):
+        wb_f = MagicMock()
+        ws_f = MagicMock()
+        ws_f.max_row = 100_001
+        ws_f.max_column = 10
+        wb_f.active = ws_f
+        return wb_f
+
+    openpyxl.load_workbook = fake_load_bomb
+    try:
+        Al2cTimesheetStaging.action_parse_content(mock_parse_staging)
+        raise AssertionError("CWE-20 Failure: openpyxl bomb (> 100_000 rows) did NOT raise UserError!")
+    except UserError as ue:
+        assert "Spreadsheet exceeds safe size limits" in str(ue)
+    finally:
+        openpyxl.load_workbook = orig_load
+
+    # 4.2 Excel .xls bomb guard (xlrd)
+    mock_att_xls = MagicMock()
+    mock_att_xls.name = 'bomb.xls'
+    mock_att_xls.raw = b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1' + b'\x00' * 100
+    mock_att_xls.datas = False
+    mock_parse_staging.attachment_ids = [mock_att_xls]
+
+    orig_open_wb = xlrd.open_workbook
+    def fake_open_wb_bomb(*args, **kwargs):
+        book_f = MagicMock()
+        sheet_f = MagicMock()
+        sheet_f.nrows = 50
+        sheet_f.ncols = 513
+        book_f.sheet_by_index.return_value = sheet_f
+        return book_f
+
+    xlrd.open_workbook = fake_open_wb_bomb
+    try:
+        Al2cTimesheetStaging.action_parse_content(mock_parse_staging)
+        raise AssertionError("CWE-20 Failure: xlrd bomb (> 512 cols) did NOT raise UserError!")
+    except UserError as ue:
+        assert "Spreadsheet exceeds safe size limits" in str(ue)
+    finally:
+        xlrd.open_workbook = orig_open_wb
+
+    # 4.3 CSV row cap guard
+    mock_att_csv = MagicMock()
+    mock_att_csv.name = 'bomb.csv'
+    oversized_csv = 'date,project,task,hours,description\n' + ('2026-10-12,PRJ,TSK,4.0,Work\n' * 100_005)
+    mock_att_csv.raw = oversized_csv.encode('utf-8')
+    mock_att_csv.datas = False
+    mock_att_csv.mimetype = 'text/csv'
+    mock_parse_staging.attachment_ids = [mock_att_csv]
+
+    try:
+        Al2cTimesheetStaging.action_parse_content(mock_parse_staging)
+        raise AssertionError("CWE-20 Failure: CSV bomb (> 100_000 rows) did NOT raise UserError!")
+    except UserError as ue:
+        assert "Spreadsheet exceeds safe size limits" in str(ue)
+
+    print("  [✓] Consultant ambiguity refusal, race-safe idempotent create, and spreadsheet size caps verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -983,8 +1148,9 @@ def main():
     test_uom_financial_precision_and_attachment_guards()
     test_report_anti_genesis_and_escaping_mutation_matrix()
     test_pixel_scanner_command_injection_guard()
+    test_timesheet_staging_ambiguity_and_idempotency_guards()
     print("=" * 80)
-    print("ALL 18 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 19 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 

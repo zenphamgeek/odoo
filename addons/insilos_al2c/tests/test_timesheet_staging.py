@@ -440,3 +440,55 @@ class TestAl2cTimesheetStaging(TransactionCase):
         with self.assertRaises(UserError):
             staging.with_user(self.pm_user).action_approve_and_commit()
 
+    def test_11_corrupted_payloads_nan_and_binary_safety(self):
+        """Test hardening against binary attachments, NaN hours, and shadow partner resolution."""
+        # 1. Binary attachment should not be misidentified as CSV even with comma byte
+        binary_payload = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR' + b'x' * 50 + b',' + b'y' * 150
+        att_bin = self.env['ir.attachment'].create({
+            'name': 'firmware_update.bin',
+            'type': 'binary',
+            'raw': binary_payload,
+        })
+        staging_bin = self.env['al2c.timesheet.staging'].create({
+            'name': 'Binary attachment test',
+            'sender_email': 'consultant.a@inno.ai.vn',
+            'attachment_ids': [(4, att_bin.id)],
+            'submission_channel': 'email_pubsub',
+        })
+        staging_bin.action_parse_content()
+        self.assertEqual(len(staging_bin.line_ids), 0, "Binary attachment must not generate phantom staging lines")
+        self.assertEqual(staging_bin.parse_status, 'error')
+
+        # 2. NaN and Inf hours handling via CSV
+        csv_nan = (
+            "Date,Project,Task,Hours,Description\n"
+            f"2026-10-26,{self.project.name},{self.task.name},nan,NaN hours test\n"
+            f"2026-10-27,{self.project.name},{self.task.name},inf,Inf hours test\n"
+        )
+        att_nan = self.env['ir.attachment'].create({
+            'name': 'nan_test.csv',
+            'type': 'binary',
+            'raw': csv_nan.encode('utf-8'),
+        })
+        staging_nan = self.env['al2c.timesheet.staging'].create({
+            'name': 'NaN and Inf hours test',
+            'sender_email': 'consultant.a@inno.ai.vn',
+            'attachment_ids': [(4, att_nan.id)],
+            'submission_channel': 'email_pubsub',
+        })
+        staging_nan.action_parse_content()
+        self.assertEqual(len(staging_nan.line_ids), 2)
+        for line in staging_nan.line_ids:
+            self.assertEqual(line.state, 'error')
+            self.assertEqual(line.unit_amount, 0.0)
+            self.assertIn("Invalid duration", line.validation_message)
+
+        # 3. Shadow partner resolution (Tier-3)
+        partner_shadow = self.env['res.partner'].create({'name': 'Unlinked Partner Shadow', 'email': 'shadow.emp@inno.ai.vn'})
+        partner_target = self.env['res.partner'].create({'name': 'Target Partner Linked', 'email': 'shadow.emp@inno.ai.vn'})
+        emp_target = self.env['hr.employee'].create({'name': 'Resolved Target Emp', 'work_contact_id': partner_target.id})
+
+        resolved = self.env['al2c.timesheet.staging']._resolve_consultant('shadow.emp@inno.ai.vn')
+        self.assertEqual(resolved.id, emp_target.id, "Tier-3 lookup must resolve the employee even when unlinked shadow partner exists")
+
+

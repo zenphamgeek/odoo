@@ -123,7 +123,13 @@ class Al2cTimesheetWebhookController(http.Controller):
             'external_nonce': str(nonce).strip() if nonce else False,
             'state': 'received',
         }
-        staging = StagingModel.create(staging_vals)
+        staging = StagingModel._create_idempotent(staging_vals)
+        if getattr(staging, '_is_idempotent_duplicate', None) is True:
+            return Response(json.dumps({
+                'status': 'duplicate',
+                'staging_id': staging.id,
+                'message': 'Duplicate submission identified; ignored.',
+            }), status=200, headers=headers)
 
         # 6. Create and attach any binary attachments
         Attachment = env['ir.attachment']
