@@ -30,7 +30,7 @@ async function verify() {
         failedRequests.push(`${req.url()} (${req.failure()?.errorText || 'failed'})`);
     });
 
-    const response = await desktopPage.goto(TARGET_URL, { waitUntil: 'load', timeout: 30000 });
+    const response = await desktopPage.goto(TARGET_URL, { waitUntil: 'load', timeout: 60000 });
     await desktopPage.waitForTimeout(3000);
     console.log(`[✓] Desktop HTTP Status: ${response.status()}`);
 
@@ -69,7 +69,7 @@ async function verify() {
         hasTouch: true
     });
     const mobilePage = await mobileContext.newPage();
-    const mobileResponse = await mobilePage.goto(TARGET_URL, { waitUntil: 'load', timeout: 30000 });
+    const mobileResponse = await mobilePage.goto(TARGET_URL, { waitUntil: 'load', timeout: 60000 });
     await mobilePage.waitForTimeout(3000);
     console.log(`[✓] Mobile HTTP Status: ${mobileResponse.status()}`);
 
