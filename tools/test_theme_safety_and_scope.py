@@ -55,9 +55,9 @@ def _get_db_config():
     return {
         "host": opts.get("db_host", "127.0.0.1"),
         "port": int(opts.get("db_port", 5434)),
-        "user": opts.get("db_user", "od" + "oo"),
+        "user": opts.get("db_user", "insilos"),
         "password": opts.get("db_password", "1NN0R1@2026"),
-        "dbname": opts.get("db_name", "od" + "oo20_dev"),
+        "dbname": opts.get("db_name", "insilos20_dev"),
     }
 
 

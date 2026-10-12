@@ -41,8 +41,8 @@ from datetime import datetime
 
 # Root paths and constants (constructed to ensure zero genesis scanner detections)
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-CORE_NAME = 'od' + 'oo'
-LEGACY_NAME = 'open' + 'erp'
+CORE_NAME = 'odoo'
+LEGACY_NAME = 'openerp'
 
 LOCAL_DB_DEFAULTS = {
     'host': os.environ.get('LOCAL_DB_HOST', '127.0.0.1'),

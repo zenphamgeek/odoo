@@ -18,7 +18,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-CORE_ADDONS_NAME = 'od' + 'oo'
+CORE_ADDONS_NAME = 'odoo'
 
 
 def compute_disk_file_hash(rel_path):

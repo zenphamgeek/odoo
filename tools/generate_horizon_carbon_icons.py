@@ -45,7 +45,7 @@ PRIMARY_CANONICAL_DIR = os.path.join(REPO_ROOT, 'tools', 'phosphor_duotone')
 EXTENDED_CANONICAL_DIR = os.path.join(REPO_ROOT, 'branding', 'phosphor', 'assets', 'duotone')
 MAPPING_FILE = os.path.join(REPO_ROOT, 'tools', 'icon_mapping.json')
 
-CORE_ADDONS_NAME = 'od' + 'oo'
+CORE_ADDONS_NAME = 'odoo'
 
 MODULE_SEARCH_PATHS = [
     os.path.join(REPO_ROOT, 'addons'),

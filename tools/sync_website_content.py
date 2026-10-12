@@ -29,7 +29,7 @@ from datetime import datetime
 LOCAL_DB_DEFAULTS = {
     'host': os.environ.get('LOCAL_DB_HOST', '127.0.0.1'),
     'port': int(os.environ.get('LOCAL_DB_PORT', '5434')),
-    'user': os.environ.get('LOCAL_DB_USER', 'od' + 'oo'),
+    'user': os.environ.get('LOCAL_DB_USER', 'odoo'),
     'password': os.environ.get('LOCAL_DB_PASSWORD', '1NN0R1@2026'),
     'dbname': os.environ.get('LOCAL_DB_NAME', 'odoo20_dev'),
 }

@@ -33,7 +33,7 @@ if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
 # Backend package resolution avoiding literal genesis strings
-_CORE_PKG = 'od' + 'oo'
+_CORE_PKG = 'odoo'
 _backend = importlib.import_module(_CORE_PKG)
 
 # Global test configuration

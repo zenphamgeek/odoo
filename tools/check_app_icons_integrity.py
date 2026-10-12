@@ -33,8 +33,8 @@ import sys
 
 # Constants constructed safely to ensure zero genesis scanner detections
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-CORE_NAME = 'od' + 'oo'
-LEGACY_NAME = 'open' + 'erp'
+CORE_NAME = 'odoo'
+LEGACY_NAME = 'openerp'
 COLOR_PURPLE = '#714' + 'B67'
 COLOR_TEAL = '#017' + 'e84'
 

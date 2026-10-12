@@ -1530,6 +1530,44 @@ def test_database_branding_cleaner_security_and_idempotency():
     print("  [✓] XML syntax validation, dry-run rollback, commit gate, atomic exception rollback, and _require_env fail-closed guards verified.")
 
 
+def test_ast_secret_evasion_linter():
+    print("[TEST AST EVASION LINTER] Static Scanner-Evasion Prevention & Entropy Contract")
+    from tools.lint_ast_secret_evasion import scan_code, scan_file
+
+    # 1. Synthetic test code with 'od' + 'oo' is flagged
+    bad_code_odoo = "db_user = 'od' + 'oo'\n"
+    res1 = scan_code(bad_code_odoo)
+    assert len(res1) == 1, f"Expected 1 violation for 'od' + 'oo', got {res1}"
+    assert res1[0][2] == "odoo" and res1[0][3] == "odoo"
+
+    # 2. Synthetic test code with 'pass' + 'word' is flagged
+    bad_code_password = "db_pass = 'pass' + 'word'\n"
+    res2 = scan_code(bad_code_password)
+    assert len(res2) == 1, f"Expected 1 violation for 'pass' + 'word', got {res2}"
+    assert res2[0][2] == "password" and res2[0][3] == "password"
+
+    # 3. Multi-fragment concatenation is flagged
+    bad_code_multi = "token = '1NN0' + 'R1@' + '2026'\n"
+    res3 = scan_code(bad_code_multi)
+    assert len(res3) >= 1, f"Expected violation for multi-part secret concatenation, got {res3}"
+
+    # 4. Legitimate code passes with 0 violations
+    clean_code = "db_user = 'odoo'\ndb_pass = os.environ.get('PGPASSWORD')\n"
+    res_clean = scan_code(clean_code)
+    assert len(res_clean) == 0, f"Expected 0 violations for clean code, got {res_clean}"
+
+    # 5. Inline ignore directive allows explicit exceptions
+    ignored_code = "pattern = 'od' + 'oo'  # ast-evasion-ignore\n"
+    res_ignored = scan_code(ignored_code)
+    assert len(res_ignored) == 0, f"Expected 0 violations with ignore directive, got {res_ignored}"
+
+    # 6. Real repository file verification: tools/cleanup_innokafe_fake_logos_db.py has 0 violations
+    res_cleaner = scan_file("tools/cleanup_innokafe_fake_logos_db.py")
+    assert len(res_cleaner) == 0, f"cleanup_innokafe_fake_logos_db.py contains {len(res_cleaner)} evasion patterns: {res_cleaner}"
+
+    print("  [✓] Scanner-evasion string concatenation detected, legitimate code preserved, and zero evasion in cleaner verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -1555,8 +1593,9 @@ def main():
     test_timesheet_staging_ambiguity_and_idempotency_guards()
     test_pricelist_base_price_positional_shim()
     test_database_branding_cleaner_security_and_idempotency()
+    test_ast_secret_evasion_linter()
     print("=" * 80)
-    print("ALL 21 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 22 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
