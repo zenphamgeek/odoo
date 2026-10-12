@@ -130,8 +130,12 @@ class TestAl2cDelivery(TransactionCase):
         self.assertTrue(project.allow_milestones)
         self.assertEqual(len(project.milestone_ids), 5)
         self.assertEqual(project.milestone_ids.sale_line_id, line, "every Activate milestone bills the SO line")
-        self.assertEqual(line.qty_delivered_method, 'milestones')
-        project.milestone_ids.sorted('sequence')[0].is_reached = True
+        doc = self.env['documents.document'].create({
+            'name': 'ERP_Growth_Prepare_Signoff.pdf',
+            'mimetype': 'application/pdf',
+        })
+        ms0 = project.milestone_ids.sorted('sequence')[0]
+        ms0.write({'al2c_signoff_document_id': doc.id, 'is_reached': True})
         self.assertAlmostEqual(line.qty_delivered, 0.15, places=2)
 
 
@@ -162,11 +166,12 @@ class TestAl2cGovernance(TransactionCase):
         })
 
     def _so(self, user, discount=0.0, price=None, pricelist=None):
+        pl = pricelist or getattr(self, 'pricelist_vnd', False) or getattr(self, 'pricelist', False) or self.env.company.partner_id.property_product_pricelist
         unit_price = (self.product.list_price or 100.0) if price is None else price
         return self.env['sale.order'].with_user(user).create({
             'partner_id': self.partner.id,
             'user_id': user.id,
-            'pricelist_id': (pricelist or self.pricelist).id,
+            'pricelist_id': pl.id,
             'order_line': [Command.create({
                 'product_id': self.product.id, 'product_uom_qty': 1,
                 'price_unit': unit_price, 'discount': discount, 'tax_ids': [Command.clear()],

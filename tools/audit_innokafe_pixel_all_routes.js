@@ -15,11 +15,26 @@
  * =============================================================================
  */
 
-const { execSync, spawn } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const BASE_URL = process.env.INNOKAFE_BASE_URL || 'https://innokafe.insilos.com';
+function resolveBaseUrl() {
+    const raw = process.env.INNOKAFE_BASE_URL || 'https://innokafe.insilos.com';
+    let u;
+    try {
+        u = new URL(raw);
+    } catch {
+        throw new Error(`Invalid INNOKAFE_BASE_URL: ${raw}`);
+    }
+    if (!['http:', 'https:'].includes(u.protocol)) {
+        throw new Error(`INNOKAFE_BASE_URL must be http(s), got ${u.protocol}`);
+    }
+    return u.origin;
+}
+
+const BASE_URL = resolveBaseUrl();
+const SCANNER = path.join('.agents', 'skills', 'screenshot-pixels-scan', 'scripts', 'pixel_layout_scanner.js');
 const OUTPUT_ROOT = path.join(process.cwd(), 'innokafe_pixel_scan');
 
 const ROUTES = [
@@ -53,8 +68,7 @@ async function runAudit() {
         console.log(`---------------------------------------------------------------`);
         
         try {
-            const cmd = `node .agents/skills/screenshot-pixels-scan/scripts/pixel_layout_scanner.js --url "${routeUrl}" --output "${routeDir}"`;
-            execSync(cmd, { stdio: 'inherit' });
+            execFileSync('node', [SCANNER, '--url', routeUrl, '--output', routeDir], { stdio: 'inherit' });
             
             const summaryFile = path.join(routeDir, 'pixel_scan_summary.json');
             if (fs.existsSync(summaryFile)) {

@@ -3,6 +3,7 @@
 
 import re
 from datetime import datetime
+from lxml import html as lxml_html
 from odoo import Command
 from odoo.tests.common import TransactionCase, tagged
 
@@ -186,6 +187,13 @@ class TestSalesReports(TransactionCase):
         match = pattern.search(content_to_check)
         self.assertIsNone(match, f"Regex anti-genesis failed in {context_name}: matched '{match.group(0) if match else ''}'")
 
+        # Layer 3: Negative-selection escaping invariant (XSS & markup correctness guard)
+        self.assertNotRegex(
+            html_text,
+            r"&(?!amp;|lt;|gt;|quot;|#\d+;|#x[0-9a-fA-F]+;)",
+            f"Escaping regression in {context_name}: raw QWeb output contains an unescaped '&'.",
+        )
+
     def test_01_report_sales_proposal_render(self):
         """Test Executive Sales Proposal (Bản Đề Xuất Giải Pháp) compilation and content depth."""
         report_ref = 'insilos_al2c.action_report_sales_proposal'
@@ -196,6 +204,7 @@ class TestSalesReports(TransactionCase):
         self.assertGreater(len(html_text), 1500, "Rendered Proposal must have substantial executive content.")
         self.assertIn("BẢN ĐỀ XUẤT GIẢI PHÁP CHUYỂN ĐỔI SỐ", html_text)
         self.assertIn("Enterprise Solution Architecture Proposal", html_text)
+        # Raw markup strictly asserts properly escaped &amp;
         self.assertIn("Mục Tiêu &amp; Phạm Vi Fit-to-Standard (Clean Core)", html_text)
         self.assertIn("Class A: Chuẩn OOTB", html_text)
         self.assertIn("Class B: Low-Code Studio", html_text)
@@ -207,6 +216,11 @@ class TestSalesReports(TransactionCase):
         self.assertIn("5. Run", html_text)
         self.assertIn("Nghị định 13/2023/NĐ-CP", html_text)
         self.assertIn("ĐẠI DIỆN INNORIA ENTERPRISE", html_text)
+
+        # Decoded text content verifies human-readable decoded &
+        doc_text = lxml_html.fromstring(html_text).text_content()
+        self.assertIn("Mục Tiêu & Phạm Vi Fit-to-Standard (Clean Core)", doc_text)
+        self.assertIn("Lập Luận Giá Trị Kinh Tế & TCO / ROI", doc_text)
 
         self._assert_zero_branding_tells(html_text, "Sales Proposal")
 
@@ -252,12 +266,19 @@ class TestSalesReports(TransactionCase):
         self.assertIn("15%", html_text)
         self.assertIn("GĐ 5: Run", html_text)
         self.assertIn("10%", html_text)
-        # Require the properly HTML-escaped form. This doubles as a guard against
-        # QWeb escaping regressions — a bare '&' in output is a correctness/XSS smell.
+        # Raw markup strictly asserts properly escaped &amp;
         self.assertIn(
             "Biên bản nghiệm thu UAT &amp; Biên bản Go-Live chính thức",
             html_text,
             "SOW must include UAT and Go-Live acceptance clause (properly HTML-escaped)",
+        )
+
+        # Decoded text content verifies human-readable decoded &
+        doc_text = lxml_html.fromstring(html_text).text_content()
+        self.assertIn(
+            "Biên bản nghiệm thu UAT & Biên bản Go-Live chính thức",
+            doc_text,
+            "SOW decoded text must contain UAT and Go-Live clause",
         )
 
         self._assert_zero_branding_tells(html_text, "Statement of Work (SOW)")

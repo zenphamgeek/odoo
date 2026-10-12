@@ -138,6 +138,7 @@ class TestGoldenScenarioG2(TransactionCase):
             'group_ids': [(6, 0, [
                 cls.env.ref('base.group_user').id,
                 cls.env.ref('sales_team.group_sale_manager').id,
+                cls.env.ref('project.group_project_manager').id,
                 cls.env.ref('sign.group_sign_user').id,
             ])],
         })
@@ -209,7 +210,7 @@ class TestGoldenScenarioG2(TransactionCase):
             'name': 'Vinacom_Phase1_Signed.pdf',
             'mimetype': 'application/pdf',
         })
-        milestone.action_register_signoff(signoff.id)
+        milestone.with_user(self.manager_user).action_register_signoff(signoff.id)
         self.assertTrue(milestone.is_reached)
 
         invoices = so._create_invoices()
@@ -260,6 +261,10 @@ class TestGoldenScenarioG5(TransactionCase):
             'user_id': cls.sales_user.id,
         })
         cls.sku = cls.env['product.product'].search([('default_code', '=', 'ERP-STARTER')], limit=1)
+        cls.pricelist_vnd = cls.env['product.pricelist'].create({
+            'name': 'Pricelist VND G5',
+            'currency_id': cls.env.ref('base.VND').id,
+        })
 
     def test_golden_scenario_g5_dunning_suspension_and_commission(self):
         today = fields.Date.today()
@@ -268,6 +273,7 @@ class TestGoldenScenarioG5(TransactionCase):
         # 1. Delinquent Invoice
         inv = self.env['account.move'].create({
             'partner_id': self.partner.id,
+            'currency_id': self.env.ref('base.VND').id,
             'move_type': 'out_invoice',
             'invoice_date': overdue_due_date,
             'invoice_date_due': overdue_due_date,
@@ -287,7 +293,7 @@ class TestGoldenScenarioG5(TransactionCase):
         # 3. Autonomous Credit Standing Gate
         new_so = self.env['sale.order'].with_user(self.sales_user).create({
             'partner_id': self.partner.id,
-            'pricelist_id': self.pricelist.id,
+            'pricelist_id': self.pricelist_vnd.id,
             'order_line': [Command.create({
                 'product_id': self.sku.id,
                 'product_uom_qty': 1,

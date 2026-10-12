@@ -74,4 +74,6 @@ tools/challenger1_stress_results.json
 tools/test_artifacts_*/
 tools/*_results.json
 *.png
+innokafe_pixel_scan/
+scratch/
 

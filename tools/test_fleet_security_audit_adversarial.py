@@ -920,7 +920,45 @@ def test_report_anti_genesis_and_escaping_mutation_matrix():
     assert 'line.product_uom.name' not in xml_content, "Deprecated line.product_uom.name detected in template"
     assert 'line.product_uom_id.name' in xml_content, "Template must use line.product_uom_id.name"
 
+    # 5. Negative-Selection Escaping Guard: Unescaped raw '&' must fail closed
+    bad_html = '<html><head><title>Test</title></head><body><h1>A & B</h1></body></html>'
+    try:
+        tester._assert_zero_branding_tells(bad_html, 'Unescaped Ampersand Test')
+        raise AssertionError("Negative-selection escaping guard failed: unescaped '&' was not caught!")
+    except AssertionError as e:
+        assert "Escaping regression" in str(e), f"Unexpected error message: {e}"
+
+    # Escaped valid entities must pass cleanly
+    good_html = '<html><head><title>Test</title></head><body><h1>A &amp; B &lt; C &gt; D &quot;E&quot; &#123;F&#125;</h1></body></html>'
+    tester._assert_zero_branding_tells(good_html, 'Escaped Entities Test')
+
     print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), and strict &amp;/UoM invariants verified.")
+
+
+def test_pixel_scanner_command_injection_guard():
+    print("[TEST PIXEL SCANNER INJECTION] CWE-78: Environment Variable Command Injection Guard")
+    import os
+    import subprocess
+
+    pwn_file = '/tmp/pwned_adversarial_test_guard'
+    if os.path.exists(pwn_file):
+        os.remove(pwn_file)
+
+    # 1. Test shell breakout attempt via INNOKAFE_BASE_URL
+    env = os.environ.copy()
+    env['INNOKAFE_BASE_URL'] = f'https://x"; touch {pwn_file} #'
+    res = subprocess.run(['node', 'tools/audit_innokafe_pixel_all_routes.js'], env=env, capture_output=True, text=True)
+    assert res.returncode != 0, f"Expected non-zero exit code on injection attempt, got {res.returncode}"
+    assert not os.path.exists(pwn_file), "CWE-78 Failure: Command injection successfully executed on host!"
+    assert "Invalid INNOKAFE_BASE_URL" in res.stderr, f"Expected URL validation error, got: {res.stderr}"
+
+    # 2. Test non-http(s) protocol attempt
+    env['INNOKAFE_BASE_URL'] = 'ftp://evil.internal'
+    res_proto = subprocess.run(['node', 'tools/audit_innokafe_pixel_all_routes.js'], env=env, capture_output=True, text=True)
+    assert res_proto.returncode != 0
+    assert "INNOKAFE_BASE_URL must be http(s)" in res_proto.stderr
+
+    print("  [✓] Pixel scanner URL validation and shell-less array execution prevent CWE-78 injection.")
 
 
 def main():
@@ -944,8 +982,9 @@ def main():
     test_core_integrity_and_pdpd_erasure_tombstone()
     test_uom_financial_precision_and_attachment_guards()
     test_report_anti_genesis_and_escaping_mutation_matrix()
+    test_pixel_scanner_command_injection_guard()
     print("=" * 80)
-    print("ALL 17 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 18 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
