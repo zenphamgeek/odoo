@@ -21,11 +21,15 @@ import tokenize
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import List, Tuple, Optional, Dict
 
-PROTECTED_TOKENS = {
+PROTECTED_FRAMEWORK_IDENTIFIERS = {
     "odoo",
     "postgres",
     "admin",
     "insilos",
+    "innoria",
+}
+
+PROTECTED_CRED_WORDS = {
     "password",
     "secret",
     "bearer",
@@ -37,21 +41,27 @@ PROTECTED_TOKENS = {
 # must never live in source; compare resolved strings against these digests (CWE-259).
 # Populate via: python3 -c "import hashlib; print(hashlib.sha256(b'<secret>').hexdigest())"
 PROTECTED_SECRET_DIGESTS = {
-    # Legacy leaked password fingerprint (pre-rotation)
+    # Legacy leaked credential fingerprint (remediated & rotated)
     "1e923bfedc220f6747aa0824df6bc496f16820a24816004c93e2abb43ed0a08c",
 }
 
 
+def _get_constant_parts(node: ast.AST) -> Optional[List[str]]:
+    """Recursively resolves constituent constant string parts in an AST expression."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, str):
+        return [node.value]
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
+        left_parts = _get_constant_parts(node.left)
+        right_parts = _get_constant_parts(node.right)
+        if left_parts is not None and right_parts is not None:
+            return left_parts + right_parts
+    return None
+
+
 def _get_constant_str(node: ast.AST) -> Optional[str]:
     """Recursively resolves static string concatenation in AST."""
-    if isinstance(node, ast.Constant) and isinstance(node.value, str):
-        return node.value
-    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.Add):
-        left_str = _get_constant_str(node.left)
-        right_str = _get_constant_str(node.right)
-        if left_str is not None and right_str is not None:
-            return left_str + right_str
-    return None
+    parts = _get_constant_parts(node)
+    return "".join(parts) if parts is not None else None
 
 
 def extract_comments_by_line(content: str) -> Dict[int, str]:
@@ -88,26 +98,38 @@ class SecretEvasionVisitor(ast.NodeVisitor):
         """Checks for audit-scoped suppression directive strictly in a genuine Python comment."""
         comment = self.comments.get(lineno, "")
         if "ast-evasion-ignore" in comment or "evasion:ignore" in comment:
-            self.suppressions.append((lineno, comment.strip()))
+            stable_hash = hashlib.sha256(f"{self.filename}:{lineno}:{comment.strip()}".encode("utf-8")).hexdigest()[:12]
+            self.suppressions.append((lineno, comment.strip(), stable_hash))
             return True
         return False
 
-    def _check_combined(self, combined: str, lineno: int):
+    def _check_combined(self, combined: str, lineno: int, parts: Optional[List[str]] = None):
         if not combined:
             return
-        # 1. Check against sensitive secret SHA-256 digests (masked output, zero plaintext in source)
+        # 1. Check against sensitive secret SHA-256 digests (CWE-532: Zero plaintext bytes emitted)
         digest = hashlib.sha256(combined.encode("utf-8")).hexdigest()
         if digest in PROTECTED_SECRET_DIGESTS:
-            masked = (combined[:3] + "..." + combined[-2:]) if len(combined) > 5 else "***"
+            # Never re-emit any plaintext bytes of a known secret; identify by digest only
+            masked = f"<secret:sha256:{digest[:12]}…>"
             self.violations.append((lineno, masked, "secret-digest-match"))
             return
 
-        # 2. Check against protected framework identifiers / tokens
+        # 2. Check against protected framework identifiers (e.g. 'od' + 'oo', 'inno' + 'ria')
         combined_lower = combined.lower()
-        for token in PROTECTED_TOKENS:
+        for token in PROTECTED_FRAMEWORK_IDENTIFIERS:
             if token.lower() in combined_lower:
                 self.violations.append((lineno, combined, token))
-                break
+                return
+
+        # 3. Check against protected credential words (e.g. 'pass' + 'word', 'sec' + 'ret')
+        # Genuine evasion signature: assembled token spanning >= 2 parts where NO individual part contains the token.
+        # Innocent prose concatenations like "Invalid " + "token" do not flag because "token" is already in part 2.
+        for token in PROTECTED_CRED_WORDS:
+            t_lower = token.lower()
+            if t_lower in combined_lower:
+                if parts and len(parts) >= 2 and not any(t_lower in p.lower() for p in parts):
+                    self.violations.append((lineno, combined, token))
+                    return
 
     def visit_BinOp(self, node: ast.BinOp):
         if self._is_suppressed(node.lineno):
@@ -115,33 +137,32 @@ class SecretEvasionVisitor(ast.NodeVisitor):
             return
 
         if isinstance(node.op, ast.Add):
-            # Check string addition ('a' + 'b')
-            combined = _get_constant_str(node)
-            if combined:
-                self._check_combined(combined, node.lineno)
+            parts = _get_constant_parts(node)
+            if parts and len(parts) >= 2:
+                self._check_combined("".join(parts), node.lineno, parts=parts)
         elif isinstance(node.op, ast.Mod):
-            # Check string formatting ('od%soo' % '')
             left_str = _get_constant_str(node.left)
             if left_str is not None:
-                if isinstance(node.right, ast.Constant) and isinstance(node.right.value, str):
-                    try:
-                        formatted = left_str % node.right.value
-                        self._check_combined(formatted, node.lineno)
-                    except Exception:
-                        pass
-                elif isinstance(node.right, ast.Tuple):
-                    vals = []
+                args = []
+                if isinstance(node.right, ast.Tuple):
                     for elt in node.right.elts:
-                        if isinstance(elt, ast.Constant):
-                            vals.append(elt.value)
+                        c = _get_constant_str(elt)
+                        if c is not None:
+                            args.append(c)
                         else:
                             break
-                    if len(vals) == len(node.right.elts):
-                        try:
-                            formatted = left_str % tuple(vals)
-                            self._check_combined(formatted, node.lineno)
-                        except Exception:
-                            pass
+                    if len(args) != len(node.right.elts):
+                        args = []
+                else:
+                    c = _get_constant_str(node.right)
+                    if c is not None:
+                        args = [c]
+                if args:
+                    try:
+                        formatted = left_str % tuple(args)
+                        self._check_combined(formatted, node.lineno, parts=[left_str] + args)
+                    except Exception:
+                        pass
 
         self.generic_visit(node)
 
@@ -151,18 +172,20 @@ class SecretEvasionVisitor(ast.NodeVisitor):
             self.generic_visit(node)
             return
 
-        current_run = []
+        parts: List[str] = []
         for val in node.values:
             if isinstance(val, ast.Constant) and isinstance(val.value, str):
-                current_run.append(val.value)
-            elif isinstance(val, ast.FormattedValue) and isinstance(val.value, ast.Constant) and isinstance(val.value.value, str):
-                current_run.append(val.value.value)
-            else:
-                if len(current_run) >= 2:
-                    self._check_combined("".join(current_run), node.lineno)
-                current_run = []
-        if len(current_run) >= 2:
-            self._check_combined("".join(current_run), node.lineno)
+                parts.append(val.value)
+            elif isinstance(val, ast.FormattedValue):
+                inner = val.value
+                c = _get_constant_str(inner)
+                if c is not None:
+                    parts.append(c)
+                else:
+                    parts = []
+                    break
+        if len(parts) >= 2:
+            self._check_combined("".join(parts), node.lineno, parts=parts)
 
         self.generic_visit(node)
 
@@ -191,7 +214,7 @@ class SecretEvasionVisitor(ast.NodeVisitor):
                     break
             if len(elems) == len(node.args[0].elts) and len(elems) >= 2:
                 combined = sep.join(elems)
-                self._check_combined(combined, node.lineno)
+                self._check_combined(combined, node.lineno, parts=elems)
 
         self.generic_visit(node)
 
