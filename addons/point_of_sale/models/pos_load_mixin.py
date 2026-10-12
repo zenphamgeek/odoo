@@ -97,15 +97,20 @@ class PosLoadMixin(models.AbstractModel):
         except (ValueError, TypeError):
             accepts_config = False
             _logger.warning(
-                "POS: could not introspect %s._load_pos_data_domain; defaulting to single-arg dispatch",
+                "POS: could not introspect %s._load_pos_data_domain; "
+                "attempting config-aware dispatch first to preserve data scoping",
                 self._name,
             )
 
-        domain = (
-            self._load_pos_data_domain(adapted_data, config)
-            if accepts_config
-            else self._load_pos_data_domain(adapted_data)
-        )
+        if accepts_config:
+            domain = self._load_pos_data_domain(adapted_data, config)
+        else:
+            # Prefer the scoped signature even when introspection failed; only
+            # fall back to single-arg if the scoped call raises a TypeError.
+            try:
+                domain = self._load_pos_data_domain(adapted_data, config)
+            except TypeError:
+                domain = self._load_pos_data_domain(adapted_data)
         return {
             'domain': domain,
             'dependencies': self._load_pos_data_dependencies(),

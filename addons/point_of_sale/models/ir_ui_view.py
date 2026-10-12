@@ -29,7 +29,8 @@ class IrUiView(models.Model):
                 if isinstance(res, (tuple, list)):
                     template = res[1] if len(res) >= 2 else False
                     ref = res[2] if len(res) >= 3 else False
-                    view_id = ref if isinstance(ref, int) else (
+                    # bool is an int subclass in Python; exclude it explicitly to avoid id=1/0 ghosts
+                    view_id = ref if (isinstance(ref, int) and not isinstance(ref, bool)) else (
                         self.env['ir.model.data']._xmlid_to_res_id(key, raise_if_not_found=False) or False
                     )
                 else:
@@ -38,6 +39,10 @@ class IrUiView(models.Model):
                 view_id = self.env['ir.model.data']._xmlid_to_res_id(key, raise_if_not_found=False) or False
                 template = False
                 _logger.warning("POS: QWeb template missing or failed to compile for xmlid %r: %s", key, err)
+            except Exception as err:  # noqa: BLE001 - isolate one bad template from the whole load
+                view_id = False
+                template = False
+                _logger.exception("POS: unexpected failure resolving xmlid %r; skipping: %s", key, err)
 
             if not view_id:
                 # Unresolved view: skip rather than emitting id=False rows that would collide in client stores

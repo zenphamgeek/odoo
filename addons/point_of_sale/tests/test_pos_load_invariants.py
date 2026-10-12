@@ -198,73 +198,114 @@ class TestPosLoadInvariants(unittest.TestCase):
         self.assertEqual(rule_field.column1, 'loyalty_rule_id')
         self.assertEqual(rule_field.column2, 'product_product_id')
 
-    def test_10_unresolved_xmlids_do_not_collide(self):
-        """Verify that unresolved views are skipped rather than emitting colliding id: False rows."""
-        raw_keys = ['valid.one', 'missing.one', 'missing.two']
-        simulated_records = []
-        for key in raw_keys:
-            if 'missing' in key:
-                view_id = False
-                template = False
-            else:
-                view_id = 101
-                template = "<t t-name='valid.one'/>"
+    def test_10_ir_ui_view_real_execution_and_collision_prevention(self):
+        """Exercise IrUiView._load_pos_data_read directly to prove unresolved views are skipped without id collisions."""
+        from unittest.mock import MagicMock, patch
+        from odoo.addons.point_of_sale.models.ir_ui_view import IrUiView
+        from odoo.addons.point_of_sale.models.pos_load_mixin import PosLoadMixin
 
-            if not view_id:
-                # Skipped per hardening rule
-                continue
+        class ConcreteIrUiView(IrUiView, PosLoadMixin):
+            _register = False
+            def _get_xml_ids_to_load(self):
+                return ['pos.view_ok_1', 'pos.view_missing_1', 'pos.view_ok_2', 'pos.view_missing_2']
 
-            simulated_records.append({
-                'id': view_id,
-                'key': key,
-                '_template': template,
-            })
+        env = {
+            'ir.qweb': MagicMock(),
+            'ir.model.data': MagicMock(),
+        }
+        def fake_get_template(key):
+            if key == 'pos.view_ok_1':
+                return ('<tree/>', '<t t-name="pos.view_ok_1"/>', 101)
+            elif key == 'pos.view_ok_2':
+                return ('<tree/>', '<t t-name="pos.view_ok_2"/>', 102)
+            raise KeyError(key)
 
-        # Ensure no records have id=False, and all ids are distinct integers
-        ids = [r['id'] for r in simulated_records]
-        self.assertEqual(len(ids), 1)
-        self.assertNotIn(False, ids)
-        self.assertEqual(len(ids), len(set(ids)), "Emitted view IDs must be unique integers")
+        env['ir.qweb']._get_template = fake_get_template
+        env['ir.model.data']._xmlid_to_res_id = lambda k, **kw: False
 
-    def test_11_get_template_arity_tolerance(self):
-        """Verify that template extraction handles both 2-tuple and 3-tuple return shapes cleanly."""
-        res_2tuple = ("<tree>", "<template>t2</template>")
-        res_3tuple = ("<tree>", "<template>t3</template>", 202)
+        inst = ConcreteIrUiView(env, (), ())
+        with patch.object(PosLoadMixin, '_load_pos_data_read', return_value=[]):
+            records = inst._load_pos_data_read(inst, {'id': 1})
 
-        def extract(res):
-            template = res[1] if len(res) >= 2 else False
-            ref = res[2] if len(res) >= 3 else False
-            view_id = ref if isinstance(ref, int) else False
-            return view_id, template
+        ids = [r['id'] for r in records]
+        self.assertEqual(len(ids), 2)
+        self.assertEqual(ids, [101, 102])
+        self.assertNotIn(False, ids, "Unresolved views must never emit id=False")
+        self.assertEqual(len(ids), len(set(ids)), "Emitted IDs must be distinct integers")
 
-        v2, t2 = extract(res_2tuple)
-        v3, t3 = extract(res_3tuple)
+    def test_11_ir_ui_view_bool_ref_exclusion_and_compile_isolation(self):
+        """Prove that bool refs are excluded from becoming integer IDs, and compilation errors are isolated."""
+        from unittest.mock import MagicMock, patch
+        from odoo.addons.point_of_sale.models.ir_ui_view import IrUiView
+        from odoo.addons.point_of_sale.models.pos_load_mixin import PosLoadMixin
 
-        self.assertEqual(v2, False)
-        self.assertEqual(t2, "<template>t2</template>")
-        self.assertEqual(v3, 202)
-        self.assertEqual(t3, "<template>t3</template>")
+        class ConcreteIrUiView(IrUiView, PosLoadMixin):
+            _register = False
+            def _get_xml_ids_to_load(self):
+                return ['pos.view_normal', 'pos.view_bool_ref', 'pos.view_broken', 'pos.view_subsequent']
 
-    def test_12_signature_fallback_logs_warning(self):
-        """Verify that an uninstrospectable callable triggers observable warning logging."""
-        import logging
-        class Unintrospectable:
+        env = {
+            'ir.qweb': MagicMock(),
+            'ir.model.data': MagicMock(),
+        }
+        def fake_get_template(key):
+            if key == 'pos.view_normal':
+                return ('<tree/>', '<t t-name="pos.view_normal"/>', 201)
+            elif key == 'pos.view_bool_ref':
+                return ('<tree/>', '<t t-name="pos.view_bool_ref"/>', True)  # bool ref
+            elif key == 'pos.view_broken':
+                raise RuntimeError("Unexpected QWeb parser panic")
+            elif key == 'pos.view_subsequent':
+                return ('<tree/>', '<t t-name="pos.view_subsequent"/>', 203)
+
+        def fake_xmlid_to_res_id(key, raise_if_not_found=False):
+            if key == 'pos.view_bool_ref':
+                return 202
+            return False
+
+        env['ir.qweb']._get_template = fake_get_template
+        env['ir.model.data']._xmlid_to_res_id = fake_xmlid_to_res_id
+
+        inst = ConcreteIrUiView(env, (), ())
+        with patch.object(PosLoadMixin, '_load_pos_data_read', return_value=[]):
+            records = inst._load_pos_data_read(inst, {'id': 1})
+
+        ids = [r['id'] for r in records]
+        self.assertEqual(ids, [201, 202, 203], "Broken template must be isolated; subsequent view 203 must load")
+        self.assertTrue(all(isinstance(i, int) and not isinstance(i, bool) for i in ids))
+
+    def test_12_pos_load_mixin_unintrospectable_scope_preservation(self):
+        """Prove that PosLoadMixin passes config to un-introspectable models to preserve data scoping."""
+        from odoo.addons.point_of_sale.models.pos_load_mixin import PosLoadMixin
+
+        class ScopedUnintrospectableModel(PosLoadMixin):
+            _register = False
+            _name = 'pos.scoped.test'
+            received_config = None
+
             @property
             def __signature__(self):
-                raise TypeError("Simulation of exotic C-extension or broken decorator")
-            def __call__(self, data):
+                raise TypeError("Custom decorator obscures signature")
+
+            def _load_pos_data_fields(self, config):
                 return []
 
-        weird = Unintrospectable()
-        with self.assertLogs('odoo.addons.point_of_sale.models.pos_load_mixin', level='WARNING') as cm:
-            try:
-                sig = inspect.signature(inspect.unwrap(weird))
-                accepts = len(sig.parameters) > 1
-            except (ValueError, TypeError):
-                accepts = False
-                logging.getLogger('odoo.addons.point_of_sale.models.pos_load_mixin').warning(
-                    "POS: could not introspect weird._load_pos_data_domain; defaulting to single-arg dispatch"
-                )
+            def _load_pos_data_dependencies(self):
+                return []
 
-        self.assertFalse(accepts)
-        self.assertTrue(any("could not introspect" in msg for msg in cm.output))
+            def _load_data_relations(self, fields):
+                return {}
+
+            def _load_pos_data_domain(self, data, config=None):
+                ScopedUnintrospectableModel.received_config = config
+                return [('pos_config_id', '=', config.get('id') if config else False)]
+
+        model = ScopedUnintrospectableModel(None, (), ())
+        payload = {
+            'pos.config': {'records': {'id': 99}},
+            'pos.scoped.test': {'records': []},
+        }
+        res = model._load_pos_data_domain_and_dependencies(payload)
+        self.assertEqual(res['domain'], [('pos_config_id', '=', 99)],
+                         "Un-introspectable callable must receive config to maintain multi-tenant/shop scoping")
+        self.assertEqual(ScopedUnintrospectableModel.received_config, {'id': 99})
