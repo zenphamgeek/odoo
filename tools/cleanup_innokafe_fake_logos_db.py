@@ -282,7 +282,7 @@ def main():
     if args.target == "local":
         host = os.environ.get("DB_HOST", "127.0.0.1")
         port = int(os.environ.get("DB_PORT", 5434))
-        user = os.environ.get("DB_USER", "odoo")  # dev-local default username; not a credential
+        user = os.environ.get("DB_USER", "insilos")
         password = _require_env("PGPASSWORD", "DB_PASSWORD")
         dbname = os.environ.get("DB_NAME", "innokafe_prod")
     else:  # prod_pod

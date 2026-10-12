@@ -332,7 +332,7 @@ def _preflight_pricelist_shim(pricelist_tool: str) -> None:
 
     # Semantic parity verification using isolated execution against golden vectors
     from unittest.mock import MagicMock
-    from odoo.addons.product.models.product_pricelist_item import ProductPricelistItem
+    from insilos.addons.product.models.product_pricelist_item import ProductPricelistItem
 
     mock_item = MagicMock(spec=ProductPricelistItem)
     mock_item.base = 'list_price'
