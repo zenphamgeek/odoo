@@ -1067,9 +1067,14 @@ def test_report_anti_genesis_and_escaping_mutation_matrix():
 
     from unittest.mock import MagicMock
     import datetime
+    from odoo import SUPERUSER_ID
+
     mock_order = MagicMock()
     mock_order._name = 'sale.order'
     mock_order.id = 777
+    mock_order.company_id.id = 1
+    mock_order.amount_total = 500000000.0
+    mock_order.currency_id.id = 23  # VND
     mock_order.write_date = datetime.datetime(2026, 10, 15, 12, 0, 0)
     mock_order.ensure_one.return_value = True
 
@@ -1078,35 +1083,89 @@ def test_report_anti_genesis_and_escaping_mutation_matrix():
     assert h1 == h2 and len(h1) == 64, "Report content hash must be deterministic 64-char SHA-256"
 
     # Mutation test: mutation in write_date changes content hash
-    mock_order_mutated = MagicMock()
-    mock_order_mutated._name = 'sale.order'
-    mock_order_mutated.id = 777
-    mock_order_mutated.write_date = datetime.datetime(2026, 10, 15, 12, 0, 1)
-    mock_order_mutated.ensure_one.return_value = True
-    h3 = SaleOrder._get_al2c_report_content_hash(mock_order_mutated, 'insilos_al2c.report_sales_proposal')
-    assert h1 != h3, "Mutating document state must alter report content hash"
+    mock_order_wdate = MagicMock()
+    mock_order_wdate._name = 'sale.order'
+    mock_order_wdate.id = 777
+    mock_order_wdate.company_id.id = 1
+    mock_order_wdate.amount_total = 500000000.0
+    mock_order_wdate.currency_id.id = 23
+    mock_order_wdate.write_date = datetime.datetime(2026, 10, 15, 12, 0, 1)
+    mock_order_wdate.ensure_one.return_value = True
+    h3 = SaleOrder._get_al2c_report_content_hash(mock_order_wdate, 'insilos_al2c.report_sales_proposal')
+    assert h1 != h3, "Mutating write_date must alter report content hash"
 
-    # 8. Concurrency Collision & Conflict Reread Invariant (Finding 7)
-    mock_att = MagicMock(name='mock_winning_attachment')
+    # Monetary freshness test: changing amount_total invalidates stale cache (CWE-345 / Accounting Correctness)
+    mock_order_price = MagicMock()
+    mock_order_price._name = 'sale.order'
+    mock_order_price.id = 777
+    mock_order_price.company_id.id = 1
+    mock_order_price.amount_total = 600000000.0
+    mock_order_price.currency_id.id = 23
+    mock_order_price.write_date = datetime.datetime(2026, 10, 15, 12, 0, 0)
+    mock_order_price.ensure_one.return_value = True
+    h_price = SaleOrder._get_al2c_report_content_hash(mock_order_price, 'insilos_al2c.report_sales_proposal')
+    assert h1 != h_price, "Altering amount_total must invalidate content hash to avoid stale financial reports"
+
+    # Multi-tenant company boundary test: different company produces different hash
+    mock_order_comp = MagicMock()
+    mock_order_comp._name = 'sale.order'
+    mock_order_comp.id = 777
+    mock_order_comp.company_id.id = 2
+    mock_order_comp.amount_total = 500000000.0
+    mock_order_comp.currency_id.id = 23
+    mock_order_comp.write_date = datetime.datetime(2026, 10, 15, 12, 0, 0)
+    mock_order_comp.ensure_one.return_value = True
+    h_comp = SaleOrder._get_al2c_report_content_hash(mock_order_comp, 'insilos_al2c.report_sales_proposal')
+    assert h1 != h_comp, "Cross-company separation must be reflected in content hash"
+
+    # 8. Advisory-Lock Concurrency & Trust Filter (CWE-345, CWE-20, CWE-362)
+    mock_order._get_al2c_report_content_hash = lambda *a, **k: SaleOrder._get_al2c_report_content_hash(mock_order, *a, **k)
     mock_attachment_model = MagicMock()
     mock_env = MagicMock()
     mock_order.env = mock_env
     mock_env['ir.attachment'].sudo.return_value = mock_attachment_model
 
-    # Simulate race condition: search initially finds nothing, create raises UniqueViolation/Collision
-    mock_attachment_model.search.side_effect = [[], mock_att]
-    mock_attachment_model.create.side_effect = Exception("duplicate key value violates unique constraint 'ir_attachment_pkey'")
+    # 8.1 Input Contract Invariant (CWE-20): Non-bytes payload must raise ValueError
+    try:
+        SaleOrder._get_cached_report_attachment(
+            mock_order,
+            'insilos_al2c.report_sales_proposal',
+            create_content="malicious_string_not_bytes",
+        )
+        raise AssertionError("CWE-20 Failure: string payload accepted instead of bytes!")
+    except ValueError as val_err:
+        assert "create_content must be raw PDF bytes" in str(val_err)
 
-    cached_res = SaleOrder._get_cached_report_attachment(
+    # 8.2 Trust Filter Verification: Search domain must enforce create_uid = SUPERUSER_ID & PDF mimetype
+    mock_attachment_model.search.side_effect = [[], []]
+    SaleOrder._get_cached_report_attachment(
         mock_order,
         'insilos_al2c.report_sales_proposal',
-        create_content=b'%PDF-test-proposal',
+        create_content=b'%PDF-1.7 safe proposal binary content',
     )
-    assert cached_res is mock_att, "Must safely rollback savepoint and reread canonical winning attachment on concurrency collision"
-    assert mock_attachment_model.search.call_count == 2, "Must perform initial lookup and post-collision conflict reread"
-    assert mock_attachment_model.create.call_count == 1, "Must attempt atomic creation within savepoint"
+    search_call_args = mock_attachment_model.search.call_args_list[0][0][0]
+    assert ('create_uid', '=', SUPERUSER_ID) in search_call_args, "Search must enforce system-only create_uid"
+    assert ('type', '=', 'binary') in search_call_args, "Search must enforce type = binary"
+    assert ('mimetype', '=', 'application/pdf') in search_call_args, "Search must enforce mimetype = application/pdf"
 
-    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), {len(xml_files)} XML files well-formed, content-hash idempotency, concurrency collision reread, and strict &amp;/UoM invariants verified.")
+    # 8.3 Concurrency Serialization: Advisory lock execution
+    mock_order.env.cr.execute.assert_called()
+    lock_call = [call for call in mock_order.env.cr.execute.call_args_list if "pg_advisory_xact_lock" in str(call)]
+    assert len(lock_call) >= 1, "Advisory lock (pg_advisory_xact_lock) must be acquired before creation"
+
+    # 8.4 Re-check under lock: if another worker committed, return existing without calling create
+    mock_att_winning = MagicMock(name='mock_winning_under_lock')
+    mock_attachment_model.reset_mock()
+    mock_attachment_model.search.side_effect = [[], mock_att_winning]
+    cached_under_lock = SaleOrder._get_cached_report_attachment(
+        mock_order,
+        'insilos_al2c.report_sales_proposal',
+        create_content=b'%PDF-1.7 race content',
+    )
+    assert cached_under_lock is mock_att_winning, "Re-check under lock must return winning attachment"
+    assert mock_attachment_model.create.call_count == 0, "Must not create duplicate when winning attachment found under lock"
+
+    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), {len(xml_files)} XML files well-formed, content-hash idempotency, advisory-lock concurrency, trust-filter anti-poisoning, and strict &amp;/UoM invariants verified.")
 
 
 def test_pixel_scanner_command_injection_guard():
@@ -1809,6 +1868,134 @@ def test_namespace_alias_contract():
     print("  [✓] Model identity, fail-closed resolver contract, and differential pricing oracle verified.")
 
 
+def test_svg_asset_sanitization_and_stealth():
+    print("[TEST SVG ASSET SANITIZATION & STEALTH] CWE-79/XXE: Stored XSS Prevention, Active-Content Gate & Stealth Audit")
+    import ast
+    import glob
+    import os
+    import re
+    import sys
+    import subprocess
+    import defusedxml.ElementTree as ET
+
+    def audit_and_sanitize_svg(content: str, source_desc: str = 'SVG Payload'):
+        try:
+            root = ET.fromstring(content)
+        except Exception as e:
+            raise ValueError(f"{source_desc} XML parsing/security error: {e}")
+
+        DISALLOWED_TAGS = {
+            'script', 'foreignobject', 'animate', 'set', 'handler', 'listener',
+            'iframe', 'embed', 'object', 'audio', 'video', 'meta', 'link'
+        }
+
+        for el in root.iter():
+            tag = el.tag.split('}')[-1].lower() if '}' in el.tag else el.tag.lower()
+            if tag in DISALLOWED_TAGS or 'script' in tag:
+                raise ValueError(f"{source_desc}: Forbidden active tag detected: <{tag}>")
+
+            for attr, val in el.attrib.items():
+                attr_local = attr.split('}')[-1].lower() if '}' in attr else attr.lower()
+                if attr_local.startswith('on'):
+                    raise ValueError(f"{source_desc}: Forbidden event handler detected: {attr}=\"{val}\"")
+
+                val_norm = re.sub(r'[\s\x00-\x1f]', '', str(val).lower())
+                if any(p in val_norm for p in ['javascript:', 'vbscript:', 'data:text/html']):
+                    raise ValueError(f"{source_desc}: Forbidden script URI protocol in {attr}: \"{val}\"")
+
+                if attr_local in ('href', 'xlink:href'):
+                    if str(val).strip().startswith(('http://', 'https://', 'ftp://')):
+                        raise ValueError(f"{source_desc}: Forbidden external network reference in SVG: {attr}=\"{val}\"")
+                    if tag == 'use' and not str(val).strip().startswith('#'):
+                        raise ValueError(f"{source_desc}: Forbidden non-fragment <use> reference: {val}")
+        return True
+
+    # 1. Audit logo_innoria_header.svg
+    assert os.path.exists('logo_innoria_header.svg'), 'logo_innoria_header.svg must exist'
+    with open('logo_innoria_header.svg', 'r', encoding='utf-8') as f:
+        logo_content = f.read()
+    assert audit_and_sanitize_svg(logo_content, 'logo_innoria_header.svg') is True, 'logo_innoria_header.svg must be clean'
+    assert '<path' in logo_content and '<defs>' in logo_content, 'logo_innoria_header.svg must have genuine vector paths'
+
+    # 2. Audit all workspace custom SVGs (addons/insilos* and enterprise/insilos*)
+    custom_svgs = (
+        glob.glob('addons/insilos*/**/*.svg', recursive=True) +
+        glob.glob('enterprise/insilos*/**/*.svg', recursive=True) +
+        glob.glob('*.svg')
+    )
+    assert len(custom_svgs) >= 100, f'Expected >= 100 custom SVGs across insilos modules, found {len(custom_svgs)}'
+    for fpath in custom_svgs:
+        with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
+            c = f.read()
+        if c.strip():
+            assert audit_and_sanitize_svg(c, fpath) is True, f"SVG validation failed for {fpath}"
+
+    # 3. Adversarial Tripwire Matrix: 10/10 vectors must be killed with ValueError
+    adversarial_payloads = [
+        ('<svg><script>alert(1)</script></svg>', 'script tag'),
+        ('<svg onload="alert(1)"><rect width="10" height="10"/></svg>', 'root onload handler'),
+        ('<svg><circle cx="5" cy="5" r="5" onerror="alert(1)"/></svg>', 'child onerror handler'),
+        ('<svg><foreignObject><div>test</div></foreignObject></svg>', 'foreignObject container'),
+        ('<svg><a href="javascript:alert(1)"><text>click</text></a></svg>', 'href javascript:'),
+        ('<svg><a href="  java\nscript:alert(1)"><text>click</text></a></svg>', 'obfuscated javascript:'),
+        ('<svg><use href="https://evil.corp/payload.svg#x"/></svg>', 'external network use href'),
+        ('<svg><rect width="10"><animate attributeName="width" from="0" to="10"/></rect></svg>', 'animate tag'),
+        ('<svg><rect width="10"><set attributeName="width" to="20"/></rect></svg>', 'set tag'),
+        ('<?xml version="1.0"?><!DOCTYPE svg [<!ENTITY xxe SYSTEM "file:///etc/passwd">]><svg><text>&xxe;</text></svg>', 'XXE entity expansion bomb'),
+    ]
+
+    killed_vectors = 0
+    for payload, desc in adversarial_payloads:
+        try:
+            audit_and_sanitize_svg(payload, f"Tripwire: {desc}")
+            raise AssertionError(f"Security regression: Adversarial SVG payload NOT killed: {desc}")
+        except ValueError:
+            killed_vectors += 1
+
+    assert killed_vectors == len(adversarial_payloads) == 10, f"Expected 10/10 killed attack vectors, got {killed_vectors}"
+
+    # 4. Untracked Tooling Stealth & Path Traversal Guard
+    untracked_tools = [
+        'tools/al2c_multirepo_scanner.py',
+        'tools/apply_residual_unslop.py',
+        'tools/al2c_catalog_lint.py',
+    ]
+    for tool_path in untracked_tools:
+        assert os.path.exists(tool_path), f"{tool_path} must exist"
+        with open(tool_path, 'r', encoding='utf-8') as f:
+            tool_ast = ast.parse(f.read(), filename=tool_path)
+
+        # Verify strict stealth invariant: zero outbound HTTP/network/quota scraping libraries
+        for node in ast.walk(tool_ast):
+            if isinstance(node, ast.Import):
+                for alias in node.names:
+                    assert alias.name not in {'requests', 'urllib.request', 'aiohttp', 'httpx'}, f"Strict stealth violation: {tool_path} imports {alias.name}"
+            elif isinstance(node, ast.ImportFrom):
+                assert node.module not in {'requests', 'urllib.request', 'aiohttp', 'httpx'}, f"Strict stealth violation: {tool_path} imports from {node.module}"
+
+    # 4.1 Verify al2c_multirepo_scanner path traversal fail-closed
+    res_trav = subprocess.run(
+        [sys.executable, 'tools/al2c_multirepo_scanner.py', '--output', '../traversal_test.md'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    assert res_trav.returncode == 1, "al2c_multirepo_scanner must fail-closed on path traversal"
+    assert 'traversal forbidden' in res_trav.stderr.lower(), "Expected traversal error in stderr"
+
+    # 4.2 Verify al2c_catalog_lint loopback guard fail-closed
+    res_loopback = subprocess.run(
+        [sys.executable, 'tools/al2c_catalog_lint.py', '--url', 'http://malicious.external.host:8080', '--password', 'dummy'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+    )
+    assert res_loopback.returncode == 1, "al2c_catalog_lint must fail-closed on non-loopback host"
+    assert 'loopback guard' in res_loopback.stderr.lower(), "Expected loopback guard error in stderr"
+
+    print(f"  [✓] logo_innoria_header.svg safe, {len(custom_svgs)} repo SVGs verified, 10/10 adversarial attack vectors killed, and untracked tooling stealth/traversal invariants verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -1836,8 +2023,9 @@ def main():
     test_database_branding_cleaner_security_and_idempotency()
     test_ast_secret_evasion_linter()
     test_namespace_alias_contract()
+    test_svg_asset_sanitization_and_stealth()
     print("=" * 80)
-    print("ALL 23 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 24 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
