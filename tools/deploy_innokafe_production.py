@@ -33,6 +33,7 @@ import argparse
 import hashlib
 import os
 import re
+import shlex
 import subprocess
 import sys
 import time
@@ -41,6 +42,16 @@ from typing import Dict, List, Tuple
 NAMESPACE = "production"
 CONTAINER = "insilos"
 ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+
+_K8S_NAME_RE = re.compile(r"^[a-z0-9]([-a-z0-9.]{0,251}[a-z0-9])?$")
+
+
+def _safe_ident(value: str, field: str) -> str:
+    """Guards against shell injection and metacharacters in Kubernetes resource names (CWE-78, CWE-20)."""
+    if not isinstance(value, str) or not _K8S_NAME_RE.match(value):
+        raise ValueError(f"Security Invariant Violated: Refusing unsafe {field!r}: {value!r}")
+    return value
+
 
 # In-pod script to gracefully retire child HTTP workers one by one via SIGINT
 WORKER_RELOAD_SCRIPT = """
@@ -148,10 +159,19 @@ print("[✓] Pod local health probes passed for all tenant hosts.", flush=True)
 """
 
 
-def run_cmd(cmd: str, check: bool = False, timeout: int = 120) -> subprocess.CompletedProcess:
-    res = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
+def run_cmd(cmd: List[str], check: bool = False, timeout: int = 120) -> subprocess.CompletedProcess:
+    """
+    Executes an explicit argv argument list with shell=False.
+    Fails closed with TypeError if a shell string is passed (CWE-78 guard).
+    """
+    if isinstance(cmd, str):
+        raise TypeError(
+            "Security Invariant Violated: run_cmd requires an argv List[str], "
+            "not a shell string (CWE-78 guard)"
+        )
+    res = subprocess.run(cmd, shell=False, capture_output=True, text=True, timeout=timeout)
     if check and res.returncode != 0:
-        raise RuntimeError(f"Command failed ({res.returncode}): {cmd}\nStdout: {res.stdout}\nStderr: {res.stderr}")
+        raise RuntimeError(f"Command failed ({res.returncode}): {' '.join(cmd)}\nStdout: {res.stdout}\nStderr: {res.stderr}")
     return res
 
 
@@ -163,12 +183,18 @@ def step_banner(num: int, title: str) -> None:
 
 def discover_active_pods(namespace: str = NAMESPACE) -> List[str]:
     step_banner(0, "Discovering Active Kubernetes Pods")
+    ns = _safe_ident(namespace, "namespace")
     pod_out = run_cmd(
-        f"kubectl get pods -n {namespace} -l app=insilos-saas --field-selector=status.phase=Running -o jsonpath='{{.items[*].metadata.name}}'",
+        [
+            "kubectl", "get", "pods", "-n", ns,
+            "-l", "app=insilos-saas",
+            "--field-selector=status.phase=Running",
+            "-o", "jsonpath={.items[*].metadata.name}"
+        ],
         check=True
     )
     raw_pods = [p.strip() for p in pod_out.stdout.split() if p.strip()]
-    pods = [p for p in raw_pods if re.match(r"^[a-zA-Z0-9.-]+$", p)]
+    pods = [_safe_ident(p, "pod") for p in raw_pods]
     print(f"[✓] Found {len(pods)} running pods: {pods}")
     if not pods:
         raise RuntimeError(f"No running insilos-saas pods found in namespace {namespace}! Aborting.")
@@ -225,6 +251,10 @@ MEDIA_ASSETS = [
     "enterprise/innokafe_website/static/src/img/branding/innokafe_logo_dark.svg",
     "enterprise/innokafe_website/static/src/img/branding/innokafe_logo_white.svg",
     "enterprise/innokafe_website/static/src/img/branding/innokafe_mark_symbol.svg",
+    "enterprise/innokafe_website/static/src/img/photography/cooling_tray_artisan_roast.webp",
+    "enterprise/innokafe_website/static/src/img/photography/natural_raised_beds_drying.webp",
+    "enterprise/innokafe_website/static/src/img/photography/artisan_farmer_hands_harvest.webp",
+    "enterprise/innokafe_website/static/src/img/photography/farm_plantation_mist.webp",
 ]
 
 
@@ -246,7 +276,7 @@ def package_innokafe_archive() -> str:
     if not os.path.isdir(src_dir):
         raise FileNotFoundError(f"Source directory not found: {src_dir}")
 
-    cmd = f"tar -czf {tar_path} -C {src_dir} ."
+    cmd = ["tar", "-czf", tar_path, "-C", src_dir, "."]
     run_cmd(cmd, check=True)
     tar_size = os.path.getsize(tar_path)
     print(f"[✓] Successfully packaged {tar_path} ({tar_size} bytes)")
@@ -255,6 +285,8 @@ def package_innokafe_archive() -> str:
 
 def verify_md5_parity(pods: List[str], namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
     step_banner(3, "Cryptographic MD5 Parity Audit Across All Pods")
+    ns = _safe_ident(namespace, "namespace")
+    co = _safe_ident(container, "container")
     local_hashes: Dict[str, str] = {}
     for asset in MEDIA_ASSETS:
         h = compute_local_md5(asset)
@@ -263,64 +295,92 @@ def verify_md5_parity(pods: List[str], namespace: str = NAMESPACE, container: st
         print(f"[*] Local {filename:<45} MD5: {h}")
 
     for pod in pods:
-        print(f"\n--- Verifying Pod {pod} ---")
+        po = _safe_ident(pod, "pod")
+        print(f"\n--- Verifying Pod {po} ---")
         for asset in MEDIA_ASSETS:
             subpath = asset.replace("enterprise/innokafe_website/", "")
             pod_file = f"/app/insilos/enterprise/innokafe_website/{subpath}"
-            cmd = f"kubectl exec -n {namespace} {pod} -c {container} -- md5sum {pod_file}"
+            cmd = ["kubectl", "exec", "-n", ns, po, "-c", co, "--", "md5sum", pod_file]
             res = run_cmd(cmd)
             if res.returncode != 0:
-                raise RuntimeError(f"Missing file on {pod}: {pod_file}")
+                raise RuntimeError(f"Missing file on {po}: {pod_file}")
             pod_hash = res.stdout.strip().split()[0]
             expected_hash = local_hashes[asset]
             filename = os.path.basename(asset)
             if pod_hash != expected_hash:
                 raise RuntimeError(
-                    f"MD5 MISMATCH on {pod} for {filename}!\nExpected: {expected_hash}\nGot:      {pod_hash}"
+                    f"MD5 MISMATCH on {po} for {filename}!\nExpected: {expected_hash}\nGot:      {pod_hash}"
                 )
             print(f"  [✓] {filename:<40} MATCH: {pod_hash}")
 
-    print("\n[✓] 100% Cryptographic MD5 parity confirmed across all 3 pods.")
+    print("\n[✓] 100% Cryptographic MD5 parity confirmed across all pods.")
 
 
 def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
     step_banner(3, "Deploying Archive & Sync Tools to All Pods in Parallel")
-    deploy_procs = []
+    ns = _safe_ident(namespace, "namespace")
+    co = _safe_ident(container, "container")
+    validated_pods = [_safe_ident(p, "pod") for p in pods]
+
+    if not os.path.isfile(tar_path):
+        raise FileNotFoundError(f"Tar archive not found: {tar_path}")
+
     sync_tool = os.path.join(ROOT_DIR, "tools", "sync_innokafe_views_db.py")
     warmup_tool = os.path.join(ROOT_DIR, "tools", "safe_asset_warmup.py")
+    if not os.path.isfile(sync_tool):
+        raise FileNotFoundError(f"Sync tool not found: {sync_tool}")
+    if not os.path.isfile(warmup_tool):
+        raise FileNotFoundError(f"Warmup tool not found: {warmup_tool}")
 
-    for pod in pods:
-        cmd = (
-            f"kubectl cp -n {namespace} -c {container} {tar_path} {pod}:/tmp/innokafe_website_sync.tar.gz && "
-            f"kubectl cp -n {namespace} -c {container} {sync_tool} {pod}:/tmp/sync_innokafe_views_db.py && "
-            f"kubectl cp -n {namespace} -c {container} {warmup_tool} {pod}:/tmp/safe_asset_warmup.py && "
-            f"kubectl exec -n {namespace} {pod} -c {container} -- sh -c '"
-            f"mkdir -p /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website && "
-            f"tar -xzf /tmp/innokafe_website_sync.tar.gz -C /app/insilos/enterprise/innokafe_website/ && "
-            f"tar -xzf /tmp/innokafe_website_sync.tar.gz -C /app/insilos/apps/innokafe_website/ && "
-            f"chown -R insilos:insilos /app/insilos/enterprise/innokafe_website /app/insilos/apps/innokafe_website /tmp/sync_innokafe_views_db.py /tmp/safe_asset_warmup.py && "
-            f"rm -f /tmp/innokafe_website_sync.tar.gz'"
-        )
-        p = subprocess.Popen(cmd, shell=True)
-        deploy_procs.append((pod, p))
+    remote_script = (
+        "mkdir -p /app/insilos/enterprise/innokafe_website "
+        "/app/insilos/apps/innokafe_website && "
+        "tar --no-same-owner --no-same-permissions -xzf /tmp/innokafe_website_sync.tar.gz "
+        "-C /app/insilos/enterprise/innokafe_website/ && "
+        "tar --no-same-owner --no-same-permissions -xzf /tmp/innokafe_website_sync.tar.gz "
+        "-C /app/insilos/apps/innokafe_website/ && "
+        "chown -R insilos:insilos /app/insilos/enterprise/innokafe_website "
+        "/app/insilos/apps/innokafe_website "
+        "/tmp/sync_innokafe_views_db.py /tmp/safe_asset_warmup.py && "
+        "rm -f /tmp/innokafe_website_sync.tar.gz"
+    )
+
+    deploy_procs = []
+    for po in validated_pods:
+        cmd = [
+            "sh", "-c",
+            f"kubectl cp -n {shlex.quote(ns)} -c {shlex.quote(co)} "
+            f"{shlex.quote(tar_path)} {shlex.quote(po)}:/tmp/innokafe_website_sync.tar.gz && "
+            f"kubectl cp -n {shlex.quote(ns)} -c {shlex.quote(co)} "
+            f"{shlex.quote(sync_tool)} {shlex.quote(po)}:/tmp/sync_innokafe_views_db.py && "
+            f"kubectl cp -n {shlex.quote(ns)} -c {shlex.quote(co)} "
+            f"{shlex.quote(warmup_tool)} {shlex.quote(po)}:/tmp/safe_asset_warmup.py && "
+            f"kubectl exec -n {shlex.quote(ns)} {shlex.quote(po)} -c {shlex.quote(co)} -- "
+            f"sh -c {shlex.quote(remote_script)}"
+        ]
+        p = subprocess.Popen(cmd)
+        deploy_procs.append((po, p))
 
     failures = []
-    for pod, p in deploy_procs:
+    for po, p in deploy_procs:
         p.wait()
         if p.returncode != 0:
-            print(f"[✗] Failed file synchronization to {pod} (code {p.returncode})")
-            failures.append(pod)
+            print(f"[✗] Failed file synchronization to {po} (code {p.returncode})")
+            failures.append(po)
         else:
-            print(f"[✓] Synchronized files and tools to {pod}")
+            print(f"[✓] Synchronized files and tools to {po}")
 
     if failures:
         raise RuntimeError(f"Distribution failed on pods: {failures}")
 
 
 def execute_innokafe_db_sync(lead_pod: str, namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
-    step_banner(4, f"Executing InnoKafe DB Sync on Lead Pod ({lead_pod})")
+    ns = _safe_ident(namespace, "namespace")
+    po = _safe_ident(lead_pod, "lead_pod")
+    co = _safe_ident(container, "container")
+    step_banner(4, f"Executing InnoKafe DB Sync on Lead Pod ({po})")
     res_sync = subprocess.run([
-        "kubectl", "exec", "-n", namespace, lead_pod, "-c", container, "--",
+        "kubectl", "exec", "-n", ns, po, "-c", co, "--",
         "python3", "/tmp/sync_innokafe_views_db.py", "prod_pod"
     ], capture_output=True, text=True, timeout=60)
     print(res_sync.stdout.strip())
@@ -328,27 +388,30 @@ def execute_innokafe_db_sync(lead_pod: str, namespace: str = NAMESPACE, containe
         print("Stderr:", res_sync.stderr.strip())
 
     if res_sync.returncode != 0:
-        raise RuntimeError(f"InnoKafe database views sync failed on {lead_pod} (code {res_sync.returncode})")
-    print(f"[✓] Database views and isolation templates successfully synced on {lead_pod}.")
+        raise RuntimeError(f"InnoKafe database views sync failed on {po} (code {res_sync.returncode})")
+    print(f"[✓] Database views and isolation templates successfully synced on {po}.")
 
 
 def execute_concurrent_dual_warmup(pods: List[str], namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
     step_banner(5, "Concurrent Dual-Tenant Zero-Downtime Asset Pre-Warming")
+    ns = _safe_ident(namespace, "namespace")
+    co = _safe_ident(container, "container")
+    validated_pods = [_safe_ident(p, "pod") for p in pods]
     t0 = time.time()
-    pod_kafe = pods[0]
-    pod_ria = pods[1] if len(pods) > 1 else pods[0]
+    pod_kafe = validated_pods[0]
+    pod_ria = validated_pods[1] if len(validated_pods) > 1 else validated_pods[0]
 
     print(f"[*] Dispatching concurrent asset pre-warming:")
     print(f"    • Pod 0 ({pod_kafe}): innokafe_prod")
     print(f"    • Pod 1 ({pod_ria}): innoria_prod")
 
     proc_kafe = subprocess.Popen(
-        ["kubectl", "exec", "-n", namespace, pod_kafe, "-c", container, "--",
+        ["kubectl", "exec", "-n", ns, pod_kafe, "-c", co, "--",
          "python3", "/tmp/safe_asset_warmup.py", "innokafe_prod"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
     proc_ria = subprocess.Popen(
-        ["kubectl", "exec", "-n", namespace, pod_ria, "-c", container, "--",
+        ["kubectl", "exec", "-n", ns, pod_ria, "-c", co, "--",
          "python3", "/tmp/safe_asset_warmup.py", "innoria_prod"],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
@@ -377,12 +440,15 @@ def execute_concurrent_dual_warmup(pods: List[str], namespace: str = NAMESPACE, 
 
 def execute_sequential_rolling_reload(pods: List[str], namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
     step_banner(6, "Graceful Two-Tiered Rolling Reload (Zero Downtime)")
-    total_pods = len(pods)
+    ns = _safe_ident(namespace, "namespace")
+    co = _safe_ident(container, "container")
+    validated_pods = [_safe_ident(p, "pod") for p in pods]
+    total_pods = len(validated_pods)
     min_capacity = round(((total_pods - 1) / total_pods) * 100, 1) if total_pods > 1 else 100.0
     print(f"[*] Total pods to rollout: {total_pods}")
     print(f"[*] Capacity guarantee: Active cluster capacity maintained at >= {min_capacity}% at all times.")
 
-    for idx, pod in enumerate(pods, 1):
+    for idx, pod in enumerate(validated_pods, 1):
         print(f"\n------------------------------------------------------------")
         print(f"▶ Rolling Pod [{idx}/{total_pods}]: {pod}")
         print(f"------------------------------------------------------------")
@@ -390,7 +456,7 @@ def execute_sequential_rolling_reload(pods: List[str], namespace: str = NAMESPAC
         # Step A: Staggered SIGINT to child workers within the pod
         print(f"[*] Staggered SIGINT graceful reload of child workers on {pod}...")
         res_reload = subprocess.run(
-            ["kubectl", "exec", "-n", namespace, pod, "-c", container, "--",
+            ["kubectl", "exec", "-n", ns, pod, "-c", co, "--",
              "python3", "-c", WORKER_RELOAD_SCRIPT],
             capture_output=True, text=True, timeout=90
         )
@@ -403,7 +469,7 @@ def execute_sequential_rolling_reload(pods: List[str], namespace: str = NAMESPAC
         # Step B: Local in-pod HTTP health probe before advancing to next pod
         print(f"[*] Verifying in-pod local HTTP health on {pod} (Host: innoria & innokafe)...")
         res_probe = subprocess.run(
-            ["kubectl", "exec", "-n", namespace, pod, "-c", container, "--",
+            ["kubectl", "exec", "-n", ns, pod, "-c", co, "--",
              "python3", "-c", LOCAL_HEALTH_PROBE_SCRIPT],
             capture_output=True, text=True, timeout=90
         )
@@ -451,8 +517,9 @@ def execute_edge_smoke_tests() -> None:
         "https://innoria.insilos.com/"
     ]
     for url in endpoints:
-        res = run_cmd(f"curl -sI {url} | head -n 5")
-        print(f"[*] Response for {url}:\n{res.stdout.strip()}\n")
+        res = run_cmd(["curl", "-sI", url])
+        first_lines = "\n".join(res.stdout.strip().splitlines()[:5])
+        print(f"[*] Response for {url}:\n{first_lines}\n")
 
 
 def main() -> None:

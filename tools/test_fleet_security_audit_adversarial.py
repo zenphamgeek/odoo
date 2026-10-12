@@ -456,6 +456,54 @@ def test_pod_sync_orchestrator_security():
     print("  [✓] Shell injection strictly rejected with TypeError; two-phase plan and idempotency verified.")
 
 
+def test_innokafe_deploy_pipeline_security():
+    print("[TEST INNOKAFE DEPLOY] CWE-78 & CWE-20: Deploy Pipeline Argv Guard & Identifier Sanitization")
+    from tools.deploy_innokafe_production import run_cmd, _safe_ident, distribute_code_to_pods
+
+    # 1. CWE-78 Shell Injection Guard: Passing shell string must raise TypeError
+    try:
+        run_cmd("echo 'malicious string injection'")
+        assert False, "run_cmd failed to reject shell string (CWE-78 violation)"
+    except TypeError as e:
+        assert "requires an argv List[str]" in str(e)
+
+    # 2. Identifier Sanitization (CWE-20 & CWE-78): Reject malicious k8s identifiers
+    malicious_idents = [
+        "default; touch /tmp/pwned",
+        "pod-1'; id #",
+        "ns$(whoami)",
+        "../escape",
+        "container|cat",
+        " ",
+        "",
+    ]
+    for bad in malicious_idents:
+        try:
+            _safe_ident(bad, "ident")
+            assert False, f"Failed to reject malicious identifier: {bad!r}"
+        except ValueError:
+            pass
+
+    safe_idents = ["default", "innokafe-prod-1", "insilos-saas", "database", "postgres-0"]
+    for good in safe_idents:
+        assert _safe_ident(good, "ident") == good
+
+    # 3. distribute_code_to_pods with unsafe namespace or pod must fail closed with ValueError
+    try:
+        distribute_code_to_pods(pods=["valid-pod"], tar_path="/tmp/test.tar.gz", namespace="evil; rm -rf /")
+        assert False, "distribute_code_to_pods failed to reject unsafe namespace"
+    except ValueError:
+        pass
+
+    try:
+        distribute_code_to_pods(pods=["evil' ; id #"], tar_path="/tmp/test.tar.gz", namespace="default")
+        assert False, "distribute_code_to_pods failed to reject unsafe pod name"
+    except ValueError:
+        pass
+
+    print("  [✓] Deploy pipeline argv guard and k8s identifier sanitization verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -472,12 +520,14 @@ def main():
     test_sparkline_svg_adversarial_fuzzing()
     test_route_authorization_snapshot_guard()
     test_pod_sync_orchestrator_security()
+    test_innokafe_deploy_pipeline_security()
     print("=" * 80)
-    print("ALL 12 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 13 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
 if __name__ == '__main__':
     main()
+
 
 

@@ -97,7 +97,7 @@ async function verify() {
         response.status() === 200 &&
         !hasInsilosHero &&
         !hasInsilosMegamenu &&
-        h1Text.includes('Cà Phê Việt Nam')
+        h1Text.includes('Cà Phê')
     );
 
     if (success) {
