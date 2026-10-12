@@ -682,8 +682,10 @@ def test_core_integrity_and_pdpd_erasure_tombstone():
         r_id = r.get('id')
         r_type = r.find("field[@name='report_type']")
         assert r_type is not None and r_type.text == 'qweb-pdf', f"Report {r_id} must have report_type='qweb-pdf' (got {r_type.text if r_type is not None else None})"
-        groups_id = r.find("field[@name='groups_id']")
-        assert groups_id is not None and 'sales_team.group_sale_salesman' in groups_id.get('eval', ''), f"Report {r_id} must restrict access via groups_id sales_team.group_sale_salesman"
+        groups_field = r.find("field[@name='groups_id']")
+        if groups_field is None:
+            groups_field = r.find("field[@name='group_ids']")
+        assert groups_field is not None and 'sales_team.group_sale_salesman' in groups_field.get('eval', ''), f"Report {r_id} must restrict access via group_ids sales_team.group_sale_salesman"
 
     # 3. PDPD Decree 13/2023/ND-CP Right-to-be-Forgotten & Merkle Tombstone Engine
     from odoo.addons.insilos_al2c.models.al2c_pdpd_erasure import ResPartner, Al2cPdpdErasureTombstone
