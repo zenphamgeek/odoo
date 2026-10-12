@@ -32,6 +32,7 @@ Architecture & Safety Guardrails:
 import argparse
 import hashlib
 import os
+import re
 import subprocess
 import sys
 import time
@@ -174,12 +175,24 @@ def discover_active_pods(namespace: str = NAMESPACE) -> List[str]:
     return pods
 
 
-def enforce_connection_reaper(threshold: int = 40, dry_run: bool = False) -> None:
+def enforce_connection_reaper(
+    threshold: int = 40,
+    dry_run: bool = False,
+    target_db: str = "innokafe_prod",
+    allow_all_databases: bool = False,
+) -> None:
     print(f"\n[*] Enforcing connection slot threshold (< {threshold} slots)...")
     cmd = [
         sys.executable, os.path.join(ROOT_DIR, "tools/reap_idle_connections.py"),
-        "--threshold", str(threshold)
+        "--threshold", str(threshold),
     ]
+    if allow_all_databases:
+        cmd.append("--allow-all-databases")
+    elif target_db:
+        cmd.extend(["--dbname", target_db])
+    else:
+        raise ValueError("Must specify either target_db or allow_all_databases=True")
+
     if dry_run:
         cmd.append("--dry-run")
     res = subprocess.run(cmd, capture_output=True, text=True)
@@ -450,6 +463,8 @@ def main() -> None:
     parser.add_argument("--skip-gates", action="store_true", help="Skip post-deployment verification gates")
     parser.add_argument("--connection-threshold", type=int, default=40, help="Max connection slots threshold (default: 40)")
     parser.add_argument("--dry-run-reaper", action="store_true", help="Run connection reaper in dry-run mode")
+    parser.add_argument("--target-db", default="innokafe_prod", help="Target database to reap idle connections for (default: innokafe_prod)")
+    parser.add_argument("--allow-all-databases", action="store_true", help="Permit reaping idle connections across all cluster databases")
     args = parser.parse_args()
 
     t_start = time.time()
@@ -464,7 +479,12 @@ def main() -> None:
 
         # Stage 1: Pre-flight Safety Checks
         step_banner(1, "Pre-Flight Safety Guardrails")
-        enforce_connection_reaper(threshold=args.connection_threshold, dry_run=args.dry_run_reaper)
+        enforce_connection_reaper(
+            threshold=args.connection_threshold,
+            dry_run=args.dry_run_reaper,
+            target_db=args.target_db,
+            allow_all_databases=args.allow_all_databases,
+        )
         enforce_schema_invariance()
 
         # Stage 2: Packaging module archive
@@ -497,7 +517,12 @@ def main() -> None:
         # Stage 8: Post-flight Safety Audits
         step_banner(8, "Post-Flight Safety Verification & Connection Reap")
         enforce_schema_invariance()
-        enforce_connection_reaper(threshold=args.connection_threshold, dry_run=False)
+        enforce_connection_reaper(
+            threshold=args.connection_threshold,
+            dry_run=False,
+            target_db=args.target_db,
+            allow_all_databases=args.allow_all_databases,
+        )
 
         # Stage 9: External edge smoke tests
         execute_edge_smoke_tests()
