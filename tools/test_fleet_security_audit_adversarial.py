@@ -972,11 +972,22 @@ def test_timesheet_staging_ambiguity_and_idempotency_guards():
     from odoo.addons.insilos_al2c.models.al2c_timesheet_staging import Al2cTimesheetStaging
     from odoo.exceptions import UserError
 
-    # 1. Nonce Integrity Invariant: default external_nonce is callable and generates a valid 32-char hex UUID
+    # 1. Nonce & Fingerprint DB Constraints and Nonce Entropy Invariants
     assert callable(Al2cTimesheetStaging.external_nonce.default), "external_nonce.default must be callable"
     sample_nonce = Al2cTimesheetStaging.external_nonce.default(None)
     assert isinstance(sample_nonce, str) and len(sample_nonce) == 32, f"Expected 32-char hex UUID, got {sample_nonce!r}"
     int(sample_nonce, 16)
+
+    # Authoritative DB Constraints on both external_nonce and dedup_fingerprint
+    assert hasattr(Al2cTimesheetStaging, '_external_nonce_unique'), "Missing _external_nonce_unique constraint"
+    assert hasattr(Al2cTimesheetStaging, '_dedup_fingerprint_unique'), "Missing _dedup_fingerprint_unique constraint"
+    assert 'UNIQUE (EXTERNAL_NONCE)' in str(Al2cTimesheetStaging._external_nonce_unique._definition).upper()
+    assert 'UNIQUE (DEDUP_FINGERPRINT)' in str(Al2cTimesheetStaging._dedup_fingerprint_unique._definition).upper()
+
+    # Zero Key-Mangling Invariant: create must NOT mangle fingerprints
+    with open('addons/insilos_al2c/models/al2c_timesheet_staging.py', 'r', encoding='utf-8') as f:
+        staging_code = f.read()
+    assert '_dup_' not in staging_code, "al2c_timesheet_staging.py must not contain fingerprint mangling '_dup_'"
 
     # 2. Consultant Attribution Ambiguity (CWE-285/863): Refuse silent attribution on duplicate matches
     mock_staging = MagicMock(spec=Al2cTimesheetStaging)
@@ -1036,16 +1047,38 @@ def test_timesheet_staging_ambiguity_and_idempotency_guards():
     mock_env.cr = mock_cr
 
     existing_staging_rec = MagicMock(id=888, external_nonce='idemp-nonce-456')
+    existing_staging_rec.with_context.return_value = existing_staging_rec
     def mock_create_race(vals):
         raise psycopg2.errors.UniqueViolation("duplicate key value violates unique constraint")
 
     mock_staging.create.side_effect = mock_create_race
-    mock_staging.search.return_value = existing_staging_rec
+    # Simulate race: pre-check sees no committed record, create() hits UniqueViolation, rescue search finds winner
+    mock_staging.search.side_effect = [False, existing_staging_rec]
 
     idemp_result = Al2cTimesheetStaging._create_idempotent(mock_staging, {'name': 'Race Test', 'external_nonce': 'idemp-nonce-456'})
     assert idemp_result == existing_staging_rec, f"Expected existing record returned on race collision, got {idemp_result}"
-    assert mock_staging.search.call_args[0][0] == [('external_nonce', '=', 'idemp-nonce-456')]
+    assert getattr(idemp_result, '_is_idempotent_duplicate', None) is True, "_is_idempotent_duplicate flag must be True on race duplicate"
     assert mock_cr.savepoint.called, "Must execute create inside a database savepoint"
+
+    # Fast-path test: pre-check finds existing record and returns immediately
+    mock_staging.create.side_effect = None
+    mock_staging.search.side_effect = None
+    mock_staging.search.return_value = existing_staging_rec
+    fast_result = Al2cTimesheetStaging._create_idempotent(mock_staging, {'name': 'Fast Test', 'external_nonce': 'idemp-nonce-456'})
+    assert fast_result == existing_staging_rec
+    assert getattr(fast_result, '_is_idempotent_duplicate', None) is True
+
+    # Empty string normalization test: empty strings normalized to False before create
+    mock_staging.search.return_value = False
+    captured_vals = {}
+    def mock_create_capture(vals):
+        captured_vals.update(vals)
+        return MagicMock(id=999)
+    mock_staging.create.side_effect = mock_create_capture
+    Al2cTimesheetStaging._create_idempotent(mock_staging, {'name': 'Empty Test', 'external_nonce': '', 'dedup_fingerprint': ''})
+    assert captured_vals.get('external_nonce') is False, "Empty external_nonce must be normalized to False"
+    assert captured_vals.get('dedup_fingerprint') is False, "Empty dedup_fingerprint must be normalized to False"
+    assert getattr(Al2cTimesheetStaging, '_is_idempotent_duplicate', None) is False, "Class-level _is_idempotent_duplicate default must be False"
 
     # 4. Spreadsheet Decompression Bomb Guard (CWE-20): Cap rows <= 100_000 and cols <= 512
     # 4.1 Excel .xlsx bomb guard (openpyxl)

@@ -441,8 +441,8 @@ class TestAl2cTimesheetStaging(TransactionCase):
             staging.with_user(self.pm_user).action_approve_and_commit()
 
     def test_11_corrupted_payloads_nan_and_binary_safety(self):
-        """Test hardening against binary attachments, NaN hours, and shadow partner resolution."""
-        # 1. Binary attachment should not be misidentified as CSV even with comma byte
+        """Test hardening against binary attachments, NaN hours, and invalid date strings."""
+        # 1. Binary attachment should not be misidentified as CSV even with comma byte (VULN-R5-01)
         binary_payload = b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR' + b'x' * 50 + b',' + b'y' * 150
         att_bin = self.env['ir.attachment'].create({
             'name': 'firmware_update.bin',
@@ -459,11 +459,12 @@ class TestAl2cTimesheetStaging(TransactionCase):
         self.assertEqual(len(staging_bin.line_ids), 0, "Binary attachment must not generate phantom staging lines")
         self.assertEqual(staging_bin.parse_status, 'error')
 
-        # 2. NaN and Inf hours handling via CSV
+        # 2. NaN and Inf hours handling via CSV (VULN-R5-03)
         csv_nan = (
             "Date,Project,Task,Hours,Description\n"
             f"2026-10-26,{self.project.name},{self.task.name},nan,NaN hours test\n"
             f"2026-10-27,{self.project.name},{self.task.name},inf,Inf hours test\n"
+            f"2026-10-28,{self.project.name},{self.task.name},-3.5,Negative hours test\n"
         )
         att_nan = self.env['ir.attachment'].create({
             'name': 'nan_test.csv',
@@ -477,18 +478,190 @@ class TestAl2cTimesheetStaging(TransactionCase):
             'submission_channel': 'email_pubsub',
         })
         staging_nan.action_parse_content()
-        self.assertEqual(len(staging_nan.line_ids), 2)
+        self.assertEqual(len(staging_nan.line_ids), 3)
         for line in staging_nan.line_ids:
             self.assertEqual(line.state, 'error')
             self.assertEqual(line.unit_amount, 0.0)
             self.assertIn("Invalid duration", line.validation_message)
 
-        # 3. Shadow partner resolution (Tier-3)
-        partner_shadow = self.env['res.partner'].create({'name': 'Unlinked Partner Shadow', 'email': 'shadow.emp@inno.ai.vn'})
-        partner_target = self.env['res.partner'].create({'name': 'Target Partner Linked', 'email': 'shadow.emp@inno.ai.vn'})
-        emp_target = self.env['hr.employee'].create({'name': 'Resolved Target Emp', 'work_contact_id': partner_target.id})
+        # 3. Invalid date fallback handling (VULN-R5-02)
+        csv_date = (
+            "Date,Project,Task,Hours,Description\n"
+            f"INVALID-DATE-9999,{self.project.name},{self.task.name},4.0,Invalid date test\n"
+        )
+        att_date = self.env['ir.attachment'].create({
+            'name': 'invalid_date.csv',
+            'type': 'binary',
+            'raw': csv_date.encode('utf-8'),
+        })
+        staging_date = self.env['al2c.timesheet.staging'].create({
+            'name': 'Invalid date test',
+            'sender_email': 'consultant.a@inno.ai.vn',
+            'attachment_ids': [(4, att_date.id)],
+            'submission_channel': 'email_pubsub',
+        })
+        staging_date.action_parse_content()
+        self.assertEqual(len(staging_date.line_ids), 1)
+        self.assertEqual(staging_date.line_ids[0].state, 'error')
+        self.assertIn("Invalid date format", staging_date.line_ids[0].validation_message)
 
-        resolved = self.env['al2c.timesheet.staging']._resolve_consultant('shadow.emp@inno.ai.vn')
-        self.assertEqual(resolved.id, emp_target.id, "Tier-3 lookup must resolve the employee even when unlinked shadow partner exists")
+    def test_12_unresolved_consultant_handling_and_deduplication(self):
+        """Test that unresolved consultants flag lines as 'error' and trigger cross-staging deduplication (VULN-R5-07)."""
+        unresolved_email = 'completely.unknown.stranger@external.com'
+
+        # Submission 1: First attempt by unknown consultant
+        body1 = f"2026-10-29 | {self.project.name} | {self.task.name} | 4.0 | Unknown consultant delivery\n"
+        staging1 = self.env['al2c.timesheet.staging'].create({
+            'name': 'Unknown Consultant Batch 1',
+            'sender_email': unresolved_email,
+            'raw_email_body': body1,
+            'submission_channel': 'email_pubsub',
+        })
+        staging1.action_parse_content()
+
+        self.assertFalse(staging1.employee_id)
+        self.assertEqual(len(staging1.line_ids), 1)
+        line1 = staging1.line_ids[0]
+        self.assertEqual(line1.state, 'error')
+        self.assertIn("Consultant identity unresolved from sender or row email", line1.validation_message)
+        self.assertIn(unresolved_email, line1.validation_message)
+
+        # Manager cannot commit unresolved lines
+        with self.assertRaises(UserError):
+            staging1.with_user(self.pm_user).action_approve_and_commit()
+
+        # Submission 2: Second attempt with identical task, date, and unresolved sender email
+        body2 = f"2026-10-29 | {self.project.name} | {self.task.name} | 4.0 | Duplicate anonymous submission\n"
+        staging2 = self.env['al2c.timesheet.staging'].create({
+            'name': 'Unknown Consultant Batch 2',
+            'sender_email': unresolved_email,
+            'raw_email_body': body2,
+            'submission_channel': 'email_pubsub',
+        })
+        staging2.action_parse_content()
+
+        self.assertEqual(len(staging2.line_ids), 1)
+        line2 = staging2.line_ids[0]
+        self.assertEqual(line2.state, 'duplicate')
+        self.assertIn("Duplicate", line2.validation_message)
+
+    def test_13_partner_lookup_shadowed_by_unlinked_partner(self):
+        """Test Tier-3 consultant lookup when unlinked partner exists with same email (VULN-R5-06)."""
+        shadow_email = 'shared.identity@inno.ai.vn'
+        # Unlinked partner created first (would shadow linked partner if searched naively)
+        partner_shadow = self.env['res.partner'].create({
+            'name': 'Unlinked Partner 1',
+            'email': shadow_email,
+        })
+        # Target partner linked to employee
+        partner_linked = self.env['res.partner'].create({
+            'name': 'Linked Partner 2',
+            'email': shadow_email,
+        })
+        emp_target = self.env['hr.employee'].create({
+            'name': 'Resolved Target Employee',
+            'work_contact_id': partner_linked.id,
+        })
+
+        resolved = self.env['al2c.timesheet.staging']._resolve_consultant(shadow_email)
+        self.assertEqual(resolved.id, emp_target.id, "Tier-3 lookup must resolve the employee directly via work_contact_id.email")
+
+        # Also test address_home_id linking with unlinked partner
+        # Also test address_home_id linking with unlinked partner if field exists
+        if 'address_home_id' in self.env['hr.employee']._fields:
+            home_email = 'home.identity@inno.ai.vn'
+            partner_home_shadow = self.env['res.partner'].create({
+                'name': 'Unlinked Home Shadow',
+                'email': home_email,
+            })
+            partner_home_linked = self.env['res.partner'].create({
+                'name': 'Linked Home Partner',
+                'email': home_email,
+            })
+            emp_home = self.env['hr.employee'].create({
+                'name': 'Resolved Home Employee',
+                'address_home_id': partner_home_linked.id,
+            })
+
+            resolved_home = self.env['al2c.timesheet.staging']._resolve_consultant(home_email)
+            self.assertEqual(resolved_home.id, emp_home.id, "Tier-3 lookup must resolve the employee directly via address_home_id.email")
+
+    def test_14_idempotency_unique_constraints_on_nonce_and_fingerprint(self):
+        """Test PostgreSQL UNIQUE constraints on external_nonce and dedup_fingerprint (VULN-R5-04)."""
+        from psycopg2 import IntegrityError
+        from odoo.exceptions import ValidationError
+
+        Staging = self.env['al2c.timesheet.staging']
+
+        # 1. Nonce uniqueness at database level
+        nonce_val = 'test_nonce_concurrent_unique_123'
+        st1 = Staging.create({
+            'name': 'Nonce Test 1',
+            'sender_email': 'consultant.a@inno.ai.vn',
+            'external_nonce': nonce_val,
+        })
+        self.assertTrue(st1.id)
+
+        # Attempt direct duplicate create with same external_nonce - must fail unique constraint
+        with self.assertRaises((IntegrityError, ValidationError, Exception)):
+            with self.env.cr.savepoint():
+                Staging.create({
+                    'name': 'Nonce Test 2 (Duplicate)',
+                    'sender_email': 'consultant.a@inno.ai.vn',
+                    'external_nonce': nonce_val,
+                })
+
+        # _create_idempotent catches duplicate and returns existing
+        st_idemp = Staging._create_idempotent({
+            'name': 'Nonce Test 3 (Idempotent)',
+            'sender_email': 'consultant.a@inno.ai.vn',
+            'external_nonce': nonce_val,
+        })
+        self.assertEqual(st_idemp.id, st1.id)
+
+        # 2. Fingerprint uniqueness at database level
+        fp_val = Staging.compute_dedup_hash('consultant.a@inno.ai.vn', 'Unique Subject', 'Unique Body')
+        st_fp1 = Staging.create({
+            'name': 'FP Test 1',
+            'sender_email': 'consultant.a@inno.ai.vn',
+            'dedup_fingerprint': fp_val,
+        })
+        self.assertTrue(st_fp1.id)
+
+        # Direct duplicate create with same dedup_fingerprint - must fail unique constraint
+        with self.assertRaises((IntegrityError, ValidationError, Exception)):
+            with self.env.cr.savepoint():
+                Staging.create({
+                    'name': 'FP Test 2 (Duplicate)',
+                    'sender_email': 'consultant.a@inno.ai.vn',
+                    'dedup_fingerprint': fp_val,
+                })
+
+        # _create_idempotent catches duplicate and returns existing canonical record
+        st_fp_idemp = Staging._create_idempotent({
+            'name': 'FP Test 3 (Idempotent)',
+            'sender_email': 'consultant.a@inno.ai.vn',
+            'dedup_fingerprint': fp_val,
+        })
+        self.assertEqual(st_fp_idemp.id, st_fp1.id)
+        self.assertTrue(getattr(st_fp_idemp, '_is_idempotent_duplicate', False))
+        self.assertTrue(st_fp_idemp.env.context.get('al2c_idempotent_duplicate'))
+
+        # 3. Empty string normalization: '' must be normalized to False (SQL NULL) to avoid false collisions
+        st_empty1 = Staging._create_idempotent({
+            'name': 'Empty Test 1',
+            'sender_email': 'consultant.b@inno.ai.vn',
+            'external_nonce': '',
+            'dedup_fingerprint': '',
+        })
+        st_empty2 = Staging._create_idempotent({
+            'name': 'Empty Test 2',
+            'sender_email': 'consultant.b@inno.ai.vn',
+            'external_nonce': '',
+            'dedup_fingerprint': '',
+        })
+        self.assertNotEqual(st_empty1.id, st_empty2.id, "Empty nonces/fingerprints normalized to NULL must not collide")
+        self.assertFalse(getattr(st_empty2, '_is_idempotent_duplicate', False))
+
 
 

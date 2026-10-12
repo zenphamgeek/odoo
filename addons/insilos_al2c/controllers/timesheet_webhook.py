@@ -124,7 +124,7 @@ class Al2cTimesheetWebhookController(http.Controller):
             'state': 'received',
         }
         staging = StagingModel._create_idempotent(staging_vals)
-        if getattr(staging, '_is_idempotent_duplicate', None) is True:
+        if getattr(staging, '_is_idempotent_duplicate', None) is True or (hasattr(staging, 'env') and staging.env.context.get('al2c_idempotent_duplicate') is True):
             return Response(json.dumps({
                 'status': 'duplicate',
                 'staging_id': staging.id,

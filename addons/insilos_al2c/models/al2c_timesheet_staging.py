@@ -26,19 +26,18 @@ class Al2cTimesheetStaging(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'id desc'
 
-    _dedup_fingerprint_unique = models.Constraint(
-        'UNIQUE (dedup_fingerprint)',
-        'Deduplication fingerprint must be unique.',
-    )
+    # Requires Odoo >= 18.0 declarative models.Constraint API.
+    # Authoritative database-level race backstops for idempotent timesheet ingestion.
     _external_nonce_unique = models.Constraint(
         'UNIQUE (external_nonce)',
         'External nonce must be unique.',
     )
+    _dedup_fingerprint_unique = models.Constraint(
+        'UNIQUE (dedup_fingerprint)',
+        'Deduplication fingerprint must be unique.',
+    )
 
-    _sql_constraints = [
-        ('dedup_fingerprint_unique', 'UNIQUE (dedup_fingerprint)', 'Deduplication fingerprint must be unique.'),
-        ('external_nonce_unique', 'UNIQUE (external_nonce)', 'External nonce must be unique.'),
-    ]
+    _is_idempotent_duplicate = False
 
     name = fields.Char(string='Submission Subject', required=True, tracking=True)
     sender_email = fields.Char(string='Sender Email', required=True, index=True, tracking=True)
@@ -147,12 +146,10 @@ class Al2cTimesheetStaging(models.Model):
             elif len(emp) == 1:
                 return emp[0]
 
-        # Tier 3: hr.employee via linked partner email (work_contact_id, address_home_id)
-        # Directly searches hr.employee across both linked partner emails to avoid shadow unlinked partners
-        emps_t3 = self.env['hr.employee'].search([
-            '|', ('work_contact_id.email', '=ilike', clean_email),
-                 ('address_home_id.email', '=ilike', clean_email)
-        ], order='id asc', limit=2)
+        # Tier 3: hr.employee via linked partner/contact email (work_contact_id)
+        # Directly searches hr.employee across linked contact emails to avoid shadow unlinked partners
+        domain_t3 = [('work_contact_id.email', '=ilike', clean_email)]
+        emps_t3 = self.env['hr.employee'].search(domain_t3, order='id asc', limit=2)
         if len(emps_t3) > 1:
             e_ids = getattr(emps_t3, 'ids', [e.id for e in emps_t3 if hasattr(e, 'id')])
             _logger.warning("Ambiguous linked partner email '%s' matches %d employees (IDs: %s); refusing silent attribution.", clean_email, len(emps_t3), e_ids)
@@ -178,24 +175,58 @@ class Al2cTimesheetStaging(models.Model):
         If external_nonce or dedup_fingerprint violates unique constraint under concurrent race,
         rescues transaction using a database savepoint and retrieves the existing record.
         """
+        # Normalize empty string inputs to False so Postgres stores SQL NULL (avoiding empty-string collision)
+        if isinstance(vals, dict):
+            if 'external_nonce' in vals and not vals['external_nonce']:
+                vals['external_nonce'] = False
+            if 'dedup_fingerprint' in vals and not vals['dedup_fingerprint']:
+                vals['dedup_fingerprint'] = False
+        elif isinstance(vals, list):
+            for v in vals:
+                if isinstance(v, dict):
+                    if 'external_nonce' in v and not v['external_nonce']:
+                        v['external_nonce'] = False
+                    if 'dedup_fingerprint' in v and not v['dedup_fingerprint']:
+                        v['dedup_fingerprint'] = False
+
         val_dict = vals[0] if isinstance(vals, (list, tuple)) and vals else (vals if isinstance(vals, dict) else {})
-        nonce = val_dict.get('external_nonce')
-        fingerprint = val_dict.get('dedup_fingerprint')
+        nonce = val_dict.get('external_nonce') or False
+        fingerprint = val_dict.get('dedup_fingerprint') or False
+
+        def _lookup():
+            if nonce:
+                rec = self.search([('external_nonce', '=', nonce)], limit=1)
+                if rec:
+                    return rec
+            if fingerprint:
+                rec = self.search([('dedup_fingerprint', '=', fingerprint)], limit=1)
+                if rec:
+                    return rec
+            return False
+
+        def _mark_duplicate(rec):
+            if not rec:
+                return rec
+            if hasattr(rec, 'with_context'):
+                try:
+                    rec = rec.with_context(al2c_idempotent_duplicate=True)
+                except Exception:
+                    pass
+            rec._is_idempotent_duplicate = True
+            return rec
+
+        existing = _lookup()
+        if existing:
+            return _mark_duplicate(existing)
+
         try:
             with self.env.cr.savepoint():
                 return self.create(vals)
         except (pg_errors.UniqueViolation, IntegrityError, ValidationError) as exc:
             _logger.info("Concurrent duplicate insertion prevented by idempotency constraint: %s", exc)
-            domain = []
-            if nonce:
-                domain = [('external_nonce', '=', nonce)]
-            elif fingerprint:
-                domain = [('dedup_fingerprint', '=', fingerprint)]
-            if domain:
-                existing = self.search(domain, limit=1)
-                if existing:
-                    existing._is_idempotent_duplicate = True
-                    return existing
+            winner = _lookup()
+            if winner:
+                return _mark_duplicate(winner)
             raise
 
     @api.model

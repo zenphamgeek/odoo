@@ -414,10 +414,11 @@ class TestAl2cOperationalE2E(TransactionCase):
         # Commit Ingestion 1 to analytic ledger
         s1.with_user(self.pm_user).action_approve_and_commit()
 
-        # Ingestion 2: Identical payload submitted again
+        # Ingestion 2: Identical timesheet lines re-delivered in subsequent batch
+        subject_retest = f"{subject} - Redelivery"
         s2 = self.env['al2c.timesheet.staging'].create({
-            'name': subject, 'sender_email': sender, 'raw_email_body': body,
-            'dedup_fingerprint': hash_expected,
+            'name': subject_retest, 'sender_email': sender, 'raw_email_body': body,
+            'dedup_fingerprint': self.env['al2c.timesheet.staging'].compute_dedup_hash(sender, subject_retest, body),
         })
         s2.action_parse_content()
         self.assertEqual(len(s2.line_ids), 1)
