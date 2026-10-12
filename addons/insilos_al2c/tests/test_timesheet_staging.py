@@ -619,7 +619,7 @@ class TestAl2cTimesheetStaging(TransactionCase):
         })
         self.assertEqual(st_idemp.id, st1.id)
 
-        # 2. Fingerprint uniqueness at database level
+        # 2. Fingerprint deduplication and duplicate staging buffer behavior
         fp_val = Staging.compute_dedup_hash('consultant.a@inno.ai.vn', 'Unique Subject', 'Unique Body')
         st_fp1 = Staging.create({
             'name': 'FP Test 1',
@@ -628,14 +628,15 @@ class TestAl2cTimesheetStaging(TransactionCase):
         })
         self.assertTrue(st_fp1.id)
 
-        # Direct duplicate create with same dedup_fingerprint - must fail unique constraint
-        with self.assertRaises((IntegrityError, ValidationError, Exception)):
-            with self.env.cr.savepoint():
-                Staging.create({
-                    'name': 'FP Test 2 (Duplicate)',
-                    'sender_email': 'consultant.a@inno.ai.vn',
-                    'dedup_fingerprint': fp_val,
-                })
+        # Duplicate create with same dedup_fingerprint succeeds without DB UniqueViolation,
+        # allowing duplicate submissions to be buffered in staging and flagged as state='duplicate'
+        st_fp2 = Staging.create({
+            'name': 'FP Test 2 (Duplicate)',
+            'sender_email': 'consultant.a@inno.ai.vn',
+            'dedup_fingerprint': fp_val,
+        })
+        self.assertTrue(st_fp2.id)
+        self.assertNotEqual(st_fp1.id, st_fp2.id)
 
         # _create_idempotent catches duplicate and returns existing canonical record
         st_fp_idemp = Staging._create_idempotent({

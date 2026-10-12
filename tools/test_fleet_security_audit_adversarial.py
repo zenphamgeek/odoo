@@ -978,11 +978,9 @@ def test_timesheet_staging_ambiguity_and_idempotency_guards():
     assert isinstance(sample_nonce, str) and len(sample_nonce) == 32, f"Expected 32-char hex UUID, got {sample_nonce!r}"
     int(sample_nonce, 16)
 
-    # Authoritative DB Constraints on both external_nonce and dedup_fingerprint
+    # Authoritative DB Constraints on external_nonce
     assert hasattr(Al2cTimesheetStaging, '_external_nonce_unique'), "Missing _external_nonce_unique constraint"
-    assert hasattr(Al2cTimesheetStaging, '_dedup_fingerprint_unique'), "Missing _dedup_fingerprint_unique constraint"
     assert 'UNIQUE (EXTERNAL_NONCE)' in str(Al2cTimesheetStaging._external_nonce_unique._definition).upper()
-    assert 'UNIQUE (DEDUP_FINGERPRINT)' in str(Al2cTimesheetStaging._dedup_fingerprint_unique._definition).upper()
 
     # Zero Key-Mangling Invariant: create must NOT mangle fingerprints
     with open('addons/insilos_al2c/models/al2c_timesheet_staging.py', 'r', encoding='utf-8') as f:

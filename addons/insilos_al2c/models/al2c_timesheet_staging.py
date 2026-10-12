@@ -32,12 +32,16 @@ class Al2cTimesheetStaging(models.Model):
         'UNIQUE (external_nonce)',
         'External nonce must be unique.',
     )
-    _dedup_fingerprint_unique = models.Constraint(
-        'UNIQUE (dedup_fingerprint)',
-        'Deduplication fingerprint must be unique.',
-    )
 
     _is_idempotent_duplicate = False
+
+    def _auto_init(self):
+        super()._auto_init()
+        self.env.cr.execute("""
+            ALTER TABLE al2c_timesheet_staging 
+            DROP CONSTRAINT IF EXISTS al2c_timesheet_staging_dedup_fingerprint_unique;
+        """)
+
 
     name = fields.Char(string='Submission Subject', required=True, tracking=True)
     sender_email = fields.Char(string='Sender Email', required=True, index=True, tracking=True)
@@ -103,7 +107,7 @@ class Al2cTimesheetStaging(models.Model):
         """Resolves consultant employee across 3 tiers:
         Tier 1: hr.employee directly (work_email, private_email)
         Tier 2: res.users -> hr.employee (login, email, employee_id)
-        Tier 3: res.partner -> hr.employee (email -> work_contact_id / address_home_id)
+        Tier 3: res.partner -> hr.employee (email -> work_contact_id)
         Fallback: hr.employee search by name
         """
         if not email_or_identifier:
