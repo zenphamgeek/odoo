@@ -479,25 +479,40 @@ def execute_innokafe_db_sync(lead_pod: str, namespace: str = NAMESPACE, containe
         raise RuntimeError(f"InnoKafe database views sync failed on {po} (code {res_sync.returncode})")
     print(f"[✓] Database views and isolation templates successfully synced on {po}.")
 
-    # Execute zero-DDL logo purge on production pod (safe dry-run by default unless confirmed)
-    purge_confirmed = os.environ.get("CONFIRM_ALL_WEBSITES_PROD") == "1"
-    if purge_confirmed:
-        print("[*] CONFIRM_ALL_WEBSITES_PROD=1 detected: Executing live logo purge with --commit --all-websites...")
-        purge_cmd = "DB_NAME=innokafe_prod CONFIRM_ALL_WEBSITES_PROD=1 python3 /tmp/cleanup_innokafe_fake_logos_db.py prod_pod --commit --all-websites"
-    else:
-        print("[!] CONFIRM_ALL_WEBSITES_PROD not set to '1': Executing logo purge in safe DRY-RUN mode (pre-op audit only)...")
-        purge_cmd = "DB_NAME=innokafe_prod python3 /tmp/cleanup_innokafe_fake_logos_db.py prod_pod"
+    # Defense-in-depth: Logo purge requires explicit DEPLOY_ALLOW_LOGO_PURGE=1 opt-in
+    if os.environ.get("DEPLOY_ALLOW_LOGO_PURGE") != "1":
+        print(f"[skip] InnoKafe logo purge skipped on {po} (set DEPLOY_ALLOW_LOGO_PURGE=1 to enable).")
+        return
 
-    res_clean = subprocess.run([
+    # 1. Mandatory dry-run first: reports counts, mutates nothing, executed via argv (CWE-78 defense)
+    print(f"[*] Executing mandatory pre-op DRY-RUN logo purge audit on {po}...")
+    res_dry = subprocess.run([
         "kubectl", "exec", "-n", ns, po, "-c", co, "--",
-        "sh", "-c", purge_cmd
+        "env", "DB_NAME=innokafe_prod",
+        "python3", "/tmp/cleanup_innokafe_fake_logos_db.py", "prod_pod"
     ], capture_output=True, text=True, timeout=60)
-    print(res_clean.stdout.strip())
-    if res_clean.stderr.strip():
-        print("Stderr:", res_clean.stderr.strip())
-    if res_clean.returncode != 0:
-        raise RuntimeError(f"InnoKafe database logo purge failed on {po} (code {res_clean.returncode})")
-    print(f"[✓] Database vector logo purge {'committed durably' if purge_confirmed else 'verified safely in dry-run mode'} on {po}.")
+    print(res_dry.stdout.strip())
+    if res_dry.stderr.strip():
+        print("Dry-run Stderr:", res_dry.stderr.strip())
+    if res_dry.returncode != 0:
+        raise RuntimeError(f"Logo purge pre-op dry-run failed on {po} (code {res_dry.returncode})")
+
+    # 2. Live committed purge executed only if explicit dual-key confirmation is set
+    if os.environ.get("CONFIRM_ALL_WEBSITES_PROD") == "1":
+        print(f"[*] CONFIRM_ALL_WEBSITES_PROD=1 verified: Executing live logo purge with --commit --all-websites on {po}...")
+        res_clean = subprocess.run([
+            "kubectl", "exec", "-n", ns, po, "-c", co, "--",
+            "env", "DB_NAME=innokafe_prod", "CONFIRM_ALL_WEBSITES_PROD=1",
+            "python3", "/tmp/cleanup_innokafe_fake_logos_db.py", "prod_pod", "--commit", "--all-websites"
+        ], capture_output=True, text=True, timeout=60)
+        print(res_clean.stdout.strip())
+        if res_clean.stderr.strip():
+            print("Stderr:", res_clean.stderr.strip())
+        if res_clean.returncode != 0:
+            raise RuntimeError(f"InnoKafe database logo purge commit failed on {po} (code {res_clean.returncode})")
+        print(f"[✓] Database vector logo purge committed durably on {po}.")
+    else:
+        print(f"[✓] Logo purge verified safely in dry-run mode on {po} (zero mutations persisted; pass CONFIRM_ALL_WEBSITES_PROD=1 to commit).")
 
 
 def execute_concurrent_dual_warmup(pods: List[str], namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
