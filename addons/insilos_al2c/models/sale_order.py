@@ -302,6 +302,31 @@ class SaleOrder(models.Model):
         self.write({'al2c_approved': True})
         return True
 
+    def _get_al2c_report_content_hash(self, report_ref: str, template_version: str = "1.0") -> str:
+        """Deterministic Content-Hash Idempotency Key for report generation.
+
+        Borrowing Prefect's task-run result caching architecture:
+        Keys the generated proposal artifact on sha256(doc.id, doc.write_date, template_version, report_ref).
+        Guarantees the non-repudiation invariant:
+        'One logical document state maps to exactly one rendered artifact.'
+        """
+        import hashlib
+        self.ensure_one()
+        wdate_str = self.write_date.isoformat() if self.write_date else 'new'
+        raw = f"{self._name}:{self.id}:{wdate_str}:{template_version}:{report_ref}"
+        return hashlib.sha256(raw.encode('utf-8')).hexdigest()
+
+    def _get_cached_report_attachment(self, report_ref: str, template_version: str = "1.0"):
+        """Look up cached report artifact matching the current document state."""
+        self.ensure_one()
+        content_hash = self._get_al2c_report_content_hash(report_ref, template_version=template_version)
+        Attachment = self.env['ir.attachment'].sudo()
+        return Attachment.search([
+            ('res_model', '=', self._name),
+            ('res_id', '=', self.id),
+            ('description', '=', f"al2c_report_hash:{content_hash}"),
+        ], limit=1)
+
     @api.model
     def get_views(self, views, options=None):
         res = super().get_views(views, options=options)

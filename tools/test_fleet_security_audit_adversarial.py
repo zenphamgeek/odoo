@@ -1060,7 +1060,33 @@ def test_report_anti_genesis_and_escaping_mutation_matrix():
             content = f.read()
         assert '&amp;amp;' not in content, f"Double-escaped '&amp;amp;' detected in {xf}"
 
-    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), {len(xml_files)} XML files well-formed, and strict &amp;/UoM invariants verified.")
+    # 7. Content-Hash Report Idempotency & Boundary Condition Invariants
+    from odoo.addons.insilos_al2c.models.sale_order import SaleOrder
+    assert hasattr(SaleOrder, '_get_al2c_report_content_hash'), "SaleOrder must implement _get_al2c_report_content_hash"
+    assert hasattr(SaleOrder, '_get_cached_report_attachment'), "SaleOrder must implement _get_cached_report_attachment"
+
+    from unittest.mock import MagicMock
+    import datetime
+    mock_order = MagicMock()
+    mock_order._name = 'sale.order'
+    mock_order.id = 777
+    mock_order.write_date = datetime.datetime(2026, 10, 15, 12, 0, 0)
+    mock_order.ensure_one.return_value = True
+
+    h1 = SaleOrder._get_al2c_report_content_hash(mock_order, 'insilos_al2c.report_sales_proposal')
+    h2 = SaleOrder._get_al2c_report_content_hash(mock_order, 'insilos_al2c.report_sales_proposal')
+    assert h1 == h2 and len(h1) == 64, "Report content hash must be deterministic 64-char SHA-256"
+
+    # Mutation test: mutation in write_date changes content hash
+    mock_order_mutated = MagicMock()
+    mock_order_mutated._name = 'sale.order'
+    mock_order_mutated.id = 777
+    mock_order_mutated.write_date = datetime.datetime(2026, 10, 15, 12, 0, 1)
+    mock_order_mutated.ensure_one.return_value = True
+    h3 = SaleOrder._get_al2c_report_content_hash(mock_order_mutated, 'insilos_al2c.report_sales_proposal')
+    assert h1 != h3, "Mutating document state must alter report content hash"
+
+    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), {len(xml_files)} XML files well-formed, content-hash idempotency, and strict &amp;/UoM invariants verified.")
 
 
 def test_pixel_scanner_command_injection_guard():

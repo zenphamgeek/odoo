@@ -344,3 +344,46 @@ class TestSalesReports(TransactionCase):
                 report_action = self.env.ref(report_ref)
                 html_by_name_bytes, _ = self.env['ir.actions.report']._render_qweb_html(report_action.report_name, [self.order.id])
                 self.assertEqual(len(html_bytes), len(html_by_name_bytes), f"Resolution mismatch on {report_ref}")
+
+    def test_06_report_boundary_conditions_and_escaping(self):
+        """Adversarial security test for QWeb proposal report templates:
+        1. XSS Escaping: doc.user_id.name containing malicious script tags must be safely entity-escaped.
+        2. Clean Omission: value_case_id of False must omit Section 3 cleanly with no traceback.
+        3. Empty Lines: empty doc.order_line must render commercial tables cleanly with 0 lines.
+        4. Content-Hash Idempotency: doc._get_al2c_report_content_hash produces deterministic non-repudiation key.
+        """
+        # 1. XSS Escaping Guard: inject malicious username
+        malicious_name = '<script>alert("XSS")</script>"><img onerror=alert(1)>'
+        self.order.user_id.sudo().write({'name': malicious_name})
+        html_bytes, _ = self.env['ir.actions.report']._render_qweb_html(
+            'insilos_al2c.action_report_sales_proposal', [self.order.id]
+        )
+        html_text = html_bytes.decode('utf-8')
+        self.assertNotIn('<script>alert("XSS")</script>', html_text, "Unescaped script tag leaked into rendered HTML!")
+        self.assertNotIn('"><img onerror=alert(1)>', html_text, "Unescaped img tag leaked into rendered HTML!")
+        self.assertIn('&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;', html_text, "t-out escaping must convert to safe HTML entities")
+
+        # 2. Clean Omission Guard: value_case_id = False
+        self.order.write({'value_case_id': False})
+        html_bytes, _ = self.env['ir.actions.report']._render_qweb_html(
+            'insilos_al2c.action_report_sales_proposal', [self.order.id]
+        )
+        html_text = html_bytes.decode('utf-8')
+        self.assertNotIn('Lập Luận Giá Trị Kinh Tế &amp; TCO / ROI', html_text, "Section 3 must be omitted when value_case_id is False")
+
+        # 3. Empty Lines Guard: empty order_line
+        empty_order = self.env['sale.order'].create({
+            'partner_id': self.partner.id,
+            'pricelist_id': self.pricelist.id,
+        })
+        html_bytes, _ = self.env['ir.actions.report']._render_qweb_html(
+            'insilos_al2c.action_report_commercial_quotation', [empty_order.id]
+        )
+        html_text = html_bytes.decode('utf-8')
+        self.assertIn("BÁO GIÁ THƯƠNG MẠI CHÍNH THỨC", html_text)
+
+        # 4. Content-Hash Idempotency Invariant
+        h1 = empty_order._get_al2c_report_content_hash('insilos_al2c.report_commercial_quotation')
+        h2 = empty_order._get_al2c_report_content_hash('insilos_al2c.report_commercial_quotation')
+        self.assertEqual(h1, h2, "Content hash must be deterministic for identical document state")
+        self.assertEqual(len(h1), 64, "Content hash must be valid 64-char SHA-256")
