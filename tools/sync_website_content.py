@@ -437,7 +437,7 @@ cur = conn.cursor()
 stats = {
     'views_inserted': 0, 'views_updated': 0,
     'pages_inserted': 0, 'pages_updated': 0,
-    'menus_synced': 0, 'attachments_synced': 0,
+    'menus_synced': 0, 'menus_duplicates_purged': 0, 'attachments_synced': 0,
     'cache_cleared': 0
 }
 
@@ -526,33 +526,51 @@ try:
         name_json = m['name']
         manual_url = m['manual_url']
         page_id = None
+        target_url = manual_url
         if m.get('page_url'):
             cur.execute('SELECT id FROM website_page WHERE url = %s::jsonb LIMIT 1', [m['page_url']])
             pr = cur.fetchone()
             if pr:
                 page_id = pr[0]
+            if not target_url:
+                target_url = m['page_url']
 
-        # Find or create menu entry
+        # Idempotent match: find existing menu items under default_root_id matching target_url, page_id, or name
         cur.execute('''
-            SELECT id FROM website_menu 
-            WHERE name = %s::jsonb AND (manual_url = %s OR (manual_url IS NULL AND %s IS NULL))
-            LIMIT 1
-        ''', [name_json, manual_url, manual_url])
-        existing_m = cur.fetchone()
+            SELECT m.id FROM website_menu m
+            LEFT JOIN website_page p ON m.page_id = p.id
+            WHERE m.parent_id = %s
+              AND (
+                  (NULLIF(%s, '') IS NOT NULL AND (
+                      COALESCE(NULLIF(m.manual_url, ''), p.url->>'en_US', p.url->>'vi_VN') = %s
+                  ))
+                  OR (%s::int IS NOT NULL AND m.page_id = %s::int)
+                  OR (m.name = %s::jsonb AND (m.manual_url = %s OR (m.manual_url IS NULL AND %s IS NULL)))
+              )
+            ORDER BY (m.page_id IS NOT NULL) DESC, m.id ASC
+        ''', [default_root_id, target_url, target_url, page_id, page_id, name_json, manual_url, manual_url])
+        existing_m_ids = [r[0] for r in cur.fetchall()]
 
-        if existing_m:
+        if existing_m_ids:
+            canonical_m_id = existing_m_ids[0]
             cur.execute('''
                 UPDATE website_menu
                 SET sequence = %s, new_window = %s, mega_menu_classes = %s,
                     mega_menu_content = %s::jsonb, page_id = COALESCE(%s, page_id),
+                    manual_url = %s, name = %s::jsonb,
                     write_date = NOW()
                 WHERE id = %s
             ''', [
                 m['sequence'], m['new_window'], m['mega_menu_classes'],
                 m['mega_menu_content'] if m['mega_menu_content'] else None,
-                page_id, existing_m[0]
+                page_id, manual_url, name_json, canonical_m_id
             ])
             stats['menus_synced'] += 1
+
+            if len(existing_m_ids) > 1:
+                dup_ids = tuple(existing_m_ids[1:])
+                cur.execute('DELETE FROM website_menu WHERE id IN %s', (dup_ids,))
+                stats['menus_duplicates_purged'] += len(dup_ids)
         else:
             cur.execute('''
                 INSERT INTO website_menu (name, manual_url, page_id, sequence, new_window, mega_menu_classes, mega_menu_content, website_id, parent_id, create_date, write_date)

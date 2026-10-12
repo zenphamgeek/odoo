@@ -195,10 +195,44 @@ class WebsiteMenu(models.Model):
                 menus |= super().create(vals)
                 continue
             if 'website_id' in vals:
+                target_url = vals.get('url')
+                target_page_id = vals.get('page_id')
+                parent_id = vals.get('parent_id')
+                if parent_id and (target_page_id or (target_url and target_url != '#')):
+                    existing_domain = [
+                        ('website_id', '=', vals['website_id']),
+                        ('parent_id', '=', parent_id),
+                    ]
+                    if target_page_id:
+                        existing_domain.append(('page_id', '=', target_page_id))
+                    elif target_url:
+                        existing_domain.append(('url', '=', target_url))
+                    existing = self.search(existing_domain, limit=1)
+                    if existing:
+                        existing.write(vals)
+                        menus |= existing
+                        continue
                 menus |= super().create(vals)
                 continue
             elif self.env.context.get('website_id'):
                 vals['website_id'] = self.env.context.get('website_id')
+                target_url = vals.get('url')
+                target_page_id = vals.get('page_id')
+                parent_id = vals.get('parent_id')
+                if parent_id and (target_page_id or (target_url and target_url != '#')):
+                    existing_domain = [
+                        ('website_id', '=', vals['website_id']),
+                        ('parent_id', '=', parent_id),
+                    ]
+                    if target_page_id:
+                        existing_domain.append(('page_id', '=', target_page_id))
+                    elif target_url:
+                        existing_domain.append(('url', '=', target_url))
+                    existing = self.search(existing_domain, limit=1)
+                    if existing:
+                        existing.write(vals)
+                        menus |= existing
+                        continue
                 menus |= super().create(vals)
                 continue
             else:
@@ -210,14 +244,46 @@ class WebsiteMenu(models.Model):
                     parent_id = vals.get("parent_id")
                     if not parent_id or (default_menu and parent_id == default_menu.id):
                         parent_id = website.menu_id.id
+
+                    # Idempotent Guard: Prevent duplicate menu creation under same parent for this website
+                    target_url = vals.get('url')
+                    target_page_id = vals.get('page_id')
+                    existing_domain = [
+                        ('website_id', '=', website.id),
+                        ('parent_id', '=', parent_id),
+                    ]
+                    if target_page_id:
+                        existing_domain.append(('page_id', '=', target_page_id))
+                    elif target_url and target_url != '#':
+                        existing_domain.append(('url', '=', target_url))
+                    else:
+                        existing_domain = None
+
+                    if existing_domain:
+                        existing = self.search(existing_domain, limit=1)
+                        if existing:
+                            existing.write(vals)
+                            continue
+
                     w_vals.append({
                         **vals,
                         'website_id': website.id,
                         'parent_id': parent_id,
                     })
-                new_menu = super().create(w_vals)[-1:]  # take the last record
+                new_menu = super().create(w_vals)[-1:] if w_vals else menus[-1:] if menus else self.browse()
                 if default_menu and vals.get('parent_id') == default_menu.id:
-                    new_menu = super().create(vals)
+                    existing_default = self.search([
+                        ('website_id', '=', False),
+                        ('parent_id', '=', default_menu.id),
+                        '|',
+                        ('page_id', '=', vals.get('page_id')) if vals.get('page_id') else ('id', '=', 0),
+                        ('url', '=', vals.get('url')) if vals.get('url') and vals.get('url') != '#' else ('id', '=', 0),
+                    ], limit=1) if (vals.get('page_id') or (vals.get('url') and vals.get('url') != '#')) else None
+                    if existing_default:
+                        existing_default.write(vals)
+                        new_menu = existing_default
+                    else:
+                        new_menu = super().create(vals)
                 menus |= new_menu
         # Only one record per vals is returned but multiple could have been created
         return menus
