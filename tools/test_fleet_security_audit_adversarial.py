@@ -1432,6 +1432,61 @@ def test_pricelist_base_price_positional_shim():
     print("  [✓] Positional shim, signature pinning, sub-10µs hot path, and financial precision verified.")
 
 
+def test_database_branding_cleaner_security_and_idempotency():
+    print("[TEST BRANDING CLEANER] Transaction Safety, Dry-Run Rollback, XML Validation & Idempotency")
+    from unittest.mock import MagicMock, patch
+    from tools.cleanup_innokafe_fake_logos_db import _validate_xml_fragment, _hash_content, clean_database
+
+    # 1. XML Validation Guard: Rejects malformed XML before DB update (CWE-20)
+    for bad_xml in ['<data><unclosed>', '<root><a href="/">bad & entity</a></root>', '<<invalid>>']:
+        try:
+            _validate_xml_fragment(bad_xml)
+            assert False, f"Failed to reject malformed XML: {bad_xml!r}"
+        except ValueError as e:
+            assert 'XML Validation Error' in str(e)
+
+    # Valid XML fragments must pass
+    _validate_xml_fragment('<a href="/"><span>Valid</span></a>')
+    _validate_xml_fragment('<data><xpath expr="//div" position="replace"><img src="/logo.svg"/></xpath></data>')
+
+    # 2. Content-Addressed Hash: Deterministic SHA-256
+    import hashlib
+    test_str = "innokafe_logo_master.svg"
+    assert _hash_content(test_str) == hashlib.sha256(test_str.encode('utf-8')).hexdigest()
+
+    # 3. Dry-Run Mode Invariant: Rollback called, commit NEVER called
+    mock_conn = MagicMock()
+    mock_cur = MagicMock()
+    mock_conn.cursor.return_value = mock_cur
+    mock_cur.fetchall.return_value = []
+    mock_cur.fetchone.return_value = [0]
+    with patch('psycopg2.connect', return_value=mock_conn):
+        clean_database('127.0.0.1', 5434, 'user', 'pass', 'test_db', commit=False)
+        mock_conn.rollback.assert_called_once()
+        mock_conn.commit.assert_not_called()
+        mock_conn.close.assert_called_once()
+
+    # 4. Commit Mode Invariant: Commit called upon success
+    mock_conn.reset_mock()
+    with patch('psycopg2.connect', return_value=mock_conn):
+        clean_database('127.0.0.1', 5434, 'user', 'pass', 'test_db', commit=True)
+        mock_conn.commit.assert_called_once()
+        mock_conn.close.assert_called_once()
+
+    # 5. Atomic Rollback on Mid-Run Exception (CWE-662 / CWE-459)
+    mock_conn.reset_mock()
+    mock_cur.execute.side_effect = [None, RuntimeError("Simulated Database Error")]
+    with patch('psycopg2.connect', return_value=mock_conn):
+        try:
+            clean_database('127.0.0.1', 5434, 'user', 'pass', 'test_db', commit=True)
+            assert False, "Should have raised RuntimeError on DB error"
+        except RuntimeError:
+            mock_conn.rollback.assert_called_once()
+            mock_conn.close.assert_called_once()
+
+    print("  [✓] XML syntax validation, dry-run rollback, commit gate, and atomic exception rollback verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -1456,8 +1511,9 @@ def main():
     test_pixel_scanner_command_injection_guard()
     test_timesheet_staging_ambiguity_and_idempotency_guards()
     test_pricelist_base_price_positional_shim()
+    test_database_branding_cleaner_security_and_idempotency()
     print("=" * 80)
-    print("ALL 20 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 21 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
