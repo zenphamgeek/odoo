@@ -1,4 +1,5 @@
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
+import inspect
 from collections import defaultdict
 
 from odoo import api, models
@@ -10,7 +11,7 @@ class PosLoadMixin(models.AbstractModel):
     _description = "PoS data loading mixin"
 
     @api.model
-    def _load_pos_data_domain(self, data):
+    def _load_pos_data_domain(self, data, *args, **kwargs):
         """ Return the domain used to filter records """
         return []
 
@@ -79,9 +80,22 @@ class PosLoadMixin(models.AbstractModel):
     @api.model
     def _load_pos_data_domain_and_dependencies(self, data):
         adapted_data = {model: d['records'] for model, d in data.items()}
-        fields = self._load_pos_data_fields(data["pos.config"]["records"] if data.get("pos.config") else None)
+        config = data["pos.config"]["records"] if data.get("pos.config") else None
+        fields = self._load_pos_data_fields(config)
+        # Signature inspection prevents swallowing genuine TypeErrors inside custom domains (CWE-703)
+        # and guarantees single-execution semantics.
+        sig = inspect.signature(self._load_pos_data_domain)
+        accepts_config = len(sig.parameters) > 1 or any(
+            p.kind in (p.VAR_POSITIONAL, p.VAR_KEYWORD)
+            for p in sig.parameters.values()
+        )
+        domain = (
+            self._load_pos_data_domain(adapted_data, config)
+            if accepts_config
+            else self._load_pos_data_domain(adapted_data)
+        )
         return {
-            'domain': self._load_pos_data_domain(adapted_data),
+            'domain': domain,
             'dependencies': self._load_pos_data_dependencies(),
             'fields': fields,
             'relations': self._load_data_relations(fields),
@@ -90,12 +104,19 @@ class PosLoadMixin(models.AbstractModel):
     @api.model
     def _load_pos_metadata(self, data, search_params={}):
         result = self._load_pos_data_domain_and_dependencies(data)
-        data[self._name] = {
+        model_data = {
             **result,
             'records': self.search(domain=search_params.get('domain', False) or result['domain'],
                                    limit=search_params.get('limit', False),
                                    offset=search_params.get('offset', 0))
         }
+        data[self._name] = model_data
+        reg = getattr(self.env, 'registry', None)
+        if reg:
+            if hasattr(reg, 'REVERSE_MODEL_ALIASES') and self._name in reg.REVERSE_MODEL_ALIASES:
+                data[reg.REVERSE_MODEL_ALIASES[self._name]] = {**model_data}
+            if hasattr(reg, 'SOVEREIGN_MODEL_ALIASES') and self._name in reg.SOVEREIGN_MODEL_ALIASES:
+                data[reg.SOVEREIGN_MODEL_ALIASES[self._name]] = {**model_data}
         return data
 
     @api.model

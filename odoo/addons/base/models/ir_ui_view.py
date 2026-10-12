@@ -709,7 +709,14 @@ actual arch.
 
     @api.model
     def _get_default_view_domain(self, model, view_type):
-        return Domain([('model', '=', model), ('type', '=', view_type), ('mode', '=', 'primary')])
+        models = [model]
+        if hasattr(self.pool, 'REVERSE_MODEL_ALIASES') and model in self.pool.REVERSE_MODEL_ALIASES:
+            models.append(self.pool.REVERSE_MODEL_ALIASES[model])
+        if hasattr(self.pool, 'SOVEREIGN_MODEL_ALIASES') and model in self.pool.SOVEREIGN_MODEL_ALIASES:
+            models.append(self.pool.SOVEREIGN_MODEL_ALIASES[model])
+        if len(models) == 1:
+            return Domain([('model', '=', model), ('type', '=', view_type), ('mode', '=', 'primary')])
+        return Domain([('model', 'in', models), ('type', '=', view_type), ('mode', '=', 'primary')])
 
     #------------------------------------------------------
     # Inheritance mecanism
@@ -2920,7 +2927,7 @@ class Base(models.AbstractModel):
         view = E.calendar(string=self._description)
         view.append(E.field(name=self._rec_name_fallback()))
 
-        if not set_first_of([self._date_name, 'date', 'date_start', 'x_date', 'x_date_start'],
+        if not set_first_of([self._date_name, 'date_order', 'date', 'date_start', 'scheduled_date', 'invoice_date', 'create_date', 'x_date', 'x_date_start'],
                             self._fields, 'date_start'):
             raise UserError(_("Insufficient fields for Calendar View!"))
 
@@ -2981,6 +2988,14 @@ class Base(models.AbstractModel):
             result['models'][model] = {"fields": self.env[model].fields_get(
                 allfields=model_fields, attributes=self._get_view_field_attributes()
             )}
+
+        # Ensure bidirectional alias availability for web client
+        if hasattr(self.pool, 'REVERSE_MODEL_ALIASES'):
+            for sov, leg in self.pool.REVERSE_MODEL_ALIASES.items():
+                if sov in result['models'] and leg not in result['models']:
+                    result['models'][leg] = result['models'][sov]
+                elif leg in result['models'] and sov not in result['models']:
+                    result['models'][sov] = result['models'][leg]
 
         # Add related action information if asked
         if options.get('toolbar'):

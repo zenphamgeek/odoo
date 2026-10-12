@@ -88,7 +88,11 @@ class LoyaltyReward(models.Model):
     )
     discount_product_domain = fields.Char(default="[]")
     discount_product_ids = fields.Many2many(
-        string="Discounted Products", comodel_name="product.product"
+        "product.product",
+        "loyalty_reward_product_product_rel",
+        "loyalty_reward_id",
+        "product_product_id",
+        string="Discounted Products",
     )
     discount_product_category_id = fields.Many2one(
         string="Discounted Prod. Categories", comodel_name="product.category"

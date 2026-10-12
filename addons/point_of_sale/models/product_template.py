@@ -359,16 +359,18 @@ class ProductTemplate(models.Model):
         }
 
     def _get_load_product_template_sql(self, query, limit_count):
+        table = SQL.identifier(self._table)
         return SQL("""
-            SELECT product_template.id
-                FROM %s
-                WHERE %s
-            ORDER BY product_template.is_favorite DESC NULLS LAST,
-                CASE WHEN product_template.type = 'service' THEN 1 ELSE 0 END DESC,
-                product_template.write_date DESC
-            LIMIT %s
+            SELECT %(table)s.id
+                FROM %(from_clause)s
+                WHERE %(where_clause)s
+            ORDER BY %(table)s.is_favorite DESC NULLS LAST,
+                CASE WHEN %(table)s.type = 'service' THEN 1 ELSE 0 END DESC,
+                %(table)s.write_date DESC
+            LIMIT %(limit_count)s
             """,
-            query.from_clause,
-            query.where_clause or SQL("TRUE"),
-            limit_count,
+            table=table,
+            from_clause=query.from_clause,
+            where_clause=query.where_clause or SQL("TRUE"),
+            limit_count=limit_count,
         )

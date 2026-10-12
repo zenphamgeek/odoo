@@ -23,6 +23,9 @@ This module adds a custom Sales Team for the Point of Sale. This enables you to 
         'security/ir.access.csv',
     ],
     'auto_install': True,
+    'pos_react_plugin_scripts': [
+        '/pos_sale/static/src/pos_react_plugin.js',
+    ],
     'assets': {
         'point_of_sale._assets_pos': [
             'pos_sale/static/src/**/*',

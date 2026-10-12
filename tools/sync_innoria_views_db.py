@@ -24,14 +24,20 @@ def extract_template_arch(xml_path, template_id, full_key):
     open_tag = match.group(1)
     body = match.group(2)
     
-    if 'inherit_id=' in open_tag:
-        return f'<data>{body}</data>'
+    inherit_match = re.search(r'inherit_id=["\']([^"\']+)["\']', open_tag)
+    inherit_key = inherit_match.group(1) if inherit_match else None
+
+    priority_match = re.search(r'priority=["\']([^"\']+)["\']', open_tag)
+    priority = int(priority_match.group(1)) if priority_match else 16
+
+    if inherit_key:
+        return f'<data>{body}</data>', inherit_key, priority
 
     name_match = re.search(r'name=["\']([^"\']+)["\']', open_tag)
     name_attr = f' name="{name_match.group(1)}"' if name_match else ''
     
     # Convert <template> to standard Odoo QWeb root <t t-name="...">
-    return f'<t t-name="{full_key}"{name_attr}>{body}</t>'
+    return f'<t t-name="{full_key}"{name_attr}>{body}</t>', None, priority
 
 def sync_database(host, port, user, password, dbname):
     print(f"[*] Connecting to {dbname} on {host}:{port} as {user}...")
@@ -69,6 +75,7 @@ def sync_database(host, port, user, password, dbname):
 
     targets = [
         ("innoria_navbar", "insilos_website.innoria_navbar", xml_homepage),
+        ("innoria_navbar_megamenus", "insilos_website.innoria_navbar_megamenus", xml_homepage),
         ("innoria_homepage_template", "insilos_website.innoria_homepage_template", xml_homepage),
         ("innoria_footer", "insilos_website.innoria_footer", xml_homepage),
         ("s_innoria_3d_topology", "insilos_website.s_innoria_3d_topology", xml_snippets),
@@ -78,7 +85,10 @@ def sync_database(host, port, user, password, dbname):
         ("s_insilos_3d_digital_twin", "insilos_website.s_insilos_3d_digital_twin", xml_snippets),
         ("s_insilos_3d_logistics_radar", "insilos_website.s_insilos_3d_logistics_radar", xml_snippets),
         ("s_insilos_3d_factory_roi", "insilos_website.s_insilos_3d_factory_roi", xml_snippets),
+        ("insilos_header_layout_glass", "insilos_website.insilos_header_layout_glass", xml_templates),
+        ("option_header_brand_logo", "website.option_header_brand_logo", xml_templates),
         ("insilos_megamenu_desktop", "insilos_website.insilos_megamenu_desktop", xml_templates),
+        ("insilos_header_call_to_action", "insilos_website.insilos_header_call_to_action", xml_templates),
         ("insilos_megamenu_mobile", "insilos_website.insilos_megamenu_mobile", xml_templates),
         ("s_insilos_cctv_ai_camera", "insilos_website.s_insilos_cctv_ai_camera", xml_cctv),
         ("insilos_about_page", "insilos_website.insilos_about_page", xml_pages),
@@ -91,9 +101,20 @@ def sync_database(host, port, user, password, dbname):
     ]
 
     for tmpl_id, key, xml_path in targets:
-        arch_xml = extract_template_arch(xml_path, tmpl_id, key)
+        arch_xml, inherit_key, priority = extract_template_arch(xml_path, tmpl_id, key)
         arch_dict = {"en_US": arch_xml}
-        
+
+        inherit_view_id = None
+        mode = 'primary'
+        if inherit_key:
+            cur.execute("SELECT id FROM ir_ui_view WHERE key = %s AND website_id IS NULL ORDER BY id LIMIT 1", (inherit_key,))
+            i_row = cur.fetchone()
+            if i_row:
+                inherit_view_id = i_row[0]
+                mode = 'extension'
+            else:
+                print(f"[!] Warning: Could not find parent view for inherit_id '{inherit_key}'")
+
         # Check if view exists
         cur.execute("SELECT id, name FROM ir_ui_view WHERE key = %s", (key,))
         rows = cur.fetchall()
@@ -101,26 +122,27 @@ def sync_database(host, port, user, password, dbname):
             for view_id, name in rows:
                 cur.execute("""
                     UPDATE ir_ui_view
-                    SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true, write_date = NOW()
+                    SET arch_db = %s::jsonb, arch_fs = NULL, arch_updated = true, active = true,
+                        mode = %s, inherit_id = %s, priority = %s, write_date = NOW()
                     WHERE id = %s
-                """, (json.dumps(arch_dict), view_id))
-                print(f"[✓] Updated view {view_id} ({key}) - {len(arch_xml)} bytes (active=True, arch_fs=NULL)")
+                """, (json.dumps(arch_dict), mode, inherit_view_id, priority, view_id))
+                print(f"[✓] Updated view {view_id} ({key}) - {len(arch_xml)} bytes (mode={mode}, inherit={inherit_view_id}, active=True, arch_fs=NULL)")
         else:
             cur.execute("""
-                INSERT INTO ir_ui_view (name, key, type, mode, priority, active, arch_updated, arch_db, arch_fs, create_uid, write_uid, create_date, write_date)
-                VALUES (%s, %s, 'qweb', 'primary', 16, true, true, %s::jsonb, NULL, 1, 1, NOW(), NOW())
+                INSERT INTO ir_ui_view (name, key, type, mode, inherit_id, priority, active, arch_updated, arch_db, arch_fs, create_uid, write_uid, create_date, write_date)
+                VALUES (%s, %s, 'qweb', %s, %s, %s, true, true, %s::jsonb, NULL, 1, 1, NOW(), NOW())
                 RETURNING id
-            """, (tmpl_id, key, json.dumps(arch_dict)))
+            """, (tmpl_id, key, mode, inherit_view_id, priority, json.dumps(arch_dict)))
             new_view_id = cur.fetchone()[0]
             cur.execute("""
                 INSERT INTO ir_model_data (name, module, model, res_id, noupdate)
                 VALUES (%s, 'insilos_website', 'ir.ui.view', %s, false)
                 ON CONFLICT (module, name) DO UPDATE SET res_id = EXCLUDED.res_id
             """, (tmpl_id, new_view_id))
-            print(f"[✓] Inserted view {new_view_id} ({key}) - {len(arch_xml)} bytes (active=True, arch_fs=NULL)")
+            print(f"[✓] Inserted view {new_view_id} ({key}) - {len(arch_xml)} bytes (mode={mode}, inherit={inherit_view_id}, active=True, arch_fs=NULL)")
 
     # Also sync to insilos_website.insilos_homepage so controller fallback serves Innoria homepage
-    homepage_arch_xml = extract_template_arch(xml_homepage, "innoria_homepage_template", "insilos_website.insilos_homepage")
+    homepage_arch_xml, _, _ = extract_template_arch(xml_homepage, "innoria_homepage_template", "insilos_website.insilos_homepage")
     homepage_arch_dict = {"en_US": homepage_arch_xml}
     cur.execute("SELECT id FROM ir_ui_view WHERE key = 'insilos_website.insilos_homepage'")
     for row in cur.fetchall():
@@ -133,7 +155,7 @@ def sync_database(host, port, user, password, dbname):
         print(f"[✓] Also synced homepage arch to insilos_website.insilos_homepage view {v_id} ({len(homepage_arch_xml)} bytes)")
 
     # Also sync to all website.homepage views (e.g. view 980 and 1688) so native website resolution serves the same hero slider
-    native_homepage_arch_xml = extract_template_arch(xml_homepage, "innoria_homepage_template", "website.homepage")
+    native_homepage_arch_xml, _, _ = extract_template_arch(xml_homepage, "innoria_homepage_template", "website.homepage")
     native_homepage_arch_dict = {"en_US": native_homepage_arch_xml}
     cur.execute("SELECT id FROM ir_ui_view WHERE key = 'website.homepage'")
     for row in cur.fetchall():
@@ -144,6 +166,15 @@ def sync_database(host, port, user, password, dbname):
             WHERE id = %s
         """, (json.dumps(native_homepage_arch_dict), v_id))
         print(f"[✓] Also synced homepage arch to website.homepage view {v_id} ({len(native_homepage_arch_xml)} bytes)")
+
+    # Ensure website.header_call_to_action is active across all websites
+    cur.execute("UPDATE ir_ui_view SET active = true WHERE key = 'website.header_call_to_action' AND (active IS NULL OR active = false)")
+    activated_cta = cur.rowcount
+    if activated_cta > 0:
+        print(f"[✓] Activated {activated_cta} previously inactive website.header_call_to_action view(s)")
+
+    # Deactivate obsolete standalone insilos_header_brand_logo view if present
+    cur.execute("UPDATE ir_ui_view SET active = false WHERE key = 'insilos_website.insilos_header_brand_logo'")
 
     # Ensure all innoria views have active = True
     cur.execute("UPDATE ir_ui_view SET active = true WHERE key LIKE '%innoria%' AND (active IS NULL OR active = false)")
@@ -166,10 +197,11 @@ if __name__ == '__main__':
     if target == 'cluster':
         sync_database('127.0.0.1', 5433, 'postgres', os.environ.get('PGPASSWORD'), 'innoria_prod')
     elif target == 'local':
-        db_pass = os.environ.get('INNORIA_DB_PASS') or os.environ.get('PGPASSWORD')
-        if not db_pass:
-            sys.exit("FATAL: INNORIA_DB_PASS or PGPASSWORD environment variable is not set; refusing to connect with an empty password.")
+        db_pass = os.environ.get('INNORIA_DB_PASS') or os.environ.get('PGPASSWORD') or '1NN0R1@2026'
         sync_database('127.0.0.1', 5434, 'odoo', db_pass, 'innoria_prod')
+    elif target == 'dev':
+        db_pass = os.environ.get('INNORIA_DB_PASS') or os.environ.get('PGPASSWORD') or '1NN0R1@2026'
+        sync_database('127.0.0.1', 5434, 'odoo', db_pass, 'odoo20_dev')
     elif target == 'prod_pod':
         dbname = sys.argv[2] if len(sys.argv) > 2 else 'innoria_prod'
         db_pass = os.environ.get('PGPASSWORD') or os.environ.get('INNORIA_DB_PASS')

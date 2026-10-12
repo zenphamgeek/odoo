@@ -500,10 +500,12 @@ class AdversarialAuditRunner:
         })
         self.cr.execute("SELECT COALESCE(MAX(id), 0) + 1 FROM organization_unit")
         company_b_id = self.cr.fetchone()[0]
-        self.cr.execute(
-            "INSERT INTO organization_unit (id, name, partner_id, currency_id, horizon_days) VALUES (%s, %s, %s, 1, 365)",
-            (company_b_id, "Adversarial Foreign Subsidiary Ltd", partner_b_comp.id),
-        )
+        self.cr.execute("""
+            CREATE TEMP TABLE temp_ou_clone ON COMMIT DROP AS
+            SELECT * FROM organization_unit WHERE id = 1;
+            UPDATE temp_ou_clone SET id = %s, name = %s, partner_id = %s;
+            INSERT INTO organization_unit SELECT * FROM temp_ou_clone;
+        """, (company_b_id, "Adversarial Foreign Subsidiary Ltd", partner_b_comp.id))
 
         # Create Agent B assigned exclusively to Company B
         agent_group = self.env.ref("insilos_al2c.group_al2c_agent")

@@ -171,14 +171,20 @@ class IrActionsActions(models.Model):
         # discard unauthorized actions, and read action definitions
         result = defaultdict(list)
 
+        models = [model_name]
+        if hasattr(self.pool, 'REVERSE_MODEL_ALIASES') and model_name in self.pool.REVERSE_MODEL_ALIASES:
+            models.append(self.pool.REVERSE_MODEL_ALIASES[model_name])
+        if hasattr(self.pool, 'SOVEREIGN_MODEL_ALIASES') and model_name in self.pool.SOVEREIGN_MODEL_ALIASES:
+            models.append(self.pool.SOVEREIGN_MODEL_ALIASES[model_name])
+
         self.env.flush_all()
         cr.execute("""
             SELECT a.id, a.type, a.binding_type
               FROM ir_actions a
               JOIN ir_model m ON a.binding_model_id = m.id
-             WHERE m.model = %s
+             WHERE m.model IN %s
           ORDER BY a.id
-        """, [model_name])
+        """, [tuple(models)])
         for action_id, action_model, binding_type in cr.fetchall():
             try:
                 action = self.env[action_model].sudo().browse(action_id)

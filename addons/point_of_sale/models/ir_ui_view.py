@@ -18,9 +18,15 @@ class IrUiView(models.Model):
         read_records = super()._load_pos_data_read(records, config)
 
         for key in self._get_xml_ids_to_load():
+            try:
+                view_id, template = self.env['ir.qweb']._get_template(key)
+            except Exception:
+                view_id = self.env['ir.model.data']._xmlid_to_res_id(key) or False
+                template = False
             read_records.append({
+                'id': view_id or key,
                 'key': key,
-                '_template': self.env['ir.qweb']._get_template(key)[1],
+                '_template': template,
             })
 
         return read_records

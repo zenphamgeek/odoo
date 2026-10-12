@@ -23,7 +23,7 @@ def warmup_database_assets(dbname="innoria_prod"):
     from odoo import api, SUPERUSER_ID
 
     if os.path.exists('/app/insilos'):
-        addons_path = '/app/insilos/addons,/app/insilos/apps'
+        addons_path = '/var/lib/insilos/filestore/custom_addons,/app/insilos/addons,/app/insilos/apps,/app/insilos/enterprise'
         data_dir = '/var/lib/insilos/filestore'
         db_host = os.environ.get('DB_HOST', 'pgbouncer-service')
         db_port = os.environ.get('DB_PORT', '6432')
@@ -56,6 +56,7 @@ def warmup_database_assets(dbname="innoria_prod"):
         bundles = [
             'web.assets_frontend',
             'web.assets_web',
+            'web.assets_web_dark',
             'web.assets_frontend_minimal',
             'web.assets_frontend_lazy',
             'website.assets_editor',

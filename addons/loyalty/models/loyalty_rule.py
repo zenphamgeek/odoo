@@ -53,7 +53,13 @@ class LoyaltyRule(models.Model):
     user_has_debug = fields.Boolean(compute="_compute_user_has_debug")
     product_domain = fields.Char(default="[]")
 
-    product_ids = fields.Many2many(string="Products", comodel_name="product.product")
+    product_ids = fields.Many2many(
+        "product.product",
+        "loyalty_rule_product_product_rel",
+        "loyalty_rule_id",
+        "product_product_id",
+        string="Products",
+    )
     product_category_id = fields.Many2one(
         string="Categories", comodel_name="product.category", check_company=True
     )

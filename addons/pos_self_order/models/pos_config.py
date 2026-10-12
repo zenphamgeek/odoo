@@ -71,6 +71,8 @@ class PosConfig(models.Model):
         string="Set background image",
         help="Image to be displayed in the background",
         relation="pos_self_order_background_rels",
+        column1="pos_config_id",
+        column2="ir_attachment_id",
         bypass_search_access=True,
     )
     self_ordering_default_user_id = fields.Many2one(

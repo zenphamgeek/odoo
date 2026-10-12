@@ -40,26 +40,30 @@ class ProductTemplate(models.Model):
         return product_info
 
     def _get_load_product_template_sql(self, query, limit_count):
+        table = SQL.identifier(self._table)
+        pp_table = SQL.identifier(self.env['product.product']._table)
         return SQL(
             """
                 WITH pm AS (
                     SELECT pp.product_tmpl_id,
                         MAX(sml.write_date) date
                     FROM stock_move_line sml
-                    JOIN product_product pp ON sml.product_id = pp.id
+                    JOIN %(pp_table)s pp ON sml.product_id = pp.id
                     GROUP BY pp.product_tmpl_id
                 )
-                SELECT product_template.id
-                    FROM %s
-                LEFT JOIN pm ON product_template.id = pm.product_tmpl_id
-                    WHERE %s
-                ORDER BY product_template.is_favorite DESC NULLS LAST,
-                    CASE WHEN product_template.type = 'service' THEN 1 ELSE 0 END DESC,
+                SELECT %(table)s.id
+                    FROM %(from_clause)s
+                LEFT JOIN pm ON %(table)s.id = pm.product_tmpl_id
+                    WHERE %(where_clause)s
+                ORDER BY %(table)s.is_favorite DESC NULLS LAST,
+                    CASE WHEN %(table)s.type = 'service' THEN 1 ELSE 0 END DESC,
                     pm.date DESC NULLS LAST,
-                    product_template.write_date DESC
-                LIMIT %s
+                    %(table)s.write_date DESC
+                LIMIT %(limit_count)s
             """,
-            query.from_clause,
-            query.where_clause or SQL("TRUE"),
-            limit_count,
+            table=table,
+            pp_table=pp_table,
+            from_clause=query.from_clause,
+            where_clause=query.where_clause or SQL("TRUE"),
+            limit_count=limit_count,
         )

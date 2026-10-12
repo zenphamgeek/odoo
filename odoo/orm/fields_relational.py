@@ -1356,6 +1356,20 @@ class Many2many(_RelationalMulti):
                     'finance_journal_entry': 'account_move',
                     'finance_journal_line': 'account_move_line',
                 }
+                LEGACY_CUSTOM_M2M_TABLES = {
+                    'approvals_tags_rel': ('res_company_id', 'documents_tag_id'),
+                    'documents_fleet_tags_table': ('res_company_id', 'documents_tag_id'),
+                    'documents_hr_contracts_tags_table': ('res_company_id', 'documents_tag_id'),
+                    'payslip_tags_table': ('res_company_id', 'documents_tag_id'),
+                    'product_tags_table': ('res_company_id', 'documents_tag_id'),
+                }
+                if self.relation in LEGACY_CUSTOM_M2M_TABLES:
+                    c1, c2 = LEGACY_CUSTOM_M2M_TABLES[self.relation]
+                    if not self.column1:
+                        self.column1 = c1
+                    if not self.column2:
+                        self.column2 = c2
+
                 legacy_tbl = SOVEREIGN_TABLE_LEGACY.get(model._table)
                 legacy_comodel_tbl = SOVEREIGN_TABLE_LEGACY.get(comodel._table)
 
@@ -1369,6 +1383,26 @@ class Many2many(_RelationalMulti):
                         self.column2 = f'{legacy_comodel_tbl}_id'
                     else:
                         self.column2 = '%s_id' % comodel._table
+
+                # Dynamic self-healing: if physical relation table already exists in database,
+                # ensure column1 and column2 point to actual physical database columns (sovereign or legacy)
+                cr = model.env.cr
+                if sql.table_exists(cr, self.relation):
+                    def _heal_col(col, tbl, leg_tbl):
+                        if sql.column_exists(cr, self.relation, col):
+                            return col
+                        candidates = []
+                        if leg_tbl:
+                            candidates.extend([f'{leg_tbl}_id', f'{tbl}_id'])
+                            if leg_tbl in ('product_product', 'product_template'):
+                                candidates.append('product_id')
+                        for c in candidates:
+                            if c and sql.column_exists(cr, self.relation, c):
+                                return c
+                        return col
+
+                    self.column1 = _heal_col(self.column1, model._table, legacy_tbl)
+                    self.column2 = _heal_col(self.column2, comodel._table, legacy_comodel_tbl)
             # check validity of table name
             check_pg_name(self.relation)
         else:
@@ -1449,21 +1483,101 @@ class Many2many(_RelationalMulti):
     def update_db_foreign_keys(self, model):
         """ Add the foreign keys corresponding to the field's relation table. """
         comodel = model.env[self.comodel_name]
+        cr = model.env.cr
+        SOVEREIGN_TABLE_LEGACY = {
+            'catalog_item': 'product_template',
+            'catalog_sku': 'product_product',
+            'party_master': 'res_partner',
+            'organization_unit': 'res_company',
+            'system_attachment': 'ir_attachment',
+            'party_classification': 'res_partner_category',
+            'procurement_order': 'purchase_order',
+            'procurement_order_line': 'purchase_order_line',
+            'order_header': 'sale_order',
+            'order_line': 'sale_order_line',
+            'logistics_transfer': 'stock_picking',
+            'logistics_movement': 'stock_move',
+            'manufacturing_order': 'mrp_production',
+            'manufacturing_bom': 'mrp_bom',
+            'finance_journal_entry': 'account_move',
+            'finance_journal_line': 'account_move_line',
+        }
         if model._is_an_ordinary_table():
-            model.pool.add_foreign_key(
-                self.relation, self.column1, model._table, 'id', 'cascade',
-                model, self._module, force=False,
-            )
+            col1 = self.column1
+            if not sql.column_exists(cr, self.relation, col1):
+                leg = SOVEREIGN_TABLE_LEGACY.get(model._table)
+                if leg and sql.column_exists(cr, self.relation, f'{leg}_id'):
+                    col1 = f'{leg}_id'
+                    self.column1 = col1
+            if sql.column_exists(cr, self.relation, col1):
+                model.pool.add_foreign_key(
+                    self.relation, col1, model._table, 'id', 'cascade',
+                    model, self._module, force=False,
+                )
         if comodel._is_an_ordinary_table():
-            model.pool.add_foreign_key(
-                self.relation, self.column2, comodel._table, 'id', self.ondelete,
-                model, self._module,
-            )
+            col2 = self.column2
+            if not sql.column_exists(cr, self.relation, col2):
+                leg = SOVEREIGN_TABLE_LEGACY.get(comodel._table)
+                if leg and sql.column_exists(cr, self.relation, f'{leg}_id'):
+                    col2 = f'{leg}_id'
+                    self.column2 = col2
+            if sql.column_exists(cr, self.relation, col2):
+                model.pool.add_foreign_key(
+                    self.relation, col2, comodel._table, 'id', self.ondelete,
+                    model, self._module,
+                )
+
+    def _ensure_physical_columns(self, cr, model_table=None, comodel_table=None):
+        if not self.relation or not self.store:
+            return
+        SOVEREIGN_TABLE_LEGACY = {
+            'catalog_item': 'product_template',
+            'catalog_sku': 'product_product',
+            'party_master': 'res_partner',
+            'organization_unit': 'res_company',
+            'system_attachment': 'ir_attachment',
+            'party_classification': 'res_partner_category',
+            'procurement_order': 'purchase_order',
+            'procurement_order_line': 'purchase_order_line',
+            'order_header': 'sale_order',
+            'order_line': 'sale_order_line',
+            'logistics_transfer': 'stock_picking',
+            'logistics_movement': 'stock_move',
+            'manufacturing_order': 'mrp_production',
+            'manufacturing_bom': 'mrp_bom',
+            'finance_journal_entry': 'account_move',
+            'finance_journal_line': 'account_move_line',
+        }
+        if self.column1 and not sql.column_exists(cr, self.relation, self.column1):
+            candidates = []
+            if model_table:
+                leg = SOVEREIGN_TABLE_LEGACY.get(model_table)
+                if leg:
+                    candidates.extend([f'{leg}_id', f'{model_table}_id'])
+            for leg_k, leg_v in SOVEREIGN_TABLE_LEGACY.items():
+                candidates.extend([f'{leg_v}_id', f'{leg_k}_id'])
+            for c in candidates:
+                if sql.column_exists(cr, self.relation, c):
+                    self.column1 = c
+                    break
+        if self.column2 and not sql.column_exists(cr, self.relation, self.column2):
+            candidates = []
+            if comodel_table:
+                leg = SOVEREIGN_TABLE_LEGACY.get(comodel_table)
+                if leg:
+                    candidates.extend([f'{leg}_id', f'{comodel_table}_id'])
+            for leg_k, leg_v in SOVEREIGN_TABLE_LEGACY.items():
+                candidates.extend([f'{leg_v}_id', f'{leg_k}_id'])
+            for c in candidates:
+                if sql.column_exists(cr, self.relation, c):
+                    self.column2 = c
+                    break
 
     def read(self, records):
         context = {'active_test': False}
         context.update(self.context)
         comodel = records.env[self.comodel_name].with_context(**context)
+        self._ensure_physical_columns(records.env.cr, records._table, comodel._table)
 
         # make the query for the lines
         domain = self.get_comodel_domain(records)
@@ -1499,6 +1613,7 @@ class Many2many(_RelationalMulti):
         comodel = model.env[self.comodel_name].with_context(**self.context)
         comodel = self._check_sudo_commands(comodel)
         cr = model.env.cr
+        self._ensure_physical_columns(cr, model._table, comodel._table)
 
         if is_real and self.store:
             # Using `record[self.name]` generates 2 SQL queries when the value

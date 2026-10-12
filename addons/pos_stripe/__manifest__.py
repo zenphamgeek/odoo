@@ -8,6 +8,9 @@
         'views/pos_payment_method_views.xml',
     ],
     'depends': ['point_of_sale', 'payment_stripe'],
+    'pos_react_plugin_scripts': [
+        '/pos_stripe/static/src/pos_react_plugin.js',
+    ],
     'assets': {
         'point_of_sale._assets_pos': [
             'pos_stripe/static/src/**/*',

@@ -218,10 +218,26 @@ class PosSession(models.Model):
         metadata = self._load_metadata(models, local_data['search_params'])
         to_read = metadata
         if local_data['models']:
-            to_read = {model: data for model, data in metadata.items() if model in local_data['models']}
+            requested = set(local_data['models'])
+            reg = getattr(self.env, 'registry', None)
+            if reg:
+                for m in list(requested):
+                    if hasattr(reg, 'SOVEREIGN_MODEL_ALIASES') and m in reg.SOVEREIGN_MODEL_ALIASES:
+                        requested.add(reg.SOVEREIGN_MODEL_ALIASES[m])
+                    if hasattr(reg, 'REVERSE_MODEL_ALIASES') and m in reg.REVERSE_MODEL_ALIASES:
+                        requested.add(reg.REVERSE_MODEL_ALIASES[m])
+            to_read = {model: data for model, data in metadata.items() if model in requested}
         data = self._read_from_metadata(to_read, local_data, self.config_id)
         if local_data['only_records']:
-            return {model: d['records'] for model, d in data.items()}
+            res = {model: d['records'] for model, d in data.items()}
+            reg = getattr(self.env, 'registry', None)
+            if reg:
+                for m in list(res.keys()):
+                    if hasattr(reg, 'REVERSE_MODEL_ALIASES') and m in reg.REVERSE_MODEL_ALIASES:
+                        res[reg.REVERSE_MODEL_ALIASES[m]] = res[m]
+                    if hasattr(reg, 'SOVEREIGN_MODEL_ALIASES') and m in reg.SOVEREIGN_MODEL_ALIASES:
+                        res[reg.SOVEREIGN_MODEL_ALIASES[m]] = res[m]
+            return res
         if local_data['records']:
             # Add data to remove from the indexedDB
             data_to_remove = self.filter_local_data({model: list(d.keys()) for model, d in local_data['records'].items()})
@@ -235,7 +251,7 @@ class PosSession(models.Model):
                 data[model] = {
                     'records': [],
                 }
-            del d['records']
+            d.pop('records', None)
             data[model].update(d)
         return data
 
@@ -266,7 +282,7 @@ class PosSession(models.Model):
         response = {}
         for model, data in server_data.items():
             try:
-                del data['domain']
+                data.pop('domain', None)
                 response[model] = self.env[model]._read_pos_data_from_metadata(data, local_data, config_id)
             except AccessError as e:
                 response[model] = {
