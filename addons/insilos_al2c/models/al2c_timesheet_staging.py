@@ -23,19 +23,27 @@ _logger = logging.getLogger(__name__)
 class _IdempotentDuplicateDescriptor:
     """Descriptor that defaults to False on class level, reflects context on records,
     and supports test mock attribute assignment without unbounded memory leaks."""
+    def __init__(self):
+        self._values = {}
+
     def __get__(self, instance, owner=None):
         if instance is None:
             return False
+        inst_id = id(instance)
+        if inst_id in self._values:
+            return self._values[inst_id]
         if hasattr(instance, '__dict__') and '_is_idempotent_duplicate_val' in instance.__dict__:
             return bool(instance.__dict__['_is_idempotent_duplicate_val'])
         env = getattr(instance, 'env', None)
-        if env and hasattr(env, 'context') and isinstance(env.context, dict):
+        if env and hasattr(env, 'context') and hasattr(env.context, 'get'):
             return bool(env.context.get('al2c_idempotent_duplicate', False))
         return False
 
     def __set__(self, instance, value):
-        if instance is not None and hasattr(instance, '__dict__'):
-            instance.__dict__['_is_idempotent_duplicate_val'] = bool(value)
+        if instance is not None:
+            self._values[id(instance)] = bool(value)
+            if hasattr(instance, '__dict__'):
+                instance.__dict__['_is_idempotent_duplicate_val'] = bool(value)
 
 
 class Al2cTimesheetStaging(models.Model):
