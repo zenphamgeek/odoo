@@ -19,7 +19,7 @@ Architecture & Safety Guardrails:
 6. Graceful Two-Tiered Rolling Reload:
    - Sequential pod-by-pod rollout maintaining >= 66.7% cluster capacity.
    - Within each pod, child HTTP workers are signaled with signal.SIGINT
-     (triggering Odoo's graceful self.alive = False) staggered by 2s,
+     (triggering worker's graceful self.alive = False) staggered by 2s,
      allowing master PID 1 to spawn replacement workers before the next retires.
    - Local in-pod HTTP probe asserting HTTP 200 on Host: innoria.insilos.com
      and Host: innokafe.insilos.com before advancing to the next pod.
@@ -396,10 +396,13 @@ def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAM
         raise ValueError(f"Security Invariant Violated: tar_path must reside in /tmp or workspace: {tar_path!r}")
 
     sync_tool = os.path.join(ROOT_DIR, "tools", "sync_innokafe_views_db.py")
+    cleanup_tool = os.path.join(ROOT_DIR, "tools", "cleanup_innokafe_fake_logos_db.py")
     warmup_tool = os.path.join(ROOT_DIR, "tools", "safe_asset_warmup.py")
     pricelist_tool = os.path.join(ROOT_DIR, "addons", "product", "models", "product_pricelist_item.py")
     if not os.path.isfile(sync_tool):
         raise FileNotFoundError(f"Sync tool not found: {sync_tool}")
+    if not os.path.isfile(cleanup_tool):
+        raise FileNotFoundError(f"Cleanup tool not found: {cleanup_tool}")
     if not os.path.isfile(warmup_tool):
         raise FileNotFoundError(f"Warmup tool not found: {warmup_tool}")
     if not os.path.isfile(pricelist_tool):
@@ -422,7 +425,7 @@ def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAM
         "chown -R insilos:insilos /app/insilos/enterprise/innokafe_website "
         "/app/insilos/apps/innokafe_website "
         "/app/insilos/addons/product/models/product_pricelist_item.py "
-        "/tmp/sync_innokafe_views_db.py /tmp/safe_asset_warmup.py && "
+        "/tmp/sync_innokafe_views_db.py /tmp/cleanup_innokafe_fake_logos_db.py /tmp/safe_asset_warmup.py && "
         "rm -f /tmp/innokafe_website_sync.tar.gz /tmp/product_pricelist_item.py"
     )
 
@@ -432,6 +435,7 @@ def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAM
         files = [
             (real_tar_path, "/tmp/innokafe_website_sync.tar.gz"),
             (sync_tool, "/tmp/sync_innokafe_views_db.py"),
+            (cleanup_tool, "/tmp/cleanup_innokafe_fake_logos_db.py"),
             (warmup_tool, "/tmp/safe_asset_warmup.py"),
             (pricelist_tool, "/tmp/product_pricelist_item.py"),
         ]
@@ -474,6 +478,26 @@ def execute_innokafe_db_sync(lead_pod: str, namespace: str = NAMESPACE, containe
     if res_sync.returncode != 0:
         raise RuntimeError(f"InnoKafe database views sync failed on {po} (code {res_sync.returncode})")
     print(f"[✓] Database views and isolation templates successfully synced on {po}.")
+
+    # Execute zero-DDL logo purge on production pod (safe dry-run by default unless confirmed)
+    purge_confirmed = os.environ.get("CONFIRM_ALL_WEBSITES_PROD") == "1"
+    if purge_confirmed:
+        print("[*] CONFIRM_ALL_WEBSITES_PROD=1 detected: Executing live logo purge with --commit --all-websites...")
+        purge_cmd = "DB_NAME=innokafe_prod CONFIRM_ALL_WEBSITES_PROD=1 python3 /tmp/cleanup_innokafe_fake_logos_db.py prod_pod --commit --all-websites"
+    else:
+        print("[!] CONFIRM_ALL_WEBSITES_PROD not set to '1': Executing logo purge in safe DRY-RUN mode (pre-op audit only)...")
+        purge_cmd = "DB_NAME=innokafe_prod python3 /tmp/cleanup_innokafe_fake_logos_db.py prod_pod"
+
+    res_clean = subprocess.run([
+        "kubectl", "exec", "-n", ns, po, "-c", co, "--",
+        "sh", "-c", purge_cmd
+    ], capture_output=True, text=True, timeout=60)
+    print(res_clean.stdout.strip())
+    if res_clean.stderr.strip():
+        print("Stderr:", res_clean.stderr.strip())
+    if res_clean.returncode != 0:
+        raise RuntimeError(f"InnoKafe database logo purge failed on {po} (code {res_clean.returncode})")
+    print(f"[✓] Database vector logo purge {'committed durably' if purge_confirmed else 'verified safely in dry-run mode'} on {po}.")
 
 
 def execute_concurrent_dual_warmup(pods: List[str], namespace: str = NAMESPACE, container: str = CONTAINER) -> None:
