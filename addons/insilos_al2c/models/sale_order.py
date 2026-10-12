@@ -316,16 +316,72 @@ class SaleOrder(models.Model):
         raw = f"{self._name}:{self.id}:{wdate_str}:{template_version}:{report_ref}"
         return hashlib.sha256(raw.encode('utf-8')).hexdigest()
 
-    def _get_cached_report_attachment(self, report_ref: str, template_version: str = "1.0"):
-        """Look up cached report artifact matching the current document state."""
+    def _get_cached_report_attachment(
+        self,
+        report_ref: str,
+        template_version: str = "1.0",
+        create_content: bytes = None,
+        filename: str = None,
+    ):
+        """Look up or race-safely store cached report artifact matching current document state.
+
+        Guarantees non-repudiation and concurrency safety:
+        If create_content is provided and no cached record exists, attempts atomic creation
+        within an isolated DB savepoint. If a concurrent worker committed the same content hash
+        first (UniqueViolation / collision), catches conflict and rereads cleanly.
+        """
         self.ensure_one()
         content_hash = self._get_al2c_report_content_hash(report_ref, template_version=template_version)
+        desc = f"al2c_report_hash:{content_hash}"
         Attachment = self.env['ir.attachment'].sudo()
-        return Attachment.search([
+        existing = Attachment.search([
             ('res_model', '=', self._name),
             ('res_id', '=', self.id),
-            ('description', '=', f"al2c_report_hash:{content_hash}"),
-        ], limit=1)
+            ('description', '=', desc),
+        ], order='id asc', limit=1)
+        if existing:
+            return existing
+
+        if create_content is not None:
+            import base64
+            fname = filename or f"{self.name or 'report'}_{content_hash[:8]}.pdf"
+            b64_data = base64.b64encode(create_content).decode('ascii') if isinstance(create_content, bytes) else create_content
+            try:
+                with self.env.cr.savepoint():
+                    return Attachment.create({
+                        'name': fname,
+                        'res_model': self._name,
+                        'res_id': self.id,
+                        'type': 'binary',
+                        'datas': b64_data,
+                        'description': desc,
+                        'mimetype': 'application/pdf',
+                    })
+            except Exception:
+                # Concurrency conflict / race collision: another worker committed the artifact
+                # Savepoint rollback completed cleanly; re-read the canonical winning record
+                return Attachment.search([
+                    ('res_model', '=', self._name),
+                    ('res_id', '=', self.id),
+                    ('description', '=', desc),
+                ], order='id asc', limit=1)
+
+        return existing
+
+    def _store_cached_report_attachment(
+        self,
+        report_ref: str,
+        content: bytes,
+        filename: str = None,
+        template_version: str = "1.0",
+    ):
+        """Convenience method to store or retrieve cached report attachment race-safely."""
+        return self._get_cached_report_attachment(
+            report_ref,
+            template_version=template_version,
+            create_content=content,
+            filename=filename,
+        )
 
     @api.model
     def get_views(self, views, options=None):

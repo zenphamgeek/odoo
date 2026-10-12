@@ -1086,7 +1086,27 @@ def test_report_anti_genesis_and_escaping_mutation_matrix():
     h3 = SaleOrder._get_al2c_report_content_hash(mock_order_mutated, 'insilos_al2c.report_sales_proposal')
     assert h1 != h3, "Mutating document state must alter report content hash"
 
-    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), {len(xml_files)} XML files well-formed, content-hash idempotency, and strict &amp;/UoM invariants verified.")
+    # 8. Concurrency Collision & Conflict Reread Invariant (Finding 7)
+    mock_att = MagicMock(name='mock_winning_attachment')
+    mock_attachment_model = MagicMock()
+    mock_env = MagicMock()
+    mock_order.env = mock_env
+    mock_env['ir.attachment'].sudo.return_value = mock_attachment_model
+
+    # Simulate race condition: search initially finds nothing, create raises UniqueViolation/Collision
+    mock_attachment_model.search.side_effect = [[], mock_att]
+    mock_attachment_model.create.side_effect = Exception("duplicate key value violates unique constraint 'ir_attachment_pkey'")
+
+    cached_res = SaleOrder._get_cached_report_attachment(
+        mock_order,
+        'insilos_al2c.report_sales_proposal',
+        create_content=b'%PDF-test-proposal',
+    )
+    assert cached_res is mock_att, "Must safely rollback savepoint and reread canonical winning attachment on concurrency collision"
+    assert mock_attachment_model.search.call_count == 2, "Must perform initial lookup and post-collision conflict reread"
+    assert mock_attachment_model.create.call_count == 1, "Must attempt atomic creation within savepoint"
+
+    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), {len(xml_files)} XML files well-formed, content-hash idempotency, concurrency collision reread, and strict &amp;/UoM invariants verified.")
 
 
 def test_pixel_scanner_command_injection_guard():
