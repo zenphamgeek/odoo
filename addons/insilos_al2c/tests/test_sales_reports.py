@@ -361,7 +361,11 @@ class TestSalesReports(TransactionCase):
         html_text = html_bytes.decode('utf-8')
         self.assertNotIn('<script>alert("XSS")</script>', html_text, "Unescaped script tag leaked into rendered HTML!")
         self.assertNotIn('"><img onerror=alert(1)>', html_text, "Unescaped img tag leaked into rendered HTML!")
-        self.assertIn('&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;', html_text, "t-out escaping must convert to safe HTML entities")
+        self.assertTrue(
+            '&lt;script&gt;alert(&quot;XSS&quot;)&lt;/script&gt;' in html_text
+            or '&lt;script&gt;alert(&#34;XSS&#34;)&lt;/script&gt;' in html_text,
+            "t-out escaping must convert to safe HTML entities",
+        )
 
         # 2. Clean Omission Guard: value_case_id = False
         self.order.write({'value_case_id': False})
