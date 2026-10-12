@@ -532,7 +532,19 @@ def test_innokafe_deploy_pipeline_security():
     except ValueError:
         pass
 
-    print("  [✓] Deploy pipeline argv guard and k8s identifier sanitization verified.")
+    # 4. Controller-side py_compile failure must abort deploy with RuntimeError
+    import tempfile
+    import py_compile
+    from unittest.mock import patch
+    with tempfile.NamedTemporaryFile() as tmp_tar:
+        with patch('py_compile.compile', side_effect=py_compile.PyCompileError(SyntaxError, SyntaxError('syntax error in pricelist'), 'product_pricelist_item.py')):
+            try:
+                distribute_code_to_pods(pods=["valid-pod"], tar_path=tmp_tar.name, namespace="default")
+                assert False, "distribute_code_to_pods failed to reject malformed syntax file"
+            except RuntimeError as exc:
+                assert "Refusing deploy: pricelist shim failed to compile" in str(exc)
+
+    print("  [✓] Deploy pipeline argv guard, identifier sanitization, and py_compile preflight verified.")
 
 
 def test_timesheet_webhook_security():
@@ -1273,6 +1285,64 @@ def test_timesheet_staging_ambiguity_and_idempotency_guards():
     print("  [✓] Consultant ambiguity refusal, race-safe idempotent create, and spreadsheet size caps verified.")
 
 
+def test_pricelist_base_price_positional_shim():
+    print("[TEST PRICELIST SHIM] Backward-Compat Positional Argument Shim & Upper-Bound Rejection")
+    from unittest.mock import MagicMock
+    from odoo.addons.product.models.product_pricelist_item import ProductPricelistItem
+
+    mock_item = MagicMock(spec=ProductPricelistItem)
+    mock_item.base = 'list_price'
+    mock_product = MagicMock()
+    mock_product.id = 1
+    curr1 = MagicMock()
+    curr2 = MagicMock()
+    curr3 = MagicMock()
+    curr1.ensure_one.return_value = True
+    curr2.ensure_one.return_value = True
+    curr3.ensure_one.return_value = True
+    mock_product.currency_id = curr1
+    mock_product._price_compute.return_value = {1: 100.0}
+    mock_uom = MagicMock()
+
+    # 1. 1 positional arg (date)
+    curr1._convert.return_value = 120.0
+    res1 = ProductPricelistItem._compute_base_price(mock_item, mock_product, 1.0, mock_uom, '2026-10-15', currency=curr2)
+    curr1._convert.assert_called_with(100.0, curr2, date='2026-10-15', round=False)
+    assert res1 == 120.0
+
+    # 2. 2 positional args (date, currency)
+    curr1._convert.reset_mock()
+    res2 = ProductPricelistItem._compute_base_price(mock_item, mock_product, 1.0, mock_uom, '2026-10-16', curr2)
+    curr1._convert.assert_called_with(100.0, curr2, date='2026-10-16', round=False)
+    assert res2 == 120.0
+
+    # 3. > 2 args raises TypeError
+    try:
+        ProductPricelistItem._compute_base_price(mock_item, mock_product, 1.0, mock_uom, '2026-10-16', curr2, 'extra_junk')
+        assert False, 'Should have raised TypeError on >2 positional args'
+    except TypeError as e:
+        assert 'accepts at most 2 positional args' in str(e)
+
+    # 4. Explicit date=False and currency=None identity handling
+    curr1._convert.reset_mock()
+    mock_item.currency_id = curr1
+    res4 = ProductPricelistItem._compute_base_price(mock_item, mock_product, 1.0, mock_uom, date=False, currency=None)
+    assert res4 == 100.0
+    curr1._convert.assert_not_called()
+
+    # 5. Explicit keyword date overrides positional fallback
+    curr1._convert.reset_mock()
+    ProductPricelistItem._compute_base_price(mock_item, mock_product, 1.0, mock_uom, '2026-10-15', date='2026-10-20', currency=curr2)
+    curr1._convert.assert_called_with(100.0, curr2, date='2026-10-20', round=False)
+
+    # 6. Explicit keyword currency overrides 2nd positional arg
+    curr1._convert.reset_mock()
+    ProductPricelistItem._compute_base_price(mock_item, mock_product, 1.0, mock_uom, '2026-10-15', curr2, currency=curr3)
+    curr1._convert.assert_called_with(100.0, curr3, date='2026-10-15', round=False)
+
+    print("  [✓] Positional args (date, currency), bounds check (>2 args TypeError), and identity handling verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -1296,8 +1366,9 @@ def main():
     test_report_anti_genesis_and_escaping_mutation_matrix()
     test_pixel_scanner_command_injection_guard()
     test_timesheet_staging_ambiguity_and_idempotency_guards()
+    test_pricelist_base_price_positional_shim()
     print("=" * 80)
-    print("ALL 19 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 20 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
