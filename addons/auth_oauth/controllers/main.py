@@ -20,6 +20,29 @@ from odoo.addons.web.controllers.utils import _get_login_redirect_url, ensure_db
 _logger = logging.getLogger(__name__)
 
 
+def _is_safe_local_redirect(target_url):
+    """Fail-closed validation verifying target_url is strictly local, cannot escape origin,
+    and does not route to raw unbranded /web or /odoo paths.
+    """
+    if not target_url or not isinstance(target_url, str):
+        return False
+    # Validate both raw form and unquoted form to prevent double-encoding bypasses (e.g. /%09evil.com)
+    for s in (target_url, werkzeug.urls.url_unquote(target_url)):
+        parsed = werkzeug.urls.url_parse(s)
+        if parsed.scheme or parsed.netloc:
+            return False
+        if not s.startswith('/') or s.startswith('//'):
+            return False
+        if '\\' in s:
+            return False
+        if any(c in s for c in ('\r', '\n', '\t', '\0', ' ')):
+            return False
+        clean_path = parsed.path
+        if clean_path in ('', '/web', '/odoo', 'web', 'odoo') or clean_path.startswith(('/web/', '/odoo/')):
+            return False
+    return True
+
+
 # ----------------------------------------------------------
 # Controller
 # ----------------------------------------------------------
@@ -44,13 +67,23 @@ class OAuthLogin(Home):
         return providers
 
     def get_state(self, provider):
-        redirect = request.params.get('redirect') or 'web'
-        if not redirect.startswith(('//', 'http://', 'https://')):
-            redirect = '%s%s' % (request.httprequest.url_root, redirect[1:] if redirect[0] == '/' else redirect)
+        redirect = request.params.get('redirect') or '/insilos'
+        if not _is_safe_local_redirect(redirect):
+            redirect = '/insilos'
+        parsed = werkzeug.urls.url_parse(redirect)
+        clean_path = parsed.path
+        if clean_path in ('', '/web', '/odoo', 'web', 'odoo') or clean_path.startswith(('/web/', '/odoo/', '/web?', '/odoo?')):
+            redirect = '/insilos'
+        else:
+            query_part = ('?' + parsed.query) if parsed.query else ''
+            redirect = clean_path + query_part
+
+        # Strictly prefix with current instance url_root
+        redirect_url = '%s%s' % (request.httprequest.url_root, redirect[1:])
         state = dict(
             d=request.session.db,
             p=provider['id'],
-            r=werkzeug.urls.url_quote_plus(redirect),
+            r=werkzeug.urls.url_quote_plus(redirect_url),
         )
         token = request.params.get('token')
         if token:
@@ -113,14 +146,26 @@ class OAuthController(Controller):
 
             action = state.get('a')
             menu = state.get('m')
-            redirect = werkzeug.urls.url_unquote_plus(state['r']) if state.get('r') else False
+            raw_redirect = werkzeug.urls.url_unquote_plus(state['r']) if state.get('r') else False
             url = '/insilos'
-            if redirect:
-                url = redirect
+            if raw_redirect:
+                parsed_r = werkzeug.urls.url_parse(raw_redirect)
+                root_parsed = werkzeug.urls.url_parse(request.httprequest.url_root)
+                is_safe_local = _is_safe_local_redirect(raw_redirect)
+                is_safe_same_origin = (
+                    parsed_r.scheme in ('http', 'https')
+                    and parsed_r.netloc == root_parsed.netloc
+                    and _is_safe_local_redirect(parsed_r.path)
+                )
+                if is_safe_local or is_safe_same_origin:
+                    clean_target_path = parsed_r.path
+                    if clean_target_path not in ('', '/web', '/odoo', 'web', 'odoo') and not clean_target_path.startswith(('/web/', '/odoo/', '/web?', '/odoo?')):
+                        query_part = ('?' + parsed_r.query) if parsed_r.query else ''
+                        url = clean_target_path + query_part
             elif action:
                 url = '/insilos/action-%s' % action
             elif menu:
-                url = '/odoo?menu_id=%s' % menu
+                url = '/insilos?menu_id=%s' % menu
 
             credential = {'login': login, 'token': key, 'type': 'oauth_token'}
             auth_info = authenticate(request.session, request.env, credential)

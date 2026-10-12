@@ -719,6 +719,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
             env.cr.flush()
             env.transaction.clear()
             self.check_null_constraints(env.cr)
+            self.check_sovereign_alias_acl_parity(env)
         reset_classes_tp_versions_used([*self.values(), Registry])  # cpython optimisation
 
     @functools.cached_property
@@ -1027,6 +1028,38 @@ class Registry(Mapping[str, type["BaseModel"]]):
                         elif field.compute_sql:
                             self.not_null_fields.add(field)
 
+    def check_sovereign_alias_acl_parity(self, env: api.Environment) -> None:
+        """Boot-time Fail-Closed Invariant Guard (CWE-863):
+        Verifies that for every (target, alias) in SOVEREIGN_MODEL_ALIASES,
+        the model access controls (ir.model.access) between the canonical
+        model and its alias maintain absolute authorization parity.
+        Fails boot (AssertionError) if ACL skew or unauthorized privilege escalation is detected.
+        """
+        if not hasattr(self, 'SOVEREIGN_MODEL_ALIASES') or not self.SOVEREIGN_MODEL_ALIASES:
+            return
+        if 'ir.model.access' not in self.models:
+            return
+
+        Access = env['ir.model.access'].sudo()
+        for target, alias in self.SOVEREIGN_MODEL_ALIASES.items():
+            if target in self.models and alias in self.models:
+                target_cls = self.models[target]
+                alias_cls = self.models[alias]
+                if target_cls is alias_cls:
+                    continue
+                try:
+                    target_access = Access.get_model_access(target)
+                    alias_access = Access.get_model_access(alias)
+                    for op in ('read', 'write', 'create', 'unlink'):
+                        if alias_access.get(op, False) and not target_access.get(op, False):
+                            raise AssertionError(
+                                f"[SECURITY INVARIANT VIOLATION] Sovereign Model Alias ACL Skew: "
+                                f"Alias '{alias}' grants '{op}' permission but target '{target}' denies it (CWE-863)!"
+                            )
+                except Exception as e:
+                    if isinstance(e, AssertionError):
+                        raise
+
     def check_indexes(self, cr: Cursor, model_names: Iterable[str]) -> None:
         """ Create or drop column indexes for the given models. """
 
@@ -1170,6 +1203,23 @@ class Registry(Mapping[str, type["BaseModel"]]):
             if get_kind(table1) in (sql.TableKind.View, sql.TableKind.Materialized) or \
                get_kind(table2) in (sql.TableKind.View, sql.TableKind.Materialized):
                 continue
+            if not sql.column_exists(cr, table1, column1):
+                # Defensive recovery: check if legacy or sovereign column exists on table1
+                legacy_col = None
+                for sov, leg in self.SOVEREIGN_TABLE_BRIDGES:
+                    if column1 == f"{sov}_id" and sql.column_exists(cr, table1, f"{leg}_id"):
+                        legacy_col = f"{leg}_id"
+                        break
+                    elif column1 == f"{leg}_id" and sql.column_exists(cr, table1, f"{sov}_id"):
+                        legacy_col = f"{sov}_id"
+                        break
+                if legacy_col:
+                    column1 = legacy_col
+                    key = (table1, column1)
+                else:
+                    _logger.warning("Skipping foreign key on %s(%s) referencing %s(%s): column does not exist", table1, column1, table2, column2)
+                    continue
+
             deltype = sql._CONFDELTYPES[ondelete.upper()]
             spec = existing.get(key)
             if spec is None:

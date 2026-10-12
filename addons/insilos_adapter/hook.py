@@ -21,8 +21,10 @@ import importlib.util
 import logging
 import os
 import sys
+import threading
 
 _logger = logging.getLogger("insilos.adapter.hook")
+_PATCH_LOCK = threading.Lock()
 
 
 def _ensure_odoo_addons_paths() -> None:
@@ -303,8 +305,238 @@ def install() -> None:
         # Install logger manager aliasing bridge
         _patch_logger_manager()
 
+        # Dynamically inject sovereign crash reporting domain mapping
+        _inject_runtime_report_domain()
+
+        # Patch router db_filter and serve_nodb to guarantee zero-drop reporting
+        _patch_router_db_filter()
+
+        # Dynamically patch sovereign model view & action aliasing
+        _patch_sovereign_model_view_aliasing()
+
     except Exception as exc:
         _logger.warning("Error initializing insilos namespace aliases: %s", exc)
+
+
+def _patch_sovereign_model_view_aliasing() -> None:
+    """Patches ir.ui.view and ir.actions to resolve sovereign model aliases dynamically across all pod rollouts."""
+    try:
+        with _PATCH_LOCK:
+            from odoo.addons.base.models.ir_ui_view import View
+            from odoo.addons.base.models.ir_actions import IrActions
+            from odoo.orm.models import SOVEREIGN_MODEL_ALIASES
+
+        # 1. Patch View._get_default_view_domain
+        if not getattr(View._get_default_view_domain, "_insilos_aliased", False):
+            orig_domain = View._get_default_view_domain
+
+            def _sovereign_default_view_domain(self, model=None, view_type=None, *args, **kwargs):
+                target_model = model or getattr(self, 'model', None)
+                models = [target_model] if target_model else []
+                rev = getattr(self.pool, "REVERSE_MODEL_ALIASES", {})
+                sov = getattr(self.pool, "SOVEREIGN_MODEL_ALIASES", SOVEREIGN_MODEL_ALIASES)
+                if target_model in rev:
+                    models.append(rev[target_model])
+                if target_model in sov:
+                    models.append(sov[target_model])
+                models = list(set(models))
+                from odoo.orm.domains import Domain
+                if view_type:
+                    return Domain([('model', 'in', models), ('type', '=', view_type), ('mode', '=', 'primary')])
+                return Domain([('model', 'in', models), ('mode', '=', 'primary')])
+
+            _sovereign_default_view_domain._insilos_aliased = True
+            View._get_default_view_domain = _sovereign_default_view_domain
+
+        # 2. Patch View.get_views
+        if not getattr(View.get_views, "_insilos_aliased", False):
+            orig_get_views = View.get_views
+
+            def _sovereign_get_views(self, views, options=None):
+                result = orig_get_views(self, views, options=options)
+                if 'models' in result and isinstance(result['models'], dict):
+                    rev = getattr(self.pool, "REVERSE_MODEL_ALIASES", {})
+                    sov = getattr(self.pool, "SOVEREIGN_MODEL_ALIASES", SOVEREIGN_MODEL_ALIASES)
+                    for alias, target in sov.items():
+                        if target in result['models'] and alias not in result['models']:
+                            result['models'][alias] = result['models'][target]
+                    for alias, target in rev.items():
+                        if target in result['models'] and alias not in result['models']:
+                            result['models'][alias] = result['models'][target]
+                return result
+
+            _sovereign_get_views._insilos_aliased = True
+            View.get_views = _sovereign_get_views
+
+        # 3. Patch IrActions._get_bindings
+        if not getattr(IrActions._get_bindings, "_insilos_aliased", False):
+            orig_bindings = IrActions._get_bindings
+
+            def _sovereign_get_bindings(self, model_name):
+                result = orig_bindings(self, model_name)
+                rev = getattr(self.pool, "REVERSE_MODEL_ALIASES", {})
+                sov = getattr(self.pool, "SOVEREIGN_MODEL_ALIASES", SOVEREIGN_MODEL_ALIASES)
+                alt_model = rev.get(model_name) or sov.get(model_name)
+                if alt_model:
+                    alt_result = orig_bindings(self, alt_model)
+                    for key, actions in alt_result.items():
+                        existing_ids = {a['id'] for a in result.get(key, [])}
+                        for a in actions:
+                            if a['id'] not in existing_ids:
+                                result.setdefault(key, []).append(a)
+                return result
+
+            _sovereign_get_bindings._insilos_aliased = True
+            IrActions._get_bindings = _sovereign_get_bindings
+
+        # 4. Patch Many2many physical column self-healing
+        from odoo.orm.fields_relational import Many2many
+        if not getattr(Many2many.read, "_insilos_aliased", False):
+            orig_m2m_read = Many2many.read
+            orig_m2m_write_batch = Many2many.write_batch
+
+            SOVEREIGN_TABLE_LEGACY = {
+                'catalog_item': 'product_template',
+                'catalog_sku': 'product_product',
+                'party_master': 'res_partner',
+                'organization_unit': 'res_company',
+                'system_attachment': 'ir_attachment',
+                'party_classification': 'res_partner_category',
+                'procurement_order': 'purchase_order',
+                'procurement_order_line': 'purchase_order_line',
+                'order_header': 'sale_order',
+                'order_line': 'sale_order_line',
+                'logistics_transfer': 'stock_picking',
+                'logistics_movement': 'stock_move',
+                'manufacturing_order': 'mrp_production',
+                'manufacturing_bom': 'mrp_bom',
+                'finance_journal_entry': 'account_move',
+                'finance_journal_line': 'account_move_line',
+            }
+
+            def _heal_m2m_columns(field, cr, model_table=None, comodel_table=None):
+                if not field.relation:
+                    return
+                from odoo.tools import sql
+                if field.column1 and not sql.column_exists(cr, field.relation, field.column1):
+                    candidates = []
+                    if model_table:
+                        leg = SOVEREIGN_TABLE_LEGACY.get(model_table)
+                        if leg:
+                            candidates.extend([f'{leg}_id', f'{model_table}_id'])
+                    for leg_k, leg_v in SOVEREIGN_TABLE_LEGACY.items():
+                        candidates.extend([f'{leg_v}_id', f'{leg_k}_id'])
+                    for c in candidates:
+                        if sql.column_exists(cr, field.relation, c):
+                            field.column1 = c
+                            break
+                if field.column2 and not sql.column_exists(cr, field.relation, field.column2):
+                    candidates = []
+                    if comodel_table:
+                        leg = SOVEREIGN_TABLE_LEGACY.get(comodel_table)
+                        if leg:
+                            candidates.extend([f'{leg}_id', f'{comodel_table}_id'])
+                    for leg_k, leg_v in SOVEREIGN_TABLE_LEGACY.items():
+                        candidates.extend([f'{leg_v}_id', f'{leg_k}_id'])
+                    for c in candidates:
+                        if sql.column_exists(cr, field.relation, c):
+                            field.column2 = c
+                            break
+
+            def _sovereign_m2m_read(self, records):
+                _heal_m2m_columns(self, records.env.cr, records._table)
+                return orig_m2m_read(self, records)
+
+            def _sovereign_m2m_write_batch(self, records_commands_list, create=False):
+                if records_commands_list:
+                    recs = records_commands_list[0][0]
+                    _heal_m2m_columns(self, recs.env.cr, recs._table)
+                return orig_m2m_write_batch(self, records_commands_list, create=create)
+
+            _sovereign_m2m_read._insilos_aliased = True
+            _sovereign_m2m_write_batch._insilos_aliased = True
+            Many2many.read = _sovereign_m2m_read
+            Many2many.write_batch = _sovereign_m2m_write_batch
+
+        _logger.info("Successfully installed Sovereign Model View Aliasing runtime hooks")
+    except Exception as e:
+        _logger.debug("Deferred sovereign model view aliasing patch: %s", e)
+
+
+def _patch_router_db_filter() -> None:
+    """Patches odoo.http.router.db_filter and serve_nodb to guarantee report.insilos.com routes correctly."""
+    try:
+        import sys
+        if "odoo.http" not in sys.modules:
+            return
+        with _PATCH_LOCK:
+            import odoo.tools.config as config
+            from odoo.http import router as http_router
+            orig_db_filter = getattr(http_router, "_orig_db_filter", http_router.db_filter)
+            orig_serve_nodb = getattr(http_router, "_orig_serve_nodb", http_router.serve_nodb)
+
+            def patched_db_filter(dbs, host=None):
+                filtered = orig_db_filter(dbs, host)
+                # Fail-closed invariant: Never broaden or return databases outside what orig_db_filter permitted.
+                if host:
+                    clean_host = host.partition(':')[0].removeprefix('www.')
+                    if clean_host in ('report.insilos.com', 'report.insilost.com'):
+                        target = config.get('database') or 'insilos'
+                        if target in filtered:
+                            return [target]
+                        return []
+                return filtered
+
+            def patched_serve_nodb(request):
+                path = request.httprequest.path.rstrip('/')
+                if path in ('/api/v1/runtime-report', '/insilos/runtime_error/relay'):
+                    try:
+                        from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import RuntimeReportGateway
+                        gateway = RuntimeReportGateway()
+                        if path == '/insilos/runtime_error/relay':
+                            return gateway.local_runtime_error_relay()
+                        else:
+                            return gateway.ingress_runtime_report()
+                    except Exception as e:
+                        _logger.warning("Error in nodb gateway dispatch: %s", e)
+                return orig_serve_nodb(request)
+
+            http_router._orig_db_filter = orig_db_filter
+            http_router._orig_serve_nodb = orig_serve_nodb
+            http_router.db_filter = patched_db_filter
+            http_router.serve_nodb = patched_serve_nodb
+    except Exception as e:
+        _logger.debug("Deferred router db_filter / serve_nodb patching: %s", e)
+
+
+def _inject_runtime_report_domain() -> None:
+    """Injects report.insilos.com into config['dbfilter_map'] to route error reports to default tenant."""
+    try:
+        import json
+        import odoo.tools.config as config
+        dfm = config.get("dbfilter_map")
+        if not dfm:
+            dfm_dict = {}
+        elif isinstance(dfm, str):
+            try:
+                dfm_dict = json.loads(dfm)
+            except Exception:
+                dfm_dict = {}
+        elif isinstance(dfm, dict):
+            dfm_dict = dfm
+        else:
+            dfm_dict = {}
+
+        if "report.insilos.com" not in dfm_dict or "report.insilost.com" not in dfm_dict:
+            target_tenant = "insilos"
+            # If innoria_prod is the primary db on this pod, route there
+            if config.get("database") == "innoria_prod" or dfm_dict.get("innoria.com") == "innoria_prod":
+                target_tenant = "innoria_prod"
+            dfm_dict.setdefault("report.insilos.com", target_tenant)
+            dfm_dict.setdefault("report.insilost.com", target_tenant)
+            config["dbfilter_map"] = json.dumps(dfm_dict)
+    except Exception as e:
+        _logger.debug("Could not inject report domain into dbfilter_map: %s", e)
 
 
 def _alias_core_loggers() -> None:
