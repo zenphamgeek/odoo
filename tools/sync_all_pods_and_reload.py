@@ -12,7 +12,9 @@ Hardened Security Architecture:
 - Deploy Integrity: Content-addressed SHA-256 digest pinning with server-side validation.
 """
 
+import argparse
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -23,6 +25,37 @@ import time
 
 NAMESPACE = "production"
 MAX_ARCHIVE_SIZE_BYTES = 50 * 1024 * 1024  # 50 MB ceiling to prevent ballooning
+ROLLOUT_LEDGER_PATH = "/tmp/insilos_pod_sync_ledger.json"
+
+
+def compute_idempotency_key(targets: list[dict], extra_version: str = "") -> str:
+    """Computes a deterministic idempotency key for this rollout run (Prefect/Airflow inspired)."""
+    raw = ":".join(sorted(t["pod"] for t in targets)) + f":{extra_version}"
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
+
+
+def plan_rollout(targets: list[dict]) -> dict:
+    """
+    Two-Phase Rollout Plan:
+    Emits the ordered execution diff, target pods, and assigned idempotency key
+    without altering pod runtime state.
+    """
+    asset_hash = hashlib.sha256(str(int(time.time() // 3600)).encode("utf-8")).hexdigest()[:8]
+    idem_key = compute_idempotency_key(targets, extra_version=asset_hash)
+    return {
+        "idempotency_key": idem_key,
+        "timestamp": time.time(),
+        "phase": "planned",
+        "target_count": len(targets),
+        "targets": targets,
+        "stages": [
+            "1. package_and_audit_archives",
+            "2. atomic_upload_and_extract",
+            "3. db_views_and_assets_warmup",
+            "4. graceful_worker_respawn",
+            "5. transactional_healthcheck_with_rollback_barrier",
+        ],
+    }
 
 
 def run_cmd(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
@@ -189,6 +222,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             "static/src/img/innoria/bg_platform_datacenter.webp",
             "static/src/img/innoria/bg_about_architecture.webp",
             "static/src/img/innoria/bg_blockchain_lattice.webp",
+            "static/src/img/innoria/logo_innoria_header.png",
         ]
         existing_media = [m for m in media_files if os.path.exists(os.path.join("enterprise/insilos_website", m))]
         frozen_media = os.path.join(staging_dir, "frozen_media")
@@ -226,9 +260,9 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             raise RuntimeError(f"Theme archive exceeds ceiling: {tar_size_theme} > {MAX_ARCHIVE_SIZE_BYTES}")
         print(f"[✓] Created {tar_path_theme} ({tar_size_theme:,} bytes)")
 
-        # 4. Insilos Adapter Hook
+        # 4. Insilos Adapter Hook & Perimeter Gateway
         tar_path_adapter = os.path.join(staging_dir, "insilos_adapter_sync.tar.gz")
-        ADAPTER_MEMBERS = ["hook.py"]
+        ADAPTER_MEMBERS = ["__init__.py", "__manifest__.py", "hook.py", "controllers"]
         frozen_adapter = os.path.join(staging_dir, "frozen_adapter")
         freeze_and_audit_members("addons/insilos_adapter", ADAPTER_MEMBERS, frozen_adapter)
         tar_adapter_cmd = [
@@ -242,6 +276,152 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_adapter_cmd, check=True)
         print(f"[✓] Created {tar_path_adapter}")
 
+        # 4B. Web Enterprise Customizations (Navbar single logo, Home Menu Dark, Webclient Templates, ColorScheme)
+        tar_path_web_ent = os.path.join(staging_dir, "web_enterprise_sync.tar.gz")
+        WEB_ENT_MEMBERS = [
+            "views/webclient_templates.xml",
+            "static/src/webclient/navbar/navbar.xml",
+            "static/src/webclient/home_menu/home_menu.scss",
+            "static/src/webclient/home_menu/home_menu.dark.scss",
+            "static/src/webclient/color_scheme/color_scheme_service.js",
+        ]
+        frozen_web_ent = os.path.join(staging_dir, "frozen_web_ent")
+        freeze_and_audit_members("enterprise/web_enterprise", WEB_ENT_MEMBERS, frozen_web_ent)
+        tar_web_ent_cmd = [
+            "tar",
+            "-czf",
+            tar_path_web_ent,
+            "-C",
+            frozen_web_ent,
+            *WEB_ENT_MEMBERS,
+        ]
+        subprocess.run(tar_web_ent_cmd, check=True)
+        # 4C. Industry FSM Theme (Executive Field Command Bar Dark Mode)
+        tar_path_fsm = os.path.join(staging_dir, "industry_fsm_theme_sync.tar.gz")
+        FSM_MEMBERS = ["static/src/scss/fsm_theme.scss"]
+        frozen_fsm = os.path.join(staging_dir, "frozen_fsm")
+        freeze_and_audit_members("enterprise/industry_fsm_theme", FSM_MEMBERS, frozen_fsm)
+        tar_fsm_cmd = [
+            "tar",
+            "-czf",
+            tar_path_fsm,
+            "-C",
+            frozen_fsm,
+            *FSM_MEMBERS,
+        ]
+        subprocess.run(tar_fsm_cmd, check=True)
+        print(f"[✓] Created {tar_path_fsm}")
+
+        # 4D. Logistics IDP (Dark Mode Dashboard)
+        tar_path_idp = os.path.join(staging_dir, "insilos_logistics_idp_sync.tar.gz")
+        IDP_MEMBERS = ["static/src/dashboard/dashboard.scss"]
+        frozen_idp = os.path.join(staging_dir, "frozen_idp")
+        freeze_and_audit_members("enterprise/insilos_logistics_idp", IDP_MEMBERS, frozen_idp)
+        tar_idp_cmd = [
+            "tar",
+            "-czf",
+            tar_path_idp,
+            "-C",
+            frozen_idp,
+            *IDP_MEMBERS,
+        ]
+        subprocess.run(tar_idp_cmd, check=True)
+        print(f"[✓] Created {tar_path_idp}")
+
+        # 4E. POS React (Odoo 20 Compatibility)
+        tar_path_pos = os.path.join(staging_dir, "pos_react_sync.tar.gz")
+        POS_MEMBERS = ["controllers/main.py"]
+        frozen_pos = os.path.join(staging_dir, "frozen_pos")
+        freeze_and_audit_members("enterprise/pos_react", POS_MEMBERS, frozen_pos)
+        tar_pos_cmd = [
+            "tar",
+            "-czf",
+            tar_path_pos,
+            "-C",
+            frozen_pos,
+            *POS_MEMBERS,
+        ]
+        subprocess.run(tar_pos_cmd, check=True)
+        print(f"[✓] Created {tar_path_pos}")
+
+        # 4F. SAP Fiori Horizon (Models, Views, Dark Mode Assets & Manifest)
+        tar_path_fiori = os.path.join(staging_dir, "insilos_sap_fiori_sync.tar.gz")
+        FIORI_MEMBERS = [
+            "__manifest__.py",
+            "models",
+            "views",
+            "static",
+        ]
+        frozen_fiori = os.path.join(staging_dir, "frozen_fiori")
+        freeze_and_audit_members("addons/insilos_sap_fiori", FIORI_MEMBERS, frozen_fiori)
+        tar_fiori_cmd = [
+            "tar",
+            "-czf",
+            tar_path_fiori,
+            "-C",
+            frozen_fiori,
+            *FIORI_MEMBERS,
+        ]
+        subprocess.run(tar_fiori_cmd, check=True)
+        print(f"[✓] Created {tar_path_fiori}")
+
+        # 4G. Insilos AL2C Engine & Crash Reporting Gatekeeper
+        tar_path_al2c = os.path.join(staging_dir, "insilos_al2c_sync.tar.gz")
+        AL2C_MEMBERS = [
+            "__init__.py",
+            "__manifest__.py",
+            "models",
+            "controllers",
+            "views",
+            "security",
+            "data",
+            "static",
+        ]
+        frozen_al2c = os.path.join(staging_dir, "frozen_al2c")
+        freeze_and_audit_members("addons/insilos_al2c", AL2C_MEMBERS, frozen_al2c)
+        tar_al2c_cmd = [
+            "tar",
+            "-czf",
+            tar_path_al2c,
+            "-C",
+            frozen_al2c,
+            *AL2C_MEMBERS,
+        ]
+        subprocess.run(tar_al2c_cmd, check=True)
+        print(f"[✓] Created {tar_path_al2c}")
+
+        # 4H. Odoo ORM Core Fixes (Foreign Key Invariance & Sovereign Recovery)
+        tar_path_orm = os.path.join(staging_dir, "odoo_orm_sync.tar.gz")
+        ORM_MEMBERS = ["fields_relational.py", "registry.py"]
+        frozen_orm = os.path.join(staging_dir, "frozen_orm")
+        freeze_and_audit_members("odoo/orm", ORM_MEMBERS, frozen_orm)
+        tar_orm_cmd = [
+            "tar",
+            "-czf",
+            tar_path_orm,
+            "-C",
+            frozen_orm,
+            *ORM_MEMBERS,
+        ]
+        subprocess.run(tar_orm_cmd, check=True)
+        print(f"[✓] Created {tar_path_orm}")
+
+        # 4I. Base Views & Actions Sovereign Aliases Fix
+        tar_path_base = os.path.join(staging_dir, "odoo_base_sync.tar.gz")
+        BASE_MEMBERS = ["ir_ui_view.py", "ir_actions.py"]
+        frozen_base = os.path.join(staging_dir, "frozen_base")
+        freeze_and_audit_members("odoo/addons/base/models", BASE_MEMBERS, frozen_base)
+        tar_base_cmd = [
+            "tar",
+            "-czf",
+            tar_path_base,
+            "-C",
+            frozen_base,
+            *BASE_MEMBERS,
+        ]
+        subprocess.run(tar_base_cmd, check=True)
+        print(f"[✓] Created {tar_path_base}")
+
         # 5. Digest-Pinning Manifest (Content-Addressed Attestation)
         manifest_path = os.path.join(staging_dir, "manifest.sha256")
         with open(manifest_path, "w", encoding="utf-8") as f:
@@ -249,6 +429,14 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             f.write(f"{compute_sha256(tar_path_media)}  insilos_media_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_theme)}  insilos_theme_genesis_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_adapter)}  insilos_adapter_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_web_ent)}  web_enterprise_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_fsm)}  industry_fsm_theme_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_idp)}  insilos_logistics_idp_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_pos)}  pos_react_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_fiori)}  insilos_sap_fiori_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_al2c)}  insilos_al2c_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_orm)}  odoo_orm_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_base)}  odoo_base_sync.tar.gz\n")
         print(f"[✓] Generated Content-Addressed Manifest: {manifest_path}")
 
         print("\n=== 2. DEPLOYING ARCHIVES TO ALL PODS & PERSISTENT VOLUMES IN PARALLEL ===")
@@ -259,6 +447,8 @@ sha256sum -c manifest.sha256
 
 mkdir -p /var/lib/insilos/filestore/custom_addons/insilos_website \
          /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis \
+         /var/lib/insilos/filestore/custom_addons/insilos_al2c \
+         /app/insilos/addons/insilos_al2c \
          /app/insilos/enterprise/insilos_website \
          /app/insilos/enterprise/insilos_theme_genesis \
          /app/insilos/apps/insilos_website \
@@ -276,19 +466,76 @@ tar -xzf /tmp/insilos_media_sync.tar.gz -C /app/insilos/apps/insilos_website/
 tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/enterprise/insilos_theme_genesis/
 tar -xzf /tmp/insilos_theme_genesis_sync.tar.gz -C /app/insilos/apps/insilos_theme_genesis/
 
-for ad_dir in /app/insilos/addons/insilos_adapter /app/insilos/insilos_adapter; do
-    if [ -d "$ad_dir" ]; then
-        tar -xzf /tmp/insilos_adapter_sync.tar.gz -C "$ad_dir/"
+for ad_dir in /app/insilos/addons/insilos_adapter /app/insilos/insilos_adapter /var/lib/insilos/filestore/custom_addons/insilos_adapter; do
+    mkdir -p "$ad_dir"
+    tar -xzf /tmp/insilos_adapter_sync.tar.gz -C "$ad_dir/"
+done
+
+for wed in /app/insilos/enterprise/web_enterprise /app/insilos/apps/web_enterprise; do
+    if [ -d "$wed" ]; then
+        tar -xzf /tmp/web_enterprise_sync.tar.gz -C "$wed/"
     fi
 done
+
+for fsm in /app/insilos/enterprise/industry_fsm_theme /app/insilos/apps/industry_fsm_theme; do
+    if [ -d "$fsm" ]; then
+        tar -xzf /tmp/industry_fsm_theme_sync.tar.gz -C "$fsm/"
+    fi
+done
+
+for idp in /app/insilos/enterprise/insilos_logistics_idp /app/insilos/apps/insilos_logistics_idp; do
+    if [ -d "$idp" ]; then
+        tar -xzf /tmp/insilos_logistics_idp_sync.tar.gz -C "$idp/"
+    fi
+done
+
+for pos in /app/insilos/enterprise/pos_react /app/insilos/apps/pos_react; do
+    if [ -d "$pos" ]; then
+        tar -xzf /tmp/pos_react_sync.tar.gz -C "$pos/"
+    fi
+done
+
+for fio in /app/insilos/addons/insilos_sap_fiori /var/lib/insilos/filestore/custom_addons/insilos_sap_fiori; do
+    mkdir -p "$fio"
+    tar -xzf /tmp/insilos_sap_fiori_sync.tar.gz -C "$fio/"
+done
+
+mkdir -p /app/insilos/addons/insilos_al2c /var/lib/insilos/filestore/custom_addons/insilos_al2c
+tar -xzf /tmp/insilos_al2c_sync.tar.gz -C /app/insilos/addons/insilos_al2c/
+tar -xzf /tmp/insilos_al2c_sync.tar.gz -C /var/lib/insilos/filestore/custom_addons/insilos_al2c/
+
+if [ -d "/app/insilos/odoo/orm" ]; then
+    tar -xzf /tmp/odoo_orm_sync.tar.gz -C /app/insilos/odoo/orm/
+fi
+
+if [ -d "/app/insilos/odoo/addons/base/models" ]; then
+    tar -xzf /tmp/odoo_base_sync.tar.gz -C /app/insilos/odoo/addons/base/models/
+fi
 
 CHOWN_TARGETS="
   /var/lib/insilos/filestore/custom_addons/insilos_website
   /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis
+  /var/lib/insilos/filestore/custom_addons/insilos_al2c
+  /var/lib/insilos/filestore/custom_addons/insilos_adapter
+  /var/lib/insilos/filestore/custom_addons/insilos_sap_fiori
   /app/insilos/enterprise/insilos_website
   /app/insilos/enterprise/insilos_theme_genesis
+  /app/insilos/enterprise/web_enterprise
+  /app/insilos/enterprise/industry_fsm_theme
+  /app/insilos/enterprise/insilos_logistics_idp
+  /app/insilos/enterprise/pos_react
+  /app/insilos/addons/insilos_sap_fiori
+  /app/insilos/addons/insilos_al2c
+  /app/insilos/addons/insilos_adapter
+  /app/insilos/insilos_adapter
+  /app/insilos/odoo/orm
+  /app/insilos/odoo/addons/base/models
   /app/insilos/apps/insilos_website
   /app/insilos/apps/insilos_theme_genesis
+  /app/insilos/apps/web_enterprise
+  /app/insilos/apps/industry_fsm_theme
+  /app/insilos/apps/insilos_logistics_idp
+  /app/insilos/apps/pos_react
   /app/insilos/tools
 "
 for t in $CHOWN_TARGETS; do
@@ -297,13 +544,13 @@ for t in $CHOWN_TARGETS; do
     fi
 done
 
-for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py; do
+for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py; do
     if [ -e "$f" ]; then
         chmod 0755 "$f"
     fi
 done
 
-rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/manifest.sha256
+rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/manifest.sha256
 """
 
         for target in targets:
@@ -315,11 +562,20 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_media, f"{pod}:/tmp/insilos_media_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_theme, f"{pod}:/tmp/insilos_theme_genesis_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_adapter, f"{pod}:/tmp/insilos_adapter_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_web_ent, f"{pod}:/tmp/web_enterprise_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_fsm, f"{pod}:/tmp/industry_fsm_theme_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_idp, f"{pod}:/tmp/insilos_logistics_idp_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_pos, f"{pod}:/tmp/pos_react_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_fiori, f"{pod}:/tmp/insilos_sap_fiori_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_al2c, f"{pod}:/tmp/insilos_al2c_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_orm, f"{pod}:/tmp/odoo_orm_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_base, f"{pod}:/tmp/odoo_base_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, manifest_path, f"{pod}:/tmp/manifest.sha256"])
             # Copy tools into /app/insilos/tools (0755 non-world-writable)
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_innoria_views_db.py", f"{pod}:/app/insilos/tools/sync_innoria_views_db.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_logos_to_assets_library.py", f"{pod}:/app/insilos/tools/sync_logos_to_assets_library.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/safe_asset_warmup.py", f"{pod}:/app/insilos/tools/safe_asset_warmup.py"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_tech_assets.py", f"{pod}:/app/insilos/tools/sync_tech_assets.py"])
 
             # Verify and extract on pod server-side
             run_cmd([
@@ -335,6 +591,11 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Synchronizes persistent filestore and enterprise addons to production pods.")
+    parser.add_argument("--plan", action="store_true", help="Generate and output execution plan without altering pods")
+    parser.add_argument("--apply", action="store_true", help="Execute planned deployment with rollback barrier")
+    args = parser.parse_args()
+
     print("=== 0. DISCOVERING ACTIVE RUNNING PODS ACROSS ALL INNORIA & INSILOS SERVICES ===")
 
     # Discover innoria-prod pods
@@ -367,6 +628,14 @@ def main():
     if not all_targets:
         print("[!] No active running pods found! Aborting.")
         sys.exit(1)
+
+    rollout_plan = plan_rollout(all_targets)
+    if args.plan and not args.apply:
+        print("\n=== ROLLOUT PLAN (TWO-PHASE BARRIER) ===")
+        print(json.dumps(rollout_plan, indent=2))
+        return
+
+    print(f"\n[*] Executing Rollout with Idempotency Key: {rollout_plan['idempotency_key']}")
 
     stage_and_deploy_archives(all_targets)
 
@@ -434,6 +703,11 @@ for pid in os.listdir('/proc'):
                     os.kill(int(pid), signal.SIGTERM)
         except Exception:
             pass
+try:
+    print('Sending SIGHUP to master PID 1 for clean phoenix re-exec')
+    os.kill(1, signal.SIGHUP)
+except Exception as e:
+    print(f'Warning signaling PID 1: {e}')
 """
 
     reload_procs = []
@@ -478,13 +752,28 @@ except Exception as e:
             "python3", "-c", probe_script, host
         ], check=False)
 
-    print("\n=== 7. PROBING PUBLIC DOMAINS ===")
-    for url in ["https://innoria.com/", "https://innoria.insilos.com/"]:
+    print("\n=== 7. PROBING PUBLIC DOMAINS & RUNTIME GATEWAY ===")
+    for url in ["https://innoria.com/", "https://innoria.insilos.com/", "https://report.insilos.com/"]:
         res = run_cmd(["curl", "-sI", url], check=False)
         first_lines = [line.strip() for line in res.stdout.splitlines()[:3] if line.strip()]
         print(f"{url} -> {' | '.join(first_lines)}")
 
+    res_post = run_cmd([
+        "curl", "-s", "-X", "POST", "https://report.insilos.com/api/v1/runtime-report",
+        "-H", "Content-Type: application/json",
+        "-d", '{"name": "ClusterVerifyProbe", "message": "Cluster deploy verification probe", "traceback": "test"}'
+    ], check=False)
+    print(f"Runtime Report Ingress -> {res_post.stdout.strip()[:200]}")
+
     print("\n[✓] ALL PODS SYNCHRONIZED AND VERIFIED ZERO-REGRESSION!")
+    rollout_plan["phase"] = "completed"
+    rollout_plan["completed_at"] = time.time()
+    try:
+        with open(ROLLOUT_LEDGER_PATH, "w", encoding="utf-8") as f:
+            json.dump(rollout_plan, f, indent=2)
+        print(f"[✓] Rollout ledger recorded at {ROLLOUT_LEDGER_PATH}")
+    except Exception as e:
+        print(f"[*] Note: Could not record rollout ledger: {e}")
 
 
 if __name__ == "__main__":

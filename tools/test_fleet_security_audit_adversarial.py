@@ -429,6 +429,33 @@ def test_route_authorization_snapshot_guard():
     print("  [✓] Controller authorization snapshot verified with strict allowlist containment.")
 
 
+def test_pod_sync_orchestrator_security():
+    print("[TEST POD SYNC ORCHESTRATOR] CWE-78: Strict Argv Command Guard & Rollout Idempotency")
+    from tools.sync_all_pods_and_reload import run_cmd, compute_idempotency_key, plan_rollout
+
+    # 1. CWE-78 Shell Injection Guard: Attempting to pass shell string must raise TypeError
+    try:
+        run_cmd("echo 'malicious string injection'")
+        assert False, "run_cmd failed to reject shell string (CWE-78 violation)"
+    except TypeError as e:
+        assert "requires an argv list[str]" in str(e)
+
+    # 2. Idempotency Key Determinism
+    targets_a = [{"pod": "pod-1", "container": "c1"}, {"pod": "pod-2", "container": "c2"}]
+    targets_b = [{"pod": "pod-2", "container": "c2"}, {"pod": "pod-1", "container": "c1"}]
+    k1 = compute_idempotency_key(targets_a, "v1")
+    k2 = compute_idempotency_key(targets_b, "v1")
+    assert k1 == k2, "Idempotency key must be independent of pod ordering"
+
+    # 3. Two-Phase Plan Schema Integrity
+    plan = plan_rollout(targets_a)
+    assert plan["phase"] == "planned"
+    assert len(plan["stages"]) == 5
+    assert plan["target_count"] == 2
+
+    print("  [✓] Shell injection strictly rejected with TypeError; two-phase plan and idempotency verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -444,8 +471,9 @@ def main():
     test_portal_dispute_security_sanitization()
     test_sparkline_svg_adversarial_fuzzing()
     test_route_authorization_snapshot_guard()
+    test_pod_sync_orchestrator_security()
     print("=" * 80)
-    print("ALL 11 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 12 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
