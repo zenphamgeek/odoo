@@ -19,6 +19,7 @@ class Al2cFtsItem(models.Model):
     name = fields.Char(string='Requirement Summary', required=True)
     lead_id = fields.Many2one('crm.lead', string='Source Opportunity', ondelete='cascade', index=True)
     sale_order_id = fields.Many2one('sale.order', string='Sale Order', ondelete='cascade', index=True)
+    project_id = fields.Many2one('project.project', string='Implementation Project', ondelete='cascade', index=True)
     module = fields.Char(string='Target Business Module', default='General')
 
     clean_core_class = fields.Selection([

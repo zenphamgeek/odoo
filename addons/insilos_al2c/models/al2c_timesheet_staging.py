@@ -69,7 +69,7 @@ class Al2cTimesheetStaging(models.Model):
     @api.depends('line_ids.unit_amount', 'line_ids.state')
     def _compute_totals(self):
         for rec in self:
-            valid_lines = rec.line_ids.filtered(lambda l: l.state != 'error')
+            valid_lines = rec.line_ids.filtered(lambda l: l.state not in ['error', 'duplicate'])
             rec.total_hours = sum(valid_lines.mapped('unit_amount'))
             rec.line_count = len(rec.line_ids)
 
@@ -79,8 +79,48 @@ class Al2cTimesheetStaging(models.Model):
         normalized = f"{sender.strip().lower()}|{subject.strip().lower()}|{str(body_or_lines).strip()}"
         return hashlib.sha256(normalized.encode('utf-8')).hexdigest()
 
+    @api.model
+    def message_new(self, msg_dict, custom_values=None):
+        """Standard Odoo email gateway entrypoint: automatically creates a timesheet staging
+        record when an email is routed to info@inno.ai.vn or timesheet aliases."""
+        if custom_values is None:
+            custom_values = {}
+
+        sender = msg_dict.get('from', '')
+        email_match = re.search(r'[\w\.-]+@[\w\.-]+', sender)
+        sender_email = email_match.group(0) if email_match else sender
+
+        subject = msg_dict.get('subject', _("Timesheet Submission"))
+        body = msg_dict.get('body', '')
+
+        custom_values.update({
+            'name': subject,
+            'sender_email': sender_email,
+            'submission_channel': 'email_pubsub',
+            'raw_email_body': body,
+            'dedup_fingerprint': self.compute_dedup_hash(sender_email, subject, body),
+        })
+
+        staging = super().message_new(msg_dict, custom_values=custom_values)
+
+        if msg_dict.get('attachments'):
+            att_ids = []
+            for fname, content in msg_dict['attachments']:
+                att = self.env['ir.attachment'].create({
+                    'name': fname,
+                    'raw': content if isinstance(content, bytes) else str(content).encode('utf-8'),
+                    'res_model': staging._name,
+                    'res_id': staging.id,
+                })
+                att_ids.append(att.id)
+            if att_ids:
+                staging.write({'attachment_ids': [(6, 0, att_ids)]})
+
+        staging.action_parse_content()
+        return staging
+
     def action_parse_content(self):
-        """Parses timesheet data from attached CSV or structured body."""
+        """Parses timesheet data from attached CSV/Excel or structured body."""
         for rec in self:
             logs = []
             parsed_lines = []
@@ -93,22 +133,27 @@ class Al2cTimesheetStaging(models.Model):
                     '|', ('work_email', '=ilike', rec.sender_email.strip()),
                     ('private_email', '=ilike', rec.sender_email.strip())
                 ], limit=1)
+                if not consultant:
+                    user = self.env['res.users'].search([('email', '=ilike', rec.sender_email.strip())], limit=1)
+                    if user and user.employee_id:
+                        consultant = user.employee_id
                 if consultant:
                     rec.employee_id = consultant.id
                     logs.append(_("Matched consultant: %s (%s)") % (consultant.name, rec.sender_email))
 
-            # 2. Try parsing attachments first (CSV / Tabular)
+            # 2. Try parsing attachments first (CSV / Excel)
             has_parsed_attachment = False
             for att in rec.attachment_ids:
                 fname = (att.name or '').lower()
+                raw_bytes = getattr(att, 'raw', None)
+                if not raw_bytes and att.datas:
+                    try:
+                        raw_bytes = base64.b64decode(att.datas)
+                    except Exception:
+                        raw_bytes = att.datas if isinstance(att.datas, bytes) else str(att.datas).encode('utf-8')
+
                 if fname.endswith('.csv'):
                     try:
-                        raw_bytes = getattr(att, 'raw', None)
-                        if not raw_bytes and att.datas:
-                            try:
-                                raw_bytes = base64.b64decode(att.datas)
-                            except Exception:
-                                raw_bytes = att.datas if isinstance(att.datas, bytes) else str(att.datas).encode('utf-8')
                         content = raw_bytes.decode('utf-8', errors='replace') if raw_bytes else ""
                         csv_reader = csv.DictReader(io.StringIO(content))
                         for row in csv_reader:
@@ -120,6 +165,27 @@ class Al2cTimesheetStaging(models.Model):
                         break
                     except Exception as e:
                         logs.append(_("Error reading CSV attachment %s: %s") % (att.name, str(e)))
+
+                elif fname.endswith(('.xlsx', '.xls')):
+                    try:
+                        import openpyxl
+                        wb = openpyxl.load_workbook(filename=io.BytesIO(raw_bytes), data_only=True)
+                        sheet = wb.active
+                        rows = list(sheet.iter_rows(values_only=True))
+                        if rows:
+                            header = [str(c or '').strip().lower() for c in rows[0]]
+                            for r in rows[1:]:
+                                if not any(r):
+                                    continue
+                                row_dict = {header[i]: r[i] for i in range(min(len(header), len(r)))}
+                                line_val = rec._parse_row_dict(row_dict, consultant)
+                                if line_val:
+                                    parsed_lines.append(line_val)
+                            has_parsed_attachment = True
+                            logs.append(_("Parsed Excel attachment: %s with %d rows.") % (att.name, len(parsed_lines)))
+                            break
+                    except Exception as e:
+                        logs.append(_("Error reading Excel attachment %s: %s") % (att.name, str(e)))
 
             # 3. Fallback: Parse structured text in email body if no attachment parsed
             if not has_parsed_attachment and rec.raw_email_body:
@@ -153,13 +219,24 @@ class Al2cTimesheetStaging(models.Model):
                         if val:
                             parsed_lines.append(val)
 
-            # 4. Populate lines
+            # 4. Intra-batch duplicate check
+            seen_tuples = set()
+            for line_val in parsed_lines:
+                if line_val['state'] == 'valid':
+                    key = (line_val.get('employee_id'), line_val.get('task_id'), str(line_val.get('date')))
+                    if key in seen_tuples:
+                        line_val['state'] = 'duplicate'
+                        line_val['validation_message'] = _("Duplicate entry within the same submission batch.")
+                    else:
+                        seen_tuples.add(key)
+
+            # 5. Populate lines
             if parsed_lines:
                 created_lines = self.env['al2c.timesheet.staging.line'].create(parsed_lines)
-                error_count = len(created_lines.filtered(lambda l: l.state == 'error'))
+                error_count = len(created_lines.filtered(lambda l: l.state in ['error', 'duplicate']))
                 rec.state = 'parsed'
                 rec.parse_status = 'partial_error' if error_count > 0 else 'success'
-                logs.append(_("Extraction completed: %d total lines (%d valid, %d with warnings).") %
+                logs.append(_("Extraction completed: %d total lines (%d valid, %d warnings/duplicates).") %
                             (len(created_lines), len(created_lines) - error_count, error_count))
             else:
                 rec.parse_status = 'error'
@@ -224,6 +301,19 @@ class Al2cTimesheetStaging(models.Model):
             val_error = _("Exceeded daily threshold: %.2f hours (> 24h)") % hours
             state = 'error'
 
+        # Row-level deduplication against account.analytic.line
+        if state == 'valid' and default_employee and task and parsed_date:
+            existing = self.env['account.analytic.line'].search([
+                ('employee_id', '=', default_employee.id),
+                ('task_id', '=', task.id),
+                ('date', '=', parsed_date),
+            ], limit=1)
+            if existing:
+                state = 'duplicate'
+                val_error = _("Duplicate: Consultant %s already has timesheet logged for task '%s' on %s (Analytic Line #%d)") % (
+                    default_employee.name, task.name, parsed_date, existing.id
+                )
+
         return {
             'staging_id': self.id,
             'date': parsed_date,
@@ -246,7 +336,7 @@ class Al2cTimesheetStaging(models.Model):
 
         valid_lines = self.line_ids.filtered(lambda l: l.state in ['valid', 'draft'])
         if not valid_lines:
-            raise UserError(_("No valid lines to commit. Please review errors first."))
+            raise UserError(_("No valid lines to commit. Please review errors or duplicate lines first."))
 
         AnalyticLine = self.env['account.analytic.line']
         committed_count = 0
@@ -303,6 +393,7 @@ class Al2cTimesheetStagingLine(models.Model):
     state = fields.Selection([
         ('draft', 'Draft'),
         ('valid', 'Valid'),
+        ('duplicate', 'Duplicate Line'),
         ('error', 'Validation Warning'),
         ('committed', 'Committed to Timesheet'),
     ], string='Line Status', default='draft', required=True)
