@@ -1,6 +1,9 @@
-# -*- coding: utf-8 -*-
+import logging
+import re
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class CrmLead(models.Model):
@@ -181,3 +184,52 @@ class CrmLead(models.Model):
             )
 
         return True
+
+    @api.model
+    def message_new(self, msg_dict, custom_values=None):
+        """Intelligent Inbound Gateway Router:
+        Intercepts incoming emails routed to info@inno.ai.vn or company email address.
+        If the email contains timesheet data (by subject, attachments, or consultant pattern),
+        reroutes transparently to al2c.timesheet.staging.
+        Otherwise, proceeds with standard CRM Lead creation and autonomous qualification.
+        """
+        subject = (msg_dict.get('subject') or '').lower()
+        body = (msg_dict.get('body') or '').lower()
+        sender = (msg_dict.get('email_from') or msg_dict.get('from') or '').lower()
+        attachments = msg_dict.get('attachments') or []
+
+        timesheet_keywords = [
+            'timesheet', 'time-sheet', 'timesheets',
+            'bảng chấm công', 'bang cham cong', 'chấm công', 'cham cong',
+            'báo cáo công', 'bao cao cong', 'log time', 'log work',
+            'bảng công', 'bang cong', 'time entry', 'time entries',
+        ]
+        is_timesheet = any(kw in subject for kw in timesheet_keywords)
+
+        if not is_timesheet and attachments:
+            for att in attachments:
+                fname = att[0].lower() if isinstance(att, (list, tuple)) else str(att).lower()
+                if any(kw in fname for kw in ['timesheet', 'cham_cong', 'bang_cong', 'time_log']):
+                    is_timesheet = True
+                    break
+                if fname.endswith(('.xlsx', '.xls', '.csv')) and any(kw in subject or kw in body for kw in ['công', 'giờ', 'hour', 'task', 'project']):
+                    is_timesheet = True
+                    break
+
+        if not is_timesheet:
+            clean_email_match = re.search(r'[\w\.-]+@[\w\.-]+', sender)
+            clean_email = clean_email_match.group(0) if clean_email_match else sender
+            emp = self.env['al2c.timesheet.staging']._resolve_consultant(clean_email)
+            if emp:
+                if re.search(r'\d{4}-\d{2}-\d{2}\s*\||\d{1,2}/\d{1,2}/\d{4}\s*\||\b\d+(\.\d+)?\s*(giờ|hours|h)\b', body):
+                    is_timesheet = True
+
+        if is_timesheet:
+            _logger.info("AL2C Mail Gateway: Rerouting timesheet email '%s' from %s to al2c.timesheet.staging",
+                         msg_dict.get('subject'), sender)
+            return self.env['al2c.timesheet.staging'].sudo().message_new(msg_dict, custom_values=custom_values)
+
+        lead = super().message_new(msg_dict, custom_values=custom_values)
+        if lead and msg_dict.get('body'):
+            lead.action_process_qualification_turn(message_text=msg_dict.get('body'))
+        return lead

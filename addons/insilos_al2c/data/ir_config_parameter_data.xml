@@ -25,5 +25,10 @@
         <field name="key">al2c.mail_mode</field>
         <field name="value">draft_only</field>
     </record>
+    <!-- AL2C-INT-001 Inbound timesheet webhook HMAC secret -->
+    <record id="param_timesheet_webhook_secret" model="ir.config_parameter">
+        <field name="key">insilos_al2c.timesheet_webhook_secret</field>
+        <field name="value">inno_al2c_timesheet_pubsub_secret_2026_prod_grade</field>
+    </record>
 </data>
 </odoo>

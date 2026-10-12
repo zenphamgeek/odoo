@@ -21,6 +21,18 @@ class TestAl2cCrmQualification(TransactionCase):
             'contact_name': 'Nguyen Van Nam',
             'email_from': 'nam.nguyen@saigonsmart.vn',
         })
+        cls.project = cls.env['project.project'].create({
+            'name': 'Innoria ERP Implementation',
+            'allow_timesheets': True,
+        })
+        cls.task = cls.env['project.task'].create({
+            'name': 'Explore Phase Architecture Workshop',
+            'project_id': cls.project.id,
+        })
+        cls.employee = cls.env['hr.employee'].create({
+            'name': 'Consultant A',
+            'work_email': 'consultant.a@inno.ai.vn',
+        })
 
     def test_bant_qualification_advances_to_sql(self):
         """Lead providing complete BANT criteria reaches SQL stage and qualified status."""
@@ -95,3 +107,30 @@ class TestAl2cCrmQualification(TransactionCase):
         lead.action_process_qualification_turn(message_text="Chúng tôi không có nhu cầu, xin vui lòng dừng gửi thư.")
         self.assertEqual(lead.al2c_sentiment, 'negative')
         self.assertEqual(lead.al2c_qualification_state, 'disqualified')
+
+    def test_inbound_timesheet_reroutes_to_staging(self):
+        """Inbound email with timesheet subject or attachment reroutes from crm.lead to al2c.timesheet.staging."""
+        msg = {
+            'subject': '[Timesheet] Weekly Log W42 - Consultant A',
+            'email_from': 'consultant.a@inno.ai.vn',
+            'body': '2026-10-12 | Innoria ERP Implementation | Explore Phase Architecture Workshop | 8.0 | Core development\n',
+            'attachments': [('timesheet_w42.csv', b'Date,Project,Task,Hours,Description\n2026-10-12,Innoria ERP Implementation,Explore Phase Architecture Workshop,8.0,Core dev\n')],
+        }
+        res = self.env['crm.lead'].message_new(msg)
+        self.assertEqual(res._name, 'al2c.timesheet.staging', "Timesheet email must reroute to al2c.timesheet.staging")
+        self.assertEqual(res.sender_email, 'consultant.a@inno.ai.vn')
+        self.assertEqual(res.state, 'parsed')
+        self.assertGreaterEqual(res.total_hours, 8.0)
+
+    def test_inbound_inquiry_creates_crm_lead(self):
+        """Inbound sales inquiry email creates a crm.lead with BANT evaluation."""
+        msg = {
+            'subject': 'Yêu cầu tư vấn & báo giá ERP cho chuỗi bán lẻ 50 cửa hàng',
+            'email_from': 'ceo@retailcorp.vn',
+            'body': 'Chào Innoria, chúng tôi có ngân sách 500 triệu VND và cần triển khai trong Q1 năm tới.',
+        }
+        res = self.env['crm.lead'].message_new(msg)
+        self.assertEqual(res._name, 'crm.lead', "General sales inquiry must create a crm.lead")
+        self.assertEqual(res.name, 'Yêu cầu tư vấn & báo giá ERP cho chuỗi bán lẻ 50 cửa hàng')
+        self.assertTrue(res.al2c_bant_budget, "Should auto-detect budget from message body")
+        self.assertEqual(res.al2c_bant_timeline, '1_3_months')
