@@ -22,24 +22,20 @@ _logger = logging.getLogger(__name__)
 
 class _IdempotentDuplicateDescriptor:
     """Descriptor that defaults to False on class level, reflects context on records,
-    and preserves assigned attribute values without triggering read-only slot errors."""
-    def __init__(self):
-        self._values = {}
-
+    and supports test mock attribute assignment without unbounded memory leaks."""
     def __get__(self, instance, owner=None):
         if instance is None:
             return False
-        inst_id = id(instance)
-        if inst_id in self._values:
-            return self._values[inst_id]
+        if hasattr(instance, '__dict__') and '_is_idempotent_duplicate_mock' in instance.__dict__:
+            return bool(instance.__dict__['_is_idempotent_duplicate_mock'])
         env = getattr(instance, 'env', None)
         if env and hasattr(env, 'context') and isinstance(env.context, dict):
             return bool(env.context.get('al2c_idempotent_duplicate', False))
         return False
 
     def __set__(self, instance, value):
-        if instance is not None:
-            self._values[id(instance)] = bool(value)
+        if instance is not None and hasattr(instance, '__dict__'):
+            instance.__dict__['_is_idempotent_duplicate_mock'] = bool(value)
 
 
 class Al2cTimesheetStaging(models.Model):
@@ -66,11 +62,23 @@ class Al2cTimesheetStaging(models.Model):
             ALTER TABLE al2c_timesheet_staging 
             DROP CONSTRAINT IF EXISTS al2c_timesheet_staging_dedup_fingerprint_unique;
 
+            -- Pre-flight: demote any legacy approved duplicate rows so index builds cleanly
+            UPDATE al2c_timesheet_staging s
+            SET state = 'duplicate'
+            WHERE state = 'approved'
+              AND dedup_fingerprint IS NOT NULL
+              AND id > (
+                SELECT MIN(s2.id) FROM al2c_timesheet_staging s2
+                WHERE s2.dedup_fingerprint = s.dedup_fingerprint
+                  AND s2.state = 'approved'
+              );
+
             CREATE UNIQUE INDEX IF NOT EXISTS
                 al2c_timesheet_staging_dedup_approved_uniq
             ON al2c_timesheet_staging (dedup_fingerprint)
             WHERE state = 'approved' AND dedup_fingerprint IS NOT NULL;
         """)
+
 
 
 
@@ -754,54 +762,55 @@ class Al2cTimesheetStaging(models.Model):
         duplicates_skipped = len(self.line_ids.filtered(lambda l: l.state == 'duplicate'))
         errors_skipped = len(self.line_ids.filtered(lambda l: l.state == 'error'))
 
-        for line in valid_lines:
-            if line.analytic_line_id:
-                continue
-
-            # Real-time duplicate check against account.analytic.line before creation
-            if line.employee_id and line.task_id and line.date:
-                recent_dup = AnalyticLine.search([
-                    ('employee_id', '=', line.employee_id.id),
-                    ('task_id', '=', line.task_id.id),
-                    ('date', '=', line.date),
-                ], limit=1)
-                if recent_dup:
-                    line.write({
-                        'state': 'duplicate',
-                        'validation_message': _("Duplicate detected during approval: Analytic Line #%d exists.") % recent_dup.id
-                    })
-                    duplicates_skipped += 1
-                    continue
-
-            user = line.employee_id.user_id if line.employee_id and line.employee_id.user_id else self.env.user
-            aal_vals = {
-                'name': line.name or _("Consulting Delivery"),
-                'project_id': line.project_id.id,
-                'task_id': line.task_id.id if line.task_id else False,
-                'employee_id': line.employee_id.id if line.employee_id else False,
-                'user_id': user.id if user else self.env.uid,
-                'date': line.date,
-                'unit_amount': line.unit_amount,
-            }
-            new_aal = AnalyticLine.create(aal_vals)
-            line.write({
-                'analytic_line_id': new_aal.id,
-                'state': 'committed',
-            })
-            committed_count += 1
-            total_committed_hours += line.unit_amount
-
-        if committed_count == 0:
-            raise UserError(_("All eligible lines were skipped as duplicates during commit."))
-
         try:
             with self.env.cr.savepoint():
+                for line in valid_lines:
+                    if line.analytic_line_id:
+                        continue
+
+                    # Real-time duplicate check against account.analytic.line before creation
+                    if line.employee_id and line.task_id and line.date:
+                        recent_dup = AnalyticLine.search([
+                            ('employee_id', '=', line.employee_id.id),
+                            ('task_id', '=', line.task_id.id),
+                            ('date', '=', line.date),
+                        ], limit=1)
+                        if recent_dup:
+                            line.write({
+                                'state': 'duplicate',
+                                'validation_message': _("Duplicate detected during approval: Analytic Line #%d exists.") % recent_dup.id
+                            })
+                            duplicates_skipped += 1
+                            continue
+
+                    user = line.employee_id.user_id if line.employee_id and line.employee_id.user_id else self.env.user
+                    aal_vals = {
+                        'name': line.name or _("Consulting Delivery"),
+                        'project_id': line.project_id.id,
+                        'task_id': line.task_id.id if line.task_id else False,
+                        'employee_id': line.employee_id.id if line.employee_id else False,
+                        'user_id': user.id if user else self.env.uid,
+                        'date': line.date,
+                        'unit_amount': line.unit_amount,
+                    }
+                    new_aal = AnalyticLine.create(aal_vals)
+                    line.write({
+                        'analytic_line_id': new_aal.id,
+                        'state': 'committed',
+                    })
+                    committed_count += 1
+                    total_committed_hours += line.unit_amount
+
+                if committed_count == 0:
+                    raise UserError(_("All eligible lines were skipped as duplicates during commit."))
+
                 self.write({
                     'state': 'approved',
                     'approved_by_id': self.env.uid,
                     'approved_date': fields.Datetime.now(),
                 })
         except (pg_errors.UniqueViolation, IntegrityError):
+            # Atomic savepoint rolled back all AnalyticLine records and staging line state mutations
             self.write({
                 'state': 'duplicate',
                 'rejection_reason': _("Duplicate commit collision: an identical timesheet payload has already been approved and committed to the analytic ledger.")
