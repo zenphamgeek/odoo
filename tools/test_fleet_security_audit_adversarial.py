@@ -317,6 +317,7 @@ def test_login_open_redirect_protection():
     from odoo.addons.web.controllers.utils import _is_safe_login_redirect, _get_login_redirect_url
     
     malicious = [
+        "",
         "//evil.com",
         "https://evil.com/phishing",
         "http://attacker.org/steal",
@@ -327,13 +328,21 @@ def test_login_open_redirect_protection():
         "javascript:alert(1)",
         "web",
         "/web",
+        "odoo",
         "/odoo",
         "/web/login",
         "/odoo/action-1",
+        "/odoo/anything",
         "///evil.com",
         "\\\\evil.com",
         "/ insilos",
         "/\x00evil.com",
+        "/web\r/login",
+        "/odoo\n",
+        "/web /x",
+        "/odoo\t",
+        "/web\0",
+        "/%2F%2Fevil.com",
     ]
     for m in malicious:
         assert not _is_safe_login_redirect(m), f"Failed to reject malicious login redirect: {m!r}"
@@ -348,7 +357,7 @@ def test_login_open_redirect_protection():
     for s in safe:
         assert _is_safe_login_redirect(s), f"Incorrectly rejected safe login route: {s!r}"
 
-    print("  [✓] All 17 malicious login redirects rejected; safe local routes preserved.")
+    print(f"  [✓] All {len(malicious)} malicious login redirects rejected; safe local routes preserved.")
 
 
 def test_sparkline_svg_adversarial_fuzzing():

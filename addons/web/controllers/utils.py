@@ -262,8 +262,7 @@ def _is_safe_login_redirect(target_url):
         if any(c in s for c in ('\r', '\n', '\t', '\0', ' ')):
             return False
         clean_path = parsed.path
-        _legacy_alias = 'od' + 'oo'
-        if clean_path in ('', '/web', '/' + _legacy_alias, 'web', _legacy_alias) or clean_path.startswith(('/web/', '/' + _legacy_alias + '/')):
+        if clean_path in ('', '/web', '/odoo', 'web', 'odoo') or clean_path.startswith(('/web/', '/odoo/')):
             return False
     return True
 
