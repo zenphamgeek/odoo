@@ -26,8 +26,8 @@ class _IdempotentDuplicateDescriptor:
     def __get__(self, instance, owner=None):
         if instance is None:
             return False
-        if hasattr(instance, '__dict__') and '_is_idempotent_duplicate_mock' in instance.__dict__:
-            return bool(instance.__dict__['_is_idempotent_duplicate_mock'])
+        if hasattr(instance, '__dict__') and '_is_idempotent_duplicate_val' in instance.__dict__:
+            return bool(instance.__dict__['_is_idempotent_duplicate_val'])
         env = getattr(instance, 'env', None)
         if env and hasattr(env, 'context') and isinstance(env.context, dict):
             return bool(env.context.get('al2c_idempotent_duplicate', False))
@@ -35,7 +35,7 @@ class _IdempotentDuplicateDescriptor:
 
     def __set__(self, instance, value):
         if instance is not None and hasattr(instance, '__dict__'):
-            instance.__dict__['_is_idempotent_duplicate_mock'] = bool(value)
+            instance.__dict__['_is_idempotent_duplicate_val'] = bool(value)
 
 
 class Al2cTimesheetStaging(models.Model):
@@ -71,6 +71,10 @@ class Al2cTimesheetStaging(models.Model):
                 SELECT MIN(s2.id) FROM al2c_timesheet_staging s2
                 WHERE s2.dedup_fingerprint = s.dedup_fingerprint
                   AND s2.state = 'approved'
+              )
+              AND NOT EXISTS (
+                SELECT 1 FROM al2c_timesheet_staging_line l
+                WHERE l.staging_id = s.id AND l.analytic_line_id IS NOT NULL
               );
 
             CREATE UNIQUE INDEX IF NOT EXISTS
