@@ -22,10 +22,10 @@ def audit_database(dbname):
         conn = psycopg2.connect(host=DB_HOST, port=DB_PORT, user=DB_USER, password=DB_PASS, dbname=dbname)
         cur = conn.cursor()
         
-        # 1. Check ir_module_module
-        cur.execute("SELECT name, state FROM ir_module_module WHERE name LIKE '%innokafe%';")
+        # 1. Check ir_module_module (only installed modules mutate schema/runtime)
+        cur.execute("SELECT name, state FROM ir_module_module WHERE name LIKE '%innokafe%' AND state = 'installed';")
         modules = cur.fetchall()
-        print(f"  • Innokafe modules in ir_module_module: {modules} (Expected: [])")
+        print(f"  • Installed Innokafe modules in ir_module_module: {modules} (Expected: [])")
         
         # 2. Check information_schema.tables
         cur.execute("SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND table_name LIKE '%innokafe%';")
