@@ -853,6 +853,76 @@ def test_uom_financial_precision_and_attachment_guards():
     print("  [✓] UoM manifest dependency, required=True constraint, and strict attachment decoding verified.")
 
 
+def test_report_anti_genesis_and_escaping_mutation_matrix():
+    print("[TEST ANTI-GENESIS & ESCAPING] Full Document Head/Body Scan & Mutation Kill Matrix")
+    import xml.etree.ElementTree as ET
+    from odoo.addons.insilos_al2c.tests.test_sales_reports import TestSalesReports
+
+    tester = TestSalesReports('test_01_report_sales_proposal_render')
+    tester.FORBIDDEN_TOKENS = ['odoo', 'openerp', 'todo', 'tbd', 'fixme', 'lorem ipsum']
+
+    base_fixture = """<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Bản Đề Xuất Giải Pháp - Insilos Enterprise</title>
+    <script type="text/javascript">var __odooAssetError_handler = false;</script>
+</head>
+<body>
+    <div class="report-header">
+        <h1>Enterprise Architecture Proposal</h1>
+        <p>Biên bản nghiệm thu UAT &amp; Biên bản Go-Live chính thức</p>
+    </div>
+</body>
+</html>"""
+
+    # 1. Clean fixture with framework-internal noise must pass
+    tester._assert_zero_branding_tells(base_fixture, "Clean Fixture")
+
+    # 2. Entropy Contract: Mutation Testing across Token x Position matrix (24 permutations)
+    positions = {
+        'head_title': '<head><title>System - {token}</title></head>',
+        'head_meta': '<head><meta name="generator" content="{token}"/></head>',
+        'body_text': '<body><div>Powered by {token} Enterprise</div></body>',
+        'body_attr': '<body><div data-platform="{token}">Content</div></body>',
+    }
+    tokens = ['odoo', 'openerp', 'todo', 'tbd', 'fixme', 'lorem ipsum']
+    total_mutations = 0
+    killed_mutations = 0
+
+    for pos_name, template in positions.items():
+        for token in tokens:
+            total_mutations += 1
+            if 'head' in pos_name:
+                mutated = base_fixture.replace('</head>', template.format(token=token) + '</head>')
+            else:
+                mutated = base_fixture.replace('</body>', template.format(token=token) + '</body>')
+            try:
+                tester._assert_zero_branding_tells(mutated, f"{pos_name}:{token}")
+                raise AssertionError(f"Mutation escape: {pos_name} with token '{token}' was NOT killed by _assert_zero_branding_tells")
+            except AssertionError as e:
+                if "Mutation escape" in str(e):
+                    raise
+                killed_mutations += 1
+
+    assert killed_mutations == total_mutations == 24, f"Expected 24/24 killed mutations, got {killed_mutations}/{total_mutations}"
+
+    # 3. HTML Escaping Invariant: Verify raw '&' in SOW acceptance clause is forbidden in favor of '&amp;'
+    with open('addons/insilos_al2c/views/report_sales_documents.xml', 'r', encoding='utf-8') as f:
+        xml_content = f.read()
+
+    assert 'Biên bản nghiệm thu UAT &amp; Biên bản Go-Live chính thức' in xml_content, "SOW acceptance clause must use &amp;"
+    assert 'Biên bản nghiệm thu UAT & Biên bản Go-Live chính thức' not in xml_content, "Raw '&' forbidden in XML SOW clause"
+
+    # 4. UoM Field Canonical Invariant: Odoo 20 uses product_uom_id on sale.order.line
+    from odoo.addons.sale.models.sale_order_line import SaleOrderLine
+    assert hasattr(SaleOrderLine, 'product_uom_id'), "SaleOrderLine in Odoo 20 must have product_uom_id"
+    assert 'line.product_uom.name' not in xml_content, "Deprecated line.product_uom.name detected in template"
+    assert 'line.product_uom_id.name' in xml_content, "Template must use line.product_uom_id.name"
+
+    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), and strict &amp;/UoM invariants verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -873,8 +943,9 @@ def main():
     test_timesheet_webhook_security()
     test_core_integrity_and_pdpd_erasure_tombstone()
     test_uom_financial_precision_and_attachment_guards()
+    test_report_anti_genesis_and_escaping_mutation_matrix()
     print("=" * 80)
-    print("ALL 16 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 17 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 

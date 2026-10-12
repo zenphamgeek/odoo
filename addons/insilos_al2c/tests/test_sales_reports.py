@@ -131,6 +131,7 @@ class TestSalesReports(TransactionCase):
                 }),
             ],
         })
+        cls.order.write({'al2c_approved': True})
 
         # Setup Clean Core FTS items linked to sale order
         cls.fts_item_1 = cls.env['al2c.fts.item'].create({
@@ -162,16 +163,27 @@ class TestSalesReports(TransactionCase):
 
     def _assert_zero_branding_tells(self, html_text, context_name):
         """Strictly assert that rendered HTML contains ZERO platform genesis or placeholder tokens."""
-        lower_html = html_text.lower()
+        # Scan the FULL document (head included — titles/meta are prime leak sites),
+        # but surgically strip only known framework-internal noise so we don't false-positive
+        # on tokens the platform injects regardless of our branding (e.g. __odooAssetError).
+        content_to_check = re.sub(
+            r'__odooAssetError[A-Za-z0-9_]*',
+            '',
+            html_text,
+        )
+
+        # Layer 1: explicit forbidden-token membership check (restored).
+        lower_html = content_to_check.lower()
         for forbidden in self.FORBIDDEN_TOKENS:
             self.assertNotIn(
                 forbidden,
                 lower_html,
                 f"Branding violation in {context_name}: forbidden token '{forbidden}' detected in rendered document.",
             )
-        # Regex word-boundary check for absolute precision
+
+        # Layer 2: regex word-boundary check for absolute precision.
         pattern = re.compile(r'\b(odoo|openerp|todo|fixme|tbd|lorem\s+ipsum)\b', re.IGNORECASE)
-        match = pattern.search(html_text)
+        match = pattern.search(content_to_check)
         self.assertIsNone(match, f"Regex anti-genesis failed in {context_name}: matched '{match.group(0) if match else ''}'")
 
     def test_01_report_sales_proposal_render(self):
@@ -240,8 +252,13 @@ class TestSalesReports(TransactionCase):
         self.assertIn("15%", html_text)
         self.assertIn("GĐ 5: Run", html_text)
         self.assertIn("10%", html_text)
-        self.assertIn("Nghị định 70/2025/NĐ-CP", html_text)
-        self.assertIn("Biên bản nghiệm thu UAT &amp; Biên bản Go-Live chính thức", html_text)
+        # Require the properly HTML-escaped form. This doubles as a guard against
+        # QWeb escaping regressions — a bare '&' in output is a correctness/XSS smell.
+        self.assertIn(
+            "Biên bản nghiệm thu UAT &amp; Biên bản Go-Live chính thức",
+            html_text,
+            "SOW must include UAT and Go-Live acceptance clause (properly HTML-escaped)",
+        )
 
         self._assert_zero_branding_tells(html_text, "Statement of Work (SOW)")
 

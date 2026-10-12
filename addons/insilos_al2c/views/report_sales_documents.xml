@@ -205,7 +205,7 @@
                                             <strong t-out="line.product_id.name"/><br/>
                                             <small class="text-muted" t-out="line.name"/>
                                         </td>
-                                        <td class="text-center"><t t-out="line.product_uom_qty"/> <t t-out="line.product_uom.name"/></td>
+                                        <td class="text-center"><t t-out="line.product_uom_qty"/> <t t-out="line.product_uom_id.name"/></td>
                                         <td class="text-end"><t t-out="'{:,.0f}'.format(line.price_unit)"/></td>
                                         <td class="text-end font-weight-bold"><t t-out="'{:,.0f}'.format(line.price_subtotal)"/></td>
                                     </tr>
@@ -326,7 +326,7 @@
                                         <span t-elif="line.product_id.al2c_vat_class == 'vat_8'" class="badge bg-info text-dark">VAT 8%</span>
                                         <span t-else="" class="badge bg-light text-dark">VAT 10%</span>
                                     </td>
-                                    <td class="text-center"><t t-out="line.product_uom_qty"/> <t t-out="line.product_uom.name"/></td>
+                                    <td class="text-center"><t t-out="line.product_uom_qty"/> <t t-out="line.product_uom_id.name"/></td>
                                     <td class="text-end"><t t-out="'{:,.0f}'.format(line.price_unit)"/></td>
                                     <td class="text-end font-weight-bold"><t t-out="'{:,.0f}'.format(line.price_subtotal)"/></td>
                                 </tr>
