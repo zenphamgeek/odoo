@@ -942,7 +942,21 @@ def test_report_anti_genesis_and_escaping_mutation_matrix():
     good_html = '<html><head><title>Test</title></head><body><h1>A &amp; B &lt; C &gt; D &quot;E&quot; &#123;F&#125;</h1></body></html>'
     tester._assert_zero_branding_tells(good_html, 'Escaped Entities Test')
 
-    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), and strict &amp;/UoM invariants verified.")
+    # 6. Fleet-Wide XML Well-Formedness & Non-Regression Invariant Gate
+    import glob
+    import lxml.etree
+    xml_files = glob.glob('addons/insilos_al2c/**/*.xml', recursive=True) + glob.glob('enterprise/insilos_website/**/*.xml', recursive=True)
+    assert len(xml_files) >= 50, f"Expected >= 50 XML files across custom suites, found {len(xml_files)}"
+    for xf in xml_files:
+        try:
+            lxml.etree.parse(xf)
+        except Exception as err:
+            raise AssertionError(f"XML Well-Formedness gate failed on {xf}: {err}")
+        with open(xf, 'r', encoding='utf-8') as f:
+            content = f.read()
+        assert '&amp;amp;' not in content, f"Double-escaped '&amp;amp;' detected in {xf}"
+
+    print(f"  [✓] Full-document head/body scan, 24/24 mutation-kill rate (100%), {len(xml_files)} XML files well-formed, and strict &amp;/UoM invariants verified.")
 
 
 def test_pixel_scanner_command_injection_guard():

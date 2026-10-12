@@ -211,6 +211,14 @@ class TestSalesReports(TransactionCase):
             f"Over-escaping regression in {context_name}: '>' was double-escaped.",
         )
 
+        # Layer 5: Positive render oracle — ensure all ampersands form valid HTML entities
+        if "&" in html_text:
+            bad_entities = re.findall(r"&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9A-Fa-f]+;)", html_text)
+            self.assertFalse(
+                bad_entities,
+                f"Under-escaping in {context_name}: bare '&' not forming a valid entity ({len(bad_entities)} found).",
+            )
+
     def test_01_report_sales_proposal_render(self):
         """Test Executive Sales Proposal (Bản Đề Xuất Giải Pháp) compilation and content depth."""
         report_ref = 'insilos_al2c.action_report_sales_proposal'
