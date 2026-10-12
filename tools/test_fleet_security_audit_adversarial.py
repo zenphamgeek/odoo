@@ -1532,40 +1532,69 @@ def test_database_branding_cleaner_security_and_idempotency():
 
 def test_ast_secret_evasion_linter():
     print("[TEST AST EVASION LINTER] Static Scanner-Evasion Prevention & Entropy Contract")
-    from tools.lint_ast_secret_evasion import scan_code, scan_file
+    from tools.lint_ast_secret_evasion import scan_code, scan_file, SecretEvasionVisitor
+    import ast
 
-    # 1. Synthetic test code with 'od' + 'oo' is flagged
+    # 1. Binary Add concatenation is trapped (CWE-693)
     bad_code_odoo = "db_user = 'od' + 'oo'\n"
     res1 = scan_code(bad_code_odoo)
     assert len(res1) == 1, f"Expected 1 violation for 'od' + 'oo', got {res1}"
     assert res1[0][2] == "odoo" and res1[0][3] == "odoo"
 
-    # 2. Synthetic test code with 'pass' + 'word' is flagged
-    bad_code_password = "db_pass = 'pass' + 'word'\n"
-    res2 = scan_code(bad_code_password)
-    assert len(res2) == 1, f"Expected 1 violation for 'pass' + 'word', got {res2}"
-    assert res2[0][2] == "password" and res2[0][3] == "password"
+    # 2. JoinedStr (f-string) concatenation bypass is trapped (CWE-693)
+    bad_fstring = 'target = f"od{\'\'}oo"\n'
+    res_fstring = scan_code(bad_fstring)
+    assert len(res_fstring) == 1, f"Expected 1 violation for f-string evasion, got {res_fstring}"
+    assert res_fstring[0][2] == "odoo" and res_fstring[0][3] == "odoo"
 
-    # 3. Multi-fragment concatenation is flagged
-    bad_code_multi = "token = '1NN0' + 'R1@' + '2026'\n"
-    res3 = scan_code(bad_code_multi)
-    assert len(res3) >= 1, f"Expected violation for multi-part secret concatenation, got {res3}"
+    # 3. str.join call bypass is trapped (CWE-693)
+    bad_join = "db_pass = ''.join(['pass', 'word'])\n"
+    res_join = scan_code(bad_join)
+    assert len(res_join) == 1, f"Expected 1 violation for str.join evasion, got {res_join}"
+    assert res_join[0][2] == "password" and res_join[0][3] == "password"
 
-    # 4. Legitimate code passes with 0 violations
+    # 4. Modulo format bypass is trapped (CWE-693)
+    bad_mod = "db_user = '%s%s' % ('od', 'oo')\n"
+    res_mod = scan_code(bad_mod)
+    assert len(res_mod) == 1, f"Expected 1 violation for mod evasion, got {res_mod}"
+    assert res_mod[0][2] == "odoo" and res_mod[0][3] == "odoo"
+
+    # 5. Sensitive secret SHA-256 digest match (CWE-259): matches without plaintext in linter
+    bad_code_secret = "token = '1NN0' + 'R1@' + '2026'\n"
+    res_secret = scan_code(bad_code_secret)
+    assert len(res_secret) >= 1, f"Expected violation for secret digest match, got {res_secret}"
+    assert res_secret[0][3] == "secret-digest-match"
+    assert "..." in res_secret[0][2], f"Secret must be masked in report, got {res_secret[0][2]}"
+
+    # 6. Scope-controlled comment ignore allows explicit audited suppressions
+    ignored_code = "pattern = 'od' + 'oo'  # ast-evasion-ignore\n"
+    res_ignored = scan_code(ignored_code)
+    assert len(res_ignored) == 0, f"Expected 0 violations with trailing comment ignore, got {res_ignored}"
+
+    # 7. False ignore inside string literal is NOT suppressed
+    false_ignore = "s = 'not a comment # ast-evasion-ignore' + 'odoo'\n"
+    res_false_ignore = scan_code(false_ignore)
+    assert len(res_false_ignore) == 1, f"Expected 1 violation for '#' inside string literal, got {res_false_ignore}"
+
+    # 8. Legitimate unconcatenated code passes with 0 violations
     clean_code = "db_user = 'odoo'\ndb_pass = os.environ.get('PGPASSWORD')\n"
     res_clean = scan_code(clean_code)
     assert len(res_clean) == 0, f"Expected 0 violations for clean code, got {res_clean}"
 
-    # 5. Inline ignore directive allows explicit exceptions
-    ignored_code = "pattern = 'od' + 'oo'  # ast-evasion-ignore\n"
-    res_ignored = scan_code(ignored_code)
-    assert len(res_ignored) == 0, f"Expected 0 violations with ignore directive, got {res_ignored}"
-
-    # 6. Real repository file verification: tools/cleanup_innokafe_fake_logos_db.py has 0 violations
+    # 9. Real repository cleaner file verification: tools/cleanup_innokafe_fake_logos_db.py has 0 violations
     res_cleaner = scan_file("tools/cleanup_innokafe_fake_logos_db.py")
     assert len(res_cleaner) == 0, f"cleanup_innokafe_fake_logos_db.py contains {len(res_cleaner)} evasion patterns: {res_cleaner}"
 
-    print("  [✓] Scanner-evasion string concatenation detected, legitimate code preserved, and zero evasion in cleaner verified.")
+    # 10. Detection floor self-test against Python AST grammar drift
+    floor_src = "x = 'od' + 'oo'\ny = ''.join(['pass','word'])\nz = f\"sec{''}ret\"\n"
+    v = SecretEvasionVisitor("<floor>", comments={})
+    v.visit(ast.parse(floor_src))
+    found_tokens = {t for _, _, t in v.violations}
+    assert "odoo" in found_tokens, "Add-concat floor detection regressed"
+    assert "password" in found_tokens, "Join call floor detection regressed"
+    assert "secret" in found_tokens, "JoinedStr floor detection regressed"
+
+    print("  [✓] All 10 evasion vectors (Add, JoinedStr, str.join, Mod, Secret-Digest, Comment-Scope, AST-Floor) verified.")
 
 
 def main():

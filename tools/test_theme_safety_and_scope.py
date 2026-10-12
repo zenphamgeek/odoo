@@ -605,7 +605,7 @@ class TestCounterCodeSecurityInvariance(unittest.TestCase):
         content = this_file.read_text(encoding="utf-8")
 
         # Dynamically construct forbidden patterns to avoid self-detection
-        sig_core = "".join(["o", "d", "o", "o"])
+        sig_core = "".join(["o", "d", "o", "o"])  # ast-evasion-ignore: test regex pattern builder
         sig_legacy = "".join(["o", "p", "e", "n", "e", "r", "p"])
         color_purple = "#714" + "B67"
         color_teal = "#017" + "e84"
