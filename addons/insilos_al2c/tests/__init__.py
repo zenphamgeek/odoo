@@ -20,4 +20,5 @@ from . import test_council_additions
 from . import test_security_audit_deep
 from . import test_tech_asset_registry
 from . import test_runtime_report_gateway
+from . import test_route_authz_snapshot
 

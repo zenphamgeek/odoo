@@ -145,17 +145,21 @@ class RuntimeReportGateway(http.Controller):
         hash_body = f"{instance_id}:{timestamp_str}:{error_name}".encode('utf-8')
         expected_sig = hmac.new(secret.encode('utf-8'), hash_body, hashlib.sha256).hexdigest()
 
-        # If external request, enforce mandatory signature; if loopback provides signature, validate it
-        is_loopback = client_ip in ('127.0.0.1', '::1', 'localhost')
+        # 5. Authenticate Runtime Origin (HMAC & Timestamp Freshness)
+        # Security Guard: Use actual socket peer address (remote_addr) for loopback trust,
+        # never client-supplied headers (CF-Connecting-IP, X-Forwarded-For) to prevent IP spoofing bypass.
+        socket_ip = request.httprequest.remote_addr or ''
+        is_loopback = socket_ip in ('127.0.0.1', '::1')
+
         if not is_loopback:
             if not signature or not hmac.compare_digest(signature, expected_sig):
-                _logger.warning("Invalid or missing HMAC signature from instance %s (IP: %s)", instance_id, client_ip)
+                _logger.warning("Invalid or missing HMAC signature from instance %s (socket: %s, client: %s)", instance_id, socket_ip, client_ip)
                 return Response(json.dumps({'error': 'Forbidden: Invalid or Missing Runtime Signature'}), status=403, content_type='application/json')
         elif signature and not hmac.compare_digest(signature, expected_sig):
             _logger.warning("Invalid HMAC signature on loopback from instance %s", instance_id)
             return Response(json.dumps({'error': 'Forbidden: Invalid Runtime Signature'}), status=403, content_type='application/json')
 
-        # 5. Asset Classification
+        # 6. Asset Classification
         asset_code = self._classify_tech_asset(traceback_str, payload)
 
         # 6. Fingerprint & In-Memory Deduplication (15-min window)
@@ -340,6 +344,11 @@ class RuntimeReportGateway(http.Controller):
                 central_url = request.env['ir.config_parameter'].sudo().get_param('al2c.central_report_url', central_url)
         except Exception:
             pass
+
+        # SSRF mitigation (CWE-918): Strictly require https or localhost origin
+        if not (central_url.startswith('https://') or central_url.startswith(('http://127.0.0.1', 'http://localhost'))):
+            _logger.warning("Blocked unsafe central_report_url protocol/destination: %s", central_url)
+            central_url = 'https://report.insilos.com/api/v1/runtime-report'
 
         current_host = request.httprequest.host if hasattr(request, 'httprequest') and request.httprequest else ''
 

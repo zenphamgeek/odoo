@@ -245,22 +245,45 @@ def get_action_triples(env, path, *, start_pos=0):
             active_id = record_id
 
 
+def _is_safe_login_redirect(target_url):
+    """Validate target_url is strictly local, cannot escape origin,
+    and prevents open redirects (CWE-601).
+    """
+    if not target_url or not isinstance(target_url, str):
+        return False
+    for s in (target_url, werkzeug.urls.url_unquote(target_url)):
+        parsed = werkzeug.urls.url_parse(s)
+        if parsed.scheme or parsed.netloc:
+            return False
+        if not s.startswith('/') or s.startswith('//'):
+            return False
+        if '\\' in s:
+            return False
+        if any(c in s for c in ('\r', '\n', '\t', '\0', ' ')):
+            return False
+        clean_path = parsed.path
+        if clean_path in ('', '/web', '/odoo', 'web', 'odoo') or clean_path.startswith(('/web/', '/odoo/')):
+            return False
+    return True
+
+
 def _get_login_redirect_url(uid, redirect=None):
     """ Decide if user requires a specific post-login redirect, e.g. for 2FA, or if they are
     fully logged and can proceed to the requested URL
     """
+    safe_redirect = redirect if _is_safe_login_redirect(redirect) else None
+
     if request.session.uid:  # fully logged
-        return redirect or ('/insilos' if is_user_internal(request.session.uid)
-                            else '/web/login_successful')
+        return safe_redirect or '/insilos'
 
     # partial session (MFA)
     url = request.env(user=uid)['res.users'].browse(uid)._mfa_url()
-    if not redirect:
+    if not safe_redirect:
         return url
 
     parsed = werkzeug.urls.url_parse(url)
     qs = parsed.decode_query()
-    qs['redirect'] = redirect
+    qs['redirect'] = safe_redirect
     return parsed.replace(query=werkzeug.urls.url_encode(qs)).to_url()
 
 

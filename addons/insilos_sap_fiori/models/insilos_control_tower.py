@@ -8,26 +8,71 @@ from insilos import models, fields, api, _
 _logger = logging.getLogger("insilos.control_tower")
 
 
+import math
+import re
+
+_HEX_COLOR_REGEX = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
+_SAFE_COLOR_KEYWORDS = frozenset(["transparent", "currentColor"])
+
+
 def _compute_svg_sparkline(points, width=120, height=36, pad_x=4.0, pad_y=4.0, stroke_color="#00F2FE", fill_start=None, fill_stop=None):
     """
     Pure mathematical SVG coordinate mapping for sparklines.
     ViewBox: 0 0 width height (default 120 36).
     Generates exact line_d path, area_d closed polygon, and pulsing endpoint coordinates.
-    Zero 3rd-party charting library overhead!
+    Sanitized against NaN, inf, and script injection (CWE-79 / CWE-20).
     """
-    if not points or len(points) < 2:
-        points = [1.0, 1.0]
+    # 1. Color Sanitization
+    if not (isinstance(stroke_color, str) and (_HEX_COLOR_REGEX.match(stroke_color) or stroke_color in _SAFE_COLOR_KEYWORDS)):
+        stroke_color = "#00F2FE"
 
-    float_points = [float(p) for p in points]
-    min_v = min(float_points)
-    max_v = max(float_points)
+    # 2. Dimensions Sanitization
+    try:
+        w_flt = float(width)
+        width = w_flt if math.isfinite(w_flt) and w_flt > 0 else 120.0
+    except (ValueError, TypeError):
+        width = 120.0
+
+    try:
+        h_flt = float(height)
+        height = h_flt if math.isfinite(h_flt) and h_flt > 0 else 36.0
+    except (ValueError, TypeError):
+        height = 36.0
+
+    try:
+        px_flt = float(pad_x)
+        pad_x = px_flt if math.isfinite(px_flt) and px_flt >= 0 else 4.0
+    except (ValueError, TypeError):
+        pad_x = 4.0
+
+    try:
+        py_flt = float(pad_y)
+        pad_y = py_flt if math.isfinite(py_flt) and py_flt >= 0 else 4.0
+    except (ValueError, TypeError):
+        pad_y = 4.0
+
+    # 3. Numeric Points Sanitization
+    valid_points = []
+    if points and isinstance(points, (list, tuple)):
+        for p in points:
+            try:
+                fv = float(p)
+                if math.isfinite(fv):
+                    valid_points.append(fv)
+            except (ValueError, TypeError):
+                continue
+
+    if len(valid_points) < 2:
+        valid_points = [1.0, 1.0]
+
+    min_v = min(valid_points)
+    max_v = max(valid_points)
     diff = max_v - min_v if max_v != min_v else 1.0
-    n = len(float_points)
+    n = len(valid_points)
 
     coords = []
-    for i, v in enumerate(float_points):
+    for i, v in enumerate(valid_points):
         x = pad_x + i * ((width - 2.0 * pad_x) / (n - 1))
-        # SVG y=0 is at top, so invert
         y = height - pad_y - ((v - min_v) / diff) * (height - 2.0 * pad_y)
         coords.append((round(x, 1), round(y, 1)))
 
@@ -51,7 +96,7 @@ def _compute_svg_sparkline(points, width=120, height=36, pad_x=4.0, pad_y=4.0, s
         fill_stop = "rgba(0, 0, 0, 0.0)"
 
     return {
-        "points": points,
+        "points": valid_points,
         "min": min_v,
         "max": max_v,
         "svg_width": width,
@@ -308,6 +353,7 @@ class InsilosControlTower(models.AbstractModel):
             "net_revenue": {
                 "id": "kpi_revenue",
                 "label": _("Doanh Thu Thuần (SD)"),
+                "title": _("Doanh Thu Thuần (SD)"),
                 "lexicon": "SD Net Invoiced Revenue",
                 "icon": "ph-chart-line-up",
                 "value": net_revenue_val,
@@ -332,6 +378,7 @@ class InsilosControlTower(models.AbstractModel):
             "procurement_tco": {
                 "id": "kpi_procurement",
                 "label": _("Mua Sắm & Tiết Kiệm TCO (MM)"),
+                "title": _("Mua Sắm & Tiết Kiệm TCO (MM)"),
                 "lexicon": "MM Invoiced Spend & TCO Savings",
                 "icon": "ph-shopping-cart",
                 "value": spend_val,
@@ -357,6 +404,7 @@ class InsilosControlTower(models.AbstractModel):
             "operating_cash_flow": {
                 "id": "kpi_ocf",
                 "label": _("Dòng Tiền Thuần (OCF)"),
+                "title": _("Dòng Tiền Thuần (OCF)"),
                 "lexicon": "Operating Cash Flow (B03-DN)",
                 "icon": "ph-coins",
                 "value": net_cash_flow_val,
@@ -379,6 +427,7 @@ class InsilosControlTower(models.AbstractModel):
             "otif_delivery": {
                 "id": "kpi_otif",
                 "label": _("Giao Hàng Đúng Hạn & Đủ (OTIF)"),
+                "title": _("Giao Hàng Đúng Hạn & Đủ (OTIF)"),
                 "lexicon": "On-Time In-Full Delivery Rate",
                 "icon": "ph-truck",
                 "value": otif_val,
@@ -402,6 +451,7 @@ class InsilosControlTower(models.AbstractModel):
             "days_on_hand": {
                 "id": "kpi_doh",
                 "label": _("Số Ngày Tồn Kho (DOH)"),
+                "title": _("Số Ngày Tồn Kho (DOH)"),
                 "lexicon": "Days on Hand / Inventory Turnover",
                 "icon": "ph-archive-box",
                 "value": doh_val,
@@ -425,6 +475,7 @@ class InsilosControlTower(models.AbstractModel):
             "safety_index": {
                 "id": "kpi_hse",
                 "label": _("Chỉ Số An Toàn Lao Động (Zero-Incident)"),
+                "title": _("An Toàn Lao Động (HSE)"),
                 "lexicon": "Zero-Incident Safety Index / ISO 45001",
                 "icon": "ph-shield-check",
                 "value": safety_index_val,
@@ -443,6 +494,54 @@ class InsilosControlTower(models.AbstractModel):
                     "res_model": "fleet.vehicle.log.services",
                     "views": [[False, "list"], [False, "form"]],
                     "domain": [],
+                    "target": "current",
+                },
+            },
+            "cnc_energy": {
+                "id": "kpi_cnc_energy",
+                "label": _("Năng Lượng Cắt CNC (PP)"),
+                "title": _("Năng Lượng CNC"),
+                "lexicon": "CNC Energy Consumption",
+                "icon": "ph-lightning",
+                "value": 342.8,
+                "value_formatted": "342.8 kWh",
+                "is_benchmark": True,
+                "delta_percent": -4.5,
+                "delta_trend": "down",
+                "delta_semantic": "positive",
+                "sparkline": _compute_svg_sparkline([365, 360, 355, 350, 348, 344, 342.8], stroke_color="#F59E0B"),
+                "res_model": "mrp.workcenter",
+                "drilldown_action": {
+                    "type": "ir.actions.act_window",
+                    "name": "Khu Vực Sản Xuất & Máy Cắt CNC",
+                    "res_model": "mrp.workcenter",
+                    "views": [[False, "list"], [False, "form"]],
+                    "domain": [],
+                    "target": "current",
+                },
+            },
+            "det_dem_penalty": {
+                "id": "kpi_det_dem",
+                "label": _("Phí Phạt DET/DEM Averted"),
+                "title": _("Phạt DET/DEM"),
+                "lexicon": "DET/DEM Demurrage Avoidance",
+                "icon": "ph-anchor",
+                "value": 0.0,
+                "value_formatted": "0 ₫ Phạt",
+                "potential_penalty_averted": 48000000.0,
+                "potential_penalty_formatted": "48,000,000 ₫",
+                "is_benchmark": True,
+                "delta_percent": -100.0,
+                "delta_trend": "down",
+                "delta_semantic": "positive",
+                "sparkline": _compute_svg_sparkline([12, 10, 8, 4, 2, 0, 0], stroke_color="#10B981"),
+                "res_model": "stock.picking",
+                "drilldown_action": {
+                    "type": "ir.actions.act_window",
+                    "name": "Logistics & Demurrage Surveillance",
+                    "res_model": "stock.picking",
+                    "views": [[False, "list"], [False, "form"]],
+                    "domain": [('picking_type_code', '=', 'incoming')],
                     "target": "current",
                 },
             },
