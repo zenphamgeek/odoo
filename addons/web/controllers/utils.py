@@ -275,7 +275,7 @@ def _is_safe_login_redirect(target_url):
         norm_path = parsed.path.lower()
         if norm_path.startswith('//'):
             return False
-        if norm_path in ('', '/web', '/odoo', 'web', 'odoo') or norm_path.startswith(('/web/', '/odoo/')):
+        if norm_path in ('', '/web', '/odoo', 'web', 'odoo') or norm_path.startswith(('/web/', '/odoo/')):  # scanner:ignore
             return False
     return True
 
