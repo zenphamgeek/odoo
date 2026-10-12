@@ -340,9 +340,7 @@ class ProductProduct(models.Model):
     _description = "Material Master (MM)"
 
     # SAP Material Variant Core Lexicon
-    name = fields.Char(string="Material Description")
     default_code = fields.Char(string="Material Number (MATNR)")
-    standard_price = fields.Float(string="Moving Avg / Standard Cost")
     sap_material_type = fields.Selection(
         selection=[
             ('ROH', 'Raw Materials (ROH)'),

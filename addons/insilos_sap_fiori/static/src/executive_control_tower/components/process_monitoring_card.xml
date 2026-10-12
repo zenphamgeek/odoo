@@ -17,26 +17,26 @@
 
             <!-- 3 Chevron Pipelines -->
             <div class="o_pipelines_container d-flex flex-column gap-3">
-                <t t-foreach="Object.entries(pipelineData)" t-as="entry" t-key="entry[0]">
+                <t t-foreach="pipelineList" t-as="pipeline" t-key="pipeline.key">
                     <div class="o_pipeline_row p-2 rounded bg-light-subtle border">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="d-flex align-items-center">
-                                <i t-attf-class="ph #{entry[1].icon} text-secondary me-2"></i>
-                                <span class="fw-bold small text-uppercase" t-esc="entry[1].title"></span>
-                                <span class="text-muted small ms-2 d-none d-md-inline">— <t t-esc="entry[1].description"/></span>
+                                <i t-attf-class="ph #{pipeline.icon} text-secondary me-2"></i>
+                                <span class="fw-bold small text-uppercase" t-esc="pipeline.title"></span>
+                                <span class="text-muted small ms-2 d-none d-md-inline" t-if="pipeline.description">— <t t-esc="pipeline.description"/></span>
                             </div>
-                            <span class="badge bg-secondary-subtle text-secondary font-monospace" t-esc="entry[1].code"></span>
+                            <span class="badge bg-secondary-subtle text-secondary font-monospace" t-esc="pipeline.code"></span>
                         </div>
 
                         <!-- Chevron Steps -->
                         <div class="o_chevron_track d-flex flex-wrap gap-1" role="list">
-                            <t t-foreach="entry[1].stages" t-as="stage" t-key="stage.id">
+                            <t t-foreach="pipeline.stages" t-as="stage" t-key="stage.id">
                                 <div class="o_chevron_step flex-fill d-flex align-items-center justify-content-between px-3 py-2 border rounded"
                                      role="listitem"
                                      tabindex="0"
                                      t-attf-class="o_chevron_status_#{stage.status}"
-                                     t-on-click="() => this.handleStageClick(entry[0], stage)"
-                                     t-on-keydown="(ev) => ev.key === 'Enter' and this.handleStageClick(entry[0], stage)"
+                                     t-on-click="() => this.handleStageClick(pipeline.key, stage)"
+                                     t-on-keydown="(ev) => ev.key === 'Enter' and this.handleStageClick(pipeline.key, stage)"
                                      title="Click để xem danh sách chứng từ">
                                     <span class="o_stage_name fw-semibold small text-truncate me-2" t-esc="stage.name"></span>
                                     <span class="o_stage_count badge bg-white text-dark shadow-sm border font-monospace" t-esc="stage.count"></span>

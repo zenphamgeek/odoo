@@ -6,7 +6,7 @@ import { useService } from "@web/core/utils/hooks";
 export class KPISummaryTile extends Component {
     static template = "insilos_sap_fiori.KPISummaryTile";
     static props = {
-        kpi: { type: Object, optional: false },
+        kpi: { type: Object, optional: true },
         timeframe: { type: String, optional: true },
         onClick: { type: Function, optional: true },
     };

@@ -1,0 +1,73 @@
+/* =============================================================================
+   SAP Fiori 4 / Horizon Dark Mode Bundle — Insilos Enterprise Platform
+   IBM Carbon & SAP Fiori Horizon Dark Mode Standards
+   Complies with Sovereign Dark Mode Token Architecture (AGENTS.md Rule 4)
+   ============================================================================= */
+
+:root,
+html,
+body,
+.o_web_client {
+    --insilos-bg-canvas: #070b14;
+    --insilos-bg-surface: #0f172a;
+    --insilos-bg-card: #111827;
+    --insilos-bg-subtle: #0b0f19;
+    --insilos-primary: #00f2fe;
+    --insilos-text-primary: #f8fafc;
+    --insilos-text-secondary: #cbd5e1;
+}
+
+/* Fiori High-Density List Header & Cells */
+.o_list_renderer .o_list_table {
+    thead th {
+        background-color: var(--insilos-bg-subtle) !important;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.12) !important;
+        color: var(--insilos-text-secondary) !important;
+    }
+
+    tbody tr {
+        &:hover {
+            background-color: rgba(0, 242, 254, 0.06) !important;
+            box-shadow: inset 3px 0 0 var(--insilos-primary) !important;
+        }
+
+        td {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+            color: var(--insilos-text-primary) !important;
+        }
+    }
+}
+
+/* Fiori Horizon Form View & Object Page */
+.o_form_view {
+    .o_form_sheet_bg {
+        background-color: var(--insilos-bg-canvas) !important;
+
+        .o_form_sheet {
+            background-color: var(--insilos-bg-card) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+            color: var(--insilos-text-primary) !important;
+        }
+    }
+
+    .o_form_statusbar {
+        background-color: var(--insilos-bg-surface) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+}
+
+/* Fiori KPI Cards */
+.o_fiori_kpi_card,
+.fiori_kpi_card {
+    background-color: var(--insilos-bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: var(--insilos-text-primary) !important;
+}
+
+/* Fiori Stage Counters */
+.o_stage_count {
+    background-color: var(--insilos-bg-card) !important;
+    color: var(--insilos-primary) !important;
+    border: 1px solid rgba(0, 242, 254, 0.3) !important;
+}

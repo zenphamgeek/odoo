@@ -4,14 +4,29 @@ import { useService } from "@web/core/utils/hooks";
 import { standardActionServiceProps } from "@web/webclient/actions/action_service";
 import { TimeframeFilterBar } from "./components/timeframe_filter_bar";
 import { ProcessMonitoringCard } from "./components/process_monitoring_card";
+import { KPISummaryTile } from "./components/kpi_summary_tile";
+import { MesOeeCard } from "./components/mes_oee_card";
+import { LogisticsHubCard } from "./components/logistics_hub_card";
 
 export const controlTowerComponentRegistry = registry.category("insilos_control_tower_components");
+if (!controlTowerComponentRegistry.contains("KpiSummaryTile")) {
+    controlTowerComponentRegistry.add("KpiSummaryTile", KPISummaryTile);
+}
+if (!controlTowerComponentRegistry.contains("MesOeeCard")) {
+    controlTowerComponentRegistry.add("MesOeeCard", MesOeeCard);
+}
+if (!controlTowerComponentRegistry.contains("LogisticsHubCard")) {
+    controlTowerComponentRegistry.add("LogisticsHubCard", LogisticsHubCard);
+}
 
 export class ExecutiveControlTower extends Component {
     static template = "insilos_sap_fiori.ExecutiveControlTower";
     static components = {
         TimeframeFilterBar,
         ProcessMonitoringCard,
+        KPISummaryTile,
+        MesOeeCard,
+        LogisticsHubCard,
     };
     static props = {
         ...standardActionServiceProps,
@@ -53,10 +68,41 @@ export class ExecutiveControlTower extends Component {
                 [this.state.timeframe, { domain: this.state.domain }]
             );
             if (res && res.success) {
-                if (res.kpis) this.state.kpis = res.kpis;
-                if (res.industrial_mes) this.state.industrial_mes = res.industrial_mes;
-                if (res.logistics_hub) this.state.logistics_hub = res.logistics_hub;
+                if (res.kpis) {
+                    const initial = this.getInitialKpis(this.state.timeframe);
+                    const merged = { ...initial };
+                    for (const [k, v] of Object.entries(res.kpis)) {
+                        merged[k] = {
+                            ...(initial[k] || {}),
+                            ...v,
+                            title: v.title || v.label || initial[k]?.title || "",
+                            label: v.label || v.title || initial[k]?.label || "",
+                        };
+                    }
+                    this.state.kpis = merged;
+                }
+                if (res.industrial_mes) {
+                    this.state.industrial_mes = {
+                        ...this.getInitialMes(),
+                        ...res.industrial_mes,
+                    };
+                }
+                if (res.logistics_hub) {
+                    this.state.logistics_hub = {
+                        ...this.getInitialLogistics(),
+                        ...res.logistics_hub,
+                    };
+                }
                 if (res.process_pipelines) this.state.pipelines = res.process_pipelines;
+                if (res.action_priorities && res.action_priorities.length > 0) {
+                    this.state.priority_actions = res.action_priorities.map(act => ({
+                        ...act,
+                        title: act.title || act.name || "",
+                        model: act.model || act.module || "account.move",
+                        count: act.count || 1,
+                        amount: act.amount || act.due_time || "",
+                    }));
+                }
             }
         } catch {
             // Graceful fallback to client-side reactive data model
@@ -133,6 +179,7 @@ export class ExecutiveControlTower extends Component {
             net_revenue: {
                 id: "net_revenue",
                 title: "Doanh Thu Thuần (SD)",
+                label: "Doanh Thu Thuần (SD)",
                 domain_group: "sd",
                 value: 1860500000.0 * factor,
                 value_formatted: tf === "today" ? "279.1 Tr ₫" : tf === "7d" ? "1.860 Tỷ ₫" : "7.814 Tỷ ₫",
@@ -146,6 +193,7 @@ export class ExecutiveControlTower extends Component {
             procurement_tco: {
                 id: "procurement_tco",
                 title: "Chi Phí Mua Sắm & TCO (MM)",
+                label: "Chi Phí Mua Sắm & TCO (MM)",
                 domain_group: "mm",
                 value: 615300000.0 * factor,
                 value_formatted: tf === "today" ? "92.3 Tr ₫" : tf === "7d" ? "615.3 Tr ₫" : "2.584 Tỷ ₫",
@@ -160,6 +208,7 @@ export class ExecutiveControlTower extends Component {
             otif_delivery: {
                 id: "otif_delivery",
                 title: "Tỷ Lệ Giao Hàng OTIF",
+                label: "Tỷ Lệ Giao Hàng OTIF",
                 domain_group: "le",
                 value: 99.2,
                 value_formatted: "99.2%",
@@ -174,6 +223,7 @@ export class ExecutiveControlTower extends Component {
             days_on_hand: {
                 id: "days_on_hand",
                 title: "Số Ngày Tồn Kho (DOH)",
+                label: "Số Ngày Tồn Kho (DOH)",
                 domain_group: "le",
                 value: 18.5,
                 value_formatted: "18.5 Ngày",
@@ -187,6 +237,7 @@ export class ExecutiveControlTower extends Component {
             safety_index: {
                 id: "safety_index",
                 title: "An Toàn Lao Động (HSE)",
+                label: "An Toàn Lao Động (HSE)",
                 domain_group: "hse",
                 value: 100.0,
                 value_formatted: "100%",
@@ -202,6 +253,7 @@ export class ExecutiveControlTower extends Component {
             operating_cash_flow: {
                 id: "operating_cash_flow",
                 title: "Dòng Tiền Thuần (OCF)",
+                label: "Dòng Tiền Thuần (OCF)",
                 domain_group: "sd",
                 value: 1245250000.0 * factor,
                 value_formatted: tf === "today" ? "+186.7 Tr ₫" : tf === "7d" ? "+1.245 Tỷ ₫" : "+5.230 Tỷ ₫",
@@ -215,6 +267,7 @@ export class ExecutiveControlTower extends Component {
             cnc_energy: {
                 id: "cnc_energy",
                 title: "Năng Lượng Cắt CNC (PP)",
+                label: "Năng Lượng Cắt CNC (PP)",
                 domain_group: "pp",
                 value: 342.8,
                 value_formatted: "342.8 kWh",
@@ -228,6 +281,7 @@ export class ExecutiveControlTower extends Component {
             det_dem_penalty: {
                 id: "det_dem_penalty",
                 title: "Phí Phạt DET/DEM Averted",
+                label: "Phí Phạt DET/DEM Averted",
                 domain_group: "le",
                 value: 0.0,
                 value_formatted: "0 ₫ Phạt",

@@ -53,8 +53,64 @@ export class ProcessMonitoringCard extends Component {
         };
     }
 
-    get pipelineData() {
-        return this.props.pipelines || this.defaultPipelines;
+    get pipelineList() {
+        const raw = this.props.pipelines || this.defaultPipelines;
+        const result = [];
+        const meta = {
+            lead_to_cash: {
+                title: "Lead-to-Cash (L2C)",
+                code: "L2C",
+                icon: "ph-currency-dollar",
+                description: "Chuỗi giá trị kinh doanh & doanh thu thuần",
+            },
+            procure_to_pay: {
+                title: "Procure-to-Pay (P2P)",
+                code: "P2P",
+                icon: "ph-shopping-bag",
+                description: "Chuỗi cung ứng mua sắm & chi phí vật tư",
+            },
+            order_to_delivery: {
+                title: "Order-to-Delivery (O2D)",
+                code: "O2D",
+                icon: "ph-arrows-clockwise",
+                description: "Quy trình điều phối sản xuất, kiểm định & giao nhận cảng",
+            },
+        };
+
+        for (const [key, val] of Object.entries(raw || {})) {
+            const m = meta[key] || {
+                title: key.replace(/_/g, " ").toUpperCase(),
+                code: key.slice(0, 3).toUpperCase(),
+                icon: "ph-activity",
+                description: "",
+            };
+
+            let rawStages = [];
+            if (Array.isArray(val)) {
+                rawStages = val;
+            } else if (val && Array.isArray(val.stages)) {
+                rawStages = val.stages;
+            }
+
+            const stages = rawStages.map((st, idx) => ({
+                id: st.id || st.stage || `st_${idx}`,
+                name: st.name || st.stage || `Stage ${idx + 1}`,
+                count: st.count !== undefined ? st.count : 0,
+                status: st.status || "info",
+                model: st.model || st.action_model || "sale.order",
+                domain: st.domain || "[]",
+            }));
+
+            result.push({
+                key,
+                title: val.title || m.title,
+                code: val.code || m.code,
+                icon: val.icon || m.icon,
+                description: val.description || m.description,
+                stages,
+            });
+        }
+        return result;
     }
 
     handleStageClick(pipelineKey, stage) {

@@ -65,6 +65,9 @@ Insilos Enterprise SAP Lexicon & Fiori Horizon Design System
             'insilos_sap_fiori/static/src/js/sap_lexicon_service.js',
             'insilos_sap_fiori/static/src/executive_control_tower/**/*',
         ],
+        'web.assets_web_dark': [
+            'insilos_sap_fiori/static/src/scss/fiori_horizon.dark.scss',
+        ],
     },
     'installable': True,
     'application': False,

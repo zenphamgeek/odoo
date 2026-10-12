@@ -16,7 +16,7 @@
             <!-- ========================================================= -->
             <div class="cds--row g-3 mb-3">
                 <!-- Net Revenue Tile (SD) -->
-                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4" t-if="state.kpis and state.kpis.net_revenue">
                     <t t-if="getComponent('KpiSummaryTile')">
                         <t t-component="getComponent('KpiSummaryTile')" kpi="state.kpis.net_revenue" timeframe="state.timeframe"/>
                     </t>
@@ -26,7 +26,7 @@
                              tabindex="0"
                              t-on-click="() => this.openModelView(state.kpis.net_revenue.res_model, 'list', [], 'Doanh Thu Thuần')">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.net_revenue.title"></span>
+                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.net_revenue.title or ''"></span>
                                 <i t-attf-class="ph #{state.kpis.net_revenue.icon} text-primary fs-5"></i>
                             </div>
                             <div class="d-flex align-items-baseline justify-content-between my-1">
@@ -35,7 +35,7 @@
                                     <i class="ph ph-arrow-up-right me-1"></i>+<t t-esc="state.kpis.net_revenue.delta_percent"/>%
                                 </span>
                             </div>
-                            <div class="o_sparkline_container mt-2">
+                            <div class="o_sparkline_container mt-2" t-if="state.kpis.net_revenue.sparkline">
                                 <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
                                     <defs>
                                         <linearGradient id="grad_rev" x1="0" y1="0" x2="0" y2="1">
@@ -53,7 +53,7 @@
                 </div>
 
                 <!-- Procurement & TCO Savings Tile (MM) -->
-                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4" t-if="state.kpis and state.kpis.procurement_tco">
                     <t t-if="getComponent('KpiSummaryTile')">
                         <t t-component="getComponent('KpiSummaryTile')" kpi="state.kpis.procurement_tco" timeframe="state.timeframe"/>
                     </t>
@@ -63,7 +63,7 @@
                              tabindex="0"
                              t-on-click="() => this.openModelView(state.kpis.procurement_tco.res_model, 'list', [], 'Mua Sắm &amp; TCO')">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.procurement_tco.title"></span>
+                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.procurement_tco.title or ''"></span>
                                 <i t-attf-class="ph #{state.kpis.procurement_tco.icon} text-info fs-5"></i>
                             </div>
                             <div class="d-flex align-items-baseline justify-content-between my-1">
@@ -72,7 +72,7 @@
                                     <i class="ph ph-arrow-down-right me-1"></i><t t-esc="state.kpis.procurement_tco.delta_percent"/>%
                                 </span>
                             </div>
-                            <div class="o_sparkline_container mt-2">
+                            <div class="o_sparkline_container mt-2" t-if="state.kpis.procurement_tco.sparkline">
                                 <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
                                     <defs>
                                         <linearGradient id="grad_spend" x1="0" y1="0" x2="0" y2="1">
@@ -90,7 +90,7 @@
                 </div>
 
                 <!-- OTIF Delivery Rate (LE) -->
-                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4" t-if="state.kpis and state.kpis.otif_delivery">
                     <t t-if="getComponent('KpiSummaryTile')">
                         <t t-component="getComponent('KpiSummaryTile')" kpi="state.kpis.otif_delivery" timeframe="state.timeframe"/>
                     </t>
@@ -100,7 +100,7 @@
                              tabindex="0"
                              t-on-click="() => this.openModelView(state.kpis.otif_delivery.res_model, 'list', [], 'Giao Hàng OTIF')">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.otif_delivery.title"></span>
+                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.otif_delivery.title or ''"></span>
                                 <i t-attf-class="ph #{state.kpis.otif_delivery.icon} text-warning fs-5"></i>
                             </div>
                             <div class="d-flex align-items-baseline justify-content-between my-1">
@@ -109,7 +109,7 @@
                                     <i class="ph ph-arrow-up-right me-1"></i>+<t t-esc="state.kpis.otif_delivery.delta_percent"/>%
                                 </span>
                             </div>
-                            <div class="o_sparkline_container mt-2">
+                            <div class="o_sparkline_container mt-2" t-if="state.kpis.otif_delivery.sparkline">
                                 <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
                                     <defs>
                                         <linearGradient id="grad_otif" x1="0" y1="0" x2="0" y2="1">
@@ -127,7 +127,7 @@
                 </div>
 
                 <!-- Days of Inventory on Hand DOH (LE) -->
-                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4" t-if="state.kpis and state.kpis.days_on_hand">
                     <t t-if="getComponent('KpiSummaryTile')">
                         <t t-component="getComponent('KpiSummaryTile')" kpi="state.kpis.days_on_hand" timeframe="state.timeframe"/>
                     </t>
@@ -137,7 +137,7 @@
                              tabindex="0"
                              t-on-click="() => this.openModelView(state.kpis.days_on_hand.res_model, 'list', [], 'Tồn Kho DOH')">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.days_on_hand.title"></span>
+                                <span class="o_kpi_title text-uppercase text-muted small fw-semibold" t-esc="state.kpis.days_on_hand.title or ''"></span>
                                 <i t-attf-class="ph #{state.kpis.days_on_hand.icon} text-secondary fs-5"></i>
                             </div>
                             <div class="d-flex align-items-baseline justify-content-between my-1">
@@ -146,7 +146,7 @@
                                     <i class="ph ph-arrow-down-right me-1"></i><t t-esc="state.kpis.days_on_hand.delta_percent"/>%
                                 </span>
                             </div>
-                            <div class="o_sparkline_container mt-2">
+                            <div class="o_sparkline_container mt-2" t-if="state.kpis.days_on_hand.sparkline">
                                 <svg class="o_kpi_sparkline sparkline w-100" viewBox="0 0 120 36" preserveAspectRatio="none" style="height: 36px;">
                                     <defs>
                                         <linearGradient id="grad_doh" x1="0" y1="0" x2="0" y2="1">
@@ -170,7 +170,7 @@
             <!-- ========================================================= -->
             <div class="cds--row g-3 mb-3">
                 <!-- Zero-Incident Safety Index (HSE) -->
-                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4" t-if="state.kpis and state.kpis.safety_index">
                     <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
                          role="button"
                          tabindex="0"
@@ -202,7 +202,7 @@
                 </div>
 
                 <!-- Operating Cash Flow OCF (FI) -->
-                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4" t-if="state.kpis and state.kpis.operating_cash_flow">
                     <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
                          role="button"
                          tabindex="0"
@@ -234,7 +234,7 @@
                 </div>
 
                 <!-- CNC Energy Consumption (PP) -->
-                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4" t-if="state.kpis and state.kpis.cnc_energy">
                     <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
                          role="button"
                          tabindex="0"
@@ -266,7 +266,7 @@
                 </div>
 
                 <!-- DET/DEM Penalty Avoidance (LE) -->
-                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4">
+                <div class="cds--col-lg-4 cds--col-md-4 cds--col-sm-4" t-if="state.kpis and state.kpis.det_dem_penalty">
                     <div class="o_control_tower_card o_fiori_kpi_card o_kpi_tile cds--card p-3 h-100 border rounded cursor-pointer shadow-sm"
                          role="button"
                          tabindex="0"

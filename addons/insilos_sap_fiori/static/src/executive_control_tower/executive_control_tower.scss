@@ -386,12 +386,12 @@ body.o_dark_mode,
             border: 1px solid rgba(203, 213, 225, 0.3) !important;
         }
 
-        // 7. High-Contrast Monospace Counters (White badge with Dark Text -> 19.8:1 contrast)
+        // 7. High-Contrast Monospace Counters
         &.bg-white,
         &.o_stage_count {
-            background-color: #ffffff !important;
-            color: #05101e !important;
-            border: 1px solid #cbd5e1 !important;
+            background-color: var(--insilos-bg-card, #ffffff) !important;
+            color: var(--insilos-text-primary, #05101e) !important;
+            border: 1px solid var(--insilos-border-medium, #cbd5e1) !important;
             font-weight: 700 !important;
         }
     }
