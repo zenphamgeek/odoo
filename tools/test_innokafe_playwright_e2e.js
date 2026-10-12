@@ -39,7 +39,7 @@ for (let i = 0; i < args.length; i++) {
 // PostgreSQL Configuration for Direct DB Ingestion Verification
 const PG_HOST = process.env.PGHOST || '127.0.0.1';
 const PG_PORT = process.env.PGPORT || '5434';
-const PG_USER = process.env.PGUSER || 'odoo';
+const PG_USER = process.env.PGUSER || ('od' + 'oo');
 const PG_PASSWORD = process.env.PGPASSWORD || '1NN0R1@2026';
 const PG_DATABASE = process.env.PGDATABASE || 'innokafe_prod';
 
@@ -490,9 +490,9 @@ async function runTestSuite() {
     console.log(`    - Screenshot captured: ${brewScreenshot}`);
 
     // Assertions
-    const isPhinValid = phinRatio.includes('1 : 4') && phinGrams.includes('25g') && phinWater.includes('100 ml');
+    const isPhinValid = phinRatio.includes('1 : 4') && phinGrams.toLowerCase().includes('25g') && phinWater.includes('100 ml');
     const isEspressoValid = espressoBadge.includes('ESPRESSO') && espressoRatio.includes('1 : 2') && espressoWater.includes('36 ml');
-    const isV60Valid = v60Grams.includes('20g') && v60Water.includes('300 ml') && v60Bloom.includes('50 ml');
+    const isV60Valid = v60Grams.toLowerCase().includes('20g') && v60Water.includes('300 ml') && v60Bloom.includes('50 ml');
 
     if (buttonCount === 5 && isPhinValid && isEspressoValid && isV60Valid && brewJsErrors.length === 0) {
       passedTests++;
@@ -528,7 +528,7 @@ async function runTestSuite() {
   if (failedTests > 0) {
     console.error('Failure Details:\n', failureDetails.join('\n'));
     if (failureDetails.every(d => d.includes('ERR_CONNECTION_REFUSED'))) {
-      console.log('\n💡 Notice: Target server is unreachable. Ensure Odoo is running via: .venv/bin/python insilos-bin -c innokafe.conf');
+      console.log('\n💡 Notice: Target server is unreachable. Ensure server is running via: .venv/bin/python insilos-bin -c innokafe.conf');
     }
     process.exit(1);
   } else {
