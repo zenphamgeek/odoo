@@ -22,23 +22,35 @@ _logger = logging.getLogger(__name__)
 
 def _is_safe_local_redirect(target_url):
     """Fail-closed validation verifying target_url is strictly local, cannot escape origin,
-    and does not route to raw unbranded /web or /odoo paths.
+    and does not route to raw unbranded /web or /odoo paths. Canonicalizes before matching
+    to prevent case-folding, percent-encoding, or separator tricks (CWE-20, CWE-601).
     """
     if not target_url or not isinstance(target_url, str):
         return False
-    # Validate both raw form and unquoted form to prevent double-encoding bypasses (e.g. /%09evil.com)
-    for s in (target_url, werkzeug.urls.url_unquote(target_url)):
+
+    candidates = [target_url]
+    current = target_url
+    for _ in range(3):
+        unquoted = werkzeug.urls.url_unquote(current)
+        if unquoted == current:
+            break
+        candidates.append(unquoted)
+        current = unquoted
+
+    for s in candidates:
+        if any(c in s for c in ('\r', '\n', '\t', '\0', ' ')):
+            return False
+        if '\\' in s:
+            return False
         parsed = werkzeug.urls.url_parse(s)
         if parsed.scheme or parsed.netloc:
             return False
         if not s.startswith('/') or s.startswith('//'):
             return False
-        if '\\' in s:
+        norm_path = parsed.path.lower()
+        if norm_path.startswith('//'):
             return False
-        if any(c in s for c in ('\r', '\n', '\t', '\0', ' ')):
-            return False
-        clean_path = parsed.path
-        if clean_path in ('', '/web', '/odoo', 'web', 'odoo') or clean_path.startswith(('/web/', '/odoo/')):
+        if norm_path in ('', '/web', '/odoo', 'web', 'odoo') or norm_path.startswith(('/web/', '/odoo/')):
             return False
     return True
 

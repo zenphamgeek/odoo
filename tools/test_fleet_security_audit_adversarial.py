@@ -25,6 +25,7 @@ from odoo.addons.auth_oauth.controllers.main import _is_safe_local_redirect
 def test_f1_oauth_open_redirect():
     print("[TEST F1] CWE-601: OAuth Open Redirect Protection")
     malicious = [
+        "",
         "//evil.com",
         "https://evil.com",
         "http://attacker.org/steal",
@@ -35,13 +36,25 @@ def test_f1_oauth_open_redirect():
         "javascript:alert(1)",
         "web",
         "/web",
+        "odoo",
         "/odoo",
         "/web/login",
         "/odoo/action-1",
+        "/odoo/anything",
         "///evil.com",
         "\\\\evil.com",
         "/ insilos",
         "/\x00evil.com",
+        "/Odoo/action-1",
+        "/WEB/login",
+        "/Web",
+        "/ODOO",
+        "/OdOo",
+        "/%2F%2Fevil.com",
+        "/%2f%2fevil.com",
+        "/%5Cevil.com",
+        "/web%2F..%2F",
+        "/%252F%252Fevil.com",
     ]
     for m in malicious:
         assert not _is_safe_local_redirect(m), f"Failed to reject malicious redirect: {m!r}"
@@ -55,7 +68,7 @@ def test_f1_oauth_open_redirect():
     ]
     for s in safe:
         assert _is_safe_local_redirect(s), f"Incorrectly rejected safe route: {s!r}"
-    print("  [✓] All 17 malicious payloads rejected and 5 safe routes preserved.")
+    print(f"  [✓] All {len(malicious)} malicious payloads rejected and {len(safe)} safe routes preserved.")
 
 
 def test_f2_db_filter_tenant_isolation():
@@ -342,7 +355,16 @@ def test_login_open_redirect_protection():
         "/web /x",
         "/odoo\t",
         "/web\0",
+        "/Odoo/action-1",
+        "/WEB/login",
+        "/Web",
+        "/ODOO",
+        "/OdOo",
         "/%2F%2Fevil.com",
+        "/%2f%2fevil.com",
+        "/%5Cevil.com",
+        "/web%2F..%2F",
+        "/%252F%252Fevil.com",
     ]
     for m in malicious:
         assert not _is_safe_login_redirect(m), f"Failed to reject malicious login redirect: {m!r}"
