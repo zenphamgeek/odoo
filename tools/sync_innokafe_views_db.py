@@ -540,10 +540,6 @@ def sync_database(host, port, user, password, dbname):
         )
     """)
 
-    # Purge ALL children of parent 1 and 3 to eliminate duplicate entries completely
-    cur.execute("DELETE FROM website_menu WHERE parent_id IN (1, 3)")
-    print("[✓] Cleared duplicate children under menu root (parent_id 1, 3)")
-
     # Ensure parent menu for resolved website exists
     cur.execute("SELECT id FROM website_menu WHERE parent_id IS NULL AND website_id = %s LIMIT 1", (website_id,))
     parent_row = cur.fetchone()
@@ -565,13 +561,53 @@ def sync_database(host, port, user, password, dbname):
 
     for name_vn, url_path, seq in inno_menus:
         name_dict = {"en_US": name_vn, "vi_VN": name_vn}
+        # 1. Resolve matching website.page if any
         cur.execute("""
-            INSERT INTO website_menu (name, manual_url, sequence, parent_id, website_id, create_uid, write_uid, create_date, write_date)
-            VALUES (%s::jsonb, %s, %s, %s, %s, 1, 1, NOW(), NOW())
-            RETURNING id
-        """, (json.dumps(name_dict), url_path, seq, top_menu_id, website_id))
-        new_m_id = cur.fetchone()[0]
-        print(f"[✓] Created clean menu {new_m_id}: {name_vn} ({url_path}, seq {seq}) under parent {top_menu_id}")
+            SELECT id FROM website_page
+            WHERE url::text LIKE %s AND (website_id = %s OR website_id IS NULL)
+            ORDER BY (website_id = %s) DESC, id DESC
+            LIMIT 1
+        """, (f'%"{url_path}"%', website_id, website_id))
+        p_row = cur.fetchone()
+        target_page_id = p_row[0] if p_row else None
+
+        # 2. Find all existing menu items matching this URL or page_id under top_menu_id
+        cur.execute("""
+            SELECT m.id FROM website_menu m
+            LEFT JOIN website_page p ON m.page_id = p.id
+            WHERE m.parent_id = %s
+              AND (
+                  COALESCE(NULLIF(m.manual_url, ''), p.url->>'en_US', p.url->>'vi_VN') = %s
+                  OR (m.page_id IS NOT NULL AND m.page_id = %s)
+              )
+            ORDER BY (m.page_id IS NOT NULL) DESC, m.id ASC
+        """, (top_menu_id, url_path, target_page_id))
+        existing_m_ids = [r[0] for r in cur.fetchall()]
+
+        if existing_m_ids:
+            canonical_m_id = existing_m_ids[0]
+            # Update canonical menu with correct names and sequence
+            cur.execute("""
+                UPDATE website_menu
+                SET name = %s::jsonb, sequence = %s, page_id = %s, write_date = NOW()
+                WHERE id = %s
+            """, (json.dumps(name_dict), seq, target_page_id, canonical_m_id))
+            print(f"[✓] Updated canonical menu {canonical_m_id}: {name_vn} ({url_path}, seq {seq})")
+
+            # Purge any redundant duplicates for this menu item
+            if len(existing_m_ids) > 1:
+                duplicate_ids = tuple(existing_m_ids[1:])
+                cur.execute("DELETE FROM website_menu WHERE id IN %s", (duplicate_ids,))
+                print(f"[✓] Purged {len(duplicate_ids)} duplicate menu records: {duplicate_ids}")
+        else:
+            # Create new menu item if none exists
+            cur.execute("""
+                INSERT INTO website_menu (name, manual_url, page_id, sequence, parent_id, website_id, create_uid, write_uid, create_date, write_date)
+                VALUES (%s::jsonb, %s, %s, %s, %s, %s, 1, 1, NOW(), NOW())
+                RETURNING id
+            """, (json.dumps(name_dict), url_path if not target_page_id else None, target_page_id, seq, top_menu_id, website_id))
+            new_m_id = cur.fetchone()[0]
+            print(f"[✓] Created clean menu {new_m_id}: {name_vn} ({url_path}, seq {seq}) under parent {top_menu_id}")
 
     # 11. Synchronize ir_asset records and bust frontend bundle cache
     assets_to_sync = [
