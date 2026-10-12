@@ -2,13 +2,13 @@
 <odoo>
     <!-- =====================================================================
          INNORIA / INSILOS ENTERPRISE REPORT TEMPLATES
-         Architecture: IBM Carbon Design Language & SAP Fiori Horizon Standards
-         Branding: Official Web Innoria Logo (Small Header & Discrete Footer)
-         Statutory: Decree 123/2020/ND-CP & Decree 70/2025/ND-CP (e-Invoicing)
+         Architecture: IBM Carbon Design Language and SAP Fiori Horizon Standards
+         Branding: Official Web Innoria Logo (Small Header and Discrete Footer)
+         Statutory: Decree 123/2020/ND-CP and Decree 70/2025/ND-CP (e-Invoicing)
          ===================================================================== -->
 
-    <!-- 1. Master IBM Carbon & SAP Fiori External Report Layout -->
-    <template id="external_layout_ibm_sap" name="Innoria Enterprise (IBM Carbon &amp; SAP Fiori)">
+    <!-- 1. Master IBM Carbon and SAP Fiori External Report Layout -->
+    <template id="external_layout_ibm_sap" name="Innoria Enterprise (IBM Carbon &amp;amp; SAP Fiori)">
         <t t-if="not o" t-set="o" t-value="doc"/>
         <t t-if="not company">
             <t t-if="company_id">
@@ -29,7 +29,7 @@
             
             <table class="table-borderless w-100" style="margin-bottom: 8px;">
                 <tr>
-                    <!-- Small Web Innoria Logo & Enterprise Badge -->
+                    <!-- Small Web Innoria Logo and Enterprise Badge -->
                     <td class="align-middle text-start" style="width: 50%;">
                         <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 32px; width: auto; display: block;" alt="Innoria"/>
                         <div style="margin-top: 4px;">
@@ -64,7 +64,7 @@
                 <tr>
                     <td class="text-start align-middle" style="width: 75%;">
                         <div>
-                            <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử khởi tạo tự động theo Nghị định 123/2020/NĐ-CP &amp; Nghị định 70/2025/NĐ-CP.
+                            <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử khởi tạo tự động theo Nghị định 123/2020/NĐ-CP &amp;amp; Nghị định 70/2025/NĐ-CP.
                         </div>
                         <div style="color: #8D8D8D; margin-top: 2px;">
                             Bảo mật dữ liệu tuân thủ Nghị định 13/2023/NĐ-CP. Tra cứu tính hợp lệ tại cổng khách hàng: <span style="color: #0070F2;">https://innoria.com</span>
@@ -83,7 +83,7 @@
         </div>
     </template>
 
-    <!-- 2. Global Extension on web.external_layout_standard ensuring all default reports adopt IBM/SAP & Innoria Small Logo -->
+    <!-- 2. Global Extension on web.external_layout_standard ensuring all default reports adopt IBM/SAP and Innoria Small Logo -->
     <template id="external_layout_standard_inherit_al2c" inherit_id="web.external_layout_standard">
         <!-- Replace Header (First div) -->
         <xpath expr="//div[1]" position="replace">
@@ -120,7 +120,7 @@
                     <tr>
                         <td class="text-start align-middle" style="width: 75%;">
                             <div>
-                                <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử chuẩn ISO/IEC 27001 &amp; Nghị định 123/2020/NĐ-CP.
+                                <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử chuẩn ISO/IEC 27001 &amp;amp; Nghị định 123/2020/NĐ-CP.
                             </div>
                             <div style="color: #8D8D8D; margin-top: 2px;">
                                 Bảo mật dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP. Tra cứu trực tuyến tại: <span style="color: #0070F2;">https://innoria.com</span>

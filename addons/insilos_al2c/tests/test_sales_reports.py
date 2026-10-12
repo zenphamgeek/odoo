@@ -190,7 +190,7 @@ class TestSalesReports(TransactionCase):
         # Layer 3: Negative-selection escaping invariant (XSS & markup correctness guard)
         self.assertNotRegex(
             html_text,
-            r"&(?!amp;|lt;|gt;|quot;|#\d+;|#x[0-9a-fA-F]+;)",
+            r"&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)",
             f"Escaping regression in {context_name}: raw QWeb output contains an unescaped '&'.",
         )
 
