@@ -2,7 +2,7 @@ import re
 from importlib.metadata import version
 from lxml.etree import LIBXML_VERSION
 
-from odoo.tools import parse_version
+from odoo.tools.parse_version import parse_version
 
 ARIA_ATTRIBUTES = frozenset([
     "aria-activedescendant", "aria-atomic", "aria-autocomplete",
