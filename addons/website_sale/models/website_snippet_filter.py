@@ -8,6 +8,9 @@ from odoo.http import request
 from odoo.tools import BinaryBytes
 
 
+SKU_LIKE_MODELS = ("product.product", "catalog.sku")
+
+
 class WebsiteSnippetFilter(models.Model):
     _inherit = "website.snippet.filter"
 
@@ -30,7 +33,7 @@ class WebsiteSnippetFilter(models.Model):
         update_limit_cache = False
         product_limit = limit or self.limit
         model_name = self.filter_id.model_id
-        if hide_variants and model_name in ("product.product", "catalog.sku"):
+        if hide_variants and model_name in SKU_LIKE_MODELS:
             # When hiding variants, confirm model actually has product_tmpl_id template grouping
             # before expanding cache limit, preventing incorrect storefront product counts (WARN-1 defense)
             model_obj = self.env.get(model_name)

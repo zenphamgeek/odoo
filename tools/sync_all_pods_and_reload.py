@@ -124,17 +124,29 @@ def assert_tree_size(root: str, limit: int) -> int:
     return total
 
 
-def freeze_and_audit_members(src_root: str, members: list[str], dest_root: str) -> None:
+def freeze_and_audit_members(
+    src_root: str,
+    members: list[str],
+    dest_root: str,
+    allow_missing: bool = False,
+) -> dict[str, str]:
     """
     Copies selected members into an isolated frozen directory WITHOUT following symlinks,
-    closing the TOCTOU race window (CWE-367). The audited bytes are identical to the packaged bytes.
+    closing the TOCTOU race window (CWE-367). Computes and records SHA-256 for all packaged
+    files. Fails closed with FileNotFoundError if any declared member is missing, preventing
+    truncated or partial deployments.
     """
     assert_no_escaping_symlinks(src_root, members)
     os.makedirs(dest_root, exist_ok=True)
+    digests = {}
     for member in members:
         s = os.path.join(src_root, member)
         d = os.path.join(dest_root, member)
         if not os.path.exists(s) and not os.path.islink(s):
+            if not allow_missing:
+                raise FileNotFoundError(
+                    f"Security/Integrity Invariant Violated: Missing source member '{s}' in '{src_root}'"
+                )
             continue
         os.makedirs(os.path.dirname(d), exist_ok=True)
         if os.path.islink(s):
@@ -142,12 +154,19 @@ def freeze_and_audit_members(src_root: str, members: list[str], dest_root: str) 
             os.symlink(link_target, d)
         elif os.path.isdir(s):
             shutil.copytree(s, d, symlinks=True, dirs_exist_ok=True)
+            for dirpath, _dirs, files in os.walk(d, followlinks=False):
+                for f in files:
+                    fp = os.path.join(dirpath, f)
+                    if not os.path.islink(fp):
+                        digests[os.path.relpath(fp, dest_root)] = compute_sha256(fp)
         elif os.path.isfile(s):
             shutil.copy2(s, d, follow_symlinks=False)
+            digests[member] = compute_sha256(d)
 
     # Re-audit the frozen copy; packaging will read ONLY from here
     assert_no_escaping_symlinks(dest_root, members)
     assert_tree_size(dest_root, MAX_ARCHIVE_SIZE_BYTES)
+    return digests
 
 
 def compute_sha256(filepath: str) -> str:

@@ -167,9 +167,31 @@ def test_gate11_sha256_digest_pinning():
         expected = hashlib.sha256(b"known content for sha256 test").hexdigest()
         assert compute_sha256(tf.name) == expected
 
+def test_gate12_freeze_and_audit_fail_closed():
+    """Gate 12: freeze_and_audit_members fails closed on missing source member and records digests."""
+    with tempfile.TemporaryDirectory() as src_dir, tempfile.TemporaryDirectory() as dst_dir:
+        f1 = os.path.join(src_dir, "manifest.json")
+        with open(f1, "w") as fp:
+            fp.write('{"version": "1.0"}')
+        # Existing member passes and returns sha256 digest
+        digests = freeze_and_audit_members(src_dir, ["manifest.json"], dst_dir)
+        assert "manifest.json" in digests
+        assert len(digests["manifest.json"]) == 64
+
+        # Missing member without allow_missing MUST raise FileNotFoundError (fail closed)
+        try:
+            freeze_and_audit_members(src_dir, ["missing_secret.py"], dst_dir, allow_missing=False)
+            raise AssertionError("Failed to fail closed on missing source member!")
+        except FileNotFoundError as e:
+            assert "Missing source member" in str(e)
+
+        # Missing member with allow_missing=True succeeds
+        freeze_and_audit_members(src_dir, ["missing_secret.py"], dst_dir, allow_missing=True)
+
+
 def main():
     print("[⚡] ======================================================================")
-    print("[⚡] Pod Sync Packaging Adversarial Security Verification Suite (11 Gates)")
+    print("[⚡] Pod Sync Packaging Adversarial Security Verification Suite (12 Gates)")
     print("[⚡] ======================================================================")
     gates = [
         ("Gate 1: Existing Production Modules Symlink Invariant", test_gate1_existing_modules),
@@ -183,6 +205,7 @@ def main():
         ("Gate 9: TOCTOU Snapshot Freeze Isolation (CWE-367)", test_gate9_cwe367_toctou_snapshot_freeze),
         ("Gate 10: Pre-Packaging Tree Size Ceiling Enforcement (CWE-400)", test_gate10_cwe400_tree_size_ceiling_pre_package),
         ("Gate 11: Content-Addressed SHA-256 Digest Pinning", test_gate11_sha256_digest_pinning),
+        ("Gate 12: Fail-Closed Source Member Audit & Digest Pinning", test_gate12_freeze_and_audit_fail_closed),
     ]
 
     all_pass = True
@@ -200,5 +223,7 @@ def main():
         print("[⚡] ======================================================================")
         sys.exit(1)
 
+
 if __name__ == "__main__":
     main()
+
