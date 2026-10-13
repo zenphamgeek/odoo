@@ -63,7 +63,7 @@ async function checkPage(page, appName, url) {
                 const lines = text.split('\n');
                 for (const line of lines) {
                     if (pat.test(line)) {
-                        const trimmed = line.trim();
+                        const trimmed = redactContext(line.trim());
                         // Avoid duplicates
                         if (!leaks.includes(trimmed)) {
                             leaks.push(trimmed);
@@ -111,8 +111,8 @@ async function checkPage(page, appName, url) {
             return null;
         }
     } catch (err) {
-        console.error(`  ⚠️ Exception checking [${appName}]:`, err.message);
-        return { appName, url, leaks: [err.message], imgLeaks: [] };
+        console.error(`  ⚠️ Exception checking [${appName}]:`, redactContext(err.message));
+        return { appName, url, leaks: [redactContext(err.message)], imgLeaks: [] };
     }
 }
 
@@ -165,14 +165,13 @@ async function main() {
     const prefPage = await prefCtx.newPage();
     let prefCheckCompleted = false;
     try {
-        await prefPage.goto(`${HOOT_HOST}/insilos`, { waitUntil: 'load', timeout: 35000 }).catch(async () => {
-            await prefPage.goto(`${HOOT_HOST}/insilos`, { waitUntil: 'domcontentloaded', timeout: 30000 });
-        });
+        await prefPage.goto(`${HOOT_HOST}/insilos`, { waitUntil: 'domcontentloaded', timeout: 30000 });
         await prefPage.waitForSelector('.o_main_navbar, .o_navbar', { timeout: 15000 });
         const userMenuBtn = prefPage.locator('.o_user_menu button, button.o_user_menu, .o_user_menu .dropdown-toggle, button[aria-label="User menu"], .o_menu_systray .o_user_menu').first();
         await userMenuBtn.waitFor({ state: 'visible', timeout: 15000 });
         await userMenuBtn.click();
-        await prefPage.locator('.dropdown-menu.show, .o_user_menu .dropdown-menu').first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
+        const openMenu = prefPage.locator('.dropdown-menu.show, .o_user_menu .dropdown-menu').first();
+        await openMenu.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
 
         const prefOption = prefPage.locator('.dropdown-item:has-text("Preferences"), .dropdown-item[data-menu="settings"], [data-menu="settings"], .dropdown-item:has-text("Tùy chọn")').first();
         const prefAppeared = await prefOption
@@ -180,14 +179,19 @@ async function main() {
             .then(() => true)
             .catch(() => false);
         if (!prefAppeared) {
-            // First click likely absorbed during hydration; re-open the menu
-            await userMenuBtn.click().catch(() => {});
+            // First click likely absorbed during hydration; check if dropdown is not open before clicking to prevent toggle-close
+            const isMenuOpen = await openMenu.isVisible().catch(() => false);
+            if (!isMenuOpen) {
+                await userMenuBtn.click().catch(() => {});
+            }
+            await openMenu.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
             await prefOption.waitFor({ state: 'visible', timeout: 15000 });
         }
         await prefOption.click();
         await prefPage.waitForSelector('.modal-dialog, .modal.show', { timeout: 20000 });
-        await prefPage.waitForTimeout(1500);
         const modal = prefPage.locator('.modal-dialog, .modal.show').first();
+        await modal.waitFor({ state: 'visible', timeout: 15000 });
+        await modal.locator('.modal-body, .modal-content').first().waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
         const modalText = await modal.innerText();
         const prefLeaks = scanPreferencesModalText(modalText);
         if (prefLeaks.length > 0) {
@@ -199,7 +203,7 @@ async function main() {
         prefCheckCompleted = true;
     } catch (e) {
         // A security control that cannot assert must fail loudly, not pass silently.
-        console.error('  ❌ User Preferences modal check FAILED to execute:', e.message);
+        console.error('  ❌ User Preferences modal check FAILED to execute:', redactContext(e.message));
     } finally {
         await prefPage.close().catch(() => {});
         await prefCtx.close().catch(() => {});
