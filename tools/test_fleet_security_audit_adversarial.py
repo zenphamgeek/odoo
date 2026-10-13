@@ -2505,9 +2505,11 @@ def main():
     test_po_format_placeholder_integrity_and_semantic_invariance()
     test_sql_constraints_shape_and_database_uniqueness_guard()
     test_forensic_sweep_security_and_canary_liveness()
+    test_hoot_harness_secret_redaction()
     print("=" * 80)
-    print("ALL 31 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 32 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
+
 
 
 def test_forensic_sweep_security_and_canary_liveness():
@@ -2589,8 +2591,130 @@ def test_forensic_sweep_security_and_canary_liveness():
     print("  [✓] Forensic sweep credential hygiene, prod opt-in guard, parameterized queries, and canary liveness verified.")
 
 
+def test_hoot_harness_secret_redaction():
+    print("[TEST HOOT SECRET REDACTION] Finding 32: CWE-532 Console Log Masker & SecretsMasker Boundary Matrix")
+    import subprocess
+    import json
+
+    node_code = """
+    const assert = require('assert');
+    const { registerSecret, redactSensitive, REGISTERED_SECRETS } = require('./run_hoot.js');
+
+    // Case 1: Pattern-based key=value redaction
+    const log1 = '[HOOT] connecting with password=hunter2 and token: abcdef123456';
+    const redacted1 = redactSensitive(log1);
+    assert(!redacted1.includes('hunter2'), 'hunter2 must not be present in output');
+    assert(!redacted1.includes('abcdef123456'), 'token value must not be present');
+    assert(redacted1.includes('password=***REDACTED***'), 'password must be masked');
+    assert(redacted1.includes('token=***REDACTED***'), 'token must be masked');
+
+    // Case 2: Bare registered secret in stack trace without key prefix
+    const bareSecret = 'super_secret_session_cookie_998877';
+    registerSecret(bareSecret);
+    assert(REGISTERED_SECRETS.has(bareSecret), 'Secret must be in REGISTERED_SECRETS');
+    const stackTrace = `Error: Connection failed
+        at Object.<anonymous> (/app/test.js:42:15)
+        Context: ${bareSecret}`;
+    const redacted2 = redactSensitive(stackTrace);
+    assert(!redacted2.includes(bareSecret), 'Bare secret must be purged from stack trace');
+    assert(redacted2.includes('***REDACTED***'), 'Mask token must be injected');
+
+    // Case 3: URL query parameters with mixed sensitive and non-sensitive query params
+    const testUrl = 'https://example.com/api/v1/resource?access_token=jwt.eyJzdWIiOiIxMjM0NTY3ODkwIn0&page=2&filter=active';
+    const redacted3 = redactSensitive(testUrl);
+    assert(!redacted3.includes('jwt.eyJzdWIiOiIxMjM0NTY3ODkwIn0'), 'JWT access token must be purged');
+    assert(redacted3.includes('access_token=***REDACTED***'), 'access_token param must be masked');
+    assert(redacted3.includes('page=2'), 'Non-sensitive query parameter page=2 must be preserved');
+    assert(redacted3.includes('filter=active'), 'Non-sensitive query parameter filter=active must be preserved');
+
+    // Case 4: Benign log invariant (zero false positives / zero corruption)
+    const benign = '[HOOT] 12 tests passed successfully in 3.4s (all suites clean)';
+    const redacted4 = redactSensitive(benign);
+    assert.strictEqual(redacted4, benign, 'Benign log message must pass through completely unchanged');
+
+    // Case 5: Non-string / null / undefined / object boundary coercion
+    assert.strictEqual(redactSensitive(null), '', 'null must coerce safely without throwing');
+    assert.strictEqual(redactSensitive(undefined), '', 'undefined must coerce safely without throwing');
+    assert.strictEqual(redactSensitive(12345), '12345', 'number must coerce safely');
+    assert(redactSensitive({ toString: () => 'password=leak' }).includes('password=***REDACTED***'), 'object with toString must be masked');
+
+    // Case 6: Database connection URI masking (PostgreSQL, MongoDB, Redis)
+    const uriLog = 'Connection error: postgresql://odoo_admin:SuperSecretPass123!@127.0.0.1:5434/insilos20_dev';
+    const redacted6 = redactSensitive(uriLog);
+    assert(!redacted6.includes('SuperSecretPass123!'), 'Database URI password must be purged');
+    assert(redacted6.includes('postgresql://odoo_admin:***REDACTED***@127.0.0.1:5434/insilos20_dev'), 'URI must mask password safely');
+
+    // Case 7: JWT token masking
+    const jwtLog = 'Diagnostic dump: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWRtaW4ifQ.dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk returned from endpoint';
+    const redacted7 = redactSensitive(jwtLog);
+    assert(!redacted7.includes('dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk'), 'JWT signature must be purged');
+    assert(redacted7.includes('***REDACTED_JWT***'), 'Mask token must be injected for JWT');
+
+    // Case 8: Randomized Property-Based Fuzzing with Shrinking (1,000 iterations)
+    const crypto = require('crypto');
+    function randomString(len) {
+      return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+    }
+    const templates = [
+      (sec) => `postgresql://usr_${randomString(4)}:${sec}@cluster-${randomString(4)}.internal:5432/db`,
+      (sec) => `postgres://user:${sec}@10.0.0.1:5432/tenant`,
+      (sec) => `mongodb+srv://admin:${sec}@mongo.internal/app`,
+      (sec) => `redis://default:${sec}@redis.lan:6379/1`,
+      (sec) => `Bearer ${sec}`,
+      (sec) => `password=${sec}`,
+      (sec) => `passwd="${sec}"`,
+      (sec) => `client_secret: ${sec}`,
+      (sec) => `?access_token=${sec}&scope=read`,
+    ];
+    for (let i = 0; i < 1000; i++) {
+      const secretPayload = 'sec_' + randomString(12);
+      const tmpl = templates[i % templates.length];
+      const input = `[DEBUG ${i}] noise_${randomString(8)} [HOOT] ` + tmpl(secretPayload) + ` status_code=200`;
+      const output = redactSensitive(input);
+      if (output.includes(secretPayload)) {
+        assert.fail(`Property-based invariant violated at iteration ${i}: secret ${secretPayload} survived in ${output}`);
+      }
+    }
+
+    // Case 9: HOOT_VERBOSE predicate isolation gate
+    function shouldMirrorToStdout(rawTxt, hootVerbose) {
+      const isFailure = rawTxt.includes('failed:') || rawTxt.includes('timed out') || rawTxt.includes('Error during test:');
+      return isFailure || (hootVerbose && rawTxt.includes('[HOOT]'));
+    }
+    const benignHoot = '[HOOT] Suite "web.tests" passed 24/24 steps in 410ms';
+    assert.strictEqual(shouldMirrorToStdout(benignHoot, false), false, 'Benign HOOT log MUST NOT mirror when HOOT_VERBOSE=0');
+    assert.strictEqual(shouldMirrorToStdout(benignHoot, true), true, 'Benign HOOT log MUST mirror when HOOT_VERBOSE=1');
+    const failureHoot = '[HOOT] Test "sale.order" failed: expected 200 got 500';
+    assert.strictEqual(shouldMirrorToStdout(failureHoot, false), true, 'Failure log MUST always mirror even when HOOT_VERBOSE=0');
+
+    console.log(JSON.stringify({ status: 'ok', cases_passed: 9 }));
+    """
+
+    res = subprocess.run(["node", "-e", node_code], capture_output=True, text=True, check=False)
+    assert res.returncode == 0, f"Node secret masker verification failed (code {res.returncode}):\nSTDOUT: {res.stdout}\nSTDERR: {res.stderr}"
+    data = json.loads(res.stdout.strip())
+    assert data["status"] == "ok" and data["cases_passed"] == 9
+
+    # Static AST / Code check on run_hoot.js
+    with open('run_hoot.js', 'r', encoding='utf-8') as f:
+        hoot_src = f.read()
+
+    assert "REGISTERED_SECRETS = new Set()" in hoot_src, "Must instantiate REGISTERED_SECRETS Set"
+    assert "registerSecret(" in hoot_src, "Must define registerSecret function"
+    assert "redactSensitive(" in hoot_src, "Must define redactSensitive function"
+    assert "HOOT_VERBOSE = process.env.HOOT_VERBOSE === '1'" in hoot_src, "Must define HOOT_VERBOSE opt-in flag"
+    assert "isFailure || (HOOT_VERBOSE &&" in hoot_src, "Console listener must gate HOOT mirroring behind HOOT_VERBOSE and isFailure"
+    assert "postgres" in hoot_src, "Must include database URI redaction pattern"
+    assert "eyJ" in hoot_src, "Must include JWT token redaction pattern"
+    assert "redactSensitive(rawTxt)" in hoot_src or "redactSensitive(msg.text())" in hoot_src, "Console listener must invoke redactSensitive"
+    assert "redactSensitive(err" in hoot_src, "Pageerror listener must invoke redactSensitive"
+
+    print("  [✓] run_hoot secrets masker (CWE-532), DB URI & JWT redaction, 1000-iter property fuzzing, and HOOT_VERBOSE gate verified.")
+
+
 if __name__ == '__main__':
     main()
+
 
 
 

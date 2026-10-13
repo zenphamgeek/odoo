@@ -24,6 +24,65 @@ const DB_NAME = process.env.HOOT_DB || 'insilos20_dev';
 const AUTH_LOGIN = process.env.HOOT_LOGIN || 'admin';
 const AUTH_PASSWORD = process.env.HOOT_PASSWORD || 'admin';
 const TEST_TIMEOUT = process.env.HOOT_TIMEOUT || '25000';
+const HOOT_VERBOSE = process.env.HOOT_VERBOSE === '1';
+
+// --- Secret-Aware Log Sink (Airflow SecretsMasker-style Register + Regex) ---
+const REGISTERED_SECRETS = new Set();
+
+function registerSecret(v) {
+  if (typeof v === 'string') {
+    const trimmed = v.trim();
+    if (trimmed.length >= 4) {
+      REGISTERED_SECRETS.add(trimmed);
+    }
+  }
+}
+
+// Automatically register known ambient secrets into the masker
+if (AUTH_PASSWORD && AUTH_PASSWORD !== 'admin') registerSecret(AUTH_PASSWORD);
+if (process.env.PGPASSWORD) registerSecret(process.env.PGPASSWORD);
+if (process.env.DB_PASSWORD) registerSecret(process.env.DB_PASSWORD);
+if (process.env.INNORIA_DB_PASS) registerSecret(process.env.INNORIA_DB_PASS);
+
+function redactSensitive(input) {
+  if (input === null || input === undefined) return '';
+  let s = typeof input === 'string' ? input : String(input);
+
+  // 1. Mask exact known registered secret values (handles bare occurrences in stack traces/JSON)
+  for (const secret of REGISTERED_SECRETS) {
+    if (secret && s.includes(secret)) {
+      s = s.split(secret).join('***REDACTED***');
+    }
+  }
+
+  // 2. Mask database connection URI credentials (postgres, mysql, mongodb, redis, amqp)
+  s = s.replace(
+    /\b((?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|redis|amqp):\/\/)([^:\s'"]+):([^\s'"]+)@([a-zA-Z0-9_.-]+(?::\d+)?(?:\/[^\s'"]*)?)/gi,
+    '$1$2:***REDACTED***@$4'
+  );
+
+  // 3. Mask JWT-shaped tokens (header.payload.signature)
+  s = s.replace(/\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+/g, '***REDACTED_JWT***');
+
+  // 4. Mask Authorization headers (Bearer, Basic, Token, or raw token)
+  s = s.replace(/\bAuthorization\s*:\s*(Bearer|Basic|Token)\s+[^\s]+/gi, 'Authorization: $1 ***REDACTED***');
+  s = s.replace(/\bAuthorization\s*:\s*(?!Bearer|Basic|Token)("?)([^"\s,}]+)\1/gi, 'Authorization: ***REDACTED***');
+  s = s.replace(/\bBearer\s+[A-Za-z0-9\-._~+/]+=*/gi, 'Bearer ***REDACTED***');
+
+  // 5. Mask key=value / key: value shapes for credentials, tokens, and session identifiers (including JSON)
+  s = s.replace(
+    /(["']?)\b(password|passwd|pwd|secret|token|api[_-]?key|session(?:[_-]?id)?|access[_-]?token|auth[_-]?token|client[_-]?secret|private[_-]?key)\b\1\s*([:=])\s*(["']?)(?!\*\*\*REDACTED)([^"'\s,}&]+)\4/gi,
+    '$1$2$1$3$4***REDACTED***$4'
+  );
+
+  // 6. Mask secrets embedded in URL query strings (e.g. ?access_token=... or &password=...)
+  s = s.replace(
+    /([?&](?:password|token|api_key|session_id|access_token|client_secret)=)[^&\s]+/gi,
+    '$1***REDACTED***'
+  );
+
+  return s;
+}
 
 /**
  * Single-Flight Warmup Gate
@@ -105,6 +164,13 @@ async function authenticateOnce(browser, baseUrl) {
   }
 
   const storageState = await authContext.storageState();
+  if (storageState && typeof storageState === 'object') {
+    try {
+      for (const c of storageState.cookies || []) {
+        if (c.value) registerSecret(c.value);
+      }
+    } catch { /* storageState shape optional */ }
+  }
 
   console.log('⚡ [Harness Warmup] Pre-compiling asset bundles via authenticated warmup visit...');
   const tWarm = Date.now();
@@ -128,6 +194,15 @@ async function executeSingleSuite(browser, storageState, runConfig) {
   const t0 = Date.now();
   const label = `[${suiteName || 'Suite'} / ${desc || (isMobile ? 'Mobile' : 'Desktop')}]`;
 
+  // Feed any session cookies or tokens into the secret masker before execution
+  if (storageState && typeof storageState === 'object') {
+    try {
+      for (const c of storageState.cookies || []) {
+        if (c.value) registerSecret(c.value);
+      }
+    } catch { /* optional */ }
+  }
+
   const context = await browser.newContext({
     storageState,
     userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
@@ -140,14 +215,16 @@ async function executeSingleSuite(browser, storageState, runConfig) {
   const consoleLogs = [];
 
   page.on('pageerror', err => {
-    console.log(`BROWSER PAGEERROR ${label}:`, err.message);
+    console.log(`BROWSER PAGEERROR ${label}:`, redactSensitive(err ? err.stack || err.message : ''));
   });
 
   page.on('console', msg => {
-    const txt = msg.text();
-    if (msg.type() === 'error' || txt.includes('[DEBUG') || txt.includes('[HOOT]')) {
+    const rawTxt = msg.text();
+    const txt = redactSensitive(rawTxt);
+    if (msg.type() === 'error' || rawTxt.includes('[DEBUG') || rawTxt.includes('[HOOT]')) {
       consoleLogs.push(txt);
-      if (txt.includes('failed:') || txt.includes('timed out') || txt.includes('Error during test:')) {
+      const isFailure = rawTxt.includes('failed:') || rawTxt.includes('timed out') || rawTxt.includes('Error during test:');
+      if (isFailure || (HOOT_VERBOSE && rawTxt.includes('[HOOT]'))) {
         console.log(`BROWSER CONSOLE ${label}:`, txt);
       }
     }
@@ -500,15 +577,15 @@ async function main() {
       for (const f of r.failedDetails || []) {
         console.error(`   FAIL: ${f.path}`);
         for (const e of f.errors || []) {
-          console.error(`     * ${e.message}`);
+          console.error(`     * ${redactSensitive(e.message)}`);
           if (e.details) {
             const indented = e.details.split('\n').map(l => '         ' + l).join('\n');
-            console.error(indented);
+            console.error(redactSensitive(indented));
           }
         }
       }
       if (r.domSnapshot) {
-        console.error('   DOM Snapshot on Failure:', JSON.stringify(r.domSnapshot, null, 2));
+        console.error('   DOM Snapshot on Failure:', redactSensitive(JSON.stringify(r.domSnapshot, null, 2)));
       }
       console.error('');
     }
@@ -519,7 +596,18 @@ async function main() {
   }
 }
 
-main().catch(err => {
-  console.error('Fatal harness error:', err);
-  process.exit(1);
-});
+module.exports = {
+  registerSecret,
+  redactSensitive,
+  REGISTERED_SECRETS,
+  HOOT_VERBOSE,
+  main,
+};
+
+if (require.main === module) {
+  main().catch(err => {
+    console.error('Fatal harness error:', redactSensitive(err ? err.stack || err.message || String(err) : 'Unknown error'));
+    process.exit(1);
+  });
+}
+
