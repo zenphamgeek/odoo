@@ -2504,9 +2504,86 @@ def main():
     test_preferences_modal_pii_redaction_and_race_guard()
     test_po_format_placeholder_integrity_and_semantic_invariance()
     test_sql_constraints_shape_and_database_uniqueness_guard()
+    test_forensic_sweep_security_and_canary_liveness()
     print("=" * 80)
-    print("ALL 30 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 31 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
+
+
+def test_forensic_sweep_security_and_canary_liveness():
+    print("[TEST FORENSIC SWEEP & CANARY] Finding 31: CWE-259 Credential Hygiene, Prod Isolation, Parameterized SQL & Canary Liveness")
+    import tempfile
+    import pathlib
+    from tools.sweep_audit_all_modules_forensic import (
+        audit_module_python,
+        audit_module_xml,
+    )
+
+    # 1. Inspect tools/sweep_audit_all_modules_forensic.py source code for CWE-259 credential hygiene
+    script_path = pathlib.Path("tools/sweep_audit_all_modules_forensic.py")
+    with open(script_path, "r", encoding="utf-8") as f:
+        src = f.read()
+
+    # Assert zero hardcoded passwords
+    assert "1NN0R1@2026" not in src, "CWE-259 Violation: Hardcoded password literal found in sweep script!"
+    assert 'PG_PASS = os.environ.get("PGPASSWORD")' in src, "Credential hygiene: Must read PGPASSWORD from environment"
+    assert "ALLOW_PROD_AUDIT" in src, "Sovereign guard: Prod database access must require explicit opt-in confirmation"
+    assert "default_transaction_read_only=on" in src, "Least privilege: Database connection must enforce read-only transaction"
+
+    # 2. Assert Parameterized SQL queries (CWE-89 SQL Injection Prevention)
+    assert 'cur.execute("""' in src, "SQL layer must use structured query execution"
+    assert "WHERE fs.name::text ILIKE %s" in src, "Query 1 must be parameterized with %s"
+    assert "WHERE (help::text ILIKE %s OR help::text ILIKE %s OR name::text ILIKE %s)" in src, "Query 2 must be parameterized"
+    assert "WHERE name::text ILIKE %s" in src, "Query 3 must be parameterized"
+
+    # 3. Seeded Canary Leak Fixture: Assert detector liveness on synthetic known positives
+    with tempfile.TemporaryDirectory() as d:
+        mod_dir = pathlib.Path(d, "canary_module")
+        mod_dir.mkdir()
+        (mod_dir / "__manifest__.py").write_text("{'name': 'Canary'}", encoding="utf-8")
+
+        # Synthetic Python leak
+        py_canary = mod_dir / "models.py"
+        py_canary.write_text(
+            'from odoo import models, fields\n'
+            'class CanaryModel(models.Model):\n'
+            '    _name = "canary.model"\n'
+            '    name = fields.Char(string="In Odoo ERP")\n'
+            '    state = fields.Selection([("a", "Odoo Community"), ("b", "Clean")])\n',
+            encoding="utf-8"
+        )
+
+        # Synthetic XML leak with non-UTF8 bytes preceding it to test decoding resilience
+        xml_canary = mod_dir / "views.xml"
+        xml_canary.write_bytes(
+            b'<?xml version="1.0" encoding="utf-8"?>\n'
+            b'<odoo>\n'
+            b'    <!-- \xff\xfe non-utf8 header byte simulation -->\n'
+            b'    <record id="canary_view" model="ir.ui.view">\n'
+            b'        <field name="name">canary.form</field>\n'
+            b'        <field name="arch" type="xml">\n'
+            b'            <form string="Odoo Enterprise Form">\n'
+            b'                <label string="Powered by Odoo Server"/>\n'
+            b'            </form>\n'
+            b'        </field>\n'
+            b'    </record>\n'
+            b'</odoo>\n'
+        )
+
+        # Execute forensic scan on synthetic canary
+        py_findings = audit_module_python(mod_dir)
+        xml_findings = audit_module_xml(mod_dir)
+
+        # Assert both synthetic leaks are positively detected (zero false clean)
+        assert len(py_findings) >= 2, f"Canary detector failure: Expected >= 2 Python leaks, got {len(py_findings)}"
+        assert any("In Odoo ERP" in str(item) for item in py_findings), "Failed to detect string='In Odoo ERP' leak"
+        assert any("Odoo Community" in str(item) for item in py_findings), "Failed to detect selection label leak"
+
+        assert len(xml_findings) >= 2, f"Canary detector failure: Expected >= 2 XML leaks, got {len(xml_findings)}"
+        assert any("Odoo Enterprise Form" in str(item) for item in xml_findings), "Failed to detect form string leak"
+        assert any("Powered by Odoo Server" in str(item) for item in xml_findings), "Failed to detect label string leak"
+
+    print("  [✓] Forensic sweep credential hygiene, prod opt-in guard, parameterized queries, and canary liveness verified.")
 
 
 if __name__ == '__main__':
