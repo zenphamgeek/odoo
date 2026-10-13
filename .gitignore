@@ -77,3 +77,8 @@ tools/*_results.json
 innokafe_pixel_scan/
 scratch/
 
+# audit artifacts — may contain redacted-but-sensitive context
+fleet_parallel_audit_results.json
+forensic_sweep_*_report.json
+schema_compliance_audit_report.json
+innokafe_pixel_scan_prod/
