@@ -2004,6 +2004,7 @@ def test_svg_asset_sanitization_and_stealth():
 
 def test_import_obfuscation_guard():
     print("[TEST IMPORT OBFUSCATION GUARD] CWE-116: Supply-Chain Hygiene & AST Obfuscation Prevention")
+    import pathlib
     import tempfile
     import subprocess
     from tools.audit_import_obfuscation import scan_source, scan_file, main as audit_main
@@ -2052,11 +2053,56 @@ def test_import_obfuscation_guard():
     assert len(v_supp) == 0, f"Expected 0 violations for suppressed call, got {v_supp}"
     assert len(s_supp) == 1, f"Expected 1 recorded suppression, got {s_supp}"
 
+    # Boundary vector (h): multi-line call with suppression on closing argument line -> suppressed
+    multiline_supp_src = (
+        'import importlib\n'
+        'mod = importlib.import_module(\n'
+        '    base + "." + submod  # import-obfuscation-ignore: intentional dynamic dispatch\n'
+        ')\n'
+    )
+    v_multi, s_multi = scan_source(multiline_supp_src, "test_multiline_supp.py")
+    assert len(v_multi) == 0, f"Expected 0 violations for multi-line suppressed call, got {v_multi}"
+    assert len(s_multi) == 1, f"Expected 1 recorded suppression, got {s_multi}"
+
+    # Boundary vector (i): builtins.__import__(dynamic) and importlib.__import__(dynamic) -> caught
+    attr_dunder_src = (
+        'import builtins\n'
+        'mod1 = builtins.__import__(prefix + name)\n'
+        'import importlib\n'
+        'mod2 = importlib.__import__(dyn_pkg)\n'
+    )
+    v_attr_dunder, _ = scan_source(attr_dunder_src, "test_attr_dunder.py")
+    assert len(v_attr_dunder) == 2, f"Expected 2 violations for Attribute.__import__, got {v_attr_dunder}"
+
+    # Boundary vector (j): static builtins.__import__("os") -> clean
+    static_attr_src = 'import builtins\nmod = builtins.__import__("os")\n'
+    v_static_attr, _ = scan_source(static_attr_src, "test_static_attr.py")
+    assert len(v_static_attr) == 0, f"Expected 0 violations for static builtins.__import__, got {v_static_attr}"
+
+    # Boundary vector (k): zero args does not crash (0 violations); starred args does not crash (1 violation)
+    zero_args_src = 'import importlib\nimportlib.import_module()\n'
+    v_zero, _ = scan_source(zero_args_src, "test_zero.py")
+    assert len(v_zero) == 0, f"Expected 0 violations for zero args, got {v_zero}"
+
+    starred_args_src = 'import importlib\nargs = ["math"]\nimportlib.import_module(*args)\n'
+    v_starred, _ = scan_source(starred_args_src, "test_starred.py")
+    assert len(v_starred) == 1, f"Expected 1 violation for starred args, got {v_starred}"
+
+    # Boundary vector (l): directory with unreadable binary file + real violation still flags violation (exit 1)
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmp_p = pathlib.Path(tmpdir)
+        bad_bin = tmp_p / "corrupt.py"
+        bad_bin.write_bytes(b"\x80\x81\xff\xfe\x00")
+        real_viol = tmp_p / "viol.py"
+        real_viol.write_text('import importlib\nmod = importlib.import_module("foo" + "bar")\n', encoding="utf-8")
+        ret_resilience = audit_main(["audit", str(tmp_p)])
+        assert ret_resilience == 1, f"Expected exit 1 (violation caught despite unreadable binary), got {ret_resilience}"
+
     # Integration verification: real codebase tools & enterprise have zero unhandled violations
     ret_tools = audit_main(["audit", "tools"])
     assert ret_tools == 0, f"Expected exit 0 for tools/ directory, got {ret_tools}"
 
-    print("  [✓] All 7 boundary condition vectors (a-g) verified safe with 0 evasions across tools/ and enterprise/.")
+    print("  [✓] All 12 boundary condition vectors (a-l) verified safe with 0 evasions across tools/ and enterprise/.")
 
 
 def main():

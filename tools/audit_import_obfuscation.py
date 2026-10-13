@@ -48,14 +48,20 @@ def scan_source(content: str, filename: str = "<source>") -> Tuple[List[str], Li
             continue
         func = node.func
         is_target = (
-            (isinstance(func, ast.Attribute) and func.attr == "import_module")
+            (isinstance(func, ast.Attribute) and func.attr in ("import_module", "__import__"))
             or (isinstance(func, ast.Name) and func.id in ("import_module", "__import__"))
         )
         if is_target and node.args and _is_dynamic_path(node.args[0]):
             lineno = getattr(node, "lineno", 1)
-            comment = comments.get(lineno, "")
-            if "import-obfuscation-ignore" in comment or "ast-evasion-ignore" in comment:
-                suppressions.append(f"{filename}:{lineno}: [suppressed] {comment.strip()}")
+            end_lineno = getattr(node, "end_lineno", lineno) or lineno
+            matched = ""
+            for ln in range(lineno, end_lineno + 1):
+                c = comments.get(ln, "")
+                if "import-obfuscation-ignore" in c or "ast-evasion-ignore" in c:
+                    matched = c
+                    break
+            if matched:
+                suppressions.append(f"{filename}:{lineno}: [suppressed] {matched.strip()}")
                 continue
             violations.append(f"{filename}:{lineno}: dynamic import_module() path: {ast.dump(node.args[0])}")
     return violations, suppressions
@@ -92,9 +98,9 @@ def main(argv: Optional[List[str]] = None) -> int:
             except SyntaxError as exc:
                 print(f"audit: unparseable {py}: {exc}", file=sys.stderr)
                 return 2
-            except Exception as exc:
-                print(f"audit: error reading {py}: {exc}", file=sys.stderr)
-                return 2
+            except (UnicodeDecodeError, OSError) as exc:
+                print(f"audit: skipped unreadable {py}: {exc}", file=sys.stderr)
+                continue
 
     if found_violations:
         for v in found_violations:
