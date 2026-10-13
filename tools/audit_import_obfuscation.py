@@ -34,6 +34,24 @@ def extract_comments_by_line(content: str) -> Dict[int, str]:
     return comments
 
 
+def _target_name_arg(node: ast.Call) -> Optional[ast.expr]:
+    """Return the module-name argument whether passed positionally or as name=.
+    import_module(name, package=None) and __import__(name, ...) both accept
+    `name` as a keyword, so positional-only inspection is a known evasion.
+    """
+    if node.args:
+        return node.args[0]
+    for kw in node.keywords:
+        if kw.arg == "name":
+            return kw.value
+    return None
+
+
+def _safe_dump(node: ast.AST, limit: int = 300) -> str:
+    d = ast.dump(node)
+    return d if len(d) <= limit else d[:limit] + " ...<truncated>"
+
+
 def scan_source(content: str, filename: str = "<source>") -> Tuple[List[str], List[str]]:
     """Scans python source for dynamic import_module or __import__ calls.
     Returns (violations, suppressions).
@@ -51,18 +69,28 @@ def scan_source(content: str, filename: str = "<source>") -> Tuple[List[str], Li
             (isinstance(func, ast.Attribute) and func.attr in ("import_module", "__import__"))
             or (isinstance(func, ast.Name) and func.id in ("import_module", "__import__"))
         )
-        if is_target and node.args and _is_dynamic_path(node.args[0]):
-            lineno = getattr(node, "lineno", 1)
-            # Only honor suppression directive on the call's opening line for review clarity
-            c = comments.get(lineno, "")
-            if "import-obfuscation-ignore" in c or "ast-evasion-ignore" in c:
-                suppressions.append(f"{filename}:{lineno}: [suppressed] {c.strip()}")
-                continue
-            violations.append(f"{filename}:{lineno}: dynamic import_module() path: {ast.dump(node.args[0])}")
+        if is_target:
+            target = _target_name_arg(node)
+            if target is not None and _is_dynamic_path(target):
+                lineno = getattr(node, "lineno", 1)
+                # Only honor suppression directive on the call's opening line for review clarity
+                c = comments.get(lineno, "")
+                if "import-obfuscation-ignore" in c or "ast-evasion-ignore" in c:
+                    suppressions.append(f"{filename}:{lineno}: [suppressed] {c.strip()}")
+                    continue
+                violations.append(
+                    f"{filename}:{lineno}: dynamic import path: {_safe_dump(target)}"
+                )
     return violations, suppressions
 
 
+MAX_SOURCE_BYTES = 5 * 1024 * 1024  # bound worst-case parse cost; fail closed if exceeded
+
+
 def scan_file(path: pathlib.Path, quick_filter: bool = False) -> Tuple[List[str], List[str]]:
+    size = path.stat().st_size  # OSError here is caught fail-closed in main()
+    if size > MAX_SOURCE_BYTES:
+        raise ValueError(f"source exceeds parse cap ({size} > {MAX_SOURCE_BYTES} bytes): {path}")
     content = path.read_text(encoding="utf-8")
     if "\x00" in content:
         raise ValueError(f"source code string cannot contain null bytes: {path}")

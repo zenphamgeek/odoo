@@ -2125,11 +2125,40 @@ def test_import_obfuscation_guard():
                 os.chmod(p_unreadable, stat.S_IRUSR | stat.S_IWUSR)
             assert rc_unreadable == 2, f"unreadable .py must fail closed with exit 2, got {rc_unreadable}"
 
+    # Boundary vector (p): keyword-argument form name= with dynamic value must be caught
+    kwarg_src = (
+        'import importlib\n'
+        'mod1 = importlib.import_module(name="evil." + submod)\n'
+        'mod2 = __import__(name=base + mod)\n'
+    )
+    v_kw, s_kw = scan_source(kwarg_src, "test_kwarg.py")
+    assert len(v_kw) == 2, f"Expected 2 violations for name= kwarg evasion, got {v_kw}"
+    assert len(s_kw) == 0
+
+    # Boundary vector (q): suppression comment on CLOSING line must NOT suppress (tightening lock)
+    closing_supp_src = (
+        'import importlib\n'
+        'mod = importlib.import_module(\n'
+        '    base + "." + submod\n'
+        ')  # import-obfuscation-ignore: closing line must be ignored\n'
+    )
+    v_close, s_close = scan_source(closing_supp_src, "test_closing_supp.py")
+    assert len(v_close) == 1, f"Expected 1 violation (closing-line suppression ignored), got {v_close}"
+    assert len(s_close) == 0, f"Expected 0 suppressions, got {s_close}"
+
+    # Boundary vector (r): source exceeding MAX_SOURCE_BYTES parse cap -> fail closed (exit 2)
+    with tempfile.TemporaryDirectory() as d:
+        p_huge = pathlib.Path(d, "huge.py")
+        # Write 5.5MB file
+        p_huge.write_bytes(b"# comment\n" + b"x = 1\n" * (6 * 1024 * 1024 // 6))
+        rc_huge = audit_main(["audit", str(p_huge)])
+        assert rc_huge == 2, f"Huge source (>5MB) must fail closed with exit 2, got {rc_huge}"
+
     # Integration verification: real codebase tools & enterprise have zero unhandled violations
     ret_tools = audit_main(["audit", "tools"])
     assert ret_tools == 0, f"Expected exit 0 for tools/ directory, got {ret_tools}"
 
-    print("  [✓] All 15 boundary condition vectors (a-o) verified safe with fail-closed hardening across tools/ and enterprise/.")
+    print("  [✓] All 18 boundary condition vectors (a-r) verified safe with keyword, size-cap, and fail-closed hardening across tools/ and enterprise/.")
 
 
 def main():
