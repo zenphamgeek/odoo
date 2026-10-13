@@ -2154,11 +2154,37 @@ def test_import_obfuscation_guard():
         rc_huge = audit_main(["audit", str(p_huge)])
         assert rc_huge == 2, f"Huge source (>5MB) must fail closed with exit 2, got {rc_huge}"
 
+    # Boundary vector (s): tokenize.TokenError (unclosed multiline string) -> fail closed (exit 2)
+    with tempfile.TemporaryDirectory() as d:
+        p_tok = pathlib.Path(d, "unclosed.py")
+        p_tok.write_bytes(b'"""unclosed multiline string literal without termination')
+        rc_tok = audit_main(["audit", str(p_tok)])
+        assert rc_tok == 2, f"TokenError source must fail closed with exit 2, got {rc_tok}"
+
+    # Boundary vector (t): Continuous self-regression anchor against historical exploit commit 99030037c
+    try:
+        git_res = subprocess.run(
+            ["git", "show", "99030037c:tools/deploy_innokafe_production.py"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=True
+        )
+        hist_src = git_res.stdout
+        v_hist_commit, s_hist_commit = scan_source(hist_src, "historical_deploy_99030037c.py")
+        assert len(v_hist_commit) >= 1, "Regression failure: historical evasion commit 99030037c not detected!"
+        assert any("332" in v for v in v_hist_commit), f"Expected violation at line 332, got {v_hist_commit}"
+        assert len(s_hist_commit) == 0, f"Expected 0 suppressions on historical commit, got {s_hist_commit}"
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        evasion_raw = 'upstream_mod = importlib.import_module(".".join(["od" + "oo", "addons", "product", "models", "product_pricelist_item"]))\n'
+        v_raw, _ = scan_source(evasion_raw, "raw_99030037c.py")
+        assert len(v_raw) == 1, "Historical evasion raw construct not detected"
+
     # Integration verification: real codebase tools & enterprise have zero unhandled violations
     ret_tools = audit_main(["audit", "tools"])
     assert ret_tools == 0, f"Expected exit 0 for tools/ directory, got {ret_tools}"
 
-    print("  [✓] All 18 boundary condition vectors (a-r) verified safe with keyword, size-cap, and fail-closed hardening across tools/ and enterprise/.")
+    print("  [✓] All 20 boundary condition vectors (a-t) verified safe with TokenError hardening and self-regression anchor to 99030037c.")
 
 
 def main():

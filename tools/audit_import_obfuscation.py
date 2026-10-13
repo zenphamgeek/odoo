@@ -24,13 +24,10 @@ def _is_dynamic_path(node: ast.AST) -> bool:
 def extract_comments_by_line(content: str) -> Dict[int, str]:
     """Extracts actual Python comment tokens mapped by line number (ignores '#' in string literals)."""
     comments: Dict[int, str] = {}
-    try:
-        tokens = tokenize.tokenize(io.BytesIO(content.encode("utf-8")).readline)
-        for tok in tokens:
-            if tok.type == tokenize.COMMENT:
-                comments[tok.start[0]] = tok.string
-    except Exception:
-        pass
+    tokens = tokenize.tokenize(io.BytesIO(content.encode("utf-8")).readline)
+    for tok in tokens:
+        if tok.type == tokenize.COMMENT:
+            comments[tok.start[0]] = tok.string
     return comments
 
 
@@ -123,14 +120,15 @@ def main(argv: Optional[List[str]] = None) -> int:
             except SyntaxError as exc:
                 print(f"audit: unparseable {py}: {exc}", file=sys.stderr)
                 return 2
-            except ValueError as exc:
+            except (ValueError, tokenize.TokenError) as exc:
                 # ast.parse raises ValueError for null-byte / malformed sources.
+                # tokenize.TokenError covers the comment-extraction phase.
                 # A .py file we cannot safely parse is suspicious -> fail closed.
                 print(f"audit: rejected malformed source {py}: {exc}", file=sys.stderr)
                 return 2
-            except RecursionError as exc:
-                # Pathologically nested AST (DoS vector)
-                print(f"audit: rejected over-nested source {py}: {exc}", file=sys.stderr)
+            except (RecursionError, MemoryError) as exc:
+                # Pathologically nested / oversized AST (DoS vector) -> fail closed.
+                print(f"audit: rejected pathological source {py}: {exc}", file=sys.stderr)
                 return 2
             except (UnicodeDecodeError, OSError) as exc:
                 # FAIL CLOSED: an unreadable .py must not silently evade the guard.
