@@ -260,9 +260,8 @@ class TestAl2cTimesheetBillingConfirmation(TransactionCase):
                 })
             ]
         })
-        invoice._compute_al2c_timesheet_hours_total()
         # 2 Days * 8 Hours/Day + 4 Hours = 20.0 Hours
-        expected_hours = (2.0 * uom_day.factor_inv / uom_hour.factor_inv) + 4.0 if (uom_day.factor and uom_hour.factor) else 20.0
+        expected_hours = uom_day._compute_quantity(2.0, uom_hour) + 4.0
         self.assertAlmostEqual(invoice.al2c_timesheet_hours_total, expected_hours, places=1, msg="UoM dimensional conversion failed!")
 
     def test_11_adv_token_lease_idempotency(self):
@@ -324,10 +323,10 @@ class TestAl2cTimesheetBillingConfirmation(TransactionCase):
         })
         # Simulate expired token from 8 days ago
         expired_ts = int(time.time() - 86400)
-        secret = self.env['ir.config_parameter'].sudo().get_param('database.secret') or 'al2c_secret_salt_2026'
+        secret_bytes = invoice._token_secret()
         import hmac, hashlib
-        msg = f"{invoice.id}:{expired_ts}"
-        sig = hmac.new(secret.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256).hexdigest()[:32]
+        msg = f"{invoice.id}:{expired_ts}".encode('utf-8')
+        sig = hmac.new(secret_bytes, msg, hashlib.sha256).hexdigest()[:32]
         invoice.al2c_timesheet_token = f"{expired_ts}_{sig}"
 
         # Re-dispatch statement -> should rotate token because previous is expired
@@ -353,5 +352,83 @@ class TestAl2cTimesheetBillingConfirmation(TransactionCase):
         # Dispatch must succeed without error
         invoice.action_send_timesheet_statement()
         self.assertEqual(invoice.al2c_timesheet_statement_state, 'sent_to_client')
+
+    def test_15_adv_token_cross_move_tampering(self):
+        """A-1 Security: Token minted for Move A must fail verification when presented for Move B."""
+        inv_a = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'invoice_line_ids': [(0, 0, {'name': 'Service A', 'quantity': 1, 'price_unit': 100.0})],
+        })
+        inv_b = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'invoice_line_ids': [(0, 0, {'name': 'Service B', 'quantity': 1, 'price_unit': 100.0})],
+        })
+        token_a = inv_a._generate_timesheet_token(inv_a.id)
+        self.assertTrue(inv_a._verify_timesheet_token(inv_a.id, token_a), "Token A must verify for Move A")
+        self.assertFalse(inv_b._verify_timesheet_token(inv_b.id, token_a), "Token A must REJECT when verified against Move B (cross-move binding)")
+
+    def test_16_adv_token_secret_fail_closed_without_hardcoded_literal(self):
+        """A-1 Security: Missing database.secret must fail-closed via UserError rather than using static fallback."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        real_secret = ICP.get_param('database.secret')
+        try:
+            # Temporarily clear secret
+            ICP.set_param('database.secret', '')
+            ICP.set_param('al2c.statement_secret', '')
+            with self.assertRaises(UserError):
+                self.env['account.move']._token_secret()
+        finally:
+            ICP.set_param('database.secret', real_secret)
+
+    def test_17_adv_authoritative_product_policy_overrides_discount_keywords(self):
+        """A-4 Security: Product service_policy='delivered_timesheet' is authoritative over name keywords."""
+        product_service = self.env['product.product'].create({
+            'name': 'Advisory Service',
+            'type': 'service',
+            'service_policy': 'delivered_timesheet',
+        })
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'invoice_line_ids': [
+                (0, 0, {
+                    'name': 'Advisory Consulting (Volume discount applied)',
+                    'product_id': product_service.id,
+                    'quantity': 10.0,
+                    'price_unit': 150.0,
+                }),
+                (0, 0, {
+                    'name': 'Regular commercial discount',
+                    'quantity': 5.0,
+                    'price_unit': -50.0,
+                }),
+            ]
+        })
+        invoice._compute_al2c_timesheet_hours_total()
+        self.assertEqual(
+            invoice.al2c_timesheet_hours_total,
+            10.0,
+            "Authoritative product policy must preserve timesheet classification despite 'discount' in line description."
+        )
+
+    def test_18_adv_toctou_dispatch_gate_revalidation(self):
+        """A-6 Security: In-transaction cache invalidation ensures unresolved FX rates block statement dispatch."""
+        test_curr = self.env['res.currency'].create({
+            'name': 'TOCTOU',
+            'symbol': 'TOC',
+            'rounding': 0.01,
+        })
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'currency_id': test_curr.id,
+            'invoice_line_ids': [(0, 0, {'name': 'Offshore Project', 'quantity': 5, 'price_unit': 200.0})],
+        })
+        # al2c_exchange_rate_snapshot is 0.0, conversion rate is unconfigured
+        with self.assertRaises(UserError):
+            invoice.action_send_timesheet_statement()
+
 
 

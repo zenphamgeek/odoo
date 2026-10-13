@@ -82,7 +82,7 @@ class Al2cEinvoiceAdapter(models.AbstractModel):
         issue_time = fields.Datetime.now().isoformat()
 
         lines_xml = []
-        for line in move.invoice_line_ids.filtered(lambda l: not l.display_type):
+        for line in move.invoice_line_ids.filtered(lambda l: l.display_type not in ('line_section', 'line_note', 'line_subsection')):
             vat_class = getattr(line.product_id, 'al2c_vat_class', 'kct') or 'kct'
             vat_rate_str = "KCT" if vat_class == 'kct' else ("8%" if vat_class == 'vat_8' else "10%")
             lines_xml.append(f"""    <HHDVu>

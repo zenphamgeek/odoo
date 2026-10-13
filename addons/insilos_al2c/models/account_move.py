@@ -104,29 +104,43 @@ class AccountMove(models.Model):
     @api.depends('currency_id', 'company_id.currency_id')
     def _compute_al2c_is_foreign_currency(self):
         for move in self:
-            comp_curr = move.company_id.currency_id or self.env.company.currency_id
+            comp_curr = move.company_id.currency_id
             move.al2c_is_foreign_currency = bool(move.currency_id and comp_curr and move.currency_id.id != comp_curr.id)
 
     @api.depends('amount_total', 'currency_id', 'company_id.currency_id', 'al2c_exchange_rate_snapshot')
     def _compute_al2c_statement_company_currency(self):
         for move in self:
-            company_curr = move.company_id.currency_id or self.env.company.currency_id or move.currency_id
-            if not move.currency_id or move.currency_id == company_curr:
+            company_curr = move.company_id.currency_id
+            if not company_curr:
+                move.al2c_rate_unavailable = True
+                move.al2c_statement_amount_total_company_currency = 0.0
+                continue
+
+            if not move.currency_id or move.currency_id.id == company_curr.id:
                 move.al2c_rate_unavailable = False
                 move.al2c_statement_amount_total_company_currency = move.amount_total
             else:
                 rate = move.al2c_exchange_rate_snapshot
                 if not rate or rate <= 0:
-                    try:
-                        rate = self.env['res.currency']._get_conversion_rate(
-                            move.currency_id,
-                            company_curr,
-                            move.company_id or self.env.company,
-                            move.invoice_date or fields.Date.context_today(move)
-                        )
-                    except Exception as err:
-                        _logger.warning("Failed to auto-compute conversion rate for move %s: %s", move.id, err)
+                    # Check whether an actual exchange rate exists in res.currency.rate
+                    Rate = self.env['res.currency.rate'].sudo()
+                    has_rate = bool(Rate.search_count([
+                        ('currency_id', '=', move.currency_id.id),
+                        ('company_id', 'in', (False, move.company_id.id, move.company_id.root_id.id if hasattr(move.company_id, 'root_id') else False)),
+                    ], limit=1))
+                    if not has_rate:
                         rate = 0.0
+                    else:
+                        try:
+                            rate = self.env['res.currency']._get_conversion_rate(
+                                move.currency_id,
+                                company_curr,
+                                move.company_id,
+                                move.invoice_date or fields.Date.context_today(move)
+                            )
+                        except Exception as err:
+                            _logger.warning("Failed to auto-compute conversion rate for move %s: %s", move.id, err)
+                            rate = 0.0
                 if rate <= 0:
                     # Invariant: Never silently assume 1.0 or silent zero without explicit flag
                     move.al2c_rate_unavailable = True
@@ -147,38 +161,51 @@ class AccountMove(models.Model):
         for move in self:
             hours = 0.0
             for line in move.invoice_line_ids:
-                if line.display_type:
+                if line.display_type in ('line_section', 'line_note', 'line_subsection'):
                     continue
                 is_timesheet = False
                 line_name_lower = (line.name or '').lower()
+                # 1. Product configuration is authoritative (A-4 defense)
                 if line.product_id and getattr(line.product_id, 'service_policy', None) == 'delivered_timesheet':
                     is_timesheet = True
-                elif any(kw in line_name_lower for kw in TIMESHEET_KEYWORDS):
-                    if not any(ex in line_name_lower for ex in TIMESHEET_EXCLUSION_KEYWORDS):
-                        is_timesheet = True
-                        _logger.info("Heuristic timesheet match on move %s line '%s'", move.id, line.name)
+                # 2. Heuristic fallback for unstructured / legacy lines
+                elif any(kw in line_name_lower for kw in TIMESHEET_KEYWORDS) \
+                        and not any(ex in line_name_lower for ex in TIMESHEET_EXCLUSION_KEYWORDS):
+                    is_timesheet = True
+                    _logger.debug("Heuristic timesheet match on move %s (line id %s)", move.id, line.id)
 
                 if is_timesheet:
                     qty = line.quantity
                     if uom_hour and line.product_uom_id and line.product_uom_id != uom_hour:
-                        if line.product_uom_id.category_id == uom_hour.category_id:
-                            qty = line.product_uom_id._compute_quantity(qty, uom_hour)
+                        try:
+                            qty = line.product_uom_id._compute_quantity(qty, uom_hour, raise_if_failure=False)
+                        except Exception:
+                            pass
                     hours += qty
             move.al2c_timesheet_hours_total = hours
 
+    @api.model
+    def _token_secret(self):
+        """Retrieve per-database cryptographic secret (CWE-259 / CWE-798 defense)."""
+        secret = self.env['ir.config_parameter'].sudo().get_param('database.secret')
+        if not secret:
+            secret = self.env['ir.config_parameter'].sudo().get_param('al2c.statement_secret')
+        if not secret:
+            raise UserError(_("Server security secret is uninitialized; cannot generate or verify statement tokens."))
+        return secret.strip().encode('utf-8')
 
     @api.model
     def _generate_timesheet_token(self, move_id, expires_in_days=7):
         """Generates cryptographically signed, time-boxed token (CWE-639 IDOR defense)."""
-        secret = self.env['ir.config_parameter'].sudo().get_param('database.secret') or 'al2c_secret_salt_2026'
+        secret_bytes = self._token_secret()
         expiry_ts = int(time.time() + (expires_in_days * 86400))
-        msg = f"{move_id}:{expiry_ts}"
-        sig = hmac.new(secret.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256).hexdigest()[:32]
+        msg = f"{move_id}:{expiry_ts}".encode('utf-8')
+        sig = hmac.new(secret_bytes, msg, hashlib.sha256).hexdigest()[:32]
         return f"{expiry_ts}_{sig}"
 
     @api.model
     def _verify_timesheet_token(self, move_id, token_str):
-        """Verifies HMAC signature and expiry for timesheet confirmation token."""
+        """Verifies HMAC signature, move-binding, and expiry for timesheet confirmation token."""
         if not token_str or '_' not in str(token_str):
             return False
         parts = str(token_str).split('_', 1)
@@ -191,9 +218,12 @@ class AccountMove(models.Model):
             return False
         if time.time() > expiry_ts:
             return False
-        secret = self.env['ir.config_parameter'].sudo().get_param('database.secret') or 'al2c_secret_salt_2026'
-        msg = f"{move_id}:{expiry_ts}"
-        expected_sig = hmac.new(secret.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256).hexdigest()[:32]
+        try:
+            secret_bytes = self._token_secret()
+        except UserError:
+            return False
+        msg = f"{move_id}:{expiry_ts}".encode('utf-8')
+        expected_sig = hmac.new(secret_bytes, msg, hashlib.sha256).hexdigest()[:32]
         return hmac.compare_digest(expected_sig, provided_sig)
 
     def action_send_timesheet_statement(self):
@@ -203,7 +233,19 @@ class AccountMove(models.Model):
             if move.move_type not in ('out_invoice', 'out_refund'):
                 continue
 
-            if move.al2c_rate_unavailable:
+            # Invalidate cached/stored flags to prevent TOCTOU race (CWE-367 / A-6 defense)
+            move.invalidate_recordset(['al2c_rate_unavailable', 'al2c_statement_amount_total_company_currency', 'al2c_is_foreign_currency'])
+
+            comp_curr = move.company_id.currency_id
+            if not comp_curr:
+                raise UserError(_(
+                    "Cannot issue statutory statement for invoice %s: Company currency is undefined on company %s.",
+                    move.display_name, move.company_id.display_name
+                ))
+
+            if move.al2c_rate_unavailable or (
+                move.al2c_is_foreign_currency and move.al2c_statement_amount_total_company_currency <= 0
+            ):
                 raise UserError(_(
                     "Cannot issue statutory statement for invoice %s: foreign-currency conversion rate "
                     "could not be resolved. Set an exchange rate snapshot first (Decree 70/2025/ND-CP compliance)."
@@ -216,18 +258,25 @@ class AccountMove(models.Model):
                 vals['al2c_timesheet_token'] = self._generate_timesheet_token(move.id, expires_in_days=7)
 
             # Multi-Currency Statutory Rate Card Snapshot: Fail-Closed Protection
-            comp_curr = move.company_id.currency_id or self.env.company.currency_id
-            if move.currency_id and comp_curr and move.currency_id != comp_curr:
+            if move.currency_id and comp_curr and move.currency_id.id != comp_curr.id:
                 if not move.al2c_exchange_rate_snapshot or move.al2c_exchange_rate_snapshot <= 0:
-                    try:
-                        rate = self.env['res.currency']._get_conversion_rate(
-                            move.currency_id,
-                            comp_curr,
-                            move.company_id or self.env.company,
-                            move.invoice_date or fields.Date.context_today(move)
-                        )
-                    except Exception:
+                    Rate = self.env['res.currency.rate'].sudo()
+                    has_rate = bool(Rate.search_count([
+                        ('currency_id', '=', move.currency_id.id),
+                        ('company_id', 'in', (False, move.company_id.id, move.company_id.root_id.id if hasattr(move.company_id, 'root_id') else False)),
+                    ], limit=1))
+                    if not has_rate:
                         rate = 0.0
+                    else:
+                        try:
+                            rate = self.env['res.currency']._get_conversion_rate(
+                                move.currency_id,
+                                comp_curr,
+                                move.company_id,
+                                move.invoice_date or fields.Date.context_today(move)
+                            )
+                        except Exception:
+                            rate = 0.0
 
                     if not rate or rate <= 0:
                         raise UserError(_(
