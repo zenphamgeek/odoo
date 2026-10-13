@@ -501,7 +501,10 @@ class ProductPricelistItem(models.Model):
         product.ensure_one()
         res = True
 
-        is_product_template = product._name == 'product.template'
+        is_product_template = (
+            product._name in ('product.template', 'catalog.item')
+            or ('product_tmpl_id' not in product._fields and 'product_variant_ids' in product._fields)
+        )
         product_uom = product.uom_id
         uom = uom or product_uom
 

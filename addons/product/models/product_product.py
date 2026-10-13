@@ -344,7 +344,7 @@ class ProductProduct(models.Model):
         parts. When it's a *template*, or a variant without a combination to distinguish,
         only the plain product name is shown.
         """
-        if duplicate_products._name == 'product.product':
+        if duplicate_products._name in ('product.product', 'catalog.sku'):
             product_list = []
             for product in duplicate_products:
                 variant_name = product.product_template_attribute_value_ids._get_combination_name()

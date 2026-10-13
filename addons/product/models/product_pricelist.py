@@ -321,7 +321,11 @@ class ProductPricelist(models.Model):
         if not products:
             return Domain(False)
 
-        if products._name == "product.template":
+        is_template = (
+            products._name in ("product.template", "catalog.item")
+            or ("product_tmpl_id" not in products._fields and "product_variant_ids" in products._fields)
+        )
+        if is_template:
             templates_domain = Domain("product_tmpl_id", "in", products.ids)
             products_domain = Domain("product_id.product_tmpl_id", "in", products.ids)
         else:

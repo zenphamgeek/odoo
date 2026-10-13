@@ -31,3 +31,4 @@ except ImportError:
 
 from . import test_al2c_pricing
 from . import test_timesheet_billing_confirmation
+from . import test_pricelist_type_dispatch

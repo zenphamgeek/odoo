@@ -576,6 +576,18 @@ class MrpBom(models.Model):
         return res
 
     @api.model
+    def _is_template_record(self, record):
+        if not record:
+            return False
+        if getattr(record, '_name', None) in ('product.template', 'catalog.item'):
+            return True
+        fields = getattr(record, '_fields', {})
+        return (
+            'product_tmpl_id' not in fields
+            and 'product_variant_ids' in fields
+        )
+
+    @api.model
     def _skip_for_no_variant(self, product, bom_attribule_values, never_attribute_values=False):
         """ Controls if a Component/Operation/Byproduct line should be skipped based on the 'no_variant' attributes
             Cases:
@@ -783,7 +795,7 @@ class MrpBomLine(models.Model):
                 - always and dynamic: match_all_variant_values()
         """
         self.ensure_one()
-        if not product or product._name == 'product.template':
+        if not product or self.env['mrp.bom']._is_template_record(product):
             return False
 
         return self.env['mrp.bom']._skip_for_no_variant(product, self.bom_product_template_attribute_value_ids, never_attribute_values)
@@ -873,7 +885,7 @@ class MrpBomByproduct(models.Model):
         custom control.
         """
         self.ensure_one()
-        if not product or product._name == 'product.template':
+        if not product or self.env['mrp.bom']._is_template_record(product):
             return False
 
         return self.env['mrp.bom']._skip_for_no_variant(product, self.bom_product_template_attribute_value_ids, never_attribute_values)

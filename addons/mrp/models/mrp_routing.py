@@ -202,7 +202,7 @@ class MrpRoutingWorkcenter(models.Model):
         # skip operation line if archived
         if not self.active:
             return True
-        if not product or product._name == 'product.template':
+        if not product or self.env['mrp.bom']._is_template_record(product):
             return False
 
         return self.env['mrp.bom']._skip_for_no_variant(product, self.bom_product_template_attribute_value_ids, never_attribute_values)

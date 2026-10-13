@@ -14,7 +14,11 @@ class AccountTax(models.Model):
         # Some callers (e.g. product.template._construct_tax_string) pass a product.template
         # instead of the documented product.product record. Fall back to its variant so
         # variant-only fields referenced in custom tax formulas (e.g. lst_price) still resolve.
-        if product and product._name == 'product.template':
+        is_template = product and (
+            product._name in ('product.template', 'catalog.item')
+            or ('product_tmpl_id' not in product._fields and 'product_variant_ids' in product._fields)
+        )
+        if is_template:
             variant_only_fields = set(default_product_values) - set(product._fields)
             if variant_only_fields:
                 product = product.product_variant_id or product
