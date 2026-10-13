@@ -344,6 +344,10 @@
                 <p class="small text-muted mb-3" style="font-size: 12px; line-height: 1.5;">
                     Kính mời Quý Khách hàng rà soát chi tiết giờ công của các chuyên gia tư vấn tham gia dự án. Sau khi Quý Đơn vị xác nhận, hóa đơn điện tử chính thức theo Nghị định 70/2025/NĐ-CP sẽ được ký số và phát hành.
                 </p>
+                <div t-if="invoice.al2c_is_foreign_currency" class="bg-light p-2 rounded mb-3 small" style="border: 1px dashed #D0E2FF; font-size: 11px;">
+                    <strong>Tỷ giá quy đổi (Snapshot):</strong> 1 <span t-out="invoice.currency_id.name"/> = <span t-out="'{:,.2f}'.format(invoice.al2c_exchange_rate_snapshot)"/> VND | 
+                    <strong>Quy đổi VND:</strong> <span t-out="invoice.al2c_statement_amount_total_company_currency" t-options="{'widget': 'monetary', 'display_currency': invoice.company_currency_id}"/>
+                </div>
                 <div class="d-flex gap-2">
                     <form t-attf-action="/my/invoices/#{invoice.id}/confirm_timesheet" method="post" class="d-inline">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>

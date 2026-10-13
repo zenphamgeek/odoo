@@ -13,6 +13,9 @@
                 <field name="submission_date"/>
                 <field name="line_count"/>
                 <field name="total_hours" sum="Total Hours"/>
+                <field name="currency_id" optional="show"/>
+                <field name="total_amount_billable" widget="monetary" sum="Total Billable"/>
+                <field name="total_amount_billable_company_currency" widget="monetary" optional="hide"/>
                 <field name="parse_status" widget="badge"/>
                 <field name="state" widget="badge" decoration-success="state == 'approved'" decoration-warning="state == 'parsed'" decoration-danger="state in ('rejected', 'duplicate')"/>
             </list>
@@ -51,6 +54,10 @@
                             <field name="project_id"/>
                             <field name="total_hours"/>
                             <field name="line_count"/>
+                            <field name="currency_id"/>
+                            <field name="exchange_rate_snapshot"/>
+                            <field name="total_amount_billable" widget="monetary"/>
+                            <field name="total_amount_billable_company_currency" widget="monetary"/>
                             <field name="parse_status" widget="badge"/>
                         </group>
                     </group>
@@ -64,6 +71,9 @@
                                     <field name="task_id"/>
                                     <field name="name"/>
                                     <field name="unit_amount" sum="Tổng giờ"/>
+                                    <field name="hourly_rate"/>
+                                    <field name="currency_id" optional="show"/>
+                                    <field name="amount_billable" widget="monetary" sum="Tổng tiền"/>
                                     <field name="state" widget="badge"/>
                                     <field name="validation_message" optional="show"/>
                                     <field name="analytic_line_id" optional="hide"/>

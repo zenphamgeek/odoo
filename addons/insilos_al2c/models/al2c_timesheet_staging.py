@@ -200,12 +200,74 @@ class Al2cTimesheetStaging(models.Model):
     approved_date = fields.Datetime(string='Approval Timestamp', readonly=True)
     rejection_reason = fields.Text(string='Rejection Reason')
 
-    @api.depends('line_ids.unit_amount', 'line_ids.state')
+    # --- Multi-Currency Rate Card & Exchange Rate Snapshot ---
+    currency_id = fields.Many2one(
+        'res.currency',
+        string='Billing Currency',
+        default=lambda self: self.env.company.currency_id,
+        tracking=True,
+    )
+    company_currency_id = fields.Many2one(
+        'res.currency',
+        string='Company Currency',
+        compute='_compute_company_currency',
+        default=lambda self: self.env.company.currency_id,
+        store=True,
+        readonly=False,
+    )
+    exchange_rate_snapshot = fields.Float(
+        string='Exchange Rate Snapshot (to Company Currency)',
+        digits=(16, 8),
+        default=1.0,
+        tracking=True,
+        help='Snapshotted conversion rate to company currency (VND) at ingestion/evaluation time.'
+    )
+    total_amount_billable = fields.Monetary(
+        string='Total Billable Amount',
+        currency_field='currency_id',
+        compute='_compute_totals',
+        store=True,
+    )
+    total_amount_billable_company_currency = fields.Monetary(
+        string='Total Billable (VND Equivalent)',
+        currency_field='company_currency_id',
+        compute='_compute_totals',
+        store=True,
+    )
+
+    @api.depends('project_id', 'project_id.company_id')
+    def _compute_company_currency(self):
+        for rec in self:
+            company = rec.project_id.company_id if rec.project_id and rec.project_id.company_id else self.env.company
+            rec.company_currency_id = company.currency_id
+
+    @api.onchange('currency_id')
+    def _onchange_currency_id(self):
+        if self.currency_id and self.company_currency_id and self.currency_id != self.company_currency_id:
+            try:
+                self.exchange_rate_snapshot = self.currency_id._get_conversion_rate(
+                    self.currency_id,
+                    self.company_currency_id,
+                    self.env.company,
+                    self.submission_date.date() if self.submission_date else fields.Date.today()
+                )
+            except Exception:
+                self.exchange_rate_snapshot = 1.0
+        else:
+            self.exchange_rate_snapshot = 1.0
+
+    @api.depends('line_ids.unit_amount', 'line_ids.amount_billable', 'line_ids.state', 'currency_id', 'company_currency_id', 'exchange_rate_snapshot')
     def _compute_totals(self):
         for rec in self:
             valid_lines = rec.line_ids.filtered(lambda l: l.state not in ['error', 'duplicate'])
             rec.total_hours = sum(valid_lines.mapped('unit_amount'))
             rec.line_count = len(rec.line_ids)
+            rec.total_amount_billable = sum(valid_lines.mapped('amount_billable'))
+            if rec.currency_id and rec.company_currency_id and rec.currency_id != rec.company_currency_id:
+                rate = rec.exchange_rate_snapshot if (rec.exchange_rate_snapshot and rec.exchange_rate_snapshot > 0) else 1.0
+                rec.total_amount_billable_company_currency = rec.company_currency_id.round(rec.total_amount_billable * rate)
+            else:
+                rec.total_amount_billable_company_currency = rec.total_amount_billable
 
     @api.model
     def compute_dedup_hash(self, sender, subject, body_or_lines):
@@ -430,6 +492,19 @@ class Al2cTimesheetStaging(models.Model):
             logs = []
             parsed_lines = []
             rec.line_ids.unlink()
+
+            # Multi-Currency Rate Card Snapshot: capture rate if foreign currency
+            if rec.currency_id and rec.company_currency_id and rec.currency_id != rec.company_currency_id:
+                if not rec.exchange_rate_snapshot or rec.exchange_rate_snapshot <= 1.0:
+                    try:
+                        rec.exchange_rate_snapshot = rec.currency_id._get_conversion_rate(
+                            rec.currency_id,
+                            rec.company_currency_id,
+                            self.env.company,
+                            rec.submission_date.date() if rec.submission_date else fields.Date.today()
+                        )
+                    except Exception:
+                        rec.exchange_rate_snapshot = 1.0
 
             # 1. Match default consultant via multi-tier lookup
             consultant = rec.employee_id
@@ -805,6 +880,39 @@ class Al2cTimesheetStaging(models.Model):
                     line_employee.name, task.name, parsed_date, existing_aal.id
                 )
 
+        # Resolve Rate Card & Currency
+        rate_raw = (
+            norm.get('hourly_rate') or norm.get('rate') or norm.get('don_gia') or
+            norm.get('đơn giá') or norm.get('price_unit') or norm.get('rate_card')
+        )
+        cur_raw = (
+            norm.get('currency') or norm.get('currency_code') or norm.get('tien_te') or
+            norm.get('tiền tệ') or norm.get('cur')
+        )
+
+        hourly_rate = 0.0
+        if isinstance(rate_raw, (int, float)):
+            try:
+                if not (math.isnan(rate_raw) or math.isinf(rate_raw)) and rate_raw >= 0:
+                    hourly_rate = float(rate_raw)
+            except Exception:
+                pass
+        elif isinstance(rate_raw, str):
+            try:
+                clean_rate = rate_raw.strip().replace(',', '')
+                val = float(clean_rate)
+                if not (math.isnan(val) or math.isinf(val)) and val >= 0:
+                    hourly_rate = val
+            except Exception:
+                pass
+
+        row_currency = None
+        if cur_raw:
+            clean_cur = str(cur_raw).strip().upper()
+            row_currency = self.env['res.currency'].search([('name', '=ilike', clean_cur)], limit=1)
+        if not row_currency:
+            row_currency = self.currency_id or self.env.company.currency_id
+
         # Safeguard: ensure hours is never NaN or Inf under any circumstances
         if math.isnan(hours) or math.isinf(hours):
             hours = 0.0
@@ -816,6 +924,8 @@ class Al2cTimesheetStaging(models.Model):
             'project_id': project.id if project else False,
             'task_id': task.id if task else False,
             'unit_amount': hours,
+            'hourly_rate': hourly_rate,
+            'currency_id': row_currency.id if row_currency else False,
             'name': str(desc_raw).strip(),
             'state': state,
             'validation_message': val_error or '',
@@ -840,7 +950,7 @@ class Al2cTimesheetStaging(models.Model):
         if not valid_lines:
             raise UserError(_("No valid lines to commit. Please review errors or duplicate lines first."))
 
-        AnalyticLine = self.env['account.analytic.line']
+        AnalyticLine = self.env['account.analytic.line'].sudo()
         committed_count = 0
         total_committed_hours = 0.0
         duplicates_skipped = len(self.line_ids.filtered(lambda l: l.state == 'duplicate'))
@@ -867,7 +977,7 @@ class Al2cTimesheetStaging(models.Model):
                             duplicates_skipped += 1
                             continue
 
-                    user = line.employee_id.user_id if line.employee_id and line.employee_id.user_id else self.env.user
+                    user = line.employee_id.sudo().user_id if line.employee_id and line.employee_id.sudo().user_id else self.env.user
                     aal_vals = {
                         'name': line.name or _("Consulting Delivery"),
                         'project_id': line.project_id.id,
@@ -937,6 +1047,39 @@ class Al2cTimesheetStagingLine(models.Model):
     task_id = fields.Many2one('project.task', string='Task')
     unit_amount = fields.Float(string='Hours Worked', digits=(5, 2), required=True)
     name = fields.Char(string='Activity Description', required=True)
+
+    # --- Multi-Currency Rate Card ---
+    currency_id = fields.Many2one('res.currency', string='Billing Currency', default=lambda self: self.env.company.currency_id)
+    company_currency_id = fields.Many2one(
+        'res.currency',
+        string='Company Currency',
+        compute='_compute_company_currency',
+        default=lambda self: self.env.company.currency_id,
+        store=True,
+        readonly=False,
+    )
+
+    @api.depends('staging_id.company_currency_id')
+    def _compute_company_currency(self):
+        for line in self:
+            line.company_currency_id = (line.staging_id and line.staging_id.company_currency_id) or self.env.company.currency_id
+
+    hourly_rate = fields.Float(string='Hourly Rate', digits=(12, 2), default=0.0)
+    amount_billable = fields.Monetary(string='Billable Amount', currency_field='currency_id', compute='_compute_amount_billable', store=True)
+    amount_billable_company_currency = fields.Monetary(string='Billable Amount (VND)', currency_field='company_currency_id', compute='_compute_amount_billable', store=True)
+
+    @api.depends('unit_amount', 'hourly_rate', 'currency_id', 'company_currency_id', 'staging_id.exchange_rate_snapshot', 'staging_id.company_currency_id')
+    def _compute_amount_billable(self):
+        for line in self:
+            amt = line.unit_amount * line.hourly_rate
+            curr = line.currency_id or line.company_currency_id
+            line.amount_billable = curr.round(amt) if curr else amt
+            comp_curr = line.company_currency_id or (line.staging_id and line.staging_id.company_currency_id) or self.env.company.currency_id
+            if curr and comp_curr and curr != comp_curr:
+                rate = line.staging_id.exchange_rate_snapshot if (line.staging_id and line.staging_id.exchange_rate_snapshot > 0) else 1.0
+                line.amount_billable_company_currency = comp_curr.round(line.amount_billable * rate)
+            else:
+                line.amount_billable_company_currency = line.amount_billable
     
     state = fields.Selection([
         ('draft', 'Draft'),

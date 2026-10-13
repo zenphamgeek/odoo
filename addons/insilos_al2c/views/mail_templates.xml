@@ -547,6 +547,20 @@
                 <td style="color: #525252; font-weight: 700; padding-top: 6px;">Tổng cộng thanh toán (VAT):</td>
                 <td style="font-weight: 800; color: #0070F2; font-size: 16px; padding-top: 6px;"><span t-out="format_amount(object.amount_total, object.currency_id)"/></td>
             </tr>
+            <t t-if="object.al2c_is_foreign_currency">
+                <tr>
+                    <td style="color: #525252; padding-top: 4px;">Tỷ giá quy đổi (Snapshot):</td>
+                    <td style="font-weight: 600; color: #161616; padding-top: 4px;">
+                        1 <t t-out="object.currency_id.name"/> = <t t-out="'{:,.2f}'.format(object.al2c_exchange_rate_snapshot)"/> VND
+                    </td>
+                </tr>
+                <tr>
+                    <td style="color: #525252; font-weight: 700; padding-top: 4px;">Quy đổi VND (Nghị định 70/2025):</td>
+                    <td style="font-weight: 700; color: #0070F2; padding-top: 4px;">
+                        <span t-out="format_amount(object.al2c_statement_amount_total_company_currency, object.company_currency_id)"/>
+                    </td>
+                </tr>
+            </t>
         </table>
     </div>
 

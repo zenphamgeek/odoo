@@ -62,6 +62,68 @@ class AccountMove(models.Model):
         copy=False,
         readonly=True,
     )
+    al2c_exchange_rate_snapshot = fields.Float(
+        string='Exchange Rate Snapshot (to Company Currency)',
+        digits=(16, 8),
+        readonly=True,
+        copy=False,
+        help='Snapshotted conversion rate from invoice currency to company currency (VND) at time of statement issuance (Decree 70/2025/ND-CP compliance).'
+    )
+    al2c_statement_amount_total_company_currency = fields.Monetary(
+        string='Statutory Total in Company Currency (VND)',
+        currency_field='company_currency_id',
+        compute='_compute_al2c_statement_company_currency',
+        store=True,
+        copy=False,
+        help='Statutory total converted to company currency using immutable exchange rate snapshot.'
+    )
+    al2c_is_foreign_currency = fields.Boolean(
+        string='Is Foreign Currency Invoice',
+        compute='_compute_al2c_is_foreign_currency',
+    )
+    al2c_timesheet_hours_total = fields.Float(
+        string='Total Timesheet Hours Billed',
+        compute='_compute_al2c_timesheet_hours_total',
+        store=True,
+    )
+
+    @api.depends('currency_id', 'company_id.currency_id')
+    def _compute_al2c_is_foreign_currency(self):
+        for move in self:
+            comp_curr = move.company_id.currency_id
+            move.al2c_is_foreign_currency = bool(move.currency_id and comp_curr and move.currency_id.id != comp_curr.id)
+
+    @api.depends('amount_total', 'currency_id', 'company_id.currency_id', 'al2c_exchange_rate_snapshot')
+    def _compute_al2c_statement_company_currency(self):
+        for move in self:
+            company_curr = move.company_id.currency_id or move.currency_id
+            if not move.currency_id or move.currency_id == company_curr:
+                move.al2c_statement_amount_total_company_currency = move.amount_total
+            else:
+                rate = move.al2c_exchange_rate_snapshot
+                if not rate or rate <= 0:
+                    try:
+                        rate = move.currency_id._get_conversion_rate(
+                            move.currency_id,
+                            company_curr,
+                            move.company_id,
+                            move.invoice_date or fields.Date.context_today(move)
+                        )
+                    except Exception:
+                        rate = 1.0
+                move.al2c_statement_amount_total_company_currency = company_curr.round(move.amount_total * rate)
+
+    @api.depends('invoice_line_ids.quantity', 'invoice_line_ids.product_id')
+    def _compute_al2c_timesheet_hours_total(self):
+        for move in self:
+            hours = 0.0
+            for line in move.invoice_line_ids:
+                if line.product_id and line.product_id.type == 'service':
+                    hours += line.quantity
+                elif any(kw in (line.name or '').lower() for kw in ('consult', 'gi\u1edd', 'hour', 't&m', 'timesheet')):
+                    hours += line.quantity
+            move.al2c_timesheet_hours_total = hours
+
 
     @api.model
     def _generate_timesheet_token(self, move_id, expires_in_days=7):
@@ -99,10 +161,27 @@ class AccountMove(models.Model):
             if move.move_type not in ('out_invoice', 'out_refund'):
                 continue
             token = self._generate_timesheet_token(move.id, expires_in_days=7)
-            move.write({
+            vals = {
                 'al2c_timesheet_statement_state': 'sent_to_client',
                 'al2c_timesheet_token': token,
-            })
+            }
+            # Multi-Currency Rate Card Snapshot: capture immutable conversion rate at statement dispatch
+            if move.currency_id and move.company_id.currency_id and move.currency_id != move.company_id.currency_id:
+                if not move.al2c_exchange_rate_snapshot or move.al2c_exchange_rate_snapshot <= 0:
+                    try:
+                        rate = move.currency_id._get_conversion_rate(
+                            move.currency_id,
+                            move.company_id.currency_id,
+                            move.company_id,
+                            move.invoice_date or fields.Date.context_today(move)
+                        )
+                        vals['al2c_exchange_rate_snapshot'] = rate
+                    except Exception:
+                        vals['al2c_exchange_rate_snapshot'] = 1.0
+            else:
+                vals['al2c_exchange_rate_snapshot'] = 1.0
+
+            move.write(vals)
             if template and move.partner_id.email:
                 template.send_mail(move.id, force_send=True)
             move.message_post(

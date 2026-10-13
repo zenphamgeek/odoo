@@ -17,6 +17,8 @@ class TestAl2cTimesheetBillingConfirmation(TransactionCase):
             'is_company': True,
         })
         cls.company = cls.env.company
+        cls.vnd_currency = cls.env.ref('base.VND')
+        cls.usd_currency = cls.env.ref('base.USD')
         cls.consultant_emp = cls.env['hr.employee'].create({
             'name': 'Verified Consultant Lead',
             'work_email': 'lead.consultant@inno.ai.vn',
@@ -134,3 +136,72 @@ class TestAl2cTimesheetBillingConfirmation(TransactionCase):
         staging = self.env['al2c.timesheet.staging'].message_new(msg_dict)
         self.assertTrue(staging.is_quarantined, "DMARC failure must trigger quarantine")
         self.assertEqual(staging.dmarc_status, 'fail', "dmarc_status must record 'fail'")
+
+    def test_07_multicurrency_timesheet_staging_rate_card(self):
+        """Validates multi-currency rate cards (USD/EUR) and company currency (VND) conversions in timesheet staging."""
+        usd_currency = self.env.ref('base.USD')
+        vnd_currency = self.env.ref('base.VND')
+        staging = self.env['al2c.timesheet.staging'].create({
+            'name': 'Global Delivery USD Timesheet',
+            'sender_email': 'lead.consultant@inno.ai.vn',
+            'currency_id': usd_currency.id,
+            'company_currency_id': vnd_currency.id,
+            'exchange_rate_snapshot': 25400.0,
+            'state': 'parsed',
+        })
+        line = self.env['al2c.timesheet.staging.line'].create({
+            'staging_id': staging.id,
+            'date': '2026-10-13',
+            'employee_id': self.consultant_emp.id,
+            'project_id': self.project.id,
+            'task_id': self.task.id,
+            'unit_amount': 10.0,
+            'hourly_rate': 150.0,
+            'currency_id': usd_currency.id,
+            'company_currency_id': vnd_currency.id,
+            'name': 'Senior Cloud Architect Delivery (USD)',
+            'state': 'valid',
+        })
+        self.assertEqual(line.amount_billable, 1500.0, "10h @ $150/h must equal $1500.0")
+        self.assertEqual(line.amount_billable_company_currency, 38100000.0, "$1500 @ 25,400 rate must equal 38,100,000 VND")
+        staging.invalidate_recordset()
+        self.assertEqual(staging.total_hours, 10.0)
+        self.assertEqual(staging.total_amount_billable, 1500.0)
+        self.assertEqual(staging.total_amount_billable_company_currency, 38100000.0)
+
+    def test_08_multicurrency_invoice_statement_snapshot(self):
+        """Validates statement generation, exchange rate snapshotting and Decree 70 statutory VND total."""
+        vnd_currency = self.env.ref('base.VND')
+        foreign_invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'company_id': self.company.id,
+            'invoice_date': '2026-10-13',
+            'invoice_line_ids': [(0, 0, {
+                'name': 'AI Solution Architecture Consulting (40 hrs @ 2,540,000 VND/hr)',
+                'quantity': 40.0,
+                'price_unit': 2540000.0,
+            })],
+        })
+        foreign_invoice.currency_id = vnd_currency
+        self.assertTrue(foreign_invoice.al2c_is_foreign_currency, "Invoice in VND with USD company must be foreign currency")
+        self.assertEqual(foreign_invoice.amount_total, 101600000.0, "Total invoice must be 101,600,000 VND")
+        self.assertEqual(foreign_invoice.al2c_timesheet_hours_total, 40.0, "Total timesheet hours must be 40.0")
+
+        # Send statement to client -> snapshots exchange rate
+        foreign_invoice.action_send_timesheet_statement()
+        self.assertEqual(foreign_invoice.al2c_timesheet_statement_state, 'sent_to_client')
+        self.assertGreater(foreign_invoice.al2c_exchange_rate_snapshot, 0.0, "Exchange rate snapshot must be recorded")
+        expected_comp = self.company.currency_id.round(101600000.0 * foreign_invoice.al2c_exchange_rate_snapshot)
+        self.assertEqual(
+            foreign_invoice.al2c_statement_amount_total_company_currency,
+            expected_comp,
+            "Statutory total in company currency must match snapshotted conversion"
+        )
+
+        # Confirm statement via 1-click token
+        token = foreign_invoice.al2c_timesheet_token
+        foreign_invoice.action_client_confirm_timesheet(token=token, confirmed_by='Director of Technology')
+        self.assertEqual(foreign_invoice.al2c_timesheet_statement_state, 'confirmed')
+        self.assertEqual(foreign_invoice.al2c_timesheet_confirmed_by, 'Director of Technology')
+
