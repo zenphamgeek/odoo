@@ -2205,11 +2205,19 @@ def test_import_obfuscation_guard():
         rc_toctou = audit_main(["audit", str(p_toctou)])
         assert rc_toctou == 2, f"TOCTOU oversized read must fail closed with exit 2, got {rc_toctou}"
 
+    # Boundary vector (x): FIFO / named pipe reports st_size==0, must fail closed without blocking deadlock
+    if hasattr(os, "mkfifo") and os.name != "nt":
+        with tempfile.TemporaryDirectory() as d:
+            p_fifo = pathlib.Path(d, "pipe.py")
+            os.mkfifo(p_fifo)
+            rc_fifo = audit_main(["audit", str(p_fifo)])
+            assert rc_fifo == 2, f"FIFO must fail closed with exit 2 without blocking, got {rc_fifo}"
+
     # Integration verification: real codebase tools & enterprise have zero unhandled violations
     ret_tools = audit_main(["audit", "tools"])
     assert ret_tools == 0, f"Expected exit 0 for tools/ directory, got {ret_tools}"
 
-    print("  [✓] All 23 boundary condition vectors (a-w) verified safe with **kwargs unpack, non-UTF8 fail-closed, and TOCTOU bounded read.")
+    print("  [✓] All 24 boundary condition vectors (a-x) verified safe with S_ISREG non-blocking guard, **kwargs unpack, and allocation-free exception handling.")
 
 
 def main():

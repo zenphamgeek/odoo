@@ -7,6 +7,7 @@ Exit 0 = clean, 1 = violation, 2 = usage / syntax / parse error (fail closed).""
 import ast
 import io
 import pathlib
+import stat as _stat
 import sys
 import tokenize
 from typing import Dict, List, Optional, Tuple
@@ -61,8 +62,12 @@ def scan_source(content: str, filename: str = "<source>") -> Tuple[List[str], Li
     suppressions: List[str] = []
     try:
         tree = ast.parse(content, filename=filename)
-    except (SyntaxError, ValueError, RecursionError, MemoryError) as e:
-        raise ValueError(f"unparseable or pathological source: {filename}: {e}")
+    except RecursionError:
+        raise ValueError("source too deeply nested to parse safely") from None
+    except MemoryError:
+        raise ValueError("source exhausted memory during parse") from None
+    except (SyntaxError, ValueError) as e:
+        raise ValueError(f"unparseable source: {filename}: {e}")
     comments = extract_comments_by_line(content)
 
     for node in ast.walk(tree):
@@ -92,7 +97,10 @@ MAX_SOURCE_BYTES = 5 * 1024 * 1024  # bound worst-case parse cost; fail closed i
 
 
 def scan_file(path: pathlib.Path, quick_filter: bool = False) -> Tuple[List[str], List[str]]:
-    size = path.stat().st_size  # OSError here is caught fail-closed in main()
+    st = path.stat()  # OSError here is caught fail-closed in main()
+    if not _stat.S_ISREG(st.st_mode):
+        raise ValueError(f"refusing to scan non-regular file (fifo/device/dir): {path}")
+    size = st.st_size
     if size > MAX_SOURCE_BYTES:
         raise ValueError(f"source exceeds parse cap ({size} > {MAX_SOURCE_BYTES} bytes): {path}")
     # Read a bounded amount so a post-stat growth (TOCTOU) cannot defeat the cap
@@ -119,13 +127,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     found_suppressions: List[str] = []
 
     for root in roots:
-        if root.is_file():
-            py_files = [(root, False)] if root.suffix == ".py" else []
-        elif root.is_dir():
-            py_files = [(p, True) for p in root.rglob("*.py")]
-        else:
+        if not root.exists():
             print(f"audit: path not found: {root}", file=sys.stderr)
             return 2
+        if root.is_dir():
+            py_files = [(p, True) for p in root.rglob("*.py")]
+        else:
+            py_files = [(root, False)] if root.suffix == ".py" else []
 
         for py, is_quick in py_files:
             try:
