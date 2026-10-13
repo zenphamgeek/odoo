@@ -90,3 +90,23 @@ class TestAl2cMojoUsageLedger(TransactionCase):
         self.assertTrue(activities, "80% burn-down alert activity must be scheduled.")
         self.assertIn("80% Burn-Down", activities[0].summary)
 
+    def test_idempotency_key_unique_constraint_physical_assertion(self):
+        """Assert unique constraint/index physically exists on al2c_mojo_usage_ledger.idempotency_key in PostgreSQL."""
+        self.env.cr.execute("""
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'al2c_mojo_usage_ledger'::regclass
+              AND conname LIKE '%idempotency_key_uniq%'
+              AND contype = 'u'
+        """)
+        self.assertTrue(self.env.cr.fetchone(), "Physical unique constraint 'idempotency_key_uniq' missing on al2c_mojo_usage_ledger")
+
+        self.env.cr.execute("""
+            SELECT 1 FROM pg_index i
+            JOIN pg_class c ON c.oid = i.indexrelid
+            JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+            WHERE i.indrelid = 'al2c_mojo_usage_ledger'::regclass
+              AND a.attname = 'idempotency_key'
+              AND i.indisunique = true
+        """)
+        self.assertTrue(self.env.cr.fetchone(), "Physical unique index on idempotency_key missing on al2c_mojo_usage_ledger")
+

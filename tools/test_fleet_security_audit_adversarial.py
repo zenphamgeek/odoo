@@ -2220,6 +2220,59 @@ def test_import_obfuscation_guard():
     print("  [✓] All 24 boundary condition vectors (a-x) verified safe with S_ISREG non-blocking guard, **kwargs unpack, and allocation-free exception handling.")
 
 
+def test_schema_reconciliation_and_constraint_invariants():
+    print("[TEST SCHEMA RECONCILIATION] CWE-285 & CWE-703: Sovereign Schema Guard, View Revoke/Grant & Uniqueness Index Invariants")
+    import re
+
+    # 1. Inspect tools/reconcile_sovereign_schema_all_databases.py
+    reconcile_path = 'tools/reconcile_sovereign_schema_all_databases.py'
+    with open(reconcile_path, 'r', encoding='utf-8') as f:
+        reconcile_content = f.read()
+
+    # 1a. Finding 1: Ensure explicit REVOKE ALL FROM PUBLIC and GRANT SELECT TO current_user
+    assert "REVOKE ALL ON %I FROM PUBLIC" in reconcile_content, (
+        "CWE-285 Violation: Dynamic companion views must explicitly REVOKE ALL FROM PUBLIC"
+    )
+    assert "GRANT SELECT ON %I TO current_user" in reconcile_content, (
+        "CWE-285 Violation: Dynamic companion views must explicitly GRANT SELECT TO current_user"
+    )
+
+    # 1b. Finding 3: Ensure table-existence checks (to_regclass) guard all optional module companion views
+    assert "to_regclass('public.' || v_src) IS NOT NULL" in reconcile_content, (
+        "CWE-703 Violation: Missing to_regclass table-existence guards for optional relational bridge views"
+    )
+
+    # 2. Finding 2: Verify models.Constraint and physical index assertions in al2c models
+    claim_atom_path = 'addons/insilos_al2c/models/al2c_claim_atom.py'
+    with open(claim_atom_path, 'r', encoding='utf-8') as f:
+        claim_atom_content = f.read()
+    assert "_claim_hash_uniq = models.Constraint(" in claim_atom_content
+    assert "self._assert_claim_hash_constraint()" in claim_atom_content
+
+    mojo_ledger_path = 'addons/insilos_al2c/models/mojo_usage_ledger.py'
+    with open(mojo_ledger_path, 'r', encoding='utf-8') as f:
+        mojo_ledger_content = f.read()
+    assert "_idempotency_key_uniq = models.Constraint(" in mojo_ledger_content
+    assert "self._assert_idempotency_constraint()" in mojo_ledger_content
+
+    # 2b. Verify test suites assert physical unique constraint & unique index existence
+    claim_test_path = 'addons/insilos_al2c/tests/test_claim_atom.py'
+    with open(claim_test_path, 'r', encoding='utf-8') as f:
+        claim_test_content = f.read()
+    assert "test_claim_hash_unique_constraint_physical_assertion" in claim_test_content
+    assert "contype = 'u'" in claim_test_content
+    assert "indisunique = true" in claim_test_content
+
+    mojo_test_path = 'addons/insilos_al2c/tests/test_mojo_usage.py'
+    with open(mojo_test_path, 'r', encoding='utf-8') as f:
+        mojo_test_content = f.read()
+    assert "test_idempotency_key_unique_constraint_physical_assertion" in mojo_test_content
+    assert "contype = 'u'" in mojo_test_content
+    assert "indisunique = true" in mojo_test_content
+
+    print("  [✓] Schema reconciliation existence guards (to_regclass), view ACL revocation, and physical unique constraint assertions verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -2249,8 +2302,9 @@ def main():
     test_namespace_alias_contract()
     test_svg_asset_sanitization_and_stealth()
     test_import_obfuscation_guard()
+    test_schema_reconciliation_and_constraint_invariants()
     print("=" * 80)
-    print("ALL 25 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 26 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 

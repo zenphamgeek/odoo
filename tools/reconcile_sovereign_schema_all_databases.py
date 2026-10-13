@@ -145,11 +145,34 @@ def audit_database(db: str) -> Dict[str, any]:
     }
 
 
+def check_pg_security_invoker_support(db: str) -> None:
+    """Ensure PostgreSQL is >= 15 for 'security_invoker = true' view option support."""
+    out = psql_k8s(db, "SHOW server_version_num;")
+    try:
+        ver = int(out.strip())
+        if ver < 150000:
+            raise RuntimeError(f"PostgreSQL version {ver} < 150000; security_invoker views unsupported on {db}")
+    except ValueError:
+        raise RuntimeError(f"Unable to determine PostgreSQL version from output: {out}")
+
+
 def reconcile_insilos() -> None:
     print("\n[RECONCILE] Promoting Sovereign Base Tables on database 'insilos'...")
+    check_pg_security_invoker_support('insilos')
 
     sql_script = """
     BEGIN;
+
+    -- 0. Advisory Transaction Lock (Anti-Deadlock Multi-Worker Concurrency Guard)
+    SELECT pg_advisory_xact_lock(hashtext('insilos_schema_reconcile'));
+
+    -- Preflight: PostgreSQL 15+ version assertion for security_invoker support
+    DO $$
+    BEGIN
+        IF current_setting('server_version_num')::integer < 150000 THEN
+            RAISE EXCEPTION 'PostgreSQL 15+ required for security_invoker view support';
+        END IF;
+    END $$;
 
     -- 1. party_master
     DO $$
@@ -164,7 +187,7 @@ def reconcile_insilos() -> None:
                 ALTER TABLE party_master ALTER COLUMN id SET DEFAULT nextval('party_master_id_seq'::regclass);
             END IF;
         END IF;
-        CREATE OR REPLACE VIEW res_partner AS SELECT * FROM party_master;
+        CREATE OR REPLACE VIEW res_partner WITH (security_invoker = true) AS SELECT * FROM party_master;
     END $$;
 
     -- 2. organization_unit
@@ -180,7 +203,7 @@ def reconcile_insilos() -> None:
                 ALTER TABLE organization_unit ALTER COLUMN id SET DEFAULT nextval('organization_unit_id_seq'::regclass);
             END IF;
         END IF;
-        CREATE OR REPLACE VIEW res_company AS SELECT * FROM organization_unit;
+        CREATE OR REPLACE VIEW res_company WITH (security_invoker = true) AS SELECT * FROM organization_unit;
     END $$;
 
     -- 3. system_attachment
@@ -196,7 +219,7 @@ def reconcile_insilos() -> None:
                 ALTER TABLE system_attachment ALTER COLUMN id SET DEFAULT nextval('system_attachment_id_seq'::regclass);
             END IF;
         END IF;
-        CREATE OR REPLACE VIEW ir_attachment AS SELECT * FROM system_attachment;
+        CREATE OR REPLACE VIEW ir_attachment WITH (security_invoker = true) AS SELECT * FROM system_attachment;
     END $$;
 
     -- 4. party_classification
@@ -212,7 +235,7 @@ def reconcile_insilos() -> None:
                 ALTER TABLE party_classification ALTER COLUMN id SET DEFAULT nextval('party_classification_id_seq'::regclass);
             END IF;
         END IF;
-        CREATE OR REPLACE VIEW res_partner_category AS SELECT * FROM party_classification;
+        CREATE OR REPLACE VIEW res_partner_category WITH (security_invoker = true) AS SELECT * FROM party_classification;
     END $$;
 
     -- 5. catalog_item
@@ -228,7 +251,7 @@ def reconcile_insilos() -> None:
                 ALTER TABLE catalog_item ALTER COLUMN id SET DEFAULT nextval('catalog_item_id_seq'::regclass);
             END IF;
         END IF;
-        CREATE OR REPLACE VIEW product_template AS SELECT * FROM catalog_item;
+        CREATE OR REPLACE VIEW product_template WITH (security_invoker = true) AS SELECT * FROM catalog_item;
     END $$;
 
     -- 6. catalog_sku
@@ -244,7 +267,7 @@ def reconcile_insilos() -> None:
                 ALTER TABLE catalog_sku ALTER COLUMN id SET DEFAULT nextval('catalog_sku_id_seq'::regclass);
             END IF;
         END IF;
-        CREATE OR REPLACE VIEW product_product AS SELECT * FROM catalog_sku;
+        CREATE OR REPLACE VIEW product_product WITH (security_invoker = true) AS SELECT * FROM catalog_sku;
     END $$;
 
     -- 7. finance_journal_entry
@@ -260,7 +283,7 @@ def reconcile_insilos() -> None:
                 ALTER TABLE finance_journal_entry ALTER COLUMN id SET DEFAULT nextval('finance_journal_entry_id_seq'::regclass);
             END IF;
         END IF;
-        CREATE OR REPLACE VIEW account_move AS SELECT * FROM finance_journal_entry;
+        CREATE OR REPLACE VIEW account_move WITH (security_invoker = true) AS SELECT * FROM finance_journal_entry;
     END $$;
 
     -- 8. finance_journal_line
@@ -276,7 +299,7 @@ def reconcile_insilos() -> None:
                 ALTER TABLE finance_journal_line ALTER COLUMN id SET DEFAULT nextval('finance_journal_line_id_seq'::regclass);
             END IF;
         END IF;
-        CREATE OR REPLACE VIEW account_move_line AS SELECT * FROM finance_journal_line;
+        CREATE OR REPLACE VIEW account_move_line WITH (security_invoker = true) AS SELECT * FROM finance_journal_line;
     END $$;
 
     -- 9. party_classification_rel
@@ -288,7 +311,7 @@ def reconcile_insilos() -> None:
         IF EXISTS (SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND relname = 'res_partner_res_partner_category_rel' AND relkind = 'r') THEN
             ALTER TABLE res_partner_res_partner_category_rel RENAME TO party_classification_rel;
         END IF;
-        CREATE OR REPLACE VIEW res_partner_res_partner_category_rel AS SELECT category_id, partner_id FROM party_classification_rel;
+        CREATE OR REPLACE VIEW res_partner_res_partner_category_rel WITH (security_invoker = true) AS SELECT category_id, partner_id FROM party_classification_rel;
     END $$;
 
     -- 10. M2M Companion Views for party_master
@@ -309,16 +332,18 @@ def reconcile_insilos() -> None:
             SELECT column_name INTO v_col2 FROM information_schema.columns WHERE table_name = r.table_name ORDER BY ordinal_position OFFSET 1 LIMIT 1;
             
             IF v_col1 = 'res_partner_id' THEN
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT res_partner_id AS party_master_id, %I FROM %I', v_new_table, v_col2, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT res_partner_id AS party_master_id, %I FROM %I', v_new_table, v_col2, r.table_name);
             ELSIF v_col2 = 'res_partner_id' THEN
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT %I, res_partner_id AS party_master_id FROM %I', v_new_table, v_col1, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT %I, res_partner_id AS party_master_id FROM %I', v_new_table, v_col1, r.table_name);
             ELSIF v_col1 = 'partner_id' THEN
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT partner_id AS party_master_id, %I FROM %I', v_new_table, v_col2, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT partner_id AS party_master_id, %I FROM %I', v_new_table, v_col2, r.table_name);
             ELSIF v_col2 = 'partner_id' THEN
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT %I, partner_id AS party_master_id FROM %I', v_new_table, v_col1, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT %I, partner_id AS party_master_id FROM %I', v_new_table, v_col1, r.table_name);
             ELSE
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT * FROM %I', v_new_table, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT * FROM %I', v_new_table, r.table_name);
             END IF;
+            EXECUTE format('REVOKE ALL ON %I FROM PUBLIC', v_new_table);
+            EXECUTE format('GRANT SELECT ON %I TO current_user', v_new_table);
         END LOOP;
     END $$;
 
@@ -340,12 +365,14 @@ def reconcile_insilos() -> None:
             SELECT column_name INTO v_col2 FROM information_schema.columns WHERE table_name = r.table_name ORDER BY ordinal_position OFFSET 1 LIMIT 1;
             
             IF v_col1 = 'res_company_id' THEN
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT res_company_id AS organization_unit_id, %I FROM %I', v_new_table, v_col2, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT res_company_id AS organization_unit_id, %I FROM %I', v_new_table, v_col2, r.table_name);
             ELSIF v_col2 = 'res_company_id' THEN
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT %I, res_company_id AS organization_unit_id FROM %I', v_new_table, v_col1, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT %I, res_company_id AS organization_unit_id FROM %I', v_new_table, v_col1, r.table_name);
             ELSE
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT * FROM %I', v_new_table, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT * FROM %I', v_new_table, r.table_name);
             END IF;
+            EXECUTE format('REVOKE ALL ON %I FROM PUBLIC', v_new_table);
+            EXECUTE format('GRANT SELECT ON %I TO current_user', v_new_table);
         END LOOP;
     END $$;
 
@@ -367,16 +394,78 @@ def reconcile_insilos() -> None:
             SELECT column_name INTO v_col2 FROM information_schema.columns WHERE table_name = r.table_name ORDER BY ordinal_position OFFSET 1 LIMIT 1;
             
             IF v_col1 = 'product_template_id' THEN
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT product_template_id AS catalog_item_id, %I FROM %I', v_new_table, v_col2, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT product_template_id AS catalog_item_id, %I FROM %I', v_new_table, v_col2, r.table_name);
             ELSIF v_col2 = 'product_template_id' THEN
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT %I, product_template_id AS catalog_item_id FROM %I', v_new_table, v_col1, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT %I, product_template_id AS catalog_item_id FROM %I', v_new_table, v_col1, r.table_name);
             ELSE
-                EXECUTE format('CREATE OR REPLACE VIEW %I AS SELECT * FROM %I', v_new_table, r.table_name);
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT * FROM %I', v_new_table, r.table_name);
+            END IF;
+            EXECUTE format('REVOKE ALL ON %I FROM PUBLIC', v_new_table);
+            EXECUTE format('GRANT SELECT ON %I TO current_user', v_new_table);
+        END LOOP;
+    END $$;
+
+    -- 13. M2M Sovereign Companion Views for Odoo 20 Relational Bridges
+    DO $$
+    DECLARE
+        bridges CONSTANT text[][] := ARRAY[
+            ['account_cash_rounding_party_classification_rel', 'account_cash_rounding_res_partner_category_rel', 'account_cash_rounding_id, res_partner_category_id AS party_classification_id'],
+            ['account_return_system_attachment_rel', 'account_return_ir_attachment_rel', 'account_return_id, ir_attachment_id AS system_attachment_id'],
+            ['account_return_check_system_attachment_rel', 'account_return_check_ir_attachment_rel', 'account_return_check_id, ir_attachment_id AS system_attachment_id'],
+            ['catalog_sku_event_event_ticket_rel', 'event_event_ticket_product_product_rel', 'product_product_id AS catalog_sku_id, event_event_ticket_id'],
+            ['catalog_sku_event_type_ticket_rel', 'event_type_ticket_product_product_rel', 'product_product_id AS catalog_sku_id, event_type_ticket_id'],
+            ['catalog_item_helpdesk_sla_rel', 'helpdesk_sla_product_template_rel', 'product_template_id AS catalog_item_id, helpdesk_sla_id'],
+            ['mailing_contact_party_classification_rel', 'mailing_contact_res_partner_category_rel', 'mailing_contact_id, res_partner_category_id AS party_classification_id'],
+            ['catalog_item_product_attribute_rel', 'product_attribute_product_template_rel', 'product_template_id AS catalog_item_id, product_attribute_id'],
+            ['catalog_sku_product_pricing_rel', 'product_pricing_product_product_rel', 'product_product_id AS catalog_sku_id, product_pricing_id'],
+            ['catalog_sku_quality_point_rel', 'product_product_quality_point_rel', 'product_product_id AS catalog_sku_id, quality_point_id'],
+            ['sign_request_system_attachment_rel', 'ir_attachment_sign_request_rel', 'sign_request_id, ir_attachment_id AS system_attachment_id'],
+            ['social_post_system_attachment_rel', 'ir_attachment_social_post_rel', 'social_post_id, ir_attachment_id AS system_attachment_id'],
+            ['social_post_template_system_attachment_rel', 'ir_attachment_social_post_template_rel', 'social_post_template_id, ir_attachment_id AS system_attachment_id'],
+            ['system_attachment_whatsapp_template_rel', 'ir_attachment_whatsapp_template_rel', 'ir_attachment_id AS system_attachment_id, whatsapp_template_id']
+        ];
+        b text[];
+        v_view text;
+        v_src text;
+        v_cols text;
+    BEGIN
+        FOREACH b SLICE 1 IN ARRAY bridges
+        LOOP
+            v_view := b[1];
+            v_src := b[2];
+            v_cols := b[3];
+            IF to_regclass('public.' || v_src) IS NOT NULL THEN
+                EXECUTE format('CREATE OR REPLACE VIEW %I WITH (security_invoker = true) AS SELECT %s FROM %I', v_view, v_cols, v_src);
+                EXECUTE format('REVOKE ALL ON %I FROM PUBLIC', v_view);
+                EXECUTE format('GRANT SELECT ON %I TO current_user', v_view);
             END IF;
         END LOOP;
     END $$;
 
-    -- 13. Reassign ownership and permissions
+    -- 14. Synchronize Required Physical NOT NULL Constraints
+    DO $$ BEGIN
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'maintenance_request' AND column_name = 'maintenance_for' AND is_nullable = 'YES') THEN
+            ALTER TABLE maintenance_request ALTER COLUMN maintenance_for SET NOT NULL;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'product_document' AND column_name = 'attached_on_sale' AND is_nullable = 'YES') THEN
+            ALTER TABLE product_document ALTER COLUMN attached_on_sale SET NOT NULL;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'account_account' AND column_name = 'create_asset' AND is_nullable = 'YES') THEN
+            ALTER TABLE account_account ALTER COLUMN create_asset SET NOT NULL;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'account_journal' AND column_name = 'iso20022_default_priority' AND is_nullable = 'YES') THEN
+            ALTER TABLE account_journal ALTER COLUMN iso20022_default_priority SET NOT NULL;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'account_journal' AND column_name = 'debit_sepa_pain_version' AND is_nullable = 'YES') THEN
+            ALTER TABLE account_journal ALTER COLUMN debit_sepa_pain_version SET NOT NULL;
+        END IF;
+        IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'account_journal' AND column_name = 'nacha_entry_class_code' AND is_nullable = 'YES') THEN
+            ALTER TABLE account_journal ALTER COLUMN nacha_entry_class_code SET NOT NULL;
+        END IF;
+    END $$;
+
+    -- 15. Reassign ownership and permissions
+    REVOKE ALL ON ALL TABLES IN SCHEMA public FROM PUBLIC;
     GRANT ALL ON ALL TABLES IN SCHEMA public TO insilos;
     GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO insilos;
     GRANT ALL ON ALL FUNCTIONS IN SCHEMA public TO insilos;

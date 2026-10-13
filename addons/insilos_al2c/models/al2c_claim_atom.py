@@ -52,9 +52,39 @@ class Al2cClaimAtom(models.Model):
     verified_date = fields.Datetime(string='Verified Date', readonly=True)
     active = fields.Boolean(default=True)
 
+    _claim_hash_uniq = models.Constraint(
+        'unique(claim_hash)',
+        'A Claim Atom with identical normalized content already exists!',
+    )
     _sql_constraints = [
         ('claim_hash_uniq', 'unique(claim_hash)', 'A Claim Atom with identical normalized content already exists!'),
     ]
+
+    def _register_hook(self):
+        super()._register_hook()
+        self._assert_claim_hash_constraint()
+
+    @api.model
+    def _assert_claim_hash_constraint(self):
+        """Fail-closed boot check: ensures unique constraint physically exists in PostgreSQL."""
+        self.env.cr.execute("""
+            SELECT 1 FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relname = 'al2c_claim_atom'
+        """)
+        if not self.env.cr.fetchone():
+            return
+        self.env.cr.execute("""
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'al2c_claim_atom'::regclass
+              AND conname LIKE '%claim_hash_uniq%'
+              AND contype = 'u'
+        """)
+        if not self.env.cr.fetchone():
+            raise ValidationError(
+                "FAIL-CLOSED: uniqueness constraint missing on al2c_claim_atom; "
+                "refusing to operate without canonical claim uniqueness guard."
+            )
 
     @api.depends('claim_text')
     def _compute_claim_hash(self):

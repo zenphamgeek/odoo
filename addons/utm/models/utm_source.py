@@ -65,5 +65,5 @@ class UtmSourceMixin(models.AbstractModel):
 
     source_id = fields.Many2one(
         'utm.source', string='Source',
-        required=False, auto_join=True, index=True, ondelete="cascade")
+        required=False, index=True, ondelete="cascade")
 

@@ -71,9 +71,39 @@ class Al2cMojoUsageLedger(models.Model):
         ('billed', 'Invoiced as Overage'),
     ], string='Status', default='applied', required=True)
 
+    _idempotency_key_uniq = models.Constraint(
+        'unique(idempotency_key)',
+        'Idempotency key must be unique to prevent duplicate billing!',
+    )
     _sql_constraints = [
         ('idempotency_key_uniq', 'unique(idempotency_key)', 'Idempotency key must be unique to prevent duplicate billing!'),
     ]
+
+    def _register_hook(self):
+        super()._register_hook()
+        self._assert_idempotency_constraint()
+
+    @api.model
+    def _assert_idempotency_constraint(self):
+        """Fail-closed boot check: ensures unique constraint physically exists in PostgreSQL."""
+        self.env.cr.execute("""
+            SELECT 1 FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE n.nspname = 'public' AND c.relname = 'al2c_mojo_usage_ledger'
+        """)
+        if not self.env.cr.fetchone():
+            return
+        self.env.cr.execute("""
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'al2c_mojo_usage_ledger'::regclass
+              AND conname LIKE '%idempotency_key_uniq%'
+              AND contype = 'u'
+        """)
+        if not self.env.cr.fetchone():
+            raise ValidationError(
+                "FAIL-CLOSED: idempotency uniqueness constraint missing on al2c_mojo_usage_ledger; "
+                "refusing to operate ledger without duplicate-billing guard."
+            )
 
     @api.constrains('quantity')
     def _check_quantity_non_negative(self):

@@ -70,3 +70,23 @@ class TestAl2cClaimAtom(TransactionCase):
             self.env['al2c.claim.atom'].verify_marketing_assertion(
                 'Insilos guarantees free unlimited on-site 24/7 consulting with zero latency worldwide.'
             )
+
+    def test_claim_hash_unique_constraint_physical_assertion(self):
+        """Assert unique constraint/index physically exists on al2c_claim_atom.claim_hash in PostgreSQL."""
+        self.env.cr.execute("""
+            SELECT 1 FROM pg_constraint
+            WHERE conrelid = 'al2c_claim_atom'::regclass
+              AND conname LIKE '%claim_hash_uniq%'
+              AND contype = 'u'
+        """)
+        self.assertTrue(self.env.cr.fetchone(), "Physical unique constraint 'claim_hash_uniq' missing on al2c_claim_atom")
+
+        self.env.cr.execute("""
+            SELECT 1 FROM pg_index i
+            JOIN pg_class c ON c.oid = i.indexrelid
+            JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey)
+            WHERE i.indrelid = 'al2c_claim_atom'::regclass
+              AND a.attname = 'claim_hash'
+              AND i.indisunique = true
+        """)
+        self.assertTrue(self.env.cr.fetchone(), "Physical unique index on claim_hash missing on al2c_claim_atom")
