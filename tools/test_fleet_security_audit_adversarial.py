@@ -2247,12 +2247,16 @@ def test_schema_reconciliation_and_constraint_invariants():
     with open(claim_atom_path, 'r', encoding='utf-8') as f:
         claim_atom_content = f.read()
     assert "_claim_hash_uniq = models.Constraint(" in claim_atom_content
+    assert "_sql_constraints = [" in claim_atom_content
+    assert "('claim_hash_uniq', 'unique(claim_hash)'" in claim_atom_content
     assert "self._assert_claim_hash_constraint()" in claim_atom_content
 
     mojo_ledger_path = 'addons/insilos_al2c/models/mojo_usage_ledger.py'
     with open(mojo_ledger_path, 'r', encoding='utf-8') as f:
         mojo_ledger_content = f.read()
     assert "_idempotency_key_uniq = models.Constraint(" in mojo_ledger_content
+    assert "_sql_constraints = [" in mojo_ledger_content
+    assert "('idempotency_key_uniq', 'unique(idempotency_key)'" in mojo_ledger_content
     assert "self._assert_idempotency_constraint()" in mojo_ledger_content
 
     # 2b. Verify test suites assert physical unique constraint & unique index existence
@@ -2345,6 +2349,127 @@ def test_preferences_modal_pii_redaction_and_race_guard():
     print("  [✓] User Preferences modal check verified safe: zero raw email PII exposure (CWE-532) and state-based wait enforced (CWE-367).")
 
 
+def test_po_format_placeholder_integrity_and_semantic_invariance():
+    print("[TEST i18n FORMAT & SEMANTIC INVARIANCE] Finding 29: CWE-20/DoS Format-String Integrity, AST Security & Semantic Reflow Invariance")
+    import tempfile
+    import pathlib
+    from tools.verify_po_format_and_semantic_invariance import (
+        audit_tool_executable_surface,
+        audit_placeholder_invariance_pre_post,
+        audit_reflow_semantic_equivalence,
+        audit_format_string_placeholders,
+    )
+
+    # 1. Verify tools/lint_i18n_msgid_sync.py executable surface
+    clean, issues = audit_tool_executable_surface(pathlib.Path("tools/lint_i18n_msgid_sync.py"))
+    assert clean, f"tools/lint_i18n_msgid_sync.py failed security review: {issues}"
+
+    # 2. Adversarial test: AST scanner catches eval, exec, and subprocess(shell=True)
+    with tempfile.TemporaryDirectory() as d:
+        p_eval = pathlib.Path(d, "bad_tool.py")
+        p_eval.write_text("eval('os.system(\"rm -rf /\")')\n", encoding="utf-8")
+        clean_eval, issues_eval = audit_tool_executable_surface(p_eval)
+        assert not clean_eval, "Failed to catch eval() in tool script"
+
+        p_shell = pathlib.Path(d, "bad_shell.py")
+        p_shell.write_text("import subprocess\nsubprocess.run('ls', shell=True)\n", encoding="utf-8")
+        clean_shell, issues_shell = audit_tool_executable_surface(p_shell)
+        assert not clean_shell, "Failed to catch subprocess(shell=True) in tool script"
+
+    # 3. Adversarial test: format string audit catches unknown msgstr placeholder
+    with tempfile.TemporaryDirectory() as d:
+        p_po = pathlib.Path(d, "test.po")
+        p_po.write_text(
+            'msgid "Hello %(name)s"\n'
+            'msgstr "Bonjour %(unknown_key)s"\n',
+            encoding="utf-8"
+        )
+        violations = audit_format_string_placeholders(p_po)
+        assert any("unknown_key" in v for v in violations), "Failed to detect KeyError-inducing placeholder desync"
+
+    # 4. Invariant assertion across live repository commit boundary
+    p_drifts, p_issues = audit_placeholder_invariance_pre_post("cd085e933", "cc1afb32f")
+    assert p_drifts == 0, f"Found placeholder drifts in reflow: {p_issues}"
+
+    unauth_count, unauth_issues = audit_reflow_semantic_equivalence("cd085e933", "cc1afb32f")
+    assert unauth_count == 0, f"Found unauthorized semantic drift in reflow: {unauth_issues}"
+
+    print("  [✓] Format-string placeholders (0 desyncs), AST surface (0 dynamic calls), and semantic equivalence (0 unauthorized mutations) verified.")
+
+
+def test_sql_constraints_shape_and_database_uniqueness_guard():
+    print("[TEST CONSTRAINT SHAPE & REGISTRY GUARD] Finding 30: Canonical _sql_constraints List-of-3-Tuples & Lockstep Drift Gate")
+    import ast
+    from tools.lint_sql_constraints_shape import run_self_tests, lint_ast_tree, lint_file
+
+    # 1. Run all 8 internal adversarial self-tests
+    assert run_self_tests() is True, "lint_sql_constraints_shape internal self-tests failed!"
+
+    # 2. Audit all relevant files in addons/
+    for model_path in [
+        'addons/insilos_al2c/models/al2c_claim_atom.py',
+        'addons/insilos_al2c/models/mojo_usage_ledger.py',
+    ]:
+        violations = lint_file(model_path)
+        assert len(violations) == 0, f"Model {model_path} has constraint violations: {[str(v) for v in violations]}"
+
+    # 3. Adversarial Test: Flat tuple definition must be caught (FLAT_TUPLE_SHADOWING)
+    flat_code = """
+class BadModel(models.Model):
+    _sql_constraints = ('uniq_code', 'unique(code)', 'Duplicate code!')
+"""
+    v_flat = lint_ast_tree(ast.parse(flat_code), "synthetic_bad.py")
+    assert len(v_flat) == 1 and v_flat[0].code == "FLAT_TUPLE_SHADOWING", (
+        f"Failed to catch flat tuple shadowing in _sql_constraints: {v_flat}"
+    )
+
+    # 4. Adversarial Test: Tuple of length != 3 must be caught (INVALID_TUPLE_LENGTH)
+    short_code = """
+class BadLengthModel(models.Model):
+    _sql_constraints = [
+        ('uniq_code', 'unique(code)'),
+    ]
+"""
+    v_short = lint_ast_tree(ast.parse(short_code), "synthetic_short.py")
+    assert len(v_short) == 1 and v_short[0].code == "INVALID_TUPLE_LENGTH", (
+        f"Failed to catch non-3-tuple in _sql_constraints: {v_short}"
+    )
+
+    # 5. Adversarial Test: Multiple assignments to _sql_constraints must be caught (DUPLICATE_ASSIGNMENT)
+    dup_assign_code = """
+class ShadowModel(models.Model):
+    _sql_constraints = [('a', 'unique(a)', 'msg1')]
+    _sql_constraints = [('b', 'unique(b)', 'msg2')]
+"""
+    v_dup = lint_ast_tree(ast.parse(dup_assign_code), "synthetic_dup.py")
+    assert any(x.code == "DUPLICATE_ASSIGNMENT" for x in v_dup), (
+        f"Failed to catch duplicate _sql_constraints assignment: {v_dup}"
+    )
+
+    # 6. Adversarial Test: Missing canonical _sql_constraints on Al2c models must fail closed
+    missing_claim_code = """
+class Al2cClaimAtom(models.Model):
+    _name = 'al2c.claim.atom'
+    _claim_hash_uniq = models.Constraint('unique(claim_hash)', 'msg')
+"""
+    v_missing_claim = lint_ast_tree(ast.parse(missing_claim_code), "synthetic_missing.py")
+    assert any(x.code == "MISSING_CLAIM_HASH_SQL_CONSTRAINT" for x in v_missing_claim), (
+        f"Failed to catch missing claim_hash_uniq in _sql_constraints: {v_missing_claim}"
+    )
+
+    missing_mojo_code = """
+class Al2cMojoUsageLedger(models.Model):
+    _name = 'al2c.mojo.usage.ledger'
+    _idempotency_key_uniq = models.Constraint('unique(idempotency_key)', 'msg')
+"""
+    v_missing_mojo = lint_ast_tree(ast.parse(missing_mojo_code), "synthetic_mojo_missing.py")
+    assert any(x.code == "MISSING_IDEMPOTENCY_SQL_CONSTRAINT" for x in v_missing_mojo), (
+        f"Failed to catch missing idempotency_key_uniq in _sql_constraints: {v_missing_mojo}"
+    )
+
+    print("  [✓] Canonical list-of-3-tuples shape, anti-shadowing, and lockstep uniqueness invariants verified.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -2377,8 +2502,10 @@ def main():
     test_schema_reconciliation_and_constraint_invariants()
     test_i18n_lockstep_and_selection_invariance()
     test_preferences_modal_pii_redaction_and_race_guard()
+    test_po_format_placeholder_integrity_and_semantic_invariance()
+    test_sql_constraints_shape_and_database_uniqueness_guard()
     print("=" * 80)
-    print("ALL 28 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 30 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
