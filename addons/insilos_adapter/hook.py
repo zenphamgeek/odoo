@@ -476,29 +476,59 @@ def _patch_router_db_filter() -> None:
             orig_serve_nodb = getattr(http_router, "_orig_serve_nodb", http_router.serve_nodb)
 
             def patched_db_filter(dbs, host=None):
-                filtered = orig_db_filter(dbs, host)
-                # Fail-closed invariant: Never broaden or return databases outside what orig_db_filter permitted.
                 if host:
                     clean_host = host.partition(':')[0].removeprefix('www.')
                     if clean_host in ('report.insilos.com', 'report.insilost.com'):
-                        target = config.get('database') or 'insilos'
-                        if target in filtered:
-                            return [target]
+                        # Sovereign invariant: report.insilos.com operates in pure NoDB headless mode.
+                        # Zero database binding, zero web/website modules, maximum throughput.
                         return []
-                return filtered
+                return orig_db_filter(dbs, host)
 
             def patched_serve_nodb(request):
+                host = request.httprequest.host if hasattr(request, 'httprequest') and request.httprequest else ''
+                clean_host = host.partition(':')[0].removeprefix('www.')
                 path = request.httprequest.path.rstrip('/')
-                if path in ('/api/v1/runtime-report', '/insilos/runtime_error/relay'):
-                    try:
-                        from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import RuntimeReportGateway
-                        gateway = RuntimeReportGateway()
-                        if path == '/insilos/runtime_error/relay':
-                            return gateway.local_runtime_error_relay()
-                        else:
-                            return gateway.ingress_runtime_report()
-                    except Exception as e:
-                        _logger.warning("Error in nodb gateway dispatch: %s", e)
+
+                if clean_host in ('report.insilos.com', 'report.insilost.com'):
+                    import json
+                    from odoo.http import Response
+                    if path in ('/api/v1/runtime-report', '/insilos/runtime_error/relay'):
+                        try:
+                            from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import RuntimeReportGateway
+                            gateway = RuntimeReportGateway()
+                            if path == '/insilos/runtime_error/relay':
+                                return gateway.local_runtime_error_relay()
+                            else:
+                                return gateway.ingress_runtime_report()
+                        except Exception as e:
+                            _logger.warning("Error in nodb gateway dispatch: %s", e)
+                            return Response(json.dumps({'error': 'Internal Gateway Error', 'detail': str(e)}), status=500, content_type='application/json')
+                    elif path in ('', '/', '/health', '/api/v1/health'):
+                        return Response(
+                            json.dumps({
+                                'service': 'Insilos Sovereign Runtime Reporting Gateway',
+                                'status': 'online',
+                                'mode': 'headless-lightweight',
+                                'protocol': 'AL2C-v1',
+                                'web_module': 'disabled',
+                                'endpoints': {
+                                    'ingress': '/api/v1/runtime-report',
+                                    'health': '/api/v1/health',
+                                }
+                            }),
+                            status=200, content_type='application/json'
+                        )
+                    else:
+                        return Response(
+                            json.dumps({
+                                'service': 'Insilos Sovereign Runtime Reporting Gateway',
+                                'status': 'headless_api_only',
+                                'message': 'Web UI and login modules are disabled on this endpoint for maximum performance.',
+                                'path': path,
+                            }),
+                            status=200 if path in ('/web/login', '/web') else 404, content_type='application/json'
+                        )
+
                 return orig_serve_nodb(request)
 
             http_router._orig_db_filter = orig_db_filter
@@ -510,33 +540,30 @@ def _patch_router_db_filter() -> None:
 
 
 def _inject_runtime_report_domain() -> None:
-    """Injects report.insilos.com into config['dbfilter_map'] to route error reports to default tenant."""
+    """Ensures report.insilos.com is NOT bound to heavy tenant databases in dbfilter_map, ensuring NoDB headless mode."""
     try:
         import json
         import odoo.tools.config as config
         dfm = config.get("dbfilter_map")
-        if not dfm:
-            dfm_dict = {}
-        elif isinstance(dfm, str):
-            try:
-                dfm_dict = json.loads(dfm)
-            except Exception:
+        if dfm:
+            if isinstance(dfm, str):
+                try:
+                    dfm_dict = json.loads(dfm)
+                except Exception:
+                    dfm_dict = {}
+            elif isinstance(dfm, dict):
+                dfm_dict = dfm
+            else:
                 dfm_dict = {}
-        elif isinstance(dfm, dict):
-            dfm_dict = dfm
-        else:
-            dfm_dict = {}
-
-        if "report.insilos.com" not in dfm_dict or "report.insilost.com" not in dfm_dict:
-            target_tenant = "insilos"
-            # If innoria_prod is the primary db on this pod, route there
-            if config.get("database") == "innoria_prod" or dfm_dict.get("innoria.com") == "innoria_prod":
-                target_tenant = "innoria_prod"
-            dfm_dict.setdefault("report.insilos.com", target_tenant)
-            dfm_dict.setdefault("report.insilost.com", target_tenant)
-            config["dbfilter_map"] = json.dumps(dfm_dict)
+            modified = False
+            for k in ["report.insilos.com", "report.insilost.com"]:
+                if k in dfm_dict:
+                    dfm_dict.pop(k, None)
+                    modified = True
+            if modified:
+                config["dbfilter_map"] = json.dumps(dfm_dict)
     except Exception as e:
-        _logger.debug("Could not inject report domain into dbfilter_map: %s", e)
+        _logger.debug("Could not sanitize report domain in dbfilter_map: %s", e)
 
 
 def _alias_core_loggers() -> None:
