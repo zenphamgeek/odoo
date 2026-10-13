@@ -1,5 +1,17 @@
 const { chromium } = require('playwright');
 
+const HOOT_HOST = (process.env.HOOT_HOST || 'http://localhost:28069').replace(/\/+$/, '');
+const HOOT_LOGIN = process.env.HOOT_LOGIN || 'admin';
+const HOOT_PASSWORD = process.env.HOOT_PASSWORD || 'admin';
+
+function validateTargetAndCredentials(host = HOOT_HOST, login = HOOT_LOGIN, password = HOOT_PASSWORD) {
+    const isLocal = /^https?:\/\/(localhost|127\.0\.0\.1)(:|\/|$)/i.test(host);
+    if (!isLocal && (login === 'admin' && password === 'admin')) {
+        throw new Error(`Refusing default admin/admin credentials against non-local host '${host}'; set HOOT_LOGIN and HOOT_PASSWORD explicitly.`);
+    }
+    return { host, login, password, isLocal };
+}
+
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+(?:\.[A-Za-z]{2,})?/gi;
 
 function redactContext(s) {
@@ -105,6 +117,8 @@ async function checkPage(page, appName, url) {
 }
 
 async function main() {
+    validateTargetAndCredentials(HOOT_HOST, HOOT_LOGIN, HOOT_PASSWORD);
+
     const browser = await chromium.launch({
         headless: true,
         executablePath: '/usr/bin/google-chrome',
@@ -117,11 +131,11 @@ async function main() {
     // 1. Check unauthenticated public pages first in parallel
     console.log('=== CHECKING UNAUTHENTICATED PUBLIC PAGES (Parallel) ===');
     const publicRoutes = [
-        ['Public Login', 'http://localhost:28069/web/login'],
-        ['Public Reset Password', 'http://localhost:28069/web/reset_password'],
-        ['Public Home', 'http://localhost:28069/'],
-        ['Public Contact Us', 'http://localhost:28069/contactus'],
-        ['Public Jobs / Careers', 'http://localhost:28069/jobs'],
+        ['Public Login', `${HOOT_HOST}/web/login`],
+        ['Public Reset Password', `${HOOT_HOST}/web/reset_password`],
+        ['Public Home', `${HOOT_HOST}/`],
+        ['Public Contact Us', `${HOOT_HOST}/contactus`],
+        ['Public Jobs / Careers', `${HOOT_HOST}/jobs`],
     ];
 
     const publicContext = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -139,8 +153,8 @@ async function main() {
     console.log('\n=== AUTHENTICATING AS ADMIN ===');
     const authContext = await browser.newContext();
     const authPage = await authContext.newPage();
-    await authPage.request.post('http://localhost:28069/web/session/authenticate', {
-        data: { jsonrpc: '2.0', params: { db: process.env.HOOT_DB || 'insilos20_dev', login: 'admin', password: 'admin' } }
+    await authPage.request.post(`${HOOT_HOST}/web/session/authenticate`, {
+        data: { jsonrpc: '2.0', params: { db: process.env.HOOT_DB || 'insilos20_dev', login: HOOT_LOGIN, password: HOOT_PASSWORD } }
     });
     const storageState = await authContext.storageState();
     await authContext.close().catch(() => {});
@@ -151,7 +165,7 @@ async function main() {
     const prefPage = await prefCtx.newPage();
     let prefCheckCompleted = false;
     try {
-        await prefPage.goto('http://localhost:28069/insilos', { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await prefPage.goto(`${HOOT_HOST}/insilos`, { waitUntil: 'domcontentloaded', timeout: 30000 });
         await prefPage.waitForSelector('.o_main_navbar, .o_navbar', { timeout: 15000 });
         const userMenuBtn = prefPage.locator('button.o_user_menu, .o_user_menu button, .o_user_menu .dropdown-toggle, button[aria-label="User menu"], .o_menu_systray .o_user_menu').first();
         await userMenuBtn.waitFor({ state: 'visible', timeout: 10000 });
@@ -191,42 +205,42 @@ async function main() {
     // 3. Check authenticated apps and menus with parallel worker pool
     console.log('\n=== CHECKING AUTHENTICATED CORE APPS (Parallel Concurrency: 3) ===');
     const authRoutes = [
-        ['App Drawer', 'http://localhost:28069/insilos'],
-        ['Apps Store', 'http://localhost:28069/insilos/apps'],
-        ['Settings', 'http://localhost:28069/insilos/settings'],
-        ['CRM', 'http://localhost:28069/insilos/crm'],
-        ['Sales', 'http://localhost:28069/insilos/sales'],
-        ['Invoicing / Accounting', 'http://localhost:28069/insilos/accounting'],
-        ['Inventory', 'http://localhost:28069/insilos/inventory'],
-        ['Manufacturing', 'http://localhost:28069/insilos/mrp'],
-        ['Purchase', 'http://localhost:28069/insilos/purchase'],
-        ['Project', 'http://localhost:28069/insilos/project'],
-        ['Helpdesk', 'http://localhost:28069/insilos/helpdesk'],
-        ['Knowledge', 'http://localhost:28069/insilos/knowledge'],
-        ['Documents', 'http://localhost:28069/insilos/documents'],
-        ['Contacts', 'http://localhost:28069/insilos/contacts'],
-        ['Discuss', 'http://localhost:28069/insilos/discuss'],
-        ['Calendar', 'http://localhost:28069/insilos/calendar'],
-        ['Employees', 'http://localhost:28069/insilos/employees'],
-        ['Time Off', 'http://localhost:28069/insilos/holidays'],
-        ['Recruitment', 'http://localhost:28069/insilos/recruitment'],
-        ['Payroll', 'http://localhost:28069/insilos/payroll'],
-        ['Sign', 'http://localhost:28069/insilos/sign'],
-        ['Point of Sale', 'http://localhost:28069/insilos/point_of_sale'],
-        ['Subscriptions', 'http://localhost:28069/insilos/sale_subscription'],
-        ['Timesheets', 'http://localhost:28069/insilos/timesheet_grid'],
-        ['Field Service', 'http://localhost:28069/insilos/industry_fsm'],
-        ['Planning', 'http://localhost:28069/insilos/planning'],
-        ['Quality', 'http://localhost:28069/insilos/quality_control'],
-        ['Maintenance', 'http://localhost:28069/insilos/maintenance'],
-        ['Unified Operations Hub', 'http://localhost:28069/insilos/unified-operations'],
-        ['Logistics IDP Onboarding', 'http://localhost:28069/insilos/logistics-onboarding'],
-        ['Chemical Trade Compliance Onboarding', 'http://localhost:28069/insilos/chemical-onboarding'],
-        ['HS Tariff Sync Onboarding', 'http://localhost:28069/insilos/hs-onboarding'],
-        ['HSE Safety Compliance Onboarding', 'http://localhost:28069/insilos/hse-onboarding'],
-        ['ESG Carbon Bridge Onboarding', 'http://localhost:28069/insilos/esg-onboarding'],
-        ['PubSub Event Bridge Onboarding', 'http://localhost:28069/insilos/pubsub-onboarding'],
-        ['Logistics Overview Hub', 'http://localhost:28069/insilos/logistics-overview'],
+        ['App Drawer', `${HOOT_HOST}/insilos`],
+        ['Apps Store', `${HOOT_HOST}/insilos/apps`],
+        ['Settings', `${HOOT_HOST}/insilos/settings`],
+        ['CRM', `${HOOT_HOST}/insilos/crm`],
+        ['Sales', `${HOOT_HOST}/insilos/sales`],
+        ['Invoicing / Accounting', `${HOOT_HOST}/insilos/accounting`],
+        ['Inventory', `${HOOT_HOST}/insilos/inventory`],
+        ['Manufacturing', `${HOOT_HOST}/insilos/mrp`],
+        ['Purchase', `${HOOT_HOST}/insilos/purchase`],
+        ['Project', `${HOOT_HOST}/insilos/project`],
+        ['Helpdesk', `${HOOT_HOST}/insilos/helpdesk`],
+        ['Knowledge', `${HOOT_HOST}/insilos/knowledge`],
+        ['Documents', `${HOOT_HOST}/insilos/documents`],
+        ['Contacts', `${HOOT_HOST}/insilos/contacts`],
+        ['Discuss', `${HOOT_HOST}/insilos/discuss`],
+        ['Calendar', `${HOOT_HOST}/insilos/calendar`],
+        ['Employees', `${HOOT_HOST}/insilos/employees`],
+        ['Time Off', `${HOOT_HOST}/insilos/holidays`],
+        ['Recruitment', `${HOOT_HOST}/insilos/recruitment`],
+        ['Payroll', `${HOOT_HOST}/insilos/payroll`],
+        ['Sign', `${HOOT_HOST}/insilos/sign`],
+        ['Point of Sale', `${HOOT_HOST}/insilos/point_of_sale`],
+        ['Subscriptions', `${HOOT_HOST}/insilos/sale_subscription`],
+        ['Timesheets', `${HOOT_HOST}/insilos/timesheet_grid`],
+        ['Field Service', `${HOOT_HOST}/insilos/industry_fsm`],
+        ['Planning', `${HOOT_HOST}/insilos/planning`],
+        ['Quality', `${HOOT_HOST}/insilos/quality_control`],
+        ['Maintenance', `${HOOT_HOST}/insilos/maintenance`],
+        ['Unified Operations Hub', `${HOOT_HOST}/insilos/unified-operations`],
+        ['Logistics IDP Onboarding', `${HOOT_HOST}/insilos/logistics-onboarding`],
+        ['Chemical Trade Compliance Onboarding', `${HOOT_HOST}/insilos/chemical-onboarding`],
+        ['HS Tariff Sync Onboarding', `${HOOT_HOST}/insilos/hs-onboarding`],
+        ['HSE Safety Compliance Onboarding', `${HOOT_HOST}/insilos/hse-onboarding`],
+        ['ESG Carbon Bridge Onboarding', `${HOOT_HOST}/insilos/esg-onboarding`],
+        ['PubSub Event Bridge Onboarding', `${HOOT_HOST}/insilos/pubsub-onboarding`],
+        ['Logistics Overview Hub', `${HOOT_HOST}/insilos/logistics-overview`],
     ];
 
     const CONCURRENCY = 3;
@@ -305,6 +319,10 @@ if (require.main === module) {
 
 module.exports = {
     EMAIL,
+    HOOT_HOST,
+    HOOT_LOGIN,
+    HOOT_PASSWORD,
+    validateTargetAndCredentials,
     redactContext,
     scanPreferencesModalText,
     checkPage,

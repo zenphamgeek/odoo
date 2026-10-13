@@ -2506,8 +2506,9 @@ def main():
     test_sql_constraints_shape_and_database_uniqueness_guard()
     test_forensic_sweep_security_and_canary_liveness()
     test_hoot_harness_secret_redaction()
+    test_sweep_ui_credentials_and_loopback_boundary_guard()
     print("=" * 80)
-    print("ALL 32 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 33 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
@@ -2780,6 +2781,84 @@ def test_hoot_harness_secret_redaction():
     assert "redactSensitive(err" in hoot_src, "Pageerror listener must invoke redactSensitive"
 
     print("  [✓] run_hoot secrets masker (CWE-532), anchored oracle, 405-case cartesian fuzzer, and mutation tests verified.")
+
+
+def test_sweep_ui_credentials_and_loopback_boundary_guard():
+    print("[TEST UI SWEEP CREDENTIALS & LOOPBACK GUARD] Finding 33: CWE-259 / CWE-798 Hardcoded Credentials & Target Boundary Guard")
+    import subprocess
+    import json
+
+    # 1. Static inspection on tools/sweep_ui_all_apps.js
+    script_path = "tools/sweep_ui_all_apps.js"
+    assert os.path.exists(script_path), f"{script_path} must exist"
+    with open(script_path, "r", encoding="utf-8") as f:
+        src = f.read()
+
+    assert "validateTargetAndCredentials" in src, "Must define validateTargetAndCredentials function"
+    assert "HOOT_HOST" in src, "Must define HOOT_HOST environment override"
+    assert "HOOT_LOGIN" in src, "Must define HOOT_LOGIN environment override"
+    assert "HOOT_PASSWORD" in src, "Must define HOOT_PASSWORD environment override"
+    assert "Refusing default admin/admin credentials against non-local host" in src, "Must enforce fail-closed credential refusal on non-local hosts"
+    assert "http://localhost:28069" not in "\n".join(src.splitlines()[5:]), "Must eliminate hardcoded localhost:28069 URLs from route arrays"
+
+    # 2. Dynamic Node.js behavioral and fuzzing test
+    node_test = """
+    const { validateTargetAndCredentials, HOOT_HOST, HOOT_LOGIN, HOOT_PASSWORD } = require('./tools/sweep_ui_all_apps.js');
+    const assert = require('assert');
+
+    // Case 1: Local loopback variations must allow default credentials
+    const localHosts = [
+        'http://localhost:28069',
+        'http://localhost',
+        'http://127.0.0.1:28069',
+        'http://127.0.0.1:8069',
+        'https://localhost:443',
+        'http://127.0.0.1'
+    ];
+    for (const h of localHosts) {
+        const res = validateTargetAndCredentials(h, 'admin', 'admin');
+        assert.strictEqual(res.isLocal, true, `Host ${h} should be recognized as local loopback`);
+        assert.strictEqual(res.login, 'admin');
+        assert.strictEqual(res.password, 'admin');
+    }
+
+    // Case 2: Non-local hosts with default credentials MUST throw Error (CWE-259/CWE-798)
+    const remoteHosts = [
+        'https://staging.innoria.com',
+        'https://prod.innoria.ai',
+        'http://10.0.0.5:8069',
+        'http://192.168.1.100:8069',
+        'https://innokafe.com'
+    ];
+    for (const h of remoteHosts) {
+        let threw = false;
+        try {
+            validateTargetAndCredentials(h, 'admin', 'admin');
+        } catch (err) {
+            threw = true;
+            assert(err.message.includes('Refusing default admin/admin credentials'), `Expected specific refusal error for ${h}`);
+        }
+        assert.strictEqual(threw, true, `Host ${h} with default creds must fail closed`);
+    }
+
+    // Case 3: Non-local hosts with explicit custom credentials must pass cleanly
+    for (const h of remoteHosts) {
+        const res = validateTargetAndCredentials(h, 'ci_operator', 'super_secret_token_123');
+        assert.strictEqual(res.isLocal, false);
+        assert.strictEqual(res.login, 'ci_operator');
+        assert.strictEqual(res.password, 'super_secret_token_123');
+    }
+
+    console.log(JSON.stringify({ status: 'ok', local_tested: localHosts.length, remote_tested: remoteHosts.length }));
+    """
+
+    res = subprocess.run(["node", "-e", node_test], capture_output=True, text=True, check=False)
+    assert res.returncode == 0, f"UI sweep credential guard verification failed (code {res.returncode}):\nSTDOUT: {res.stdout}\nSTDERR: {res.stderr}"
+    data = json.loads(res.stdout.strip())
+    assert data["status"] == "ok"
+    assert data["local_tested"] >= 6 and data["remote_tested"] >= 5
+
+    print("  [✓] UI sweep credential hygiene (CWE-259/798), loopback boundary fail-closed check, and dynamic target validation verified.")
 
 
 if __name__ == '__main__':

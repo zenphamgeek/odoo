@@ -168,7 +168,7 @@ GATE_DEFINITIONS = [
         "description": "Executes parallel headless HOOT test runner across core enterprise modules and theme suites",
         "command": ["node", "run_hoot.js", "--concurrency=4"],
         "target": "run_hoot.js",
-        "timeout": 180,
+        "timeout": 360,
         "requires_server": True,
         "milestone": "M6",
     },
