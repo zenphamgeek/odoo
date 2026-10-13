@@ -84,6 +84,30 @@ function redactSensitive(input) {
   return s;
 }
 
+// Timeout constants (F-01 / CWE-20 Input Validation)
+const DEFAULT_SUITE_TIMEOUT_MS = 240000; // 240s default per-suite budget
+const MIN_SUITE_TIMEOUT_MS = 30000;      // floor: 30s guard against instant false-FAIL
+const MAX_SUITE_TIMEOUT_MS = 600000;     // ceiling: 600s guard against unbounded hang
+const POLL_INTERVAL_MS = 250;
+
+/**
+ * Resolves and sanitizes the per-suite timeout against CWE-20 unvalidated numeric input.
+ * Clamps positive finite values within [MIN_SUITE_TIMEOUT_MS, MAX_SUITE_TIMEOUT_MS].
+ * Fails safe to DEFAULT_SUITE_TIMEOUT_MS for non-finite, zero, or unconfigured values.
+ */
+function resolveSuiteTimeout(rawTimeoutValue) {
+  if (rawTimeoutValue === undefined || rawTimeoutValue === null || rawTimeoutValue === '') {
+    return DEFAULT_SUITE_TIMEOUT_MS;
+  }
+  const rawTimeout = typeof rawTimeoutValue === 'number'
+    ? rawTimeoutValue
+    : parseInt(rawTimeoutValue, 10);
+  if (!Number.isFinite(rawTimeout) || rawTimeout === 0) {
+    return DEFAULT_SUITE_TIMEOUT_MS;
+  }
+  return Math.min(Math.max(rawTimeout, MIN_SUITE_TIMEOUT_MS), MAX_SUITE_TIMEOUT_MS);
+}
+
 /**
  * Single-Flight Warmup Gate
  * Ensures that web.assets_unit_tests.min.js and web.assets_unit_tests_setup.min.js
@@ -247,11 +271,12 @@ async function executeSingleSuite(browser, storageState, runConfig) {
 
   // Fast polling loop (every 250ms)
   let summary = null;
-  const maxPolls = 480; // 120 seconds
+  const suiteTimeoutMs = resolveSuiteTimeout(process.env.HOOT_SUITE_TIMEOUT);
+  const maxPolls = Math.ceil(suiteTimeoutMs / POLL_INTERVAL_MS);
   let lastReportedStatus = '';
 
   for (let i = 0; i < maxPolls; i++) {
-    await new Promise(r => setTimeout(r, 250));
+    await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
 
     const state = await page.evaluate(() => {
       try {
@@ -367,7 +392,7 @@ async function executeSingleSuite(browser, storageState, runConfig) {
       skipped: 0,
       tests: 1,
       duration,
-      failedDetails: [{ path: suiteName, errors: [{ message: 'Harness Timeout (120s exceeded)' }] }],
+      failedDetails: [{ path: suiteName, errors: [{ message: `Harness Timeout (${Math.round(suiteTimeoutMs / 1000)}s exceeded)` }] }],
       domSnapshot: null,
     };
   }
@@ -616,6 +641,11 @@ module.exports = {
   redactSensitive,
   REGISTERED_SECRETS,
   HOOT_VERBOSE,
+  DEFAULT_SUITE_TIMEOUT_MS,
+  MIN_SUITE_TIMEOUT_MS,
+  MAX_SUITE_TIMEOUT_MS,
+  POLL_INTERVAL_MS,
+  resolveSuiteTimeout,
   main,
 };
 

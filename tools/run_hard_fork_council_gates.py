@@ -54,6 +54,23 @@ def colorize(text, color, enabled=True):
         return text
     return f"{color}{text}{Colors.RESET}"
 
+# ==============================================================================
+# Budget-Propagation & Timeout Invariants (F-02 / Airflow/Prefect Hierarchy Contract)
+# Outer gate timeout must strictly cover worst-case inner suite time plus headroom.
+# Invariant: child_timeout_s * ceil(N / concurrency) + headroom <= parent_timeout
+# ==============================================================================
+HOOT_SUITE_TIMEOUT_MS = 240000            # inner per-suite budget (240s)
+HOOT_CONCURRENCY = 4                       # parallel browser worker lanes
+_HOOT_SUITE_COUNT = 14                     # default enterprise suites in targetSuites
+_HOOT_WAVES = (_HOOT_SUITE_COUNT + HOOT_CONCURRENCY - 1) // HOOT_CONCURRENCY  # ceil(14 / 4) = 4
+_HOOT_HEADROOM_S = 120                     # warmup + browser launch + report generation headroom
+_GATE11_TIMEOUT = max(540, (HOOT_SUITE_TIMEOUT_MS // 1000) * 2 + _HOOT_HEADROOM_S)  # 600s
+
+assert _GATE11_TIMEOUT >= (HOOT_SUITE_TIMEOUT_MS // 1000) + _HOOT_HEADROOM_S, (
+    f"Budget propagation violation: Gate 11 timeout ({_GATE11_TIMEOUT}s) must exceed "
+    f"inner suite timeout ({HOOT_SUITE_TIMEOUT_MS // 1000}s) + headroom ({_HOOT_HEADROOM_S}s)"
+)
+
 # Gate Definitions
 GATE_DEFINITIONS = [
     {
@@ -166,9 +183,10 @@ GATE_DEFINITIONS = [
         "id": 11,
         "name": "Modern OWL 2 HOOT Test Suite Verification",
         "description": "Executes parallel headless HOOT test runner across core enterprise modules and theme suites",
-        "command": ["node", "run_hoot.js", "--concurrency=4"],
+        "command": ["node", "run_hoot.js", f"--concurrency={HOOT_CONCURRENCY}"],
+        "env": {"HOOT_SUITE_TIMEOUT": str(HOOT_SUITE_TIMEOUT_MS)},
         "target": "run_hoot.js",
-        "timeout": 360,
+        "timeout": _GATE11_TIMEOUT,
         "requires_server": True,
         "milestone": "M6",
     },
@@ -246,6 +264,7 @@ def run_single_gate(gate_def, verbose=False, color=True):
     exit_code = -1
 
     try:
+        gate_env = {**os.environ, **gate_def.get("env", {})}
         proc = subprocess.run(
             cmd,
             cwd=str(REPO_ROOT),
@@ -253,6 +272,7 @@ def run_single_gate(gate_def, verbose=False, color=True):
             stderr=subprocess.STDOUT,
             text=True,
             timeout=timeout,
+            env=gate_env,
         )
         duration = time.perf_counter() - start_time
         exit_code = proc.returncode

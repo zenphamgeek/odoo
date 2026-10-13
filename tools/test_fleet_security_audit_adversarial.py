@@ -2507,8 +2507,9 @@ def main():
     test_forensic_sweep_security_and_canary_liveness()
     test_hoot_harness_secret_redaction()
     test_sweep_ui_credentials_and_loopback_boundary_guard()
+    test_hoot_suite_timeout_and_budget_propagation_invariants()
     print("=" * 80)
-    print("ALL 33 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 34 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
@@ -2859,6 +2860,130 @@ def test_sweep_ui_credentials_and_loopback_boundary_guard():
     assert data["local_tested"] >= 6 and data["remote_tested"] >= 5
 
     print("  [✓] UI sweep credential hygiene (CWE-259/798), loopback boundary fail-closed check, and dynamic target validation verified.")
+
+
+def test_hoot_suite_timeout_and_budget_propagation_invariants():
+    print("[TEST HOOT TIMEOUT & BUDGET INVARIANT] Finding 34: CWE-20 Timeout Sanitization & Parent/Child Budget Propagation")
+    import subprocess
+    import json
+    import os
+    import pathlib
+
+    # 1. Static inspection on run_hoot.js
+    hoot_path = "run_hoot.js"
+    assert os.path.exists(hoot_path), f"{hoot_path} must exist"
+    with open(hoot_path, "r", encoding="utf-8") as f:
+        src_hoot = f.read()
+
+    assert "resolveSuiteTimeout" in src_hoot, "run_hoot.js must define resolveSuiteTimeout"
+    assert "DEFAULT_SUITE_TIMEOUT_MS" in src_hoot, "run_hoot.js must define DEFAULT_SUITE_TIMEOUT_MS"
+    assert "MIN_SUITE_TIMEOUT_MS" in src_hoot, "run_hoot.js must define MIN_SUITE_TIMEOUT_MS"
+    assert "MAX_SUITE_TIMEOUT_MS" in src_hoot, "run_hoot.js must define MAX_SUITE_TIMEOUT_MS"
+    assert "POLL_INTERVAL_MS" in src_hoot, "run_hoot.js must define POLL_INTERVAL_MS"
+
+    # 2. Dynamic Node.js behavioral fuzzing of resolveSuiteTimeout
+    node_test = """
+    const {
+        resolveSuiteTimeout,
+        DEFAULT_SUITE_TIMEOUT_MS,
+        MIN_SUITE_TIMEOUT_MS,
+        MAX_SUITE_TIMEOUT_MS,
+        POLL_INTERVAL_MS,
+    } = require('./run_hoot.js');
+    const assert = require('assert');
+
+    // Case 1: Negative timeout (-5000) must clamp to floor (30000ms), maxPolls = 120 (no instant false-FAIL)
+    const neg = resolveSuiteTimeout('-5000');
+    assert.strictEqual(neg, MIN_SUITE_TIMEOUT_MS, '-5000 must clamp to MIN_SUITE_TIMEOUT_MS');
+    assert.strictEqual(Math.ceil(neg / POLL_INTERVAL_MS), 120, 'maxPolls for -5000 must be 120');
+
+    // Case 2: Zero timeout ('0' or 0) must fallback to default (240000ms)
+    assert.strictEqual(resolveSuiteTimeout('0'), DEFAULT_SUITE_TIMEOUT_MS, "'0' must fallback to DEFAULT_SUITE_TIMEOUT_MS");
+    assert.strictEqual(resolveSuiteTimeout(0), DEFAULT_SUITE_TIMEOUT_MS, "0 must fallback to DEFAULT_SUITE_TIMEOUT_MS");
+
+    // Case 3: Huge timeout (999999999999) must clamp to ceiling (600000ms), bounded loop
+    const huge = resolveSuiteTimeout('999999999999');
+    assert.strictEqual(huge, MAX_SUITE_TIMEOUT_MS, 'Huge timeout must clamp to MAX_SUITE_TIMEOUT_MS');
+    assert.strictEqual(Math.ceil(huge / POLL_INTERVAL_MS), 2400);
+
+    // Case 4: Non-numeric / NaN / null / undefined / empty string must fallback to default
+    assert.strictEqual(resolveSuiteTimeout('abc'), DEFAULT_SUITE_TIMEOUT_MS);
+    assert.strictEqual(resolveSuiteTimeout(null), DEFAULT_SUITE_TIMEOUT_MS);
+    assert.strictEqual(resolveSuiteTimeout(undefined), DEFAULT_SUITE_TIMEOUT_MS);
+    assert.strictEqual(resolveSuiteTimeout(''), DEFAULT_SUITE_TIMEOUT_MS);
+
+    // Case 5: Valid positive timeout within range preserved exactly
+    assert.strictEqual(resolveSuiteTimeout('240000'), 240000);
+    assert.strictEqual(resolveSuiteTimeout('180000'), 180000);
+    assert.strictEqual(resolveSuiteTimeout(120000), 120000);
+
+    // Case 6: Sub-floor positive timeout (10000) clamped to floor (30000ms)
+    assert.strictEqual(resolveSuiteTimeout('10000'), MIN_SUITE_TIMEOUT_MS);
+
+    // Case 7: Metamorphic relation: idempotence f(f(x)) === f(x)
+    for (const val of ['-5000', '0', '999999999999', 'abc', '180000', '240000', '10000']) {
+        const once = resolveSuiteTimeout(val);
+        const twice = resolveSuiteTimeout(once);
+        assert.strictEqual(twice, once, `Idempotence violated for ${val}`);
+    }
+
+    console.log(JSON.stringify({ status: 'ok', cases_tested: 7 }));
+    """
+
+    res = subprocess.run(["node", "-e", node_test], capture_output=True, text=True, check=False)
+    assert res.returncode == 0, f"HOOT suite timeout fuzzing failed (code {res.returncode}):\\nSTDOUT: {res.stdout}\\nSTDERR: {res.stderr}"
+    data = json.loads(res.stdout.strip())
+    assert data["status"] == "ok"
+
+    # 3. Static & dynamic inspection on tools/run_hard_fork_council_gates.py
+    gates_path = "tools/run_hard_fork_council_gates.py"
+    assert os.path.exists(gates_path), f"{gates_path} must exist"
+    with open(gates_path, "r", encoding="utf-8") as f:
+        src_gates = f.read()
+
+    assert "HOOT_SUITE_TIMEOUT_MS" in src_gates, "run_hard_fork_council_gates.py must define HOOT_SUITE_TIMEOUT_MS"
+    assert "_GATE11_TIMEOUT" in src_gates, "run_hard_fork_council_gates.py must define _GATE11_TIMEOUT"
+    assert "gate_env = {**os.environ" in src_gates, "run_hard_fork_council_gates.py must merge gate environment overrides"
+    assert "env=gate_env" in src_gates, "run_hard_fork_council_gates.py must pass gate_env to subprocess.run"
+
+    # 4. Invariant assertion: parent timeout strictly covers child budget + headroom
+    from tools.run_hard_fork_council_gates import (
+        HOOT_SUITE_TIMEOUT_MS,
+        _GATE11_TIMEOUT,
+        _HOOT_HEADROOM_S,
+        GATE_DEFINITIONS,
+        run_single_gate,
+    )
+    assert _GATE11_TIMEOUT >= (HOOT_SUITE_TIMEOUT_MS // 1000) + _HOOT_HEADROOM_S, (
+        f"Hierarchy inversion: _GATE11_TIMEOUT ({_GATE11_TIMEOUT}s) must exceed "
+        f"suite budget ({HOOT_SUITE_TIMEOUT_MS // 1000}s) + headroom ({_HOOT_HEADROOM_S}s)"
+    )
+
+    gate11 = next(g for g in GATE_DEFINITIONS if g["id"] == 11)
+    assert gate11.get("env", {}).get("HOOT_SUITE_TIMEOUT") == str(HOOT_SUITE_TIMEOUT_MS), (
+        "Gate 11 must explicitly propagate HOOT_SUITE_TIMEOUT to inner runner"
+    )
+    assert gate11.get("timeout") == _GATE11_TIMEOUT, "Gate 11 timeout must equal _GATE11_TIMEOUT"
+
+    # 5. Dynamic subprocess environment propagation test
+    test_gate = {
+        "id": 999,
+        "name": "Synthetic Subprocess Environment Propagation Canary",
+        "description": "Verifies that run_single_gate propagates gate-specific env into subprocess",
+        "command": ["python3", "-c", "import os, sys; sys.exit(0 if os.environ.get('CANARY_PROPAGATION_KEY') == 'VERIFIED_OK_999' else 1)"],
+        "env": {"CANARY_PROPAGATION_KEY": "VERIFIED_OK_999"},
+        "timeout": 10,
+        "requires_server": False,
+    }
+    # Intercept stdout to keep test runner output clean
+    import io
+    from contextlib import redirect_stdout
+    sink = io.StringIO()
+    with redirect_stdout(sink):
+        run_single_gate(test_gate, verbose=False, color=False)
+    assert "✓ PASS" in sink.getvalue(), f"Subprocess environment propagation canary failed: {sink.getvalue()}"
+
+    print("  [✓] HOOT timeout clamping (CWE-20), metamorphic idempotence, budget-propagation hierarchy, and env propagation verified.")
 
 
 if __name__ == '__main__':
