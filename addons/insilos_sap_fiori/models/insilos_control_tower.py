@@ -2,7 +2,7 @@
 # Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 import logging
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from insilos import models, fields, api, _
 from odoo.exceptions import AccessError
 
@@ -794,7 +794,7 @@ class InsilosControlTower(models.AbstractModel):
         # ----------------------------------------------------------------------
         return {
             "success": True,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "timeframe": timeframe,
             "currency": "VND",
             "kpis": kpis,
