@@ -122,6 +122,54 @@ async function main() {
     const storageState = await authContext.storageState();
     await authContext.close().catch(() => {});
 
+    // 2.1 Check User Preferences Modal Dialog (Regression Guard)
+    console.log('\n=== CHECKING USER PREFERENCES MODAL DIALOG ===');
+    const prefCtx = await browser.newContext({ storageState, viewport: { width: 1440, height: 900 } });
+    const prefPage = await prefCtx.newPage();
+    let prefCheckCompleted = false;
+    try {
+        await prefPage.goto('http://localhost:28069/insilos', { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await prefPage.waitForSelector('.o_main_navbar, .o_navbar', { timeout: 15000 });
+        const userMenuBtn = await prefPage.locator('.o_user_menu button, .o_user_menu .dropdown-toggle, button[aria-label="User menu"], .o_menu_systray .o_user_menu').first();
+        await userMenuBtn.click();
+        await prefPage.waitForTimeout(800);
+        const prefOption = await prefPage.locator('.dropdown-menu .dropdown-item:has-text("Preferences"), .dropdown-menu .dropdown-item[data-menu="settings"], .dropdown-menu .dropdown-item:has-text("Tùy chọn")').first();
+        await prefOption.click();
+        await prefPage.waitForSelector('.modal-dialog, .modal.show', { timeout: 10000 });
+        const modal = prefPage.locator('.modal-dialog, .modal.show').first();
+        const modalText = await modal.innerText();
+        const prefLeaks = [];
+        const brandPat = /\bodoo\b/gi;
+        let m;
+        while ((m = brandPat.exec(modalText)) !== null) {
+            // Capture only the matched token + minimal context, never raw PII-bearing slices.
+            const start = Math.max(0, m.index - 12);
+            const end = Math.min(modalText.length, m.index + m[0].length + 12);
+            prefLeaks.push(`User Preferences brand token "${m[0]}" near "...${modalText.slice(start, end).replace(/\s+/g, ' ')}..."`);
+        }
+        if (prefLeaks.length > 0) {
+            leakDetails.push({ appName: 'User Preferences Modal', url: 'preferences_dialog', leaks: prefLeaks, imgLeaks: [] });
+            console.log(`  ❌ Leaks detected in User Preferences modal: ${prefLeaks.length}`);
+        } else {
+            console.log('  ✅ User Preferences Modal: 100% Insilos Branded (0 leaks)');
+        }
+        prefCheckCompleted = true;
+    } catch (e) {
+        // A security control that cannot assert must fail loudly, not pass silently.
+        console.error('  ❌ User Preferences modal check FAILED to execute:', e.message);
+    } finally {
+        await prefPage.close().catch(() => {});
+        await prefCtx.close().catch(() => {});
+    }
+    if (!prefCheckCompleted) {
+        leakDetails.push({
+            appName: 'User Preferences Modal',
+            url: 'preferences_dialog',
+            leaks: ['AUDIT INCONCLUSIVE: modal check did not complete; treat as failing until re-run'],
+            imgLeaks: [],
+        });
+    }
+
     // 3. Check authenticated apps and menus with parallel worker pool
     console.log('\n=== CHECKING AUTHENTICATED CORE APPS (Parallel Concurrency: 3) ===');
     const authRoutes = [
