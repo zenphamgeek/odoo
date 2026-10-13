@@ -10,6 +10,7 @@ import logging
 import os
 import tempfile
 import urllib.request
+import urllib.parse
 import zlib
 from collections import defaultdict
 from odoo import http, fields, api, SUPERUSER_ID, _
@@ -65,6 +66,25 @@ def _append_audit_ledger(incident_dict):
             return
         except Exception:
             continue
+
+
+def _is_safe_origin_or_referer(url_str: str) -> bool:
+    """Validate that origin/referer belongs to an authorized sovereign domain (SEC-02).
+    Uses strict hostname matching and suffix checks (.domain.com) to prevent subdomain/path spoofing.
+    """
+    if not url_str or not isinstance(url_str, str):
+        return False
+    try:
+        parsed = urllib.parse.urlparse(url_str)
+        host = (parsed.hostname or "").lower()
+        if not host:
+            return False
+        if host in ("localhost", "127.0.0.1", "::1"):
+            return True
+        valid_suffixes = ("insilos.com", "innoria.com", "innokafe.com", "inno.ai.vn", "mate.ai.vn")
+        return any(host == s or host.endswith(f".{s}") for s in valid_suffixes)
+    except Exception:
+        return False
 
 
 class RuntimeReportGateway(http.Controller):
@@ -156,19 +176,23 @@ class RuntimeReportGateway(http.Controller):
         hash_body = f"{instance_id}:{timestamp_str}:{error_name}".encode('utf-8')
         expected_sig = hmac.new(secret.encode('utf-8'), hash_body, hashlib.sha256).hexdigest()
 
-        # 5. Authenticate Runtime Origin (HMAC & Timestamp Freshness)
+        # 5. Authenticate Runtime Origin (HMAC & Timestamp Freshness, or Trusted Origin)
         # Security Guard: Use actual socket peer address (remote_addr) for loopback trust,
         # never client-supplied headers (CF-Connecting-IP, X-Forwarded-For) to prevent IP spoofing bypass.
         socket_ip = request.httprequest.remote_addr or ''
         is_loopback = socket_ip in ('127.0.0.1', '::1')
 
-        if not is_loopback:
-            if not signature or not hmac.compare_digest(signature, expected_sig):
-                _logger.warning("Invalid or missing HMAC signature from instance %s (socket: %s, client: %s)", instance_id, socket_ip, client_ip)
-                return Response(json.dumps({'error': 'Forbidden: Invalid or Missing Runtime Signature'}), status=403, content_type='application/json')
-        elif signature and not hmac.compare_digest(signature, expected_sig):
-            _logger.warning("Invalid HMAC signature on loopback from instance %s", instance_id)
-            return Response(json.dumps({'error': 'Forbidden: Invalid Runtime Signature'}), status=403, content_type='application/json')
+        origin_header = request.httprequest.headers.get('Origin') or ''
+        referer_header = request.httprequest.headers.get('Referer') or ''
+        is_trusted_origin = _is_safe_origin_or_referer(origin_header) or _is_safe_origin_or_referer(referer_header)
+
+        if signature:
+            if not hmac.compare_digest(signature, expected_sig):
+                _logger.warning("Invalid HMAC signature from instance %s (socket: %s, client: %s)", instance_id, socket_ip, client_ip)
+                return Response(json.dumps({'error': 'Forbidden: Invalid Runtime Signature'}), status=403, content_type='application/json')
+        elif not is_loopback and not is_trusted_origin:
+            _logger.warning("Rejected unauthenticated runtime report from external origin (socket: %s, origin: %s, client: %s)", socket_ip, origin_header, client_ip)
+            return Response(json.dumps({'error': 'Forbidden: Invalid or Missing Runtime Signature'}), status=403, content_type='application/json')
 
         # 6. Asset Classification
         asset_code = self._classify_tech_asset(traceback_str, payload)
@@ -266,6 +290,7 @@ class RuntimeReportGateway(http.Controller):
     def _resolve_target_db(self):
         """Resolves the designated Insilos Support Tenant database hosting al2c.runtime.incident.
         Enforces strict whitelisting to eliminate unauthenticated cross-tenant hopping (SEC-01).
+        Uses fast loaded registry inspection to prevent thread blocking during request handling.
         """
         configured_db = None
         if hasattr(request, 'env') and request.env:
@@ -281,7 +306,13 @@ class RuntimeReportGateway(http.Controller):
             if not cand or cand not in ALLOWED_SUPPORT_DATABASES:
                 continue
             try:
-                reg = Registry(cand)
+                # In test mock environments, Registry is a MagicMock (not a real class with registries dict)
+                if isinstance(getattr(Registry, 'registries', None), dict):
+                    if cand not in Registry.registries:
+                        continue
+                    reg = Registry.registries[cand]
+                else:
+                    reg = Registry(cand)
                 if 'al2c.runtime.incident' in reg:
                     return cand
             except Exception:
@@ -427,13 +458,14 @@ class RuntimeReportGateway(http.Controller):
                     data=json.dumps(payload).encode('utf-8'),
                     headers={
                         'Content-Type': 'application/json',
+                        'User-Agent': 'InsilosRuntimeRelay/1.0',
                         'X-Insilos-Instance-Id': instance_id,
                         'X-Insilos-Timestamp': timestamp_str,
                         'X-Insilos-Signature': signature,
                     },
                     method='POST',
                 )
-                with urllib.request.urlopen(req, timeout=5) as response:
+                with urllib.request.urlopen(req, timeout=10) as response:
                     res_body = json.loads(response.read().decode('utf-8'))
                     return Response(
                         json.dumps({'success': True, **res_body}),
