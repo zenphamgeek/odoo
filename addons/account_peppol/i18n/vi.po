@@ -1247,8 +1247,8 @@ msgstr "Odoo"
 
 #. module: account_peppol
 #: model:ir.model.fields.selection,name:account_peppol.selection__res_partner__routing_scheme__odemo
-msgid "Odoo Demo ID"
-msgstr ""
+msgid "Insilos Demo ID"
+msgstr "ID Bản thử Insilos"
 
 #. module: account_peppol
 #. odoo-python

@@ -1164,7 +1164,7 @@ msgstr ""
 
 #. module: account_peppol
 #: model:ir.model.fields.selection,name:account_peppol.selection__res_partner__routing_scheme__odemo
-msgid "Odoo Demo ID"
+msgid "Insilos Demo ID"
 msgstr ""
 
 #. module: account_peppol

@@ -33,6 +33,7 @@ REBRAND_KEY_PAIRS: List[Tuple[str, str, str]] = [
     ('addons/mail', 'Notifications appear in your Odoo inbox', 'Notifications appear in your Insilos inbox'),
     ('addons/purchase', 'document in Odoo.', 'document in Insilos.'),
     ('addons/sms_twilio', 'Send via Odoo', 'Send via Insilos'),
+    ('addons/account_peppol', 'Odoo Demo ID', 'Insilos Demo ID'),
 ]
 
 

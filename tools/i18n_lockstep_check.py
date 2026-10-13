@@ -46,6 +46,14 @@ REBRANDED_SELECTION_SPEC: List[Dict[str, str]] = [
         "label": "Send via Insilos",
         "old_msgid": "Send via Odoo",
     },
+    {
+        "module": "account_peppol",
+        "py_path": "addons/account_peppol/models/res_partner.py",
+        "field": "routing_scheme",
+        "key": "odemo",
+        "label": "Insilos Demo ID",
+        "old_msgid": "Odoo Demo ID",
+    },
 ]
 
 # Text msgid substitutions for multi-line or view help strings
@@ -80,8 +88,8 @@ def extract_selection_pairs(py_path: pathlib.Path) -> List[Tuple[str, str]]:
             and isinstance(node.func, ast.Attribute)
             and node.func.attr == "Selection"
         ):
-            # Check positional or keyword arguments
-            candidates = list(node.args) + [kw.value for kw in node.keywords if kw.arg == "selection"]
+            # Check positional or keyword arguments (including selection_add)
+            candidates = list(node.args) + [kw.value for kw in node.keywords if kw.arg in ("selection", "selection_add")]
             for arg in candidates:
                 if isinstance(arg, (ast.List, ast.Tuple)):
                     for elt in arg.elts:

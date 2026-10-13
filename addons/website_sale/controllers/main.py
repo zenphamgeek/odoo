@@ -890,7 +890,7 @@ class WebsiteSale(payment_portal.PaymentPortal):
                 raise ValidationError(self.env._("Invalid video URL provided."))
             media_create_data = [
                 Command.create({
-                    "name": video_data.get("name", "Odoo Video"),
+                    "name": video_data.get("name", "Insilos Video"),
                     "video_url": video_data["video_url"],
                     "image_1920": video_data.get("image_1920"),
                     **variant_media_values,
