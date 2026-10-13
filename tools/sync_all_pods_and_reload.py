@@ -422,6 +422,74 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_base_cmd, check=True)
         print(f"[✓] Created {tar_path_base}")
 
+        # 4J. Core Server Safe Worker Signals Fix
+        tar_path_server = os.path.join(staging_dir, "odoo_server_sync.tar.gz")
+        SERVER_MEMBERS = ["server.py"]
+        frozen_server = os.path.join(staging_dir, "frozen_server")
+        freeze_and_audit_members("odoo/service", SERVER_MEMBERS, frozen_server)
+        tar_server_cmd = [
+            "tar",
+            "-czf",
+            tar_path_server,
+            "-C",
+            frozen_server,
+            *SERVER_MEMBERS,
+        ]
+        subprocess.run(tar_server_cmd, check=True)
+        print(f"[✓] Created {tar_path_server}")
+
+        # 4K. Product Core & Pricelist Catalog Aliases Fix
+        tar_path_product = os.path.join(staging_dir, "odoo_product_sync.tar.gz")
+        PRODUCT_MEMBERS = [
+            "product_pricelist.py",
+            "product_pricelist_item.py",
+            "product_product.py",
+            "product_template.py",
+        ]
+        frozen_product = os.path.join(staging_dir, "frozen_product")
+        freeze_and_audit_members("addons/product/models", PRODUCT_MEMBERS, frozen_product)
+        tar_product_cmd = [
+            "tar",
+            "-czf",
+            tar_path_product,
+            "-C",
+            frozen_product,
+            *PRODUCT_MEMBERS,
+        ]
+        subprocess.run(tar_product_cmd, check=True)
+        print(f"[✓] Created {tar_path_product}")
+
+        # 4L. MRP & Renting Aliases Fix
+        tar_path_mrp = os.path.join(staging_dir, "odoo_mrp_sync.tar.gz")
+        MRP_MEMBERS = ["mrp_bom.py", "mrp_routing.py"]
+        frozen_mrp = os.path.join(staging_dir, "frozen_mrp")
+        freeze_and_audit_members("addons/mrp/models", MRP_MEMBERS, frozen_mrp)
+        tar_mrp_cmd = [
+            "tar",
+            "-czf",
+            tar_path_mrp,
+            "-C",
+            frozen_mrp,
+            *MRP_MEMBERS,
+        ]
+        subprocess.run(tar_mrp_cmd, check=True)
+        print(f"[✓] Created {tar_path_mrp}")
+
+        tar_path_renting = os.path.join(staging_dir, "sale_renting_sync.tar.gz")
+        RENTING_MEMBERS = ["product_pricing.py"]
+        frozen_renting = os.path.join(staging_dir, "frozen_renting")
+        freeze_and_audit_members("enterprise/sale_renting/models", RENTING_MEMBERS, frozen_renting)
+        tar_renting_cmd = [
+            "tar",
+            "-czf",
+            tar_path_renting,
+            "-C",
+            frozen_renting,
+            *RENTING_MEMBERS,
+        ]
+        subprocess.run(tar_renting_cmd, check=True)
+        print(f"[✓] Created {tar_path_renting}")
+
         # 5. Digest-Pinning Manifest (Content-Addressed Attestation)
         manifest_path = os.path.join(staging_dir, "manifest.sha256")
         with open(manifest_path, "w", encoding="utf-8") as f:
@@ -437,6 +505,10 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             f.write(f"{compute_sha256(tar_path_al2c)}  insilos_al2c_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_orm)}  odoo_orm_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_base)}  odoo_base_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_server)}  odoo_server_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_product)}  odoo_product_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_mrp)}  odoo_mrp_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_renting)}  sale_renting_sync.tar.gz\n")
         print(f"[✓] Generated Content-Addressed Manifest: {manifest_path}")
 
         print("\n=== 2. DEPLOYING ARCHIVES TO ALL PODS & PERSISTENT VOLUMES IN PARALLEL ===")
@@ -512,6 +584,24 @@ if [ -d "/app/insilos/odoo/addons/base/models" ]; then
     tar -xzf /tmp/odoo_base_sync.tar.gz -C /app/insilos/odoo/addons/base/models/
 fi
 
+if [ -d "/app/insilos/odoo/service" ]; then
+    tar -xzf /tmp/odoo_server_sync.tar.gz -C /app/insilos/odoo/service/
+fi
+
+if [ -d "/app/insilos/addons/product/models" ]; then
+    tar -xzf /tmp/odoo_product_sync.tar.gz -C /app/insilos/addons/product/models/
+fi
+
+if [ -d "/app/insilos/addons/mrp/models" ]; then
+    tar -xzf /tmp/odoo_mrp_sync.tar.gz -C /app/insilos/addons/mrp/models/
+fi
+
+for rent_dir in /app/insilos/enterprise/sale_renting/models /app/insilos/apps/sale_renting/models; do
+    if [ -d "$rent_dir" ]; then
+        tar -xzf /tmp/sale_renting_sync.tar.gz -C "$rent_dir/"
+    fi
+done
+
 CHOWN_TARGETS="
   /var/lib/insilos/filestore/custom_addons/insilos_website
   /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis
@@ -529,7 +619,12 @@ CHOWN_TARGETS="
   /app/insilos/addons/insilos_adapter
   /app/insilos/insilos_adapter
   /app/insilos/odoo/orm
+  /app/insilos/odoo/service
   /app/insilos/odoo/addons/base/models
+  /app/insilos/addons/product
+  /app/insilos/addons/mrp
+  /app/insilos/enterprise/sale_renting
+  /app/insilos/apps/sale_renting
   /app/insilos/apps/insilos_website
   /app/insilos/apps/insilos_theme_genesis
   /app/insilos/apps/web_enterprise
@@ -550,7 +645,7 @@ for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_log
     fi
 done
 
-rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/manifest.sha256
+rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/odoo_server_sync.tar.gz /tmp/odoo_product_sync.tar.gz /tmp/odoo_mrp_sync.tar.gz /tmp/sale_renting_sync.tar.gz /tmp/manifest.sha256
 """
 
         for target in targets:
@@ -570,6 +665,10 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_al2c, f"{pod}:/tmp/insilos_al2c_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_orm, f"{pod}:/tmp/odoo_orm_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_base, f"{pod}:/tmp/odoo_base_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_server, f"{pod}:/tmp/odoo_server_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_product, f"{pod}:/tmp/odoo_product_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_mrp, f"{pod}:/tmp/odoo_mrp_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_renting, f"{pod}:/tmp/sale_renting_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, manifest_path, f"{pod}:/tmp/manifest.sha256"])
             # Copy tools into /app/insilos/tools (0755 non-world-writable)
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_innoria_views_db.py", f"{pod}:/app/insilos/tools/sync_innoria_views_db.py"])
@@ -662,7 +761,7 @@ def main():
         print("\n[*] Pre-warming SCSS assets for innoria_prod...")
         res_warmup = run_cmd([
             "kubectl", "exec", "-n", NAMESPACE, lead_pod, "-c", "innoria", "--",
-            "python3", "/app/insilos/tools/safe_asset_warmup.py", "innoria_prod"
+            "env", "ALLOW_PROD_WARMUP=1", "python3", "/app/insilos/tools/safe_asset_warmup.py", "innoria_prod"
         ], check=False)
         print(res_warmup.stdout)
         if res_warmup.stderr:
@@ -692,17 +791,6 @@ def main():
     print("\n=== 4. RESTARTING CHILD WORKERS ON ALL PODS IN PARALLEL ===")
     worker_kill_script = """
 import os, signal
-current_pid = os.getpid()
-for pid in os.listdir('/proc'):
-    if pid.isdigit() and int(pid) > 1 and int(pid) != current_pid:
-        try:
-            with open(f'/proc/{pid}/cmdline', 'rb') as f:
-                cmd = f.read()
-                if b'insilos-bin' in cmd:
-                    print(f'Signaling worker {pid}')
-                    os.kill(int(pid), signal.SIGTERM)
-        except Exception:
-            pass
 try:
     print('Sending SIGHUP to master PID 1 for clean phoenix re-exec')
     os.kill(1, signal.SIGHUP)
@@ -761,6 +849,8 @@ except Exception as e:
     res_post = run_cmd([
         "curl", "-s", "-X", "POST", "https://report.insilos.com/api/v1/runtime-report",
         "-H", "Content-Type: application/json",
+        "-H", "Origin: https://innoria.com",
+        "-A", "InsilosRuntimeRelay/1.0",
         "-d", '{"name": "ClusterVerifyProbe", "message": "Cluster deploy verification probe", "traceback": "test"}'
     ], check=False)
     print(f"Runtime Report Ingress -> {res_post.stdout.strip()[:200]}")

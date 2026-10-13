@@ -931,7 +931,7 @@ class PreforkServer(CommonServer):
     def sleep(self):
         try:
             # map of fd -> worker
-            fds = {w.watchdog_pipe[0]: w for w in self.workers.values()}
+            fds = {w.watchdog_pipe[0]: w for w in list(self.workers.values())}
             fd_in = list(fds) + [self.pipe[0]]
             # check for ping or internal wakeups
             ready = select.select(fd_in, [], [], self.beat)
@@ -1037,7 +1037,7 @@ class PreforkServer(CommonServer):
         self.logger.info("Stopping workers gracefully")
 
         # Signal workers to finish their current workload then stop
-        for pid in self.workers:
+        for pid in list(self.workers):
             self.worker_kill(pid, signal.SIGINT)
 
         is_main_server = self.pid == os.getpid()  # False if server reload, cannot reap children -> use psutil
