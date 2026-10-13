@@ -6,6 +6,7 @@ Target Databases: odoo20_dev, insilos20_dev, innoria_prod
 Reference Database: innokafe_prod
 """
 
+import os
 import psycopg2
 import sys
 
@@ -13,7 +14,7 @@ DATABASES = ["odoo20_dev", "insilos20_dev", "innoria_prod"]
 DB_HOST = "127.0.0.1"
 DB_PORT = 5434
 DB_USER = os.environ.get("PGUSER", "odoo")
-DB_PASS = os.environ.get("PGPASSWORD", "")
+DB_PASS = os.environ.get("PGPASSWORD", "1NN0R1@2026")
 
 def audit_database(dbname):
     print(f"\nAUDITING DATABASE: {dbname}")
