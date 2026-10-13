@@ -77,7 +77,7 @@
                             <Dropdown menuClass="{o_cp_switch_buttons: true, o_custom_bottom_sheet: true }">
                                 <button class="btn btn-secondary" data-available-offline="">
                                     <t t-set="activeView" t-value="this.env.config.viewSwitcherEntries.find((view) => view.active)"/>
-                                    <i class="ph ph-fw" t-attf-class="ph-{{ activeView.icon }}" data-tooltip="Switch view" />
+                                    <i class="ph ph-fw" t-attf-class="ph-{{ activeView?.icon || 'squares-four' }}" t-att-data-icon="activeView ? 'oi_view-' + activeView.icon : undefined" data-tooltip="Switch view" />
                                 </button>
                                 <t t-set-slot="content">
                                     <t t-foreach="this.env.config.viewSwitcherEntries" t-as="view" t-key="view.type">
@@ -86,7 +86,7 @@
                                             attrs="{ 'data-available-offline': this.isViewAvailable(view)}"
                                             onSelected="() => this.switchView(view.type)"
                                             class="{ 'selected': view.active }">
-                                                <i class="ph ph-fw" t-attf-class="ph-{{ view.icon }}"/>
+                                                <i class="ph ph-fw" t-attf-class="ph-{{ view.icon }}" t-att-data-icon="'oi_view-' + view.icon"/>
                                                 <span class="ms-1" t-out="view.name"/>
                                         </DropdownItem>
                                     </t>
@@ -99,7 +99,7 @@
                                     t-att-class="{ 'active': view.active }"
                                     t-attf-class="o_{{view.type}}"
                                     t-att-data-available-offline="this.isViewAvailable(view)"
-                                    t-att-data-tooltip="view.name + ' (Alt+Shift+V)'"
+                                    t-att-data-tooltip="view.name"
                                     t-custom-click="(ev, isMiddleClick) => this.switchView(view.type, isMiddleClick)"
                                     t-att-aria-label="view.name + ' View'"
                                 >

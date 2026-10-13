@@ -422,9 +422,15 @@ async function main() {
       'web_gantt',
       'web_grid',
       '@web_studio/navigation',
+      'web_enterprise',
       'insilos_logistics_idp',
       'insilos_market_terminal',
       'insilos_theme_genesis',
+      'web_mobile',
+      'timer',
+      'analytic_enterprise',
+      'crm_enterprise',
+      'data_cleaning',
     ];
   }
 
