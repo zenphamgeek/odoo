@@ -48,7 +48,7 @@ Doanh nghiệp hoạt động theo mô hình **Sản Phẩm Nền Tảng Kết H
 
 ## 2. Danh Mục Quy Trình Vận Hành Chuẩn (Master SOP Directory)
 
-Toàn bộ hoạt động của doanh nghiệp tuân thủ nghiêm ngặt 6 bộ Quy trình Vận hành Chuẩn (SOPs) đã được kiểm định và lưu trữ tại thư mục [`/home/zen/O20/docs/organization_and_processes/`](file:///home/zen/O20/docs/organization_and_processes/):
+Toàn bộ hoạt động của doanh nghiệp tuân thủ nghiêm ngặt 8 bộ Quy trình Vận hành Chuẩn (SOPs) đã được kiểm định và lưu trữ tại thư mục [`/home/zen/O20/docs/organization_and_processes/`](file:///home/zen/O20/docs/organization_and_processes/):
 
 ```
 /home/zen/O20/docs/organization_and_processes/
@@ -58,7 +58,9 @@ Toàn bộ hoạt động của doanh nghiệp tuân thủ nghiêm ngặt 6 bộ
 ├── 03_SOP_LEAD_TO_CASH_ENTERPRISE_GOVERNANCE.md        <-- Quy trình Lead-to-Cash 13 bước, Deal-Desk & Bảo vệ dữ liệu cá nhân
 ├── 04_SOP_SAP_ACTIVATE_PROJECT_DELIVERY_FRAMEWORK.md   <-- Phương pháp luận triển khai dự án SAP Activate 5 pha & 5 Q-Gates
 ├── 05_SOP_DEVSECOPS_SWARM_RD_RELEASE_GATES.md          <-- Kỹ nghệ phát triển phần mềm, Swarm Vibe Coding & 13 Council Gates
-└── 06_SOP_CONSULTING_RESOURCE_TIMESHEET_ANALYTIC.md    <-- Động cơ thu nhận timesheet email, đối soát & xuất hóa đơn VAT NĐ 70
+├── 06_SOP_CONSULTING_RESOURCE_TIMESHEET_ANALYTIC.md    <-- Động cơ thu nhận timesheet email, đối soát & xuất hóa đơn VAT NĐ 70
+├── 07_SOP_CUSTOMER_SUCCESS_SLA_AND_DISPUTE_RESOLUTION.md <-- Vận hành Thành công Khách hàng, Ma trận SLA & Đóng băng Dunning AL2C-INV-103
+└── 08_SOP_CROSS_PRODUCT_SYNERGY_AND_ENTERPRISE_ARCHITECTURE.md <-- Kiến trúc hợp nhất Tứ trụ (ERP, GRC, AI, Zencode) & Hợp đồng dữ liệu
 ```
 
 ### Bảng Tóm Tắt Nhiệm Vụ & Hàng Rào Quản Trị Của Từng SOP:
@@ -71,6 +73,8 @@ Toàn bộ hoạt động của doanh nghiệp tuân thủ nghiêm ngặt 6 bộ
 | **SOP-04** | **SOP Triển Khai SAP Activate** | • Chuẩn triển khai Fit-to-Standard & Giữ lõi sạch Clean Core<br>• 5 Pha: Prepare $\rightarrow$ Explore $\rightarrow$ Realize $\rightarrow$ Deploy $\rightarrow$ Run<br>• 5 Cổng nghiệm thu Q-Gates kích hoạt hóa đơn | Biên bản nghiệm thu bàn giao phải có chữ ký số hợp lệ lưu trên `documents.document` trước khi xuất hóa đơn. | [`04_SOP_SAP_ACTIVATE...`](file:///home/zen/O20/docs/organization_and_processes/04_SOP_SAP_ACTIVATE_PROJECT_DELIVERY_FRAMEWORK.md) |
 | **SOP-05** | **SOP DevSecOps & Swarm Engineering**| • Mô hình phát triển Hai Tuyến (Dual-Track Agile)<br>• Vibe Coding song song bằng cụm AGY Fleet Swarm<br>• Tái cấu trúc Biện chứng Hegelian & 13 Council Gates | Phân lập tuyệt đối dữ liệu sản xuất; nghiêm cấm chạy DDL trực tiếp trên DB production. | [`05_SOP_DEVSECOPS...`](file:///home/zen/O20/docs/organization_and_processes/05_SOP_DEVSECOPS_SWARM_RD_RELEASE_GATES.md) |
 | **SOP-06** | **SOP Timesheet & Tính Tiền Dịch Vụ** | • Đường ống thu nhận timesheet tự động qua `info@inno.ai.vn`<br>• Bóc tách thông minh đa định dạng (.xlsx, .csv, body)<br>• Khớp chuyên gia 3 tầng & Chống trùng lặp SHA-256<br>• Chu trình Bảng kê $\rightarrow$ Đối soát 1-click $\rightarrow$ Hóa đơn VAT NĐ 70 | Bắt buộc khách hàng xác nhận Bảng kê giờ công trực tuyến trên Portal trước khi hệ thống cho phép ký số hóa đơn VAT. | [`06_SOP_CONSULTING...`](file:///home/zen/O20/docs/organization_and_processes/06_SOP_CONSULTING_RESOURCE_TIMESHEET_ANALYTIC.md) |
+| **SOP-07** | **SOP Thành Công Khách Hàng & SLA** | • 4 Cấp độ cam kết dịch vụ (Platinum, Gold, Silver, Bronze)<br>• Quy trình nhắc nợ đa tầng (D+3, D+15, D+30)<br>• Cơ chế Đóng băng Dunning khi có tranh chấp (AL2C-INV-103) | Nghiêm cấm ngắt dịch vụ khi đang có tranh chấp mở (Zero False Suspension Invariant). | [`07_SOP_CUSTOMER...`](file:///home/zen/O20/docs/organization_and_processes/07_SOP_CUSTOMER_SUCCESS_SLA_AND_DISPUTE_RESOLUTION.md) |
+| **SOP-08** | **SOP Kiến Trúc Tứ Trụ Hợp Nhất** | • Topology 4 sản phẩm (ERP, GRC, AI, Zencode)<br>• Hợp đồng dữ liệu liên sản phẩm & Event-driven Webhooks<br>• 3 Gói giải pháp tích hợp thương mại đóng gói sẵn | Tuân thủ nghiêm ngặt 4 giới hạn kiến trúc bất biến (DB Isolation, Zero-Fake-Pass, Zero-AI-Tells, Multi-Currency). | [`08_SOP_CROSS_PRODUCT...`](file:///home/zen/O20/docs/organization_and_processes/08_SOP_CROSS_PRODUCT_SYNERGY_AND_ENTERPRISE_ARCHITECTURE.md) |
 
 ---
 
@@ -116,8 +120,8 @@ Toàn bộ hoạt động của doanh nghiệp tuân thủ nghiêm ngặt 6 bộ
 ### Các Tính Năng Đã Hoàn Thiện & Kiểm Định Thực Tế (Test Evidence):
 1. **Kiểm Soát Phân Quyền SoD:** Chuyên gia không thể tự duyệt timesheet của chính mình; chỉ Quản lý Dự án (`project.group_project_manager`) được phép phê duyệt và ghi sổ.
 2. **Hàng Rào Chống Trùng Lặp Kép:** Kiểm tra trùng lặp trên cả tầng đệm (`al2c.timesheet.staging`) và tầng sổ cái phân tích (`account.analytic.line`) theo tuple `(employee_id, task_id, date)`.
-3. **Hỗ Trợ Bảng Giá Đa Ngoại Tệ (Multi-Currency Rate Card):** Tự động bóc tách đơn giá và loại tiền tệ trên từng dòng (USD, EUR, VND), bảo lưu tỷ giá quy đổi snapshot tại thời điểm gửi bảng kê để tuân thủ Nghị định 70/2025/NĐ-CP về hạch toán tiền đồng Việt Nam.
-4. **Xác Thực 1-Click Khách Hàng Bảo Mật:** Mã HMAC-SHA256 có giới hạn thời gian (7 ngày), ngăn chặn tấn công giả mạo IDOR (CWE-639).
-5. **Chất Lượng Thử Nghiệm 100% Xanh:**
-   - `TestAl2cTimesheetBillingConfirmation`: 8/8 tests pass (Exit code 0).
-   - `TestAl2cTimesheetStaging`: 14/14 tests pass (Exit code 0).
+3. **Hỗ Trợ Bảng Giá Đa Ngoại Tệ (Multi-Currency Rate Card):** Tự động bóc tách đơn giá và loại tiền tệ trên từng dòng (USD, EUR, VND), bảo lưu tỷ giá quy đổi snapshot tại thời điểm gửi bảng kê với độ chính xác 8 chữ số thập phân (`digits=(16, 8)`), fail-closed đối với các ngoại tệ chưa cấu hình tỷ giá để tuân thủ Nghị định 70/2025/NĐ-CP về hạch toán tiền đồng Việt Nam.
+4. **Xác Thực 1-Click Khách Hàng Bảo Mật:** Mã HMAC-SHA256 sử dụng bí mật per-database UUID (`database.secret`), liên kết chặt chẽ với hóa đơn cụ thể, có giới hạn thời gian (7 ngày), ngăn chặn tấn công giả mạo IDOR (CWE-639) và tráo đổi token (CWE-259).
+5. **Chất Lượng Thử Nghiệm 100% Xanh (32/32 Unit Tests):**
+   - `TestAl2cTimesheetBillingConfirmation`: 18/18 tests pass bao gồm các bài kiểm tra an ninh nâng cao A-1..A-6 (Exit code 0).
+   - `TestAl2cTimesheetStaging`: 14/14 tests pass bao gồm kiểm tra bóc tách CSV/Excel, DMARC quarantine, và SoD boundary (Exit code 0).
