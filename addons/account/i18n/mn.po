@@ -13658,7 +13658,7 @@ msgstr "10-р сар"
 #. module: account
 #: model:ir.model.fields.selection,name:account.selection__account_report_expression__engine__domain
 #, fuzzy
-msgid "Odoo Domain"
+msgid "Insilos Domain"
 msgstr "Odoo Domain"
 
 #. module: account

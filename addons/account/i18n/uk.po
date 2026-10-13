@@ -13316,7 +13316,7 @@ msgstr "Жовтень"
 
 #. module: account
 #: model:ir.model.fields.selection,name:account.selection__account_report_expression__engine__domain
-msgid "Odoo Domain"
+msgid "Insilos Domain"
 msgstr "Домен Odoo"
 
 #. module: account

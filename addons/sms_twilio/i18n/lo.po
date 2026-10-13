@@ -309,7 +309,7 @@ msgstr ""
 
 #. module: sms_twilio
 #: model:ir.model.fields.selection,name:sms_twilio.selection__res_company__sms_provider__iap
-msgid "Send via Odoo"
+msgid "Send via Insilos"
 msgstr ""
 
 #. module: sms_twilio

@@ -6548,7 +6548,7 @@ msgstr ""
 msgid ""
 "How notifications for document messages and system updates are delivered:\n"
 "- By email: Notifications are sent to your email address.\n"
-"- In Odoo: Notifications appear in your Odoo inbox."
+"- In Insilos: Notifications appear in your Insilos inbox."
 msgstr ""
 "Cara notifikasi untuk pesan dokumen dan pembaruan sistem dikirimkan:\n"
 "- Melalui email: Notifikasi dikirim ke alamat email.\n"
@@ -7001,7 +7001,7 @@ msgstr "Di %(country)s"
 
 #. module: mail
 #: model:ir.model.fields.selection,name:mail.selection__res_users__notification_type__inbox
-msgid "In Odoo"
+msgid "In Insilos"
 msgstr "Di Odoo"
 
 #. module: mail

@@ -2273,6 +2273,21 @@ def test_schema_reconciliation_and_constraint_invariants():
     print("  [✓] Schema reconciliation existence guards (to_regclass), view ACL revocation, and physical unique constraint assertions verified.")
 
 
+def test_i18n_lockstep_and_selection_invariance():
+    print("[TEST i18n LOCKSTEP & SELECTION INVARIANCE] Game-Engine Lockstep & Selection Stored-Key Immutability")
+    from tools.i18n_lockstep_check import audit_lockstep, REBRANDED_SELECTION_SPEC
+
+    # 1. Run full lockstep audit across all registered modules and locale files
+    is_clean, errors = audit_lockstep(fix=False)
+    assert is_clean, f"i18n lockstep audit failed with errors: {errors}"
+
+    # 2. Assert selection keys never contain rebrand terms (CWE-20 / Stored-Data Corruption Guard)
+    for spec in REBRANDED_SELECTION_SPEC:
+        assert "insilos" not in spec["key"].lower(), f"Selection stored key '{spec['key']}' must not be mutated with brand tokens!"
+
+    print("  [✓] Game-engine lockstep verification confirmed: 0 orphaned msgids across all locales, selection DB keys immutable.")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -2303,8 +2318,9 @@ def main():
     test_svg_asset_sanitization_and_stealth()
     test_import_obfuscation_guard()
     test_schema_reconciliation_and_constraint_invariants()
+    test_i18n_lockstep_and_selection_invariance()
     print("=" * 80)
-    print("ALL 26 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 27 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 

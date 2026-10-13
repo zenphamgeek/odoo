@@ -721,7 +721,7 @@ class AccountReportExpression(models.Model):
     engine = fields.Selection(
         string="Computation Engine",
         selection=[
-            ('domain', "Odoo Domain"),
+            ('domain', "Insilos Domain"),
             ('tax_tags', "Tax Tags"),
             ('aggregation', "Aggregate Other Formulas"),
             ('account_codes', "Prefix of Account Codes"),

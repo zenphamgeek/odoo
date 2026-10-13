@@ -314,7 +314,7 @@ msgstr "傳送測試短訊"
 
 #. module: sms_twilio
 #: model:ir.model.fields.selection,name:sms_twilio.selection__res_company__sms_provider__iap
-msgid "Send via Odoo"
+msgid "Send via Insilos"
 msgstr "透過 Odoo 傳送"
 
 #. module: sms_twilio
