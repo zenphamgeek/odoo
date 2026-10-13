@@ -71,31 +71,51 @@ Trong mô hình công ty phần mềm và dịch vụ công nghệ doanh nghiệ
 
 ---
 
-## 3. Cơ Chế Bóc Tách Thông Minh & Hàng Rào Chống Trùng Lặp (Mojo AI & Dedup Guard)
+## 3. Cơ Chế Bóc Tách Thông Minh, Cách Ly An Toàn & Chống Trùng Lặp (Mojo AI & Security Guardrails)
 
-Mojo AI Parser thực hiện tuần tự các bước kiểm định dữ liệu tự động với độ chịu lỗi cao (Fault-Tolerant Engine):
+Mojo AI Parser thực hiện tuần tự các bước kiểm định dữ liệu tự động với độ chịu lỗi cao (Fault-Tolerant Engine), thiết lập các chốt chặn an ninh nghiêm ngặt:
 
-### 3.1. Đối Khớp Định Danh Chuyên Gia 3 Tầng (3-Tier Consultant Resolution)
+### 3.1. Hàng Rào Xác Thực Nguồn Gửi Email & Vùng Đệm Cách Ly (Origin Authentication & Quarantine Boundary - CWE-346 / CWE-20)
+Email là kênh đầu vào công cộng có nguy cơ bị giả mạo danh tính (Spoofing). Để ngăn chặn dữ liệu giả mạo xâm nhập vào sổ cái tài chính:
+1. **Kiểm Định Chuẩn DMARC / SPF / DKIM:**
+   - Hệ thống tự động kiểm tra trường `Authentication-Results` trong tiêu đề email (Headers).
+   - Nếu phát hiện `dmarc=fail` hoặc `spf=fail`, hệ thống đánh dấu bản ghi với `dmarc_status = 'fail'` và tự động chuyển sang chế độ **CÁCH LY NGHIÊM NGẶT (`is_quarantined = True`)**.
+2. **Danh Bạ Chuyên Gia Được Phép (Consultant Identity Allowlist):**
+   - Người gửi phải thuộc danh bạ nhân sự đang hoạt động (`hr.employee`) hoặc người dùng hệ thống (`res.users`).
+   - Mọi email gửi từ địa chỉ lạ hoặc không khớp định danh tin cậy đều bị cách ly ngay tại vùng đệm `al2c.timesheet.staging`, không được phép phân tích chi phí.
+3. **Nguyên Tắc Không Thăng Hạng Tự Động (Zero Direct Promotion Invariant):**
+   - Vùng đệm `al2c.timesheet.staging` được đối xử như vùng dữ liệu chưa tin cậy (Untrusted Quarantine).
+   - **Tuyệt đối không một email nào được tự động chuyển thành dòng sổ cái `account.analytic.line`**. Việc ghi nhận chỉ xảy ra khi có hành động phê duyệt có chủ ý của Trưởng Dự Án có thẩm quyền (SoD Enforcement).
+   - Bản ghi bị cách ly (`is_quarantined = True`) bị khóa cứng tại tầng ORM: phương thức `action_approve_and_commit` sẽ chủ động từ chối và bắn ngoại lệ `UserError` nếu người dùng cố tình phê duyệt bản ghi chưa được gỡ bỏ cách ly.
+4. **Giới Hạn Dung Lượng & Schema Kiểm Soát (Anti-DoS Capping):**
+   - Giới hạn payload tối đa 256 KB đối với API Webhook và 100.000 dòng $\times$ 512 cột đối với tệp đính kèm Excel.
+   - Chỉ chấp nhận các tệp bảng tính có cấu trúc (`.xlsx`, `.xls`, `.csv`). Tuyệt đối từ chối các tệp thực thi, macro (`.xlsm` có mã macro không an toàn), hoặc script.
+
+### 3.2. Đối Khớp Định Danh Chuyên Gia 3 Tầng (3-Tier Consultant Resolution)
 Hệ thống không phụ thuộc vào một thuộc tính đơn lẻ mà phân giải danh tính theo cơ chế phân tầng nghiêm ngặt:
 1. **Tier 1 (Trực tiếp từ Nhân sự):** Khớp địa chỉ email người gửi với trường `work_email` hoặc `private_email` trên bảng nhân sự `hr.employee`.
 2. **Tier 2 (Qua Tài khoản Người dùng):** Khớp email với `login` hoặc `email` trên bảng người dùng `res.users`, từ đó truy vết ra nhân viên liên kết `hr.employee`.
 3. **Tier 3 (Qua Danh bạ Liên hệ Công tác):** Khớp email với `work_contact_id.email` trên `hr.employee`.
 4. **Nguyên Tắc An Toàn (Ambiguity Rejection):** Nếu một địa chỉ email hoặc tên nhân sự khớp với từ 2 bản ghi trở lên trong cùng một tầng, hệ thống **từ chối tự động gán** (`refusing silent attribution`) và gắn nhãn cảnh báo để người phụ trách xác nhận thủ công, ngăn ngừa rủi ro tính sai chi phí và doanh thu.
 
-### 3.2. Bóc Tách Đa Định Dạng (Multi-Format Attachment Parsing)
-- **Tệp Excel Hiện Đại (`.xlsx`, `.xlsm`):** Bóc tách qua thư viện `openpyxl` với cơ chế kiểm tra dung lượng chống tấn công từ chối dịch vụ (giới hạn an toàn tối đa 100.000 dòng $\times$ 512 cột).
+### 3.3. Bóc Tách Đa Định Dạng (Multi-Format Attachment Parsing)
+- **Tệp Excel Hiện Đại (`.xlsx`):** Bóc tách qua thư viện `openpyxl` với cơ chế kiểm tra dung lượng chống tấn công từ chối dịch vụ.
 - **Tệp Excel Di Sản (`.xls`):** Bóc tách qua thư viện `xlrd` với bộ giải mã kiểu dữ liệu ngày tháng tự động (`xldate_as_datetime`).
 - **Tệp Văn Bản Phân Tách (`.csv`):** Tự động phát hiện ký tự phân cách (dấu phẩy `,` hoặc dấu chấm phẩy `;`) và bảng mã ký tự (UTF-8, UTF-8 with BOM, CP1258 cho tiếng Việt).
 - **Bảng Biểu Trong Thân Thư (Markdown / HTML Table):** Phân tích cú pháp biểu thức chính quy (Regex Table Extractor) để bóc tách cột Ngày, Dự án, Công việc, Số giờ, Diễn giải.
 
-### 3.3. Hàng Rào Chống Trùng Lặp Kép (Dual-Layer Deduplication Guard)
-Để loại bỏ hoàn toàn rủi ro một chuyên gia gửi lại báo cáo tuần nhiều lần dẫn tới tính tiền trùng lặp cho khách hàng:
-1. **Lớp 1: Mã Băm Dấu Vân Tay Toàn Cục (Global SHA-256 Fingerprint):**
-   $$\text{Fingerprint} = \text{SHA256}(\text{sender\_email} \parallel \text{subject} \parallel \text{body\_content})$$
-   Khóa duy nhất cấp cơ sở dữ liệu (`UNIQUE INDEX ... WHERE state = 'approved'`) đảm bảo tuyệt đối không một payload nào bị ghi sổ hai lần ngay cả trong tình huống có nhiều tiến trình chạy song song (Race-Condition Proof).
-2. **Lớp 2: Kiểm Tra Bộ Khóa Duy Nhất Từng Dòng (Row-Level Dedup Key):**
+### 3.4. Hợp Đồng Idempotency Kiểu Airflow/Prefect & Ranh Giới Giao Dịch Thăng Hạng (Financial Ledger Promotion Guard)
+Để loại bỏ hoàn toàn rủi ro email bị gửi lại (at-least-once delivery retry) dẫn tới nhân đôi giờ công và xuất hóa đơn vượt thực tế:
+1. **Khóa Tác Vụ Duy Nhất (Task-Instance Idempotency Key):**
+   Mỗi lần tiếp nhận email được định danh bởi bộ khóa duy nhất:
+   $$\text{Task Instance Key} = \text{SHA256}(\text{sender\_email} \parallel \text{subject} \parallel \text{body\_content} \parallel \text{message\_id})$$
+2. **Ranh Giới Giao Dịch Duy Nhất (Single Promotion Transaction):**
+   - Tiến trình thăng hạng từ Staging sang Sổ cái (`al2c.timesheet.staging ➔ account.analytic.line`) được thực thi trong một Database Savepoint nguyên tử duy nhất (`with self.env.cr.savepoint()`).
+   - Ràng buộc cấp cơ sở dữ liệu `al2c_timesheet_staging_dedup_approved_uniq` đảm bảo rằng một khóa vân tay chỉ được thăng hạng thành công đúng một lần duy nhất (`state = 'approved'`).
+   - Mọi cuộc gọi phê duyệt lại (Concurrent Retry) đều kích hoạt bắt lỗi `IntegrityError` tại tầng cơ sở dữ liệu và chuyển trạng thái bản ghi thành `duplicate`, không bao giờ sinh ra dòng analytic thứ hai.
+3. **Kiểm Tra Trùng Lặp Cấp Dòng (Row-Level Dedup Key):**
    $$\text{Dedup Key} = (\text{employee\_id}, \text{task\_id}, \text{date})$$
-   Mỗi dòng timesheet trước khi ghi nhận vào `account.analytic.line` đều được quét đối chiếu với các bản ghi đã tồn tại trong hệ thống. Nếu phát hiện trùng lặp, dòng đó lập tức bị chuyển trạng thái `duplicate` kèm thông báo mã dòng phân tích đối soát và không được tính tiền lại.
+   Từng dòng chi tiết trước khi ghi sổ đều đối chiếu với các bản ghi đã tồn tại trong `account.analytic.line`. Nếu phát hiện trùng, dòng đó lập tức bị cô lập và không tạo thêm bút toán tài chính.
 
 ---
 

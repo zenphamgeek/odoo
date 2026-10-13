@@ -79,3 +79,52 @@ class Al2cPortalController(CustomerPortal):
         if access_token:
             query += f'&access_token={access_token}'
         return request.redirect(invoice_sudo.get_portal_url(query_string=query))
+
+    @http.route(['/my/invoices/<int:invoice_id>/confirm_timesheet'], type='http', auth='public', methods=['POST', 'GET'], website=True, csrf=False)
+    def portal_invoice_confirm_timesheet(self, invoice_id, access_token=None, confirm_token=None, **kw):
+        """
+        Client Timesheet Statement Confirmation (CWE-639 / IDOR Hardened):
+        Verifies document access via access_token or active session,
+        validates the single-use time-boxed HMAC confirmation token,
+        and transitions the invoice to 'confirmed' for Decree 70 e-invoice issuance.
+        """
+        try:
+            invoice_sudo = self._document_check_access('account.move', invoice_id, access_token)
+        except (AccessError, MissingError):
+            return request.redirect('/my')
+
+        if invoice_sudo.move_type not in ('out_invoice', 'out_refund'):
+            return request.redirect(invoice_sudo.get_portal_url())
+
+        # If already confirmed, redirect with idempotent notice
+        if invoice_sudo.al2c_timesheet_statement_state == 'confirmed':
+            query = '&timesheet_already_confirmed=1'
+            if access_token:
+                query += f'&access_token={access_token}'
+            return request.redirect(invoice_sudo.get_portal_url(query_string=query))
+
+        token_to_verify = confirm_token or kw.get('confirm_token')
+        # Server-side authentication check:
+        # User is authenticated as the document commercial partner OR has a cryptographically valid HMAC token
+        is_authenticated_partner = bool(
+            request.env.user and
+            request.env.user.partner_id and
+            not request.env.user._is_public() and
+            request.env.user.partner_id.commercial_partner_id.id == invoice_sudo.partner_id.commercial_partner_id.id
+        )
+
+        if not is_authenticated_partner:
+            if not token_to_verify or not invoice_sudo._verify_timesheet_token(invoice_sudo.id, token_to_verify):
+                # Reject invalid or expired token (CWE-639 IDOR defense)
+                query = '&invalid_token=1'
+                if access_token:
+                    query += f'&access_token={access_token}'
+                return request.redirect(invoice_sudo.get_portal_url(query_string=query))
+
+        client_name = request.env.user.name if request.env.user and not request.env.user._is_public() else invoice_sudo.partner_id.name
+        invoice_sudo.sudo().action_client_confirm_timesheet(token=token_to_verify, confirmed_by=client_name)
+
+        query = '&timesheet_confirmed=1'
+        if access_token:
+            query += f'&access_token={access_token}'
+        return request.redirect(invoice_sudo.get_portal_url(query_string=query))

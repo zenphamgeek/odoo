@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import time
+import hmac
+import hashlib
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.tools.sql import SQL
@@ -34,6 +37,109 @@ class AccountMove(models.Model):
     def _compute_al2c_has_open_dispute(self):
         for move in self:
             move.al2c_has_open_dispute = any(d.state == 'open' for d in move.al2c_dispute_ids)
+
+    # --- Billable Timesheet Statement & Client Confirmation (AL2C-SOP-002 / CWE-639 Hardened) ---
+    al2c_timesheet_statement_state = fields.Selection([
+        ('not_applicable', 'Not Applicable'),
+        ('draft_statement', 'Draft Timesheet Statement'),
+        ('sent_to_client', 'Sent to Client for Confirmation'),
+        ('confirmed', 'Confirmed by Client'),
+        ('disputed', 'Disputed / Under Review'),
+    ], string='Timesheet Statement Status', default='not_applicable', tracking=True, copy=False)
+
+    al2c_timesheet_token = fields.Char(
+        string='Statement Confirmation Token (HMAC Signed)',
+        copy=False,
+        readonly=True,
+    )
+    al2c_timesheet_confirmed_date = fields.Datetime(
+        string='Timesheet Confirmation Date',
+        copy=False,
+        readonly=True,
+    )
+    al2c_timesheet_confirmed_by = fields.Char(
+        string='Confirmed By Client Representative',
+        copy=False,
+        readonly=True,
+    )
+
+    @api.model
+    def _generate_timesheet_token(self, move_id, expires_in_days=7):
+        """Generates cryptographically signed, time-boxed token (CWE-639 IDOR defense)."""
+        secret = self.env['ir.config_parameter'].sudo().get_param('database.secret') or 'al2c_secret_salt_2026'
+        expiry_ts = int(time.time() + (expires_in_days * 86400))
+        msg = f"{move_id}:{expiry_ts}"
+        sig = hmac.new(secret.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256).hexdigest()[:32]
+        return f"{expiry_ts}_{sig}"
+
+    @api.model
+    def _verify_timesheet_token(self, move_id, token_str):
+        """Verifies HMAC signature and expiry for timesheet confirmation token."""
+        if not token_str or '_' not in str(token_str):
+            return False
+        parts = str(token_str).split('_', 1)
+        if len(parts) != 2:
+            return False
+        try:
+            expiry_ts = int(parts[0])
+            provided_sig = parts[1]
+        except (ValueError, TypeError):
+            return False
+        if time.time() > expiry_ts:
+            return False
+        secret = self.env['ir.config_parameter'].sudo().get_param('database.secret') or 'al2c_secret_salt_2026'
+        msg = f"{move_id}:{expiry_ts}"
+        expected_sig = hmac.new(secret.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256).hexdigest()[:32]
+        return hmac.compare_digest(expected_sig, provided_sig)
+
+    def action_send_timesheet_statement(self):
+        """Send timesheet statement & confirmation request email to client."""
+        template = self.env.ref('insilos_al2c.email_template_al2c_timesheet_statement_confirm', raise_if_not_found=False)
+        for move in self:
+            if move.move_type not in ('out_invoice', 'out_refund'):
+                continue
+            token = self._generate_timesheet_token(move.id, expires_in_days=7)
+            move.write({
+                'al2c_timesheet_statement_state': 'sent_to_client',
+                'al2c_timesheet_token': token,
+            })
+            if template and move.partner_id.email:
+                template.send_mail(move.id, force_send=True)
+            move.message_post(
+                body=_(
+                    "<b>Bảng kê Giờ công Tư vấn (Timesheet Statement)</b> đã được gửi tới khách hàng (%s). "
+                    "Hạn xác nhận trực tuyến: 7 ngày (HMAC signed token)."
+                ) % (move.partner_id.email or 'N/A'),
+                message_type='comment',
+                subtype_xmlid='mail.mt_note',
+            )
+        return True
+
+    def action_client_confirm_timesheet(self, token=None, confirmed_by=None):
+        """Called when client confirms timesheet on portal or via secure link.
+        Validates token, ensures single-use idempotency, and records audit trail.
+        """
+        for move in self:
+            if move.al2c_timesheet_statement_state == 'confirmed':
+                continue
+            if token and not self._verify_timesheet_token(move.id, token):
+                raise UserError(_("Invalid or expired timesheet confirmation token."))
+            move.write({
+                'al2c_timesheet_statement_state': 'confirmed',
+                'al2c_timesheet_confirmed_date': fields.Datetime.now(),
+                'al2c_timesheet_confirmed_by': confirmed_by or (self.env.user.name if self.env.user else 'Client Representative'),
+            })
+            move.message_post(
+                body=_(
+                    "<b>✓ Khách Hàng Đã Xác Nhận Bảng Kê Giờ Công Tư Vấn (Timesheet Statement):</b><br/>"
+                    "Đại diện xác nhận: <b>%s</b><br/>"
+                    "Thời điểm xác nhận: <code>%s</code><br/>"
+                    "<i>Hóa đơn đủ điều kiện để ký số và phát hành Hóa đơn Điện tử theo Nghị định 70/2025/NĐ-CP.</i>"
+                ) % (move.al2c_timesheet_confirmed_by, move.al2c_timesheet_confirmed_date),
+                message_type='comment',
+                subtype_xmlid='mail.mt_comment',
+            )
+        return True
 
     # --- Decree 70/2025 E-Invoice Fields (AL2C-INV-001) ---
     al2c_einvoice_provider = fields.Selection([

@@ -184,6 +184,18 @@ class Al2cTimesheetStaging(models.Model):
     ], string='Parse Diagnostics', default='pending', tracking=True)
     parse_log = fields.Text(string='Parser Diagnostics Log')
 
+    dmarc_status = fields.Selection([
+        ('pass', 'Pass / Aligned'),
+        ('fail', 'Failed DMARC / Spoof Warning'),
+        ('unverified', 'Unverified / External'),
+    ], string='DMARC Alignment', default='unverified', tracking=True)
+    is_quarantined = fields.Boolean(
+        string='Quarantined (Untrusted Input)',
+        default=False,
+        tracking=True,
+        help='Quarantined if sender is not in registered consultant allowlist or fails email authenticity checks.',
+    )
+
     approved_by_id = fields.Many2one('res.users', string='Approved By', readonly=True)
     approved_date = fields.Datetime(string='Approval Timestamp', readonly=True)
     rejection_reason = fields.Text(string='Rejection Reason')
@@ -355,6 +367,13 @@ class Al2cTimesheetStaging(models.Model):
             self.env['res.users'].search([('email', '=ilike', sender_email)], limit=1)
         )
 
+        # CWE-346 / CWE-20 Invariant: Authenticate email source & quarantine untrusted submissions
+        auth_results = (msg_dict.get('headers') or {}).get('Authentication-Results', '') if isinstance(msg_dict.get('headers'), dict) else ''
+        dmarc_fail = 'dmarc=fail' in str(auth_results).lower() or 'spf=fail' in str(auth_results).lower()
+        dmarc_pass = 'dmarc=pass' in str(auth_results).lower() and 'spf=pass' in str(auth_results).lower()
+        dmarc_status = 'fail' if dmarc_fail else ('pass' if dmarc_pass else 'unverified')
+        is_quarantined = bool(dmarc_fail or not consultant)
+
         fingerprint = self.compute_dedup_hash(sender_email, subject, body)
 
         # Check for existing duplicate staging by fingerprint
@@ -371,6 +390,8 @@ class Al2cTimesheetStaging(models.Model):
             'employee_id': consultant.id if consultant else False,
             'user_id': user.id if user else False,
             'state': 'received',
+            'dmarc_status': dmarc_status,
+            'is_quarantined': is_quarantined,
         })
 
         try:
@@ -811,6 +832,9 @@ class Al2cTimesheetStaging(models.Model):
         )
         if not is_manager:
             raise UserError(_("Segregation of Duties: Only a Project Manager or Sales Manager can commit timesheets."))
+
+        if self.is_quarantined:
+            raise UserError(_("Cannot commit quarantined timesheet submission. Sender identity is unverified or DMARC authentication failed."))
 
         valid_lines = self.line_ids.filtered(lambda l: l.state in ['valid', 'draft'])
         if not valid_lines:

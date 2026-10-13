@@ -495,4 +495,83 @@
 </div>
         </field>
     </record>
+
+    <!-- 9. AL2C Billable Timesheet Statement & Customer Confirmation Request (AL2C-SOP-002) -->
+    <record id="email_template_al2c_timesheet_statement_confirm" model="mail.template">
+        <field name="name">AL2C: Timesheet Statement &amp; Confirmation Request (SAP Fiori Horizon)</field>
+        <field name="model_id" ref="account.model_account_move"/>
+        <field name="subject">{{ object.company_id.name }} - Bảng Kê Chi Tiết Giờ Công &amp; Yêu Cầu Xác Nhận Dịch Vụ {{ object.name or '' }}</field>
+        <field name="email_from">{{ (object.invoice_user_id.email_formatted or object.company_id.email_formatted or user.email_formatted) }}</field>
+        <field name="partner_to">{{ object.partner_id.id }}</field>
+        <field name="description">Sent to client representatives for 1-click confirmation of billable consulting hours before Decree 70 e-invoice issuance</field>
+        <field name="email_layout_xmlid">mail.mail_notification_light</field>
+        <field name="body_html" type="html">
+<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616;">
+    <div style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #E0E0E0;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+            <tr>
+                <td align="left" valign="middle">
+                    <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 28px; width: auto; display: block; border: 0;" alt="Innoria Enterprise"/>
+                </td>
+                <td align="right" valign="middle">
+                    <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px; font-weight: 700; color: #0070F2; background-color: #EDF5FF; border: 1px solid #D0E2FF; padding: 2px 6px; border-radius: 2px; letter-spacing: 0.05em;">
+                        TIMESHEET STATEMENT
+                    </span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div style="margin-bottom: 16px;">
+        <span style="font-size: 15px; font-weight: 700; color: #161616;">Kính gửi Quý Khách hàng <t t-out="object.partner_id.name"/>,</span>
+    </div>
+    <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #333333;">
+        Innoria xin trân trọng thông báo và gửi tới Quý Đơn vị <strong>Bảng Kê Chi Tiết Giờ Công &amp; Hóa Đơn Tạm Tính</strong> số <strong style="color: #0070F2; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;" t-out="object.name"/> ghi nhận công sức của các chuyên gia tư vấn tham gia dự án.
+    </p>
+
+    <!-- Statement Summary Card -->
+    <div style="background-color: #F8F9FA; border: 1px solid #E0E0E0; border-left: 4px solid #0070F2; border-radius: 4px; padding: 14px 18px; margin-bottom: 20px;">
+        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; line-height: 1.6;">
+            <tr>
+                <td style="color: #525252; width: 40%;">Mã chứng từ tạm tính:</td>
+                <td style="font-weight: 700; color: #0070F2; width: 60%;"><span t-out="object.name"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Kỳ đối soát giờ công:</td>
+                <td style="font-weight: 600; color: #161616;"><span t-out="object.invoice_date or object.date"/></td>
+            </tr>
+            <tr>
+                <td style="color: #525252;">Tổng tiền dịch vụ trước thuế:</td>
+                <td style="font-weight: 700; color: #161616;"><span t-out="format_amount(object.amount_untaxed, object.currency_id)"/></td>
+            </tr>
+            <tr style="border-top: 1px solid #E0E0E0;">
+                <td style="color: #525252; font-weight: 700; padding-top: 6px;">Tổng cộng thanh toán (VAT):</td>
+                <td style="font-weight: 800; color: #0070F2; font-size: 16px; padding-top: 6px;"><span t-out="format_amount(object.amount_total, object.currency_id)"/></td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Explanatory note & Confirmation Guidance -->
+    <div style="background-color: #F4F4F4; border: 1px solid #E0E0E0; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; line-height: 1.6; color: #525252;">
+        <strong style="color: #161616; font-size: 12px;">Quy Trình Nghiệm Thu Giờ Công &amp; Xuất Hóa Đơn Điện Tử:</strong>
+        <ul style="margin: 6px 0 0 0; padding-left: 20px;">
+            <li><strong>Kiểm tra chi tiết:</strong> Quý Khách hàng vui lòng rà soát danh sách giờ công từng chuyên gia đính kèm trong phụ lục hoặc tra cứu trực tuyến trên Cổng Khách hàng.</li>
+            <li><strong>Xác nhận trực tuyến:</strong> Nhấn nút xác nhận bên dưới để hệ thống chính thức ký số và phát hành Hóa đơn Giá trị Gia tăng điện tử theo Nghị định 70/2025/NĐ-CP.</li>
+            <li><strong>Đối soát &amp; Khiếu nại:</strong> Trường hợp cần làm rõ khối lượng giờ công, Quý Khách hàng có thể nhấn nút <em>Khiếu nại / Đối soát AL2C-INV-103</em> để đóng băng hạn thanh toán.</li>
+        </ul>
+    </div>
+
+    <!-- 1-Click Confirmation CTA Button -->
+    <div style="text-align: center; margin: 24px 0;">
+        <a t-attf-href="#{object.get_portal_url()}?confirm_token=#{object.al2c_timesheet_token}" style="display: inline-block; background-color: #0070F2; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 4px; box-shadow: 0 4px 10px rgba(0, 112, 242, 0.3);">
+            Xác Nhận Giờ Công &amp; Đồng Ý Phát Hành Hóa Đơn
+        </a>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 13px; color: #161616;">
+        Trân trọng cảm ơn sự hợp tác của Quý Khách hàng,<br/>
+        <strong>Đội ngũ Tư vấn Giải pháp &amp; Quản trị Dự án Innoria</strong>
+    </div>
+</div>
+        </field>
+    </record>
 </odoo>

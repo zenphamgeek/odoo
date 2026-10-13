@@ -325,6 +325,47 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
+            <!-- Timesheet Confirmed Alert Banner -->
+            <div t-if="request.params.get('timesheet_confirmed')" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+                <strong>✓ Xác nhận Bảng kê Giờ công thành công!</strong> Cảm ơn Quý Khách hàng. Hệ thống đang tiến hành ký số và phát hành Hóa đơn Giá trị Gia tăng điện tử theo Nghị định 70/2025/NĐ-CP.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div t-if="request.params.get('invalid_token')" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+                <strong>✕ Mã xác nhận không hợp lệ hoặc đã hết hạn:</strong> Vui lòng đăng nhập Cổng Khách hàng để xác nhận hoặc liên hệ quản trị viên dự án.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- Timesheet Statement Confirmation Action Box (AL2C-SOP-002) -->
+            <div t-if="invoice.al2c_timesheet_statement_state == 'sent_to_client'" class="border rounded p-3 mb-3 bg-white shadow-sm" style="border-left: 4px solid #0070F2 !important;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="badge bg-primary text-white" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">BẢNG KÊ GIỜ CÔNG CHỜ XÁC NHẬN</span>
+                    <span class="text-muted small" style="font-size: 11px;">Hạn xác nhận: 7 ngày</span>
+                </div>
+                <p class="small text-muted mb-3" style="font-size: 12px; line-height: 1.5;">
+                    Kính mời Quý Khách hàng rà soát chi tiết giờ công của các chuyên gia tư vấn tham gia dự án. Sau khi Quý Đơn vị xác nhận, hóa đơn điện tử chính thức theo Nghị định 70/2025/NĐ-CP sẽ được ký số và phát hành.
+                </p>
+                <div class="d-flex gap-2">
+                    <form t-attf-action="/my/invoices/#{invoice.id}/confirm_timesheet" method="post" class="d-inline">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                        <input t-if="request.params.get('confirm_token')" type="hidden" name="confirm_token" t-att-value="request.params.get('confirm_token')"/>
+                        <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-bold shadow-sm">
+                            <i class="oi oi-check me-1"/> Xác Nhận Giờ Công &amp; Đồng Ý Phát Hành Hóa Đơn
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-outline-danger btn-sm px-3 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal">
+                        <i class="oi oi-flag me-1"/> Yêu Cầu Đối Soát / Khiếu Nại AL2C-INV-103
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timesheet Confirmed Status Banner -->
+            <div t-elif="invoice.al2c_timesheet_statement_state == 'confirmed'" class="alert alert-success d-flex align-items-center gap-2 p-3 mb-3 shadow-sm" role="alert">
+                <span class="badge bg-success text-white" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">ĐÃ XÁC NHẬN BẢNG KÊ</span>
+                <div class="small" style="font-size: 12px;">
+                    <strong>✓ Bảng kê giờ công đã được Quý Khách hàng xác nhận</strong> vào ngày <span t-out="invoice.al2c_timesheet_confirmed_date"/> (Bởi: <strong t-out="invoice.al2c_timesheet_confirmed_by"/>). Hóa đơn điện tử đủ điều kiện phát hành theo Nghị định 70/2025/NĐ-CP.
+                </div>
+            </div>
+
             <!-- Decree 70/2025 E-Invoice Header & Verification Box -->
             <div class="border rounded p-3 mb-3 bg-white shadow-sm" style="border-left: 4px solid #0070F2 !important;">
                 <div class="row align-items-center gy-2">
