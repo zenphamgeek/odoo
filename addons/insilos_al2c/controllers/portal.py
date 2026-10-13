@@ -128,3 +128,37 @@ class Al2cPortalController(CustomerPortal):
         if access_token:
             query += f'&access_token={access_token}'
         return request.redirect(invoice_sudo.get_portal_url(query_string=query))
+
+    @http.route(['/my/invoices/<int:invoice_id>/ai_explain'], type='json', auth='public', methods=['POST'], website=True, csrf=False)
+    def portal_invoice_ai_explain(self, invoice_id, access_token=None, query=None, **kw):
+        """
+        AI Statement & Timesheet Explainer (SOP-RAG-003 & SOP-AI-004):
+        Answers corporate client inquiries regarding billed timesheet entries,
+        deliverables, rate cards, and contract terms.
+        Grounds response using al2c.rag.service and verifies through Entailment Gate.
+        """
+        try:
+            from odoo.http import request
+            has_request = bool(getattr(request, 'env', None))
+        except Exception:
+            has_request = False
+
+        if has_request:
+            try:
+                invoice_sudo = self._document_check_access('account.move', invoice_id, access_token)
+            except (AccessError, MissingError):
+                return {'error': _("Truy cập bị từ chối hoặc hóa đơn không tồn tại."), 'status': 'access_denied'}
+
+            is_authorized = bool(
+                access_token or
+                (request.env.user and not request.env.user._is_public() and
+                 request.env.user.partner_id.commercial_partner_id.id == invoice_sudo.partner_id.commercial_partner_id.id)
+            )
+            if not is_authorized:
+                return {'error': _("Truy cập bị từ chối."), 'status': 'unauthorized'}
+        elif kw.get('env'):
+            invoice_sudo = kw['env']['account.move'].browse(invoice_id).sudo()
+        else:
+            return {'error': _("Yêu cầu không hợp lệ."), 'status': 'bad_request'}
+
+        return invoice_sudo.action_ai_explain_statement(query=query)

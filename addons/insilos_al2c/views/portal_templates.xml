@@ -356,10 +356,91 @@
                             <i class="oi oi-check me-1"/> Xác Nhận Giờ Công &amp; Đồng Ý Phát Hành Hóa Đơn
                         </button>
                     </form>
+                    <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 shadow-sm" data-bs-toggle="collapse" data-bs-target="#al2cAiExplainerCollapse" aria-expanded="false" aria-controls="al2cAiExplainerCollapse">
+                        <i class="oi oi-search me-1"/> Hỏi Trợ Lý AI (SOP-RAG)
+                    </button>
                     <button type="button" class="btn btn-outline-danger btn-sm px-3 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal">
                         <i class="oi oi-flag me-1"/> Yêu Cầu Đối Soát / Khiếu Nại AL2C-INV-103
                     </button>
                 </div>
+            </div>
+
+            <!-- Interactive AI Statement & Timesheet Explainer Container (SOP-11 & SOP-12) -->
+            <div class="collapse mb-3" id="al2cAiExplainerCollapse">
+                <div class="card card-body bg-light border-primary shadow-sm" style="border-left: 4px solid #0070F2 !important;">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary text-white" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">SOP-RAG-003</span>
+                            <strong class="text-dark small">Trợ Lý AI Đối Soát Giờ Công &amp; Căn Cứ Hợp Đồng</strong>
+                        </div>
+                        <span class="badge bg-light text-muted border small" style="font-size: 10px;">CITATION CONTRACT [Doc | Sec | ID | Hash]</span>
+                    </div>
+                    <div class="small text-muted mb-2">
+                        Truy xuất cơ sở tri thức KMS, phạm vi bàn giao SOW và nhật ký nghiệm thu được ký số để đối soát chi tiết từng dòng hóa đơn.
+                    </div>
+                    <div id="al2cAiExplainerResult" class="p-3 bg-white rounded border mb-2 small" style="min-height: 80px; max-height: 250px; overflow-y: auto;">
+                        <span class="text-muted fst-italic">Bấm "Giải Trình Bảng Kê" để đối soát tự động hoặc nhập câu hỏi chi tiết bên dưới...</span>
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <input type="text" id="al2cAiQueryInput" class="form-control" placeholder="Đặt câu hỏi về các dòng giờ công này (VD: Căn cứ tính giờ giai đoạn Realize?)..."/>
+                        <button class="btn btn-primary" type="button" id="al2cBtnAskAi" t-att-data-invoice-id="invoice.id" t-att-data-access-token="access_token">
+                            <i class="oi oi-play me-1"/> Giải Trình Bảng Kê
+                        </button>
+                    </div>
+                </div>
+                <script type="text/javascript">
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const btn = document.getElementById('al2cBtnAskAi');
+                        const input = document.getElementById('al2cAiQueryInput');
+                        const resultDiv = document.getElementById('al2cAiExplainerResult');
+                        if (!btn || !resultDiv) return;
+                        
+                        btn.addEventListener('click', async function() {
+                            const invId = btn.getAttribute('data-invoice-id');
+                            const accessToken = btn.getAttribute('data-access-token') || '';
+                            const query = (input &amp;&amp; input.value) ? input.value : '';
+                            
+                            resultDiv.innerHTML = '&lt;span class="text-primary"&gt;&lt;i class="oi oi-clock me-1"/&gt; Đang đối soát cơ sở tri thức KMS và kiểm tra Entailment Gate...&lt;/span&gt;';
+                            btn.disabled = true;
+                            
+                            try {
+                                const resp = await fetch('/my/invoices/' + invId + '/ai_explain', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json'},
+                                    body: JSON.stringify({
+                                        jsonrpc: '2.0',
+                                        params: {
+                                            access_token: accessToken,
+                                            query: query
+                                        }
+                                    })
+                                });
+                                const data = await resp.json();
+                                const res = data.result || {};
+                                if (res.success) {
+                                    let html = '&lt;div class="fw-bold mb-1 text-dark"&gt;' + (res.answer || '').replace(/\n/g, '&lt;br/&gt;') + '&lt;/div&gt;';
+                                    if (res.citations &amp;&amp; res.citations.length &gt; 0) {
+                                        html += '&lt;div class="mt-2 pt-2 border-top text-muted" style="font-size: 10px;"&gt;&lt;strong&gt;Nguồn trích dẫn (Citations):&lt;/strong&gt;&lt;br/&gt;';
+                                        res.citations.forEach(c =&gt; {
+                                            html += '&lt;span class="badge bg-secondary-subtle text-dark border me-1 my-1"&gt;' + c + '&lt;/span&gt;';
+                                        });
+                                        html += '&lt;/div&gt;';
+                                    }
+                                    if (res.grounded) {
+                                        html += '&lt;div class="mt-1 text-success" style="font-size: 10px;"&gt;&lt;i class="oi oi-check me-1"/&gt; Grounding Entailment: ' + (res.entailment_score * 100).toFixed(1) + '% (Verified)&lt;/div&gt;';
+                                    }
+                                    resultDiv.innerHTML = html;
+                                } else {
+                                    resultDiv.innerHTML = '&lt;span class="text-danger"&gt;' + (res.error || 'Lỗi xử lý yêu cầu.') + '&lt;/span&gt;';
+                                }
+                            } catch (e) {
+                                resultDiv.innerHTML = '&lt;span class="text-danger"&gt;Lỗi kết nối máy chủ.&lt;/span&gt;';
+                            } finally {
+                                btn.disabled = false;
+                            }
+                        });
+                    });
+                </script>
             </div>
 
             <!-- Timesheet Confirmed Status Banner -->

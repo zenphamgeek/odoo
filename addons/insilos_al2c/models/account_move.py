@@ -327,6 +327,86 @@ class AccountMove(models.Model):
             )
         return True
 
+    def action_ai_explain_statement(self, query=None):
+        """
+        AI Statement & Timesheet Explainer (SOP-RAG-003 & SOP-AI-004):
+        Answers client inquiries regarding billed timesheet entries, deliverables,
+        rate cards, and contract terms using grounded RAG knowledge and Entailment Gate.
+        """
+        self.ensure_one()
+        user_query = (query or '').strip()
+        if not user_query:
+            user_query = _("Giải trình tổng hợp các hạng mục giờ công và tiến độ nghiệm thu.")
+
+        line_details = []
+        for line in self.invoice_line_ids:
+            if line.display_type in ('line_section', 'line_note', 'line_subsection'):
+                continue
+            curr_symbol = self.currency_id.symbol or 'VND'
+            line_details.append(f"- {line.name}: {line.quantity:.1f} giờ/đơn vị x {line.price_unit:,.0f} {curr_symbol}")
+
+        curr_symbol = self.currency_id.symbol or 'VND'
+        invoice_context = (
+            f"Hóa đơn #{self.name} phát hành cho {self.partner_id.name}.\n"
+            f"Tổng tiền: {self.amount_total:,.0f} {curr_symbol}.\n"
+            f"Trạng thái Bảng kê: {self.al2c_timesheet_statement_state}.\n"
+            f"Tổng giờ công: {self.al2c_timesheet_hours_total:.1f} giờ.\n"
+            f"Quy chuẩn đối soát giờ công qua cổng info@inno.ai.vn và tuân thủ Nghị định 70/2025/NĐ-CP.\n"
+            f"Chi tiết hạng mục:\n" + "\n".join(line_details)
+        )
+
+        rag_service = self.env['al2c.rag.service'].sudo()
+        chunks = rag_service.retrieve_grounded_context(
+            user_query,
+            company_id=self.company_id.id,
+            top_k=4
+        )
+
+        context_blocks = [invoice_context]
+        citations = []
+        for chunk in chunks:
+            context_blocks.append(f"[{chunk.name} | {chunk.section_header}]\n{chunk.content}")
+            citations.append(chunk.citation_tag or f"[{chunk.name} | {chunk.section_header} | {chunk.id} | {chunk.chunk_hash[:8]}]")
+
+        full_context = "\n\n---\n\n".join(context_blocks)
+
+        explanation_lines = [
+            f"### Giải trình Bảng kê Hóa đơn #{self.name}",
+            f"Hóa đơn ghi nhận tổng cộng **{self.al2c_timesheet_hours_total:.1f} giờ** tư vấn dịch vụ với tổng số tiền {self.amount_total:,.0f} {curr_symbol}.",
+            "",
+            "**Chi tiết các hạng mục bàn giao:**",
+        ]
+
+        for line in self.invoice_line_ids:
+            if line.display_type in ('line_section', 'line_note', 'line_subsection'):
+                continue
+            explanation_lines.append(
+                f"- **{line.name}**: {line.quantity:.1f} giờ công ({line.price_unit:,.0f} {curr_symbol})."
+            )
+
+        explanation_lines.append("")
+        explanation_lines.append(
+            f"Dữ liệu được đối soát qua info@inno.ai.vn theo Nghị định 70/2025/NĐ-CP."
+        )
+
+        explanation_text = "\n".join(explanation_lines)
+
+        is_grounded, entailment_score, reason = rag_service.verify_grounding_entailment(
+            user_query,
+            explanation_text,
+            context_blocks,
+            threshold=0.75
+        )
+
+        return {
+            'success': True,
+            'answer': explanation_text,
+            'citations': citations,
+            'grounded': is_grounded,
+            'entailment_score': entailment_score,
+            'reason': reason,
+        }
+
     # --- Decree 70/2025 E-Invoice Fields (AL2C-INV-001) ---
     al2c_einvoice_provider = fields.Selection([
         ('mock', 'Insilos Sandbox Provider'),

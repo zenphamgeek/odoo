@@ -2,10 +2,11 @@
 # Part of Insilos AL2C Enterprise Test Suite.
 
 import time
-from odoo.tests.common import TransactionCase
+from odoo.tests.common import TransactionCase, tagged
 from odoo.exceptions import UserError
 
 
+@tagged('post_install', '-at_install', 'insilos_al2c', 'timesheet_billing')
 class TestAl2cTimesheetBillingConfirmation(TransactionCase):
 
     @classmethod
@@ -429,6 +430,30 @@ class TestAl2cTimesheetBillingConfirmation(TransactionCase):
         # al2c_exchange_rate_snapshot is 0.0, conversion rate is unconfigured
         with self.assertRaises(UserError):
             invoice.action_send_timesheet_statement()
+
+    def test_19_ai_statement_explainer_portal_integration(self):
+        """SOP-11 & SOP-12: Customer portal AI statement explainer grounds invoice line queries."""
+        invoice = self.invoice
+
+        # 1. Test model-level grounding method
+        model_res = invoice.action_ai_explain_statement(query="Giải trình chi tiết các giờ công tư vấn và nghiệm thu")
+        self.assertTrue(model_res.get('success'), "Model AI explain must succeed")
+        self.assertTrue(model_res.get('answer'), "Model AI explain must return answer")
+        self.assertIn("Giải trình Bảng kê Hóa đơn", model_res['answer'])
+        self.assertTrue(model_res.get('grounded'), "Response must pass entailment gate")
+        self.assertGreaterEqual(model_res.get('entailment_score', 0.0), 0.75)
+
+        # 2. Test controller-level delegation with environment
+        from odoo.addons.insilos_al2c.controllers.portal import Al2cPortalController
+        controller = Al2cPortalController()
+        res = controller.portal_invoice_ai_explain(
+            invoice.id,
+            access_token=invoice._portal_ensure_token(),
+            query="Giải trình chi tiết các giờ công tư vấn và nghiệm thu",
+            env=self.env,
+        )
+        self.assertTrue(res.get('success'), "Controller AI explain must succeed")
+        self.assertEqual(res['answer'], model_res['answer'])
 
 
 
