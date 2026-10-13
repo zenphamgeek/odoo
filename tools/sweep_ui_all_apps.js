@@ -165,16 +165,25 @@ async function main() {
     const prefPage = await prefCtx.newPage();
     let prefCheckCompleted = false;
     try {
-        await prefPage.goto(`${HOOT_HOST}/insilos`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        await prefPage.goto(`${HOOT_HOST}/insilos`, { waitUntil: 'networkidle', timeout: 35000 }).catch(async () => {
+            await prefPage.goto(`${HOOT_HOST}/insilos`, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        });
         await prefPage.waitForSelector('.o_main_navbar, .o_navbar', { timeout: 15000 });
-        const userMenuBtn = prefPage.locator('button.o_user_menu, .o_user_menu button, .o_user_menu .dropdown-toggle, button[aria-label="User menu"], .o_menu_systray .o_user_menu').first();
-        await userMenuBtn.waitFor({ state: 'visible', timeout: 10000 });
+        const userMenuBtn = prefPage.locator('.o_user_menu button, button.o_user_menu, .o_user_menu .dropdown-toggle, button[aria-label="User menu"], .o_menu_systray .o_user_menu').first();
+        await userMenuBtn.waitFor({ state: 'visible', timeout: 15000 });
         await userMenuBtn.click();
-        await prefPage.locator('.dropdown-menu.show, .o_user_menu .dropdown-menu').first().waitFor({ state: 'visible', timeout: 5000 });
+        await prefPage.waitForTimeout(600);
+
         const prefOption = prefPage.locator('.dropdown-item:has-text("Preferences"), .dropdown-item[data-menu="settings"], [data-menu="settings"], .dropdown-item:has-text("Tùy chọn")').first();
-        await prefOption.waitFor({ state: 'visible', timeout: 8000 });
+        const isPrefVisible = await prefOption.isVisible().catch(() => false);
+        if (!isPrefVisible) {
+            // Re-click userMenuBtn in case first click was absorbed during hydration
+            await userMenuBtn.click().catch(() => {});
+            await prefPage.waitForTimeout(600);
+        }
+        await prefOption.waitFor({ state: 'visible', timeout: 15000 });
         await prefOption.click();
-        await prefPage.waitForSelector('.modal-dialog, .modal.show', { timeout: 15000 });
+        await prefPage.waitForSelector('.modal-dialog, .modal.show', { timeout: 20000 });
         await prefPage.waitForTimeout(1500);
         const modal = prefPage.locator('.modal-dialog, .modal.show').first();
         const modalText = await modal.innerText();
