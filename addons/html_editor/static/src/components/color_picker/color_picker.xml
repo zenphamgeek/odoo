@@ -39,7 +39,7 @@
                     t-on-focusout="this.onColorFocusout"/>
         </div>
         <t t-set="activeTab" t-value="this.tabs.find((tab) => this.state.activeTab === tab.id)" />
-        <t t-component="activeTab.component" t-props="{
+        <t t-if="activeTab" t-component="activeTab.component" t-props="{
             applyColor: this.applyColor.bind(this),
             onColorClick: this.onColorApply.bind(this),
             onColorPointerOver: this.onColorHover.bind(this),

@@ -140,7 +140,7 @@ async function main() {
     const authContext = await browser.newContext();
     const authPage = await authContext.newPage();
     await authPage.request.post('http://localhost:28069/web/session/authenticate', {
-        data: { jsonrpc: '2.0', params: { db: 'odoo20_dev', login: 'admin', password: 'admin' } }
+        data: { jsonrpc: '2.0', params: { db: process.env.HOOT_DB || 'insilos20_dev', login: 'admin', password: 'admin' } }
     });
     const storageState = await authContext.storageState();
     await authContext.close().catch(() => {});
@@ -153,10 +153,12 @@ async function main() {
     try {
         await prefPage.goto('http://localhost:28069/insilos', { waitUntil: 'domcontentloaded', timeout: 30000 });
         await prefPage.waitForSelector('.o_main_navbar, .o_navbar', { timeout: 15000 });
-        const userMenuBtn = await prefPage.locator('.o_user_menu button, .o_user_menu .dropdown-toggle, button[aria-label="User menu"], .o_menu_systray .o_user_menu').first();
+        const userMenuBtn = prefPage.locator('button.o_user_menu, .o_user_menu button, .o_user_menu .dropdown-toggle, button[aria-label="User menu"], .o_menu_systray .o_user_menu').first();
+        await userMenuBtn.waitFor({ state: 'visible', timeout: 10000 });
         await userMenuBtn.click();
         await prefPage.locator('.dropdown-menu.show, .o_user_menu .dropdown-menu').first().waitFor({ state: 'visible', timeout: 5000 });
-        const prefOption = await prefPage.locator('.dropdown-menu .dropdown-item:has-text("Preferences"), .dropdown-menu .dropdown-item[data-menu="settings"], .dropdown-menu .dropdown-item:has-text("Tùy chọn")').first();
+        const prefOption = prefPage.locator('.dropdown-item:has-text("Preferences"), .dropdown-item[data-menu="settings"], [data-menu="settings"], .dropdown-item:has-text("Tùy chọn")').first();
+        await prefOption.waitFor({ state: 'visible', timeout: 8000 });
         await prefOption.click();
         await prefPage.waitForSelector('.modal-dialog, .modal.show', { timeout: 15000 });
         await prefPage.waitForTimeout(1500);

@@ -29,7 +29,7 @@
                 <button class="btn rounded-3 d-flex w-100 o-ps-2_5 o-pe-1_5 o-py-1_5 border-0" t-on-click="() => this.store.settings.setCustomNotifications(false, this.props.channel)">
                     <div class="d-flex flex-column align-items-start">
                         <span class="fs-6 text-wrap text-start text-break">Use Default</span>
-                        <span class="fw-bold o-xsmaller ps-2 o-discuss-NotificationSettings-defaultValue"><t t-out="this.store.settings.NOTIFICATIONS.find((n) => n.label === this.store.self_user.res_users_settings_id.channelNotifications).name"/></span>
+                        <span class="fw-bold o-xsmaller ps-2 o-discuss-NotificationSettings-defaultValue"><t t-out="this.store.settings.NOTIFICATIONS.find((n) => n.label === this.store.self_user.res_users_settings_id?.channelNotifications)?.name || ''"/></span>
                     </div>
                     <div class="o-discuss-NotificationSettings-separator flex-grow-1"/>
                     <input class="form-check-input shadow-sm me-1" type="radio" t-att-checked="!this.props.channel.self_member_id?.custom_notifications"/>

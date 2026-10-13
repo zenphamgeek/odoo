@@ -71,9 +71,9 @@
                             <Dropdown menuClass="'o-we-link-type-dropdown'">
                                 <button name="link_type" class="form-select form-select-sm border-dark-subtle text-start">
                                     <t t-set="selectedItem" t-value="this.buttonTypesData.find(typeData => typeData.type === this.state.type)" />
-                                    <span t-att-class="selectedItem.className"
-                                        t-att-style="selectedItem.style"
-                                        t-out="selectedItem.label"/>
+                                    <span t-att-class="selectedItem?.className"
+                                        t-att-style="selectedItem?.style"
+                                        t-out="selectedItem?.label"/>
                                 </button>
                                 <t t-set-slot="content">
                                     <div data-prevent-closing-overlay="true">
