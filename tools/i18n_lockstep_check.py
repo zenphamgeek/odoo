@@ -51,6 +51,11 @@ REBRANDED_SELECTION_SPEC: List[Dict[str, str]] = [
 # Text msgid substitutions for multi-line or view help strings
 REBRANDED_TEXT_SPEC: List[Dict[str, str]] = [
     {
+        "module": "account",
+        "old_msgid_snippet": "document in Odoo.",
+        "new_msgid_snippet": "document in Insilos.",
+    },
+    {
         "module": "purchase",
         "old_msgid_snippet": "document in Odoo.",
         "new_msgid_snippet": "document in Insilos.",

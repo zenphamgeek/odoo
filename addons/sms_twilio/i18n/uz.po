@@ -17,8 +17,7 @@ msgstr ""
 "POT-Creation-Date: 2026-08-28 17:43+0000\n"
 "PO-Revision-Date: 2026-08-31 20:33+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
-"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-s19-4/"
-"sms_twilio/uz/>\n"
+"Language-Team: Uzbek <https://translate.odoo.com/projects/odoo-s19-4/sms_twilio/uz/>\n"
 "Language: uz\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -291,8 +290,7 @@ msgstr "'Kimdan' raqami kiritilmagan"
 #: model_terms:ir.ui.view,arch_db:sms_twilio.sms_twilio_account_manage_view_form
 msgid ""
 "Need help ?\n"
-"                            <i class=\"oi\" data-icon=\"open_in_new\" aria-"
-"hidden=\"true\"/>"
+"                            <i class=\"oi\" data-icon=\"open_in_new\" aria-hidden=\"true\"/>"
 msgstr ""
 
 #. module: sms_twilio
@@ -362,7 +360,7 @@ msgstr "Sinov SMS yuborish"
 #: model:ir.model.fields.selection,name:sms_twilio.selection__res_company__sms_provider__iap
 #, fuzzy
 msgid "Send via Insilos"
-msgstr "Odoo orqali yuborish"
+msgstr "Insilos orqali yuborish"
 
 #. module: sms_twilio
 #: model:ir.model.fields.selection,name:sms_twilio.selection__res_company__sms_provider__twilio
@@ -475,7 +473,8 @@ msgstr ""
 #: code:addons/sms_twilio/tools/sms_api.py:0
 #, fuzzy
 msgid "Unknown error, please contact Odoo support"
-msgstr "Noma'lum xato yuz berdi, iltimos Odoo yordam xizmatiga murojaat qiling"
+msgstr ""
+"Noma'lum xato yuz berdi, iltimos Odoo yordam xizmatiga murojaat qiling"
 
 #. module: sms_twilio
 #. odoo-python
