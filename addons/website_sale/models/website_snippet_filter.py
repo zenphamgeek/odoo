@@ -29,13 +29,16 @@ class WebsiteSnippetFilter(models.Model):
             search_domain.remove("hide_variants")
         update_limit_cache = False
         product_limit = limit or self.limit
-        if hide_variants and self.filter_id.model_id in ("product.product", "catalog.sku"):
-            # When hiding variants, temporarily update cache to increase `self.limit`
-            # so we hopefully end up with the correct amount of product templates
-            update_limit_cache = partial(self._fields["limit"]._update_cache, self)
-            limit = product_limit**2  # heuristic, may still be inadequate in some cases
-            stored_limit = self.limit
-            update_limit_cache(limit)
+        model_name = self.filter_id.model_id
+        if hide_variants and model_name in ("product.product", "catalog.sku"):
+            # When hiding variants, confirm model actually has product_tmpl_id template grouping
+            # before expanding cache limit, preventing incorrect storefront product counts (WARN-1 defense)
+            model_obj = self.env.get(model_name)
+            if model_obj is not None and "product_tmpl_id" in model_obj._fields:
+                update_limit_cache = partial(self._fields["limit"]._update_cache, self)
+                limit = product_limit**2  # heuristic, may still be inadequate in some cases
+                stored_limit = self.limit
+                update_limit_cache(limit)
         res = super(
             WebsiteSnippetFilter,
             self.with_context(hide_variants=hide_variants, product_limit=product_limit),
