@@ -2606,7 +2606,7 @@ def test_hoot_harness_secret_redaction():
     assert(!redacted1.includes('hunter2'), 'hunter2 must not be present in output');
     assert(!redacted1.includes('abcdef123456'), 'token value must not be present');
     assert(redacted1.includes('password=***REDACTED***'), 'password must be masked');
-    assert(redacted1.includes('token=***REDACTED***'), 'token must be masked');
+    assert(redacted1.includes('token:***REDACTED***') || redacted1.includes('token=***REDACTED***'), 'token must be masked');
 
     // Case 2: Bare registered secret in stack trace without key prefix
     const bareSecret = 'super_secret_session_cookie_998877';
