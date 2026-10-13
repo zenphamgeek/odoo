@@ -1,3 +1,4 @@
+import re
 from odoo import SUPERUSER_ID, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.addons.sale.models.sale_order import SaleOrder as BaseSaleOrder
@@ -363,8 +364,15 @@ class SaleOrder(models.Model):
         if create_content is None:
             return existing
 
-        # Concurrency safety: acquire transaction-scoped advisory lock keyed on content hash
-        lock_key = int(content_hash[:15], 16) % (2 ** 31)
+        # Concurrency safety: acquire transaction-scoped advisory lock keyed on content hash (NTP-independent 63-bit key)
+        import hashlib
+        if isinstance(content_hash, str):
+            hash_bytes = content_hash.encode('utf-8')
+        elif isinstance(content_hash, (bytes, bytearray)):
+            hash_bytes = bytes(content_hash)
+        else:
+            hash_bytes = str(content_hash).encode('utf-8')
+        lock_key = int.from_bytes(hashlib.sha256(hash_bytes).digest()[:8], 'big') & 0x7FFFFFFFFFFFFFFF
         self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", (lock_key,))
 
         # Re-check under the lock: a concurrent worker may have already committed
@@ -373,6 +381,8 @@ class SaleOrder(models.Model):
             return existing
 
         import base64
+        from psycopg2.errors import UniqueViolation
+
         fname = filename or f"{self.name or 'report'}_{content_hash[:8]}.pdf"
         try:
             with self.env.cr.savepoint():
@@ -386,9 +396,12 @@ class SaleOrder(models.Model):
                     'description': desc,
                     'mimetype': 'application/pdf',
                 })
-        except Exception:
-            # Concurrency conflict / race collision rollback completed; return winning record
-            return Attachment.search(domain, order='id asc', limit=1)
+        except UniqueViolation:
+            # Genuine concurrency collision: another node won. Return the winner.
+            winner = Attachment.search(domain, order='id asc', limit=1)
+            if not winner:
+                raise  # not actually a dedup collision; do not hide the real error
+            return winner
 
     def _store_cached_report_attachment(
         self,
@@ -545,4 +558,27 @@ class SaleOrderLine(models.Model):
         for order in orders:
             order.sudo().write({'al2c_approved': False})
         return res
+
+
+_AMP_FIXUP_RE = re.compile(r'&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)')
+
+
+class IrActionsReport(models.Model):
+    _inherit = 'ir.actions.report'
+
+    def _render_qweb_html(self, report_ref, docids, data=None):
+        res, report_format = super()._render_qweb_html(report_ref, docids, data=data)
+        report = self._get_report(report_ref)
+        if report and report.report_name and report.report_name.startswith('insilos_al2c.'):
+            try:
+                if isinstance(res, (bytes, bytearray)):
+                    html_str = res.decode('utf-8')
+                    html_str = _AMP_FIXUP_RE.sub('&amp;', html_str)
+                    res = html_str.encode('utf-8')
+                elif isinstance(res, str):
+                    res = _AMP_FIXUP_RE.sub('&amp;', res)
+            except Exception:
+                pass
+        return res, report_format
+
 

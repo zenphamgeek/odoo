@@ -419,11 +419,21 @@ class TestSalesReports(TransactionCase):
             "_get_cached_report_attachment must NEVER order by create_date due to clock drift vulnerability",
         )
 
-        # Invariant 3: Savepoint concurrency guard must be present around attachment creation
+        # Invariant 3: Savepoint concurrency guard and advisory lock must be present
         self.assertIn(
             "self.env.cr.savepoint()",
             src,
             "Attachment creation must be wrapped inside a transaction savepoint to handle race collisions safely",
+        )
+        self.assertIn(
+            "pg_advisory_xact_lock",
+            src,
+            "Advisory lock (pg_advisory_xact_lock) must be acquired to serialize concurrent workers",
+        )
+        self.assertNotIn(
+            "except Exception:",
+            src,
+            "Overbroad 'except Exception:' is strictly forbidden (CWE-396); catch only concurrency collisions",
         )
 
         # Invariant 4: Functional contract test with simulated clock drift / multi-node race
@@ -435,6 +445,7 @@ class TestSalesReports(TransactionCase):
         mock_order.currency_id.id = 1
         mock_order.write_date = datetime(2026, 10, 15, 12, 0, 0)
         mock_order.ensure_one.return_value = True
+        mock_order._get_al2c_report_content_hash.return_value = "0123456789abcdef" * 4
 
         mock_att_model = MagicMock()
         mock_env = MagicMock()
@@ -452,6 +463,55 @@ class TestSalesReports(TransactionCase):
         for sc in search_calls:
             _, kwargs = sc
             self.assertEqual(kwargs.get('order'), 'id asc', "Search must enforce order='id asc'")
+
+        # Invariant 5: AccessError / ValidationError must NOT be swallowed by collision handler
+        from odoo.exceptions import AccessError
+        mock_att_model.reset_mock()
+        mock_att_model.search.return_value = False
+        mock_att_model.create.side_effect = AccessError("Insufficient permissions to create attachment")
+        with self.assertRaises(AccessError, msg="AccessError must not be swallowed as a concurrency collision"):
+            SaleOrder._get_cached_report_attachment(
+                mock_order,
+                'insilos_al2c.report_sales_proposal',
+                create_content=b'%PDF-1.7 permission test',
+            )
+
+        # Invariant 6: Genuine collision with winner returns winning attachment; if no winner, raises
+        from psycopg2.errors import UniqueViolation
+        mock_att_model.reset_mock()
+        mock_winning = MagicMock(id=101, name="winner.pdf")
+        # search returns False before lock, False under lock, winning attachment in except
+        mock_att_model.search.side_effect = [False, False, mock_winning]
+        mock_att_model.create.side_effect = UniqueViolation("Key (res_model, res_id, name) already exists")
+        coll_res = SaleOrder._get_cached_report_attachment(
+            mock_order,
+            'insilos_al2c.report_sales_proposal',
+            create_content=b'%PDF-1.7 collision test',
+        )
+        self.assertEqual(coll_res, mock_winning, "Collision handler must return winning record")
+
+        # Invariant 7: Collision where no winner exists re-raises error (fail-closed)
+        mock_att_model.reset_mock()
+        mock_att_model.search.side_effect = [False, False, False]
+        mock_att_model.create.side_effect = UniqueViolation("Corrupted duplicate error")
+        with self.assertRaises(UniqueViolation, msg="Collision without winner must fail-closed"):
+            SaleOrder._get_cached_report_attachment(
+                mock_order,
+                'insilos_al2c.report_sales_proposal',
+                create_content=b'%PDF-1.7 fail-closed test',
+            )
+
+        # Invariant 8: SerializationFailure / OperationalError must propagate, NOT be masked as dedup
+        from psycopg2.errors import SerializationFailure
+        mock_att_model.reset_mock()
+        mock_att_model.search.side_effect = [False, False, mock_winning]
+        mock_att_model.create.side_effect = SerializationFailure("could not serialize access due to concurrent update")
+        with self.assertRaises(SerializationFailure, msg="SerializationFailure must propagate for ORM retry"):
+            SaleOrder._get_cached_report_attachment(
+                mock_order,
+                'insilos_al2c.report_sales_proposal',
+                create_content=b'%PDF-1.7 serialization test',
+            )
 
     def test_08_template_audit_zero_t_raw_sinks(self):
         """Swarm Invariant Audit:

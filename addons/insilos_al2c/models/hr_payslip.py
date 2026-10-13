@@ -159,8 +159,22 @@ class HrPayslip(models.Model):
             if not pending_entries:
                 continue
 
-            total_commission = sum(pending_entries.mapped('amount'))
-            
+            target_currency = getattr(payslip, 'currency_id', None) or payslip.company_id.currency_id
+            if not target_currency:
+                raise UserError(_("No target currency found for payslip %s", payslip.display_name))
+
+            rate_date = payslip.date_to or payslip.date_from or fields.Date.context_today(payslip)
+            total_commission = sum(
+                (entry.currency_id or payslip.company_id.currency_id)._convert(
+                    entry.amount,
+                    target_currency,
+                    payslip.company_id,
+                    entry.date or rate_date,
+                ) if (entry.currency_id or payslip.company_id.currency_id) != target_currency else entry.amount
+                for entry in pending_entries
+            )
+            total_commission = target_currency.round(total_commission)
+
             # Find or create input line
             input_line = payslip.input_line_ids.filtered(lambda l: l.code == 'COMMISSION')
             input_name = f"Cash-Matched Commission ({len(pending_entries)} invoices/refunds)"
@@ -183,8 +197,9 @@ class HrPayslip(models.Model):
                 'payslip_id': payslip.id,
             })
 
+            curr_name = target_currency.name or 'VND'
             payslip.message_post(
-                body=f"<b>AL2C Commission Synced:</b> {total_commission:,.0f} VND ({len(pending_entries)} transactions).",
+                body=f"<b>AL2C Commission Synced:</b> {total_commission:,.0f} {curr_name} ({len(pending_entries)} transactions).",
                 message_type='comment',
                 subtype_xmlid='mail.mt_note',
             )
