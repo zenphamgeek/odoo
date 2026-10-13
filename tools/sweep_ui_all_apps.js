@@ -155,10 +155,11 @@ async function main() {
         await prefPage.waitForSelector('.o_main_navbar, .o_navbar', { timeout: 15000 });
         const userMenuBtn = await prefPage.locator('.o_user_menu button, .o_user_menu .dropdown-toggle, button[aria-label="User menu"], .o_menu_systray .o_user_menu').first();
         await userMenuBtn.click();
-        await prefPage.locator('.dropdown-menu.show, .o_user_menu .dropdown-menu').first().waitFor({ state: 'visible', timeout: 5000 });
+        await prefPage.waitForTimeout(1000);
         const prefOption = await prefPage.locator('.dropdown-menu .dropdown-item:has-text("Preferences"), .dropdown-menu .dropdown-item[data-menu="settings"], .dropdown-menu .dropdown-item:has-text("Tùy chọn")').first();
         await prefOption.click();
-        await prefPage.waitForSelector('.modal-dialog, .modal.show', { timeout: 10000 });
+        await prefPage.waitForSelector('.modal-dialog, .modal.show', { timeout: 15000 });
+        await prefPage.waitForTimeout(1500);
         const modal = prefPage.locator('.modal-dialog, .modal.show').first();
         const modalText = await modal.innerText();
         const prefLeaks = scanPreferencesModalText(modalText);
