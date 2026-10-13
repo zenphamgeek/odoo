@@ -45,7 +45,7 @@ BASE_URL = "http://localhost:28069"
 DEFAULT_DB_CONFIG = {
     'dbname': 'odoo20_dev',
     'user': 'odoo',
-    'password': '1NN0R1@2026',
+    'password': os.environ.get("PGPASSWORD", ""),
     'host': '127.0.0.1',
     'port': 5434
 }

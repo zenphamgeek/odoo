@@ -223,6 +223,9 @@ def audit_databases() -> Dict[str, Any]:
         if db not in ALLOWED_DATABASE_NAMES:
             print(f"Skipping unauthorized database name: {db}", file=sys.stderr)
             continue
+        if db.endswith('_prod') and os.environ.get("ALLOW_PROD_AUDIT") != "1":
+            print(f"Skipping prod database {db} (set ALLOW_PROD_AUDIT=1 to enable).", file=sys.stderr)
+            continue
         db_report[db] = {
             "selections": [],
             "action_windows": [],

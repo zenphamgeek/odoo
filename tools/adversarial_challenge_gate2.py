@@ -30,7 +30,7 @@ import sys
 PG_HOST = "127.0.0.1"
 PG_PORT = 5434
 PG_USER = "odoo"
-PG_PASS = "1NN0R1@2026"
+PG_PASS = os.environ.get("PGPASSWORD", "")
 BASE_URL = "http://127.0.0.1:28071"
 
 class NoRedirectHandler(urllib.request.HTTPRedirectHandler):

@@ -17,8 +17,8 @@ from psycopg2 import sql
 
 DB_HOST = "127.0.0.1"
 DB_PORT = 5434
-DB_USER = "odoo"
-DB_PASS = "1NN0R1@2026"
+DB_USER = os.environ.get("PGUSER", "odoo")
+DB_PASS = os.environ.get("PGPASSWORD", "")
 TARGET_DB = "insilos20_dev"
 
 VIEWS_SQL = [

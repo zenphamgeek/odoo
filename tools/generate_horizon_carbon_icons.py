@@ -567,7 +567,7 @@ def update_database_ir_module_icons():
             port=5434,
             dbname='odoo20_dev',
             user='odoo',
-            password='1NN0R1@2026'
+            password=os.environ.get('PGPASSWORD', '')
         )
         cur = conn.cursor()
         print("\n[DB SYNC] Connected to PostgreSQL. Updating ir_module_module icon columns...")

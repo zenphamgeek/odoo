@@ -12,8 +12,8 @@ import sys
 DATABASES = ["odoo20_dev", "insilos20_dev", "innoria_prod"]
 DB_HOST = "127.0.0.1"
 DB_PORT = 5434
-DB_USER = "odoo"
-DB_PASS = "1NN0R1@2026"
+DB_USER = os.environ.get("PGUSER", "odoo")
+DB_PASS = os.environ.get("PGPASSWORD", "")
 
 def audit_database(dbname):
     print(f"\nAUDITING DATABASE: {dbname}")

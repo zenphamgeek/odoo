@@ -2524,8 +2524,11 @@ def test_forensic_sweep_security_and_canary_liveness():
     with open(script_path, "r", encoding="utf-8") as f:
         src = f.read()
 
-    # Assert zero hardcoded passwords
-    assert "1NN0R1@2026" not in src, "CWE-259 Violation: Hardcoded password literal found in sweep script!"
+    # Assert zero hardcoded passwords matching compromised digest (SHA-256: 1e923bfedc220f6747aa0824df6bc496f16820a24816004c93e2abb43ed0a08c)
+    for token in src.replace('"', ' ').replace("'", ' ').split():
+        assert hashlib.sha256(token.encode('utf-8')).hexdigest() != "1e923bfedc220f6747aa0824df6bc496f16820a24816004c93e2abb43ed0a08c", (
+            "CWE-259 Violation: Hardcoded password literal matching compromised secret digest found in sweep script!"
+        )
     assert 'PG_PASS = os.environ.get("PGPASSWORD")' in src, "Credential hygiene: Must read PGPASSWORD from environment"
     assert "ALLOW_PROD_AUDIT" in src, "Sovereign guard: Prod database access must require explicit opt-in confirmation"
     assert "default_transaction_read_only=on" in src, "Least privilege: Database connection must enforce read-only transaction"

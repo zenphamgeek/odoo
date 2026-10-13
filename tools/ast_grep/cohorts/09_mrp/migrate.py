@@ -20,7 +20,7 @@ DB_PARAMS = {
     "port": 5434,
     "dbname": "odoo20_dev",
     "user": "odoo",
-    "password": "1NN0R1@2026"
+    "password": os.environ.get("PGPASSWORD", "")
 }
 
 def log(msg, level="INFO"):

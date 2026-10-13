@@ -115,7 +115,8 @@ def clean_dict_values(d, is_knowledge=False):
     return out
 
 def main():
-    conn = psycopg2.connect(host='127.0.0.1', port=5434, dbname='odoo20_dev', user='odoo', password='1NN0R1@2026')
+    db_pass = os.environ.get("PGPASSWORD", "")
+    conn = psycopg2.connect(host='127.0.0.1', port=5434, dbname='odoo20_dev', user='odoo', password=db_pass)
     cur = conn.cursor()
 
     print("=== 1. Cleaning ir_act_window and ir_actions (help & name) ===")

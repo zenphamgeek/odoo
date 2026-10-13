@@ -375,7 +375,7 @@ def run_oracle_suite():
     db_host = os.environ.get("DB_HOST", "127.0.0.1")
     db_port = int(os.environ.get("DB_PORT", 5434))
     db_user = os.environ.get("DB_USER", "insilos")
-    db_pass = os.environ.get("PGPASSWORD", "1NN0R1@2026")
+    db_pass = os.environ.get("PGPASSWORD", "")
     db_name = os.environ.get("DB_NAME", "innokafe_prod")
 
     try:

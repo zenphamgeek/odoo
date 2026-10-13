@@ -36,7 +36,7 @@ from collections import defaultdict
 DEFAULT_HOST = os.environ.get("DB_HOST", "127.0.0.1")
 DEFAULT_PORT = int(os.environ.get("DB_PORT", 5434))
 DEFAULT_USER = os.environ.get("DB_USER", "odoo")
-DEFAULT_PASSWORD = os.environ.get("DB_PASSWORD", "1NN0R1@2026")
+DEFAULT_PASSWORD = os.environ.get("DB_PASSWORD") or os.environ.get("PGPASSWORD", "")
 
 KNOWN_TENANTS = [
     "innokafe_prod",

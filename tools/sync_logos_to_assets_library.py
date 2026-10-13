@@ -153,8 +153,11 @@ def sync_to_db(host, port, user, password, dbname):
 if __name__ == '__main__':
     target = sys.argv[1] if len(sys.argv) > 1 else 'local'
     if target == 'local':
-        sync_to_db('127.0.0.1', 5434, 'odoo', '1NN0R1@2026', 'innoria_prod')
-        sync_to_db('127.0.0.1', 5434, 'odoo', '1NN0R1@2026', 'odoo20_dev')
+        local_pass = os.environ.get('PGPASSWORD')
+        if not local_pass:
+            sys.exit("Error: PGPASSWORD environment variable required.")
+        sync_to_db('127.0.0.1', 5434, 'odoo', local_pass, 'innoria_prod')
+        sync_to_db('127.0.0.1', 5434, 'odoo', local_pass, 'odoo20_dev')
     elif target == 'prod_pod':
         sync_to_db(
             os.environ.get('DB_HOST', 'pgbouncer-service'),

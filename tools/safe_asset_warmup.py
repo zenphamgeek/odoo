@@ -35,7 +35,7 @@ def warmup_database_assets(dbname="innoria_prod"):
         db_host = '127.0.0.1'
         db_port = '5434'
         db_user = 'odoo'
-        db_password = '1NN0R1@2026'
+        db_password = os.environ.get('PGPASSWORD', '')
 
     odoo.tools.config.parse_config([
         f'--data-dir={data_dir}',

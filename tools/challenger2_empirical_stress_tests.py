@@ -31,8 +31,8 @@ from psycopg2.extras import RealDictCursor
 # Connection Defaults
 DB_HOST = "127.0.0.1"
 DB_PORT = 5434
-DB_USER = "odoo"
-DB_PASS = "1NN0R1@2026"
+DB_USER = os.environ.get("PGUSER", "odoo")
+DB_PASS = os.environ.get("PGPASSWORD", "")
 
 SOURCE_DB = "odoo20_dev"
 STRICT_TARGET_DB = "innoria_prod"

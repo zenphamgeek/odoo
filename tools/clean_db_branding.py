@@ -11,7 +11,8 @@ import psycopg2
 
 def clean_database():
     print("[DB CLEAN] Connecting to odoo20_dev database...")
-    conn = psycopg2.connect("host=127.0.0.1 port=5434 dbname=odoo20_dev user=odoo password=1NN0R1@2026")
+    db_pass = os.environ.get("PGPASSWORD", "")
+    conn = psycopg2.connect(host="127.0.0.1", port=5434, dbname="odoo20_dev", user="odoo", password=db_pass)
     cur = conn.cursor()
 
     # 1. knowledge_article id 31 (Company Newsletter)

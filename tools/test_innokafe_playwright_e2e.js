@@ -40,7 +40,7 @@ for (let i = 0; i < args.length; i++) {
 const PG_HOST = process.env.PGHOST || '127.0.0.1';
 const PG_PORT = process.env.PGPORT || '5434';
 const PG_USER = process.env.PGUSER || ('od' + 'oo');
-const PG_PASSWORD = process.env.PGPASSWORD || '1NN0R1@2026';
+const PG_PASSWORD = process.env.PGPASSWORD || '';
 const PG_DATABASE = process.env.PGDATABASE || 'innokafe_prod';
 
 function getLeadPodName() {

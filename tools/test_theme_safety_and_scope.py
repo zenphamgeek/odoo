@@ -56,7 +56,7 @@ def _get_db_config():
         "host": opts.get("db_host", "127.0.0.1"),
         "port": int(opts.get("db_port", 5434)),
         "user": opts.get("db_user", "insilos"),
-        "password": opts.get("db_password", "1NN0R1@2026"),
+        "password": opts.get("db_password") or os.environ.get("PGPASSWORD", ""),
         "dbname": opts.get("db_name", "insilos20_dev"),
     }
 

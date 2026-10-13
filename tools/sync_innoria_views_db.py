@@ -197,10 +197,14 @@ if __name__ == '__main__':
     if target == 'cluster':
         sync_database('127.0.0.1', 5433, 'postgres', os.environ.get('PGPASSWORD'), 'innoria_prod')
     elif target == 'local':
-        db_pass = os.environ.get('INNORIA_DB_PASS') or os.environ.get('PGPASSWORD') or '1NN0R1@2026'
+        db_pass = os.environ.get('INNORIA_DB_PASS') or os.environ.get('PGPASSWORD')
+        if not db_pass:
+            sys.exit("FATAL: PGPASSWORD or INNORIA_DB_PASS required.")
         sync_database('127.0.0.1', 5434, 'odoo', db_pass, 'innoria_prod')
     elif target == 'dev':
-        db_pass = os.environ.get('INNORIA_DB_PASS') or os.environ.get('PGPASSWORD') or '1NN0R1@2026'
+        db_pass = os.environ.get('INNORIA_DB_PASS') or os.environ.get('PGPASSWORD')
+        if not db_pass:
+            sys.exit("FATAL: PGPASSWORD or INNORIA_DB_PASS required.")
         sync_database('127.0.0.1', 5434, 'odoo', db_pass, 'odoo20_dev')
     elif target == 'prod_pod':
         dbname = sys.argv[2] if len(sys.argv) > 2 else 'innoria_prod'
