@@ -9,6 +9,9 @@ from odoo.tools.sql import SQL
 
 _logger = logging.getLogger(__name__)
 
+TIMESHEET_KEYWORDS = ('consult', 'tư vấn', 'giờ', 'hour', 't&m', 'timesheet')
+TIMESHEET_EXCLUSION_KEYWORDS = ('no consult', 'không tư vấn', 'không tính', 'non-billable', 'giảm giá', 'discount')
+
 
 class AccountMove(models.Model):
     _inherit = 'account.move'
@@ -86,6 +89,12 @@ class AccountMove(models.Model):
         compute='_compute_al2c_is_foreign_currency',
         store=True,
     )
+    al2c_rate_unavailable = fields.Boolean(
+        string='FX Rate Unavailable',
+        compute='_compute_al2c_statement_company_currency',
+        store=True,
+        help='Set when a foreign-currency conversion rate could not be resolved. Blocks statement dispatch (Decree 70/2025 compliance).',
+    )
     al2c_timesheet_hours_total = fields.Float(
         string='Total Timesheet Hours Billed',
         compute='_compute_al2c_timesheet_hours_total',
@@ -95,14 +104,15 @@ class AccountMove(models.Model):
     @api.depends('currency_id', 'company_id.currency_id')
     def _compute_al2c_is_foreign_currency(self):
         for move in self:
-            comp_curr = move.company_id.currency_id
+            comp_curr = move.company_id.currency_id or self.env.company.currency_id
             move.al2c_is_foreign_currency = bool(move.currency_id and comp_curr and move.currency_id.id != comp_curr.id)
 
     @api.depends('amount_total', 'currency_id', 'company_id.currency_id', 'al2c_exchange_rate_snapshot')
     def _compute_al2c_statement_company_currency(self):
         for move in self:
-            company_curr = move.company_id.currency_id or move.currency_id
+            company_curr = move.company_id.currency_id or self.env.company.currency_id or move.currency_id
             if not move.currency_id or move.currency_id == company_curr:
+                move.al2c_rate_unavailable = False
                 move.al2c_statement_amount_total_company_currency = move.amount_total
             else:
                 rate = move.al2c_exchange_rate_snapshot
@@ -118,9 +128,11 @@ class AccountMove(models.Model):
                         _logger.warning("Failed to auto-compute conversion rate for move %s: %s", move.id, err)
                         rate = 0.0
                 if rate <= 0:
-                    # Invariant: Never silently assume 1.0 for cross-currency accounting
+                    # Invariant: Never silently assume 1.0 or silent zero without explicit flag
+                    move.al2c_rate_unavailable = True
                     move.al2c_statement_amount_total_company_currency = 0.0
                     continue
+                move.al2c_rate_unavailable = False
                 move.al2c_statement_amount_total_company_currency = company_curr.round(move.amount_total * rate)
 
     @api.depends(
@@ -138,10 +150,13 @@ class AccountMove(models.Model):
                 if line.display_type:
                     continue
                 is_timesheet = False
+                line_name_lower = (line.name or '').lower()
                 if line.product_id and getattr(line.product_id, 'service_policy', None) == 'delivered_timesheet':
                     is_timesheet = True
-                elif any(kw in (line.name or '').lower() for kw in ('consult', 'tư vấn', 'giờ', 'hour', 't&m', 'timesheet')):
-                    is_timesheet = True
+                elif any(kw in line_name_lower for kw in TIMESHEET_KEYWORDS):
+                    if not any(ex in line_name_lower for ex in TIMESHEET_EXCLUSION_KEYWORDS):
+                        is_timesheet = True
+                        _logger.info("Heuristic timesheet match on move %s line '%s'", move.id, line.name)
 
                 if is_timesheet:
                     qty = line.quantity
@@ -188,10 +203,16 @@ class AccountMove(models.Model):
             if move.move_type not in ('out_invoice', 'out_refund'):
                 continue
 
+            if move.al2c_rate_unavailable:
+                raise UserError(_(
+                    "Cannot issue statutory statement for invoice %s: foreign-currency conversion rate "
+                    "could not be resolved. Set an exchange rate snapshot first (Decree 70/2025/ND-CP compliance)."
+                ) % move.display_name)
+
             vals = {'al2c_timesheet_statement_state': 'sent_to_client'}
 
-            # Idempotent Token Preservation
-            if not move.al2c_timesheet_token:
+            # Idempotent Token Preservation (rotate if missing or expired)
+            if not move.al2c_timesheet_token or not self._verify_timesheet_token(move.id, move.al2c_timesheet_token):
                 vals['al2c_timesheet_token'] = self._generate_timesheet_token(move.id, expires_in_days=7)
 
             # Multi-Currency Statutory Rate Card Snapshot: Fail-Closed Protection

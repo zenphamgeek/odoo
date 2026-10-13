@@ -223,8 +223,11 @@ class TestAl2cTimesheetBillingConfirmation(TransactionCase):
                 'price_unit': 100.0,
             })]
         })
+        invoice._compute_al2c_statement_company_currency()
+        self.assertTrue(invoice.al2c_rate_unavailable, "Rate must be marked unavailable when lookup fails")
+        self.assertEqual(invoice.al2c_statement_amount_total_company_currency, 0.0)
 
-        # Expect hard failure rather than silent 1.0 corruption
+        # Expect hard failure on statement send rather than silent corruption
         with self.assertRaises(UserError):
             invoice.action_send_timesheet_statement()
 
@@ -281,4 +284,74 @@ class TestAl2cTimesheetBillingConfirmation(TransactionCase):
         invoice.action_send_timesheet_statement()
         token_second = invoice.al2c_timesheet_token
         self.assertEqual(token_first, token_second, "Token changed on re-dispatch (violates lease idempotency).")
+
+    def test_12_adv_negative_keyword_exclusion(self):
+        """Lines containing negative/exclusion keywords are not classified as billable timesheets."""
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'invoice_line_ids': [
+                (0, 0, {
+                    'name': 'No consulting included - software license package',
+                    'quantity': 10,
+                    'price_unit': 500.0,
+                }),
+                (0, 0, {
+                    'name': 'Giảm giá tư vấn hợp đồng tháng 10',
+                    'quantity': 5,
+                    'price_unit': -100.0,
+                }),
+                (0, 0, {
+                    'name': 'Senior Architect Consultation (hours)',
+                    'quantity': 8,
+                    'price_unit': 150.0,
+                }),
+            ]
+        })
+        invoice._compute_al2c_timesheet_hours_total()
+        self.assertEqual(invoice.al2c_timesheet_hours_total, 8.0, "Negative keyword lines must be excluded from timesheets.")
+
+    def test_13_adv_expired_token_rotates_on_redispatch(self):
+        """Expired token on re-dispatch is automatically rotated to a fresh valid token."""
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'invoice_line_ids': [(0, 0, {
+                'name': 'Consulting',
+                'quantity': 1,
+                'price_unit': 100.0,
+            })]
+        })
+        # Simulate expired token from 8 days ago
+        expired_ts = int(time.time() - 86400)
+        secret = self.env['ir.config_parameter'].sudo().get_param('database.secret') or 'al2c_secret_salt_2026'
+        import hmac, hashlib
+        msg = f"{invoice.id}:{expired_ts}"
+        sig = hmac.new(secret.encode('utf-8'), msg.encode('utf-8'), hashlib.sha256).hexdigest()[:32]
+        invoice.al2c_timesheet_token = f"{expired_ts}_{sig}"
+
+        # Re-dispatch statement -> should rotate token because previous is expired
+        invoice.action_send_timesheet_statement()
+        self.assertNotEqual(invoice.al2c_timesheet_token, f"{expired_ts}_{sig}", "Expired token must be rotated.")
+        self.assertTrue(invoice._verify_timesheet_token(invoice.id, invoice.al2c_timesheet_token), "New token must be valid.")
+
+    def test_14_adv_same_currency_never_trips_rate_unavailable(self):
+        """Same-currency invoice sets al2c_rate_unavailable = False and dispatches cleanly."""
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'currency_id': self.company.currency_id.id,
+            'invoice_line_ids': [(0, 0, {
+                'name': 'Domestic IT Consulting',
+                'quantity': 10,
+                'price_unit': 1000000.0,
+            })]
+        })
+        invoice._compute_al2c_statement_company_currency()
+        self.assertFalse(invoice.al2c_rate_unavailable, "Same-currency invoice must never flag rate unavailable.")
+        self.assertEqual(invoice.al2c_statement_amount_total_company_currency, 10000000.0)
+        # Dispatch must succeed without error
+        invoice.action_send_timesheet_statement()
+        self.assertEqual(invoice.al2c_timesheet_statement_state, 'sent_to_client')
+
 
