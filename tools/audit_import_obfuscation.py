@@ -2,7 +2,7 @@
 """Fail CI if any importlib.import_module() or __import__() call is passed a dynamically
 constructed module path (string concat / join / format / name). Rationale: commit
 99030037c obfuscated an import to evade a scanner; this guard blocks recurrence.
-Exit 0 = clean, 1 = violation, 2 = usage / syntax error."""
+Exit 0 = clean, 1 = violation, 2 = usage / syntax / parse error (fail closed)."""
 
 import ast
 import io
@@ -53,15 +53,10 @@ def scan_source(content: str, filename: str = "<source>") -> Tuple[List[str], Li
         )
         if is_target and node.args and _is_dynamic_path(node.args[0]):
             lineno = getattr(node, "lineno", 1)
-            end_lineno = getattr(node, "end_lineno", lineno) or lineno
-            matched = ""
-            for ln in range(lineno, end_lineno + 1):
-                c = comments.get(ln, "")
-                if "import-obfuscation-ignore" in c or "ast-evasion-ignore" in c:
-                    matched = c
-                    break
-            if matched:
-                suppressions.append(f"{filename}:{lineno}: [suppressed] {matched.strip()}")
+            # Only honor suppression directive on the call's opening line for review clarity
+            c = comments.get(lineno, "")
+            if "import-obfuscation-ignore" in c or "ast-evasion-ignore" in c:
+                suppressions.append(f"{filename}:{lineno}: [suppressed] {c.strip()}")
                 continue
             violations.append(f"{filename}:{lineno}: dynamic import_module() path: {ast.dump(node.args[0])}")
     return violations, suppressions
@@ -69,6 +64,8 @@ def scan_source(content: str, filename: str = "<source>") -> Tuple[List[str], Li
 
 def scan_file(path: pathlib.Path, quick_filter: bool = False) -> Tuple[List[str], List[str]]:
     content = path.read_text(encoding="utf-8")
+    if "\x00" in content:
+        raise ValueError(f"source code string cannot contain null bytes: {path}")
     if quick_filter and ("import_module" not in content and "__import__" not in content):
         return [], []
     return scan_source(content, filename=str(path))
@@ -98,9 +95,19 @@ def main(argv: Optional[List[str]] = None) -> int:
             except SyntaxError as exc:
                 print(f"audit: unparseable {py}: {exc}", file=sys.stderr)
                 return 2
+            except ValueError as exc:
+                # ast.parse raises ValueError for null-byte / malformed sources.
+                # A .py file we cannot safely parse is suspicious -> fail closed.
+                print(f"audit: rejected malformed source {py}: {exc}", file=sys.stderr)
+                return 2
+            except RecursionError as exc:
+                # Pathologically nested AST (DoS vector)
+                print(f"audit: rejected over-nested source {py}: {exc}", file=sys.stderr)
+                return 2
             except (UnicodeDecodeError, OSError) as exc:
-                print(f"audit: skipped unreadable {py}: {exc}", file=sys.stderr)
-                continue
+                # FAIL CLOSED: an unreadable .py must not silently evade the guard.
+                print(f"audit: FAIL unreadable {py}: {exc}", file=sys.stderr)
+                return 2
 
     if found_violations:
         for v in found_violations:
