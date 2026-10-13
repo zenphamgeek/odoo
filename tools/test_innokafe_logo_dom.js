@@ -44,12 +44,12 @@ async function run() {
   async function safeNavigate(p, target, retries = 3) {
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const res = await p.goto(target, { waitUntil: 'domcontentloaded', timeout: 35000 });
+        const res = await p.goto(target, { waitUntil: 'domcontentloaded', timeout: 60000 });
         if (res) return res;
       } catch (err) {
         if (attempt === retries) throw err;
         console.log(`  [!] Navigation retry ${attempt}/${retries} on ${target} (${err.message})`);
-        await p.waitForTimeout(1000 * attempt);
+        await p.waitForTimeout(2000 * attempt);
       }
     }
   }
