@@ -3,10 +3,10 @@
 """
 tools/run_hard_fork_council_gates.py
 ====================================
-Hard Fork Experts Council - 11-Gate Release Verification Runner
+Hard Fork Experts Council - 12-Gate Release Verification Runner
 Insilos Enterprise Platform (insilos-genesis-fork)
 
-Automated execution engine for the full 11-Gate Release Verification Matrix:
+Automated execution engine for the full 12-Gate Release Verification Matrix:
   Gate 1:  Python AST Syntax & Compilation Audit (py_compile)
   Gate 2:  XML & QWeb Well-Formedness Audit (lxml.etree)
   Gate 3:  Server Boot & Preload Integrity (--stop-after-init)
@@ -18,6 +18,8 @@ Automated execution engine for the full 11-Gate Release Verification Matrix:
   Gate 9:  72-App Parallel Playwright Suite (Playwright Concurrency)
   Gate 10: UI Brand & Lexicon Leak Sweep Across Core Apps (Playwright)
   Gate 11: Modern OWL 2 HOOT Test Suite Verification (Parallel Headless Browser)
+  Gate 12: Sovereign Navigation & Header Collision Invariant (Website Menu & Navbar)
+  Gate 13: QWeb / Owl Template Null-Safety Invariant (Array.find dereference guard)
 """
 
 import argparse
@@ -170,13 +172,33 @@ GATE_DEFINITIONS = [
         "requires_server": True,
         "milestone": "M6",
     },
+    {
+        "id": 12,
+        "name": "Sovereign Navigation & Header Collision Invariant",
+        "description": "Audits website and webclient navigation trees for zero route collisions and duplicate menu records",
+        "command": ["python3", "tools/audit_header_menu_collision.py", "--db", "insilos20_dev"],
+        "target": "tools/audit_header_menu_collision.py",
+        "timeout": 45,
+        "requires_server": False,
+        "milestone": "M6",
+    },
+    {
+        "id": 13,
+        "name": "QWeb / Owl Template Null-Safety Invariant",
+        "description": "Audits QWeb/Owl templates for safe optional chaining on Array.find() expressions",
+        "command": ["python3", "tools/lint_qweb_find_optional_chaining.py", "addons/web", "enterprise/insilos_website", "enterprise/innokafe_website"],
+        "target": "tools/lint_qweb_find_optional_chaining.py",
+        "timeout": 45,
+        "requires_server": False,
+        "milestone": "M6",
+    },
 ]
 
 
 def parse_gate_selection(spec):
     """Parse comma-separated and ranged gate IDs (e.g. '1,2,4' or '1-5' or 'all')."""
-    if not spec or spec.strip().lower() in ("all", "1-11", "1..11", "1-10", "1..10"):
-        return list(range(1, 12))
+    if not spec or spec.strip().lower() in ("all", "1-13", "1..13", "1-12", "1..12", "1-11", "1..11", "1-10", "1..10"):
+        return list(range(1, 14))
 
     selected = set()
     for part in spec.split(","):
@@ -191,7 +213,8 @@ def parse_gate_selection(spec):
             selected.update(range(int(start), int(end) + 1))
         else:
             selected.add(int(part))
-    return sorted([g for g in selected if 1 <= g <= 11])
+    return sorted([g for g in selected if 1 <= g <= 13])
+
 
 
 def check_server_available():
@@ -291,14 +314,14 @@ def print_banner(color=True):
   | || '_ \/ __| | |/ _ \/ __|| |  _ / _` | __/ _ \| |\/| |/ _` | __| '__| \ \/ /
   | || | | \__ \ | | (_) \__ \| |_| | (_| | ||  __/| |  | | (_| | |_| |  | |>  < 
  |___|_| |_|___/_|_|\___/|___/ \____|\__,_|\__\___||_|  |_|\__,_|\__|_|  |_/_/\_\
-               HARD FORK EXPERTS COUNCIL — 11-GATE VERIFICATION RUNNER
+               HARD FORK EXPERTS COUNCIL — 13-GATE VERIFICATION RUNNER
     """
     print(colorize(banner, Colors.BOLD + Colors.BLUE, color))
 
 
 def print_summary_table(results, color=True):
     print("\n" + "=" * 80)
-    print(colorize("               11-GATE RELEASE VERIFICATION SUMMARY MATRIX", Colors.BOLD, color))
+    print(colorize("               13-GATE RELEASE VERIFICATION SUMMARY MATRIX", Colors.BOLD, color))
     print("=" * 80)
     header = f"{'Gate':<6} | {'Verification Domain':<44} | {'Time (s)':<9} | {'Exit':<5} | {'Status':<8}"
     print(header)
@@ -340,13 +363,13 @@ def print_summary_table(results, color=True):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Hard Fork Experts Council - 11-Gate Release Verification Matrix Runner",
+        description="Hard Fork Experts Council - 13-Gate Release Verification Matrix Runner",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--gates",
-        default="1-11",
-        help="Comma-separated or ranged gate numbers to run (e.g. '1,2,4', '1-6', 'all'). Default: '1-11'",
+        default="1-13",
+        help="Comma-separated or ranged gate numbers to run (e.g. '1,2,4', '1-6', '1-13', 'all'). Default: '1-13'",
     )
     parser.add_argument(
         "--stop-on-fail",
