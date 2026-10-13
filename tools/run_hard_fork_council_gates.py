@@ -3,10 +3,10 @@
 """
 tools/run_hard_fork_council_gates.py
 ====================================
-Hard Fork Experts Council - 10-Gate Release Verification Runner
+Hard Fork Experts Council - 11-Gate Release Verification Runner
 Insilos Enterprise Platform (insilos-genesis-fork)
 
-Automated execution engine for the full 10-Gate Release Verification Matrix:
+Automated execution engine for the full 11-Gate Release Verification Matrix:
   Gate 1:  Python AST Syntax & Compilation Audit (py_compile)
   Gate 2:  XML & QWeb Well-Formedness Audit (lxml.etree)
   Gate 3:  Server Boot & Preload Integrity (--stop-after-init)
@@ -17,6 +17,7 @@ Automated execution engine for the full 10-Gate Release Verification Matrix:
   Gate 8:  Ported Enterprise Modules E2E Lifecycle (Playwright)
   Gate 9:  72-App Parallel Playwright Suite (Playwright Concurrency)
   Gate 10: UI Brand & Lexicon Leak Sweep Across Core Apps (Playwright)
+  Gate 11: Modern OWL 2 HOOT Test Suite Verification (Parallel Headless Browser)
 """
 
 import argparse
@@ -159,13 +160,23 @@ GATE_DEFINITIONS = [
         "requires_server": True,
         "milestone": "M6",
     },
+    {
+        "id": 11,
+        "name": "Modern OWL 2 HOOT Test Suite Verification",
+        "description": "Executes parallel headless HOOT test runner across core enterprise modules and theme suites",
+        "command": ["node", "run_hoot.js", "--concurrency=4"],
+        "target": "run_hoot.js",
+        "timeout": 180,
+        "requires_server": True,
+        "milestone": "M6",
+    },
 ]
 
 
 def parse_gate_selection(spec):
     """Parse comma-separated and ranged gate IDs (e.g. '1,2,4' or '1-5' or 'all')."""
-    if not spec or spec.strip().lower() in ("all", "1-10", "1..10"):
-        return list(range(1, 11))
+    if not spec or spec.strip().lower() in ("all", "1-11", "1..11", "1-10", "1..10"):
+        return list(range(1, 12))
 
     selected = set()
     for part in spec.split(","):
@@ -180,7 +191,7 @@ def parse_gate_selection(spec):
             selected.update(range(int(start), int(end) + 1))
         else:
             selected.add(int(part))
-    return sorted([g for g in selected if 1 <= g <= 10])
+    return sorted([g for g in selected if 1 <= g <= 11])
 
 
 def check_server_available():
@@ -280,14 +291,14 @@ def print_banner(color=True):
   | || '_ \/ __| | |/ _ \/ __|| |  _ / _` | __/ _ \| |\/| |/ _` | __| '__| \ \/ /
   | || | | \__ \ | | (_) \__ \| |_| | (_| | ||  __/| |  | | (_| | |_| |  | |>  < 
  |___|_| |_|___/_|_|\___/|___/ \____|\__,_|\__\___||_|  |_|\__,_|\__|_|  |_/_/\_\
-               HARD FORK EXPERTS COUNCIL — 10-GATE VERIFICATION RUNNER
+               HARD FORK EXPERTS COUNCIL — 11-GATE VERIFICATION RUNNER
     """
     print(colorize(banner, Colors.BOLD + Colors.BLUE, color))
 
 
 def print_summary_table(results, color=True):
     print("\n" + "=" * 80)
-    print(colorize("               10-GATE RELEASE VERIFICATION SUMMARY MATRIX", Colors.BOLD, color))
+    print(colorize("               11-GATE RELEASE VERIFICATION SUMMARY MATRIX", Colors.BOLD, color))
     print("=" * 80)
     header = f"{'Gate':<6} | {'Verification Domain':<44} | {'Time (s)':<9} | {'Exit':<5} | {'Status':<8}"
     print(header)
@@ -329,13 +340,13 @@ def print_summary_table(results, color=True):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Hard Fork Experts Council - 10-Gate Release Verification Matrix Runner",
+        description="Hard Fork Experts Council - 11-Gate Release Verification Matrix Runner",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--gates",
-        default="1-10",
-        help="Comma-separated or ranged gate numbers to run (e.g. '1,2,4', '1-6', 'all'). Default: '1-10'",
+        default="1-11",
+        help="Comma-separated or ranged gate numbers to run (e.g. '1,2,4', '1-6', 'all'). Default: '1-11'",
     )
     parser.add_argument(
         "--stop-on-fail",
@@ -377,7 +388,7 @@ def main():
     selected_gates = [g for g in GATE_DEFINITIONS if g["id"] in selected_ids]
 
     if not selected_gates:
-        print(colorize("Error: No valid gates selected in range 1-10.", Colors.RED, use_color))
+        print(colorize("Error: No valid gates selected in range 1-11.", Colors.RED, use_color))
         sys.exit(1)
 
     # Pre-flight check for server-dependent gates
@@ -387,7 +398,7 @@ def main():
         server_ready = check_server_available()
         if not server_ready and not args.json:
             print(colorize("⚠️  Warning: Live Odoo server at http://localhost:28069 is NOT responsive!", Colors.YELLOW, use_color))
-            print(colorize("   Gates requiring live server (5, 8, 9, 10) may fail.", Colors.YELLOW, use_color))
+            print(colorize("   Gates requiring live server (5, 8, 9, 10, 11) may fail.", Colors.YELLOW, use_color))
 
     results = []
     overall_success = True

@@ -149,7 +149,32 @@ const failureLog = '[HOOT] Test "sale.order" failed: expected 200 got 500';
 assert.strictEqual(shouldMirrorToStdout(failureLog, false), true, 'Failure log MUST always mirror even when HOOT_VERBOSE=0');
 assert.strictEqual(shouldMirrorToStdout(failureLog, true), true, 'Failure log MUST always mirror when HOOT_VERBOSE=1');
 
-console.log('  [✓] HOOT_VERBOSE predicate isolation verified.');
+// 5. Metamorphic Testing: Idempotence & Delimiter Invariance Relations
+console.log('5. Auditing metamorphic relations (idempotence and delimiter invariance)...');
+const mixedPayloads = [
+  'Error: postgresql://admin:p@ss@host:5432/db bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYSJ9.sig token="sec123"',
+  'GET /api/v1?token=xyz123&client_secret=secret789 status=401 password=adminPass',
+  'redis://usr:authSecret@redis-host:6379/0 "access_token": "bearerTokenValue"',
+];
+
+for (const payload of mixedPayloads) {
+  const pass1 = redactSensitive(payload);
+  const pass2 = redactSensitive(pass1);
+  assert.strictEqual(pass2, pass1, `Idempotence metamorphic violation on: ${payload}`);
+}
+
+// Delimiter Equivalence Relation
+for (let i = 0; i < 50; i++) {
+  const sec = 'metamorphic_sec_' + randomString(10);
+  const eqForm = redactSensitive(`api_key=${sec}`);
+  const colonForm = redactSensitive(`api_key: ${sec}`);
+  const jsonForm = redactSensitive(`{"api_key": "${sec}"}`);
+  assert(!eqForm.includes(sec), 'Equivalence failed on =');
+  assert(!colonForm.includes(sec), 'Equivalence failed on :');
+  assert(!jsonForm.includes(sec), 'Equivalence failed on JSON');
+}
+console.log('  [✓] Metamorphic relations verified: mask(mask(x)) === mask(x) & delimiter-invariance proved.');
+
 console.log('================================================================================');
 console.log('ALL HOOT LOG REDACTION & PREDICATE GATES PASSED (EXIT 0)');
 console.log('================================================================================');

@@ -2600,13 +2600,18 @@ def test_hoot_harness_secret_redaction():
     const assert = require('assert');
     const { registerSecret, redactSensitive, REGISTERED_SECRETS } = require('./run_hoot.js');
 
-    // Case 1: Pattern-based key=value redaction
-    const log1 = '[HOOT] connecting with password=hunter2 and token: abcdef123456';
-    const redacted1 = redactSensitive(log1);
-    assert(!redacted1.includes('hunter2'), 'hunter2 must not be present in output');
-    assert(!redacted1.includes('abcdef123456'), 'token value must not be present');
-    assert(redacted1.includes('password=***REDACTED***'), 'password must be masked');
-    assert(redacted1.includes('token:***REDACTED***') || redacted1.includes('token=***REDACTED***'), 'token must be masked');
+    // Case 1: Pattern-based key=value & key:value delimiter preservation
+    const logEq = '[HOOT] connecting with password=hunter2 and token=abcdef123456';
+    const redactedEq = redactSensitive(logEq);
+    assert(!redactedEq.includes('hunter2') && !redactedEq.includes('abcdef123456'), 'Values must be purged');
+    assert(redactedEq.includes('password=***REDACTED***'), 'eq-delimited password must preserve "="');
+    assert(redactedEq.includes('token=***REDACTED***'), 'eq-delimited token must preserve "="');
+
+    const logColon = '[HOOT] connecting with password: hunter2 and token: abcdef123456';
+    const redactedColon = redactSensitive(logColon);
+    assert(!redactedColon.includes('hunter2') && !redactedColon.includes('abcdef123456'), 'Values must be purged');
+    assert(redactedColon.includes('password:***REDACTED***'), 'colon-delimited password must preserve ":"');
+    assert(redactedColon.includes('token:***REDACTED***'), 'colon-delimited token must preserve ":"');
 
     // Case 2: Bare registered secret in stack trace without key prefix
     const bareSecret = 'super_secret_session_cookie_998877';
@@ -2687,13 +2692,27 @@ def test_hoot_harness_secret_redaction():
     const failureHoot = '[HOOT] Test "sale.order" failed: expected 200 got 500';
     assert.strictEqual(shouldMirrorToStdout(failureHoot, false), true, 'Failure log MUST always mirror even when HOOT_VERBOSE=0');
 
-    console.log(JSON.stringify({ status: 'ok', cases_passed: 9 }));
+    // Case 10: Metamorphic Relations: Idempotence & Delimiter Invariance
+    // Invariant 1: Idempotence mask(mask(x)) === mask(x) across complex mixed payloads
+    const mixedLog = 'Error: postgresql://admin:p@ss@host:5432/db bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYSJ9.sig token="sec123"';
+    const once = redactSensitive(mixedLog);
+    const twice = redactSensitive(once);
+    assert.strictEqual(twice, once, 'Metamorphic relation failed: redactSensitive must be idempotent mask(mask(x)) === mask(x)');
+
+    // Invariant 2: Delimiter-Invariance Relation: for any secret S, mask("k=S") and mask("k:S") both purge S
+    const secretX = 'fuzz_sec_' + Date.now();
+    const maskEq = redactSensitive(`secret=${secretX}`);
+    const maskColon = redactSensitive(`secret: ${secretX}`);
+    const maskJson = redactSensitive(`{"secret": "${secretX}"}`);
+    assert(!maskEq.includes(secretX) && !maskColon.includes(secretX) && !maskJson.includes(secretX), 'All delimiter shapes must purge secret');
+
+    console.log(JSON.stringify({ status: 'ok', cases_passed: 10 }));
     """
 
     res = subprocess.run(["node", "-e", node_code], capture_output=True, text=True, check=False)
     assert res.returncode == 0, f"Node secret masker verification failed (code {res.returncode}):\nSTDOUT: {res.stdout}\nSTDERR: {res.stderr}"
     data = json.loads(res.stdout.strip())
-    assert data["status"] == "ok" and data["cases_passed"] == 9
+    assert data["status"] == "ok" and data["cases_passed"] == 10
 
     # Static AST / Code check on run_hoot.js
     with open('run_hoot.js', 'r', encoding='utf-8') as f:

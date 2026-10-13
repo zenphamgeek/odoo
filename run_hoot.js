@@ -416,7 +416,16 @@ async function main() {
   }
 
   if (targetSuites.length === 0) {
-    targetSuites = ['web_cohort'];
+    targetSuites = [
+      'web_cohort',
+      'web_map',
+      'web_gantt',
+      'web_grid',
+      '@web_studio/navigation',
+      'insilos_logistics_idp',
+      'insilos_market_terminal',
+      'insilos_theme_genesis',
+    ];
   }
 
   // Pre-generate run configs
