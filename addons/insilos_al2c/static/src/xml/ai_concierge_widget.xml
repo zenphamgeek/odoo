@@ -1,0 +1,461 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <!-- =====================================================================
+         INNORIA PUBLIC AI CONCIERGE OWL 2 COMPONENT TEMPLATE
+         Platform: Innoria Enterprise / Insilos AL2C
+         Design: IBM Carbon Typography & SAP Fiori Horizon Standards
+         Architecture: OWL 2 Reactive Component, Grounded KMS, Zero Bare White
+         ===================================================================== -->
+    <t t-name="innoria.ai_concierge_widget">
+        <div class="al2c-concierge-root">
+            <!-- 1. Floating Action Launcher Button -->
+            <button
+                type="button"
+                class="al2c-concierge-launcher"
+                t-att-class="{'is-active': state.isOpen}"
+                t-on-click="this.toggleDrawer"
+                title="Trợ Lý AI Doanh Nghiệp Innoria"
+                aria-label="Trợ Lý AI Doanh Nghiệp Innoria"
+            >
+                <div class="al2c-launcher-content">
+                    <t t-if="state.isOpen">
+                        <i class="fa fa-times al2c-launcher-icon-close" aria-hidden="true"/>
+                    </t>
+                    <t t-else="">
+                        <img
+                            src="/insilos_al2c/static/src/img/logo_innoria_header.svg"
+                            alt="Innoria AI"
+                            class="al2c-launcher-logo"
+                        />
+                        <span class="al2c-launcher-pulse" aria-hidden="true"/>
+                    </t>
+                </div>
+            </button>
+
+            <!-- 2. Chat Drawer Container -->
+            <div
+                class="al2c-concierge-drawer"
+                t-att-class="{'is-open': state.isOpen}"
+                role="dialog"
+                aria-labelledby="al2c-concierge-title"
+                aria-modal="true"
+            >
+                <!-- SAP Horizon 3px Gradient Stripe -->
+                <div class="al2c-horizon-stripe" aria-hidden="true"/>
+
+                <!-- Drawer Header -->
+                <header class="al2c-concierge-header">
+                    <div class="al2c-header-brand">
+                        <img
+                            src="/insilos_al2c/static/src/img/logo_innoria_header.svg"
+                            alt="Innoria Enterprise Logo"
+                            class="al2c-header-logo"
+                        />
+                        <div class="al2c-header-meta">
+                            <h6 id="al2c-concierge-title" class="al2c-header-title">Innoria AI Concierge</h6>
+                            <div class="al2c-status-badge">
+                                <span class="al2c-status-dot" aria-hidden="true"/>
+                                <span class="al2c-status-text">Online • Grounded RAG</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="al2c-header-actions">
+                        <t t-if="!state.showLeadForm">
+                            <button
+                                type="button"
+                                class="btn al2c-btn-header-quote"
+                                t-on-click="() => this.openLeadForm('all')"
+                                title="Đăng ký tư vấn &amp; Báo giá dự toán"
+                            >
+                                <i class="fa fa-calendar-check-o me-1" aria-hidden="true"/>
+                                <span>Báo Giá</span>
+                            </button>
+                        </t>
+                        <t t-else="">
+                            <button
+                                type="button"
+                                class="btn al2c-btn-header-quote"
+                                t-on-click="this.closeLeadForm"
+                                title="Quay lại hội thoại AI"
+                            >
+                                <i class="fa fa-comments me-1" aria-hidden="true"/>
+                                <span>Hội Thoại</span>
+                            </button>
+                        </t>
+                        <button
+                            type="button"
+                            class="btn al2c-btn-header-icon"
+                            t-on-click="this.clearChat"
+                            title="Làm mới cuộc trò chuyện"
+                            aria-label="Làm mới cuộc trò chuyện"
+                        >
+                            <i class="fa fa-refresh" aria-hidden="true"/>
+                        </button>
+                        <button
+                            type="button"
+                            class="btn al2c-btn-header-icon"
+                            t-on-click="this.toggleDrawer"
+                            title="Thu nhỏ cửa sổ"
+                            aria-label="Thu nhỏ cửa sổ"
+                        >
+                            <i class="fa fa-times" aria-hidden="true"/>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Lead Capture Form Drawer Section -->
+                <t t-if="state.showLeadForm">
+                    <section class="al2c-lead-section">
+                        <div class="al2c-lead-header">
+                            <div class="d-flex align-items-center gap-2">
+                                <button
+                                    type="button"
+                                    class="btn al2c-btn-back"
+                                    t-on-click="this.closeLeadForm"
+                                    title="Quay lại"
+                                    aria-label="Quay lại"
+                                >
+                                    <i class="fa fa-arrow-left" aria-hidden="true"/>
+                                </button>
+                                <div>
+                                    <h5 class="al2c-lead-title mb-0">Đăng Ký Tư Vấn Doanh Nghiệp</h5>
+                                    <p class="al2c-lead-subtitle mb-0">Chuyên gia Solution Architect sẽ liên hệ trong 24 giờ</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="al2c-lead-body">
+                            <!-- Success Banner -->
+                            <t t-if="state.leadSuccessMessage">
+                                <div class="alert al2c-alert-success d-flex align-items-center gap-2" role="alert">
+                                    <i class="fa fa-check-circle fs-5" aria-hidden="true"/>
+                                    <div>
+                                        <div class="fw-semibold">Gửi yêu cầu thành công!</div>
+                                        <div class="small" t-esc="state.leadSuccessMessage"/>
+                                    </div>
+                                </div>
+                            </t>
+
+                            <!-- Error Banner -->
+                            <t t-if="state.leadErrorMessage">
+                                <div class="alert al2c-alert-danger d-flex align-items-center gap-2" role="alert">
+                                    <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
+                                    <div class="small" t-esc="state.leadErrorMessage"/>
+                                </div>
+                            </t>
+
+                            <form class="al2c-lead-form" t-on-submit.prevent="this.submitLeadForm">
+                                <div class="al2c-form-group">
+                                    <label class="al2c-form-label" for="al2c_lead_name">Họ và tên <span class="text-danger">*</span></label>
+                                    <input
+                                        type="text"
+                                        id="al2c_lead_name"
+                                        class="form-control al2c-form-input"
+                                        placeholder="Nguyễn Văn A"
+                                        t-att-value="state.leadForm.name"
+                                        t-on-input="(ev) => this.updateLeadField('name', ev)"
+                                        required="required"
+                                    />
+                                </div>
+
+                                <div class="al2c-form-row">
+                                    <div class="al2c-form-group">
+                                        <label class="al2c-form-label" for="al2c_lead_email">Email doanh nghiệp <span class="text-danger">*</span></label>
+                                        <input
+                                            type="email"
+                                            id="al2c_lead_email"
+                                            class="form-control al2c-form-input"
+                                            placeholder="a.nguyen@company.com"
+                                            t-att-value="state.leadForm.email"
+                                            t-on-input="(ev) => this.updateLeadField('email', ev)"
+                                        />
+                                    </div>
+                                    <div class="al2c-form-group">
+                                        <label class="al2c-form-label" for="al2c_lead_phone">Số điện thoại <span class="text-danger">*</span></label>
+                                        <input
+                                            type="tel"
+                                            id="al2c_lead_phone"
+                                            class="form-control al2c-form-input"
+                                            placeholder="0912 345 678"
+                                            t-att-value="state.leadForm.phone"
+                                            t-on-input="(ev) => this.updateLeadField('phone', ev)"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div class="al2c-form-row">
+                                    <div class="al2c-form-group">
+                                        <label class="al2c-form-label" for="al2c_lead_company">Tên công ty / Doanh nghiệp <span class="text-danger">*</span></label>
+                                        <input
+                                            type="text"
+                                            id="al2c_lead_company"
+                                            class="form-control al2c-form-input"
+                                            placeholder="Công ty Cổ phần ABC"
+                                            t-att-value="state.leadForm.company_name"
+                                            t-on-input="(ev) => this.updateLeadField('company_name', ev)"
+                                            required="required"
+                                        />
+                                    </div>
+                                    <div class="al2c-form-group">
+                                        <label class="al2c-form-label" for="al2c_lead_scale">Quy mô nhân sự</label>
+                                        <select
+                                            id="al2c_lead_scale"
+                                            class="form-select al2c-form-input"
+                                            t-att-value="state.leadForm.employee_count"
+                                            t-on-change="(ev) => this.updateLeadField('employee_count', ev)"
+                                        >
+                                            <option value="Dưới 50 nhân sự">Dưới 50 nhân sự (SME)</option>
+                                            <option value="50 - 200 nhân sự">50 - 200 nhân sự (Mid-market)</option>
+                                            <option value="200 - 500 nhân sự">200 - 500 nhân sự (Doanh nghiệp lớn)</option>
+                                            <option value="Trên 500 nhân sự">Trên 500 nhân sự (Enterprise / Tập đoàn)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="al2c-form-group">
+                                    <label class="al2c-form-label" for="al2c_lead_solution">Giải pháp quan tâm</label>
+                                    <select
+                                        id="al2c_lead_solution"
+                                        class="form-select al2c-form-input"
+                                        t-att-value="state.leadForm.product_interest"
+                                        t-on-change="(ev) => this.updateLeadField('product_interest', ev)"
+                                    >
+                                        <option value="Insilos ERP (VAS &amp; Hóa đơn ĐT Nghị định 70/2025)">Insilos ERP (VAS &amp; Hóa đơn ĐT 70/2025)</option>
+                                        <option value="Vertical Resilience (GRC, ISO 27001 &amp; PDPD 13/2023)">Vertical Resilience (GRC, ISO 27001 &amp; PDPD 13/2023)</option>
+                                        <option value="Mojo AI (Tác tử AL2C &amp; Bóc tách thông minh)">Mojo AI (Tác tử AL2C &amp; Bóc tách thông minh)</option>
+                                        <option value="Zencode Ent (Hiện đại hóa mã kế thừa &amp; AGY Fleet)">Zencode Ent (Hiện đại hóa mã kế thừa &amp; AGY Fleet)</option>
+                                        <option value="Hệ sinh thái Tứ Trụ Toàn Diện (ERP + GRC + AI + Zencode)">Hệ sinh thái Tứ Trụ Toàn Diện</option>
+                                    </select>
+                                </div>
+
+                                <div class="al2c-form-group">
+                                    <label class="al2c-form-label" for="al2c_lead_notes">Nhu cầu hoặc thách thức vận hành cần giải quyết</label>
+                                    <textarea
+                                        id="al2c_lead_notes"
+                                        class="form-control al2c-form-input"
+                                        rows="3"
+                                        placeholder="Mô tả sơ lược quy trình, số lượng người dùng hoặc lộ trình triển khai mong muốn..."
+                                        t-att-value="state.leadForm.notes"
+                                        t-on-input="(ev) => this.updateLeadField('notes', ev)"
+                                    />
+                                </div>
+
+                                <div class="al2c-lead-actions">
+                                    <button
+                                        type="submit"
+                                        class="btn al2c-btn-primary"
+                                        t-att-disabled="state.isLoading"
+                                    >
+                                        <t t-if="state.isLoading">
+                                            <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"/>
+                                            <span>Đang xử lý hồ sơ...</span>
+                                        </t>
+                                        <t t-else="">
+                                            <i class="fa fa-paper-plane me-2" aria-hidden="true"/>
+                                            <span>Gửi Yêu Cầu Khảo Sát &amp; Báo Giá</span>
+                                        </t>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="btn al2c-btn-secondary"
+                                        t-on-click="this.closeLeadForm"
+                                    >
+                                        Quay lại hội thoại
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+                </t>
+
+                <!-- Messages Container -->
+                <t t-else="">
+                    <div class="al2c-messages-viewport" t-ref="messagesContainer">
+                        <t t-foreach="state.messages" t-as="msg" t-key="msg.id">
+                            <div t-attf-class="al2c-message-row al2c-message-{{ msg.sender }}">
+                                <!-- Assistant Message -->
+                                <t t-if="msg.sender === 'assistant'">
+                                    <div class="al2c-message-avatar" aria-hidden="true">
+                                        <img
+                                            src="/insilos_al2c/static/src/img/logo_innoria_header.svg"
+                                            alt="Innoria AI Avatar"
+                                            class="al2c-avatar-img"
+                                        />
+                                    </div>
+                                    <div class="al2c-bubble-container">
+                                        <div class="al2c-bubble al2c-bubble-assistant">
+                                            <div class="al2c-bubble-content" t-out="msg.formattedText || msg.text"/>
+
+                                            <!-- Grounded Verification Badge -->
+                                            <t t-if="msg.grounded">
+                                                <div class="al2c-entailment-badge">
+                                                    <i class="fa fa-shield me-1" aria-hidden="true"/>
+                                                    <span>Grounded RAG • Điểm xác thực: </span>
+                                                    <strong><t t-esc="(msg.entailment_score * 100).toFixed(0)"/>%</strong>
+                                                </div>
+                                            </t>
+
+                                            <!-- Expandable Citation Chips -->
+                                            <t t-if="msg.citations and msg.citations.length">
+                                                <div class="al2c-citations-wrapper">
+                                                    <button
+                                                        type="button"
+                                                        class="btn al2c-citations-toggle"
+                                                        t-on-click="() => this.toggleCitations(msg)"
+                                                        title="Bấm để xem các trích dẫn tài liệu quy chuẩn"
+                                                    >
+                                                        <i
+                                                            t-attf-class="fa fa-caret-{{ msg.citationsExpanded ? 'down' : 'right' }} me-1"
+                                                            aria-hidden="true"
+                                                        />
+                                                        <span>Trích dẫn kiểm chứng KMS (<t t-esc="msg.citations.length"/> nguồn)</span>
+                                                    </button>
+                                                    <t t-if="msg.citationsExpanded">
+                                                        <div class="al2c-citations-list">
+                                                            <t t-foreach="msg.citations" t-as="cit" t-key="cit_index">
+                                                                <div class="al2c-citation-chip">
+                                                                    <i class="fa fa-bookmark-o me-1" aria-hidden="true"/>
+                                                                    <span class="al2c-citation-text" t-esc="cit"/>
+                                                                </div>
+                                                            </t>
+                                                            <t t-if="msg.reason">
+                                                                <div class="al2c-entailment-reason">
+                                                                    <i class="fa fa-info-circle me-1" aria-hidden="true"/>
+                                                                    <span t-esc="msg.reason"/>
+                                                                </div>
+                                                            </t>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </t>
+
+                                            <!-- Suggested Action Buttons -->
+                                            <t t-if="msg.suggested_actions and msg.suggested_actions.length">
+                                                <div class="al2c-actions-container">
+                                                    <t t-foreach="msg.suggested_actions" t-as="act" t-key="act_index">
+                                                        <button
+                                                            type="button"
+                                                            class="btn al2c-action-chip"
+                                                            t-on-click="() => this.onSuggestedActionClick(act)"
+                                                        >
+                                                            <i class="fa fa-arrow-circle-right me-1" aria-hidden="true"/>
+                                                            <span t-esc="act.label"/>
+                                                        </button>
+                                                    </t>
+                                                </div>
+                                            </t>
+                                        </div>
+                                        <div class="al2c-message-time"><t t-esc="msg.time"/></div>
+                                    </div>
+                                </t>
+
+                                <!-- User Message -->
+                                <t t-else="">
+                                    <div class="al2c-bubble-container user">
+                                        <div class="al2c-bubble al2c-bubble-user">
+                                            <div class="al2c-bubble-content" t-esc="msg.text"/>
+                                        </div>
+                                        <div class="al2c-message-time user"><t t-esc="msg.time"/></div>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+
+                        <!-- Typing Shimmer / Loading Indicator -->
+                        <t t-if="state.isLoading">
+                            <div class="al2c-typing-row">
+                                <div class="al2c-message-avatar" aria-hidden="true">
+                                    <img
+                                        src="/insilos_al2c/static/src/img/logo_innoria_header.svg"
+                                        alt="Innoria AI Avatar"
+                                        class="al2c-avatar-img"
+                                    />
+                                </div>
+                                <div class="al2c-typing-bubble">
+                                    <div class="al2c-typing-dots">
+                                        <span class="al2c-typing-dot"/>
+                                        <span class="al2c-typing-dot"/>
+                                        <span class="al2c-typing-dot"/>
+                                    </div>
+                                    <span class="al2c-typing-label">AI Concierge đang bóc tách ngữ nghĩa KMS...</span>
+                                </div>
+                            </div>
+                        </t>
+                    </div>
+
+                    <!-- Quick Prompt Action Chips -->
+                    <div class="al2c-quick-prompts-bar">
+                        <div class="al2c-quick-label">
+                            <i class="fa fa-bolt me-1" aria-hidden="true"/>
+                            <span>Khám phá nhanh:</span>
+                        </div>
+                        <div class="al2c-quick-chips-wrapper">
+                            <button
+                                type="button"
+                                class="btn al2c-quick-chip"
+                                t-on-click="() => this.sendQuickPrompt('Báo giá ERP Starter')"
+                            >
+                                Báo giá ERP Starter
+                            </button>
+                            <button
+                                type="button"
+                                class="btn al2c-quick-chip"
+                                t-on-click="() => this.sendQuickPrompt('Tư vấn GRC &amp; ISO 27001')"
+                            >
+                                Tư vấn GRC &amp; ISO 27001
+                            </button>
+                            <button
+                                type="button"
+                                class="btn al2c-quick-chip"
+                                t-on-click="() => this.sendQuickPrompt('Đăng ký Demo Mojo AI')"
+                            >
+                                Đăng ký Demo Mojo AI
+                            </button>
+                            <button
+                                type="button"
+                                class="btn al2c-quick-chip"
+                                t-on-click="() => this.sendQuickPrompt('Hiện đại hóa mã nguồn Zencode')"
+                            >
+                                Hiện đại hóa Zencode
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input Footer -->
+                    <footer class="al2c-concierge-footer">
+                        <div class="al2c-input-wrapper">
+                            <textarea
+                                t-ref="queryInput"
+                                class="form-control al2c-textarea"
+                                placeholder="Hỏi AI Concierge về ERP, GRC, Mojo AI hoặc Zencode..."
+                                rows="1"
+                                t-att-value="state.currentQuery"
+                                t-on-input="this.updateQuery"
+                                t-on-keydown="this.onInputKeyDown"
+                                t-att-disabled="state.isLoading"
+                                aria-label="Nội dung câu hỏi gửi AI Concierge"
+                            />
+                            <button
+                                type="button"
+                                class="btn al2c-btn-send"
+                                t-on-click="this.sendMessage"
+                                t-att-disabled="state.isLoading or !state.currentQuery.trim()"
+                                title="Gửi câu hỏi (Enter)"
+                                aria-label="Gửi câu hỏi"
+                            >
+                                <i class="fa fa-paper-plane" aria-hidden="true"/>
+                            </button>
+                        </div>
+
+                        <!-- Sovereign Security & Compliance Watermark -->
+                        <div class="al2c-watermark">
+                            <i class="fa fa-shield me-1" aria-hidden="true"/>
+                            <span>Innoria Enterprise AI · Grounded KMS Architecture · ISO/IEC 27001 &amp; Nghị định 13/2023/NĐ-CP</span>
+                        </div>
+                    </footer>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>

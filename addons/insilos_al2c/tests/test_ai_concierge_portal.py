@@ -160,3 +160,48 @@ class TestAiConciergePortal(TransactionCase):
         res_l = self.controller.ai_concierge_book_lead(name='Test User', email='', phone='', env=self.env)
         self.assertFalse(res_l['success'])
         self.assertEqual(res_l['status'], 'missing_contact_info')
+
+    def test_08_concierge_widget_assets_and_templates(self):
+        """Verify OWL 2 template, JS, SCSS assets and manifest bundle registrations for AI Concierge."""
+        import os
+        from odoo.modules.module import get_module_path, get_manifest
+
+        mod_path = get_module_path('insilos_al2c')
+        self.assertTrue(mod_path and os.path.isdir(mod_path))
+
+        # 1. Verify XML template file exists and has valid QWeb/OWL structure
+        xml_file = os.path.join(mod_path, 'static', 'src', 'xml', 'ai_concierge_widget.xml')
+        self.assertTrue(os.path.isfile(xml_file), "ai_concierge_widget.xml must exist")
+        with open(xml_file, 'r', encoding='utf-8') as f:
+            xml_content = f.read()
+        self.assertIn('t-name="innoria.ai_concierge_widget"', xml_content)
+        self.assertIn('al2c-concierge-launcher', xml_content)
+        self.assertIn('al2c-concierge-drawer', xml_content)
+        self.assertIn('al2c-lead-section', xml_content)
+
+        # 2. Verify JS component exists
+        js_file = os.path.join(mod_path, 'static', 'src', 'js', 'ai_concierge_widget.js')
+        self.assertTrue(os.path.isfile(js_file), "ai_concierge_widget.js must exist")
+        with open(js_file, 'r', encoding='utf-8') as f:
+            js_content = f.read()
+        self.assertIn('class AiConciergeWidget extends Component', js_content)
+        self.assertIn('/innoria/ai_concierge/query', js_content)
+        self.assertIn('/innoria/ai_concierge/book_lead', js_content)
+        self.assertIn('#innoria_ai_concierge_root', js_content)
+
+        # 3. Verify SCSS files exist
+        scss_file = os.path.join(mod_path, 'static', 'src', 'scss', 'ai_concierge_widget.scss')
+        dark_scss_file = os.path.join(mod_path, 'static', 'src', 'scss', 'ai_concierge_widget.dark.scss')
+        self.assertTrue(os.path.isfile(scss_file), "ai_concierge_widget.scss must exist")
+        self.assertTrue(os.path.isfile(dark_scss_file), "ai_concierge_widget.dark.scss must exist")
+
+        # 4. Verify manifest registers view and asset bundles
+        manifest = get_manifest('insilos_al2c')
+        self.assertIn('views/website_ai_concierge_templates.xml', manifest.get('data', []))
+        assets_frontend = manifest.get('assets', {}).get('web.assets_frontend', [])
+        assets_dark = manifest.get('assets', {}).get('web.assets_web_dark', [])
+        self.assertIn('insilos_al2c/static/src/xml/ai_concierge_widget.xml', assets_frontend)
+        self.assertIn('insilos_al2c/static/src/js/ai_concierge_widget.js', assets_frontend)
+        self.assertIn('insilos_al2c/static/src/scss/ai_concierge_widget.scss', assets_frontend)
+        self.assertIn('insilos_al2c/static/src/scss/ai_concierge_widget.dark.scss', assets_dark)
+

@@ -7,7 +7,7 @@ from odoo.exceptions import UserError
 from odoo import fields
 
 
-@tagged('post_install', '-at_install', 'insilos_al2c')
+@tagged('post_install', '-at_install', 'insilos_al2c', 'timesheet_staging')
 class TestAl2cTimesheetStaging(TransactionCase):
 
     @classmethod

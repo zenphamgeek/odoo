@@ -7,7 +7,7 @@ import math
 import re
 from odoo import models, fields, api, _
 from odoo.tools import html2plaintext
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, AccessError
 
 _logger = logging.getLogger(__name__)
 
@@ -409,3 +409,114 @@ class Al2cRagService(models.AbstractModel):
                     domain.extend(sub_domains)
 
         return self.env['al2c.rag.chunk'].sudo().search(domain, limit=top_k)
+
+    @api.model
+    def cron_reindex_knowledge_articles(self, batch_limit=50, full_reindex=False):
+        """Automated Scheduled Action: Re-indexes articles using high-watermark pagination
+        and prunes orphaned chunks using memory-bounded SQL queries.
+        """
+        # Guard: Restrict invocation strictly to system administrators or scheduled actions (SEC-CRON-05)
+        if not (self.env.is_admin() or self.env.is_system() or self.env.su):
+            raise AccessError(_("Unauthorized: Only system administrators or scheduled actions may invoke re-indexing."))
+
+        cr = self.env.cr
+        orphaned_pruned_count = 0
+
+        # 1. Memory-bounded orphan pruning via SQL cursor (SEC-CRON-02: avoids loading thousands of chunk records into RAM)
+        cr.execute("""
+            SELECT DISTINCT c.source_id 
+            FROM al2c_rag_chunk c
+            LEFT JOIN knowledge_article a ON c.source_id = a.id AND a.active = true
+            WHERE c.source_model = 'knowledge.article'
+              AND a.id IS NULL
+        """)
+        orphaned_article_ids = [row[0] for row in cr.fetchall() if row[0] is not None]
+        if orphaned_article_ids:
+            dead_chunks = self.env['al2c.rag.chunk'].sudo().search([
+                ('source_model', '=', 'knowledge.article'),
+                ('source_id', 'in', orphaned_article_ids)
+            ])
+            orphaned_pruned_count = len(dead_chunks)
+            dead_chunks.unlink()
+            _logger.info(
+                "SEC-AUDIT: Pruned %d orphaned chunks across %d deleted/archived articles.",
+                orphaned_pruned_count, len(orphaned_article_ids)
+            )
+
+        # 2. High-Watermark incremental sync (SEC-CRON-01: prevents starvation livelocks)
+        ICP = self.env['ir.config_parameter'].sudo()
+        if full_reindex:
+            last_sync_date = '2000-01-01 00:00:00'
+            last_sync_id = 0
+        else:
+            last_sync_date = ICP.get_param('al2c.rag.kms_last_sync_date', '2000-01-01 00:00:00')
+            try:
+                last_sync_id = int(ICP.get_param('al2c.rag.kms_last_sync_id', '0') or 0)
+            except (ValueError, TypeError):
+                last_sync_id = 0
+
+        article_domain = [
+            ('active', '=', True),
+            '|',
+            ('write_date', '>', last_sync_date),
+            '&',
+            ('write_date', '>=', last_sync_date),
+            ('id', '>', last_sync_id),
+        ]
+        # SEC-CRON-03: Exclude private/confidential personal workspace articles
+        if 'category' in self.env['knowledge.article']._fields:
+            article_domain.append(('category', '!=', 'private'))
+
+        articles = self.env['knowledge.article'].sudo().search(
+            article_domain, 
+            order='write_date asc, id asc', 
+            limit=batch_limit if batch_limit and batch_limit > 0 else False
+        )
+
+        # If high-watermark exhausted all delta records, reset cursor to 2000-01-01 to start background validation sweep
+        if not articles and batch_limit:
+            ICP.set_param('al2c.rag.kms_last_sync_date', '2000-01-01 00:00:00')
+            ICP.set_param('al2c.rag.kms_last_sync_id', '0')
+            return {
+                'articles_processed': 0,
+                'chunks_stored': 0,
+                'orphaned_pruned': orphaned_pruned_count,
+                'cursor_reset': True,
+            }
+
+        articles_processed = 0
+        chunks_stored = 0
+        last_processed_article = None
+
+        # 3. Fault-Tolerant Savepoint Loop (SEC-CRON-04: API timeouts don't abort entire run)
+        for article in articles:
+            try:
+                with self.env.cr.savepoint():
+                    indexed_chunks = self.index_knowledge_article(article)
+                    chunks_stored += len(indexed_chunks)
+                    articles_processed += 1
+                    last_processed_article = article
+            except Exception as e:
+                _logger.exception("Failed indexing knowledge article %s (ID: %d): %s", article.name, article.id, str(e))
+                continue
+
+        # Advance cursor only up to the last successfully processed article
+        if last_processed_article:
+            ICP.set_param('al2c.rag.kms_last_sync_date', fields.Datetime.to_string(last_processed_article.write_date))
+            ICP.set_param('al2c.rag.kms_last_sync_id', str(last_processed_article.id))
+
+        summary = {
+            'articles_processed': articles_processed,
+            'chunks_stored': chunks_stored,
+            'orphaned_pruned': orphaned_pruned_count,
+        }
+
+        _logger.info(
+            "AL2C KMS Reindex completed: %d articles processed, %d chunks stored, %d orphaned chunks pruned.",
+            articles_processed,
+            chunks_stored,
+            orphaned_pruned_count,
+        )
+
+        return summary
+

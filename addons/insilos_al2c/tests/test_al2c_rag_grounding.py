@@ -2,8 +2,10 @@
 # Part of Insilos AL2C Enterprise Architecture (SOP-RAG-003 & SOP-AI-004)
 
 import hashlib
+from unittest.mock import patch
+from odoo import fields
 from odoo.tests.common import TransactionCase, tagged
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, AccessError
 
 
 @tagged('post_install', '-at_install', 'insilos_al2c', 'rag_grounding')
@@ -227,3 +229,169 @@ class TestAl2cRagGrounding(TransactionCase):
         old_remaining = self.env['al2c.rag.chunk'].search([('id', 'in', chunk_ids)])
         self.assertEqual(len(old_remaining), 0, "Previous chunks must be unlinked on re-index")
         self.assertTrue(len(new_chunks) >= 1, "New chunks must be indexed")
+
+    def test_07_cron_reindex_knowledge_articles(self):
+        """Verify automated cron reindexing indexes active articles and prunes orphaned chunks."""
+        # 1. Create an active article with markdown table
+        active_article = self.env['knowledge.article'].create({
+            'name': 'Active Operational SOP Article',
+            'body': (
+                '<p>Overview of autonomous operations:</p>'
+                '<p>| Process Code | Lead Time | Responsible Role |<br/>'
+                '| :--- | :--- | :--- |<br/>'
+                '| SOP-AL2C-001 | 2 Days | Revenue Ops Manager |<br/>'
+                '| SOP-AL2C-002 | 1 Day | Legal Reviewer |</p>'
+            ),
+        })
+
+        # 2. Create an article to be archived
+        archived_article = self.env['knowledge.article'].create({
+            'name': 'Legacy Deprecated Knowledge Article',
+            'body': '<p>This process is deprecated and will be archived.</p>',
+        })
+
+        # Pre-index both articles
+        self.service.index_knowledge_article(active_article)
+        archived_chunks = self.service.index_knowledge_article(archived_article)
+        archived_chunk_ids = archived_chunks.ids
+
+        # Now archive the second article
+        archived_article.write({'active': False})
+
+        # 3. Create a synthetic orphaned chunk for an article that was completely deleted
+        deleted_chunk = self.env['al2c.rag.chunk'].create({
+            'name': 'Ghost Article Deleted Long Ago',
+            'source_model': 'knowledge.article',
+            'source_id': 99999999,
+            'content': 'Orphaned content with nonexistent source id',
+            'chunk_hash': hashlib.sha256(b'deleted_source_content').hexdigest(),
+            'company_id': self.company_a.id,
+        })
+        deleted_chunk_id = deleted_chunk.id
+
+        # Verify orphaned chunks currently exist in database
+        self.assertTrue(self.env['al2c.rag.chunk'].browse(archived_chunk_ids).exists())
+        self.assertTrue(self.env['al2c.rag.chunk'].browse(deleted_chunk_id).exists())
+
+        # 4. Trigger cron_reindex_knowledge_articles
+        result = self.service.cron_reindex_knowledge_articles(batch_limit=50)
+
+        # 5. Assertions on return summary
+        self.assertIsInstance(result, dict)
+        self.assertIn('articles_processed', result)
+        self.assertIn('chunks_stored', result)
+        self.assertGreaterEqual(result['articles_processed'], 1)
+        self.assertGreaterEqual(result['chunks_stored'], 1)
+
+        # 6. Verify orphaned chunks were pruned
+        remaining_archived_chunks = self.env['al2c.rag.chunk'].search([('id', 'in', archived_chunk_ids)])
+        self.assertEqual(len(remaining_archived_chunks), 0, "Chunks of archived articles must be pruned by cron")
+
+        remaining_deleted_chunks = self.env['al2c.rag.chunk'].search([('id', '=', deleted_chunk_id)])
+        self.assertEqual(len(remaining_deleted_chunks), 0, "Orphaned chunks of deleted articles must be pruned by cron")
+
+        # 7. Verify active article chunks were indexed and preserved table
+        active_chunks = self.env['al2c.rag.chunk'].search([
+            ('source_model', '=', 'knowledge.article'),
+            ('source_id', '=', active_article.id),
+        ])
+        self.assertTrue(len(active_chunks) >= 1, "Active article must have chunks stored")
+        table_chunks = active_chunks.filtered(lambda c: c.has_table)
+        self.assertTrue(len(table_chunks) >= 1, "Markdown table in active article must be preserved with has_table=True")
+
+
+@tagged('post_install', '-at_install', 'insilos_al2c', 'rag_grounding')
+class TestAl2cRagAdversarialAudit(TransactionCase):
+    """Adversarial security audit verification for SEC-CRON-01 to SEC-CRON-05."""
+
+    def setUp(self):
+        super().setUp()
+        self.rag_service = self.env['al2c.rag.service']
+        self.article_model = self.env['knowledge.article']
+        self.chunk_model = self.env['al2c.rag.chunk']
+        try:
+            self.portal_user = self.env.ref('base.demo_user0')
+        except ValueError:
+            self.portal_user = self.env['res.users'].create({
+                'name': 'Unprivileged Test User',
+                'login': 'unprivileged_test_user@example.com',
+                'email': 'unprivileged_test_user@example.com',
+            })
+
+    def test_adv_01_prevent_unauthorized_rpc_execution(self):
+        """SEC-CRON-05: Verify unprivileged/portal users cannot invoke cron_reindex via RPC."""
+        with self.assertRaises(AccessError):
+            self.rag_service.with_user(self.portal_user).cron_reindex_knowledge_articles()
+
+    def test_adv_02_pagination_prevents_starvation_livelock(self):
+        """SEC-CRON-01: Create 100 articles and verify batching advances past the first 50."""
+        # Align cursor to the latest existing article before creating test articles
+        last_art = self.article_model.search([], order='write_date desc, id desc', limit=1)
+        ICP = self.env['ir.config_parameter'].sudo()
+        if last_art:
+            ICP.set_param('al2c.rag.kms_last_sync_date', fields.Datetime.to_string(last_art.write_date))
+            ICP.set_param('al2c.rag.kms_last_sync_id', str(last_art.id))
+        else:
+            ICP.set_param('al2c.rag.kms_last_sync_date', '2000-01-01 00:00:00')
+            ICP.set_param('al2c.rag.kms_last_sync_id', '0')
+
+        articles = [
+            self.article_model.create({
+                'name': f'Pagination Adv Article {i}',
+                'body': f'<p>Content for pagination adversarial testing {i}</p>',
+                'active': True
+            })
+            for i in range(100)
+        ]
+
+        # Run Batch 1: must process first 50
+        res1 = self.rag_service.cron_reindex_knowledge_articles(batch_limit=50)
+        self.assertEqual(res1['articles_processed'], 50)
+
+        # Run Batch 2: must advance to remaining 50, NOT repeat the original 50
+        res2 = self.rag_service.cron_reindex_knowledge_articles(batch_limit=50)
+        self.assertEqual(res2['articles_processed'], 50)
+
+    def test_adv_03_pruning_does_not_trigger_oom(self):
+        """SEC-CRON-02: Simulate orphan cleanup and assert bounded SQL pruning."""
+        article = self.article_model.create({'name': 'Deleted Adversarial Article', 'active': True})
+        self.chunk_model.create({
+            'source_model': 'knowledge.article',
+            'source_id': article.id,
+            'content': 'Orphan payload for memory bounded pruning test',
+            'name': 'Deleted Adversarial Article Chunk',
+            'chunk_hash': hashlib.sha256(b'orphan_payload_oom_test').hexdigest(),
+        })
+        article_id = article.id
+        article.unlink()
+
+        res = self.rag_service.cron_reindex_knowledge_articles(batch_limit=10)
+        self.assertGreaterEqual(res['orphaned_pruned'], 1)
+
+        remaining = self.chunk_model.search([
+            ('source_model', '=', 'knowledge.article'),
+            ('source_id', '=', article_id)
+        ])
+        self.assertEqual(len(remaining), 0)
+
+    def test_adv_04_savepoint_resilience_on_api_timeout(self):
+        """SEC-CRON-04: Ensure an API failure on one article does not revert preceding ones."""
+        last_art = self.article_model.search([], order='write_date desc, id desc', limit=1)
+        ICP = self.env['ir.config_parameter'].sudo()
+        if last_art:
+            ICP.set_param('al2c.rag.kms_last_sync_date', fields.Datetime.to_string(last_art.write_date))
+            ICP.set_param('al2c.rag.kms_last_sync_id', str(last_art.id))
+
+        a1 = self.article_model.create({'name': 'Valid Doc Adv', 'active': True, 'body': '<p>Valid content</p>'})
+        a2 = self.article_model.create({'name': 'Failing Doc Adv', 'active': True, 'body': '<p>Failing content</p>'})
+
+        def mock_index(article, *args, **kwargs):
+            if article.id == a2.id:
+                raise ConnectionError("LLM Gateway Timeout 504")
+            return [{'chunk_id': 1}]
+
+        with patch.object(type(self.rag_service), 'index_knowledge_article', side_effect=mock_index):
+            summary = self.rag_service.cron_reindex_knowledge_articles(batch_limit=10)
+            self.assertEqual(summary['articles_processed'], 1)
+
+

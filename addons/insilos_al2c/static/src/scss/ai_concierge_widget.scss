@@ -1,0 +1,820 @@
+// =============================================================================
+// INNORIA PUBLIC AI CONCIERGE — LIGHT MODE SCSS BUNDLE
+// Part of Insilos AL2C Enterprise Architecture (SOP-AI-004 & SOP-RAG-003)
+// Adheres strictly to AGENTS.md Rule 1 (Native QWeb/Bootstrap 5 SCSS)
+// and Rule 4 (Sovereign Dark Mode Token Architecture - Zero Bare White Surfaces)
+// Registered under web.assets_frontend in __manifest__.py
+// =============================================================================
+
+:root {
+    // 1. Surface and Canvas Hierarchy (Zero Bare White)
+    --al2c-concierge-bg-canvas: var(--insilos-bg-canvas, #F4F6F9);
+    --al2c-concierge-bg-surface: var(--insilos-bg-surface, #FFFFFF);
+    --al2c-concierge-bg-card: var(--insilos-bg-card, #FFFFFF);
+    --al2c-concierge-bg-header: var(--insilos-bg-header, #FFFFFF);
+    --al2c-concierge-bg-subtle: var(--insilos-bg-subtle, #F8FAFC);
+    --al2c-concierge-bg-hover: var(--insilos-bg-hover, #F1F5F9);
+    --al2c-concierge-bg-active: var(--insilos-bg-active, #E2E8F0);
+    --al2c-concierge-bg-bubble-user: var(--insilos-primary, #0070F2);
+    --al2c-concierge-bg-bubble-assistant: var(--insilos-bg-subtle, #F1F5F9);
+    --al2c-concierge-bg-chip: var(--insilos-bg-surface, #FFFFFF);
+
+    // 2. Hairline Architectural Borders
+    --al2c-concierge-border-subtle: var(--insilos-border-subtle, #E2E8F0);
+    --al2c-concierge-border-medium: var(--insilos-border-medium, #CBD5E1);
+    --al2c-concierge-border-focus: var(--insilos-primary, #0070F2);
+
+    // 3. High Contrast Typography (WCAG 2.1 AA Compliant)
+    --al2c-concierge-text-primary: var(--insilos-text-primary, #0F172A);
+    --al2c-concierge-text-secondary: var(--insilos-text-secondary, #334155);
+    --al2c-concierge-text-muted: var(--insilos-text-muted, #64748B);
+    --al2c-concierge-text-on-primary: var(--insilos-text-on-primary, #FFFFFF);
+
+    // 4. Enterprise Brand Accents (SAP Fiori Blue & Cyan)
+    --al2c-concierge-primary: var(--insilos-primary, #0070F2);
+    --al2c-concierge-primary-hover: #005BB5;
+    --al2c-concierge-accent: var(--insilos-accent, #0ABBDB);
+    --al2c-concierge-badge-green: #10B981;
+    --al2c-concierge-badge-green-bg: rgba(16, 185, 129, 0.12);
+
+    // 5. Elevations and Shadows
+    --al2c-concierge-shadow: 0 16px 48px rgba(15, 23, 42, 0.16);
+    --al2c-concierge-launcher-shadow: 0 8px 24px rgba(0, 112, 242, 0.35);
+
+    // 6. Positioning Layer
+    --al2c-concierge-zindex: 1055;
+}
+
+// -----------------------------------------------------------------------------
+// Keyframe Animations
+// -----------------------------------------------------------------------------
+@keyframes al2c-pulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+    }
+}
+
+@keyframes al2c-typing-bounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+    30% {
+        transform: translateY(-4px);
+        opacity: 1;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Component Styles
+// -----------------------------------------------------------------------------
+.al2c-concierge-root {
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--al2c-concierge-text-primary);
+}
+
+// 1. Floating Action Launcher Button
+.al2c-concierge-launcher {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0070F2 0%, #0ABBDB 100%);
+    border: none;
+    box-shadow: var(--al2c-concierge-launcher-shadow);
+    z-index: var(--al2c-concierge-zindex);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+    padding: 0;
+
+    &:hover {
+        transform: scale(1.06);
+        box-shadow: 0 12px 30px rgba(0, 112, 242, 0.45);
+    }
+
+    &:active {
+        transform: scale(0.96);
+    }
+
+    .al2c-launcher-content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .al2c-launcher-logo {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        filter: brightness(0) invert(1);
+    }
+
+    .al2c-launcher-icon-close {
+        color: #ffffff;
+        font-size: 22px;
+    }
+
+    .al2c-launcher-pulse {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 13px;
+        height: 13px;
+        border-radius: 50%;
+        background-color: var(--al2c-concierge-badge-green);
+        border: 2px solid var(--al2c-concierge-bg-surface);
+        animation: al2c-pulse 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+    }
+}
+
+// 2. Chat Drawer Container
+.al2c-concierge-drawer {
+    position: fixed;
+    bottom: 96px;
+    right: 24px;
+    width: 420px;
+    max-width: calc(100vw - 32px);
+    height: 640px;
+    max-height: calc(100vh - 120px);
+    background: var(--al2c-concierge-bg-surface);
+    border: 1px solid var(--al2c-concierge-border-subtle);
+    border-radius: 16px;
+    box-shadow: var(--al2c-concierge-shadow);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: var(--al2c-concierge-zindex);
+    transform: translateY(20px) scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+
+    &.is-open {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    @media (max-width: 576px) {
+        bottom: 0;
+        right: 0;
+        width: 100vw;
+        max-width: 100vw;
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        border: none;
+    }
+}
+
+// SAP Horizon 3px Gradient Stripe
+.al2c-horizon-stripe {
+    height: 3px;
+    width: 100%;
+    background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%);
+    flex-shrink: 0;
+}
+
+// Drawer Header
+.al2c-concierge-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--al2c-concierge-bg-header);
+    border-bottom: 1px solid var(--al2c-concierge-border-subtle);
+    flex-shrink: 0;
+
+    .al2c-header-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .al2c-header-logo {
+        max-height: 26px;
+        width: auto;
+        object-fit: contain;
+    }
+
+    .al2c-header-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--al2c-concierge-text-primary);
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .al2c-status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        color: var(--al2c-concierge-text-muted);
+        margin-top: 2px;
+    }
+
+    .al2c-status-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background-color: var(--al2c-concierge-badge-green);
+        box-shadow: 0 0 6px var(--al2c-concierge-badge-green);
+    }
+
+    .al2c-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .al2c-btn-header-quote {
+        padding: 4px 10px;
+        font-size: 11.5px;
+        font-weight: 600;
+        border-radius: 12px;
+        background: rgba(0, 112, 242, 0.1);
+        color: var(--al2c-concierge-primary);
+        border: 1px solid rgba(0, 112, 242, 0.25);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: rgba(0, 112, 242, 0.18);
+        }
+    }
+
+    .al2c-btn-header-icon {
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        border: none;
+        background: transparent;
+        color: var(--al2c-concierge-text-muted);
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+        padding: 0;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+            color: var(--al2c-concierge-text-primary);
+        }
+    }
+}
+
+// Messages Viewport
+.al2c-messages-viewport {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: var(--al2c-concierge-bg-canvas);
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--al2c-concierge-border-subtle);
+        border-radius: 3px;
+    }
+}
+
+// Message Rows
+.al2c-message-row {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+
+    &.al2c-message-user {
+        justify-content: flex-end;
+    }
+
+    .al2c-message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #0070F2 0%, #0ABBDB 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-top: 2px;
+
+        .al2c-avatar-img {
+            width: 18px;
+            height: 18px;
+            filter: brightness(0) invert(1);
+        }
+    }
+
+    .al2c-bubble-container {
+        flex: 1 1 auto;
+        max-width: calc(100% - 42px);
+        display: flex;
+        flex-direction: column;
+
+        &.user {
+            align-items: flex-end;
+            max-width: 82%;
+        }
+    }
+
+    .al2c-bubble {
+        padding: 12px 14px;
+        font-size: 13.5px;
+        line-height: 1.55;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+
+        &.al2c-bubble-assistant {
+            background: var(--al2c-concierge-bg-bubble-assistant);
+            border: 1px solid var(--al2c-concierge-border-subtle);
+            border-radius: 14px 14px 14px 2px;
+            color: var(--al2c-concierge-text-primary);
+        }
+
+        &.al2c-bubble-user {
+            background: var(--al2c-concierge-bg-bubble-user);
+            color: var(--al2c-concierge-text-on-primary);
+            border-radius: 14px 14px 2px 14px;
+        }
+    }
+
+    .al2c-bubble-content {
+        word-break: break-word;
+
+        strong, b {
+            font-weight: 600;
+        }
+
+        .al2c-list-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 6px;
+            margin: 4px 0;
+        }
+
+        .al2c-list-bullet {
+            color: var(--al2c-concierge-primary);
+            font-weight: bold;
+        }
+
+        .al2c-inline-code {
+            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+            background: var(--al2c-concierge-bg-card);
+            border: 1px solid var(--al2c-concierge-border-subtle);
+            padding: 1px 4px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .al2c-para-break {
+            height: 8px;
+        }
+    }
+
+    .al2c-message-time {
+        font-size: 10.5px;
+        color: var(--al2c-concierge-text-muted);
+        margin-top: 4px;
+        margin-left: 4px;
+
+        &.user {
+            margin-right: 4px;
+            margin-left: 0;
+        }
+    }
+}
+
+// Entailment Badge
+.al2c-entailment-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--al2c-concierge-badge-green-bg);
+    color: var(--al2c-concierge-badge-green);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    margin-top: 8px;
+}
+
+// Citations Box
+.al2c-citations-wrapper {
+    margin-top: 8px;
+    border-top: 1px dashed var(--al2c-concierge-border-subtle);
+    padding-top: 6px;
+
+    .al2c-citations-toggle {
+        padding: 2px 0;
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--al2c-concierge-primary);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+
+        &:hover {
+            opacity: 0.85;
+        }
+    }
+
+    .al2c-citations-list {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-top: 6px;
+    }
+
+    .al2c-citation-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 8px;
+        border-radius: 4px;
+        background: var(--al2c-concierge-bg-chip);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+        font-size: 11px;
+        color: var(--al2c-concierge-text-secondary);
+        word-break: break-all;
+    }
+
+    .al2c-entailment-reason {
+        font-size: 11px;
+        color: var(--al2c-concierge-text-muted);
+        font-style: italic;
+        margin-top: 4px;
+    }
+}
+
+// Suggested Action Chips
+.al2c-actions-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+
+    .al2c-action-chip {
+        padding: 4px 10px;
+        font-size: 11.5px;
+        font-weight: 500;
+        border-radius: 8px;
+        background: var(--al2c-concierge-bg-chip);
+        border: 1px solid var(--al2c-concierge-border-medium);
+        color: var(--al2c-concierge-primary);
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+            border-color: var(--al2c-concierge-primary);
+        }
+    }
+}
+
+// Typing Shimmer
+.al2c-typing-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+
+    .al2c-typing-bubble {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 12px;
+        background: var(--al2c-concierge-bg-bubble-assistant);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+    }
+
+    .al2c-typing-dots {
+        display: inline-flex;
+        gap: 4px;
+    }
+
+    .al2c-typing-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: var(--al2c-concierge-primary);
+        display: inline-block;
+
+        &:nth-child(1) { animation: al2c-typing-bounce 1.4s infinite ease-in-out; }
+        &:nth-child(2) { animation: al2c-typing-bounce 1.4s infinite ease-in-out 0.2s; }
+        &:nth-child(3) { animation: al2c-typing-bounce 1.4s infinite ease-in-out 0.4s; }
+    }
+
+    .al2c-typing-label {
+        font-size: 11.5px;
+        color: var(--al2c-concierge-text-muted);
+    }
+}
+
+// Quick Prompt Chips Bar
+.al2c-quick-prompts-bar {
+    padding: 8px 16px;
+    background: var(--al2c-concierge-bg-surface);
+    border-top: 1px solid var(--al2c-concierge-border-subtle);
+    flex-shrink: 0;
+
+    .al2c-quick-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--al2c-concierge-text-muted);
+        margin-bottom: 5px;
+    }
+
+    .al2c-quick-chips-wrapper {
+        display: flex;
+        gap: 6px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+
+        &::-webkit-scrollbar {
+            display: none;
+        }
+    }
+
+    .al2c-quick-chip {
+        padding: 4px 10px;
+        font-size: 11.5px;
+        border-radius: 12px;
+        background: var(--al2c-concierge-bg-subtle);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        color: var(--al2c-concierge-text-secondary);
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+            color: var(--al2c-concierge-primary);
+            border-color: var(--al2c-concierge-border-medium);
+        }
+    }
+}
+
+// Input Footer
+.al2c-concierge-footer {
+    padding: 10px 16px 12px;
+    background: var(--al2c-concierge-bg-surface);
+    border-top: 1px solid var(--al2c-concierge-border-subtle);
+    flex-shrink: 0;
+
+    .al2c-input-wrapper {
+        display: flex;
+        align-items: flex-end;
+        gap: 8px;
+        background: var(--al2c-concierge-bg-subtle);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        border-radius: 10px;
+        padding: 4px 6px 4px 12px;
+        transition: border-color 0.15s ease;
+
+        &:focus-within {
+            border-color: var(--al2c-concierge-border-focus);
+        }
+    }
+
+    .al2c-textarea {
+        flex: 1 1 auto;
+        border: none;
+        background: transparent;
+        color: var(--al2c-concierge-text-primary);
+        font-size: 13.5px;
+        line-height: 1.4;
+        resize: none;
+        outline: none;
+        box-shadow: none;
+        padding: 6px 0;
+        max-height: 90px;
+
+        &:focus {
+            box-shadow: none;
+            background: transparent;
+            color: var(--al2c-concierge-text-primary);
+        }
+    }
+
+    .al2c-btn-send {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        background: var(--al2c-concierge-primary);
+        color: #ffffff;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: opacity 0.15s ease, background 0.15s ease;
+        flex-shrink: 0;
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        &:not(:disabled):hover {
+            background: var(--al2c-concierge-primary-hover);
+        }
+    }
+
+    .al2c-watermark {
+        margin-top: 8px;
+        font-size: 9.5px;
+        color: var(--al2c-concierge-text-muted);
+        text-align: center;
+        letter-spacing: 0.02em;
+    }
+}
+
+// 3. Lead Capture Form Section
+.al2c-lead-section {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--al2c-concierge-bg-surface);
+
+    .al2c-lead-header {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--al2c-concierge-border-subtle);
+    }
+
+    .al2c-btn-back {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: none;
+        background: var(--al2c-concierge-bg-subtle);
+        color: var(--al2c-concierge-text-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+        }
+    }
+
+    .al2c-lead-title {
+        font-size: 14.5px;
+        font-weight: 600;
+        color: var(--al2c-concierge-text-primary);
+    }
+
+    .al2c-lead-subtitle {
+        font-size: 11px;
+        color: var(--al2c-concierge-text-muted);
+    }
+
+    .al2c-lead-body {
+        padding: 16px;
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .al2c-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 8px;
+    }
+
+    .al2c-form-row {
+        display: flex;
+        gap: 10px;
+
+        .al2c-form-group {
+            flex: 1 1 50%;
+        }
+
+        @media (max-width: 480px) {
+            flex-direction: column;
+            gap: 0;
+        }
+    }
+
+    .al2c-form-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--al2c-concierge-text-secondary);
+        margin: 0;
+    }
+
+    .al2c-form-input {
+        background: var(--al2c-concierge-bg-subtle);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        color: var(--al2c-concierge-text-primary);
+        font-size: 13px;
+        border-radius: 6px;
+        padding: 7px 10px;
+
+        &:focus {
+            background: var(--al2c-concierge-bg-card);
+            border-color: var(--al2c-concierge-border-focus);
+            color: var(--al2c-concierge-text-primary);
+            box-shadow: none;
+        }
+    }
+
+    .al2c-alert-success {
+        background: var(--al2c-concierge-badge-green-bg);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: var(--al2c-concierge-badge-green);
+        border-radius: 8px;
+        padding: 10px 14px;
+    }
+
+    .al2c-alert-danger {
+        background: rgba(244, 63, 94, 0.12);
+        border: 1px solid rgba(244, 63, 94, 0.3);
+        color: #e11d48;
+        border-radius: 8px;
+        padding: 10px 14px;
+    }
+
+    .al2c-lead-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .al2c-btn-primary {
+        width: 100%;
+        padding: 9px 16px;
+        border-radius: 8px;
+        background: var(--al2c-concierge-primary);
+        color: #ffffff;
+        border: none;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.15s ease;
+
+        &:hover {
+            background: var(--al2c-concierge-primary-hover);
+        }
+
+        &:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+
+    .al2c-btn-secondary {
+        width: 100%;
+        padding: 7px 16px;
+        border-radius: 8px;
+        background: var(--al2c-concierge-bg-subtle);
+        color: var(--al2c-concierge-text-secondary);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        font-size: 12.5px;
+        font-weight: 500;
+        cursor: pointer;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+        }
+    }
+}

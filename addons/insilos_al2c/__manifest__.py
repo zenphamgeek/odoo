@@ -40,6 +40,7 @@ Autonomous Lead-to-Cash foundation for Innoria / Insilos.
         'security/al2c_security.xml',
         'security/ir.access.csv',
         'data/ir_config_parameter_data.xml',
+        'data/ir_cron_data.xml',
         'data/product_category_data.xml',
         'data/knowledge_data.xml',
         'data/project_template_data.xml',
@@ -63,11 +64,18 @@ Autonomous Lead-to-Cash foundation for Innoria / Insilos.
         'views/report_sales_documents.xml',
         'views/mail_templates.xml',
         'views/portal_templates.xml',
+        'views/website_ai_concierge_templates.xml',
         'views/al2c_timesheet_staging_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [
             'insilos_al2c/static/src/scss/portal_branding.scss',
+            'insilos_al2c/static/src/scss/ai_concierge_widget.scss',
+            'insilos_al2c/static/src/xml/ai_concierge_widget.xml',
+            'insilos_al2c/static/src/js/ai_concierge_widget.js',
+        ],
+        'web.assets_web_dark': [
+            'insilos_al2c/static/src/scss/ai_concierge_widget.dark.scss',
         ],
     },
     'installable': True,

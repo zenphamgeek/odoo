@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================================================================
+         INNORIA PUBLIC AI CONCIERGE FRONTEND CONTAINER TEMPLATE
+         Part of Insilos AL2C Enterprise Architecture (SOP-AI-004 & SOP-RAG-003)
+         Mounts #innoria_ai_concierge_root into frontend wrapwrap container
+         ===================================================================== -->
+    <template id="portal_frontend_layout_ai_concierge" inherit_id="portal.frontend_layout" name="Innoria AI Concierge Master Root">
+        <xpath expr="//div[@id='wrapwrap']" position="inside">
+            <div id="innoria_ai_concierge_root" aria-live="polite"/>
+        </xpath>
+    </template>
+</odoo>

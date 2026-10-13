@@ -1,0 +1,179 @@
+// =============================================================================
+// INNORIA PUBLIC AI CONCIERGE — SOVEREIGN DARK MODE SCSS BUNDLE
+// Part of Insilos AL2C Enterprise Architecture (SOP-AI-004 & SOP-RAG-003)
+// Adheres strictly to AGENTS.md Rule 4 (Dual-Asset Bundle Segregation & Zero Bare White)
+// Registered under web.assets_web_dark in __manifest__.py
+// =============================================================================
+
+:root,
+html,
+body,
+.o_web_client,
+body.o_dark_mode,
+.o_dark_mode,
+[data-bs-theme="dark"],
+[data-theme="dark"] {
+    // 1. Surface and Canvas Hierarchy (Deep Horizon Palette)
+    --al2c-concierge-bg-canvas: #070B14;
+    --al2c-concierge-bg-surface: #0F172A;
+    --al2c-concierge-bg-card: #111827;
+    --al2c-concierge-bg-header: #0F172A;
+    --al2c-concierge-bg-subtle: #1E293B;
+    --al2c-concierge-bg-hover: #1E293B;
+    --al2c-concierge-bg-active: #334155;
+    --al2c-concierge-bg-bubble-user: #0070F2;
+    --al2c-concierge-bg-bubble-assistant: #1E293B;
+    --al2c-concierge-bg-chip: #111827;
+
+    // 2. Hairline Architectural Borders
+    --al2c-concierge-border-subtle: rgba(255, 255, 255, 0.12);
+    --al2c-concierge-border-medium: rgba(255, 255, 255, 0.22);
+    --al2c-concierge-border-focus: #00F2FE;
+
+    // 3. High Contrast Typography (Dark Calibrated)
+    --al2c-concierge-text-primary: #F8FAFC;
+    --al2c-concierge-text-secondary: #CBD5E1;
+    --al2c-concierge-text-muted: #94A3B8;
+    --al2c-concierge-text-on-primary: #070B14;
+
+    // 4. High-Contrast Tech Cyan Accents
+    --al2c-concierge-primary: #00F2FE;
+    --al2c-concierge-primary-hover: #38BDF8;
+    --al2c-concierge-accent: #38BDF8;
+    --al2c-concierge-badge-green: #34D399;
+    --al2c-concierge-badge-green-bg: rgba(52, 211, 153, 0.18);
+
+    // 5. Deep Ambient Shadows
+    --al2c-concierge-shadow: 0 16px 48px rgba(0, 0, 0, 0.65);
+    --al2c-concierge-launcher-shadow: 0 8px 24px rgba(0, 242, 254, 0.35);
+}
+
+// Dark Mode Specific Overrides and Enhancements
+[data-bs-theme="dark"],
+body.o_dark_mode,
+.o_dark_mode {
+    .al2c-concierge-drawer {
+        border-color: rgba(255, 255, 255, 0.14);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+
+    .al2c-bubble-assistant {
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .al2c-bubble-user {
+        background: #0070F2;
+        color: #FFFFFF;
+    }
+
+    .al2c-citation-chip {
+        background: #111827;
+        border-color: rgba(255, 255, 255, 0.12);
+        color: #E2E8F0;
+    }
+
+    .al2c-action-chip {
+        background: #111827;
+        border-color: rgba(0, 242, 254, 0.35);
+        color: #00F2FE;
+
+        &:hover {
+            background: #1E293B;
+            border-color: #00F2FE;
+        }
+    }
+
+    .al2c-quick-chip {
+        background: #1E293B;
+        border-color: rgba(255, 255, 255, 0.14);
+        color: #E2E8F0;
+
+        &:hover {
+            background: #334155;
+            color: #00F2FE;
+            border-color: rgba(0, 242, 254, 0.4);
+        }
+    }
+
+    .al2c-form-input {
+        background: #1E293B;
+        border-color: rgba(255, 255, 255, 0.15);
+        color: #F8FAFC;
+
+        &:focus {
+            background: #0F172A;
+            border-color: #00F2FE;
+            color: #F8FAFC;
+        }
+    }
+
+    .al2c-input-wrapper {
+        background: #1E293B;
+        border-color: rgba(255, 255, 255, 0.15);
+
+        &:focus-within {
+            border-color: #00F2FE;
+        }
+    }
+
+    .al2c-textarea {
+        color: #F8FAFC;
+
+        &:focus {
+            color: #F8FAFC;
+        }
+    }
+
+    .al2c-btn-send {
+        background: #0070F2;
+        color: #FFFFFF;
+
+        &:not(:disabled):hover {
+            background: #005BB5;
+        }
+    }
+
+    .al2c-btn-primary {
+        background: #0070F2;
+        color: #FFFFFF;
+
+        &:hover {
+            background: #005BB5;
+        }
+    }
+
+    .al2c-btn-secondary {
+        background: #1E293B;
+        border-color: rgba(255, 255, 255, 0.14);
+        color: #CBD5E1;
+
+        &:hover {
+            background: #334155;
+        }
+    }
+
+    .al2c-btn-header-quote {
+        background: rgba(0, 242, 254, 0.14);
+        color: #00F2FE;
+        border-color: rgba(0, 242, 254, 0.35);
+
+        &:hover {
+            background: rgba(0, 242, 254, 0.22);
+        }
+    }
+
+    .al2c-btn-header-icon {
+        color: #94A3B8;
+
+        &:hover {
+            background: #1E293B;
+            color: #F8FAFC;
+        }
+    }
+
+    .al2c-alert-danger {
+        background: rgba(244, 63, 94, 0.18);
+        border-color: rgba(244, 63, 94, 0.4);
+        color: #FB7185;
+    }
+}
