@@ -33,6 +33,9 @@ export class ExecutiveControlTower extends Component {
     };
 
     setup() {
+        this._activeEpoch = 0;
+        this._activeAbortController = null;
+
         this.orm = useService("orm");
         this.actionService = useService("action");
         this.notification = useService("notification");
@@ -58,12 +61,33 @@ export class ExecutiveControlTower extends Component {
         return controlTowerComponentRegistry.get(name, null);
     }
 
+    /**
+     * Sanitizes string/numeric values into valid HTML id and CSS selector tokens.
+     * Prevents prototype poisoning, CSS injection, and null/zero confusion.
+     */
     sanitizeId(val) {
-        if (!val) return "";
-        return String(val).replace(/[^a-zA-Z0-9_\-\.]/g, "_");
+        if (val === null || val === undefined) return "";
+        const raw = String(val).trim();
+        if (!raw) return "";
+        // Ban object prototype keys to prevent pollution in component registries
+        if (raw === "__proto__" || raw === "constructor" || raw === "prototype") {
+            return "_reserved_token_";
+        }
+        // Strictly allow only alphanumeric, underscores, and hyphens (dots strictly removed)
+        const sanitized = raw.replace(/[^a-zA-Z0-9_-]/g, "_");
+        // Ensure identifier starts with an alpha character for CSS selector conformance
+        return /^[a-zA-Z]/.test(sanitized) ? sanitized : `id_${sanitized}`;
     }
 
     async loadData() {
+        // Cancel any in-flight RPC from previous tick
+        if (this._activeAbortController) {
+            this._activeAbortController.abort();
+        }
+        const abortController = new AbortController();
+        this._activeAbortController = abortController;
+        const requestEpoch = ++this._activeEpoch;
+
         this.state.isLoading = true;
         try {
             // Attempt ORM call to backend aggregation service if present
@@ -72,6 +96,12 @@ export class ExecutiveControlTower extends Component {
                 "get_executive_kpi_metrics",
                 [this.state.timeframe, { domain: this.state.domain }]
             );
+
+            // Stale task execution discarded (Airflow/Prefect Monotonicity Invariant)
+            if (this._activeEpoch !== requestEpoch || abortController.signal.aborted) {
+                return;
+            }
+
             if (res && res.success) {
                 if (res.kpis) {
                     const initial = this.getInitialKpis(this.state.timeframe);
@@ -110,11 +140,16 @@ export class ExecutiveControlTower extends Component {
                 }
             }
         } catch {
+            if (abortController.signal.aborted || this._activeEpoch !== requestEpoch) {
+                return;
+            }
             // Graceful fallback to client-side reactive data model
             this.state.kpis = this.getInitialKpis(this.state.timeframe);
         } finally {
-            this.state.isLoading = false;
-            this.state.lastUpdated = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            if (this._activeEpoch === requestEpoch && !abortController.signal.aborted) {
+                this.state.isLoading = false;
+                this.state.lastUpdated = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+            }
         }
     }
 

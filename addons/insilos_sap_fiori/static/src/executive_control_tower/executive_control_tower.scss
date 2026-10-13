@@ -251,15 +251,15 @@
     .o_pipeline_row,
     .o_priority_action_row,
     .o_analytics_progress_box {
-        background-color: var(--insilos-kpi-inner-bg) !important;
-        border: 1px solid var(--insilos-kpi-inner-border) !important;
-        color: var(--insilos-text-primary) !important;
+        background-color: var(--insilos-kpi-inner-bg, #080a0f) !important;
+        border: 1px solid var(--insilos-kpi-inner-border, rgba(255, 255, 255, 0.08)) !important;
+        color: var(--insilos-text-primary, #f1f5f9) !important;
     }
 
     .o_stage_count {
         background-color: var(--insilos-badge-bg, rgba(56, 189, 248, 0.12)) !important;
         color: var(--insilos-badge-fg, #38bdf8) !important;
-        border: 1px solid var(--insilos-badge-border, rgba(56, 189, 248, 0.3)) !important;
+        border: 1px solid var(--insilos-badge-border, rgba(56, 189, 248, 0.25)) !important;
     }
 }
 

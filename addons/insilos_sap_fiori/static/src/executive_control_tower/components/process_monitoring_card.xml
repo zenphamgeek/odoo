@@ -31,12 +31,13 @@
                         <!-- Chevron Steps -->
                         <div class="o_chevron_track d-flex flex-wrap gap-1" role="list">
                             <t t-foreach="pipeline.stages" t-as="stage" t-key="stage.id">
-                                <div class="o_chevron_step flex-fill d-flex align-items-center justify-content-between px-3 py-2 border rounded"
-                                     role="listitem"
+                                <div class="o_chevron_step flex-fill d-flex align-items-center justify-content-between px-3 py-2 border rounded cursor-pointer"
+                                     role="button"
                                      tabindex="0"
+                                     t-att-aria-label="stage.name + ' - ' + stage.count + ' records'"
                                      t-attf-class="o_chevron_status_#{stage.status}"
                                      t-on-click="() => this.handleStageClick(pipeline.key, stage)"
-                                     t-on-keydown="(ev) => ev.key === 'Enter' and this.handleStageClick(pipeline.key, stage)"
+                                     t-on-keydown="(ev) => (ev.key === 'Enter' || ev.key === ' ') and (ev.preventDefault(), this.handleStageClick(pipeline.key, stage))"
                                      title="Click để xem danh sách chứng từ">
                                     <span class="o_stage_name fw-semibold small text-truncate me-2" t-esc="stage.name"></span>
                                     <span class="o_stage_count badge shadow-sm border font-monospace" t-esc="stage.count"></span>
