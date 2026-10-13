@@ -117,9 +117,6 @@ def _format_currency_vn(amount, prefix=""):
     sign = "+" if amount > 0 and prefix == "+" else ("-" if amount < 0 else "")
     if abs_amt >= 1_000_000_000:
         val_ty = abs_amt / 1_000_000_000
-        # If integer thousandths, format with 3 decimals
-        if abs(val_ty - 1.8605) < 0.001:
-            return f"{sign}1.860 Tỷ ₫"
         return f"{sign}{val_ty:.3f} Tỷ ₫"
     elif abs_amt >= 1_000_000:
         return f"{sign}{abs_amt / 1_000_000:.1f} Tr ₫"
@@ -192,20 +189,20 @@ class InsilosControlTower(models.AbstractModel):
 
         # Sparkline time-bucket generation based on timeframe
         if timeframe == 'today':
-            rev_points = [0.22, 0.45, 0.82, 1.15, 1.48, 1.69, round(net_revenue_val / 1e9, 2)]
             rev_labels = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"]
+            rev_points = [0.22, 0.45, 0.82, 1.15, 1.48, 1.69, round(net_revenue_val / 1e9, 2)] if net_revenue_val > 0 else [0.0] * len(rev_labels)
         elif timeframe in ('month', '30d'):
-            rev_points = [0.85, 1.02, 1.18, 1.35, 1.52, 1.70, round(net_revenue_val / 1e9, 2)]
             rev_labels = ["05/09", "10/09", "15/09", "20/09", "25/09", "28/09", "01/10"]
+            rev_points = [0.85, 1.02, 1.18, 1.35, 1.52, 1.70, round(net_revenue_val / 1e9, 2)] if net_revenue_val > 0 else [0.0] * len(rev_labels)
         elif timeframe == 'quarter':
-            rev_points = [0.60, 0.85, 1.10, 1.32, 1.55, 1.72, round(net_revenue_val / 1e9, 2)]
             rev_labels = ["T7", "T7-W3", "T8", "T8-W3", "T9", "T9-W3", "T10"]
+            rev_points = [0.60, 0.85, 1.10, 1.32, 1.55, 1.72, round(net_revenue_val / 1e9, 2)] if net_revenue_val > 0 else [0.0] * len(rev_labels)
         elif timeframe == 'fy2026':
-            rev_points = [0.30, 0.45, 0.62, 0.80, 0.95, 1.15, 1.30, 1.45, 1.60, 1.72, 1.80, round(net_revenue_val / 1e9, 2)]
             rev_labels = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"]
+            rev_points = [0.30, 0.45, 0.62, 0.80, 0.95, 1.15, 1.30, 1.45, 1.60, 1.72, 1.80, round(net_revenue_val / 1e9, 2)] if net_revenue_val > 0 else [0.0] * len(rev_labels)
         else:  # 7d default
-            rev_points = [1.42, 1.48, 1.55, 1.62, 1.70, 1.79, round(net_revenue_val / 1e9, 2)]
             rev_labels = ["25/09", "26/09", "27/09", "28/09", "29/09", "30/09", "01/10"]
+            rev_points = [1.42, 1.48, 1.55, 1.62, 1.70, 1.79, round(net_revenue_val / 1e9, 2)] if net_revenue_val > 0 else [0.0] * len(rev_labels)
 
         rev_sparkline = _compute_svg_sparkline(rev_points, stroke_color="#00F2FE")
         rev_sparkline["labels"] = rev_labels
@@ -219,31 +216,36 @@ class InsilosControlTower(models.AbstractModel):
             ('company_id', 'in', target_company_ids),
         ]
 
-        in_invoices = self.env['account.move'].search(in_invoice_domain)
-        spend_val = sum(
-            m.amount_untaxed * (-1 if m.move_type == 'in_refund' else 1)
-            for m in in_invoices
-        ) if in_invoices else 615300000.0
+        spend_group = self.env['account.move']._read_group(
+            in_invoice_domain,
+            aggregates=['amount_untaxed_signed:sum'],
+        )
+        spend_val = abs(float(spend_group[0][0] or 0.0)) if spend_group else 0.0
 
-        tco_annual_savings_val = 2029050000.0
-        tco_period_savings_val = round(tco_annual_savings_val * (7.0 / 365.0), 0)
-        spend_delta_pct = -8.6  # 8.6% reduction in procurement costs (cost reduction is positive)
+        if spend_val > 0.0:
+            tco_annual_savings_val = round(spend_val * 0.033, 0)
+            tco_period_savings_val = round(tco_annual_savings_val * (7.0 / 365.0), 0)
+            spend_delta_pct = -8.6
+        else:
+            tco_annual_savings_val = 0.0
+            tco_period_savings_val = 0.0
+            spend_delta_pct = 0.0
 
         if timeframe == 'today':
-            spend_points = [85.0, 80.0, 75.0, 68.0, 64.0, 62.0, 61.5]
             spend_labels = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"]
+            spend_points = [85.0, 80.0, 75.0, 68.0, 64.0, 62.0, round(spend_val / 1e6, 1)] if spend_val > 0 else [0.0] * len(spend_labels)
         elif timeframe in ('month', '30d'):
-            spend_points = [850.0, 810.0, 770.0, 720.0, 680.0, 640.0, round(spend_val / 1e6, 1)]
             spend_labels = ["05/09", "10/09", "15/09", "20/09", "25/09", "28/09", "01/10"]
+            spend_points = [850.0, 810.0, 770.0, 720.0, 680.0, 640.0, round(spend_val / 1e6, 1)] if spend_val > 0 else [0.0] * len(spend_labels)
         elif timeframe == 'quarter':
-            spend_points = [920.0, 880.0, 830.0, 780.0, 720.0, 660.0, round(spend_val / 1e6, 1)]
             spend_labels = ["T7", "T7-W3", "T8", "T8-W3", "T9", "T9-W3", "T10"]
+            spend_points = [920.0, 880.0, 830.0, 780.0, 720.0, 660.0, round(spend_val / 1e6, 1)] if spend_val > 0 else [0.0] * len(spend_labels)
         elif timeframe == 'fy2026':
-            spend_points = [980.0, 940.0, 910.0, 860.0, 820.0, 780.0, 740.0, 710.0, 680.0, 650.0, 630.0, round(spend_val / 1e6, 1)]
             spend_labels = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"]
+            spend_points = [980.0, 940.0, 910.0, 860.0, 820.0, 780.0, 740.0, 710.0, 680.0, 650.0, 630.0, round(spend_val / 1e6, 1)] if spend_val > 0 else [0.0] * len(spend_labels)
         else:  # 7d default
-            spend_points = [720.0, 695.0, 680.0, 650.0, 640.0, 625.0, round(spend_val / 1e6, 1)]
             spend_labels = ["25/09", "26/09", "27/09", "28/09", "29/09", "30/09", "01/10"]
+            spend_points = [720.0, 695.0, 680.0, 650.0, 640.0, 625.0, round(spend_val / 1e6, 1)] if spend_val > 0 else [0.0] * len(spend_labels)
 
         spend_sparkline = _compute_svg_sparkline(spend_points, stroke_color="#10B981")
         spend_sparkline["labels"] = spend_labels
@@ -251,24 +253,24 @@ class InsilosControlTower(models.AbstractModel):
         # ----------------------------------------------------------------------
         # 3. FI/CO: Operating Cash Flow (OCF)
         # ----------------------------------------------------------------------
-        net_cash_flow_val = net_revenue_val - spend_val if net_revenue_val > spend_val else 1245250000.0
-        ocf_delta_pct = 18.5
+        net_cash_flow_val = net_revenue_val - spend_val
+        ocf_delta_pct = 18.5 if net_cash_flow_val > 0 else 0.0
 
         if timeframe == 'today':
-            ocf_points = [150.0, 320.0, 580.0, 810.0, 1020.0, 1150.0, round(net_cash_flow_val / 1e6, 2)]
             ocf_labels = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"]
+            ocf_points = [150.0, 320.0, 580.0, 810.0, 1020.0, 1150.0, round(net_cash_flow_val / 1e6, 2)] if net_cash_flow_val != 0 else [0.0] * len(ocf_labels)
         elif timeframe in ('month', '30d'):
-            ocf_points = [620.0, 740.0, 850.0, 980.0, 1100.0, 1190.0, round(net_cash_flow_val / 1e6, 2)]
             ocf_labels = ["05/09", "10/09", "15/09", "20/09", "25/09", "28/09", "01/10"]
+            ocf_points = [620.0, 740.0, 850.0, 980.0, 1100.0, 1190.0, round(net_cash_flow_val / 1e6, 2)] if net_cash_flow_val != 0 else [0.0] * len(ocf_labels)
         elif timeframe == 'quarter':
-            ocf_points = [450.0, 580.0, 720.0, 890.0, 1040.0, 1160.0, round(net_cash_flow_val / 1e6, 2)]
             ocf_labels = ["T7", "T7-W3", "T8", "T8-W3", "T9", "T9-W3", "T10"]
+            ocf_points = [450.0, 580.0, 720.0, 890.0, 1040.0, 1160.0, round(net_cash_flow_val / 1e6, 2)] if net_cash_flow_val != 0 else [0.0] * len(ocf_labels)
         elif timeframe == 'fy2026':
-            ocf_points = [210.0, 340.0, 480.0, 620.0, 750.0, 890.0, 980.0, 1060.0, 1120.0, 1180.0, 1220.0, round(net_cash_flow_val / 1e6, 2)]
             ocf_labels = ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"]
+            ocf_points = [210.0, 340.0, 480.0, 620.0, 750.0, 890.0, 980.0, 1060.0, 1120.0, 1180.0, 1220.0, round(net_cash_flow_val / 1e6, 2)] if net_cash_flow_val != 0 else [0.0] * len(ocf_labels)
         else:  # 7d default
-            ocf_points = [980.0, 1020.0, 1060.0, 1120.0, 1180.0, 1210.0, round(net_cash_flow_val / 1e6, 2)]
             ocf_labels = ["25/09", "26/09", "27/09", "28/09", "29/09", "30/09", "01/10"]
+            ocf_points = [980.0, 1020.0, 1060.0, 1120.0, 1180.0, 1210.0, round(net_cash_flow_val / 1e6, 2)] if net_cash_flow_val != 0 else [0.0] * len(ocf_labels)
 
         ocf_sparkline = _compute_svg_sparkline(ocf_points, stroke_color="#00F2FE")
         ocf_sparkline["labels"] = ocf_labels
@@ -276,14 +278,25 @@ class InsilosControlTower(models.AbstractModel):
         # ----------------------------------------------------------------------
         # 4. Supply Chain / Logistics: OTIF Delivery Rate
         # ----------------------------------------------------------------------
-        pickings = self.env['stock.picking'].search([
-            ('picking_type_code', '=', 'outgoing'),
-            ('company_id', 'in', target_company_ids),
-        ])
-        otif_val = 99.2
-        otif_delta_pct = 0.7
+        picking_group = self.env['stock.picking']._read_group(
+            [
+                ('picking_type_code', '=', 'outgoing'),
+                ('company_id', 'in', target_company_ids),
+            ],
+            aggregates=['__count'],
+        )
+        total_pickings = picking_group[0][0] if picking_group else 0
+        otif_val = 100.0 if not total_pickings else 99.2
+        otif_delta_pct = 0.0 if not total_pickings else 0.7
 
-        if timeframe == 'today':
+        if total_pickings == 0:
+            otif_labels = (
+                ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"] if timeframe == 'today'
+                else ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"] if timeframe == 'fy2026'
+                else ["25/09", "26/09", "27/09", "28/09", "29/09", "30/09", "01/10"]
+            )
+            otif_points = [100.0] * len(otif_labels)
+        elif timeframe == 'today':
             otif_points = [98.5, 98.8, 99.0, 99.0, 99.2, 99.1, 99.2]
             otif_labels = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"]
         elif timeframe in ('month', '30d'):
@@ -305,19 +318,47 @@ class InsilosControlTower(models.AbstractModel):
         # ----------------------------------------------------------------------
         # 5. Inventory: Days on Hand (DOH)
         # ----------------------------------------------------------------------
-        quants = self.env['stock.quant'].search([
+        quant_domain = [
             ('location_id.usage', '=', 'internal'),
             ('quantity', '>', 0),
             ('company_id', 'in', target_company_ids),
-        ])
-        total_units = sum(q.quantity for q in quants) if quants else 68767
-        distinct_skus = len(quants.mapped('product_id')) if quants else 16
-        inv_valuation = sum(q.quantity * q.product_id.standard_price for q in quants) if quants else 4250000000.0
+        ]
+        quant_group = self.env['stock.quant']._read_group(
+            quant_domain,
+            aggregates=['quantity:sum', 'product_id:count_distinct'],
+        )
+        if quant_group and quant_group[0][0]:
+            total_units = float(quant_group[0][0] or 0.0)
+            distinct_skus = int(quant_group[0][1] or 0)
+        else:
+            total_units = 0.0
+            distinct_skus = 0
 
-        doh_val = 18.5
-        doh_delta_pct = -10.2  # Inventory turnover acceleration (lower DOH is positive)
+        if total_units > 0:
+            product_quants = self.env['stock.quant']._read_group(
+                quant_domain,
+                groupby=['product_id'],
+                aggregates=['quantity:sum'],
+            )
+            product_ids = [row[0].id for row in product_quants if row[0]]
+            products = self.env['product.product'].browse(product_ids)
+            price_map = {p.id: p.standard_price for p in products}
+            inv_valuation = sum(float(row[1] or 0.0) * price_map.get(row[0].id, 0.0) for row in product_quants if row[0])
+            doh_val = 18.5
+            doh_delta_pct = -10.2
+        else:
+            inv_valuation = 0.0
+            doh_val = 0.0
+            doh_delta_pct = 0.0
 
-        if timeframe == 'today':
+        if total_units == 0:
+            doh_labels = (
+                ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"] if timeframe == 'today'
+                else ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"] if timeframe == 'fy2026'
+                else ["25/09", "26/09", "27/09", "28/09", "29/09", "30/09", "01/10"]
+            )
+            doh_points = [0.0] * len(doh_labels)
+        elif timeframe == 'today':
             doh_points = [18.9, 18.8, 18.7, 18.6, 18.6, 18.5, 18.5]
             doh_labels = ["08:00", "10:00", "12:00", "14:00", "16:00", "18:00", "20:00"]
         elif timeframe in ('month', '30d'):
@@ -402,7 +443,7 @@ class InsilosControlTower(models.AbstractModel):
                 "value": spend_val,
                 "value_formatted": _format_currency_vn(spend_val),
                 "tco_savings_annual": tco_annual_savings_val,
-                "tco_savings_annual_formatted": "₫2,029,050,000 / Năm",
+                "tco_savings_annual_formatted": f"{_format_currency_vn(tco_annual_savings_val)} / Năm",
                 "tco_savings_period": tco_period_savings_val,
                 "tco_savings_period_formatted": _format_currency_vn(tco_period_savings_val),
                 "roi_payback_months": 6.2,
@@ -627,7 +668,7 @@ class InsilosControlTower(models.AbstractModel):
                 },
             },
             "workcenters": workcenters_data,
-            "total_energy_shift_kwh": round(sum(w['energy_consumption_kwh'] for w in workcenters_data), 1) if workcenters_data else 145.2,
+            "total_energy_shift_kwh": round(sum(w['energy_consumption_kwh'] for w in workcenters_data), 1) if workcenters_data else 0.0,
         }
 
         # ----------------------------------------------------------------------
@@ -665,50 +706,53 @@ class InsilosControlTower(models.AbstractModel):
         logistics_hub = {
             "drayage_fleet": vehicles_data,
             "container_moves": {
-                "tracked_containers": "12x 40ft High Cube Dry Containers",
-                "order_ref": "Đơn hàng vận tải #VN-SO2026-002",
-                "customer": "Công ty CP Gemadept Logistics",
-                "det_dem_countdown_hours": 28.0,
-                "buffer_time_hours": 8.5,
-                "potential_penalty_averted": 48000000.0,
-                "potential_penalty_formatted": "48,000,000 ₫",
-                "detention_risk_level": "low",
-                "status": "detention_averted",
+                "tracked_containers": f"{len(vehicles_data)}x 40ft High Cube Dry Containers" if vehicles_data else "0x Dry Containers",
+                "order_ref": "Đơn hàng vận tải #VN-SO2026-002" if vehicles_data else "N/A",
+                "customer": "Công ty CP Gemadept Logistics" if vehicles_data else "N/A",
+                "det_dem_countdown_hours": 28.0 if vehicles_data else 0.0,
+                "buffer_time_hours": 8.5 if vehicles_data else 0.0,
+                "potential_penalty_averted": 48000000.0 if vehicles_data else 0.0,
+                "potential_penalty_formatted": "48,000,000 ₫" if vehicles_data else "0 ₫",
+                "detention_risk_level": "low" if vehicles_data else "none",
+                "status": "detention_averted" if vehicles_data else "idle",
             },
         }
 
         # ----------------------------------------------------------------------
         # 9. Process Pipelines (Lead-to-Cash, Procure-to-Pay, Order-to-Delivery)
         # ----------------------------------------------------------------------
+        crm_leads = self.env['crm.lead'].search_count([('company_id', 'in', target_company_ids)]) if 'crm.lead' in self.env else 0
         so_quotes = self.env['sale.order'].search_count([('state', '=', 'draft'), ('company_id', 'in', target_company_ids)])
         so_confirmed = self.env['sale.order'].search_count([('state', '=', 'sale'), ('company_id', 'in', target_company_ids)])
         out_inv_count = self.env['account.move'].search_count([('move_type', '=', 'out_invoice'), ('company_id', 'in', target_company_ids)])
 
+        requisition_count = self.env['purchase.requisition'].search_count([('company_id', 'in', target_company_ids)]) if 'purchase.requisition' in self.env else 0
         po_rfqs = self.env['purchase.order'].search_count([('state', 'in', ['draft', 'sent']), ('company_id', 'in', target_company_ids)])
         po_confirmed = self.env['purchase.order'].search_count([('state', '=', 'purchase'), ('company_id', 'in', target_company_ids)])
         in_pick_count = self.env['stock.picking'].search_count([('picking_type_code', '=', 'incoming'), ('company_id', 'in', target_company_ids)])
 
         mo_count = self.env['mrp.production'].search_count([('state', '=', 'progress'), ('company_id', 'in', target_company_ids)])
+        qc_count = self.env['quality.check'].search_count([('company_id', 'in', target_company_ids)]) if 'quality.check' in self.env else 0
         out_pick_count = self.env['stock.picking'].search_count([('picking_type_code', '=', 'outgoing'), ('company_id', 'in', target_company_ids)])
 
         process_pipelines = {
             "lead_to_cash": [
-                {"stage": "Inquiries", "count": 24, "action_model": "crm.lead"},
-                {"stage": "Quotations", "count": max(so_quotes, 18), "action_model": "sale.order"},
-                {"stage": "Orders", "count": max(so_confirmed, 42), "action_model": "sale.order"},
-                {"stage": "Billing", "count": max(out_inv_count, 36), "action_model": "account.move"},
+                {"stage": "Inquiries", "count": crm_leads, "action_model": "crm.lead"},
+                {"stage": "Quotations", "count": so_quotes, "action_model": "sale.order"},
+                {"stage": "Orders", "count": so_confirmed, "action_model": "sale.order"},
+                {"stage": "Billing", "count": out_inv_count, "action_model": "account.move"},
             ],
             "procure_to_pay": [
-                {"stage": "Requisitions", "count": 12, "action_model": "purchase.requisition"},
-                {"stage": "RFQs", "count": max(po_rfqs, 8), "action_model": "purchase.order"},
-                {"stage": "POs", "count": max(po_confirmed, 26), "action_model": "purchase.order"},
-                {"stage": "Inbound", "count": max(in_pick_count, 24), "action_model": "stock.picking"},
+                {"stage": "Requisitions", "count": requisition_count, "action_model": "purchase.requisition"},
+                {"stage": "RFQs", "count": po_rfqs, "action_model": "purchase.order"},
+                {"stage": "POs", "count": po_confirmed, "action_model": "purchase.order"},
+                {"stage": "Inbound", "count": in_pick_count, "action_model": "stock.picking"},
             ],
             "order_to_delivery": [
-                {"stage": "Confirmed", "count": max(so_confirmed, 10), "action_model": "sale.order"},
-                {"stage": "Production", "count": max(mo_count, 8), "action_model": "mrp.production"},
-                {"stage": "QA Inspection", "count": 6, "action_model": "quality.check"},
-                {"stage": "Dispatched", "count": max(out_pick_count, 14), "action_model": "stock.picking"},
+                {"stage": "Confirmed", "count": so_confirmed, "action_model": "sale.order"},
+                {"stage": "Production", "count": mo_count, "action_model": "mrp.production"},
+                {"stage": "QA Inspection", "count": qc_count, "action_model": "quality.check"},
+                {"stage": "Dispatched", "count": out_pick_count, "action_model": "stock.picking"},
             ],
         }
 
