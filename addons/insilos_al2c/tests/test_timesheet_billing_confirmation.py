@@ -205,3 +205,80 @@ class TestAl2cTimesheetBillingConfirmation(TransactionCase):
         self.assertEqual(foreign_invoice.al2c_timesheet_statement_state, 'confirmed')
         self.assertEqual(foreign_invoice.al2c_timesheet_confirmed_by, 'Director of Technology')
 
+    def test_09_adv_missing_rate_must_fail_closed(self):
+        """Verify Decree 70/2025 invariant: Disallow default 1.0 fallback on missing rate."""
+        test_curr = self.env['res.currency'].create({
+            'name': 'XTS',
+            'symbol': 'XTS',
+            'rounding': 0.01,
+        })
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'currency_id': test_curr.id,
+            'invoice_date': '2026-10-13',
+            'invoice_line_ids': [(0, 0, {
+                'name': 'Consulting Services',
+                'quantity': 10,
+                'price_unit': 100.0,
+            })]
+        })
+
+        # Expect hard failure rather than silent 1.0 corruption
+        with self.assertRaises(UserError):
+            invoice.action_send_timesheet_statement()
+
+    def test_10_adv_uom_dimensional_conversion(self):
+        """Verify Days are converted to Hours accurately in total timesheet calculation."""
+        uom_day = self.env.ref('uom.product_uom_day', raise_if_not_found=False)
+        uom_hour = self.env.ref('uom.product_uom_hour', raise_if_not_found=False)
+        if not uom_day or not uom_hour:
+            return
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'invoice_line_ids': [
+                (0, 0, {
+                    'name': 'Architecture Consulting (Days)',
+                    'quantity': 2,
+                    'product_uom_id': uom_day.id,
+                    'price_unit': 800.0,
+                }),
+                (0, 0, {
+                    'name': 'Ad-hoc Code Review (Hours)',
+                    'quantity': 4,
+                    'product_uom_id': uom_hour.id,
+                    'price_unit': 100.0,
+                }),
+                (0, 0, {
+                    'display_type': 'line_section',
+                    'name': 'Section: Timesheet Deliverables',
+                    'quantity': 0,
+                })
+            ]
+        })
+        invoice._compute_al2c_timesheet_hours_total()
+        # 2 Days * 8 Hours/Day + 4 Hours = 20.0 Hours
+        expected_hours = (2.0 * uom_day.factor_inv / uom_hour.factor_inv) + 4.0 if (uom_day.factor and uom_hour.factor) else 20.0
+        self.assertAlmostEqual(invoice.al2c_timesheet_hours_total, expected_hours, places=1, msg="UoM dimensional conversion failed!")
+
+    def test_11_adv_token_lease_idempotency(self):
+        """Verify re-dispatching statement does not revoke existing client token."""
+        invoice = self.env['account.move'].create({
+            'move_type': 'out_invoice',
+            'partner_id': self.partner.id,
+            'invoice_line_ids': [(0, 0, {
+                'name': 'Consulting',
+                'quantity': 1,
+                'price_unit': 100.0,
+            })]
+        })
+        invoice.action_send_timesheet_statement()
+        token_first = invoice.al2c_timesheet_token
+        self.assertTrue(token_first, "Initial token was not generated.")
+
+        # Re-send statement
+        invoice.action_send_timesheet_statement()
+        token_second = invoice.al2c_timesheet_token
+        self.assertEqual(token_first, token_second, "Token changed on re-dispatch (violates lease idempotency).")
+

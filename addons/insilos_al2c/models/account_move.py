@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import logging
 import time
 import hmac
 import hashlib
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 from odoo.tools.sql import SQL
+
+_logger = logging.getLogger(__name__)
 
 
 class AccountMove(models.Model):
@@ -66,6 +69,7 @@ class AccountMove(models.Model):
         string='Exchange Rate Snapshot (to Company Currency)',
         digits=(16, 8),
         readonly=True,
+        index=True,
         copy=False,
         help='Snapshotted conversion rate from invoice currency to company currency (VND) at time of statement issuance (Decree 70/2025/ND-CP compliance).'
     )
@@ -80,6 +84,7 @@ class AccountMove(models.Model):
     al2c_is_foreign_currency = fields.Boolean(
         string='Is Foreign Currency Invoice',
         compute='_compute_al2c_is_foreign_currency',
+        store=True,
     )
     al2c_timesheet_hours_total = fields.Float(
         string='Total Timesheet Hours Billed',
@@ -103,25 +108,47 @@ class AccountMove(models.Model):
                 rate = move.al2c_exchange_rate_snapshot
                 if not rate or rate <= 0:
                     try:
-                        rate = move.currency_id._get_conversion_rate(
+                        rate = self.env['res.currency']._get_conversion_rate(
                             move.currency_id,
                             company_curr,
-                            move.company_id,
+                            move.company_id or self.env.company,
                             move.invoice_date or fields.Date.context_today(move)
                         )
-                    except Exception:
-                        rate = 1.0
+                    except Exception as err:
+                        _logger.warning("Failed to auto-compute conversion rate for move %s: %s", move.id, err)
+                        rate = 0.0
+                if rate <= 0:
+                    # Invariant: Never silently assume 1.0 for cross-currency accounting
+                    move.al2c_statement_amount_total_company_currency = 0.0
+                    continue
                 move.al2c_statement_amount_total_company_currency = company_curr.round(move.amount_total * rate)
 
-    @api.depends('invoice_line_ids.quantity', 'invoice_line_ids.product_id')
+    @api.depends(
+        'invoice_line_ids.quantity',
+        'invoice_line_ids.product_id',
+        'invoice_line_ids.name',
+        'invoice_line_ids.product_uom_id',
+        'invoice_line_ids.display_type',
+    )
     def _compute_al2c_timesheet_hours_total(self):
+        uom_hour = self.env.ref('uom.product_uom_hour', raise_if_not_found=False)
         for move in self:
             hours = 0.0
             for line in move.invoice_line_ids:
-                if line.product_id and line.product_id.type == 'service':
-                    hours += line.quantity
-                elif any(kw in (line.name or '').lower() for kw in ('consult', 'gi\u1edd', 'hour', 't&m', 'timesheet')):
-                    hours += line.quantity
+                if line.display_type:
+                    continue
+                is_timesheet = False
+                if line.product_id and getattr(line.product_id, 'service_policy', None) == 'delivered_timesheet':
+                    is_timesheet = True
+                elif any(kw in (line.name or '').lower() for kw in ('consult', 'tư vấn', 'giờ', 'hour', 't&m', 'timesheet')):
+                    is_timesheet = True
+
+                if is_timesheet:
+                    qty = line.quantity
+                    if uom_hour and line.product_uom_id and line.product_uom_id != uom_hour:
+                        if line.product_uom_id.category_id == uom_hour.category_id:
+                            qty = line.product_uom_id._compute_quantity(qty, uom_hour)
+                    hours += qty
             move.al2c_timesheet_hours_total = hours
 
 
@@ -160,30 +187,40 @@ class AccountMove(models.Model):
         for move in self:
             if move.move_type not in ('out_invoice', 'out_refund'):
                 continue
-            token = self._generate_timesheet_token(move.id, expires_in_days=7)
-            vals = {
-                'al2c_timesheet_statement_state': 'sent_to_client',
-                'al2c_timesheet_token': token,
-            }
-            # Multi-Currency Rate Card Snapshot: capture immutable conversion rate at statement dispatch
-            if move.currency_id and move.company_id.currency_id and move.currency_id != move.company_id.currency_id:
+
+            vals = {'al2c_timesheet_statement_state': 'sent_to_client'}
+
+            # Idempotent Token Preservation
+            if not move.al2c_timesheet_token:
+                vals['al2c_timesheet_token'] = self._generate_timesheet_token(move.id, expires_in_days=7)
+
+            # Multi-Currency Statutory Rate Card Snapshot: Fail-Closed Protection
+            comp_curr = move.company_id.currency_id or self.env.company.currency_id
+            if move.currency_id and comp_curr and move.currency_id != comp_curr:
                 if not move.al2c_exchange_rate_snapshot or move.al2c_exchange_rate_snapshot <= 0:
                     try:
-                        rate = move.currency_id._get_conversion_rate(
+                        rate = self.env['res.currency']._get_conversion_rate(
                             move.currency_id,
-                            move.company_id.currency_id,
-                            move.company_id,
+                            comp_curr,
+                            move.company_id or self.env.company,
                             move.invoice_date or fields.Date.context_today(move)
                         )
-                        vals['al2c_exchange_rate_snapshot'] = rate
                     except Exception:
-                        vals['al2c_exchange_rate_snapshot'] = 1.0
+                        rate = 0.0
+
+                    if not rate or rate <= 0:
+                        raise UserError(_(
+                            "Cannot issue statutory statement for invoice %s: No conversion rate found from %s to %s for date %s. "
+                            "(Decree 70/2025/ND-CP Compliance Invariant)",
+                            move.display_name, move.currency_id.name, comp_curr.name, move.invoice_date or fields.Date.context_today(move)
+                        ))
+                    vals['al2c_exchange_rate_snapshot'] = rate
             else:
                 vals['al2c_exchange_rate_snapshot'] = 1.0
 
             move.write(vals)
             if template and move.partner_id.email:
-                template.send_mail(move.id, force_send=True)
+                template.send_mail(move.id, force_send=False)
             move.message_post(
                 body=_(
                     "<b>Bảng kê Giờ công Tư vấn (Timesheet Statement)</b> đã được gửi tới khách hàng (%s). "
