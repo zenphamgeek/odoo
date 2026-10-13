@@ -48,7 +48,7 @@ Doanh nghiệp hoạt động theo mô hình **Sản Phẩm Nền Tảng Kết H
 
 ## 2. Danh Mục Quy Trình Vận Hành Chuẩn (Master SOP Directory)
 
-Toàn bộ hoạt động của doanh nghiệp tuân thủ nghiêm ngặt 8 bộ Quy trình Vận hành Chuẩn (SOPs) đã được kiểm định và lưu trữ tại thư mục [`/home/zen/O20/docs/organization_and_processes/`](file:///home/zen/O20/docs/organization_and_processes/):
+Toàn bộ hoạt động của doanh nghiệp tuân thủ nghiêm ngặt 12 bộ Quy trình Vận hành Chuẩn (SOPs) đã được kiểm định và lưu trữ tại thư mục [`/home/zen/O20/docs/organization_and_processes/`](file:///home/zen/O20/docs/organization_and_processes/):
 
 ```
 /home/zen/O20/docs/organization_and_processes/
@@ -60,7 +60,11 @@ Toàn bộ hoạt động của doanh nghiệp tuân thủ nghiêm ngặt 8 bộ
 ├── 05_SOP_DEVSECOPS_SWARM_RD_RELEASE_GATES.md          <-- Kỹ nghệ phát triển phần mềm, Swarm Vibe Coding & 13 Council Gates
 ├── 06_SOP_CONSULTING_RESOURCE_TIMESHEET_ANALYTIC.md    <-- Động cơ thu nhận timesheet email, đối soát & xuất hóa đơn VAT NĐ 70
 ├── 07_SOP_CUSTOMER_SUCCESS_SLA_AND_DISPUTE_RESOLUTION.md <-- Vận hành Thành công Khách hàng, Ma trận SLA & Đóng băng Dunning AL2C-INV-103
-└── 08_SOP_CROSS_PRODUCT_SYNERGY_AND_ENTERPRISE_ARCHITECTURE.md <-- Kiến trúc hợp nhất Tứ trụ (ERP, GRC, AI, Zencode) & Hợp đồng dữ liệu
+├── 08_SOP_CROSS_PRODUCT_SYNERGY_AND_ENTERPRISE_ARCHITECTURE.md <-- Kiến trúc hợp nhất Tứ trụ (ERP, GRC, AI, Zencode) & Hợp đồng dữ liệu
+├── 09_SOP_ENTERPRISE_DOCUMENT_MANAGEMENT_AND_GOVERNANCE.md <-- Quản trị tài liệu DMS, vòng đời văn bản, chữ ký số & NĐ 13 PDPD
+├── 10_SOP_CORPORATE_KNOWLEDGE_MANAGEMENT_AND_KMS.md    <-- Quản trị tri thức KMS, 7 không gian SSOT, chu kỳ rà soát 90 ngày & Git Sync
+├── 11_SOP_ENTERPRISE_RAG_AND_KNOWLEDGE_GROUNDING.md    <-- Kiến trúc SOP-RAG, bóc tách bảng ngữ nghĩa, Hybrid RRF & Entailment Gate
+└── 12_SOP_AI_SYSTEMS_AND_INNORIA_COM_SERVICES.md      <-- Hệ sinh thái AI innoria.com, B2B Lead Enrichment, Portal Explainer & Mojo Worker
 ```
 
 ### Bảng Tóm Tắt Nhiệm Vụ & Hàng Rào Quản Trị Của Từng SOP:
@@ -75,6 +79,10 @@ Toàn bộ hoạt động của doanh nghiệp tuân thủ nghiêm ngặt 8 bộ
 | **SOP-06** | **SOP Timesheet & Tính Tiền Dịch Vụ** | • Đường ống thu nhận timesheet tự động qua `info@inno.ai.vn`<br>• Bóc tách thông minh đa định dạng (.xlsx, .csv, body)<br>• Khớp chuyên gia 3 tầng & Chống trùng lặp SHA-256<br>• Chu trình Bảng kê $\rightarrow$ Đối soát 1-click $\rightarrow$ Hóa đơn VAT NĐ 70 | Bắt buộc khách hàng xác nhận Bảng kê giờ công trực tuyến trên Portal trước khi hệ thống cho phép ký số hóa đơn VAT. | [`06_SOP_CONSULTING...`](file:///home/zen/O20/docs/organization_and_processes/06_SOP_CONSULTING_RESOURCE_TIMESHEET_ANALYTIC.md) |
 | **SOP-07** | **SOP Thành Công Khách Hàng & SLA** | • 4 Cấp độ cam kết dịch vụ (Platinum, Gold, Silver, Bronze)<br>• Quy trình nhắc nợ đa tầng (D+3, D+15, D+30)<br>• Cơ chế Đóng băng Dunning khi có tranh chấp (AL2C-INV-103) | Nghiêm cấm ngắt dịch vụ khi đang có tranh chấp mở (Zero False Suspension Invariant). | [`07_SOP_CUSTOMER...`](file:///home/zen/O20/docs/organization_and_processes/07_SOP_CUSTOMER_SUCCESS_SLA_AND_DISPUTE_RESOLUTION.md) |
 | **SOP-08** | **SOP Kiến Trúc Tứ Trụ Hợp Nhất** | • Topology 4 sản phẩm (ERP, GRC, AI, Zencode)<br>• Hợp đồng dữ liệu liên sản phẩm & Event-driven Webhooks<br>• 3 Gói giải pháp tích hợp thương mại đóng gói sẵn | Tuân thủ nghiêm ngặt 4 giới hạn kiến trúc bất biến (DB Isolation, Zero-Fake-Pass, Zero-AI-Tells, Multi-Currency). | [`08_SOP_CROSS_PRODUCT...`](file:///home/zen/O20/docs/organization_and_processes/08_SOP_CROSS_PRODUCT_SYNERGY_AND_ENTERPRISE_ARCHITECTURE.md) |
+| **SOP-09** | **SOP Quản Trị Tài Liệu Số DMS** | • Vòng đời tài liệu Draft $\rightarrow$ Approved $\rightarrow$ Locked<br>• Cấu trúc thư mục phân cấp `documents.document`<br>• Chữ ký số điện tử & An toàn liên kết chia sẻ | Khóa bất biến sau khi ký số; ẩn liên kết công khai `is_access_via_link_hidden` trên các thư mục hợp đồng nhạy cảm. | [`09_SOP_ENTERPRISE...`](file:///home/zen/O20/docs/organization_and_processes/09_SOP_ENTERPRISE_DOCUMENT_MANAGEMENT_AND_GOVERNANCE.md) |
+| **SOP-10** | **SOP Quản Trị Tri Thức Doanh Nghiệp KMS** | • 7 Không gian tri thức cốt lõi (`knowledge.article`)<br>• Nguồn tri thức thẩm quyền Single Source of Truth (SSOT)<br>• Chu kỳ đánh giá làm mới 90 ngày & Git Sync hai chiều | Mọi mã SKU phải có bài viết tri thức thẩm quyền; loại bỏ triệt để tài liệu phân tán lỗi thời. | [`10_SOP_CORPORATE...`](file:///home/zen/O20/docs/organization_and_processes/10_SOP_CORPORATE_KNOWLEDGE_MANAGEMENT_AND_KMS.md) |
+| **SOP-11** | **SOP Kiến Trúc RAG & Grounding Governance** | • Đường ống 7 bước từ tri thức đến sinh lời kèm nguồn<br>• Bóc tách ngữ nghĩa bảo toàn cấu trúc Bảng Markdown<br>• Tìm kiếm lai Dense + Sparse Lexical và thuật toán RRF<br>• Cổng suy diễn logic Entailment Gate $\ge 0.85$ | Không có căn cứ - Không sinh lời (Zero Hallucination); bắt buộc trích dẫn nguồn `[Doc\|Sec\|ID\|SHA256]`. | [`11_SOP_ENTERPRISE...`](file:///home/zen/O20/docs/organization_and_processes/11_SOP_ENTERPRISE_RAG_AND_KNOWLEDGE_GROUNDING.md) |
+| **SOP-12** | **SOP Hệ Sinh Thái AI & Dịch Vụ Innoria.com** | • Trợ lý số cấp cao Web Concierge trên `innoria.com`<br>• Làm giàu & chấm điểm cơ hội bán hàng B2B Lead (`crm.lead`)<br>• Trợ lý giải trình giờ công & hóa đơn trên Cổng Khách Hàng<br>• Công nhân bóc tách timesheet tự động Mojo AI (`info@inno.ai.vn`)<br>• Cụm tự động hóa Zencode Developer Swarm | Tuân thủ Nghị định 13/2023 PDPD, che giấu thông tin cá nhân (PII Redaction), và cơ chế ngắt khẩn cấp Kill-Switch. | [`12_SOP_AI_SYSTEMS...`](file:///home/zen/O20/docs/organization_and_processes/12_SOP_AI_SYSTEMS_AND_INNORIA_COM_SERVICES.md) |
 
 ---
 

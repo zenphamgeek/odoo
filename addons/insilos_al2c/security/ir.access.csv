@@ -55,3 +55,7 @@ access_al2c_timesheet_staging_line_system,al2c.timesheet.staging.line system,al2
 access_al2c_pdpd_erasure_tombstone_user,al2c.pdpd.erasure.tombstone user,al2c.pdpd.erasure.tombstone,base.group_user,r,
 access_al2c_pdpd_erasure_tombstone_sm,al2c.pdpd.erasure.tombstone sm,al2c.pdpd.erasure.tombstone,sales_team.group_sale_manager,crud,
 access_al2c_pdpd_erasure_tombstone_system,al2c.pdpd.erasure.tombstone system,al2c.pdpd.erasure.tombstone,base.group_system,crud,
+access_al2c_rag_chunk_user,al2c.rag.chunk user,al2c.rag.chunk,base.group_user,r,
+access_al2c_rag_chunk_pm,al2c.rag.chunk pm,al2c.rag.chunk,project.group_project_manager,crud,
+access_al2c_rag_chunk_sm,al2c.rag.chunk sm,al2c.rag.chunk,sales_team.group_sale_manager,crud,
+access_al2c_rag_chunk_system,al2c.rag.chunk system,al2c.rag.chunk,base.group_system,crud,

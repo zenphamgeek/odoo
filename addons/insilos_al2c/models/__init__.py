@@ -27,3 +27,4 @@ from . import al2c_timesheet_staging
 from . import al2c_pdpd_erasure
 from . import sale_order_line
 from . import account_analytic_line
+from . import al2c_rag_service
