@@ -246,7 +246,7 @@ class Store:
             self.__version = StoreVersion.ensure_version(records.env)
 
     @store_enqueue
-    def add(self, records, fields, *, as_thread=False, fields_params=None, ignore_empty=False):
+    def add(self, records, fields=None, *, as_thread=False, fields_params=None, ignore_empty=False):
         """Add records to the store.
 
         Fields can be defined in multiple ways:
@@ -266,6 +266,16 @@ class Store:
         self.__try_update_version_from_records(records)
         if not records:
             return self
+        if fields is None and isinstance(records, models.Model):
+            for m in [
+                f"_store_{records._name.replace('.', '_')}_fields",
+                f"_store_{records._name.split('.')[-1]}_fields",
+            ]:
+                if hasattr(records, m):
+                    fields = m
+                    break
+            else:
+                fields = []
         # call _format_fields before checking identifier to always compare the final shape
         field_list = self._format_fields(fields, records, fields_params)
         identifier = Store._deep_freeze((records.env, records, field_list, as_thread))
@@ -377,6 +387,10 @@ class Store:
         if result and self.__version:
             result["__store_version__"] = self.__version.get_formatted_version()
         return result
+
+    def get_result(self):
+        """Backward compatibility helper for Odoo 17 / legacy enterprise modules."""
+        return self.as_dict()
 
     def _build_result(self, disable_auto_send=True):
         """Do not call directly. Executes pending operations and returns the aggregated

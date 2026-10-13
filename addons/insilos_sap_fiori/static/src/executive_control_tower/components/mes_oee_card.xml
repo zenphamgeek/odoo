@@ -7,7 +7,7 @@
              aria-label="Smart Factory MES OEE Hub"
              style="background-color: var(--insilos-bg-card, #ffffff); border-color: var(--insilos-border-subtle, #e2e8f0); color: var(--insilos-text-primary, #0f172a);">
             <!-- Card Header: Title, Subtitle, and Benchmark Target Badge -->
-            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: var(--insilos-border-subtle, #e2e8f0) !important;">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: var(--insilos-border-subtle) !important;">
                 <div class="d-flex align-items-center cursor-pointer" role="button" tabindex="0" t-on-click="openOeeDrilldown">
                     <i class="ph ph-gauge text-primary fs-4 me-2"></i>
                     <div>
@@ -193,7 +193,7 @@
             </div>
 
             <!-- Live Machine & Station Telemetry Section -->
-            <div class="o_station_roster border-top pt-3" style="border-color: var(--insilos-border-subtle, #e2e8f0) !important;">
+            <div class="o_station_roster border-top pt-3" style="border-color: var(--insilos-border-subtle) !important;">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="text-uppercase x-small text-muted fw-bold d-flex align-items-center">
                         <i class="ph ph-cpu me-1"></i>Trạng thái trạm máy sản xuất thời gian thực
@@ -211,7 +211,7 @@
                              role="button"
                              tabindex="0"
                              t-on-click="() => this.openStation(wc)"
-                             style="background-color: var(--insilos-bg-subtle, rgba(15, 23, 42, 0.04)); border-color: var(--insilos-border-subtle, #e2e8f0) !important;"
+                             style="background-color: var(--insilos-bg-subtle, rgba(15, 23, 42, 0.04)); border-color: var(--insilos-border-subtle) !important;"
                              title="Nhấn để mở chi tiết trạm máy &amp; Lệnh sản xuất">
                             <!-- Left: Status dot, Name, Code -->
                             <div class="d-flex align-items-center">

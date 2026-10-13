@@ -7,7 +7,7 @@
              aria-label="Logistics Drayage &amp; Port Depot Hub"
              style="background-color: var(--insilos-bg-card, #ffffff); border-color: var(--insilos-border-subtle, #e2e8f0); color: var(--insilos-text-primary, #0f172a);">
             <!-- Card Header: Title, Subtitle, and DET/DEM SLA Urgency Countdown Pill -->
-            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: var(--insilos-border-subtle, #e2e8f0) !important;">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: var(--insilos-border-subtle) !important;">
                 <div class="d-flex align-items-center cursor-pointer" role="button" tabindex="0" t-on-click="openFleetManagement">
                     <i class="ph ph-truck text-warning fs-4 me-2"></i>
                     <div>
@@ -72,7 +72,7 @@
                              role="button"
                              tabindex="0"
                              t-on-click="() => this.openVehicle(truck)"
-                             style="background-color: var(--insilos-bg-subtle, rgba(15, 23, 42, 0.04)); border-color: var(--insilos-border-subtle, #e2e8f0) !important;"
+                             style="background-color: var(--insilos-bg-subtle, rgba(15, 23, 42, 0.04)); border-color: var(--insilos-border-subtle) !important;"
                              title="Nhấn để xem hồ sơ kỹ thuật &amp; Hành trình phương tiện">
                             <!-- Top: Plate, Model, Status Badge -->
                             <div class="d-flex align-items-start justify-content-between mb-1">
@@ -95,7 +95,7 @@
                             </div>
 
                             <!-- Bottom Metrics: Odometer & Fuel Quota -->
-                            <div class="d-flex align-items-center justify-content-between pt-1 border-top mt-1 x-small font-monospace" style="border-color: var(--insilos-border-subtle, #e2e8f0) !important;">
+                            <div class="d-flex align-items-center justify-content-between pt-1 border-top mt-1 x-small font-monospace" style="border-color: var(--insilos-border-subtle) !important;">
                                 <span class="text-muted" title="Chỉ số đồng hồ đo quãng đường (Odometer)">
                                     <i class="ph ph-gauge me-1"></i><t t-esc="truck.odometer_formatted"/>
                                 </span>

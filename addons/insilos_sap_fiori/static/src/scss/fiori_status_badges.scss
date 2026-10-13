@@ -10,7 +10,7 @@
 .o_kanban_view .badge,
 .o_kanban_record .badge,
 .o_kanban_record .o_tag {
-    border-radius: var(--insilos-radius-xs, 2px) !important;
+    border-radius: var(--insilos-radius-xs) !important;
     font-weight: 600 !important;
     font-size: 0.72rem !important;
     letter-spacing: 0.02em;
@@ -23,41 +23,41 @@
     // 1. Positive / Success (Fiori Standard Green)
     &.text-bg-success, &.bg-success, &.o_tag_color_10,
     &.badge-positive, &.badge-success, &.state-positive, &.o_status_positive {
-        background-color: var(--insilos-positive-bg, #e7f6ed) !important;
-        color: var(--insilos-positive, #107e3e) !important;
-        border: 1px solid var(--insilos-positive-border, rgba(16, 126, 62, 0.3)) !important;
+        background-color: var(--insilos-positive-bg) !important;
+        color: var(--insilos-positive) !important;
+        border: 1px solid var(--insilos-positive-border) !important;
     }
 
     // 2. Critical / Error (Fiori Standard Red)
     &.text-bg-danger, &.bg-danger, &.o_tag_color_1,
     &.badge-critical, &.badge-danger, &.badge-error, &.state-critical, &.o_status_critical {
-        background-color: var(--insilos-critical-bg, #fbeeed) !important;
-        color: var(--insilos-critical, #bb0000) !important;
-        border: 1px solid var(--insilos-critical-border, rgba(187, 0, 0, 0.3)) !important;
+        background-color: var(--insilos-critical-bg) !important;
+        color: var(--insilos-critical) !important;
+        border: 1px solid var(--insilos-critical-border) !important;
     }
 
     // 3. Warning / Alert (Fiori Standard Amber)
     &.text-bg-warning, &.bg-warning, &.o_tag_color_2, &.o_tag_color_3,
     &.badge-warning, &.badge-alert, &.state-warning, &.o_status_warning {
-        background-color: var(--insilos-warning-bg, #fef0e6) !important;
-        color: var(--insilos-warning, #e9730c) !important;
-        border: 1px solid var(--insilos-warning-border, rgba(233, 115, 12, 0.3)) !important;
+        background-color: var(--insilos-warning-bg) !important;
+        color: var(--insilos-warning) !important;
+        border: 1px solid var(--insilos-warning-border) !important;
     }
 
     // 4. Information / Neutral (Fiori Standard Blue / Insilos Slate)
     &.text-bg-info, &.bg-info, &.text-bg-primary, &.bg-primary, &.o_tag_color_4,
     &.badge-information, &.badge-info, &.state-info, &.o_status_info {
-        background-color: var(--insilos-information-bg, #e8f2fe) !important;
-        color: var(--insilos-information, #0070f2) !important;
-        border: 1px solid var(--insilos-information-border, rgba(0, 112, 242, 0.3)) !important;
+        background-color: var(--insilos-information-bg) !important;
+        color: var(--insilos-information) !important;
+        border: 1px solid var(--insilos-information-border) !important;
     }
 
     // Neutral / Inactive (Muted Gray)
     &.text-bg-secondary, &.bg-secondary, &.o_tag_color_0,
     &.badge-neutral, &.badge-secondary, &.state-neutral, &.o_status_neutral {
-        background-color: var(--insilos-neutral-bg, #f1f5f9) !important;
-        color: var(--insilos-neutral, #475569) !important;
-        border: 1px solid var(--insilos-neutral-border, #cbd5e1) !important;
+        background-color: var(--insilos-neutral-bg) !important;
+        color: var(--insilos-neutral) !important;
+        border: 1px solid var(--insilos-neutral-border) !important;
     }
 }
 
@@ -69,18 +69,18 @@
 
     // Field-level decoration classes inside list cells
     .text-success {
-        color: var(--insilos-positive, #107e3e) !important;
+        color: var(--insilos-positive) !important;
     }
     .text-danger {
-        color: var(--insilos-critical, #bb0000) !important;
+        color: var(--insilos-critical) !important;
     }
     .text-warning {
-        color: var(--insilos-warning, #e9730c) !important;
+        color: var(--insilos-warning) !important;
     }
     .text-info {
-        color: var(--insilos-information, #0070f2) !important;
+        color: var(--insilos-information) !important;
     }
     .text-muted {
-        color: var(--insilos-text-secondary, #64748b) !important;
+        color: var(--insilos-text-secondary) !important;
     }
 }

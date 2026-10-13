@@ -47,7 +47,7 @@
         border-color: transparent !important;
         background: transparent !important;
         position: relative !important;
-        color: var(--insilos-text-secondary, #475569) !important;
+        color: var(--insilos-text-secondary) !important;
         transition: color var(--insilos-transition-fast, 0.12s ease);
 
         &.active {
@@ -55,7 +55,7 @@
                 border: none !important;
                 border-color: transparent !important;
                 background-color: transparent !important;
-                color: var(--insilos-primary, #0b2e64) !important;
+                color: var(--insilos-primary) !important;
                 font-weight: 600 !important;
 
                 &::after {
@@ -65,7 +65,7 @@
                     left: 0 !important;
                     right: 0 !important;
                     height: 3px !important;
-                    background-color: var(--insilos-primary, #0b2e64) !important;
+                    background-color: var(--insilos-primary) !important;
                     border-radius: 0 !important;
                     z-index: 2 !important;
                 }
@@ -74,11 +74,11 @@
 
         &:hover, &:focus, &:active {
             outline: none;
-            color: var(--insilos-text-primary, #0f172a) !important;
+            color: var(--insilos-text-primary) !important;
         }
 
         &:focus-visible, &.active:focus-visible {
-            box-shadow: inset 0 0 0 2px var(--insilos-border-focus, #0f62fe) !important;
+            box-shadow: inset 0 0 0 2px var(--insilos-border-focus) !important;
         }
 
         &.o_page_invalid {
@@ -149,24 +149,24 @@ body.o_dark_mode,
 [data-theme="dark"] {
     .o_notebook {
         .nav-tabs .nav-item .nav-link {
-            color: var(--insilos-text-secondary, #94a3b8) !important;
+            color: var(--insilos-text-secondary) !important;
 
             &.active {
                 &, &:hover, &:focus, &:active {
-                    color: var(--insilos-primary, #00f2fe) !important;
+                    color: var(--insilos-primary) !important;
 
                     &::after {
-                        background-color: var(--insilos-primary, #00f2fe) !important;
+                        background-color: var(--insilos-primary) !important;
                     }
                 }
             }
 
             &:hover, &:focus {
-                color: var(--insilos-text-primary, #f8fafc) !important;
+                color: var(--insilos-text-primary) !important;
             }
 
             &:focus-visible, &.active:focus-visible {
-                box-shadow: inset 0 0 0 2px var(--insilos-border-focus, #00f2fe) !important;
+                box-shadow: inset 0 0 0 2px var(--insilos-border-focus) !important;
             }
         }
     }

@@ -333,7 +333,11 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
 
         # 4D. Logistics IDP (Dark Mode Dashboard)
         tar_path_idp = os.path.join(staging_dir, "insilos_logistics_idp_sync.tar.gz")
-        IDP_MEMBERS = ["static/src/dashboard/dashboard.scss"]
+        IDP_MEMBERS = [
+            "__manifest__.py",
+            "static/src/dashboard/dashboard.scss",
+            "static/src/dashboard/dashboard.dark.scss",
+        ]
         frozen_idp = os.path.join(staging_dir, "frozen_idp")
         freeze_and_audit_members("enterprise/insilos_logistics_idp", IDP_MEMBERS, frozen_idp)
         tar_idp_cmd = [
@@ -509,6 +513,91 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_renting_cmd, check=True)
         print(f"[✓] Created {tar_path_renting}")
 
+        # 4M. AI & Discuss Channel Sync (Fix Copilot TypeError on write)
+        tar_path_ai = os.path.join(staging_dir, "ai_sync.tar.gz")
+        AI_MEMBERS = ["discuss_channel.py"]
+        frozen_ai = os.path.join(staging_dir, "frozen_ai")
+        freeze_and_audit_members("enterprise/ai/models", AI_MEMBERS, frozen_ai)
+        tar_ai_cmd = [
+            "tar",
+            "-czf",
+            tar_path_ai,
+            "-C",
+            frozen_ai,
+            *AI_MEMBERS,
+        ]
+        subprocess.run(tar_ai_cmd, check=True)
+        print(f"[✓] Created {tar_path_ai}")
+
+        tar_path_ai_livechat = os.path.join(staging_dir, "ai_livechat_sync.tar.gz")
+        AI_LIVECHAT_MEMBERS = ["models/discuss_channel.py", "controllers/main.py", "static"]
+        frozen_ai_livechat = os.path.join(staging_dir, "frozen_ai_livechat")
+        freeze_and_audit_members("enterprise/ai_livechat", AI_LIVECHAT_MEMBERS, frozen_ai_livechat)
+        tar_ai_livechat_cmd = [
+            "tar",
+            "-czf",
+            tar_path_ai_livechat,
+            "-C",
+            frozen_ai_livechat,
+            *AI_LIVECHAT_MEMBERS,
+        ]
+        subprocess.run(tar_ai_livechat_cmd, check=True)
+        print(f"[✓] Created {tar_path_ai_livechat}")
+
+        # 4N. Mail Tools (Store Resilience & Backward Compatibility)
+        tar_path_mail_tools = os.path.join(staging_dir, "mail_tools_sync.tar.gz")
+        MAIL_TOOLS_MEMBERS = ["discuss.py"]
+        frozen_mail_tools = os.path.join(staging_dir, "frozen_mail_tools")
+        freeze_and_audit_members("addons/mail/tools", MAIL_TOOLS_MEMBERS, frozen_mail_tools)
+        tar_mail_tools_cmd = [
+            "tar",
+            "-czf",
+            tar_path_mail_tools,
+            "-C",
+            frozen_mail_tools,
+            *MAIL_TOOLS_MEMBERS,
+        ]
+        subprocess.run(tar_mail_tools_cmd, check=True)
+        print(f"[✓] Created {tar_path_mail_tools}")
+
+        # 4O. Documents ErrorDialog Patch Sync (Purge redundant Share button)
+        tar_path_docs = os.path.join(staging_dir, "documents_sync.tar.gz")
+        DOCS_MEMBERS = ["static/src/web/error_dialog/error_dialog_patch.xml"]
+        frozen_docs = os.path.join(staging_dir, "frozen_docs")
+        freeze_and_audit_members("enterprise/documents", DOCS_MEMBERS, frozen_docs)
+        tar_docs_cmd = [
+            "tar",
+            "-czf",
+            tar_path_docs,
+            "-C",
+            frozen_docs,
+            *DOCS_MEMBERS,
+        ]
+        subprocess.run(tar_docs_cmd, check=True)
+        print(f"[✓] Created {tar_path_docs}")
+
+        # 4P. Insilos Market Terminal (Dark/Light Canvas & LightweightCharts Normalization)
+        tar_path_terminal = os.path.join(staging_dir, "insilos_market_terminal_sync.tar.gz")
+        TERMINAL_MEMBERS = [
+            "__manifest__.py",
+            "static/src/terminal/terminal.scss",
+            "static/src/terminal/terminal.dark.scss",
+            "static/src/terminal/terminal_action.js",
+            "static/src/terminal/terminal_action.xml",
+        ]
+        frozen_terminal = os.path.join(staging_dir, "frozen_terminal")
+        freeze_and_audit_members("enterprise/insilos_market_terminal", TERMINAL_MEMBERS, frozen_terminal)
+        tar_terminal_cmd = [
+            "tar",
+            "-czf",
+            tar_path_terminal,
+            "-C",
+            frozen_terminal,
+            *TERMINAL_MEMBERS,
+        ]
+        subprocess.run(tar_terminal_cmd, check=True)
+        print(f"[✓] Created {tar_path_terminal}")
+
         # 5. Digest-Pinning Manifest (Content-Addressed Attestation)
         manifest_path = os.path.join(staging_dir, "manifest.sha256")
         with open(manifest_path, "w", encoding="utf-8") as f:
@@ -528,6 +617,11 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             f.write(f"{compute_sha256(tar_path_product)}  odoo_product_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_mrp)}  odoo_mrp_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_renting)}  sale_renting_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_ai)}  ai_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_ai_livechat)}  ai_livechat_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_mail_tools)}  mail_tools_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_docs)}  documents_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_terminal)}  insilos_market_terminal_sync.tar.gz\n")
         print(f"[✓] Generated Content-Addressed Manifest: {manifest_path}")
 
         print("\n=== 2. DEPLOYING ARCHIVES TO ALL PODS & PERSISTENT VOLUMES IN PARALLEL ===")
@@ -586,6 +680,12 @@ for pos in /app/insilos/enterprise/pos_react /app/insilos/apps/pos_react; do
     fi
 done
 
+for term in /app/insilos/enterprise/insilos_market_terminal /app/insilos/apps/insilos_market_terminal /var/lib/insilos/filestore/custom_addons/insilos_market_terminal; do
+    if [ -d "$term" ]; then
+        tar -xzf /tmp/insilos_market_terminal_sync.tar.gz -C "$term/"
+    fi
+done
+
 for fio in /app/insilos/addons/insilos_sap_fiori /var/lib/insilos/filestore/custom_addons/insilos_sap_fiori; do
     mkdir -p "$fio"
     tar -xzf /tmp/insilos_sap_fiori_sync.tar.gz -C "$fio/"
@@ -621,6 +721,30 @@ for rent_dir in /app/insilos/enterprise/sale_renting/models /app/insilos/apps/sa
     fi
 done
 
+for ai_dir in /app/insilos/enterprise/ai/models /app/insilos/apps/ai/models; do
+    if [ -d "$ai_dir" ]; then
+        tar -xzf /tmp/ai_sync.tar.gz -C "$ai_dir/"
+    fi
+done
+
+for ail_dir in /app/insilos/enterprise/ai_livechat /app/insilos/apps/ai_livechat; do
+    if [ -d "$ail_dir" ]; then
+        tar -xzf /tmp/ai_livechat_sync.tar.gz -C "$ail_dir/"
+    fi
+done
+
+for mail_tools_dir in /app/insilos/addons/mail/tools; do
+    if [ -d "$mail_tools_dir" ]; then
+        tar -xzf /tmp/mail_tools_sync.tar.gz -C "$mail_tools_dir/"
+    fi
+done
+
+for doc_dir in /app/insilos/enterprise/documents /app/insilos/apps/documents; do
+    if [ -d "$doc_dir" ]; then
+        tar -xzf /tmp/documents_sync.tar.gz -C "$doc_dir/"
+    fi
+done
+
 CHOWN_TARGETS="
   /var/lib/insilos/filestore/custom_addons/insilos_website
   /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis
@@ -642,8 +766,15 @@ CHOWN_TARGETS="
   /app/insilos/odoo/addons/base/models
   /app/insilos/addons/product
   /app/insilos/addons/mrp
+  /app/insilos/addons/mail/tools
   /app/insilos/enterprise/sale_renting
   /app/insilos/apps/sale_renting
+  /app/insilos/enterprise/ai
+  /app/insilos/apps/ai
+  /app/insilos/enterprise/ai_livechat
+  /app/insilos/apps/ai_livechat
+  /app/insilos/enterprise/documents
+  /app/insilos/apps/documents
   /app/insilos/apps/insilos_website
   /app/insilos/apps/insilos_theme_genesis
   /app/insilos/apps/web_enterprise
@@ -664,7 +795,7 @@ for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_log
     fi
 done
 
-rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/odoo_server_sync.tar.gz /tmp/odoo_product_sync.tar.gz /tmp/odoo_mrp_sync.tar.gz /tmp/sale_renting_sync.tar.gz /tmp/manifest.sha256
+rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/odoo_server_sync.tar.gz /tmp/odoo_product_sync.tar.gz /tmp/odoo_mrp_sync.tar.gz /tmp/sale_renting_sync.tar.gz /tmp/ai_sync.tar.gz /tmp/ai_livechat_sync.tar.gz /tmp/mail_tools_sync.tar.gz /tmp/documents_sync.tar.gz /tmp/insilos_market_terminal_sync.tar.gz /tmp/manifest.sha256
 """
 
         for target in targets:
@@ -688,6 +819,11 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_product, f"{pod}:/tmp/odoo_product_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_mrp, f"{pod}:/tmp/odoo_mrp_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_renting, f"{pod}:/tmp/sale_renting_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_ai, f"{pod}:/tmp/ai_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_ai_livechat, f"{pod}:/tmp/ai_livechat_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_mail_tools, f"{pod}:/tmp/mail_tools_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_docs, f"{pod}:/tmp/documents_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_terminal, f"{pod}:/tmp/insilos_market_terminal_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, manifest_path, f"{pod}:/tmp/manifest.sha256"])
             # Copy tools into /app/insilos/tools (0755 non-world-writable)
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_innoria_views_db.py", f"{pod}:/app/insilos/tools/sync_innoria_views_db.py"])

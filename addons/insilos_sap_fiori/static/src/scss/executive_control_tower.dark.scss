@@ -1,0 +1,239 @@
+// =============================================================================
+// Insilos Enterprise Platform — Executive Control Tower Dark Mode Bundle
+// SAP Fiori Horizon & IBM Carbon Design System 11 Dark Mode Architecture
+// Registered under web.assets_web_dark in __manifest__.py
+// Complies with AGENTS.md Rule 4 (Sovereign Dark Mode Token Architecture)
+// =============================================================================
+
+:root,
+html,
+body,
+.o_web_client,
+body.o_dark_mode,
+.o_dark_mode,
+[data-bs-theme="dark"],
+[data-theme="dark"] {
+    --insilos-bg-canvas: #070b14;
+    --insilos-bg-surface: #0f172a;
+    --insilos-bg-card: #141e33;
+    --insilos-bg-header: #0f172a;
+    --insilos-bg-hover: #1e293b;
+    --insilos-bg-active: #334155;
+    --insilos-bg-subtle: #0b0f19;
+    --insilos-bg-selected: rgba(0, 242, 254, 0.12);
+
+    --insilos-border-subtle: rgba(255, 255, 255, 0.1);
+    --insilos-border-medium: rgba(255, 255, 255, 0.18);
+    --insilos-border-strong: rgba(255, 255, 255, 0.32);
+    --insilos-border-focus: #00f2fe;
+
+    --insilos-text-primary: #f8fafc;
+    --insilos-text-secondary: #cbd5e1;
+    --insilos-text-tertiary: #94a3b8;
+    --insilos-text-muted: #cbd5e1;
+    --insilos-text-on-primary: #05101e;
+
+    --insilos-primary: #00f2fe;
+    --insilos-primary-hover: #38bdf8;
+    --insilos-accent: #00f2fe;
+
+    --ins-emerald: #10b981;
+    --ins-cyan: #00f2fe;
+    --insilos-positive: #10b981;
+    --insilos-positive-bg: rgba(16, 185, 129, 0.18);
+    --insilos-positive-border: rgba(52, 211, 153, 0.4);
+
+    --insilos-critical: #f43f5e;
+    --insilos-critical-bg: rgba(244, 63, 94, 0.18);
+    --insilos-critical-border: rgba(244, 63, 94, 0.4);
+
+    --insilos-warning: #f59e0b;
+    --insilos-warning-bg: rgba(245, 158, 11, 0.18);
+    --insilos-warning-border: rgba(251, 191, 36, 0.4);
+
+    --insilos-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+    --insilos-shadow-card: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+    --insilos-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5);
+
+    --insilos-kpi-inner-bg: #0f172a;
+    --insilos-kpi-inner-border: rgba(255, 255, 255, 0.1);
+    --insilos-gauge-track: #223354;
+    --insilos-gauge-val: #00f2fe;
+}
+
+// Dark Mode Card Hover & Highlights
+.o_control_tower_card,
+.o_fiori_kpi_card,
+.o_kpi_tile,
+.o_kpi_summary_tile,
+.ins-kpi-summary-tile,
+.o_process_monitoring_card,
+.o_card_oee,
+.o_mes_oee_card,
+.o_smart_factory_card,
+.o_card_logistics,
+.o_drayage_fleet_card,
+.o_logistics_hub_card {
+    &:hover {
+        border-color: #00f2fe !important;
+        box-shadow: 0 6px 16px rgba(0, 242, 254, 0.15), 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .o_kpi_header,
+    .ins-kpi-tile-header,
+    .d-flex.align-items-center.justify-content-between.mb-2 {
+        i {
+            color: #00f2fe !important;
+        }
+    }
+}
+
+// Dark Mode Timeframe Bar Active State
+.o_timeframe_bar,
+.o_timeframe_filter_bar,
+.o_dashboard_timeframe_selector,
+.ins_timeframe_filter {
+    .o_domain_filter_pill,
+    .o_timeframe_item,
+    .cds--content-switcher-btn {
+        &:hover {
+            background: rgba(0, 242, 254, 0.08) !important;
+            color: #00f2fe !important;
+            border-color: rgba(0, 242, 254, 0.4) !important;
+        }
+
+        &.active,
+        &[aria-pressed="true"],
+        &.btn-primary {
+            background: #00f2fe !important;
+            color: #05101e !important;
+            border-color: #00f2fe !important;
+            font-weight: 700 !important;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.3) !important;
+        }
+    }
+}
+
+// Dark Mode Badges (Translucent Dark Backdrops + High-Luminance Neon Foreground)
+.o_executive_control_tower {
+    .badge,
+    .o_tag,
+    .o_kpi_delta,
+    .o_kpi_trend {
+        &.bg-success,
+        &.bg-success-subtle,
+        &.text-bg-success,
+        &.badge-positive,
+        &.positive {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+            color: #34d399 !important;
+            border: 1px solid rgba(52, 211, 153, 0.35) !important;
+        }
+
+        &.bg-primary,
+        &.bg-primary-subtle,
+        &.text-bg-primary,
+        &.badge-primary {
+            background-color: rgba(0, 242, 254, 0.15) !important;
+            color: #00f2fe !important;
+            border: 1px solid rgba(0, 242, 254, 0.35) !important;
+        }
+
+        &.bg-danger,
+        &.bg-danger-subtle,
+        &.text-bg-danger,
+        &.badge-critical,
+        &.negative {
+            background-color: rgba(244, 63, 94, 0.15) !important;
+            color: #fda4af !important;
+            border: 1px solid rgba(244, 63, 94, 0.35) !important;
+        }
+
+        &.bg-warning,
+        &.bg-warning-subtle,
+        &.text-bg-warning,
+        &.badge-warning,
+        &.o_det_dem_warning {
+            background-color: #fbbf24 !important;
+            color: #05101e !important;
+            border: 1px solid #f59e0b !important;
+            font-weight: 700 !important;
+        }
+
+        &.bg-info,
+        &.bg-info-subtle,
+        &.text-bg-info,
+        &.badge-info {
+            background-color: rgba(56, 189, 248, 0.15) !important;
+            color: #7dd3fc !important;
+            border: 1px solid rgba(56, 189, 248, 0.35) !important;
+        }
+
+        &.bg-secondary,
+        &.bg-secondary-subtle,
+        &.text-bg-secondary,
+        &.badge-secondary,
+        &.neutral {
+            background-color: rgba(203, 213, 225, 0.12) !important;
+            color: #cbd5e1 !important;
+            border: 1px solid rgba(203, 213, 225, 0.3) !important;
+        }
+
+        &.bg-white,
+        &.o_stage_count {
+            background-color: #141e33 !important;
+            color: #00f2fe !important;
+            border: 1px solid rgba(0, 242, 254, 0.3) !important;
+            font-weight: 700 !important;
+        }
+    }
+}
+
+// Dark Mode Chevron Pipeline
+.o_process_monitoring_card {
+    .o_chevron_step {
+        &:hover {
+            border-color: #00f2fe !important;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.25) !important;
+        }
+
+        &.o_chevron_status_active {
+            border-color: #00f2fe !important;
+            box-shadow: inset 0 0 0 1px #00f2fe !important;
+        }
+    }
+}
+
+// Dark Mode OEE Gauge Drop Shadow
+.o_smart_factory_card,
+.o_mes_oee_card {
+    .o_oee_gauge {
+        circle[stroke-dasharray] {
+            filter: drop-shadow(0 0 6px rgba(0, 242, 254, 0.5)) !important;
+        }
+    }
+
+    .progress {
+        .progress-bar.bg-success {
+            background: linear-gradient(90deg, #10b981, #34d399) !important;
+        }
+        .progress-bar.bg-primary {
+            background: linear-gradient(90deg, #0284c7, #00f2fe) !important;
+        }
+        .progress-bar.bg-info {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa) !important;
+        }
+    }
+}
+
+// Dark Mode Focus Visible Outline
+:focus-visible,
+.o_control_tower_card:focus-visible,
+.o_kpi_tile:focus-visible,
+.o_timeframe_item:focus-visible,
+.o_chevron_step:focus-visible,
+button:focus-visible {
+    outline: 2px solid #00f2fe !important;
+    outline-color: #00f2fe !important;
+    outline-offset: 2px !important;
+}

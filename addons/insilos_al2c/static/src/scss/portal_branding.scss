@@ -6,24 +6,26 @@
    ===================================================================== */
 
 :root {
-    --al2c-sap-blue: #0070F2;
-    --al2c-sap-cyan: #0ABBDB;
+    --al2c-sap-blue: var(--insilos-primary, #0070F2);
+    --al2c-sap-cyan: var(--insilos-accent, #0ABBDB);
     --al2c-sap-dark: #12171C;
-    --al2c-carbon-gray-10: var(--insilos-bg-subtle, #F4F4F4);
-    --al2c-carbon-gray-20: var(--insilos-border-subtle, #E0E0E0);
-    --al2c-carbon-gray-70: var(--insilos-text-muted, #525252);
-    --al2c-carbon-gray-100: var(--insilos-text-primary, #161616);
-    --al2c-card-bg: var(--insilos-bg-card, var(--o-view-background, #FFFFFF));
+    --al2c-carbon-gray-10: var(--insilos-bg-subtle);
+    --al2c-carbon-gray-20: var(--insilos-border-subtle);
+    --al2c-carbon-gray-70: var(--insilos-text-muted);
+    --al2c-carbon-gray-100: var(--insilos-text-primary);
+    --al2c-card-bg: var(--insilos-bg-card, var(--o-view-background));
 }
 
 [data-bs-theme="dark"],
 body.o_dark_mode,
 .o_dark_mode {
-    --al2c-carbon-gray-10: var(--insilos-bg-subtle, #1E293B);
-    --al2c-carbon-gray-20: var(--insilos-border-subtle, rgba(255, 255, 255, 0.12));
-    --al2c-carbon-gray-70: var(--insilos-text-muted, #94A3B8);
-    --al2c-carbon-gray-100: var(--insilos-text-primary, #F8FAFC);
-    --al2c-card-bg: var(--insilos-bg-card, #111827);
+    --al2c-sap-blue: var(--insilos-primary, #00F2FE);
+    --al2c-sap-cyan: var(--insilos-accent, #38BDF8);
+    --al2c-carbon-gray-10: var(--insilos-bg-subtle);
+    --al2c-carbon-gray-20: var(--insilos-border-subtle);
+    --al2c-carbon-gray-70: var(--insilos-text-muted);
+    --al2c-carbon-gray-100: var(--insilos-text-primary);
+    --al2c-card-bg: var(--insilos-bg-card);
 }
 
 /* 1. Header Gradient Accent Stripe */
@@ -116,7 +118,7 @@ body.o_dark_mode,
     position: relative;
     z-index: 2;
     text-align: center;
-    background: var(--al2c-card-bg, #FFFFFF);
+    background: var(--al2c-card-bg);
     padding: 0 0.35rem;
 
     .step-circle {
@@ -130,19 +132,19 @@ body.o_dark_mode,
         font-weight: 700;
         font-size: 13px;
         border: 2px solid var(--al2c-carbon-gray-20);
-        background: var(--al2c-card-bg, #FFFFFF);
+        background: var(--al2c-card-bg);
         color: var(--al2c-carbon-gray-70);
     }
 
     &.completed .step-circle {
-        background: #0070F2;
-        border-color: #0070F2;
-        color: #FFFFFF;
+        background: var(--al2c-sap-blue);
+        border-color: var(--al2c-sap-blue);
+        color: var(--insilos-text-on-primary, #FFFFFF);
     }
 
     &.current .step-circle {
-        border-color: #0070F2;
-        color: #0070F2;
+        border-color: var(--al2c-sap-blue);
+        color: var(--al2c-sap-blue);
         box-shadow: 0 0 0 4px rgba(0, 112, 242, 0.15);
     }
 
@@ -160,7 +162,7 @@ body.o_dark_mode,
 
 /* 5. Napas247 / VietQR Payment Box */
 .al2c-napas-box {
-    background: #F8F9FA;
+    background: var(--insilos-bg-subtle);
     border: 1px solid var(--al2c-carbon-gray-20);
     border-radius: 6px;
     padding: 1.25rem;
@@ -171,15 +173,16 @@ body.o_dark_mode,
         font-weight: 700;
         padding: 2px 6px;
         border-radius: 2px;
-        background-color: #0070F2;
-        color: #FFFFFF;
+        background-color: var(--al2c-sap-blue);
+        color: var(--insilos-text-on-primary, #FFFFFF);
     }
 }
 
 /* 6. Dispute Notice Banner */
 .al2c-dispute-alert {
-    border-left: 4px solid #F1C21B;
-    background-color: #FFF8E1;
+    border-left: 4px solid var(--insilos-warning, #F1C21B);
+    background-color: var(--insilos-warning-bg, rgba(245, 158, 11, 0.15));
+    color: var(--insilos-text-primary);
     border-radius: 4px;
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;

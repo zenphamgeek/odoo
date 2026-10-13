@@ -1,45 +1,198 @@
-/* =============================================================================
-   SAP Fiori 4 / Horizon Dark Mode Bundle — Insilos Enterprise Platform
-   IBM Carbon & SAP Fiori Horizon Dark Mode Standards
-   Complies with Sovereign Dark Mode Token Architecture (AGENTS.md Rule 4)
-   ============================================================================= */
+// =============================================================================
+// SAP Fiori 4 / Horizon Dark Mode Bundle — Insilos Enterprise Platform
+// IBM Carbon 11 & SAP Fiori Horizon Dark Mode Standards
+// Complies with Sovereign Dark Mode Token Architecture (AGENTS.md Rule 4)
+// Registered under web.assets_web_dark in __manifest__.py
+// =============================================================================
 
 :root,
 html,
 body,
-.o_web_client {
+.o_web_client,
+body.o_dark_mode,
+.o_dark_mode,
+[data-bs-theme="dark"],
+[data-theme="dark"] {
+    // 1. Surface & Background Canvas Hierarchy
     --insilos-bg-canvas: #070b14;
     --insilos-bg-surface: #0f172a;
     --insilos-bg-card: #111827;
+    --insilos-bg-header: #0f172a;
+    --insilos-bg-hover: #1e293b;
+    --insilos-bg-active: #334155;
     --insilos-bg-subtle: #0b0f19;
-    --insilos-primary: #00f2fe;
+    --insilos-bg-selected: rgba(0, 242, 254, 0.12);
+
+    // 2. Hairline Architectural Borders
+    --insilos-border-subtle: rgba(255, 255, 255, 0.1);
+    --insilos-border-medium: rgba(255, 255, 255, 0.18);
+    --insilos-border-strong: rgba(255, 255, 255, 0.32);
+    --insilos-border-focus: #00f2fe;
+
+    // 3. High-Contrast Typography
     --insilos-text-primary: #f8fafc;
     --insilos-text-secondary: #cbd5e1;
+    --insilos-text-tertiary: #94a3b8;
+    --insilos-text-muted: #94a3b8;
+    --insilos-text-on-primary: #070b14;
+
+    // 4. Brand Accents (High-Contrast Tech Cyan)
+    --insilos-primary: #00f2fe;
+    --insilos-primary-hover: #38bdf8;
+    --insilos-primary-subtle: rgba(0, 242, 254, 0.12);
+    --insilos-primary-border: rgba(0, 242, 254, 0.35);
+    --insilos-accent: #00f2fe;
+    --insilos-accent-hover: #38bdf8;
+
+    // 5. Semantic Status Architecture (Dark Calibrated)
+    --ins-emerald: #10b981;
+    --ins-cyan: #00f2fe;
+    --insilos-positive: #10b981;
+    --insilos-positive-bg: rgba(16, 185, 129, 0.18);
+    --insilos-positive-border: rgba(52, 211, 153, 0.4);
+
+    --insilos-critical: #f43f5e;
+    --insilos-critical-bg: rgba(244, 63, 94, 0.18);
+    --insilos-critical-border: rgba(244, 63, 94, 0.4);
+
+    --insilos-warning: #f59e0b;
+    --insilos-warning-bg: rgba(245, 158, 11, 0.18);
+    --insilos-warning-border: rgba(251, 191, 36, 0.4);
+
+    --insilos-information: #00f2fe;
+    --insilos-information-bg: rgba(0, 242, 254, 0.14);
+    --insilos-information-border: rgba(0, 242, 254, 0.35);
+
+    --insilos-neutral: #cbd5e1;
+    --insilos-neutral-bg: rgba(203, 213, 225, 0.12);
+    --insilos-neutral-border: rgba(203, 213, 225, 0.3);
+
+    --insilos-table-sticky-col-bg: #0f172a;
+
+    // 6. Architectural Shadows
+    --insilos-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
+    --insilos-shadow-card: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+    --insilos-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5);
+    --insilos-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --insilos-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Fiori High-Density List Header & Cells */
-.o_list_renderer .o_list_table {
-    thead th {
-        background-color: var(--insilos-bg-subtle) !important;
-        border-bottom: 2px solid rgba(255, 255, 255, 0.12) !important;
-        color: var(--insilos-text-secondary) !important;
-    }
+// =============================================================================
+// 1. High-Density Compact Data Tables (Fiori Grid Dark Mode)
+// =============================================================================
+.o_list_renderer {
+    background-color: var(--insilos-bg-canvas) !important;
 
-    tbody tr {
-        &:hover {
-            background-color: rgba(0, 242, 254, 0.06) !important;
-            box-shadow: inset 3px 0 0 var(--insilos-primary) !important;
+    .o_list_table {
+        background-color: var(--insilos-bg-canvas) !important;
+        border-color: rgba(255, 255, 255, 0.1) !important;
+
+        thead {
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 2 !important;
+
+            th {
+                position: sticky !important;
+                top: 0 !important;
+                z-index: 2 !important;
+                background-color: var(--insilos-bg-surface) !important;
+                border-bottom: 2px solid rgba(255, 255, 255, 0.12) !important;
+                color: var(--insilos-text-secondary) !important;
+
+                &.o_list_record_selector {
+                    background-color: var(--insilos-bg-surface) !important;
+                }
+            }
         }
 
-        td {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-            color: var(--insilos-text-primary) !important;
+        tbody {
+            tr {
+                background-color: transparent !important;
+
+                &:hover {
+                    background-color: rgba(0, 242, 254, 0.06) !important;
+                    box-shadow: inset 3px 0 0 var(--insilos-primary) !important;
+                }
+
+                &.o_data_row.o_selected_row {
+                    background-color: rgba(0, 242, 254, 0.1) !important;
+                }
+
+                td {
+                    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+                    color: var(--insilos-text-primary) !important;
+
+                    &.o_list_record_selector {
+                        .form-check-input,
+                        .o-checkbox input {
+                            background-color: var(--insilos-bg-card) !important;
+                            border-color: rgba(255, 255, 255, 0.3) !important;
+
+                            &:checked {
+                                background-color: var(--insilos-primary) !important;
+                                border-color: var(--insilos-primary) !important;
+                            }
+                        }
+                    }
+
+                    .o_field_date,
+                    .o_field_datetime,
+                    &.o_date_cell {
+                        color: var(--insilos-text-secondary) !important;
+                    }
+                }
+            }
+        }
+
+        tfoot {
+            background-color: var(--insilos-bg-surface) !important;
+            border-top: 2px solid rgba(255, 255, 255, 0.12) !important;
+
+            td {
+                color: var(--insilos-text-primary) !important;
+                border: none !important;
+            }
         }
     }
 }
 
-/* Fiori Horizon Form View & Object Page */
+// =============================================================================
+// 2. Fiori Horizon Tabs & Notebook Navigation
+// =============================================================================
+.o_notebook,
+.nav-tabs {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+
+    .nav-item {
+        .nav-link {
+            color: var(--insilos-text-secondary) !important;
+            background-color: transparent !important;
+            border: none !important;
+            border-bottom: 2px solid transparent !important;
+            transition: all var(--insilos-transition-fast);
+
+            &:hover {
+                color: var(--insilos-primary) !important;
+                border-bottom: 2px solid rgba(0, 242, 254, 0.4) !important;
+            }
+
+            &.active {
+                color: var(--insilos-primary) !important;
+                background-color: transparent !important;
+                border-bottom: 2px solid var(--insilos-primary) !important;
+                font-weight: 700 !important;
+            }
+        }
+    }
+}
+
+// =============================================================================
+// 3. Fiori Inputs, Forms & Form Controls
+// =============================================================================
 .o_form_view {
+    background-color: var(--insilos-bg-canvas) !important;
+
     .o_form_sheet_bg {
         background-color: var(--insilos-bg-canvas) !important;
 
@@ -54,20 +207,338 @@ body,
     .o_form_statusbar {
         background-color: var(--insilos-bg-surface) !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+
+        .o_statusbar_status {
+            .btn.o_arrow_button:not(.d-none) {
+                background-color: var(--insilos-bg-subtle) !important;
+                color: var(--insilos-text-secondary) !important;
+                border: 1px solid rgba(255, 255, 255, 0.12) !important;
+
+                &.btn-primary,
+                &.o_arrow_button_current {
+                    background-color: rgba(0, 242, 254, 0.15) !important;
+                    border-color: var(--insilos-primary) !important;
+                    color: var(--insilos-primary) !important;
+                }
+
+                &:not(.o_arrow_button_current):not(.btn-primary):hover {
+                    background-color: var(--insilos-bg-hover) !important;
+                    color: var(--insilos-primary) !important;
+                }
+            }
+
+            .o_arrow_button_wrap + .o_arrow_button_wrap::after {
+                color: rgba(255, 255, 255, 0.3) !important;
+            }
+        }
     }
 }
 
-/* Fiori KPI Cards */
-.o_fiori_kpi_card,
-.fiori_kpi_card {
-    background-color: var(--insilos-bg-card) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+// Form Inputs & Fields
+input.o_input,
+select.o_input,
+textarea.o_input,
+.o_form_view .o_field_widget input,
+.o_form_view .o_field_widget select,
+.o_form_view .o_field_widget textarea,
+.form-control,
+.form-select {
+    background-color: var(--insilos-bg-surface) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
     color: var(--insilos-text-primary) !important;
+
+    &:focus {
+        border-color: var(--insilos-primary) !important;
+        box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.25) !important;
+        background-color: var(--insilos-bg-surface) !important;
+    }
+
+    &::placeholder {
+        color: var(--insilos-text-tertiary) !important;
+    }
 }
 
-/* Fiori Stage Counters */
+// =============================================================================
+// 4. Search and Control Panel (Fiori Horizon Filter Bar)
+// =============================================================================
+.o_control_panel {
+    background-color: var(--insilos-bg-surface) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+
+    .o_searchview {
+        background-color: var(--insilos-bg-subtle) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+
+        .o_searchview_input {
+            color: var(--insilos-text-primary) !important;
+            background-color: transparent !important;
+
+            &::placeholder {
+                color: var(--insilos-text-tertiary) !important;
+            }
+        }
+
+        .o_searchview_facet {
+            background-color: var(--insilos-bg-card) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+
+            .o_searchview_facet_label {
+                background-color: rgba(0, 242, 254, 0.15) !important;
+                color: var(--insilos-primary) !important;
+            }
+        }
+
+        &:focus-within {
+            border-color: var(--insilos-border-focus) !important;
+            box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.25) !important;
+        }
+    }
+}
+
+// =============================================================================
+// 5. Semantic Badges & Tags (Dark Mode Neon & Translucent Hierarchy)
+// =============================================================================
+.badge,
+.o_tag,
+.o_field_badge,
+.o_list_renderer .o_data_cell .badge,
+.o_form_view .badge,
+.o_kanban_view .badge,
+.o_kanban_record .badge,
+.o_kanban_record .o_tag {
+    // 1. Positive / Success
+    &.text-bg-success, &.bg-success, &.o_tag_color_10,
+    &.badge-positive, &.badge-success, &.state-positive, &.o_status_positive {
+        background-color: var(--insilos-positive-bg) !important;
+        color: #34d399 !important;
+        border: 1px solid var(--insilos-positive-border) !important;
+    }
+
+    // 2. Critical / Danger
+    &.text-bg-danger, &.bg-danger, &.o_tag_color_1,
+    &.badge-critical, &.badge-danger, &.badge-error, &.state-critical, &.o_status_critical {
+        background-color: var(--insilos-critical-bg) !important;
+        color: #fda4af !important;
+        border: 1px solid var(--insilos-critical-border) !important;
+    }
+
+    // 3. Warning / Alert
+    &.text-bg-warning, &.bg-warning, &.o_tag_color_2, &.o_tag_color_3,
+    &.badge-warning, &.badge-alert, &.state-warning, &.o_status_warning {
+        background-color: var(--insilos-warning-bg) !important;
+        color: #fbbf24 !important;
+        border: 1px solid var(--insilos-warning-border) !important;
+    }
+
+    // 4. Information / Primary
+    &.text-bg-info, &.bg-info, &.text-bg-primary, &.bg-primary, &.o_tag_color_4,
+    &.badge-information, &.badge-info, &.state-info, &.o_status_info {
+        background-color: var(--insilos-information-bg) !important;
+        color: #00f2fe !important;
+        border: 1px solid var(--insilos-information-border) !important;
+    }
+
+    // Neutral / Secondary
+    &.text-bg-secondary, &.bg-secondary, &.o_tag_color_0,
+    &.badge-neutral, &.badge-secondary, &.state-neutral, &.o_status_neutral {
+        background-color: var(--insilos-neutral-bg) !important;
+        color: #cbd5e1 !important;
+        border: 1px solid var(--insilos-neutral-border) !important;
+    }
+}
+
+// Field-level decoration classes inside dark list cells
+.o_list_renderer .o_list_table {
+    .text-success {
+        color: #34d399 !important;
+    }
+    .text-danger {
+        color: #fda4af !important;
+    }
+    .text-warning {
+        color: #fbbf24 !important;
+    }
+    .text-info {
+        color: #00f2fe !important;
+    }
+    .text-muted {
+        color: var(--insilos-text-secondary) !important;
+    }
+}
+
+// =============================================================================
+// 6. Fiori KPI Cards, Kanban & Micro-Widgets
+// =============================================================================
+.o_fiori_kpi_card,
+.fiori_kpi_card,
+.o_kanban_view .o_kanban_record {
+    background-color: var(--insilos-bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+    color: var(--insilos-text-primary) !important;
+
+    &:hover {
+        border-color: var(--insilos-primary) !important;
+        box-shadow: 0 4px 16px rgba(0, 242, 254, 0.15), 0 4px 16px rgba(0, 0, 0, 0.5) !important;
+    }
+
+    .o_kpi_header {
+        .o_kpi_title {
+            color: var(--insilos-text-secondary) !important;
+        }
+
+        .o_kpi_icon {
+            color: var(--insilos-primary) !important;
+        }
+    }
+
+    .o_kpi_value {
+        color: var(--insilos-text-primary) !important;
+    }
+
+    .o_kpi_trend {
+        &.positive {
+            color: #34d399 !important;
+        }
+
+        &.negative {
+            color: #fda4af !important;
+        }
+
+        &.neutral {
+            color: #cbd5e1 !important;
+        }
+    }
+}
+
+.o_kanban_view .o_kanban_group {
+    background-color: var(--insilos-bg-surface) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+
+    .o_kanban_header {
+        color: var(--insilos-text-primary) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+}
+
+// Smart Stat Buttons
+.o-form-buttonbox,
+.oe_button_box {
+    .oe_stat_button {
+        background-color: var(--insilos-bg-surface) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+
+        &:hover {
+            background-color: var(--insilos-bg-hover) !important;
+            border-color: rgba(255, 255, 255, 0.22) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        .o_button_icon {
+            color: var(--insilos-primary) !important;
+        }
+
+        .o_stat_info,
+        .o_field_statinfo {
+            .o_stat_value {
+                color: var(--insilos-text-primary) !important;
+            }
+
+            .o_stat_text {
+                color: var(--insilos-text-secondary) !important;
+            }
+
+            .o_kpi_trend {
+                &.positive {
+                    color: #34d399 !important;
+                }
+
+                &.negative {
+                    color: #fda4af !important;
+                }
+
+                &.neutral {
+                    color: #cbd5e1 !important;
+                }
+            }
+        }
+    }
+}
+
+// Fiori Stage Counters
 .o_stage_count {
     background-color: var(--insilos-bg-card) !important;
     color: var(--insilos-primary) !important;
     border: 1px solid rgba(0, 242, 254, 0.3) !important;
+}
+
+// =============================================================================
+// 7. Breadcrumbs Navigation
+// =============================================================================
+.o_breadcrumb,
+.breadcrumb {
+    color: var(--insilos-text-secondary) !important;
+
+    .o_breadcrumb_title,
+    .breadcrumb-item.active,
+    strong {
+        color: var(--insilos-text-primary) !important;
+        font-weight: 650 !important;
+    }
+
+    a,
+    .breadcrumb-item a {
+        color: var(--insilos-primary) !important;
+
+        &:hover {
+            color: var(--insilos-primary-hover) !important;
+            text-decoration: underline !important;
+        }
+    }
+
+    .breadcrumb-item + .breadcrumb-item::before {
+        color: rgba(255, 255, 255, 0.3) !important;
+    }
+}
+
+// =============================================================================
+// 8. Dropdowns & Modals
+// =============================================================================
+.dropdown-menu {
+    background-color: var(--insilos-bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+
+    .dropdown-item {
+        color: var(--insilos-text-primary) !important;
+
+        &:hover,
+        &:focus {
+            background-color: var(--insilos-bg-hover) !important;
+            color: var(--insilos-primary) !important;
+        }
+
+        &.active,
+        &:active {
+            background-color: rgba(0, 242, 254, 0.15) !important;
+            color: var(--insilos-primary) !important;
+        }
+    }
+
+    .dropdown-divider {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
+}
+
+.modal-content {
+    background-color: var(--insilos-bg-card) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6) !important;
+    color: var(--insilos-text-primary) !important;
+
+    .modal-header,
+    .modal-footer {
+        border-color: rgba(255, 255, 255, 0.1) !important;
+    }
 }

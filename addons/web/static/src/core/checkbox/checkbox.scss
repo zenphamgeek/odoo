@@ -7,22 +7,22 @@
         min-width: 15px !important;
         min-height: 15px !important;
         border-radius: var(--insilos-radius-xs, 2px) !important;
-        border: 1.5px solid var(--insilos-border-strong, #94a3b8) !important;
+        border: 1.5px solid var(--insilos-border-strong) !important;
         background-color: var(--insilos-bg-surface, #ffffff);
         margin: 0 !important;
         cursor: pointer;
         transition: background-color var(--insilos-transition-fast, 0.12s ease), border-color var(--insilos-transition-fast, 0.12s ease), box-shadow var(--insilos-transition-fast, 0.12s ease);
 
         &:focus {
-            border-color: var(--insilos-border-focus, #0f62fe) !important;
+            border-color: var(--insilos-border-focus) !important;
             box-shadow: 0 0 0 2px var(--insilos-primary-subtle, rgba(15, 98, 254, 0.2)) !important;
             outline: none !important;
         }
 
         &:checked,
         &:indeterminate {
-            background-color: var(--insilos-primary, #0b2e64) !important;
-            border-color: var(--insilos-primary, #0b2e64) !important;
+            background-color: var(--insilos-primary) !important;
+            border-color: var(--insilos-primary) !important;
         }
     }
 }
@@ -37,12 +37,12 @@ body.o_dark_mode,
 
         &:checked,
         &:indeterminate {
-            background-color: var(--insilos-primary, #00f2fe) !important;
-            border-color: var(--insilos-primary, #00f2fe) !important;
+            background-color: var(--insilos-primary) !important;
+            border-color: var(--insilos-primary) !important;
         }
 
         &:focus {
-            border-color: var(--insilos-border-focus, #00f2fe) !important;
+            border-color: var(--insilos-border-focus) !important;
             box-shadow: 0 0 0 2px var(--insilos-primary-subtle, rgba(0, 242, 254, 0.25)) !important;
         }
     }

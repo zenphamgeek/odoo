@@ -1,12 +1,12 @@
 // =============================================================================
 // Insilos Enterprise Platform — Executive Control Tower
 // IBM Carbon Design System 11 (16-Column Grid) & SAP Fiori Horizon Cards SCSS
-// High-Contrast Dark Mode (#070B14 / #141E33 / #00F2FE / #10B981)
-// WCAG 2.1 AAA Contrast Ratio (>= 7.0:1) & Tabular Numeric Precision
+// Complies with AGENTS.md Rule 4 (Dual-Asset Segregation & Zero Hardcoded Fallbacks)
+// WCAG 2.1 AAA Contrast Ratio & Tabular Numeric Precision
 // =============================================================================
 
 // -----------------------------------------------------------------------------
-// 1. Root & Theme Token Architecture
+// 1. Root & Theme Token Architecture (Light Mode Baseline)
 // -----------------------------------------------------------------------------
 :root {
     --insilos-bg-canvas: #f4f6f8;
@@ -14,7 +14,9 @@
     --insilos-bg-card: #ffffff;
     --insilos-bg-header: #ffffff;
     --insilos-bg-hover: #f1f5f9;
+    --insilos-bg-active: #e2e8f0;
     --insilos-bg-subtle: #f8fafc;
+    --insilos-bg-selected: rgba(15, 98, 254, 0.08);
 
     --insilos-border-subtle: #e2e8f0;
     --insilos-border-medium: #cbd5e1;
@@ -24,17 +26,30 @@
     --insilos-text-primary: #0f172a;
     --insilos-text-secondary: #475569;
     --insilos-text-tertiary: #64748b;
-    --insilos-text-muted: #94a3b8;
+    --insilos-text-muted: #64748b;
     --insilos-text-on-primary: #ffffff;
 
     --insilos-primary: #0b2e64;
     --insilos-primary-hover: #082147;
     --insilos-accent: #0f62fe;
+
+    --ins-emerald: #107e3e;
+    --ins-cyan: #0284c7;
     --insilos-positive: #107e3e;
-    --ins-emerald: #10b981;
-    --ins-cyan: #00f2fe;
+    --insilos-positive-bg: rgba(16, 126, 62, 0.1);
+    --insilos-positive-border: rgba(16, 126, 62, 0.3);
+
     --insilos-critical: #bb0000;
-    --insilos-warning: #f59e0b;
+    --insilos-critical-bg: rgba(187, 0, 0, 0.1);
+    --insilos-critical-border: rgba(187, 0, 0, 0.3);
+
+    --insilos-warning: #b45309;
+    --insilos-warning-bg: rgba(245, 158, 11, 0.15);
+    --insilos-warning-border: rgba(245, 158, 11, 0.4);
+
+    --insilos-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --insilos-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    --insilos-shadow-hover: 0 4px 14px rgba(15, 23, 42, 0.08);
 
     --insilos-radius-xs: 2px;
     --insilos-radius-sm: 4px;
@@ -44,56 +59,10 @@
     --insilos-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     --insilos-font-mono: 'JetBrains Mono', 'IBM Plex Mono', 'SF Mono', Menlo, Consolas, monospace;
 
-    --insilos-shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-    --insilos-shadow-hover: 0 4px 14px rgba(15, 23, 42, 0.08);
-}
-
-// Global High-Contrast Dark Mode Overrides
-body.o_dark_mode,
-.o_dark_mode,
-[data-bs-theme="dark"],
-[data-theme="dark"] {
-    --insilos-bg-canvas: #070b14;
-    --insilos-bg-surface: #0f172a;
-    --insilos-bg-card: #141e33;
-    --insilos-bg-header: #0f172a;
-    --insilos-bg-hover: #1e293b;
-    --insilos-bg-active: #334155;
-    --insilos-bg-subtle: #0b0f19;
-    --insilos-bg-selected: rgba(0, 242, 254, 0.12);
-
-    --insilos-border-subtle: rgba(255, 255, 255, 0.1);
-    --insilos-border-medium: rgba(255, 255, 255, 0.18);
-    --insilos-border-strong: rgba(255, 255, 255, 0.32);
-    --insilos-border-focus: #00f2fe;
-
-    --insilos-text-primary: #f8fafc;
-    --insilos-text-secondary: #cbd5e1;
-    --insilos-text-tertiary: #94a3b8;
-    --insilos-text-muted: #cbd5e1;
-    --insilos-text-on-primary: #05101e;
-
-    --insilos-primary: #00f2fe;
-    --insilos-primary-hover: #38bdf8;
-    --insilos-accent: #38bdf8;
-
-    --ins-emerald: #10b981;
-    --ins-cyan: #00f2fe;
-    --insilos-positive: #10b981;
-    --insilos-positive-bg: rgba(16, 185, 129, 0.18);
-    --insilos-positive-border: rgba(52, 211, 153, 0.4);
-
-    --insilos-critical: #f43f5e;
-    --insilos-critical-bg: rgba(244, 63, 94, 0.18);
-    --insilos-critical-border: rgba(244, 63, 94, 0.4);
-
-    --insilos-warning: #f59e0b;
-    --insilos-warning-bg: rgba(245, 158, 11, 0.18);
-    --insilos-warning-border: rgba(251, 191, 36, 0.4);
-
-    --insilos-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4);
-    --insilos-shadow-card: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
-    --insilos-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5);
+    --insilos-kpi-inner-bg: #f8fafc;
+    --insilos-kpi-inner-border: #e2e8f0;
+    --insilos-gauge-track: #e2e8f0;
+    --insilos-gauge-val: #0284c7;
 }
 
 // -----------------------------------------------------------------------------
@@ -111,8 +80,8 @@ body.o_dark_mode,
     min-height: 100% !important;
     overflow-x: hidden !important;
     box-sizing: border-box !important;
-    background-color: var(--insilos-bg-canvas, #070b14) !important;
-    color: var(--insilos-text-primary, #f8fafc) !important;
+    background-color: var(--insilos-bg-canvas) !important;
+    color: var(--insilos-text-primary) !important;
     font-family: var(--insilos-font-sans) !important;
 
     // All top-level children (timeframe bar, rows) span the full 16 columns
@@ -181,12 +150,6 @@ body.o_dark_mode,
     .cds--col-sm-4 { flex: 0 0 100.0% !important; max-width: 100.0% !important; width: 100.0% !important; }
 }
 
-// Prevent any horizontal overflow at page root
-html, body {
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-}
-
 // -----------------------------------------------------------------------------
 // 3. SAP Fiori Horizon Cards Architecture & Styling
 // -----------------------------------------------------------------------------
@@ -204,16 +167,16 @@ html, body {
 .o_card_logistics,
 .o_drayage_fleet_card,
 .o_logistics_hub_card {
-    background-color: var(--insilos-bg-card, #141e33) !important;
-    border: 1px solid var(--insilos-border-subtle, rgba(255, 255, 255, 0.1)) !important;
+    background-color: var(--insilos-bg-card) !important;
+    border: 1px solid var(--insilos-border-subtle) !important;
     border-radius: var(--insilos-radius-sm, 4px) !important;
-    box-shadow: var(--insilos-shadow-card, 0 2px 6px rgba(0, 0, 0, 0.35)) !important;
+    box-shadow: var(--insilos-shadow-card) !important;
     box-sizing: border-box !important;
     transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease !important;
 
     &:hover {
-        border-color: var(--insilos-primary, #00f2fe) !important;
-        box-shadow: 0 6px 16px rgba(0, 242, 254, 0.12), var(--insilos-shadow-hover, 0 6px 20px rgba(0, 0, 0, 0.5)) !important;
+        border-color: var(--insilos-border-focus) !important;
+        box-shadow: var(--insilos-shadow-hover) !important;
         transform: translateY(-2px) !important;
     }
 
@@ -228,13 +191,13 @@ html, body {
             font-weight: 650 !important;
             letter-spacing: 0.05em !important;
             text-transform: uppercase !important;
-            color: var(--insilos-text-secondary, #cbd5e1) !important;
+            color: var(--insilos-text-secondary) !important;
             line-height: 1.2 !important;
         }
 
         i {
             font-size: 1.25rem !important;
-            color: var(--insilos-primary, #00f2fe) !important;
+            color: var(--insilos-accent) !important;
         }
     }
 
@@ -251,18 +214,17 @@ html, body {
         font-weight: 700 !important;
         letter-spacing: -0.02em !important;
         line-height: 1.2 !important;
-        color: #ffffff !important; // 16.7:1 Contrast against #141E33
+        color: var(--insilos-text-primary) !important;
     }
 }
 
 // -----------------------------------------------------------------------------
 // 4. WCAG 2.1 AAA Contrast Ratio & High-Contrast Typography Hierarchy
 // -----------------------------------------------------------------------------
-// Universal Contrast Guarantees: All text elements against #141E33 have >= 7.0:1 contrast
 .o_executive_control_tower {
     h1, h2, h3, h4, h5, h6,
     .h1, .h2, .h3, .h4, .h5, .h6 {
-        color: #f8fafc !important; // 15.9:1 Contrast against #141E33
+        color: var(--insilos-text-primary) !important;
         font-weight: 700 !important;
         letter-spacing: -0.01em !important;
     }
@@ -273,7 +235,7 @@ html, body {
     .small,
     .ins-kpi-lexicon,
     .ins-kpi-target-text {
-        color: #cbd5e1 !important; // 11.22:1 Contrast against #141E33
+        color: var(--insilos-text-secondary) !important;
     }
 
     .font-monospace {
@@ -288,23 +250,16 @@ html, body {
     .o_fleet_vehicle,
     .o_drayage_truck,
     .o_pipeline_row {
-        background-color: #0f172a !important; // Deep slate surface
-        border-color: rgba(255, 255, 255, 0.1) !important;
-        color: #f8fafc !important;
+        background-color: var(--insilos-kpi-inner-bg) !important;
+        border: 1px solid var(--insilos-kpi-inner-border) !important;
+        color: var(--insilos-text-primary) !important;
     }
 }
 
 // -----------------------------------------------------------------------------
 // 5. Semantic Status Badges & WCAG 2.1 AAA Compliance
 // -----------------------------------------------------------------------------
-// In Dark Mode, badges utilize subtle transparent backdrops (alpha < 0.5) so that
-// effective background resolves to the card surface (#141E33), pairing with
-// calibrated high-luminance foreground colors to mathematically achieve >= 7.0:1 contrast.
-.o_executive_control_tower,
-body.o_dark_mode,
-.o_dark_mode,
-[data-bs-theme="dark"],
-[data-theme="dark"] {
+.o_executive_control_tower {
     .badge,
     .o_tag,
     .o_kpi_delta,
@@ -321,77 +276,77 @@ body.o_dark_mode,
         line-height: 1.2 !important;
         font-variant-numeric: tabular-nums !important;
 
-        // 1. Positive / Growth (Industrial Emerald: #34D399 -> 8.68:1 contrast on #141E33)
+        // 1. Positive / Growth
         &.bg-success,
         &.bg-success-subtle,
         &.text-bg-success,
         &.badge-positive,
         &.positive {
-            background-color: rgba(16, 185, 129, 0.15) !important;
-            color: #34d399 !important;
-            border: 1px solid rgba(52, 211, 153, 0.35) !important;
+            background-color: var(--insilos-positive-bg) !important;
+            color: var(--insilos-positive) !important;
+            border: 1px solid var(--insilos-positive-border) !important;
         }
 
-        // 2. Primary / Neon Accent (Tech Cyan: #00F2FE -> 12.01:1 contrast on #141E33)
+        // 2. Primary / Accent
         &.bg-primary,
         &.bg-primary-subtle,
         &.text-bg-primary,
         &.badge-primary {
-            background-color: rgba(0, 242, 254, 0.15) !important;
-            color: #00f2fe !important;
-            border: 1px solid rgba(0, 242, 254, 0.35) !important;
+            background-color: rgba(15, 98, 254, 0.1) !important;
+            color: var(--insilos-accent) !important;
+            border: 1px solid rgba(15, 98, 254, 0.3) !important;
         }
 
-        // 3. Critical / Hazard (Coral Red: #FDA4AF -> 9.07:1 contrast on #141E33)
+        // 3. Critical / Hazard
         &.bg-danger,
         &.bg-danger-subtle,
         &.text-bg-danger,
         &.badge-critical,
         &.negative {
-            background-color: rgba(244, 63, 94, 0.15) !important;
-            color: #fda4af !important;
-            border: 1px solid rgba(244, 63, 94, 0.35) !important;
+            background-color: var(--insilos-critical-bg) !important;
+            color: var(--insilos-critical) !important;
+            border: 1px solid var(--insilos-critical-border) !important;
         }
 
-        // 4. Warning / DET/DEM Urgency (Vivid Amber #FBBF24 with deep text #05101E -> 12.07:1 contrast)
+        // 4. Warning / DET/DEM Urgency
         &.bg-warning,
         &.bg-warning-subtle,
         &.text-bg-warning,
         &.badge-warning,
         &.o_det_dem_warning {
-            background-color: #fbbf24 !important;
-            color: #05101e !important;
-            border: 1px solid #f59e0b !important;
+            background-color: var(--insilos-warning-bg) !important;
+            color: var(--insilos-warning) !important;
+            border: 1px solid var(--insilos-warning-border) !important;
             font-weight: 700 !important;
         }
 
-        // 5. Information / Value Stream (#7DD3FC -> 11.5:1 contrast on #141E33)
+        // 5. Information / Value Stream
         &.bg-info,
         &.bg-info-subtle,
         &.text-bg-info,
         &.badge-info {
-            background-color: rgba(56, 189, 248, 0.15) !important;
-            color: #7dd3fc !important;
-            border: 1px solid rgba(56, 189, 248, 0.35) !important;
+            background-color: rgba(2, 132, 199, 0.1) !important;
+            color: #0284c7 !important;
+            border: 1px solid rgba(2, 132, 199, 0.3) !important;
         }
 
-        // 6. Neutral / Secondary (#CBD5E1 -> 11.22:1 contrast on #141E33)
+        // 6. Neutral / Secondary
         &.bg-secondary,
         &.bg-secondary-subtle,
         &.text-bg-secondary,
         &.badge-secondary,
         &.neutral {
-            background-color: rgba(203, 213, 225, 0.12) !important;
-            color: #cbd5e1 !important;
-            border: 1px solid rgba(203, 213, 225, 0.3) !important;
+            background-color: rgba(100, 116, 139, 0.1) !important;
+            color: var(--insilos-text-secondary) !important;
+            border: 1px solid var(--insilos-border-subtle) !important;
         }
 
         // 7. High-Contrast Monospace Counters
         &.bg-white,
         &.o_stage_count {
-            background-color: var(--insilos-bg-card, #ffffff) !important;
-            color: var(--insilos-text-primary, #05101e) !important;
-            border: 1px solid var(--insilos-border-medium, #cbd5e1) !important;
+            background-color: var(--insilos-bg-card) !important;
+            color: var(--insilos-text-primary) !important;
+            border: 1px solid var(--insilos-border-medium) !important;
             font-weight: 700 !important;
         }
     }
@@ -404,10 +359,10 @@ body.o_dark_mode,
 .o_timeframe_filter_bar,
 .o_dashboard_timeframe_selector,
 .ins_timeframe_filter {
-    background-color: var(--insilos-bg-card, #141e33) !important;
-    border: 1px solid var(--insilos-border-subtle, rgba(255, 255, 255, 0.1)) !important;
+    background-color: var(--insilos-bg-card) !important;
+    border: 1px solid var(--insilos-border-subtle) !important;
     border-radius: var(--insilos-radius-sm, 4px) !important;
-    box-shadow: var(--insilos-shadow-card, 0 2px 6px rgba(0, 0, 0, 0.35)) !important;
+    box-shadow: var(--insilos-shadow-card) !important;
 
     // Real-Time Heartbeat Liveness Indicator
     .o_live_status_dot {
@@ -417,13 +372,13 @@ body.o_dark_mode,
         display: inline-block !important;
 
         &.o_status_live {
-            background-color: #10b981 !important;
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.6) !important;
+            background-color: #107e3e !important;
+            box-shadow: 0 0 8px rgba(16, 126, 62, 0.4) !important;
         }
 
         &.o_status_syncing {
             background-color: #f59e0b !important;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.6) !important;
+            box-shadow: 0 0 8px rgba(245, 158, 11, 0.4) !important;
         }
     }
 
@@ -437,24 +392,24 @@ body.o_dark_mode,
         padding: 0.35rem 0.75rem !important;
         transition: all 0.15s ease !important;
         background: transparent !important;
-        color: #cbd5e1 !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        color: var(--insilos-text-secondary) !important;
+        border: 1px solid var(--insilos-border-subtle) !important;
 
         &:hover {
-            background: rgba(0, 242, 254, 0.08) !important;
-            color: #00f2fe !important;
-            border-color: rgba(0, 242, 254, 0.4) !important;
+            background: var(--insilos-bg-hover) !important;
+            color: var(--insilos-text-primary) !important;
+            border-color: var(--insilos-border-medium) !important;
         }
 
-        // Active State: Tech Cyan Neon Background with High-Contrast Dark Text (13.8:1 Contrast)
+        // Active State
         &.active,
         &[aria-pressed="true"],
         &.btn-primary {
-            background: #00f2fe !important;
-            color: #05101e !important;
-            border-color: #00f2fe !important;
+            background: var(--insilos-accent) !important;
+            color: var(--insilos-text-on-primary) !important;
+            border-color: var(--insilos-accent) !important;
             font-weight: 700 !important;
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.3) !important;
+            box-shadow: var(--insilos-shadow-sm) !important;
         }
     }
 }
@@ -464,8 +419,8 @@ body.o_dark_mode,
 // -----------------------------------------------------------------------------
 .o_process_monitoring_card {
     .o_pipeline_row {
-        background-color: #0f172a !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        background-color: var(--insilos-kpi-inner-bg) !important;
+        border: 1px solid var(--insilos-kpi-inner-border) !important;
     }
 
     .o_chevron_track {
@@ -475,27 +430,27 @@ body.o_dark_mode,
     }
 
     .o_chevron_step {
-        background: #141e33 !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        background: var(--insilos-bg-card) !important;
+        border: 1px solid var(--insilos-border-subtle) !important;
         border-radius: var(--insilos-radius-sm, 4px) !important;
         padding: 0.45rem 0.85rem !important;
         cursor: pointer !important;
         transition: all 0.16s ease !important;
 
         .o_stage_name {
-            color: #f8fafc !important;
+            color: var(--insilos-text-primary) !important;
             font-size: 0.8125rem !important;
         }
 
         &:hover {
-            border-color: #00f2fe !important;
-            box-shadow: 0 0 10px rgba(0, 242, 254, 0.25) !important;
+            border-color: var(--insilos-accent) !important;
+            box-shadow: var(--insilos-shadow-sm) !important;
             transform: translateY(-1px) !important;
         }
 
         &.o_chevron_status_active {
-            border-color: #00f2fe !important;
-            box-shadow: inset 0 0 0 1px #00f2fe !important;
+            border-color: var(--insilos-accent) !important;
+            box-shadow: inset 0 0 0 1px var(--insilos-accent) !important;
         }
     }
 }
@@ -508,45 +463,44 @@ body.o_dark_mode,
     // Composite Radial Gauge Styling
     .o_oee_gauge {
         circle:first-child {
-            stroke: #223354 !important;
+            stroke: var(--insilos-gauge-track) !important;
         }
         circle[stroke-dasharray] {
-            stroke: #00f2fe !important;
-            filter: drop-shadow(0 0 6px rgba(0, 242, 254, 0.5)) !important;
+            stroke: var(--insilos-gauge-val) !important;
         }
     }
 
     // 3 Pillars Progress Bars
     .progress {
-        background-color: #0f172a !important;
+        background-color: var(--insilos-kpi-inner-bg) !important;
         border-radius: 9999px !important;
         overflow: hidden !important;
 
         .progress-bar.bg-success {
-            background: linear-gradient(90deg, #10b981, #34d399) !important;
+            background: linear-gradient(90deg, #107e3e, #10b981) !important;
         }
         .progress-bar.bg-primary {
-            background: linear-gradient(90deg, #0284c7, #00f2fe) !important;
+            background: linear-gradient(90deg, #0b2e64, #0f62fe) !important;
         }
         .progress-bar.bg-info {
-            background: linear-gradient(90deg, #3b82f6, #60a5fa) !important;
+            background: linear-gradient(90deg, #0284c7, #38bdf8) !important;
         }
     }
 }
 
 // Logistics DET/DEM Free-Time Alert Box
 .o_demurrage_alert {
-    background-color: rgba(245, 158, 11, 0.12) !important;
-    border: 1px solid rgba(245, 158, 11, 0.4) !important;
+    background-color: var(--insilos-warning-bg) !important;
+    border: 1px solid var(--insilos-warning-border) !important;
 
     span.text-dark {
-        color: #fbbf24 !important; // High-contrast amber text
+        color: var(--insilos-warning) !important;
     }
 
     .btn-warning {
-        background-color: #fbbf24 !important;
-        color: #05101e !important;
-        border-color: #f59e0b !important;
+        background-color: #f59e0b !important;
+        color: #ffffff !important;
+        border-color: #d97706 !important;
         font-weight: 700 !important;
     }
 }
@@ -560,22 +514,6 @@ body.o_dark_mode,
 .o_timeframe_item:focus-visible,
 .o_chevron_step:focus-visible,
 button:focus-visible {
-    outline: 2px solid var(--insilos-border-focus, #0f62fe) !important;
+    outline: 2px solid var(--insilos-border-focus) !important;
     outline-offset: 2px !important;
-}
-
-body.o_dark_mode,
-.o_dark_mode,
-[data-bs-theme="dark"],
-[data-theme="dark"] {
-    :focus-visible,
-    .o_control_tower_card:focus-visible,
-    .o_kpi_tile:focus-visible,
-    .o_timeframe_item:focus-visible,
-    .o_chevron_step:focus-visible,
-    button:focus-visible {
-        outline: 2px solid var(--insilos-border-focus, #00f2fe) !important;
-        outline-color: var(--insilos-border-focus, #00f2fe) !important;
-        outline-offset: 2px !important;
-    }
 }
