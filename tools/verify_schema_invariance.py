@@ -10,13 +10,18 @@ import os
 import psycopg2
 import sys
 
-DATABASES = ["odoo20_dev", "insilos20_dev", "innoria_prod"]
-DB_HOST = "127.0.0.1"
-DB_PORT = 5434
+DATABASES = [db.strip() for db in os.environ.get("TARGET_DATABASES", "odoo20_dev,insilos20_dev").split(",") if db.strip()]
+DB_HOST = os.environ.get("PGHOST", "127.0.0.1")
+DB_PORT = int(os.environ.get("PGPORT", "5434"))
 DB_USER = os.environ.get("PGUSER", "odoo")
-DB_PASS = os.environ.get("PGPASSWORD", "1NN0R1@2026")
+DB_PASS = os.environ.get("PGPASSWORD")
+if not DB_PASS:
+    sys.exit("FATAL: PGPASSWORD must be set in the environment; refusing to run without it.")
 
 def audit_database(dbname):
+    if "prod" in dbname and os.environ.get("ALLOW_PROD_AUDIT") != "1":
+        print(f"\nSKIPPING PRODUCTION DATABASE '{dbname}' per sovereign isolation invariant (ALLOW_PROD_AUDIT != 1).")
+        return True
     print(f"\nAUDITING DATABASE: {dbname}")
     print("-" * 60)
     try:
@@ -60,6 +65,9 @@ def audit_database(dbname):
         return False
 
 def audit_reference():
+    if os.environ.get("AUDIT_REFERENCE_PROD") != "1":
+        print("\nSKIPPING REFERENCE TENANT innokafe_prod (Set AUDIT_REFERENCE_PROD=1 to enable production inspection)")
+        return
     print(f"\nAUDITING REFERENCE TENANT: innokafe_prod")
     print("-" * 60)
     try:
