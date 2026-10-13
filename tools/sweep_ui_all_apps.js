@@ -1,5 +1,28 @@
 const { chromium } = require('playwright');
 
+const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+(?:\.[A-Za-z]{2,})?/gi;
+
+function redactContext(s) {
+    if (!s) return '';
+    return s
+        .replace(EMAIL, '[REDACTED_EMAIL]')
+        .replace(/\s+/g, ' ');
+}
+
+function scanPreferencesModalText(modalText) {
+    const prefLeaks = [];
+    const brandPat = /\bodoo\b/gi;
+    let m;
+    while ((m = brandPat.exec(modalText)) !== null) {
+        let start = Math.max(0, m.index - 12);
+        let end = Math.min(modalText.length, m.index + m[0].length + 12);
+        while (start > 0 && !/\s/.test(modalText[start - 1])) start--;
+        while (end < modalText.length && !/\s/.test(modalText[end])) end++;
+        prefLeaks.push(`User Preferences brand token "${m[0]}" at offset ${m.index} (ctx: "...${redactContext(modalText.slice(start, end))}...")`);
+    }
+    return prefLeaks;
+}
+
 async function checkPage(page, appName, url) {
     console.log(`Checking [${appName}] at ${url}...`);
     try {
@@ -132,21 +155,13 @@ async function main() {
         await prefPage.waitForSelector('.o_main_navbar, .o_navbar', { timeout: 15000 });
         const userMenuBtn = await prefPage.locator('.o_user_menu button, .o_user_menu .dropdown-toggle, button[aria-label="User menu"], .o_menu_systray .o_user_menu').first();
         await userMenuBtn.click();
-        await prefPage.waitForTimeout(800);
+        await prefPage.locator('.dropdown-menu.show, .o_user_menu .dropdown-menu').first().waitFor({ state: 'visible', timeout: 5000 });
         const prefOption = await prefPage.locator('.dropdown-menu .dropdown-item:has-text("Preferences"), .dropdown-menu .dropdown-item[data-menu="settings"], .dropdown-menu .dropdown-item:has-text("Tùy chọn")').first();
         await prefOption.click();
         await prefPage.waitForSelector('.modal-dialog, .modal.show', { timeout: 10000 });
         const modal = prefPage.locator('.modal-dialog, .modal.show').first();
         const modalText = await modal.innerText();
-        const prefLeaks = [];
-        const brandPat = /\bodoo\b/gi;
-        let m;
-        while ((m = brandPat.exec(modalText)) !== null) {
-            // Capture only the matched token + minimal context, never raw PII-bearing slices.
-            const start = Math.max(0, m.index - 12);
-            const end = Math.min(modalText.length, m.index + m[0].length + 12);
-            prefLeaks.push(`User Preferences brand token "${m[0]}" near "...${modalText.slice(start, end).replace(/\s+/g, ' ')}..."`);
-        }
+        const prefLeaks = scanPreferencesModalText(modalText);
         if (prefLeaks.length > 0) {
             leakDetails.push({ appName: 'User Preferences Modal', url: 'preferences_dialog', leaks: prefLeaks, imgLeaks: [] });
             console.log(`  ❌ Leaks detected in User Preferences modal: ${prefLeaks.length}`);
@@ -278,7 +293,18 @@ async function main() {
     }
 }
 
-main().catch(err => {
-    console.error('Fatal error:', err);
-    process.exit(1);
-});
+if (require.main === module) {
+    main().catch(err => {
+        console.error('Fatal error:', err);
+        process.exit(1);
+    });
+}
+
+module.exports = {
+    EMAIL,
+    redactContext,
+    scanPreferencesModalText,
+    checkPage,
+    main,
+};
+

@@ -2288,6 +2288,63 @@ def test_i18n_lockstep_and_selection_invariance():
     print("  [✓] Game-engine lockstep verification confirmed: 0 orphaned msgids across all locales, selection DB keys immutable.")
 
 
+def test_preferences_modal_pii_redaction_and_race_guard():
+    print("[TEST MODAL PII REDACTION & RACE GUARD] Finding 28: CWE-532/359 Context PII Redaction & CWE-367 State-Based Menu Wait")
+    import subprocess
+    import json
+
+    # 1. Inspect tools/sweep_ui_all_apps.js source code for CWE-367 race condition mitigation
+    script_path = "tools/sweep_ui_all_apps.js"
+    with open(script_path, "r", encoding="utf-8") as f:
+        src = f.read()
+
+    # Assert fixed sleep is removed and state-based wait is present
+    assert "waitForTimeout(800)" not in src, "CWE-367 Violation: Fixed timeout sleep must not be used for dropdown menu state synchronization"
+    assert ".dropdown-menu.show, .o_user_menu .dropdown-menu" in src, "CWE-367 Guard: Must query dropdown-menu.show for state synchronization"
+    assert "state: 'visible'" in src or 'state: "visible"' in src, "CWE-367 Guard: Must wait for state: 'visible'"
+
+    # 2. Assert CWE-532 / CWE-359: Modal text containing 'odoobot@acme.com' and 'Jane Odoo Smith'
+    # has its logged context redacted with ZERO raw email exposure
+    node_test_code = """
+    const { scanPreferencesModalText, redactContext } = require('./tools/sweep_ui_all_apps.js');
+    const assert = require('assert');
+
+    // Test case 1: Email right after brand token
+    const test1 = 'User Profile: Jane Odoo Smith <odoobot@acme.com> Notification Preferences';
+    const leaks1 = scanPreferencesModalText(test1);
+    assert.strictEqual(leaks1.length, 1);
+    assert(!leaks1[0].includes('odoobot@acme.com'), 'Raw email must not be exposed in leak output');
+    assert(leaks1[0].includes('[REDACTED_EMAIL]'), 'Redacted token must be present');
+    assert(leaks1[0].includes('User Preferences brand token "Odoo" at offset 19'));
+
+    // Test case 2: Multiple emails and PII around brand token
+    const test2 = 'Account: Jane Odoo Smith (odoobot@acme.com, secondary: dev-team+odoobot@innoria.ai)';
+    const leaks2 = scanPreferencesModalText(test2);
+    assert.strictEqual(leaks2.length, 1);
+    assert(!leaks2[0].includes('odoobot@acme.com'), 'Raw email odoobot@acme.com must not be exposed');
+    assert(!leaks2[0].includes('dev-team+odoobot@innoria.ai'), 'Raw email dev-team+odoobot@innoria.ai must not be exposed');
+    assert(leaks2[0].includes('[REDACTED_EMAIL]'), 'Redacted token must be present');
+
+    // Test case 3: Direct redactContext unit test
+    const raw = 'Contact user@domain.com or admin.root@sub.example.co.uk immediately';
+    const redacted = redactContext(raw);
+    assert(!redacted.includes('user@domain.com'));
+    assert(!redacted.includes('admin.root@sub.example.co.uk'));
+    assert.strictEqual(redacted, 'Contact [REDACTED_EMAIL] or [REDACTED_EMAIL] immediately');
+
+    console.log(JSON.stringify({ status: 'ok', leak1: leaks1[0] }));
+    """
+
+    res = subprocess.run(["node", "-e", node_test_code], capture_output=True, text=True, check=False)
+    assert res.returncode == 0, f"Node verification failed (code {res.returncode}):\nSTDOUT: {res.stdout}\nSTDERR: {res.stderr}"
+    data = json.loads(res.stdout.strip())
+    assert data["status"] == "ok"
+    assert "odoobot@acme.com" not in data["leak1"]
+    assert "[REDACTED_EMAIL]" in data["leak1"]
+
+    print("  [✓] User Preferences modal check verified safe: zero raw email PII exposure (CWE-532) and state-based wait enforced (CWE-367).")
+
+
 def main():
     print("=" * 80)
     print(" AGY FLEET SECURITY AUDIT VERIFICATION SUITE")
@@ -2319,8 +2376,9 @@ def main():
     test_import_obfuscation_guard()
     test_schema_reconciliation_and_constraint_invariants()
     test_i18n_lockstep_and_selection_invariance()
+    test_preferences_modal_pii_redaction_and_race_guard()
     print("=" * 80)
-    print("ALL 27 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
+    print("ALL 28 SECURITY AUDIT FINDINGS VERIFIED SAFE (EXIT 0)")
     print("=" * 80)
 
 
