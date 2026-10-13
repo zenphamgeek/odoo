@@ -2007,7 +2007,7 @@ def test_import_obfuscation_guard():
     import pathlib
     import tempfile
     import subprocess
-    from tools.audit_import_obfuscation import scan_source, scan_file, main as audit_main
+    from tools.audit_import_obfuscation import scan_source, scan_file, main as audit_main, MAX_SOURCE_BYTES
 
     # Boundary vector (a): plain static import -> exit 0 (0 violations)
     clean_src = 'import importlib\nmod = importlib.import_module("odoo.addons.product")\n'
@@ -2180,11 +2180,36 @@ def test_import_obfuscation_guard():
         v_raw, _ = scan_source(evasion_raw, "raw_99030037c.py")
         assert len(v_raw) == 1, "Historical evasion raw construct not detected"
 
+    # Boundary vector (u): **kwargs dict-unpacking evasion must be caught
+    unpack_src = (
+        'import importlib\n'
+        'mod1 = importlib.import_module(**{"name": "evil." + submod})\n'
+        'mod2 = __import__(**dyn_dict)\n'
+    )
+    v_unpack, s_unpack = scan_source(unpack_src, "test_unpack.py")
+    assert len(v_unpack) == 2, f"Expected 2 violations for **kwargs unpack evasion, got {v_unpack}"
+    assert len(s_unpack) == 0
+
+    # Boundary vector (v): non-UTF-8 source must fail closed (exit 2)
+    with tempfile.TemporaryDirectory() as d:
+        p_bad_encoding = pathlib.Path(d, "bad_encoding.py")
+        p_bad_encoding.write_bytes(b"import importlib\n# \xff\xfe non utf8 comment\n")
+        rc_enc = audit_main(["audit", str(p_bad_encoding)])
+        assert rc_enc == 2, f"non-UTF8 source must fail closed with exit 2, got {rc_enc}"
+
+    # Boundary vector (w): TOCTOU read-past-cap -> fail closed (exit 2)
+    with tempfile.TemporaryDirectory() as d:
+        p_toctou = pathlib.Path(d, "toctou.py")
+        # Write file slightly larger than MAX_SOURCE_BYTES
+        p_toctou.write_bytes(b"import importlib\n" + b"x = 1\n" * (MAX_SOURCE_BYTES // 6 + 10))
+        rc_toctou = audit_main(["audit", str(p_toctou)])
+        assert rc_toctou == 2, f"TOCTOU oversized read must fail closed with exit 2, got {rc_toctou}"
+
     # Integration verification: real codebase tools & enterprise have zero unhandled violations
     ret_tools = audit_main(["audit", "tools"])
     assert ret_tools == 0, f"Expected exit 0 for tools/ directory, got {ret_tools}"
 
-    print("  [✓] All 20 boundary condition vectors (a-t) verified safe with TokenError hardening and self-regression anchor to 99030037c.")
+    print("  [✓] All 23 boundary condition vectors (a-w) verified safe with **kwargs unpack, non-UTF8 fail-closed, and TOCTOU bounded read.")
 
 
 def main():

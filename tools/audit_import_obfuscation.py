@@ -32,14 +32,18 @@ def extract_comments_by_line(content: str) -> Dict[int, str]:
 
 
 def _target_name_arg(node: ast.Call) -> Optional[ast.expr]:
-    """Return the module-name argument whether passed positionally or as name=.
-    import_module(name, package=None) and __import__(name, ...) both accept
-    `name` as a keyword, so positional-only inspection is a known evasion.
+    """Return the module-name argument whether passed positionally, as name=,
+    or via **kwargs unpack. Also treats an unresolved **kwargs unpack as
+    suspicious so it cannot be used to smuggle dynamic names past inspection.
     """
     if node.args:
         return node.args[0]
     for kw in node.keywords:
         if kw.arg == "name":
+            return kw.value
+    # kw.arg is None => **kwargs unpack; name may be hidden inside it
+    for kw in node.keywords:
+        if kw.arg is None:
             return kw.value
     return None
 
@@ -55,7 +59,10 @@ def scan_source(content: str, filename: str = "<source>") -> Tuple[List[str], Li
     """
     violations: List[str] = []
     suppressions: List[str] = []
-    tree = ast.parse(content, filename=filename)
+    try:
+        tree = ast.parse(content, filename=filename)
+    except (SyntaxError, ValueError, RecursionError, MemoryError) as e:
+        raise ValueError(f"unparseable or pathological source: {filename}: {e}")
     comments = extract_comments_by_line(content)
 
     for node in ast.walk(tree):
@@ -88,7 +95,15 @@ def scan_file(path: pathlib.Path, quick_filter: bool = False) -> Tuple[List[str]
     size = path.stat().st_size  # OSError here is caught fail-closed in main()
     if size > MAX_SOURCE_BYTES:
         raise ValueError(f"source exceeds parse cap ({size} > {MAX_SOURCE_BYTES} bytes): {path}")
-    content = path.read_text(encoding="utf-8")
+    # Read a bounded amount so a post-stat growth (TOCTOU) cannot defeat the cap
+    with path.open("rb") as f:
+        raw = f.read(MAX_SOURCE_BYTES + 1)
+    if len(raw) > MAX_SOURCE_BYTES:
+        raise ValueError(f"source grew past parse cap during read (TOCTOU): {path}")
+    try:
+        content = raw.decode("utf-8")
+    except UnicodeDecodeError as e:
+        raise ValueError(f"non-utf8 source cannot be scanned safely: {path}: {e}")
     if "\x00" in content:
         raise ValueError(f"source code string cannot contain null bytes: {path}")
     if quick_filter and ("import_module" not in content and "__import__" not in content):
