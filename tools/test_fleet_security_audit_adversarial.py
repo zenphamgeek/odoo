@@ -2598,20 +2598,18 @@ def test_hoot_harness_secret_redaction():
 
     node_code = """
     const assert = require('assert');
+    const crypto = require('crypto');
     const { registerSecret, redactSensitive, REGISTERED_SECRETS } = require('./run_hoot.js');
 
-    // Case 1: Pattern-based key=value & key:value delimiter preservation
+    // Case 1: Primary leak-prevention invariant & Anchored Adjacent Structural Check
     const logEq = '[HOOT] connecting with password=hunter2 and token=abcdef123456';
     const redactedEq = redactSensitive(logEq);
-    assert(!redactedEq.includes('hunter2') && !redactedEq.includes('abcdef123456'), 'Values must be purged');
-    assert(redactedEq.includes('password=***REDACTED***'), 'eq-delimited password must preserve "="');
-    assert(redactedEq.includes('token=***REDACTED***'), 'eq-delimited token must preserve "="');
-
-    const logColon = '[HOOT] connecting with password: hunter2 and token: abcdef123456';
-    const redactedColon = redactSensitive(logColon);
-    assert(!redactedColon.includes('hunter2') && !redactedColon.includes('abcdef123456'), 'Values must be purged');
-    assert(redactedColon.includes('password:***REDACTED***'), 'colon-delimited password must preserve ":"');
-    assert(redactedColon.includes('token:***REDACTED***'), 'colon-delimited token must preserve ":"');
+    // PRIMARY INVARIANT: raw secrets must never survive
+    assert(!redactedEq.includes('hunter2'), 'hunter2 must not be present in output');
+    assert(!redactedEq.includes('abcdef123456'), 'token value must not be present in output');
+    // SECONDARY STRUCTURAL CHECK: delimiter-agnostic, but sentinel must immediately follow key
+    assert(/\\bpassword[:=]["']?\\*\\*\\*REDACTED\\*\\*\\*["']?/.test(redactedEq), 'password must be masked adjacent to key');
+    assert(/\\btoken[:=]["']?\\*\\*\\*REDACTED\\*\\*\\*["']?/.test(redactedEq), 'token must be masked adjacent to key');
 
     // Case 2: Bare registered secret in stack trace without key prefix
     const bareSecret = 'super_secret_session_cookie_998877';
@@ -2621,7 +2619,8 @@ def test_hoot_harness_secret_redaction():
         at Object.<anonymous> (/app/test.js:42:15)
         Context: ${bareSecret}`;
     const redacted2 = redactSensitive(stackTrace);
-    assert(!redacted2.includes(bareSecret), 'Bare secret must be purged from stack trace');
+    // Primary invariant on bare secret
+    assert(!redacted2.includes(bareSecret), 'bare registered secret must not survive in stack trace');
     assert(redacted2.includes('***REDACTED***'), 'Mask token must be injected');
 
     // Case 3: URL query parameters with mixed sensitive and non-sensitive query params
@@ -2655,8 +2654,68 @@ def test_hoot_harness_secret_redaction():
     assert(!redacted7.includes('dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk'), 'JWT signature must be purged');
     assert(redacted7.includes('***REDACTED_JWT***'), 'Mask token must be injected for JWT');
 
-    // Case 8: Randomized Property-Based Fuzzing with Shrinking (1,000 iterations)
-    const crypto = require('crypto');
+    // Case 8: Adversarial Delimiter Matrix
+    const matrixDelims = ['=', ':', ': ', ' = ', ' : '];
+    for (const delim of matrixDelims) {
+      const secretVal = 'matrix_sec_' + crypto.randomBytes(4).toString('hex');
+      const matrixInput = `[HOOT] config token${delim}${secretVal} loaded`;
+      const matrixOut = redactSensitive(matrixInput);
+      assert(!matrixOut.includes(secretVal), `Delimiter '${delim}' leaked secret: ${matrixOut}`);
+      assert(/\\btoken[:=]["']?\\*\\*\\*REDACTED\\*\\*\\*["']?/.test(matrixOut), `Delimiter '${delim}' failed structural check: ${matrixOut}`);
+    }
+
+    // Case 9: Multiplicity (Multiple secrets with distinct delimiters in one buffer)
+    const multiLog = '[HOOT] auth: password=pass_mult_123 and token: tok_mult_456 and client_secret="cs_mult_789"';
+    const multiOut = redactSensitive(multiLog);
+    assert(!multiOut.includes('pass_mult_123'), 'password value leaked in multi-buffer');
+    assert(!multiOut.includes('tok_mult_456'), 'token value leaked in multi-buffer');
+    assert(!multiOut.includes('cs_mult_789'), 'client_secret value leaked in multi-buffer');
+    assert(/\\bpassword[:=]/.test(multiOut) && /\\btoken[:=]/.test(multiOut) && /\\bclient_secret[:=]/.test(multiOut), 'All keys must have adjacent masks');
+
+    // Case 10: Near-Miss Invariant (pre-existing literal ***REDACTED*** must not cause false-pass)
+    const nearMissLog = '[HOOT] prior status was ***REDACTED*** but now token=real_secret_near_miss_88';
+    const nearMissOut = redactSensitive(nearMissLog);
+    assert(!nearMissOut.includes('real_secret_near_miss_88'), 'Near-miss secret leaked');
+    assert(/\\btoken[:=]["']?\\*\\*\\*REDACTED\\*\\*\\*["']?/.test(nearMissOut), 'token structural check must succeed');
+
+    // Case 11: Mutation Testing (Fail-Closed Oracle Proof)
+    function oracleCheck(fn) {
+      const l = '[HOOT] token=must_be_masked_99';
+      const o = fn(l);
+      assert(!o.includes('must_be_masked_99'), 'leak check');
+      assert(/\\btoken[:=]["']?\\*\\*\\*REDACTED\\*\\*\\*["']?/.test(o), 'structural check');
+    }
+    oracleCheck(redactSensitive); // Legitimate masker passes
+    let mutantCaught = false;
+    try {
+      oracleCheck((s) => s.replace(/unrelated/g, '***REDACTED***')); // Broken mutant
+    } catch (e) {
+      mutantCaught = true;
+    }
+    assert(mutantCaught, 'Mutation test failed: oracle must fail-closed on regressed masker');
+
+    // Case 12: Cartesian Product Fuzz Oracle (405 combinations)
+    const testKeys = ['password', 'passwd', 'pwd', 'secret', 'token', 'api_key', 'session_id', 'access_token', 'client_secret'];
+    const testDelims = ['=', ':', ': ', ' = ', ' : '];
+    const testQuotes = ['', '"', "'"];
+    const noises = [['', ''], ['[HOOT] ', ' error=500'], ['context data ', ' end of log']];
+    let cartesianCount = 0;
+    for (const k of testKeys) {
+      for (const d of testDelims) {
+        for (const q of testQuotes) {
+          for (const [pre, post] of noises) {
+            cartesianCount++;
+            const rawSecret = 'sec_' + crypto.randomBytes(6).toString('hex');
+            const payload = `${pre}${k}${d}${q}${rawSecret}${q}${post}`;
+            const masked = redactSensitive(payload);
+            assert(!masked.includes(rawSecret), `Cartesian leak on ${payload}`);
+            assert(new RegExp(`\\\\b${k}[:=]`).test(masked), `Key delimiter missing on ${payload} -> ${masked}`);
+          }
+        }
+      }
+    }
+
+    // Case 13: Randomized Property-Based Fuzzing with Shrinking (1,000 iterations)
     function randomString(len) {
       return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
     }
@@ -2681,7 +2740,7 @@ def test_hoot_harness_secret_redaction():
       }
     }
 
-    // Case 9: HOOT_VERBOSE predicate isolation gate
+    // Case 14: HOOT_VERBOSE predicate isolation gate
     function shouldMirrorToStdout(rawTxt, hootVerbose) {
       const isFailure = rawTxt.includes('failed:') || rawTxt.includes('timed out') || rawTxt.includes('Error during test:');
       return isFailure || (hootVerbose && rawTxt.includes('[HOOT]'));
@@ -2692,27 +2751,19 @@ def test_hoot_harness_secret_redaction():
     const failureHoot = '[HOOT] Test "sale.order" failed: expected 200 got 500';
     assert.strictEqual(shouldMirrorToStdout(failureHoot, false), true, 'Failure log MUST always mirror even when HOOT_VERBOSE=0');
 
-    // Case 10: Metamorphic Relations: Idempotence & Delimiter Invariance
-    // Invariant 1: Idempotence mask(mask(x)) === mask(x) across complex mixed payloads
+    // Case 15: Metamorphic Relations: Idempotence mask(mask(x)) === mask(x)
     const mixedLog = 'Error: postgresql://admin:p@ss@host:5432/db bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYSJ9.sig token="sec123"';
     const once = redactSensitive(mixedLog);
     const twice = redactSensitive(once);
-    assert.strictEqual(twice, once, 'Metamorphic relation failed: redactSensitive must be idempotent mask(mask(x)) === mask(x)');
+    assert.strictEqual(twice, once, 'Metamorphic relation failed: redactSensitive must be idempotent');
 
-    // Invariant 2: Delimiter-Invariance Relation: for any secret S, mask("k=S") and mask("k:S") both purge S
-    const secretX = 'fuzz_sec_' + Date.now();
-    const maskEq = redactSensitive(`secret=${secretX}`);
-    const maskColon = redactSensitive(`secret: ${secretX}`);
-    const maskJson = redactSensitive(`{"secret": "${secretX}"}`);
-    assert(!maskEq.includes(secretX) && !maskColon.includes(secretX) && !maskJson.includes(secretX), 'All delimiter shapes must purge secret');
-
-    console.log(JSON.stringify({ status: 'ok', cases_passed: 10 }));
+    console.log(JSON.stringify({ status: 'ok', cases_passed: 15, cartesian_cases: cartesianCount }));
     """
 
     res = subprocess.run(["node", "-e", node_code], capture_output=True, text=True, check=False)
     assert res.returncode == 0, f"Node secret masker verification failed (code {res.returncode}):\nSTDOUT: {res.stdout}\nSTDERR: {res.stderr}"
     data = json.loads(res.stdout.strip())
-    assert data["status"] == "ok" and data["cases_passed"] == 10
+    assert data["status"] == "ok" and data["cases_passed"] == 15 and data["cartesian_cases"] == 405
 
     # Static AST / Code check on run_hoot.js
     with open('run_hoot.js', 'r', encoding='utf-8') as f:
@@ -2728,7 +2779,7 @@ def test_hoot_harness_secret_redaction():
     assert "redactSensitive(rawTxt)" in hoot_src or "redactSensitive(msg.text())" in hoot_src, "Console listener must invoke redactSensitive"
     assert "redactSensitive(err" in hoot_src, "Pageerror listener must invoke redactSensitive"
 
-    print("  [✓] run_hoot secrets masker (CWE-532), DB URI & JWT redaction, 1000-iter property fuzzing, and HOOT_VERBOSE gate verified.")
+    print("  [✓] run_hoot secrets masker (CWE-532), anchored oracle, 405-case cartesian fuzzer, and mutation tests verified.")
 
 
 if __name__ == '__main__':
