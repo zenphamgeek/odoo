@@ -2804,7 +2804,7 @@ def test_sweep_ui_credentials_and_loopback_boundary_guard():
 
     # 2. Dynamic Node.js behavioral and fuzzing test
     node_test = """
-    const { validateTargetAndCredentials, HOOT_HOST, HOOT_LOGIN, HOOT_PASSWORD } = require('./tools/sweep_ui_all_apps.js');
+    const { validateTargetAndCredentials, redactContext, HOOT_HOST, HOOT_LOGIN, HOOT_PASSWORD } = require('./tools/sweep_ui_all_apps.js');
     const assert = require('assert');
 
     // Case 1: Local loopback variations must allow default credentials
@@ -2850,7 +2850,40 @@ def test_sweep_ui_credentials_and_loopback_boundary_guard():
         assert.strictEqual(res.password, 'super_secret_token_123');
     }
 
-    console.log(JSON.stringify({ status: 'ok', local_tested: localHosts.length, remote_tested: remoteHosts.length }));
+    // Case 4: Canary Redaction Differential & Dedup Fidelity
+    const canaryJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+    const canaryPass = 'password=SUPER_SECRET_P4SSW0RD!';
+    const canaryEmail = 'odoobot@corp.innoria.ai';
+    const canaryHex = 'd41d8cd98f00b204e9800998ecf8427e';
+
+    const rawLine = `Leak: token=${canaryJwt} auth=${canaryPass} email=${canaryEmail} hash=${canaryHex}`;
+    const redacted = redactContext(rawLine);
+
+    assert(!redacted.includes('SUPER_SECRET_P4SSW0RD!'), 'Password canary leaked');
+    assert(!redacted.includes('odoobot@corp.innoria.ai'), 'Email canary leaked');
+    assert(!redacted.includes('d41d8cd98f00b204e9800998ecf8427e'), 'Hex canary leaked');
+    assert(!redacted.includes('eyJhbGci'), 'JWT canary leaked');
+
+    assert(redacted.includes('[REDACTED_JWT]'), 'JWT token must be masked');
+    assert(redacted.includes('[REDACTED_SECRET]'), 'Password must be masked');
+    assert(redacted.includes('[REDACTED_EMAIL]'), 'Email must be masked');
+    assert(redacted.includes('[REDACTED_HEX]'), 'Hex hash must be masked');
+
+    // Dedup fidelity: two distinct secrets mapping to same mask
+    const lineA = 'Odoo admin: alice@innoria.ai';
+    const lineB = 'Odoo admin: bob@innoria.ai';
+    assert.strictEqual(redactContext(lineA), redactContext(lineB));
+    const seen = new Set();
+    const testLeaks = [];
+    for (const l of [lineA, lineB]) {
+        if (!seen.has(l)) {
+            seen.add(l);
+            testLeaks.push(redactContext(l));
+        }
+    }
+    assert.strictEqual(testLeaks.length, 2, 'Dedup on raw must preserve both distinct secret findings');
+
+    console.log(JSON.stringify({ status: 'ok', local_tested: localHosts.length, remote_tested: remoteHosts.length, canary_differential: true }));
     """
 
     res = subprocess.run(["node", "-e", node_test], capture_output=True, text=True, check=False)

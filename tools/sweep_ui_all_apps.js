@@ -13,12 +13,50 @@ function validateTargetAndCredentials(host = HOOT_HOST, login = HOOT_LOGIN, pass
 }
 
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+(?:\.[A-Za-z]{2,})?/gi;
+const BASIC_AUTH = /(https?:\/\/[^\/\s:@]+:)[^\/\s@]+(@)/gi;
+const BEARER = /(bearer\s+)[A-Za-z0-9._\-]+/gi;
+const JWT = /eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/g;
+const JWT_FALLBACK = /eyJ[A-Za-z0-9._\-]{10,}/g;
+const QUERY_PARAM = /([?&](?:token|key|secret|password|passwd|pwd|session|sid)=)[^&\s]+/gi;
+const SECRET_PAIR = /(password|passwd|pwd|secret|token|api[_-]?key|bearer|authorization)(\s*[:=]\s*)(?!\[REDACTED)[^\s,;]+/gi;
+const HEX_HASH = /\b[A-Fa-f0-9]{32,}\b/g;
+
+function safeRedact(value) {
+    if (value === null || value === undefined) return '';
+    try {
+        let str = typeof value === 'string' ? value : String(value);
+        return str
+            .replace(BASIC_AUTH, '$1[REDACTED]$2')
+            .replace(QUERY_PARAM, '$1[REDACTED]')
+            .replace(BEARER, '$1[REDACTED]')
+            .replace(JWT, '[REDACTED_JWT]')
+            .replace(JWT_FALLBACK, '[REDACTED_JWT]')
+            .replace(SECRET_PAIR, '$1$2[REDACTED_SECRET]')
+            .replace(EMAIL, '[REDACTED_EMAIL]')
+            .replace(HEX_HASH, '[REDACTED_HEX]')
+            .replace(/\s+/g, ' ');
+    } catch (_) {
+        return '[REDACTED_EXCEPTION]';
+    }
+}
 
 function redactContext(s) {
-    if (!s) return '';
-    return s
-        .replace(EMAIL, '[REDACTED_EMAIL]')
-        .replace(/\s+/g, ' ');
+    return safeRedact(s);
+}
+
+function assertRedactionWorks() {
+    const probes = [
+        'Bearer abc123DEF456',
+        'https://admin:hunter2@erp.local/web',
+        'https://x/web?session=QWERTYtoken123',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+    ];
+    for (const p of probes) {
+        const r = safeRedact(p);
+        if (/hunter2|QWERTYtoken123|abc123DEF456|eyJhbGciOi/.test(r)) {
+            throw new Error(`FATAL: redaction self-test failed; refusing to run sweep (leak: ${p.slice(0, 8)}...)`);
+        }
+    }
 }
 
 function scanPreferencesModalText(modalText) {
@@ -57,16 +95,18 @@ async function checkPage(page, appName, url) {
 
         // Allowed technical / test phrases if any (none expected on UI)
         const leaks = [];
+        const seen = new Set();
         for (const pat of patterns) {
             const matches = text.match(pat);
             if (matches) {
                 const lines = text.split('\n');
                 for (const line of lines) {
                     if (pat.test(line)) {
-                        const trimmed = redactContext(line.trim());
-                        // Avoid duplicates
-                        if (!leaks.includes(trimmed)) {
-                            leaks.push(trimmed);
+                        const raw = line.trim();
+                        // Deduplicate on raw unredacted string to prevent collapse of distinct secrets
+                        if (!seen.has(raw)) {
+                            seen.add(raw);
+                            leaks.push(redactContext(raw));
                         }
                     }
                 }
@@ -77,7 +117,11 @@ async function checkPage(page, appName, url) {
         const pageTitle = await page.title();
         for (const pat of patterns) {
             if (pat.test(pageTitle) && !/insilos/i.test(pageTitle)) {
-                leaks.push(`Document Title: "${pageTitle}"`);
+                const rawTitle = `Document Title: "${pageTitle}"`;
+                if (!seen.has(rawTitle)) {
+                    seen.add(rawTitle);
+                    leaks.push(rawTitle);
+                }
             }
         }
 
@@ -105,18 +149,20 @@ async function checkPage(page, appName, url) {
             for (const img of imgLeaks) {
                 console.error(`     Image: ${img}`);
             }
-            return { appName, url, leaks, imgLeaks };
+            return { appName, url, leaks, imgLeaks, error: null };
         } else {
             console.log(`  ✅ [${appName}] is completely clean!`);
             return null;
         }
     } catch (err) {
-        console.error(`  ⚠️ Exception checking [${appName}]:`, redactContext(err.message));
-        return { appName, url, leaks: [redactContext(err.message)], imgLeaks: [] };
+        const safe = redactContext(err?.message ?? String(err));
+        console.error(`  ⚠️ Exception checking [${appName}]:`, safe);
+        return { appName, url, leaks: [], imgLeaks: [], error: safe };
     }
 }
 
 async function main() {
+    assertRedactionWorks();
     validateTargetAndCredentials(HOOT_HOST, HOOT_LOGIN, HOOT_PASSWORD);
 
     const browser = await chromium.launch({
@@ -203,7 +249,7 @@ async function main() {
         prefCheckCompleted = true;
     } catch (e) {
         // A security control that cannot assert must fail loudly, not pass silently.
-        console.error('  ❌ User Preferences modal check FAILED to execute:', redactContext(e.message));
+        console.error('  ❌ User Preferences modal check FAILED to execute:', safeRedact(e?.message ?? String(e)));
     } finally {
         await prefPage.close().catch(() => {});
         await prefCtx.close().catch(() => {});
@@ -279,7 +325,8 @@ async function main() {
     await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
 
     // 4. Retry any timed-out routes sequentially to rule out server concurrency contention
-    const timedOutRoutes = leakDetails.filter(d => d.leaks.some(l => l.includes('Timeout') || l.includes('page.goto') || l.includes('Target page')));
+    const isTimeout = (d) => (d.error && /timeout|page\.goto|target page/i.test(d.error)) || d.leaks.some(l => /timeout|page\.goto|target page/i.test(l));
+    const timedOutRoutes = leakDetails.filter(isTimeout);
     if (timedOutRoutes.length > 0) {
         console.log(`\nRetrying ${timedOutRoutes.length} timed-out routes sequentially to eliminate parallel contention...`);
         let retryBrowser = browser;
@@ -312,15 +359,18 @@ async function main() {
         await browser.close().catch(() => {});
     }
 
-    totalLeaks = leakDetails.reduce((acc, cur) => acc + cur.leaks.length + cur.imgLeaks.length, 0);
+    const realLeaks = leakDetails.filter(d => (d.leaks && d.leaks.length > 0) || (d.imgLeaks && d.imgLeaks.length > 0));
+    const infraErrors = leakDetails.filter(d => d.error);
+    totalLeaks = realLeaks.reduce((acc, cur) => acc + cur.leaks.length + cur.imgLeaks.length, 0);
 
     console.log(`\n===========================================`);
-    console.log(`Comprehensive Scan Finished. Total Leaks: ${totalLeaks}`);
-    if (totalLeaks === 0) {
+    console.log(`Comprehensive Scan Finished. Total Leaks: ${totalLeaks} | Infrastructure Errors: ${infraErrors.length}`);
+    if (totalLeaks === 0 && infraErrors.length === 0) {
         console.log(`🎉 ALL CHECKED APPS AND PAGES ARE 100% BRANDED TO INSILOS!`);
         process.exit(0);
     } else {
-        console.log(`⚠️ Leaks found in ${leakDetails.length} page(s).`);
+        if (totalLeaks > 0) console.log(`⚠️ Leaks found in ${realLeaks.length} page(s).`);
+        if (infraErrors.length > 0) console.log(`⚠️ Scan failures/timeouts in ${infraErrors.length} page(s).`);
         process.exit(1);
     }
 }
@@ -334,11 +384,19 @@ if (require.main === module) {
 
 module.exports = {
     EMAIL,
+    BASIC_AUTH,
+    BEARER,
+    JWT,
+    QUERY_PARAM,
+    SECRET_PAIR,
+    HEX_HASH,
     HOOT_HOST,
     HOOT_LOGIN,
     HOOT_PASSWORD,
     validateTargetAndCredentials,
+    safeRedact,
     redactContext,
+    assertRedactionWorks,
     scanPreferencesModalText,
     checkPage,
     main,
