@@ -10,6 +10,7 @@ import logging
 import os
 import tempfile
 import urllib.request
+import zlib
 from collections import defaultdict
 from odoo import http, fields, api, SUPERUSER_ID, _
 from odoo.http import request, Response
@@ -28,6 +29,16 @@ MAX_IP_BURST_PER_MIN = 6
 TIMESTAMP_TOLERANCE_SECONDS = 300  # 5 minutes replay window
 DEFAULT_HMAC_SECRET = "insilos-enterprise-runtime-sovereign-2026"
 AUDIT_LOG_PATH = "/var/lib/insilos/filestore/runtime_incidents.jsonl"
+
+# Security invariant: Authorized tenant whitelist for support telemetry (SEC-01)
+_env_allowed = os.getenv("ALLOWED_SUPPORT_DATABASES")
+ALLOWED_SUPPORT_DATABASES = frozenset(
+    [d.strip() for d in _env_allowed.split(",") if d.strip()]
+    if _env_allowed
+    else ["insilos", "innoria_prod", "insilos20_dev"]
+)
+MAX_STRING_LEN = 2048
+MAX_TRACEBACK_LEN = 65536
 
 
 def _check_rate_limit(store, key, limit_per_min):
@@ -193,12 +204,22 @@ class RuntimeReportGateway(http.Controller):
         seq_num = f"{int(now_time) % 100000:05d}"
         incident_code = f"INC-2026-{seq_num}"
 
-        # Attempt ORM persistence across support tenant database
+        # Sanitize and bound untrusted input fields (SEC-04)
+        safe_error_name = str(error_name or 'UnknownError')[:128]
+        safe_error_message = str(error_message or '')[:MAX_STRING_LEN]
+        safe_traceback = str(traceback_str or '')[:MAX_TRACEBACK_LEN]
+        safe_component_stack = str(component_stack or '')[:MAX_STRING_LEN]
+        safe_instance_url = str(payload.get('url') or payload.get('server_host') or '')[:MAX_STRING_LEN]
+
+        # Attempt ORM persistence across strictly authorized support tenant database (SEC-01)
         target_db = self._resolve_target_db()
-        orm_persisted, incident_code = self._persist_incident_orm(
-            target_db, incident_code, fingerprint, asset_code, error_name, error_message,
-            traceback_str, component_stack, instance_id, payload, client_ip
-        )
+        if target_db:
+            orm_persisted, incident_code = self._persist_incident_orm(
+                target_db, incident_code, fingerprint, asset_code, safe_error_name, safe_error_message,
+                safe_traceback, safe_component_stack, instance_id, payload, client_ip, safe_instance_url
+            )
+        else:
+            orm_persisted = False
 
         # Sovereign persistent ledger append
         _append_audit_ledger({
@@ -206,9 +227,9 @@ class RuntimeReportGateway(http.Controller):
             'incident_code': incident_code,
             'fingerprint': fingerprint,
             'asset': asset_code,
-            'error_name': error_name,
-            'error_message': error_message,
-            'traceback': traceback_str,
+            'error_name': safe_error_name,
+            'error_message': safe_error_message,
+            'traceback': safe_traceback,
             'instance_id': instance_id,
             'client_ip': client_ip,
             'timestamp': now_time,
@@ -243,18 +264,22 @@ class RuntimeReportGateway(http.Controller):
             return 'O20'
 
     def _resolve_target_db(self):
-        """Resolves the designated Insilos Support Tenant database hosting al2c.runtime.incident."""
-        target_db = getattr(getattr(request, 'session', None), 'db', None)
-        if target_db:
+        """Resolves the designated Insilos Support Tenant database hosting al2c.runtime.incident.
+        Enforces strict whitelisting to eliminate unauthenticated cross-tenant hopping (SEC-01).
+        """
+        configured_db = None
+        if hasattr(request, 'env') and request.env:
             try:
-                reg = Registry(target_db)
-                if 'al2c.runtime.incident' in reg:
-                    return target_db
+                configured_db = request.env['ir.config_parameter'].sudo().get_param('al2c.support_db')
             except Exception:
-                pass
+                configured_db = None
 
-        # Check candidate databases for the support tenant
-        for cand in ['insilos20_dev', 'insilos', 'innoria_prod']:
+        candidates = [configured_db] if configured_db else []
+        candidates.extend(sorted(list(ALLOWED_SUPPORT_DATABASES)))
+
+        for cand in candidates:
+            if not cand or cand not in ALLOWED_SUPPORT_DATABASES:
+                continue
             try:
                 reg = Registry(cand)
                 if 'al2c.runtime.incident' in reg:
@@ -263,16 +288,24 @@ class RuntimeReportGateway(http.Controller):
                 continue
         return None
 
-    def _persist_incident_orm(self, target_db, incident_code, fingerprint, asset_code, error_name, error_message, traceback_str, component_stack, instance_id, payload, client_ip):
-        """Persists or increments incident in target database ORM."""
+    def _persist_incident_orm(self, target_db, incident_code, fingerprint, asset_code,
+                              error_name, error_message, traceback_str, component_stack,
+                              instance_id, payload, client_ip, instance_url=None):
+        """Thread-safe, atomic incident ingestion using Postgres advisory locking (SEC-02, SEC-03)."""
         if not target_db:
             return False, incident_code
+
+        lock_key = zlib.crc32(fingerprint.encode('utf-8')) & 0x7FFFFFFF
+        orm_persisted = False
         try:
             reg = Registry(target_db)
             with reg.cursor() as cr:
+                # Prefect/Airflow Invariant: Serialize concurrency on identical fingerprint
+                cr.execute("SELECT pg_advisory_xact_lock(%s)", (lock_key,))
                 env = api.Environment(cr, SUPERUSER_ID, {})
                 if 'al2c.runtime.incident' not in env:
                     return False, incident_code
+
                 incident_model = env['al2c.runtime.incident']
                 existing = incident_model.search([('fingerprint', '=', fingerprint)], limit=1)
                 if existing:
@@ -282,34 +315,49 @@ class RuntimeReportGateway(http.Controller):
                     })
                     incident_code = existing.incident_code
                 else:
-                    tech_asset = env['al2c.tech.asset'].search([('code', '=', asset_code)], limit=1) if 'al2c.tech.asset' in env else False
-                    new_inc = incident_model.create({
+                    tech_asset = False
+                    if 'al2c.tech.asset' in env and asset_code:
+                        tech_asset = env['al2c.tech.asset'].search([('code', '=', asset_code)], limit=1)
+
+                    user_identifier = hashlib.sha256(
+                        str(payload.get('user_id') or client_ip).encode('utf-8')
+                    ).hexdigest()[:12]
+
+                    user_agent_str = ''
+                    if request and hasattr(request, 'httprequest') and getattr(request.httprequest, 'user_agent', None):
+                        user_agent_str = request.httprequest.user_agent.string or ''
+                    client_info = str(payload.get('user_agent') or user_agent_str or 'Unknown')[:512]
+
+                    is_critical = any(k in str(error_name).lower() for k in ['crash', 'database', 'syntax', 'uncaught'])
+                    create_vals = {
                         'name': f"{error_name}: {error_message[:120] if error_message else 'Unspecified Runtime Error'}",
                         'incident_code': incident_code,
                         'fingerprint': fingerprint,
                         'asset_id': tech_asset.id if tech_asset else False,
-                        'error_name': error_name,
-                        'error_message': error_message,
-                        'traceback': traceback_str,
-                        'component_stack': component_stack,
-                        'instance_id': instance_id,
-                        'instance_url': payload.get('url') or payload.get('server_host'),
-                        'user_identifier': hashlib.sha256(str(payload.get('user_id') or client_ip).encode('utf-8')).hexdigest()[:12],
-                        'client_info': payload.get('user_agent') or (request.httprequest.user_agent.string if request.httprequest and request.httprequest.user_agent else 'Unknown'),
-                        'server_version': payload.get('server_version'),
-                        'severity': 'critical' if any(k in error_name.lower() for k in ['crash', 'database', 'syntax', 'uncaught']) else 'high',
+                        'error_name': str(error_name)[:128],
+                        'error_message': str(error_message)[:MAX_STRING_LEN] if error_message else '',
+                        'traceback': str(traceback_str)[:MAX_TRACEBACK_LEN] if traceback_str else '',
+                        'component_stack': str(component_stack)[:MAX_STRING_LEN] if component_stack else '',
+                        'instance_id': str(instance_id)[:64],
+                        'instance_url': str(instance_url or payload.get('url') or payload.get('server_host') or '')[:MAX_STRING_LEN],
+                        'user_identifier': user_identifier,
+                        'client_info': client_info,
+                        'server_version': str(payload.get('server_version') or '')[:32],
+                        'severity': 'critical' if is_critical else 'high',
                         'state': 'new',
-                    })
-                    if new_inc.severity == 'critical':
-                        try:
-                            new_inc.action_create_backlog_improvement()
-                        except Exception:
-                            pass
+                    }
+                    if 'backlog_generation_pending' in incident_model._fields:
+                        create_vals['backlog_generation_pending'] = True if is_critical else False
+
+                    new_inc = incident_model.create(create_vals)
+                    incident_code = new_inc.incident_code
+
                 cr.commit()
-                return True, incident_code
+                orm_persisted = True
         except Exception as e:
-            _logger.warning("ORM persistence failed (%s), relying on persistent audit ledger", e)
-            return False, incident_code
+            _logger.warning("ORM persistence failed on db %s (%s), relying on persistent audit ledger", target_db, e)
+
+        return orm_persisted, incident_code
 
     @http.route(
         ['/insilos/runtime_error/relay', '/insilos/runtime_error/relay/'],
@@ -418,12 +466,22 @@ class RuntimeReportGateway(http.Controller):
         seq_num = f"{int(now_time) % 100000:05d}"
         incident_code = f"INC-2026-{seq_num}"
 
+        # Sanitize and bound untrusted input fields (SEC-04)
+        safe_error_name = str(error_name or 'UnknownError')[:128]
+        safe_error_message = str(payload.get('message') or '')[:MAX_STRING_LEN]
+        safe_traceback = str(tb or '')[:MAX_TRACEBACK_LEN]
+        safe_component_stack = str(payload.get('component_stack') or '')[:MAX_STRING_LEN]
+        safe_instance_url = str(payload.get('url') or payload.get('server_host') or '')[:MAX_STRING_LEN]
+
         target_db = self._resolve_target_db()
         client_ip = request.httprequest.remote_addr if hasattr(request, 'httprequest') and request.httprequest else ''
-        orm_persisted, incident_code = self._persist_incident_orm(
-            target_db, incident_code, fingerprint, asset_code, error_name, payload.get('message') or '',
-            tb, payload.get('component_stack') or '', instance_id, payload, client_ip
-        )
+        if target_db:
+            orm_persisted, incident_code = self._persist_incident_orm(
+                target_db, incident_code, fingerprint, asset_code, safe_error_name, safe_error_message,
+                safe_traceback, safe_component_stack, instance_id, payload, client_ip, safe_instance_url
+            )
+        else:
+            orm_persisted = False
 
         _append_audit_ledger({
             'status': 'relay_local',

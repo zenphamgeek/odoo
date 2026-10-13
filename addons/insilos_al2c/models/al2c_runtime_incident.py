@@ -52,6 +52,7 @@ class Al2cRuntimeIncident(models.Model):
     ], string='Status', default='new', required=True, tracking=True)
 
     improvement_id = fields.Many2one('al2c.tech.asset.improvement', string='Linked Backlog v2 Item', tracking=True)
+    backlog_generation_pending = fields.Boolean(string='Backlog Generation Pending', default=False, index=True)
 
     @api.model
     def compute_fingerprint(self, error_name, traceback_str, asset_code=None):
@@ -111,3 +112,20 @@ class Al2cRuntimeIncident(models.Model):
 
     def action_mark_resolved(self):
         self.write({'state': 'resolved'})
+
+    @api.model
+    def cron_process_pending_backlogs(self, limit=50):
+        """Asynchronously processes incidents flagged for backlog improvement generation (SEC-02)."""
+        pending_incidents = self.search([
+            ('backlog_generation_pending', '=', True),
+            ('improvement_id', '=', False),
+        ], limit=limit)
+        count = 0
+        for inc in pending_incidents:
+            try:
+                inc.action_create_backlog_improvement()
+                inc.write({'backlog_generation_pending': False})
+                count += 1
+            except Exception:
+                inc.write({'backlog_generation_pending': False})
+        return count

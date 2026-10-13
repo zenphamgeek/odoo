@@ -9,6 +9,9 @@ try:
         MAX_IP_BURST_PER_MIN,
         TIMESTAMP_TOLERANCE_SECONDS,
         DEFAULT_HMAC_SECRET,
+        ALLOWED_SUPPORT_DATABASES,
+        MAX_STRING_LEN,
+        MAX_TRACEBACK_LEN,
     )
 except ImportError:
     RuntimeReportGateway = None

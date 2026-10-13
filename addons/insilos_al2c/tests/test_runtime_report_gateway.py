@@ -130,3 +130,115 @@ class TestRuntimeReportGateway(HttpCase):
         self.assertEqual(incident.improvement_id.priority, 'P0')
         self.assertEqual(incident.state, 'in_backlog')
         self.assertTrue(incident.improvement_id.backlog_v2_line.startswith('- [ ] [AL2C-O20-BUG'))
+
+    def test_06_rejects_unauthorized_session_db_spoofing(self):
+        """SEC-01: Verify that caller-controlled session.db cannot hijack support tenant target."""
+        from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import (
+            RuntimeReportGateway,
+            ALLOWED_SUPPORT_DATABASES,
+        )
+        from unittest.mock import MagicMock, patch
+
+        gateway = RuntimeReportGateway()
+        mock_request = MagicMock()
+        mock_request.session.db = 'malicious_tenant_db'
+        mock_request.env.get_param.return_value = None
+
+        with patch('odoo.addons.insilos_adapter.controllers.runtime_report_gateway.request', mock_request):
+            target = gateway._resolve_target_db()
+            self.assertNotEqual(target, 'malicious_tenant_db')
+            if target is not None:
+                self.assertIn(target, ALLOWED_SUPPORT_DATABASES)
+
+    def test_07_outbox_decoupling_prevents_synchronous_cascade(self):
+        """SEC-02: Verify that critical incidents stage backlog generation rather than synchronous execution."""
+        from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import RuntimeReportGateway
+        gateway = RuntimeReportGateway()
+
+        fp = "test_sec02_fingerprint_outbox_unique"
+        code = "INC-2026-SEC02"
+        persisted, inc_code = gateway._persist_incident_orm(
+            self.env.cr.dbname, code, fp, 'O20',
+            'Critical Crash Database Error', 'Memory corruption fault',
+            'Traceback: fatal crash', 'Stack dump', 'test-inst-01',
+            {}, '127.0.0.1', 'http://localhost'
+        )
+        self.assertTrue(persisted)
+
+        # Invariant: incident must be created, but improvement_id is staged (pending)
+        inc = self.incident_model.search([('fingerprint', '=', fp)], limit=1)
+        self.assertTrue(inc)
+        self.assertEqual(inc.severity, 'critical')
+        self.assertFalse(inc.improvement_id, "Critical incident must NOT trigger synchronous improvement creation.")
+        self.assertTrue(inc.backlog_generation_pending, "Outbox flag backlog_generation_pending must be True.")
+
+        # Execute asynchronous outbox processor
+        processed_count = self.incident_model.cron_process_pending_backlogs(limit=10)
+        self.assertGreaterEqual(processed_count, 1)
+
+        inc.refresh()
+        self.assertTrue(inc.improvement_id, "Outbox processor must generate improvement_id asynchronously.")
+        self.assertFalse(inc.backlog_generation_pending, "Outbox flag must be cleared.")
+
+    def test_08_concurrency_race_condition_under_parallel_burst(self):
+        """SEC-03: Simulate concurrent workers submitting the exact same fingerprint to test advisory locking."""
+        import threading
+        from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import RuntimeReportGateway
+        gateway = RuntimeReportGateway()
+
+        fp = f"test_sec03_burst_{int(time.time())}"
+        code_prefix = "INC-2026-BURST"
+        results = []
+
+        def worker(idx):
+            try:
+                persisted, assigned_code = gateway._persist_incident_orm(
+                    self.env.cr.dbname, f"{code_prefix}-{idx:03d}", fp, 'O20',
+                    'ConcurrencyCrash', 'Lock test',
+                    'Traceback: thread burst', 'ComponentStack', 'inst-burst',
+                    {}, '127.0.0.1', 'http://localhost'
+                )
+                results.append((persisted, assigned_code))
+            except Exception as e:
+                results.append((False, str(e)))
+
+        threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+
+        self.assertEqual(len(results), 10)
+        self.assertTrue(all(r[0] for r in results), f"All workers must persist successfully: {results}")
+
+        # Invariant: exactly ONE incident record exists with occurrence_count == 10
+        inc_records = self.incident_model.search([('fingerprint', '=', fp)])
+        self.assertEqual(len(inc_records), 1, "Concurrency must dedup to exactly one unique incident record.")
+        self.assertEqual(inc_records.occurrence_count, 10, "Occurrence count must match exactly the number of burst submissions.")
+
+    def test_09_unbounded_payload_fields_sanitized(self):
+        """SEC-04: Verify fields exceeding limits are truncated cleanly without error."""
+        from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import (
+            RuntimeReportGateway,
+            MAX_STRING_LEN,
+            MAX_TRACEBACK_LEN,
+        )
+        gateway = RuntimeReportGateway()
+
+        fp = "test_sec04_oversized_fields"
+        huge_msg = "X" * (MAX_STRING_LEN + 1000)
+        huge_tb = "T" * (MAX_TRACEBACK_LEN + 5000)
+
+        persisted, assigned_code = gateway._persist_incident_orm(
+            self.env.cr.dbname, 'INC-2026-SEC04', fp, 'O20',
+            'OversizedError' * 20, huge_msg, huge_tb,
+            "Stack" * 1000, 'inst-oversized', {}, '127.0.0.1', 'http://localhost'
+        )
+        self.assertTrue(persisted)
+
+        inc = self.incident_model.search([('fingerprint', '=', fp)], limit=1)
+        self.assertTrue(inc)
+        self.assertLessEqual(len(inc.error_name), 128)
+        self.assertLessEqual(len(inc.error_message), MAX_STRING_LEN)
+        self.assertLessEqual(len(inc.traceback), MAX_TRACEBACK_LEN)
+
