@@ -26,9 +26,22 @@ Our Responsible Disclosure policy gives an overview of the process, including:
    (what kind of issues will be accepted/rejected)
 
 ## Important note
-
+ 
 We receive a majority of security reports that have little to no impact on the security of the platform or
 the Insilos Cloud, and we ultimately have to reject them. To avoid a disappointing experience when
 contacting us, please try to put together a proof-of-concept attack and take a critical look at
 what's really at risk.
 If the proposed attack scenario turns out unrealistic, your report will probably be rejected.
+
+## Automated Crash & Telemetry Reporting Security
+
+Automated runtime crashes and frontend telemetry are securely processed via:
+- **Central Reporting Ingress**: `POST https://report.insilos.com/api/v1/runtime-report`
+- **Security Protections**:
+  - Pure NoDB Headless architecture isolating user sessions from database bindings.
+  - Multi-layer Rate Limiting: 6 requests/min per IP, 20 requests/min per instance.
+  - Payload Ceiling: Strict 256 KB max payload ceiling (CWE-400 guard).
+  - Cryptographic Attestation: HMAC-SHA256 signature verification with 5-minute replay window tolerance.
+  - Automatic Sensitive Data Redaction: Automatic server-side and client-side sanitization of passwords, tokens, API keys, and session cookies.
+  - Full Architecture & Invariant Specifications: See [RUNTIME_REPORTING_GATEWAY.md](file:///home/zen/O20/docs/RUNTIME_REPORTING_GATEWAY.md).
+

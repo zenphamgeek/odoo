@@ -20,6 +20,16 @@ Insilos is an integrated suite of web-based enterprise applications designed for
 
 The enterprise web interface will be accessible at `http://localhost:28069`.
 
+## Telemetry & Incident Reporting Gateway
+
+Insilos Platform operates a dedicated, security-hardened headless incident reporting gateway:
+- **Central Reporting Ingress**: `POST https://report.insilos.com/api/v1/runtime-report`
+- **Gateway Health Status**: `GET https://report.insilos.com/api/v1/health`
+- **Architecture**: Pure NoDB Headless Gateway (0 Database Binding, Zero Web/UI Modules, sub-15ms P99 latency)
+- **Protocol**: AL2C-v1 with HMAC-SHA256 attestation signatures and sliding-window deduplication
+- **Detailed Documentation**: See [RUNTIME_REPORTING_GATEWAY.md](file:///home/zen/O20/docs/RUNTIME_REPORTING_GATEWAY.md)
+
 ## Security
 
 Please report vulnerabilities privately to `security@insilos.com`.
+
