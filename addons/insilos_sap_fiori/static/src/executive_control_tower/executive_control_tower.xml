@@ -392,8 +392,8 @@
                                 <span class="text-uppercase x-small text-muted fw-bold mb-2 d-block">Trạng thái trạm máy sản xuất thời gian thực</span>
                                 <div class="d-flex flex-column gap-2">
                                     <t t-foreach="state.industrial_mes.workcenters" t-as="wc" t-key="wc.code">
-                                        <div class="o_workcenter_status o_station_telemetry d-flex align-items-center justify-content-between p-2 rounded bg-light-subtle border"
-                                             t-att-data-station="wc.code">
+                                        <div class="o_workcenter_status o_station_telemetry d-flex align-items-center justify-content-between p-2 rounded border"
+                                             t-att-data-station="this.sanitizeId(wc.code)">
                                             <div class="d-flex align-items-center">
                                                 <span class="o_station_dot me-2 rounded-circle"
                                                       t-att-class="{ 'bg-success': wc.status === 'running', 'bg-warning': wc.status === 'standby' }"
@@ -439,8 +439,8 @@
                                 <div class="row g-2">
                                     <t t-foreach="state.logistics_hub.drayage_fleet" t-as="truck" t-key="truck.plate">
                                         <div class="col-12 col-md-6">
-                                            <div class="o_fleet_vehicle o_drayage_truck p-2 rounded bg-light-subtle border d-flex align-items-center justify-content-between"
-                                                 t-att-data-vehicle="truck.plate">
+                                            <div class="o_fleet_vehicle o_drayage_truck p-2 rounded border d-flex align-items-center justify-content-between"
+                                                 t-att-data-vehicle="this.sanitizeId(truck.plate)">
                                                 <div>
                                                     <span class="fw-bold small font-monospace d-block" t-esc="truck.plate"></span>
                                                     <span class="text-muted x-small" t-esc="truck.model + ' • ' + truck.location"></span>
@@ -495,7 +495,7 @@
 
                         <div class="d-flex flex-column gap-2">
                             <t t-foreach="state.priority_actions" t-as="item" t-key="item.id">
-                                <div class="d-flex align-items-center justify-content-between p-2 rounded bg-light-subtle border cursor-pointer"
+                                <div class="o_priority_action_row d-flex align-items-center justify-content-between p-2 rounded border cursor-pointer"
                                      role="button"
                                      tabindex="0"
                                      t-on-click="() => this.openModelView(item.model, 'list', [], item.title)">
@@ -532,7 +532,7 @@
                             </span>
                         </div>
 
-                        <div class="p-3 rounded bg-light-subtle border mb-2">
+                        <div class="o_analytics_progress_box p-3 rounded border mb-2">
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="fw-semibold">Tỷ lệ hoàn thành mục tiêu doanh số năm FY2026</span>
                                 <span class="font-monospace text-primary fw-bold">78.4% (Kế hoạch 75%)</span>
@@ -542,7 +542,7 @@
                             </div>
                         </div>
 
-                        <div class="p-3 rounded bg-light-subtle border">
+                        <div class="o_analytics_progress_box p-3 rounded border">
                             <div class="d-flex justify-content-between small mb-1">
                                 <span class="fw-semibold">Mức tiết kiệm chi phí vật tư và gia công (TCO Reduction)</span>
                                 <span class="font-monospace text-success fw-bold">₫2,029,050,000 / Năm (-8.6%)</span>

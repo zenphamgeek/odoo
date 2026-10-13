@@ -18,7 +18,7 @@
             <!-- 3 Chevron Pipelines -->
             <div class="o_pipelines_container d-flex flex-column gap-3">
                 <t t-foreach="pipelineList" t-as="pipeline" t-key="pipeline.key">
-                    <div class="o_pipeline_row p-2 rounded bg-light-subtle border">
+                    <div class="o_pipeline_row p-2 rounded border">
                         <div class="d-flex align-items-center justify-content-between mb-2">
                             <div class="d-flex align-items-center">
                                 <i t-attf-class="ph #{pipeline.icon} text-secondary me-2"></i>
@@ -39,7 +39,7 @@
                                      t-on-keydown="(ev) => ev.key === 'Enter' and this.handleStageClick(pipeline.key, stage)"
                                      title="Click để xem danh sách chứng từ">
                                     <span class="o_stage_name fw-semibold small text-truncate me-2" t-esc="stage.name"></span>
-                                    <span class="o_stage_count badge bg-white text-dark shadow-sm border font-monospace" t-esc="stage.count"></span>
+                                    <span class="o_stage_count badge shadow-sm border font-monospace" t-esc="stage.count"></span>
                                 </div>
                             </t>
                         </div>

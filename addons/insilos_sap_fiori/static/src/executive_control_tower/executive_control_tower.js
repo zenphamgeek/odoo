@@ -58,6 +58,11 @@ export class ExecutiveControlTower extends Component {
         return controlTowerComponentRegistry.get(name, null);
     }
 
+    sanitizeId(val) {
+        if (!val) return "";
+        return String(val).replace(/[^a-zA-Z0-9_\-\.]/g, "_");
+    }
+
     async loadData() {
         this.state.isLoading = true;
         try {
