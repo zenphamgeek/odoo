@@ -334,6 +334,27 @@ def _resolve_pricelist_model():
             raise SystemExit(
                 f"preflight: pricelist namespace unresolved; refusing to deploy ({exc})"
             ) from exc
+def _preflight_import_obfuscation(tools_to_check: list[str]) -> None:
+    """Pre-flight verification against dynamic import obfuscation (CWE-116).
+    Blocks deployment if any deploy tool or component uses dynamically constructed
+    import paths to evade scanners or hide dependencies.
+    """
+    import pathlib
+    try:
+        from tools.audit_import_obfuscation import scan_file
+    except ImportError:
+        import sys
+        if ROOT_DIR not in sys.path:
+            sys.path.insert(0, ROOT_DIR)
+        from tools.audit_import_obfuscation import scan_file
+
+    for t in tools_to_check:
+        violations, _ = scan_file(pathlib.Path(t))
+        if violations:
+            raise SystemExit(
+                f"preflight: import obfuscation detected in {t}; refusing deploy:\n"
+                + "\n".join(violations)
+            )
 
 
 def _preflight_pricelist_shim(pricelist_tool: str) -> None:
@@ -467,6 +488,10 @@ def distribute_code_to_pods(pods: List[str], tar_path: str, namespace: str = NAM
         raise FileNotFoundError(f"Pricelist item file not found: {pricelist_tool}")
 
     _preflight_pricelist_shim(pricelist_tool)
+    _preflight_import_obfuscation([
+        sync_tool, cleanup_tool, warmup_tool, pricelist_tool,
+        os.path.join(ROOT_DIR, "tools", "deploy_innokafe_production.py"),
+    ])
 
     remote_script = (
         "mkdir -p /app/insilos/enterprise/innokafe_website "

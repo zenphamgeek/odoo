@@ -30,7 +30,7 @@ results = []
 for mod_name, test_file, cls_name in TEST_TARGETS:
     try:
         mod_path = f'odoo.addons.{mod_name}.tests.{test_file}'
-        imported_mod = importlib.import_module(mod_path)
+        imported_mod = importlib.import_module(mod_path)  # import-obfuscation-ignore: test runner dynamic module discovery
         test_cls = getattr(imported_mod, cls_name, None)
         if not test_cls:
             results.append((f'{mod_name}.{test_file}', 'SKIPPED', f'Class {cls_name} not found'))

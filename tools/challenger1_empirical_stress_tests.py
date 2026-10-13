@@ -33,8 +33,7 @@ REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if REPO_ROOT not in sys.path:
     sys.path.insert(0, REPO_ROOT)
 
-_CORE_PKG = 'odoo'
-_backend = importlib.import_module(_CORE_PKG)
+import odoo as _backend
 
 # Configuration
 CONFIG_PATH = os.path.join(REPO_ROOT, 'insilos.conf')
