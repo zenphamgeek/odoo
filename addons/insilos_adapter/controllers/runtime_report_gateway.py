@@ -193,62 +193,12 @@ class RuntimeReportGateway(http.Controller):
         seq_num = f"{int(now_time) % 100000:05d}"
         incident_code = f"INC-2026-{seq_num}"
 
-        # Attempt ORM persistence across active database
-        orm_persisted = False
-        target_db = getattr(getattr(request, 'session', None), 'db', None)
-        if not target_db:
-            # Check candidate databases
-            for cand in ['innoria_prod', 'insilos', 'insilos20_dev']:
-                try:
-                    reg = Registry(cand)
-                    if 'al2c.runtime.incident' in reg:
-                        target_db = cand
-                        break
-                except Exception:
-                    continue
-
-        if target_db:
-            try:
-                reg = Registry(target_db)
-                with reg.cursor() as cr:
-                    env = api.Environment(cr, SUPERUSER_ID, {})
-                    if 'al2c.runtime.incident' in env:
-                        incident_model = env['al2c.runtime.incident']
-                        existing = incident_model.search([('fingerprint', '=', fingerprint)], limit=1)
-                        if existing:
-                            existing.write({
-                                'occurrence_count': existing.occurrence_count + 1,
-                                'last_seen_date': fields.Datetime.now(),
-                            })
-                            incident_code = existing.incident_code
-                        else:
-                            tech_asset = env['al2c.tech.asset'].search([('code', '=', asset_code)], limit=1) if 'al2c.tech.asset' in env else False
-                            new_inc = incident_model.create({
-                                'name': f"{error_name}: {error_message[:120] if error_message else 'Unspecified Runtime Error'}",
-                                'incident_code': incident_code,
-                                'fingerprint': fingerprint,
-                                'asset_id': tech_asset.id if tech_asset else False,
-                                'error_name': error_name,
-                                'error_message': error_message,
-                                'traceback': traceback_str,
-                                'component_stack': component_stack,
-                                'instance_id': instance_id,
-                                'instance_url': payload.get('url') or payload.get('server_host'),
-                                'user_identifier': hashlib.sha256(str(payload.get('user_id') or client_ip).encode('utf-8')).hexdigest()[:12],
-                                'client_info': payload.get('user_agent') or (request.httprequest.user_agent.string if request.httprequest.user_agent else 'Unknown'),
-                                'server_version': payload.get('server_version'),
-                                'severity': 'critical' if any(k in error_name.lower() for k in ['crash', 'database', 'syntax', 'uncaught']) else 'high',
-                                'state': 'new',
-                            })
-                            if new_inc.severity == 'critical':
-                                try:
-                                    new_inc.action_create_backlog_improvement()
-                                except Exception:
-                                    pass
-                        cr.commit()
-                        orm_persisted = True
-            except Exception as e:
-                _logger.warning("ORM persistence failed (%s), relying on persistent audit ledger", e)
+        # Attempt ORM persistence across support tenant database
+        target_db = self._resolve_target_db()
+        orm_persisted, incident_code = self._persist_incident_orm(
+            target_db, incident_code, fingerprint, asset_code, error_name, error_message,
+            traceback_str, component_stack, instance_id, payload, client_ip
+        )
 
         # Sovereign persistent ledger append
         _append_audit_ledger({
@@ -291,6 +241,75 @@ class RuntimeReportGateway(http.Controller):
             return 'ZENCODE_ENT'
         else:
             return 'O20'
+
+    def _resolve_target_db(self):
+        """Resolves the designated Insilos Support Tenant database hosting al2c.runtime.incident."""
+        target_db = getattr(getattr(request, 'session', None), 'db', None)
+        if target_db:
+            try:
+                reg = Registry(target_db)
+                if 'al2c.runtime.incident' in reg:
+                    return target_db
+            except Exception:
+                pass
+
+        # Check candidate databases for the support tenant
+        for cand in ['insilos20_dev', 'insilos', 'innoria_prod']:
+            try:
+                reg = Registry(cand)
+                if 'al2c.runtime.incident' in reg:
+                    return cand
+            except Exception:
+                continue
+        return None
+
+    def _persist_incident_orm(self, target_db, incident_code, fingerprint, asset_code, error_name, error_message, traceback_str, component_stack, instance_id, payload, client_ip):
+        """Persists or increments incident in target database ORM."""
+        if not target_db:
+            return False, incident_code
+        try:
+            reg = Registry(target_db)
+            with reg.cursor() as cr:
+                env = api.Environment(cr, SUPERUSER_ID, {})
+                if 'al2c.runtime.incident' not in env:
+                    return False, incident_code
+                incident_model = env['al2c.runtime.incident']
+                existing = incident_model.search([('fingerprint', '=', fingerprint)], limit=1)
+                if existing:
+                    existing.write({
+                        'occurrence_count': existing.occurrence_count + 1,
+                        'last_seen_date': fields.Datetime.now(),
+                    })
+                    incident_code = existing.incident_code
+                else:
+                    tech_asset = env['al2c.tech.asset'].search([('code', '=', asset_code)], limit=1) if 'al2c.tech.asset' in env else False
+                    new_inc = incident_model.create({
+                        'name': f"{error_name}: {error_message[:120] if error_message else 'Unspecified Runtime Error'}",
+                        'incident_code': incident_code,
+                        'fingerprint': fingerprint,
+                        'asset_id': tech_asset.id if tech_asset else False,
+                        'error_name': error_name,
+                        'error_message': error_message,
+                        'traceback': traceback_str,
+                        'component_stack': component_stack,
+                        'instance_id': instance_id,
+                        'instance_url': payload.get('url') or payload.get('server_host'),
+                        'user_identifier': hashlib.sha256(str(payload.get('user_id') or client_ip).encode('utf-8')).hexdigest()[:12],
+                        'client_info': payload.get('user_agent') or (request.httprequest.user_agent.string if request.httprequest and request.httprequest.user_agent else 'Unknown'),
+                        'server_version': payload.get('server_version'),
+                        'severity': 'critical' if any(k in error_name.lower() for k in ['crash', 'database', 'syntax', 'uncaught']) else 'high',
+                        'state': 'new',
+                    })
+                    if new_inc.severity == 'critical':
+                        try:
+                            new_inc.action_create_backlog_improvement()
+                        except Exception:
+                            pass
+                cr.commit()
+                return True, incident_code
+        except Exception as e:
+            _logger.warning("ORM persistence failed (%s), relying on persistent audit ledger", e)
+            return False, incident_code
 
     @http.route(
         ['/insilos/runtime_error/relay', '/insilos/runtime_error/relay/'],
@@ -399,6 +418,13 @@ class RuntimeReportGateway(http.Controller):
         seq_num = f"{int(now_time) % 100000:05d}"
         incident_code = f"INC-2026-{seq_num}"
 
+        target_db = self._resolve_target_db()
+        client_ip = request.httprequest.remote_addr if hasattr(request, 'httprequest') and request.httprequest else ''
+        orm_persisted, incident_code = self._persist_incident_orm(
+            target_db, incident_code, fingerprint, asset_code, error_name, payload.get('message') or '',
+            tb, payload.get('component_stack') or '', instance_id, payload, client_ip
+        )
+
         _append_audit_ledger({
             'status': 'relay_local',
             'incident_code': incident_code,
@@ -408,6 +434,7 @@ class RuntimeReportGateway(http.Controller):
             'error_message': payload.get('message'),
             'instance_id': instance_id,
             'timestamp': now_time,
+            'orm_persisted': orm_persisted,
         })
 
         _DEDUP_CACHE[fingerprint] = (incident_code, now_time, 1)
