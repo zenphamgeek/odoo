@@ -4,6 +4,7 @@
 import logging
 from datetime import datetime, date, timedelta
 from insilos import models, fields, api, _
+from odoo.exceptions import AccessError
 
 _logger = logging.getLogger("insilos.control_tower")
 
@@ -151,29 +152,43 @@ class InsilosControlTower(models.AbstractModel):
         filters = filters or {}
         timeframe = (timeframe or '7d').lower()
 
+        # Multi-company air-gap: Fail-closed boundary enforcement
+        allowed_company_ids = self.env.companies.ids
+        req_company_id = filters.get('company_id')
+        if req_company_id is not None:
+            # Guard against boolean coercion (isinstance(True, int) is True)
+            if type(req_company_id) is not int or req_company_id <= 0:
+                raise AccessError(_("Invalid company identifier format."))
+            if req_company_id not in allowed_company_ids:
+                raise AccessError(_("Access Denied: Requested company is outside the current authorized context."))
+            target_company_ids = [req_company_id]
+        else:
+            target_company_ids = allowed_company_ids or [self.env.company.id]
+
         # ----------------------------------------------------------------------
         # 1. SD: Net Revenue & Booked Pipeline
         # ----------------------------------------------------------------------
         out_invoice_domain = [
             ('move_type', 'in', ['out_invoice', 'out_refund']),
             ('state', '=', 'posted'),
+            ('company_id', 'in', target_company_ids),
         ]
-        company_id = filters.get('company_id')
-        if company_id and isinstance(company_id, int):
-            out_invoice_domain.append(('company_id', '=', company_id))
 
-        out_invoices = self.env['account.move'].search(out_invoice_domain)
-        net_revenue_val = sum(
-            m.amount_untaxed * (-1 if m.move_type == 'out_refund' else 1)
-            for m in out_invoices
-        ) if out_invoices else 1860500000.0
+        revenue_group = self.env['account.move']._read_group(
+            out_invoice_domain,
+            aggregates=['amount_untaxed_signed:sum'],
+        )
+        net_revenue_val = float(revenue_group[0][0] or 0.0) if revenue_group else 0.0
 
         # Query total pipeline booked across active sale orders
-        sale_orders = self.env['sale.order'].search([])
-        pipeline_booked_val = sum(s.amount_total for s in sale_orders) if sale_orders else 20127500000.0
-        revenue_target_val = 1800000000.0
-        revenue_prior_val = 1629000000.0
-        revenue_delta_pct = round(((net_revenue_val - revenue_prior_val) / revenue_prior_val) * 100.0, 1)
+        sale_group = self.env['sale.order']._read_group(
+            [('company_id', 'in', target_company_ids), ('state', 'not in', ['cancel', 'draft'])],
+            aggregates=['amount_total:sum'],
+        )
+        pipeline_booked_val = float(sale_group[0][0] or 0.0) if sale_group else 0.0
+        revenue_target_val = 0.0
+        revenue_prior_val = 0.0
+        revenue_delta_pct = round(((net_revenue_val - revenue_prior_val) / revenue_prior_val) * 100.0, 1) if revenue_prior_val else 0.0
 
         # Sparkline time-bucket generation based on timeframe
         if timeframe == 'today':
@@ -201,9 +216,8 @@ class InsilosControlTower(models.AbstractModel):
         in_invoice_domain = [
             ('move_type', 'in', ['in_invoice', 'in_refund']),
             ('state', '=', 'posted'),
+            ('company_id', 'in', target_company_ids),
         ]
-        if company_id and isinstance(company_id, int):
-            in_invoice_domain.append(('company_id', '=', company_id))
 
         in_invoices = self.env['account.move'].search(in_invoice_domain)
         spend_val = sum(
@@ -262,7 +276,10 @@ class InsilosControlTower(models.AbstractModel):
         # ----------------------------------------------------------------------
         # 4. Supply Chain / Logistics: OTIF Delivery Rate
         # ----------------------------------------------------------------------
-        pickings = self.env['stock.picking'].search([('picking_type_code', '=', 'outgoing')])
+        pickings = self.env['stock.picking'].search([
+            ('picking_type_code', '=', 'outgoing'),
+            ('company_id', 'in', target_company_ids),
+        ])
         otif_val = 99.2
         otif_delta_pct = 0.7
 
@@ -290,7 +307,8 @@ class InsilosControlTower(models.AbstractModel):
         # ----------------------------------------------------------------------
         quants = self.env['stock.quant'].search([
             ('location_id.usage', '=', 'internal'),
-            ('quantity', '>', 0)
+            ('quantity', '>', 0),
+            ('company_id', 'in', target_company_ids),
         ])
         total_units = sum(q.quantity for q in quants) if quants else 68767
         distinct_skus = len(quants.mapped('product_id')) if quants else 16
@@ -371,7 +389,7 @@ class InsilosControlTower(models.AbstractModel):
                     "name": "SD Customer Billing Documents",
                     "res_model": "account.move",
                     "views": [[False, "list"], [False, "form"]],
-                    "domain": [["move_type", "in", ["out_invoice", "out_refund"]], ["state", "=", "posted"]],
+                    "domain": [["move_type", "in", ["out_invoice", "out_refund"]], ["state", "=", "posted"], ["company_id", "in", target_company_ids]],
                     "target": "current",
                 },
             },
@@ -397,7 +415,7 @@ class InsilosControlTower(models.AbstractModel):
                     "name": "MM Vendor Invoices (FI-AP)",
                     "res_model": "account.move",
                     "views": [[False, "list"], [False, "form"]],
-                    "domain": [["move_type", "in", ["in_invoice", "in_refund"]], ["state", "=", "posted"]],
+                    "domain": [["move_type", "in", ["in_invoice", "in_refund"]], ["state", "=", "posted"], ["company_id", "in", target_company_ids]],
                     "target": "current",
                 },
             },
@@ -420,7 +438,7 @@ class InsilosControlTower(models.AbstractModel):
                     "name": "FI Cash & Bank Accounting Documents",
                     "res_model": "account.move",
                     "views": [[False, "list"], [False, "form"]],
-                    "domain": [["state", "=", "posted"]],
+                    "domain": [["state", "=", "posted"], ["company_id", "in", target_company_ids]],
                     "target": "current",
                 },
             },
@@ -444,7 +462,7 @@ class InsilosControlTower(models.AbstractModel):
                     "name": "Outbound Deliveries / Goods Issue",
                     "res_model": "stock.picking",
                     "views": [[False, "list"], [False, "form"]],
-                    "domain": [["picking_type_code", "=", "outgoing"]],
+                    "domain": [["picking_type_code", "=", "outgoing"], ["company_id", "in", target_company_ids]],
                     "target": "current",
                 },
             },
@@ -468,7 +486,7 @@ class InsilosControlTower(models.AbstractModel):
                     "name": "Physical Inventory Quants",
                     "res_model": "stock.quant",
                     "views": [[False, "list"], [False, "pivot"]],
-                    "domain": [["location_id.usage", "=", "internal"], ["quantity", ">", 0]],
+                    "domain": [["location_id.usage", "=", "internal"], ["quantity", ">", 0], ["company_id", "in", target_company_ids]],
                     "target": "current",
                 },
             },
@@ -493,7 +511,7 @@ class InsilosControlTower(models.AbstractModel):
                     "name": "HSE Maintenance & Safety Logs",
                     "res_model": "fleet.vehicle.log.services",
                     "views": [[False, "list"], [False, "form"]],
-                    "domain": [],
+                    "domain": [["company_id", "in", target_company_ids]],
                     "target": "current",
                 },
             },
@@ -516,7 +534,7 @@ class InsilosControlTower(models.AbstractModel):
                     "name": "Khu Vực Sản Xuất & Máy Cắt CNC",
                     "res_model": "mrp.workcenter",
                     "views": [[False, "list"], [False, "form"]],
-                    "domain": [],
+                    "domain": [["company_id", "in", target_company_ids]],
                     "target": "current",
                 },
             },
@@ -541,7 +559,7 @@ class InsilosControlTower(models.AbstractModel):
                     "name": "Logistics & Demurrage Surveillance",
                     "res_model": "stock.picking",
                     "views": [[False, "list"], [False, "form"]],
-                    "domain": [('picking_type_code', '=', 'incoming')],
+                    "domain": [["picking_type_code", "=", "incoming"], ["company_id", "in", target_company_ids]],
                     "target": "current",
                 },
             },
@@ -551,7 +569,7 @@ class InsilosControlTower(models.AbstractModel):
         # 7. Industrial MES & Workcenters Telemetry
         # ----------------------------------------------------------------------
         workcenters_data = []
-        db_workcenters = self.env['mrp.workcenter'].search([])
+        db_workcenters = self.env['mrp.workcenter'].search([('company_id', 'in', target_company_ids)])
         wc_benchmark_map = {
             'WC-CUT-01': {'target_oee': 88.0, 'actual_oee': 91.2, 'status': 'running', 'order': 'WO/00040 - Cắt phôi thép SS400 12mm', 'kwh': 42.8},
             'WC-BEND-01': {'target_oee': 85.0, 'actual_oee': 87.4, 'status': 'standby', 'order': 'WO/00041 - Chấn gấp góc chữ U', 'kwh': 12.3},
@@ -616,7 +634,7 @@ class InsilosControlTower(models.AbstractModel):
         # 8. Logistics Hub & Drayage Fleet Telemetry
         # ----------------------------------------------------------------------
         vehicles_data = []
-        db_vehicles = self.env['fleet.vehicle'].search([])
+        db_vehicles = self.env['fleet.vehicle'].search([('company_id', 'in', target_company_ids)])
         fleet_specs_map = {
             '51C-982.45': {'assignment': 'Tuyến Tân Cảng Cát Lái - Cái Mép Gemalink', 'status': 'in_transit', 'driver': 'Tài xế Nguyễn Văn Long', 'consumption': '34.5 L / 100km (PVOIL DO 0.05S)'},
             '51R-089.34': {'assignment': 'Ghép nối đầu kéo 51C-982.45', 'status': 'coupled', 'driver': 'Tổ vận tải 1', 'consumption': 'N/A (Chassis 40ft)'},
@@ -662,16 +680,16 @@ class InsilosControlTower(models.AbstractModel):
         # ----------------------------------------------------------------------
         # 9. Process Pipelines (Lead-to-Cash, Procure-to-Pay, Order-to-Delivery)
         # ----------------------------------------------------------------------
-        so_quotes = self.env['sale.order'].search_count([('state', '=', 'draft')])
-        so_confirmed = self.env['sale.order'].search_count([('state', '=', 'sale')])
-        out_inv_count = self.env['account.move'].search_count([('move_type', '=', 'out_invoice')])
+        so_quotes = self.env['sale.order'].search_count([('state', '=', 'draft'), ('company_id', 'in', target_company_ids)])
+        so_confirmed = self.env['sale.order'].search_count([('state', '=', 'sale'), ('company_id', 'in', target_company_ids)])
+        out_inv_count = self.env['account.move'].search_count([('move_type', '=', 'out_invoice'), ('company_id', 'in', target_company_ids)])
 
-        po_rfqs = self.env['purchase.order'].search_count([('state', 'in', ['draft', 'sent'])])
-        po_confirmed = self.env['purchase.order'].search_count([('state', '=', 'purchase')])
-        in_pick_count = self.env['stock.picking'].search_count([('picking_type_code', '=', 'incoming')])
+        po_rfqs = self.env['purchase.order'].search_count([('state', 'in', ['draft', 'sent']), ('company_id', 'in', target_company_ids)])
+        po_confirmed = self.env['purchase.order'].search_count([('state', '=', 'purchase'), ('company_id', 'in', target_company_ids)])
+        in_pick_count = self.env['stock.picking'].search_count([('picking_type_code', '=', 'incoming'), ('company_id', 'in', target_company_ids)])
 
-        mo_count = self.env['mrp.production'].search_count([('state', '=', 'progress')])
-        out_pick_count = self.env['stock.picking'].search_count([('picking_type_code', '=', 'outgoing')])
+        mo_count = self.env['mrp.production'].search_count([('state', '=', 'progress'), ('company_id', 'in', target_company_ids)])
+        out_pick_count = self.env['stock.picking'].search_count([('picking_type_code', '=', 'outgoing'), ('company_id', 'in', target_company_ids)])
 
         process_pipelines = {
             "lead_to_cash": [

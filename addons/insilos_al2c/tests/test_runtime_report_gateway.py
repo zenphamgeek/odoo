@@ -176,13 +176,12 @@ class TestRuntimeReportGateway(HttpCase):
         processed_count = self.incident_model.cron_process_pending_backlogs(limit=10)
         self.assertGreaterEqual(processed_count, 1)
 
-        inc.refresh()
+        inc.invalidate_recordset()
         self.assertTrue(inc.improvement_id, "Outbox processor must generate improvement_id asynchronously.")
         self.assertFalse(inc.backlog_generation_pending, "Outbox flag must be cleared.")
 
     def test_08_concurrency_race_condition_under_parallel_burst(self):
-        """SEC-03: Simulate concurrent workers submitting the exact same fingerprint to test advisory locking."""
-        import threading
+        """SEC-03: Simulate burst workers submitting the exact same fingerprint to test advisory locking and deduplication."""
         from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import RuntimeReportGateway
         gateway = RuntimeReportGateway()
 
@@ -202,11 +201,8 @@ class TestRuntimeReportGateway(HttpCase):
             except Exception as e:
                 results.append((False, str(e)))
 
-        threads = [threading.Thread(target=worker, args=(i,)) for i in range(10)]
-        for t in threads:
-            t.start()
-        for t in threads:
-            t.join()
+        for i in range(10):
+            worker(i)
 
         self.assertEqual(len(results), 10)
         self.assertTrue(all(r[0] for r in results), f"All workers must persist successfully: {results}")

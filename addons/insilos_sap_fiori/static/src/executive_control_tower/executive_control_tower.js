@@ -69,8 +69,9 @@ export class ExecutiveControlTower extends Component {
         if (val === null || val === undefined) return "";
         const raw = String(val).trim();
         if (!raw) return "";
-        // Ban object prototype keys to prevent pollution in component registries
-        if (raw === "__proto__" || raw === "constructor" || raw === "prototype") {
+        // Ban object prototype keys and internal methods to prevent pollution
+        const blocked = new Set(["__proto__", "constructor", "prototype", "toString", "valueOf", "isPrototypeOf"]);
+        if (blocked.has(raw)) {
             return "_reserved_token_";
         }
         // Strictly allow only alphanumeric, underscores, and hyphens (dots strictly removed)
@@ -94,7 +95,8 @@ export class ExecutiveControlTower extends Component {
             const res = await this.orm.call(
                 "insilos.control.tower",
                 "get_executive_kpi_metrics",
-                [this.state.timeframe, { domain: this.state.domain }]
+                [this.state.timeframe, { domain: this.state.domain }],
+                { signal: abortController.signal }
             );
 
             // Stale task execution discarded (Airflow/Prefect Monotonicity Invariant)
@@ -146,7 +148,8 @@ export class ExecutiveControlTower extends Component {
             // Graceful fallback to client-side reactive data model
             this.state.kpis = this.getInitialKpis(this.state.timeframe);
         } finally {
-            if (this._activeEpoch === requestEpoch && !abortController.signal.aborted) {
+            // Ensure isLoading is ALWAYS cleared for the active request epoch to prevent UI deadlock
+            if (this._activeEpoch === requestEpoch) {
                 this.state.isLoading = false;
                 this.state.lastUpdated = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
             }
