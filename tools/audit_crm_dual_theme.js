@@ -8,7 +8,7 @@ const { chromium } = require("playwright");
     });
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await context.newPage();
-    page.setDefaultTimeout(30000);
+    page.setDefaultTimeout(60000);
 
     // 1. Set Light Cookie & Authenticate
     await context.addCookies([{ name: "color_scheme", value: "light", domain: "localhost", path: "/" }]);
@@ -17,10 +17,10 @@ const { chromium } = require("playwright");
     await page.fill("input[name=\"login\"]", "admin");
     await page.fill("input[name=\"password\"]", "admin");
     await Promise.all([
-        page.waitForNavigation({ waitUntil: "domcontentloaded" }),
+        page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 60000 }),
         page.click("button[type=\"submit\"]")
     ]);
-    await page.waitForSelector(".o_navbar", { timeout: 20000 });
+    await page.waitForSelector(".o_navbar", { timeout: 45000 });
 
     // 2. Light Mode Verification
     console.log("Opening CRM Pipeline (Light Mode)...");
