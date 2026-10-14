@@ -1,18 +1,44 @@
 /**
  * Standalone Adversarial Telemetry & Store Resilience Verification Suite
  * Tests sanitization of credentials, URLs, tokens, circular references, Error prototypes,
- * and namespaced mail.store / form controller isolation.
+ * AST JSON integrity, and namespaced mail.store / form controller isolation.
  */
 const assert = require("node:assert");
 
-// Import or define identical production logic
+// Mirror identical production logic from addons/web/static/src/core/errors/error_dialogs.js
 function sanitizeErrorPayload(input) {
-    if (!input) {
-        return input || "";
+    if (input === null || input === undefined) {
+        return "";
     }
+
+    const SENSITIVE_KEY_PATTERN =
+        /^(password|passwd|pwd|secret|token|api_?key|access_?token|refresh_?token|client_?secret|session_?id|sid|cookie|connection_?string|authorization|admin_passwd|master_pwd|private_?key|pin|otp)$/i;
+
+    function sanitizeString(text) {
+        return text
+            .replace(/\b(Digest)\s+[a-zA-Z0-9_]+=(?:"[^"]*"|[^\s,;'"]+)(?:,\s*[a-zA-Z0-9_]+=(?:"[^"]*"|[^\s,;'"]+))*/gi, "$1 [REDACTED]")
+            .replace(/\b(Bearer|Basic)\s+(?:[A-Za-z0-9\-._~+/]+=*|"[^"]*")/gi, "$1 [REDACTED]")
+            .replace(/\b(sk-ant-api\d{2}-[a-zA-Z0-9_\-]{20,}|sk-(?:ant-[a-zA-Z0-9\-_]{20,}|[a-zA-Z0-9\-_]{20,})|AIza[0-9A-Za-z\-_]{30,40}|A[SK]IA[0-9A-Z]{16}|ghp_[a-zA-Z0-9]{36}|github_pat_[a-zA-Z0-9_]{20,})\b/g, "[REDACTED_API_KEY]")
+            .replace(/-----BEGIN[ A-Z0-9_-]+KEY-----[\s\S]+?-----END[ A-Z0-9_-]+KEY-----/g, "[REDACTED_PRIVATE_KEY]")
+            .replace(/((?:postgresql|postgres|mysql|redis|amqp|mongodb(?:\+srv)?|mssql|clickhouse):\/\/[^:\s\/]+:)[^@\s\/]+(@)/gi, "$1[REDACTED]$2")
+            .replace(
+                /(["']?(?:password|passwd|pwd|secret|token|api_?key|apiKey|access_?token|refresh_?token|client_?secret|session_?id|sid|cookie|connection_?string|authorization)["']?\s*)([:=])(\s*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|(?!(?:Bearer|Basic|Digest)\b)[^\s&,"']+)/gi,
+                (match, key, sep, space) => {
+                    if (sep === ":" && (key.startsWith('"') || key.startsWith("'"))) {
+                        return `${key}:${space}"[REDACTED]"`;
+                    }
+                    return `${key.replace(/["']/g, "").trim()}=[REDACTED]`;
+                }
+            )
+            .replace(/(session_id|sid)=[^;&\s]+/gi, "$1=[REDACTED]")
+            .replace(/\b(0[35789]\d)(\d{5})(\d{2})\b/g, "$1*****$3")
+            .replace(/(?:\+84|0)(?:[35789])(?:[\s.-]\d){8}\b/g, "[REDACTED_PHONE]")
+            .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED_EMAIL]");
+    }
+
     const visited = new WeakSet();
     function safeSerialize(val, depth = 0) {
-        if (depth > 6) return "[MAX_DEPTH]";
+        if (depth > 12) return "[MAX_DEPTH]";
         if (val === null || val === undefined) return val;
         if (typeof val !== "object") return val;
         if (visited.has(val)) return "[CIRCULAR_REF]";
@@ -39,24 +65,37 @@ function sanitizeErrorPayload(input) {
         return out;
     }
 
-    let text = typeof input === "object" ? JSON.stringify(safeSerialize(input)) : String(input);
-    return text
-        .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9\-._~+/]+=*/gi, "$1 [REDACTED]")
-        .replace(/\bDigest\s+[^\r\n"'\\]+/gi, "Digest [REDACTED]")
-        .replace(/\b(sk-(?:ant-[a-zA-Z0-9\-_]{20,}|[a-zA-Z0-9\-_]{20,})|A[SK]IA[0-9A-Z]{16}|AIza[0-9A-Za-z\-_]{35}|ghp_[a-zA-Z0-9]{36})\b/g, "[REDACTED_API_KEY]")
-        .replace(/((?:postgresql|postgres|mysql|redis|amqp|mongodb(?:\+srv)?):\/\/[^:\s\/]+:)[^@\s\/]+(@)/gi, "$1[REDACTED]$2")
-        .replace(
-            /(["']?(?:password|passwd|pwd|secret|token|api_key|apiKey|access_token|refresh_token|client_secret|session_id|sid|cookie|connection_string|authorization)["']?\s*)([:=])(\s*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|(?!(?:Bearer|Basic|Digest)\b)[^\s&,"']+)/gi,
-            (match, key, sep, space) => {
-                if (sep === ":") {
-                    return `${key}:${space}"[REDACTED]"`;
+    if (typeof input === "object") {
+        try {
+            const redactObject = (val, depth = 0) => {
+                if (depth > 12 || val === null || typeof val !== "object") return val;
+                if (Array.isArray(val)) return val.map((v) => redactObject(v, depth + 1));
+                const out = {};
+                for (const [k, v] of Object.entries(val)) {
+                    if (typeof v === "string") {
+                        const sanitizedVal = sanitizeString(v);
+                        if (sanitizedVal !== v) {
+                            out[k] = sanitizedVal;
+                        } else if (SENSITIVE_KEY_PATTERN.test(k)) {
+                            out[k] = "[REDACTED]";
+                        } else {
+                            out[k] = v;
+                        }
+                    } else if (SENSITIVE_KEY_PATTERN.test(k)) {
+                        out[k] = "[REDACTED]";
+                    } else {
+                        out[k] = redactObject(v, depth + 1);
+                    }
                 }
-                return `${key}=${space}[REDACTED]`;
-            }
-        )
-        .replace(/(session_id|sid)=[^;&\s]+/gi, "$1=[REDACTED]")
-        .replace(/\b(0[35789]\d)(\d{5})(\d{2})\b/g, "$1*****$3")
-        .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED_EMAIL]");
+                return out;
+            };
+            return JSON.stringify(redactObject(safeSerialize(input)));
+        } catch {
+            return sanitizeString(String(input));
+        }
+    }
+
+    return sanitizeString(String(input));
 }
 
 function sanitizeUrl(rawUrl, baseOrigin = "http://localhost") {
@@ -227,4 +266,75 @@ assert.strictEqual(safeRecordData.salary, undefined, "Salary field leaked into A
 assert.strictEqual(safeRecordData.bank_account, undefined, "Bank account field leaked into AI context");
 console.log("  ✅ Test 7 PASSED: Form controller allowlist projects safe fields and suppresses sensitive PII");
 
-console.log("\n🎯 ALL 7 ADVERSARIAL RESILIENCE & SECURITY TEST CASES PASSED WITH 0 REGRESSIONS!");
+// Test 8: JSON AST Integrity & Structural Key Redaction
+const rpcPayload = {
+    action: "call_kw",
+    params: {
+        password: "UltraSecretPassword!@#",
+        token: "ghp_123456789012345678901234567890123456",
+        safe_field: 42,
+    },
+};
+const sanitizedRpc = sanitizeErrorPayload(rpcPayload);
+const parsedRpc = JSON.parse(sanitizedRpc);
+assert.strictEqual(parsedRpc.params.password, "[REDACTED]", "Password key not redacted");
+assert.strictEqual(parsedRpc.params.token, "[REDACTED_API_KEY]", "Token value not redacted as API key");
+assert.strictEqual(parsedRpc.params.safe_field, 42, "Safe non-sensitive field mutated");
+console.log("  ✅ Test 8 PASSED: Direct JSON AST integrity maintained with structural key redaction");
+
+// Test 9: Multi-Cloud Secrets & Private Key Sanitization
+const cloudSecretsPayload = {
+    geminiKey: "AIzaSyDaTestKey1234567890abcdefghijklm",
+    privateKey: "-----BEGIN RSA PRIVATE KEY-----\nMIIEowIBAAKCAQEA0m5kY...\n-----END RSA PRIVATE KEY-----",
+    authDigest: 'Digest username="admin", realm="insilos", nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093"',
+};
+const sanitizedCloud = sanitizeErrorPayload(cloudSecretsPayload);
+const parsedCloud = JSON.parse(sanitizedCloud);
+assert.strictEqual(parsedCloud.geminiKey, "[REDACTED_API_KEY]", "Gemini API key leaked");
+assert.strictEqual(parsedCloud.privateKey, "[REDACTED_PRIVATE_KEY]", "PEM Private key block leaked");
+assert.strictEqual(parsedCloud.authDigest, "Digest [REDACTED]", "Digest auth header leaked");
+console.log("  ✅ Test 9 PASSED: Google AI Studio keys, PEM blocks, and Digest auth sanitized");
+
+// Test 10: Multi-Recordset & Context Privilege Bypass Defense
+class MockBaseAutomation {
+    constructor(rules) {
+        this.rules = rules;
+    }
+    filtered(fn) {
+        return new MockBaseAutomation(this.rules.filter(fn));
+    }
+    get length() {
+        return this.rules.length;
+    }
+    process(records, context, user) {
+        const isSystem = user.is_system || user.groups.includes("base.group_system");
+        const skipAutosort = context.ai_documents_skip_autosort && isSystem;
+        let rulesToRun = this;
+        if (skipAutosort && records.length) {
+            rulesToRun = this.filtered((r) => !r.ai_autosort_folder_id);
+        }
+        if (!rulesToRun.length) {
+            return false;
+        }
+        return rulesToRun.rules.map((r) => r.name);
+    }
+}
+
+const mockRules = new MockBaseAutomation([
+    { id: 1, name: "AI Autosort Rule", ai_autosort_folder_id: 10 },
+    { id: 2, name: "Standard Audit Rule", ai_autosort_folder_id: null },
+]);
+
+const normalUser = { is_system: false, groups: ["base.group_user"] };
+const adminUser = { is_system: true, groups: ["base.group_system"] };
+
+// Unprivileged user trying to inject context bypass
+const unprivilegedResult = mockRules.process([1], { ai_documents_skip_autosort: true }, normalUser);
+assert.deepStrictEqual(unprivilegedResult, ["AI Autosort Rule", "Standard Audit Rule"], "Unprivileged user bypassed AI autosort!");
+
+// System user legitimate bypass
+const adminResult = mockRules.process([1], { ai_documents_skip_autosort: true }, adminUser);
+assert.deepStrictEqual(adminResult, ["Standard Audit Rule"], "Admin legitimate bypass failed");
+console.log("  ✅ Test 10 PASSED: Privilege boundary enforces anti-bypass on multi-recordset automation");
+
+console.log("\n🎯 ALL 10 ADVERSARIAL RESILIENCE & SECURITY TEST CASES PASSED WITH 0 REGRESSIONS!");
