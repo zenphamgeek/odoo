@@ -17,6 +17,8 @@ except Exception:
             pass
         class UserError(Exception):
             pass
+        class ValidationError(Exception):
+            pass
     exceptions = _MockExceptions()
 
     def _(msg):
@@ -38,6 +40,40 @@ class InsilosConversionGuard(models.AbstractModel):
         hash_digest = hashlib.sha256(batch_slug.encode('utf-8')).digest()
         key2 = int.from_bytes(hash_digest[:4], byteorder='big', signed=True)
         return key1, key2
+
+    def _generate_deterministic_advisory_key(self, company_id: int, model_name: str, record_id: int) -> int:
+        import binascii
+        model_token = binascii.crc32(str(model_name).encode('utf-8')) & 0xFFFF
+        bounded_company = int(company_id) & 0x7FFF
+        bounded_record = int(record_id) & 0xFFFFFFFF
+        packed_key = (bounded_company << 48) | (model_token << 32) | bounded_record
+        return packed_key
+
+    def _process_pinned_batch_safe(self, batch_records, max_batch_size=50):
+        if len(batch_records) > max_batch_size:
+            batch_records = batch_records[:max_batch_size]
+        processed = []
+        errors = []
+        for record in batch_records:
+            savepoint_name = f"flat_sp_{getattr(record, 'id', 'item')}"
+            self.env.cr.execute(f"SAVEPOINT {savepoint_name};")
+            try:
+                record_company = getattr(record, 'company_id', None) or self.env.company
+                if hasattr(record, 'with_company'):
+                    scoped_rec = record.with_company(record_company)
+                else:
+                    scoped_rec = record
+                res = scoped_rec._execute_conversion() if hasattr(scoped_rec, '_execute_conversion') else getattr(scoped_rec, 'id', None)
+                self.env.cr.execute(f"RELEASE SAVEPOINT {savepoint_name};")
+                processed.append(res)
+            except (exceptions.UserError, exceptions.ValidationError) as e:
+                self.env.cr.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name};")
+                errors.append((getattr(record, 'id', None), str(e)))
+            except Exception as unhandled_err:
+                self.env.cr.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name};")
+                errors.append((getattr(record, 'id', None), "CRITICAL_INTERNAL_ERROR"))
+                break  # Circuit breaker: Halt batch on unexpected failure
+        return processed, errors
 
     def execute_splayed_conversion(self, company_id, batch_slug, conversion_func, *args, **kwargs):
         key1, key2 = self._compute_lock_keys(company_id, batch_slug)

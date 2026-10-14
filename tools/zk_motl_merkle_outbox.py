@@ -55,6 +55,21 @@ def compute_merkle_root(records_or_hashes: list) -> str:
     return current_level[0]
 
 
+def allocate_decree70_sequence(cr, company_id: int, register_table: str = "decree70_sequence_register") -> int:
+    """
+    Allocates an atomic, gapless Decree 70 statutory sequence for a given company.
+    Executes SELECT ... FOR UPDATE to eliminate concurrency gaps under serialization failures.
+    """
+    cr.execute(f"SELECT id, current_sequence FROM {register_table} WHERE company_id = %s FOR UPDATE;", (company_id,))
+    row = cr.fetchone()
+    if row:
+        reg_id, current_seq = row[0], row[1]
+        next_seq = current_seq + 1
+        cr.execute(f"UPDATE {register_table} SET current_sequence = %s WHERE id = %s;", (next_seq, reg_id))
+        return next_seq
+    raise ValueError("Statutory sequence register not initialized for company.")
+
+
 class ZKMOTLOutboxManager:
     """
     Cryptographic Outbox Manager with Item-Level Quarantine and Merkle Attestation.
@@ -69,6 +84,7 @@ class ZKMOTLOutboxManager:
         self.records: List[Dict[str, Any]] = []
         self.committed_records: List[Dict[str, Any]] = []
         self.quarantined_records: List[Dict[str, Any]] = []
+        self.buffered_outbox: List[Dict[str, Any]] = []
 
     def append_record(self, payload: dict) -> dict:
         """
@@ -86,6 +102,19 @@ class ZKMOTLOutboxManager:
         self.last_hash = rec_hash
         self.records.append(record)
         return record
+
+    def buffer_outbox_record(self, company_id: int, record_ref: str, statutory_seq: int) -> dict:
+        """
+        Buffers an outbox entry with statutory sequence for gapless delivery.
+        """
+        entry = {
+            'company_id': company_id,
+            'record_ref': record_ref,
+            'statutory_sequence': statutory_seq,
+            'state': 'pending',
+        }
+        self.buffered_outbox.append(entry)
+        return entry
 
     def verify_and_commit_batch(self, records: list) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
         """

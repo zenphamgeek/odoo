@@ -56,3 +56,37 @@ class DPASTSMTransactionManager:
         except Exception:
             cr.execute(f"ROLLBACK TO SAVEPOINT {self.SAVEPOINT_NAME}")
             raise
+
+    def derive_deterministic_advisory_key(self, company_id: int, model_name: str, record_id: int) -> int:
+        """
+        Derives deterministic 64-bit bipartite packed advisory key from company_id, model_name, and record_id.
+        """
+        import binascii
+        model_token = binascii.crc32(str(model_name).encode('utf-8')) & 0xFFFF
+        bounded_company = int(company_id) & 0x7FFF
+        bounded_record = int(record_id) & 0xFFFFFFFF
+        packed_key = (bounded_company << 48) | (model_token << 32) | bounded_record
+        return packed_key
+
+    def acquire_deterministic_record_lock(self, cr, company_id: int, model_name: str, record_id: int) -> bool:
+        """
+        Acquires a deterministic transaction-scoped advisory lock for a specific record
+        with a flat SAVEPOINT rollback barrier.
+        Returns True if acquired, False on lock contention.
+        Rolls back to savepoint on contention or failure.
+        """
+        lock_key = self.derive_deterministic_advisory_key(company_id, model_name, record_id)
+        savepoint_name = f"flat_sp_{record_id}"
+        cr.execute(f"SAVEPOINT {savepoint_name};")
+        try:
+            cr.execute("SELECT pg_try_advisory_xact_lock(%s);", (lock_key,))
+            row = cr.fetchone()
+            locked = bool(row and row[0])
+            if not locked:
+                cr.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name};")
+                return False
+            cr.execute(f"RELEASE SAVEPOINT {savepoint_name};")
+            return True
+        except Exception:
+            cr.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name};")
+            raise

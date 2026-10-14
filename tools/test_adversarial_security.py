@@ -1646,6 +1646,211 @@ def test_patch_17_zbesl_csa_and_parity_scanner_hardening():
 test_patch_18_zbesl_csa_and_parity_scanner_hardening = test_patch_17_zbesl_csa_and_parity_scanner_hardening
 
 
+def test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox():
+    import ast
+    from unittest.mock import MagicMock
+
+    # 1. AST Verification for required methods
+    guard_py = os.path.join(ROOT_DIR, "addons/insilos_adapter/models/cron_conversion_guard.py")
+    with open(guard_py, "r", encoding="utf-8") as f:
+        guard_src = f.read()
+    tree_guard = ast.parse(guard_src)
+    guard_funcs = [n.name for n in ast.walk(tree_guard) if isinstance(n, ast.FunctionDef)]
+    assert "_generate_deterministic_advisory_key" in guard_funcs, "Missing _generate_deterministic_advisory_key in cron_conversion_guard.py"
+    assert "_process_pinned_batch_safe" in guard_funcs, "Missing _process_pinned_batch_safe in cron_conversion_guard.py"
+
+    lock_py = os.path.join(ROOT_DIR, "tools/dpas_tsm_lock.py")
+    with open(lock_py, "r", encoding="utf-8") as f:
+        lock_src = f.read()
+    tree_lock = ast.parse(lock_src)
+    lock_funcs = [n.name for n in ast.walk(tree_lock) if isinstance(n, ast.FunctionDef)]
+    assert "derive_deterministic_advisory_key" in lock_funcs, "Missing derive_deterministic_advisory_key in tools/dpas_tsm_lock.py"
+    assert "acquire_deterministic_record_lock" in lock_funcs, "Missing acquire_deterministic_record_lock in tools/dpas_tsm_lock.py"
+
+    outbox_py = os.path.join(ROOT_DIR, "tools/zk_motl_merkle_outbox.py")
+    with open(outbox_py, "r", encoding="utf-8") as f:
+        outbox_src = f.read()
+    tree_outbox = ast.parse(outbox_src)
+    outbox_funcs = [n.name for n in ast.walk(tree_outbox) if isinstance(n, ast.FunctionDef)]
+    assert "allocate_decree70_sequence" in outbox_funcs, "Missing allocate_decree70_sequence in tools/zk_motl_merkle_outbox.py"
+    assert "buffer_outbox_record" in outbox_funcs, "Missing buffer_outbox_record in tools/zk_motl_merkle_outbox.py"
+
+    # 2. Dynamic testing of _generate_deterministic_advisory_key
+    try:
+        from addons.insilos_adapter.models.cron_conversion_guard import InsilosConversionGuard, exceptions
+    except Exception:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("cron_conversion_guard", guard_py)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        InsilosConversionGuard = mod.InsilosConversionGuard
+        exceptions = mod.exceptions
+
+    guard = InsilosConversionGuard()
+
+    # Assert _generate_deterministic_advisory_key produces 64-bit non-negative integers
+    sample_key = guard._generate_deterministic_advisory_key(1, "account.move", 100)
+    assert 0 <= sample_key <= 0x7FFFFFFFFFFFFFFF, f"Key out of 64-bit non-negative bounds: {sample_key}"
+
+    # Assert zero collisions across company (1..5), model ('account.move', 'sale.order', 'stock.picking'), record_id (1..100)
+    seen_keys = set()
+    test_models = ['account.move', 'sale.order', 'stock.picking']
+    for comp in range(1, 6):
+        for m in test_models:
+            for rec in range(1, 101):
+                k = guard._generate_deterministic_advisory_key(comp, m, rec)
+                assert 0 <= k <= 0x7FFFFFFFFFFFFFFF, f"Key out of bounds: {k}"
+                assert k not in seen_keys, f"Collision detected for company={comp}, model={m}, record={rec}: {k}"
+                seen_keys.add(k)
+    assert len(seen_keys) == 5 * 3 * 100, f"Expected 1500 distinct keys, got {len(seen_keys)}"
+
+    # 3. Dynamic testing of DPASTSMTransactionManager
+    from tools.dpas_tsm_lock import DPASTSMTransactionManager
+    lock_mgr = DPASTSMTransactionManager()
+    dpas_key = lock_mgr.derive_deterministic_advisory_key(1, "account.move", 100)
+    assert dpas_key == sample_key, f"Key mismatch between guard and lock_mgr: {sample_key} vs {dpas_key}"
+
+    # Happy path: lock acquired
+    mock_cr_lock = MagicMock()
+    mock_cr_lock.fetchone.return_value = (True,)
+    res_acquired = lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, 1, "account.move", 42)
+    assert res_acquired is True
+    mock_cr_lock.execute.assert_any_call("SAVEPOINT flat_sp_42;")
+    mock_cr_lock.execute.assert_any_call("SELECT pg_try_advisory_xact_lock(%s);", (lock_mgr.derive_deterministic_advisory_key(1, "account.move", 42),))
+    mock_cr_lock.execute.assert_any_call("RELEASE SAVEPOINT flat_sp_42;")
+
+    # Contention: lock not acquired
+    mock_cr_lock.reset_mock()
+    mock_cr_lock.fetchone.return_value = (False,)
+    res_busy = lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, 1, "account.move", 42)
+    assert res_busy is False
+    mock_cr_lock.execute.assert_any_call("SAVEPOINT flat_sp_42;")
+    mock_cr_lock.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_42;")
+
+    # Exception during lock acquisition
+    mock_cr_lock.reset_mock()
+    mock_cr_lock.fetchone.side_effect = RuntimeError("Lock failure")
+    try:
+        lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, 1, "account.move", 42)
+        raise AssertionError("Expected exception")
+    except RuntimeError:
+        pass
+    mock_cr_lock.execute.assert_any_call("SAVEPOINT flat_sp_42;")
+    mock_cr_lock.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_42;")
+
+    # 4. Test _process_pinned_batch_safe
+    mock_env = MagicMock()
+    mock_cr = MagicMock()
+    mock_env.cr = mock_cr
+    mock_env.company = MagicMock(id=1)
+    guard.env = mock_env
+
+    class DummyRecord:
+        def __init__(self, rec_id, return_val=None, exc=None):
+            self.id = rec_id
+            self.company_id = 1
+            self.return_val = return_val
+            self.exc = exc
+            self.executed = False
+
+        def with_company(self, company):
+            return self
+
+        def _execute_conversion(self):
+            self.executed = True
+            if self.exc:
+                raise self.exc
+            return self.return_val if self.return_val is not None else f"res_{self.id}"
+
+    # 4a. Backpressure: truncates batch > max_batch_size
+    large_batch = [DummyRecord(i) for i in range(75)]
+    proc, errs = guard._process_pinned_batch_safe(large_batch, max_batch_size=50)
+    assert len(proc) == 50, f"Expected 50 processed, got {len(proc)}"
+    assert len(errs) == 0
+    assert proc == [f"res_{i}" for i in range(50)]
+
+    # 4b. Happy path calls SAVEPOINT flat_sp_... and RELEASE SAVEPOINT flat_sp_...
+    mock_cr.reset_mock()
+    rec_happy = DummyRecord(99, return_val="success_99")
+    proc, errs = guard._process_pinned_batch_safe([rec_happy], max_batch_size=50)
+    assert proc == ["success_99"]
+    assert errs == []
+    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_99;")
+    mock_cr.execute.assert_any_call("RELEASE SAVEPOINT flat_sp_99;")
+
+    # 4c. UserError / ValidationError calls ROLLBACK TO SAVEPOINT flat_sp_..., appends error, continues
+    mock_cr.reset_mock()
+    rec_uerr = DummyRecord(101, exc=exceptions.UserError("User invoice error"))
+    rec_verr = DummyRecord(102, exc=exceptions.ValidationError("Validation rate error"))
+    rec_cont = DummyRecord(103, return_val="success_103")
+
+    proc, errs = guard._process_pinned_batch_safe([rec_uerr, rec_verr, rec_cont], max_batch_size=50)
+    assert proc == ["success_103"]
+    assert len(errs) == 2
+    assert errs[0] == (101, "User invoice error")
+    assert errs[1] == (102, "Validation rate error")
+    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_101;")
+    mock_cr.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_101;")
+    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_102;")
+    mock_cr.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_102;")
+    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_103;")
+    mock_cr.execute.assert_any_call("RELEASE SAVEPOINT flat_sp_103;")
+
+    # 4d. Critical error calls ROLLBACK TO SAVEPOINT flat_sp_... and trips circuit breaker (break)
+    mock_cr.reset_mock()
+    rec_crit = DummyRecord(201, exc=RuntimeError("Fatal connection loss"))
+    rec_blocked = DummyRecord(202, return_val="should_not_run")
+
+    proc, errs = guard._process_pinned_batch_safe([rec_crit, rec_blocked], max_batch_size=50)
+    assert proc == []
+    assert len(errs) == 1
+    assert errs[0] == (201, "CRITICAL_INTERNAL_ERROR")
+    assert not rec_blocked.executed, "Blocked record should not be executed after circuit breaker trip"
+    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_201;")
+    mock_cr.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_201;")
+
+    # 5. Test allocate_decree70_sequence
+    from tools.zk_motl_merkle_outbox import allocate_decree70_sequence, ZKMOTLOutboxManager
+    mock_cr_seq = MagicMock()
+    mock_cr_seq.fetchone.return_value = (5, 42)
+    next_seq = allocate_decree70_sequence(mock_cr_seq, company_id=1)
+    assert next_seq == 43
+    mock_cr_seq.execute.assert_any_call(
+        "SELECT id, current_sequence FROM decree70_sequence_register WHERE company_id = %s FOR UPDATE;",
+        (1,),
+    )
+    mock_cr_seq.execute.assert_any_call(
+        "UPDATE decree70_sequence_register SET current_sequence = %s WHERE id = %s;",
+        (43, 5),
+    )
+
+    # Sequence error if company not found
+    mock_cr_seq.reset_mock()
+    mock_cr_seq.fetchone.return_value = None
+    try:
+        allocate_decree70_sequence(mock_cr_seq, company_id=999)
+        raise AssertionError("Expected ValueError on uninitialized company")
+    except ValueError as e:
+        assert "Statutory sequence register not initialized for company." in str(e)
+
+    # 6. Test buffer_outbox_record in ZKMOTLOutboxManager
+    outbox = ZKMOTLOutboxManager()
+    assert hasattr(outbox, "buffered_outbox")
+    assert outbox.buffered_outbox == []
+
+    buffered_item = outbox.buffer_outbox_record(company_id=1, record_ref="account.move,501", statutory_seq=43)
+    assert buffered_item == {
+        'company_id': 1,
+        'record_ref': 'account.move,501',
+        'statutory_sequence': 43,
+        'state': 'pending',
+    }
+    assert len(outbox.buffered_outbox) == 1
+    assert outbox.buffered_outbox[0] == buffered_item
+
+    print("[✓] Patch 19 / DT-VPAL Advisory Locks, Flat Savepoints & Decree 70 Outbox verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -1669,8 +1874,9 @@ def main():
     test_patch_17_dual_partition_advisory_lock_and_sql_guards()
     test_patch_17_zbesl_csa_and_parity_scanner_hardening()
     test_patch_18_zero_leak_sanitizer_dpas_lock_and_zk_motl()
-    print("[✓] ALL 18 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 18 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox()
+    print("[✓] ALL 19 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 19 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
