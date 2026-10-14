@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="ir_cron_insilos_pinned_conversion_247" model="ir.cron">
+        <field name="name">Insilos: 24/7 DERS-ZLRR Pinned Conversion Processor</field>
+        <field name="interval_number">10</field>
+        <field name="interval_type">minutes</field>
+        <field name="numbercall">-1</field>
+        <field name="doall" eval="False"/>
+        <field name="model_id" ref="model_insilos_pinned_conversion_cron"/>
+        <field name="state">code</field>
+        <field name="code">model.process_247_conversions()</field>
+        <field name="priority">5</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

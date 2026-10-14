@@ -805,6 +805,108 @@ def test_patch_14_gaopham_concurrency_and_tenant_guard():
 test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation = test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation
 
 
+def test_patch_15_ders_zlrr_and_decree70_statutory_barrier():
+    import ast
+    import importlib.util
+    import unittest
+
+    init_py = os.path.join(ROOT_DIR, "addons/insilos_pinned_conversion/__init__.py")
+    manifest_py = os.path.join(ROOT_DIR, "addons/insilos_pinned_conversion/__manifest__.py")
+    cron_xml = os.path.join(ROOT_DIR, "addons/insilos_pinned_conversion/data/ir_cron_data.xml")
+    models_init_py = os.path.join(ROOT_DIR, "addons/insilos_pinned_conversion/models/__init__.py")
+    cron_py = os.path.join(ROOT_DIR, "addons/insilos_pinned_conversion/models/pinned_conversion_cron.py")
+    engine_py = os.path.join(ROOT_DIR, "addons/insilos_pinned_conversion/models/conversion_engine.py")
+    journal_py = os.path.join(ROOT_DIR, "addons/insilos_pinned_conversion/models/conversion_journal_helper.py")
+    tests_init_py = os.path.join(ROOT_DIR, "addons/insilos_pinned_conversion/tests/__init__.py")
+    test_adv_py = os.path.join(ROOT_DIR, "addons/insilos_pinned_conversion/tests/test_pinned_conversion_adversarial.py")
+
+    # 1. Existence assertions
+    for p in [init_py, manifest_py, cron_xml, models_init_py, cron_py, engine_py, journal_py, tests_init_py, test_adv_py]:
+        assert os.path.exists(p), f"Missing required file: {p}"
+
+    # 2. addons/insilos_pinned_conversion/__init__.py safe fallback
+    with open(init_py, "r", encoding="utf-8") as f:
+        init_src = f.read()
+    assert "from . import models" in init_src, "Missing models import in __init__.py"
+    assert "except Exception:" in init_src, "models import must be wrapped in try/except"
+    assert "models = None" in init_src, "models must fall back to None on exception"
+
+    # 3. addons/insilos_pinned_conversion/__manifest__.py
+    with open(manifest_py, "r", encoding="utf-8") as f:
+        man_src = f.read()
+    assert "'base'" in man_src and "'account'" in man_src, "Missing base or account in manifest depends"
+    assert "data/ir_cron_data.xml" in man_src, "data/ir_cron_data.xml not registered in manifest data"
+
+    # 4. addons/insilos_pinned_conversion/data/ir_cron_data.xml
+    with open(cron_xml, "r", encoding="utf-8") as f:
+        xml_src = f.read()
+    assert "ir_cron_insilos_pinned_conversion_247" in xml_src, "Missing ir_cron_insilos_pinned_conversion_247 in cron xml"
+    assert "model.process_247_conversions()" in xml_src, "Missing model.process_247_conversions() in cron xml"
+
+    # 5. addons/insilos_pinned_conversion/models/__init__.py
+    with open(models_init_py, "r", encoding="utf-8") as f:
+        mod_init_src = f.read()
+    assert "pinned_conversion_cron" in mod_init_src, "Missing pinned_conversion_cron in models/__init__.py"
+    assert "conversion_engine" in mod_init_src, "Missing conversion_engine in models/__init__.py"
+    assert "conversion_journal_helper" in mod_init_src, "Missing conversion_journal_helper in models/__init__.py"
+
+    # 6. AST & Invariants: pinned_conversion_cron.py
+    with open(cron_py, "r", encoding="utf-8") as f:
+        cron_src = f.read()
+    tree_cron = ast.parse(cron_src)
+    classes_cron = {n.name: n for n in ast.walk(tree_cron) if isinstance(n, ast.ClassDef)}
+    assert "PinnedConversionCron" in classes_cron, "Missing PinnedConversionCron in pinned_conversion_cron.py"
+    assert "_name = 'insilos.pinned.conversion.cron'" in cron_src, "Missing _name = 'insilos.pinned.conversion.cron'"
+    assert "process_247_conversions" in cron_src, "Missing process_247_conversions method"
+    assert "_process_company_conversion" in cron_src, "Missing _process_company_conversion method"
+    assert "_execute_conversion_pipeline" in cron_src, "Missing _execute_conversion_pipeline method"
+    assert 'f"insilos_pinned_conv_{company.id}"' in cron_src, "Missing deterministic company lock seed string"
+    assert "pg_try_advisory_xact_lock" in cron_src, "Missing pg_try_advisory_xact_lock"
+    assert "hashlib.md5" in cron_src, "MD5 hash must be used for lock derivation"
+    assert "struct.unpack" in cron_src, "struct.unpack must be used for 64-bit lock key"
+    assert "pg_advisory_lock" not in cron_src.replace("pg_try_advisory_xact_lock", ""), "Prohibited session-scoped advisory lock found"
+
+    # 7. AST & Invariants: conversion_engine.py
+    with open(engine_py, "r", encoding="utf-8") as f:
+        eng_src = f.read()
+    tree_eng = ast.parse(eng_src)
+    classes_eng = {n.name: n for n in ast.walk(tree_eng) if isinstance(n, ast.ClassDef)}
+    assert "ConversionEngine" in classes_eng, "Missing ConversionEngine in conversion_engine.py"
+    assert "_name = 'insilos.conversion.engine'" in eng_src, "Missing _name = 'insilos.conversion.engine'"
+    assert "_revalue_contract_invoices" in eng_src, "Missing _revalue_contract_invoices method"
+    assert "_apply_revaluation_entry" in eng_src, "Missing _apply_revaluation_entry method"
+    assert "with_company(company)" in eng_src, "Missing with_company(company) call"
+    assert "'draft'" in eng_src, "Missing draft state enforcement"
+    assert "edi_state in [False, 'to_send']" in eng_src, "Missing Decree 70 statutory barrier check"
+    assert "AccessError" in eng_src, "Missing AccessError for company mismatch"
+
+    # 8. AST & Invariants: conversion_journal_helper.py
+    with open(journal_py, "r", encoding="utf-8") as f:
+        jour_src = f.read()
+    tree_jour = ast.parse(jour_src)
+    classes_jour = {n.name: n for n in ast.walk(tree_jour) if isinstance(n, ast.ClassDef)}
+    assert "ConversionJournalHelper" in classes_jour, "Missing ConversionJournalHelper in conversion_journal_helper.py"
+    assert "_name = 'insilos.conversion.journal.helper'" in jour_src, "Missing _name = 'insilos.conversion.journal.helper'"
+    assert "create_exchange_adjustment_entry" in jour_src, "Missing create_exchange_adjustment_entry method"
+    assert "pinned_conv_sp_{invoice.id}" in jour_src, "Missing invoice-scoped savepoint identifier"
+    assert "math.isclose(total_debit, total_credit, abs_tol=1e-4)" in jour_src, "Missing double-entry balance check"
+    assert "ValidationError" in jour_src, "Missing ValidationError on unbalanced entry"
+    assert "self.env.invalidate_all()" in jour_src, "Missing cache invalidation on error"
+
+    # 9. Behavioral execution of test_pinned_conversion_adversarial
+    spec = importlib.util.spec_from_file_location("test_pinned_conversion_adversarial", test_adv_py)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    suite = unittest.TestLoader().loadTestsFromTestCase(mod.TestPinnedConversionAdversarial)
+    runner = unittest.TextTestRunner(verbosity=0)
+    res = runner.run(suite)
+    assert res.wasSuccessful() and res.testsRun == 4, (
+        f"TestPinnedConversionAdversarial failed: errors={len(res.errors)}, failures={len(res.failures)}"
+    )
+
+    print("[✓] Patch 15 / DERS-ZLRR and Decree 70 Statutory Barrier for Pinned Conversions verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -821,12 +923,14 @@ def main():
     test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation()
     test_patch_14_cellular_crash_only_pinned_conversions()
     test_patch_14_gaopham_concurrency_and_tenant_guard()
-    print("[✓] ALL 14 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 14 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_15_ders_zlrr_and_decree70_statutory_barrier()
+    print("[✓] ALL 15 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 15 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 
