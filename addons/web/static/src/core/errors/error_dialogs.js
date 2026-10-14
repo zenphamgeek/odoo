@@ -41,14 +41,44 @@ for (const prefix of ["insilos", String.fromCharCode(111, 100, 111, 111)]) {
 export const odooExceptionTitleMap = insilosExceptionTitleMap;
 
 export function sanitizeErrorPayload(input) {
-    if (input === null || input === undefined) {
-        return "";
+    if (!input) {
+        return input || "";
     }
-    let text = typeof input === "object" ? JSON.stringify(input) : String(input);
+    const visited = new WeakSet();
+    function safeSerialize(val, depth = 0) {
+        if (depth > 6) return "[MAX_DEPTH]";
+        if (val === null || val === undefined) return val;
+        if (typeof val !== "object") return val;
+        if (visited.has(val)) return "[CIRCULAR_REF]";
+        visited.add(val);
+        if (val instanceof Error) {
+            return {
+                name: val.name,
+                message: val.message,
+                stack: val.stack,
+                cause: val.cause ? safeSerialize(val.cause, depth + 1) : undefined,
+            };
+        }
+        if (Array.isArray(val)) {
+            return val.map((item) => safeSerialize(item, depth + 1));
+        }
+        const out = {};
+        for (const key of Object.getOwnPropertyNames(val)) {
+            try {
+                out[key] = safeSerialize(val[key], depth + 1);
+            } catch {
+                out[key] = "[UNSERIALIZABLE]";
+            }
+        }
+        return out;
+    }
+
+    let text = typeof input === "object" ? JSON.stringify(safeSerialize(input)) : String(input);
     return text
-        .replace(/Bearer\s+[A-Za-z0-9\-._~+/]+=*/gi, "Bearer [REDACTED]")
-        .replace(/(password|passwd|pwd|secret|token|apiKey|client_secret|session_id|sid)["']?\s*[:=]\s*["']?[^\s&,"']+/gi, "$1=[REDACTED]")
-        .replace(/(authorization)["']?\s*[:=]\s*["']?(?!Bearer\b)[^\s&,"']+/gi, "$1=[REDACTED]")
+        .replace(/\b(Bearer|Basic|Digest)\s+[A-Za-z0-9\-._~+/]+=*/gi, "$1 [REDACTED]")
+        .replace(/\b(?:sk-[a-zA-Z0-9\-_]{20,}|AKIA[0-9A-Z]{16}|ghp_[a-zA-Z0-9]{36})\b/g, "[REDACTED_API_KEY]")
+        .replace(/((?:postgresql|postgres|mysql|redis|amqp|mongodb(?:\+srv)?):\/\/[^:\s\/]+:)[^@\s\/]+(@)/gi, "$1[REDACTED]$2")
+        .replace(/(password|passwd|pwd|secret|token|api_key|apiKey|access_token|refresh_token|client_secret|session_id|sid|cookie|connection_string|authorization)["']?\s*[:=]\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|(?!(?:Bearer|Basic|Digest)\b)[^\s&,"']+)/gi, "$1=[REDACTED]")
         .replace(/(session_id|sid)=[^;&\s]+/gi, "$1=[REDACTED]")
         .replace(/\b(0[35789])[0-9]{4}([0-9]{4})\b/g, "$1****$2")
         .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED_EMAIL]");
