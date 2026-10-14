@@ -13,8 +13,15 @@ from . import hook
 # Auto-activate import hook on module import
 hook.install()
 
+# Expose models when Odoo runtime environment is present
+try:
+    from . import models
+except Exception:
+    models = None
+
 # Expose HTTP controllers when Odoo runtime environment is present
 try:
     from . import controllers
 except Exception:
     controllers = None
+

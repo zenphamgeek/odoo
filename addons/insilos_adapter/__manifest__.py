@@ -21,7 +21,9 @@ Provides:
     'website': 'https://insilos.com',
     'license': 'LGPL-3',
     'depends': ['base'],
-    'data': [],
+    'data': [
+        'data/ir_cron_data.xml',
+    ],
     'installable': True,
     'application': False,
     'auto_install': False,

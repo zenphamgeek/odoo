@@ -167,6 +167,7 @@ class Al2cTimesheetStaging(models.Model):
         ('invoiced', 'Invoiced (Decree 70)'),
         ('rejected', 'Rejected by PM'),
         ('duplicate', 'Duplicate Submission'),
+        ('quarantined', 'Quarantined'),
     ], string='Ingestion Status', default='received', required=True, tracking=True, index=True)
 
     raw_email_body = fields.Text(string='Raw Email / Payload Body')
@@ -1233,13 +1234,15 @@ class Al2cTimesheetStaging(models.Model):
     def _action_generate_decree70_invoice(self):
         """Generates Decree 70 compliant e-invoice from staging record."""
         self.ensure_one()
-        partner = self.env['res.partner'].search([('is_company', '=', True)], limit=1)
+        rec_company = self.project_id.company_id if (self.project_id and self.project_id.company_id) else self.env.company
+        partner = self.env['res.partner'].with_company(rec_company).search([('is_company', '=', True)], limit=1)
         if not partner:
-            partner = self.env.company.partner_id
+            partner = rec_company.partner_id
 
-        existing_invoice = self.env['account.move'].search([
+        existing_invoice = self.env['account.move'].with_company(rec_company).search([
             ('ref', '=', self.name),
             ('move_type', '=', 'out_invoice'),
+            ('company_id', '=', rec_company.id),
         ], limit=1)
         if existing_invoice:
             self.write({'state': 'invoiced'})
@@ -1250,7 +1253,7 @@ class Al2cTimesheetStaging(models.Model):
             'move_type': 'out_invoice',
             'partner_id': partner.id,
             'ref': self.name,
-            'company_id': self.env.company.id,
+            'company_id': rec_company.id,
             'invoice_line_ids': [
                 (0, 0, {
                     'name': self.name or _("Consulting Service (Decree 70)"),
@@ -1259,7 +1262,7 @@ class Al2cTimesheetStaging(models.Model):
                 })
             ]
         }
-        invoice = self.env['account.move'].sudo().create(invoice_vals)
+        invoice = self.env['account.move'].with_company(rec_company).sudo().create(invoice_vals)
         self.write({'state': 'invoiced'})
         return invoice
 
@@ -1295,8 +1298,19 @@ class Al2cTimesheetStaging(models.Model):
         processed_records = self.env['al2c.timesheet.staging']
 
         for record in records:
-            record._action_generate_decree70_invoice()
-            processed_records |= record
+            try:
+                with self.env.cr.savepoint():
+                    record._action_generate_decree70_invoice()
+                    processed_records |= record
+            except Exception as exc:
+                _logger.warning("Failure processing pinned conversion for staging record %s: %s", record.id, exc)
+                try:
+                    with self.env.cr.savepoint():
+                        record.write({'state': 'quarantined'})
+                        record.message_post(body=_("Quarantined pinned conversion failure: %s") % str(exc))
+                        processed_records |= record
+                except Exception:
+                    pass
 
         if processed_records:
             latest = processed_records[-1]

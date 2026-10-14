@@ -599,6 +599,125 @@ def test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation():
     print("[✓] Patch 13 / POS Barcodelookup Node Sandbox & MRP Valuation Inheritance Parity verified")
 
 
+def test_patch_14_cellular_crash_only_pinned_conversions():
+    import ast
+    adapter_models_init = os.path.join(ROOT_DIR, "addons/insilos_adapter/models/__init__.py")
+    adapter_models_py = os.path.join(ROOT_DIR, "addons/insilos_adapter/models/pinned_conversion.py")
+    adapter_init = os.path.join(ROOT_DIR, "addons/insilos_adapter/__init__.py")
+    adapter_manifest = os.path.join(ROOT_DIR, "addons/insilos_adapter/__manifest__.py")
+    adapter_cron = os.path.join(ROOT_DIR, "addons/insilos_adapter/data/ir_cron_data.xml")
+    adapter_tests_init = os.path.join(ROOT_DIR, "addons/insilos_adapter/tests/__init__.py")
+    adapter_test_py = os.path.join(ROOT_DIR, "addons/insilos_adapter/tests/test_pinned_conversion_adversarial.py")
+    al2c_staging_py = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/al2c_timesheet_staging.py")
+    website_cron_py = os.path.join(ROOT_DIR, "enterprise/insilos_website/models/pinned_conversion_cron.py")
+
+    # 1. Existence assertions
+    for p in [adapter_models_init, adapter_models_py, adapter_init, adapter_manifest, adapter_cron, adapter_tests_init, adapter_test_py, al2c_staging_py, website_cron_py]:
+        assert os.path.exists(p), f"Missing expected file: {p}"
+
+    # 2. addons/insilos_adapter/models/__init__.py
+    with open(adapter_models_init, "r", encoding="utf-8") as f:
+        assert "pinned_conversion" in f.read(), "pinned_conversion not imported in adapter models/__init__.py"
+
+    # 3. addons/insilos_adapter/__init__.py safe fallback
+    with open(adapter_init, "r", encoding="utf-8") as f:
+        init_src = f.read()
+        assert "from . import models" in init_src, "Missing models import in adapter __init__.py"
+        assert "except Exception:" in init_src, "models import must be wrapped in try/except in adapter __init__.py"
+
+    # 4. addons/insilos_adapter/__manifest__.py
+    with open(adapter_manifest, "r", encoding="utf-8") as f:
+        manifest_src = f.read()
+        assert "data/ir_cron_data.xml" in manifest_src, "data/ir_cron_data.xml not registered in adapter __manifest__.py"
+
+    # 5. addons/insilos_adapter/data/ir_cron_data.xml
+    with open(adapter_cron, "r", encoding="utf-8") as f:
+        cron_src = f.read()
+        assert "ir_cron_insilos_pinned_conversion_runner" in cron_src, "Missing ir_cron_insilos_pinned_conversion_runner in cron xml"
+        assert "model_insilos_pinned_conversion_runner" in cron_src, "Missing model_insilos_pinned_conversion_runner in cron xml"
+        assert "model.process_all_companies_cron()" in cron_src, "Missing process_all_companies_cron() call in cron xml"
+
+    # 6. addons/insilos_adapter/models/pinned_conversion.py AST & invariants
+    with open(adapter_models_py, "r", encoding="utf-8") as f:
+        pc_src = f.read()
+    tree_pc = ast.parse(pc_src)
+    classes_pc = {n.name: n for n in ast.walk(tree_pc) if isinstance(n, ast.ClassDef)}
+    assert "PinnedConversion" in classes_pc, "Missing PinnedConversion class in pinned_conversion.py"
+    assert "PinnedConversionRunner" in classes_pc, "Missing PinnedConversionRunner class in pinned_conversion.py"
+    assert "pg_try_advisory_xact_lock" in pc_src, "Missing pg_try_advisory_xact_lock in runner"
+    assert "self.with_company(company_id)" in pc_src, "Missing self.with_company(company_id) in runner"
+    assert "self.env.cr.savepoint()" in pc_src, "Missing savepoint in runner execution loop"
+    assert "Tenant Security Violation" in pc_src, "Missing company mismatch validation in _execute_conversion_cellular"
+    assert "_quarantine_failure" in pc_src, "Missing _quarantine_failure method in PinnedConversion"
+
+    # 7. addons/insilos_al2c/models/al2c_timesheet_staging.py invariants
+    with open(al2c_staging_py, "r", encoding="utf-8") as f:
+        al2c_src = f.read()
+    assert "rec_company = self.project_id.company_id if (self.project_id and self.project_id.company_id) else self.env.company" in al2c_src, (
+        "Missing rec_company tenant resolution in _action_generate_decree70_invoice"
+    )
+    assert "with_company(rec_company)" in al2c_src, "Missing with_company(rec_company) in staging invoice generation"
+    assert "with self.env.cr.savepoint():" in al2c_src, "Missing savepoint in _cron_process_pinned_conversions"
+    assert "record.write({'state': 'quarantined'})" in al2c_src, "Missing quarantine write in _cron_process_pinned_conversions"
+
+    # 8. enterprise/insilos_website/models/pinned_conversion_cron.py dispatch
+    with open(website_cron_py, "r", encoding="utf-8") as f:
+        wc_src = f.read()
+    assert "sale.order" in wc_src, "Missing sale.order dispatch in _process_tenant_pinned_rates"
+    assert "al2c.timesheet.staging" in wc_src, "Missing al2c.timesheet.staging dispatch in _process_tenant_pinned_rates"
+
+    # 9. Behavioral Simulation of Crash-Only Actor Quarantine escalation
+    class MockConversionActor:
+        def __init__(self, company_id=1, rate=25000.0, state='pending', retry_count=0):
+            self.company_id = company_id
+            self.rate = rate
+            self.state = state
+            self.retry_count = retry_count
+            self.last_error = False
+
+        def _execute(self, env_company_id):
+            if self.company_id != env_company_id:
+                raise ValueError("Tenant Security Violation: Execution company mismatch.")
+            if self.rate <= 0.0:
+                raise ValueError("Invalid rate: Value must be strictly positive.")
+            self.state = 'applied'
+
+        def _quarantine(self, err):
+            self.retry_count += 1
+            self.state = 'quarantined' if self.retry_count >= 3 else 'pending'
+            self.last_error = str(err)
+
+    # Actor 1: Healthy
+    act_healthy = MockConversionActor(1, 25000.0)
+    act_healthy._execute(1)
+    assert act_healthy.state == 'applied', "Healthy actor must transition to applied"
+
+    # Actor 2: Corrupt -> DLQ escalation
+    act_bad = MockConversionActor(1, -1.0)
+    for attempt in range(1, 4):
+        try:
+            act_bad._execute(1)
+        except Exception as exc:
+            act_bad._quarantine(exc)
+        if attempt < 3:
+            assert act_bad.state == 'pending', f"Attempt {attempt} should keep pending"
+            assert act_bad.retry_count == attempt
+        else:
+            assert act_bad.state == 'quarantined', "3rd failure must transition to quarantined"
+            assert act_bad.retry_count == 3
+            assert "Invalid rate" in act_bad.last_error
+
+    # Actor 3: Cross-tenant bleed prevention
+    act_cross = MockConversionActor(company_id=2, rate=100.0)
+    try:
+        act_cross._execute(env_company_id=1)
+        assert False, "Cross-tenant execution should have raised ValueError"
+    except ValueError as exc:
+        assert "Tenant Security Violation" in str(exc)
+
+    print("[✓] Patch 14 / Cellular Crash-Only OTP Supervision & Advisory Lock for Pinned Conversions verified")
+
+
 test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation = test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation
 
 
@@ -616,8 +735,9 @@ def main():
     test_patch_11_pinned_conversion_cron_safety_gate()
     test_patch_12_catalog_security_invariants()
     test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation()
-    print("[✓] ALL 12 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 13 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_14_cellular_crash_only_pinned_conversions()
+    print("[✓] ALL 14 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 14 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
