@@ -2,7 +2,8 @@ import base64
 import io
 import logging
 
-from odoo import api, fields, models, modules, _
+from psycopg2 import IntegrityError, errors as pg_errors
+from odoo import api, Command, fields, models, modules, _
 from odoo.exceptions import AccessError
 from odoo.tools.pdf import PdfFileReader
 
@@ -53,9 +54,10 @@ class DocumentsDocument(models.Model):
         stream = io.BytesIO(raw_bytes)
         try:
             reader = PdfFileReader(stream, strict=False)
-            num_pages = getattr(reader, 'numPages', None)
-            if num_pages is None and hasattr(reader, 'pages'):
+            if hasattr(reader, 'pages'):
                 num_pages = len(reader.pages)
+            else:
+                num_pages = getattr(reader, 'numPages', None)
             return bool(num_pages and num_pages > 1)
         except Exception:
             _logger.debug("Unable to count pages in PDF document %r", self.name, exc_info=True)
@@ -196,20 +198,41 @@ class DocumentsDocument(models.Model):
             'subfolder_ids': configured_folders,
         }
 
+    @api.model
+    def _get_or_create_canonical_split_tag(self):
+        """SEC-AUDIT-AL2C-20261014-01: Canonical XML-ID pre-binding and atomic savepoint
+        resolution for 'To Split' document tag. Eliminates TOCTOU race conditions under
+        concurrent cron workers.
+        """
+        tag = self.env.ref('insilos_al2c.tag_document_to_split', raise_if_not_found=False)
+        if tag and tag.exists():
+            return tag
+
+        tag = self.env['documents.tag'].search([('name', '=ilike', 'To Split')], limit=1)
+        if tag:
+            return tag
+
+        try:
+            with self.env.cr.savepoint():
+                return self.env['documents.tag'].create({'name': 'To Split'})
+        except (pg_errors.UniqueViolation, IntegrityError):
+            _logger.info("Concurrent 'To Split' tag creation intercepted; resolving canonical winner.")
+            return self.env['documents.tag'].search([('name', '=ilike', 'To Split')], limit=1)
+
     def classify_dgm_document(self):
         """Rule-based and AI voucher classification for incoming DGM documents.
         Routes Canva remittances, VNPT/Viettel bills, BHXH C12-TS, VCB DigiBiz sheets,
         MTI timesheets, and labor contracts into their designated folders.
         """
+        docs_to_split = self.env['documents.document']
+
         for doc in self:
             if doc.type == 'folder':
                 continue
 
-            # Multipage check
+            # Multipage check: accumulate for vectorized batch assignment
             if doc._get_is_multipage():
-                tag_to_split = self.env['documents.tag'].search([('name', 'ilike', 'To Split')], limit=1)
-                if tag_to_split:
-                    doc.write({'tag_ids': [(4, tag_to_split.id)]})
+                docs_to_split |= doc
                 continue
 
             text_corpus = f"{doc.name or ''} {getattr(doc.attachment_id, 'name', '')}".lower()
@@ -262,9 +285,14 @@ class DocumentsDocument(models.Model):
             if tag_name:
                 tag = self.env['documents.tag'].search([('name', '=', tag_name)], limit=1)
                 if tag:
-                    vals['tag_ids'] = [(4, tag.id)]
+                    vals['tag_ids'] = [Command.link(tag.id)]
 
             if vals:
                 doc.write(vals)
+
+        # Vectorized batch assignment for multipage documents
+        if docs_to_split:
+            tag_to_split = self._get_or_create_canonical_split_tag()
+            docs_to_split.write({'tag_ids': [Command.link(tag_to_split.id)]})
 
         return True

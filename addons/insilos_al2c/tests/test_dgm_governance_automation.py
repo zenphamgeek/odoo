@@ -11,6 +11,7 @@ from unittest.mock import patch
 from odoo import fields
 from odoo.tests.common import TransactionCase, tagged
 from odoo.exceptions import UserError
+from odoo.tools.pdf import PdfFileWriter
 
 from odoo.addons.insilos_al2c.models.hr_payslip_vcb import VCB_DIGIBIZ_COLUMNS, remove_vietnamese_accents
 
@@ -212,12 +213,27 @@ class TestDgmGovernanceAutomation(TransactionCase):
         self.assertTrue(res_a['has_legacy_entity'])
         self.assertIn("Ứng Dụng Sáng Tạo", res_a['summary'])
 
+        # Test Case A2: Inverted Legacy Entity Name Variants (e.g. Sáng Tạo Ứng Dụng)
+        for inverted_name in ("Sáng Tạo Ứng Dụng", "Sang Tao Ung Dung", "Công ty TNHH Sáng Tạo Ứng Dụng"):
+            text_inverted = f"Đơn vị phát hành: {inverted_name} hợp đồng số 42/2023."
+            res_inv = self.scanner.scan_text(text_inverted)
+            self.assertFalse(res_inv['is_compliant'], f"Inverted entity name '{inverted_name}' must be flagged non-compliant")
+            self.assertTrue(res_inv['has_legacy_entity'], f"Inverted entity name '{inverted_name}' must flag has_legacy_entity")
+
         # Test Case B: Legacy Tax Code
         text_legacy_mst = "Bên A: Đại diện công ty mã số thuế 0313683499 tại TP.HCM."
         res_b = self.scanner.scan_text(text_legacy_mst)
         self.assertFalse(res_b['is_compliant'])
         self.assertTrue(res_b['has_legacy_tax_code'])
         self.assertIn("0313683499", res_b['summary'])
+
+        # Test Case B2: Formatted Legacy Tax Code Variants (hyphens, dots, spaces)
+        for formatted_vat in ("0313-683-499", "0313.683.499", "0313 683 499"):
+            text_vat = f"Bên A: Mã số thuế cũ {formatted_vat} cần rà soát chuyển đổi."
+            res_vat = self.scanner.scan_text(text_vat)
+            self.assertFalse(res_vat['is_compliant'], f"Formatted tax code '{formatted_vat}' must be flagged non-compliant")
+            self.assertTrue(res_vat['has_legacy_tax_code'], f"Formatted tax code '{formatted_vat}' must flag has_legacy_tax_code")
+            self.assertIn(formatted_vat, res_vat['summary'])
 
         # Test Case C: Outdated Ward Address
         text_outdated_ward = "Trụ sở tại: Số 11, Đường số 3, KDC CityLand, Phường Tân Phú, Quận 7, TP. Hồ Chí Minh."
@@ -453,8 +469,8 @@ class TestDgmGovernanceAutomation(TransactionCase):
     # 6. ZERO FORBIDDEN BRANDING AUDIT
     # =========================================================================
     def test_06_zero_forbidden_branding(self):
-        """Mandatory constraint: ZERO occurrences of forbidden branding strings
-        ('Odoo', 'OpenERP') across user-facing outputs and templates.
+        """Mandatory constraint: ZERO occurrences of forbidden legacy platform strings
+        across user-facing outputs and templates.
         """
         # Check generated VCB Excel narration
         excel_bytes, _ = self.pay_run.generate_vcb_digibiz_xlsx()
@@ -470,3 +486,74 @@ class TestDgmGovernanceAutomation(TransactionCase):
         res = self.scanner.scan_text("Văn bản hành chính hợp chuẩn DGM 0317958465.")
         self.assertNotIn("odoo", res['summary'].lower())
         self.assertNotIn("openerp", res['summary'].lower())
+
+    # =========================================================================
+    # 7. MULTIPAGE PDF 'TO SPLIT' TAG & CLASSIFICATION TESTS
+    # =========================================================================
+    def test_07_multipage_pdf_to_split_tag_assignment(self):
+        """Verify that multipage PDF documents (is_multipage=True) automatically receive
+        the 'To Split' tag (auto-created if missing) and remain unrouted in folder None.
+        """
+        # Build genuine 2-page PDF
+        writer = PdfFileWriter()
+        writer.addBlankPage(width=200, height=200)
+        writer.addBlankPage(width=200, height=200)
+        buf = io.BytesIO()
+        writer.write(buf)
+        multipage_pdf = buf.getvalue()
+
+        # 1. Existing tag scenario
+        tag_to_split = self.env['documents.tag'].search([('name', 'ilike', 'To Split')], limit=1)
+        if not tag_to_split:
+            tag_to_split = self.env['documents.tag'].create({'name': 'To Split'})
+
+        doc_multi = self.doc_model.create({
+            'name': 'Canva_MultiPage_Remittance_Batch.pdf',
+            'mimetype': 'application/pdf',
+            'raw': multipage_pdf,
+        })
+        self.assertTrue(doc_multi._get_is_multipage(), "Must identify genuine 2-page PDF as multipage")
+
+        # Classify document
+        doc_multi.classify_dgm_document()
+
+        # Verify tag 'To Split' is attached and document stays in folder None
+        self.assertIn(tag_to_split, doc_multi.tag_ids, "Multipage doc must receive 'To Split' tag")
+        self.assertFalse(doc_multi.folder_id, "Multipage doc must remain unrouted in folder None")
+
+        # 2. Auto-creation scenario when 'To Split' tag is missing
+        all_to_split = self.env['documents.tag'].search([('name', 'ilike', 'To Split')])
+        all_to_split.unlink()
+        self.assertFalse(self.env['documents.tag'].search([('name', 'ilike', 'To Split')]))
+
+        doc_multi_auto = self.doc_model.create({
+            'name': 'VNPT_MultiPage_Vendor_Bills.pdf',
+            'mimetype': 'application/pdf',
+            'raw': multipage_pdf,
+        })
+        self.assertTrue(doc_multi_auto._get_is_multipage(), "Must identify genuine 2-page PDF as multipage")
+        doc_multi_auto.classify_dgm_document()
+
+        created_tag = self.env['documents.tag'].search([('name', 'ilike', 'To Split')], limit=1)
+        self.assertTrue(created_tag.exists(), "Tag 'To Split' must be auto-created on demand")
+        self.assertEqual(created_tag.name, 'To Split')
+        self.assertIn(created_tag, doc_multi_auto.tag_ids, "Document must have auto-created tag attached")
+        self.assertFalse(doc_multi_auto.folder_id, "Multipage doc must remain unrouted in folder None")
+
+        # 3. Vectorized batch classification scenario on multiple documents simultaneously
+        doc_batch_1 = self.doc_model.create({
+            'name': 'Batch_MultiPage_1.pdf',
+            'mimetype': 'application/pdf',
+            'raw': multipage_pdf,
+        })
+        doc_batch_2 = self.doc_model.create({
+            'name': 'Batch_MultiPage_2.pdf',
+            'mimetype': 'application/pdf',
+            'raw': multipage_pdf,
+        })
+        batch_docs = doc_batch_1 | doc_batch_2
+        batch_docs.classify_dgm_document()
+        for doc in batch_docs:
+            self.assertIn(created_tag, doc.tag_ids, "All batch documents must receive 'To Split' tag in vectorized pass")
+            self.assertFalse(doc.folder_id, "All batch documents must remain unrouted")
+

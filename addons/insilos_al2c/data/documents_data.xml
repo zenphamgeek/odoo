@@ -78,6 +78,10 @@
     </record>
 
     <!-- Tags: document type -->
+    <record id="tag_document_to_split" model="documents.tag">
+        <field name="name">To Split</field>
+        <field name="sequence">19</field>
+    </record>
     <record id="tag_proposal" model="documents.tag">
         <field name="name">L2C > Proposal</field>
         <field name="sequence">20</field>

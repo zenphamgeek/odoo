@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
-from odoo.tests.common import TransactionCase, tagged
+import threading
+from unittest.mock import patch
+from psycopg2 import IntegrityError
+from odoo.tests.common import TransactionCase, tagged, release_test_lock
 from odoo.exceptions import AccessError
 
 
-@tagged('post_install', '-at_install', 'security', 'adversarial', 'timesheet_cron_concurrency')
-class TestAdversarialTimesheetCron(TransactionCase):
+@tagged('post_install', '-at_install', 'security', 'adversarial', 'timesheet_cron_concurrency', 'concurrency')
+class TestAdversarialConcurrency(TransactionCase):
 
     def setUp(self):
         super().setUp()
@@ -72,3 +75,66 @@ class TestAdversarialTimesheetCron(TransactionCase):
         })
         with self.assertRaises(AccessError):
             doc.action_trigger_rag_indexing()
+
+    def test_concurrent_split_tag_creation_race_condition(self):
+        """SEC-AUDIT-AL2C-20261014-01: Ensure concurrent workers attempting to resolve or create
+        the 'To Split' tag simultaneously do not fail with duplicate key violation (23505)
+        and all workers safely obtain the identical canonical tag.
+        """
+        results = []
+        errors = []
+
+        # 1. Primary worker resolves canonical tag
+        tag_1 = self.env['documents.document']._get_or_create_canonical_split_tag()
+        self.assertTrue(tag_1.exists())
+        self.assertEqual(tag_1.name, 'To Split')
+        results.append((0, tag_1.id, tag_1.name))
+
+        # 2. Subsequent concurrent worker cursors resolve the identical canonical tag
+        for i in range(1, 8):
+            with self.env.registry.cursor() as worker_cr:
+                worker_env = self.env(cr=worker_cr)
+                tag_i = worker_env['documents.document']._get_or_create_canonical_split_tag()
+                results.append((i, tag_i.id, tag_i.name))
+
+        self.assertEqual(len(errors), 0, f"No worker should raise an exception: {errors}")
+        self.assertEqual(len(results), 8, "All 8 workers must complete successfully")
+        tag_ids = {r[1] for r in results}
+        self.assertEqual(len(tag_ids), 1, f"All workers must resolve to identical canonical tag ID, got: {tag_ids}")
+        tag_names = {r[2] for r in results}
+        self.assertEqual(tag_names, {'To Split'})
+
+    def test_split_tag_on_demand_creation_when_absent(self):
+        """Verify that when 'To Split' tag does not exist, _get_or_create_canonical_split_tag
+        creates it cleanly inside savepoint and subsequent calls return the created record.
+        """
+        all_tags = self.env['documents.tag'].search([('name', '=ilike', 'To Split')])
+        all_tags.unlink()
+
+        tag_created = self.env['documents.document']._get_or_create_canonical_split_tag()
+        self.assertTrue(tag_created.exists())
+        self.assertEqual(tag_created.name, 'To Split')
+
+        tag_resolved = self.env['documents.document']._get_or_create_canonical_split_tag()
+        self.assertEqual(tag_resolved.id, tag_created.id)
+
+    def test_split_tag_atomic_savepoint_recovery_on_unique_violation(self):
+        """Verify that when a concurrent transaction creates 'To Split' during the window between
+        search and create (raising UniqueViolation / IntegrityError), the method rolls back to
+        the savepoint and safely resolves the canonical tag without crashing the transaction.
+        """
+        winner = self.env['documents.tag'].create({'name': 'To Split - Canonical Winner'})
+
+        with patch.object(type(self.env['documents.tag']), 'create', side_effect=IntegrityError("duplicate key value violates unique constraint")):
+            with patch.object(type(self.env['documents.tag']), 'search', side_effect=[
+                self.env['documents.tag'].browse(),  # 1st lookup in search() misses
+                winner,                              # 2nd lookup in except block finds winner
+            ]):
+                with patch.object(self.env, 'ref', return_value=self.env['documents.tag'].browse()):
+                    resolved = self.env['documents.document']._get_or_create_canonical_split_tag()
+                    self.assertEqual(resolved, winner, "Must resolve to winner tag after recovering from savepoint")
+
+
+# Backwards compatibility alias
+TestAdversarialTimesheetCron = TestAdversarialConcurrency
+

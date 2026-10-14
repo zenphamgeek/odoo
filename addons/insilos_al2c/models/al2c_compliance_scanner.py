@@ -16,7 +16,8 @@ DGM_CANONICAL_WARD = "Phường Tân Mỹ"
 
 # Banned Legacy Signatures
 LEGACY_VAT_PATTERNS = [
-    r'\b0313683499\b',
+    r'\b0313[\s\.\-]?683[\s\.\-]?499\b',
+    r'(?<!\d)0313[\s\.\-]*683[\s\.\-]*499(?!\d)',
 ]
 
 LEGACY_ENTITY_PATTERNS = [
@@ -25,6 +26,11 @@ LEGACY_ENTITY_PATTERNS = [
     r'ung\s+dung\s+sang\s+tao\s+llc',
     r'cty\s+tnhh\s+ung\s+dung\s+sang\s+tao',
     r'công\s*ty\s*tnhh\s*ứng\s*dụng\s*sáng\s*tạo',
+    r'sáng\s*tạo\s*ứng\s*dụng',
+    r'sang\s*tao\s*ung\s*dung',
+    r'sang\s+tao\s+ung\s+dung\s+llc',
+    r'cty\s+tnhh\s+sang\s+tao\s+ung\s+dung',
+    r'công\s*ty\s*tnhh\s*sáng\s*tạo\s*ứng\s*dụng',
 ]
 
 OUTDATED_WARD_PATTERNS = [
