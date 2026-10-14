@@ -41,12 +41,21 @@ function sanitizeErrorPayload(input) {
 
     let text = typeof input === "object" ? JSON.stringify(safeSerialize(input)) : String(input);
     return text
-        .replace(/\b(Bearer|Basic|Digest)\s+[A-Za-z0-9\-._~+/]+=*/gi, "$1 [REDACTED]")
-        .replace(/\b(?:sk-[a-zA-Z0-9\-_]{20,}|AKIA[0-9A-Z]{16}|ghp_[a-zA-Z0-9]{36})\b/g, "[REDACTED_API_KEY]")
+        .replace(/\b(Bearer|Basic)\s+[A-Za-z0-9\-._~+/]+=*/gi, "$1 [REDACTED]")
+        .replace(/\bDigest\s+[^\r\n"'\\]+/gi, "Digest [REDACTED]")
+        .replace(/\b(sk-(?:ant-[a-zA-Z0-9\-_]{20,}|[a-zA-Z0-9\-_]{20,})|A[SK]IA[0-9A-Z]{16}|AIza[0-9A-Za-z\-_]{35}|ghp_[a-zA-Z0-9]{36})\b/g, "[REDACTED_API_KEY]")
         .replace(/((?:postgresql|postgres|mysql|redis|amqp|mongodb(?:\+srv)?):\/\/[^:\s\/]+:)[^@\s\/]+(@)/gi, "$1[REDACTED]$2")
-        .replace(/(password|passwd|pwd|secret|token|api_key|apiKey|access_token|refresh_token|client_secret|session_id|sid|cookie|connection_string|authorization)["']?\s*[:=]\s*(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|(?!(?:Bearer|Basic|Digest)\b)[^\s&,"']+)/gi, "$1=[REDACTED]")
+        .replace(
+            /(["']?(?:password|passwd|pwd|secret|token|api_key|apiKey|access_token|refresh_token|client_secret|session_id|sid|cookie|connection_string|authorization)["']?\s*)([:=])(\s*)(?:"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|(?!(?:Bearer|Basic|Digest)\b)[^\s&,"']+)/gi,
+            (match, key, sep, space) => {
+                if (sep === ":") {
+                    return `${key}:${space}"[REDACTED]"`;
+                }
+                return `${key}=${space}[REDACTED]`;
+            }
+        )
         .replace(/(session_id|sid)=[^;&\s]+/gi, "$1=[REDACTED]")
-        .replace(/\b(0[35789])[0-9]{4}([0-9]{4})\b/g, "$1****$2")
+        .replace(/\b(0[35789]\d)(\d{5})(\d{2})\b/g, "$1*****$3")
         .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED_EMAIL]");
 }
 
@@ -114,7 +123,13 @@ assert(!sanitized.includes("9876543210abcdef"), "Leaked Session ID");
 assert(!sanitized.includes("my-secret-key"), "Leaked Client Secret");
 assert(!sanitized.includes("test.user@example.com"), "Leaked Email");
 assert(sanitized.includes("Bearer [REDACTED]"), "Missing Bearer [REDACTED]");
-assert(sanitized.includes("password=[REDACTED]"), "Missing password=[REDACTED]");
+assert(sanitized.includes('"password": "[REDACTED]"'), 'Missing "password": "[REDACTED]"');
+assert.doesNotThrow(() => {
+    const jsonStr = sanitized.split("Payload: ")[1].split("\n")[0].trim();
+    const parsed = JSON.parse(jsonStr);
+    assert.strictEqual(parsed.password, "[REDACTED]");
+    assert.strictEqual(parsed.client_secret, "[REDACTED]");
+}, "Failed to parse sanitized JSON payload");
 assert(sanitized.includes("[REDACTED_EMAIL]"), "Missing [REDACTED_EMAIL]");
 console.log("  ✅ Test 2 PASSED: Redacts nested credentials, bearer tokens, and session IDs");
 
