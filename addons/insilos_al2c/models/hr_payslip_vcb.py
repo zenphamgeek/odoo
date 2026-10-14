@@ -37,6 +37,19 @@ def remove_vietnamese_accents(text):
     return text.upper().strip()
 
 
+def sanitize_csv_cell(value):
+    """Sanitizes CSV/Spreadsheet cell values against formula injection (CWE-1236).
+    Prepends a single quote `'` if the string starts with formula triggers:
+    `=`, `+`, `-`, `@`, `\t`, `\r`.
+    """
+    if value is None:
+        return ""
+    s = str(value)
+    if s and s[0] in ('=', '+', '-', '@', '\t', '\r'):
+        return "'" + s
+    return s
+
+
 def build_vcb_digibiz_workbook(payslip_records, month=None, year=None):
     """Core builder that compiles a set of hr.payslip records into the exact
     11-column Excel file conforming to bangkemau-VCB-DigiBiz (2).xlsx.
@@ -75,9 +88,9 @@ def build_vcb_digibiz_workbook(payslip_records, month=None, year=None):
 
         # 2. So Ref
         ref_no = emp.registration_number or payslip.number or payslip.code or ""
-        ws.cell(row=row_idx, column=2, value=str(ref_no) if ref_no else None)
+        ws.cell(row=row_idx, column=2, value=sanitize_csv_cell(str(ref_no)) if ref_no else None)
 
-        # 3. So tai khoan (Preserve leading zero as text)
+        # 3. So tai khoan (Preserve leading zero as text, strictly numeric)
         bank_acc = ""
         bank_record = False
         if hasattr(emp, 'primary_bank_account_id') and emp.primary_bank_account_id:
@@ -93,7 +106,7 @@ def build_vcb_digibiz_workbook(payslip_records, month=None, year=None):
             bank_record = emp.work_contact_id.bank_ids[0]
             bank_acc = getattr(bank_record, 'account_number', None) or getattr(bank_record, 'acc_number', None) or ""
 
-        clean_acc = re.sub(r'[^0-9A-Za-z]', '', str(bank_acc or '')).strip()
+        clean_acc = re.sub(r'[^0-9]', '', str(bank_acc or '')).strip()
         acc_cell = ws.cell(row=row_idx, column=3, value=clean_acc if clean_acc else "")
         acc_cell.number_format = '@'  # Explicit text format
 
@@ -106,7 +119,7 @@ def build_vcb_digibiz_workbook(payslip_records, month=None, year=None):
         elif hasattr(emp, 'id_card_name') and emp.id_card_name:
             id_number = emp.id_card_name
         clean_id = re.sub(r'[^0-9A-Za-z]', '', str(id_number or '')).strip()
-        ws.cell(row=row_idx, column=4, value=clean_id if clean_id else None)
+        ws.cell(row=row_idx, column=4, value=sanitize_csv_cell(clean_id) if clean_id else None)
 
         # 5. Ngay cap
         ws.cell(row=row_idx, column=5, value=None)
@@ -116,7 +129,7 @@ def build_vcb_digibiz_workbook(payslip_records, month=None, year=None):
 
         # 7. Ten nguoi huong (UPPERCASE UNACCENTED)
         raw_name = emp.legal_name or emp.name or ""
-        std_beneficiary = remove_vietnamese_accents(raw_name)
+        std_beneficiary = sanitize_csv_cell(remove_vietnamese_accents(raw_name))
         ws.cell(row=row_idx, column=7, value=std_beneficiary)
 
         # 8. Ten ngan hang
@@ -136,7 +149,7 @@ def build_vcb_digibiz_workbook(payslip_records, month=None, year=None):
                 bank_name = "VIETCOMBANK"
             else:
                 bank_name = remove_vietnamese_accents(raw_b_name)
-        ws.cell(row=row_idx, column=8, value=bank_name)
+        ws.cell(row=row_idx, column=8, value=sanitize_csv_cell(bank_name))
 
         # 9. So tien (Net Salary positive integer)
         net_amount = 0
@@ -159,7 +172,7 @@ def build_vcb_digibiz_workbook(payslip_records, month=None, year=None):
         ws.cell(row=row_idx, column=10, value="vnd")
 
         # 11. Noi dung
-        ws.cell(row=row_idx, column=11, value=transfer_content)
+        ws.cell(row=row_idx, column=11, value=sanitize_csv_cell(transfer_content))
 
         row_idx += 1
 

@@ -19,4 +19,35 @@
         <field name="interval_type">hours</field>
         <field name="active" eval="True"/>
     </record>
+
+    <!-- DGM Autonomous Scheduled Watchdog Daemons -->
+    <record id="ir_cron_dgm_document_triage_split" model="ir.cron">
+        <field name="name">DGM Autonomous Document Triage &amp; Multipage Split Watchdog</field>
+        <field name="model_id" ref="documents.model_documents_document"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_dgm_document_triage_split()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="ir_cron_dgm_legal_entity_sla_watchdog" model="ir.cron">
+        <field name="name">DGM Autonomous Legal Entity &amp; 24h Export E-Invoice SLA Watchdog</field>
+        <field name="model_id" ref="model_al2c_compliance_scanner"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_dgm_legal_entity_sla_watchdog()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <record id="ir_cron_dgm_bhxh_tk242_watchdog" model="ir.cron">
+        <field name="name">DGM Autonomous BHXH (TZ0857G) Zero-Arrears &amp; Prepaid TK 242 Watchdog</field>
+        <field name="model_id" ref="model_al2c_compliance_scanner"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_dgm_bhxh_tk242_watchdog()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
 </odoo>

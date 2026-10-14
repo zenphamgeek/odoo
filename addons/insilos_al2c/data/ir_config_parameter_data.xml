@@ -6,6 +6,11 @@
         <field name="key">al2c.autonomy_enabled</field>
         <field name="value">True</field>
     </record>
+    <!-- DGM Sovereign Autonomous Operations master switch -->
+    <record id="param_dgm_autonomy_enabled" model="ir.config_parameter">
+        <field name="key">dgm.autonomy_enabled</field>
+        <field name="value">True</field>
+    </record>
     <!-- Max actions per agent per day (0 = unlimited) -->
     <record id="param_agent_daily_budget" model="ir.config_parameter">
         <field name="key">al2c.agent_daily_budget</field>

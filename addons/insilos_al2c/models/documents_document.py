@@ -296,3 +296,75 @@ class DocumentsDocument(models.Model):
             docs_to_split.write({'tag_ids': [Command.link(tag_to_split.id)]})
 
         return True
+
+    @api.model
+    def cron_dgm_document_triage_split(self, batch_limit=50):
+        """DGM Autonomous Document Triage & Multipage Split Watchdog (Scheduled Daemon).
+        Scans unrouted documents under DGM root folder (ID 3223 / folder_dgm_root),
+        calls classify_dgm_document(), and flags multipage bundles with 'To Split'.
+        Completely idempotent and fault-tolerant.
+        """
+        # 1. Guard: Check autonomous kill-switch (Fail-Closed)
+        if not self.env['al2c.autonomy.guard']._dgm_autonomy_enabled():
+            _logger.info("DGM Document Triage Watchdog: Autonomy disabled. Skipping.")
+            return {'status': 'skipped', 'reason': 'autonomy_disabled'}
+
+        try:
+            # 2. Locate DGM root folder 3223
+            root_folder = self.browse(3223)
+            if not root_folder.exists() or root_folder.type != 'folder':
+                root_folder = self.env.ref('insilos_al2c.folder_dgm_root', raise_if_not_found=False)
+                if not root_folder:
+                    root_folder = self.search([
+                        ('name', 'ilike', 'DGM · Công ty Cổ phần Người Bạn Số'),
+                        ('type', '=', 'folder')
+                    ], limit=1)
+
+            # 3. Select unrouted documents with FOR UPDATE SKIP LOCKED
+            folder_clause = "folder_id IS NULL"
+            params = [batch_limit]
+            if root_folder and root_folder.exists():
+                folder_clause = "(folder_id IS NULL OR folder_id = %s)"
+                params = [root_folder.id, batch_limit]
+
+            query = f"""
+                SELECT id FROM documents_document
+                WHERE type != 'folder' AND {folder_clause}
+                ORDER BY create_date ASC, id ASC
+                LIMIT %s
+                FOR UPDATE SKIP LOCKED
+            """
+            self.env.cr.execute(query, params)
+            locked_ids = [row[0] for row in self.env.cr.fetchall()]
+            if not locked_ids:
+                _logger.info("DGM Document Triage Watchdog: Zero unrouted documents to triage.")
+                return {'status': 'success', 'scanned': 0, 'routed': 0, 'multipage_split': 0}
+
+            unrouted_docs = self.browse(locked_ids)
+            scanned_count = len(unrouted_docs)
+            multipage_count = 0
+            routed_count = 0
+
+            # 4. Execute classification and triage inside atomic savepoints
+            for doc in unrouted_docs:
+                try:
+                    with self.env.cr.savepoint():
+                        doc.classify_dgm_document()
+                        if doc._get_is_multipage():
+                            multipage_count += 1
+                        elif doc.folder_id and (not root_folder or doc.folder_id.id != root_folder.id):
+                            routed_count += 1
+                except Exception as doc_err:
+                    _logger.warning("Error triaging document %s: %s", doc.id, doc_err)
+
+            summary = {
+                'status': 'success',
+                'scanned': scanned_count,
+                'routed': routed_count,
+                'multipage_split': multipage_count,
+            }
+            _logger.info("DGM Document Triage Watchdog completed: %s", summary)
+            return summary
+        except Exception as e:
+            _logger.exception("DGM Document Triage Watchdog encountered error: %s", e)
+            return {'status': 'error', 'reason': str(e)}

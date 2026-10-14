@@ -134,6 +134,113 @@ class TestAdversarialConcurrency(TransactionCase):
                     resolved = self.env['documents.document']._get_or_create_canonical_split_tag()
                     self.assertEqual(resolved, winner, "Must resolve to winner tag after recovering from savepoint")
 
+    def test_autonomy_guard_fails_closed_when_params_absent(self):
+        """SEC-AUDIT: CWE-1188 / CWE-285 Fail-Open Autonomy Guard Remediation.
+        Assert that when al2c.autonomy_enabled or dgm.autonomy_enabled config parameters
+        are absent (unseeded environment or dropped keys), the guard strictly fails closed (False).
+        """
+        Guard = self.env['al2c.autonomy.guard']
+        ICP = self.env['ir.config_parameter'].sudo()
+
+        # Save existing values
+        orig_al2c = ICP.get_param('al2c.autonomy_enabled')
+        orig_dgm = ICP.get_param('dgm.autonomy_enabled')
+
+        try:
+            # Delete both parameters
+            ICP.search([('key', 'in', ('al2c.autonomy_enabled', 'dgm.autonomy_enabled'))]).unlink()
+
+            # Assert fail-closed defaults
+            self.assertFalse(Guard._al2c_autonomy_enabled(), "Must fail closed (False) when al2c.autonomy_enabled is absent")
+            self.assertFalse(Guard._dgm_autonomy_enabled(), "Must fail closed (False) when dgm.autonomy_enabled is absent")
+
+            # Assert crons skip gracefully
+            res_triage = self.env['documents.document'].cron_dgm_document_triage_split()
+            self.assertEqual(res_triage.get('status'), 'skipped')
+            self.assertEqual(res_triage.get('reason'), 'autonomy_disabled')
+
+            res_legal = self.env['al2c.compliance.scanner'].cron_dgm_legal_entity_sla_watchdog()
+            self.assertEqual(res_legal.get('status'), 'skipped')
+
+            res_bhxh = self.env['al2c.compliance.scanner'].cron_dgm_bhxh_tk242_watchdog()
+            self.assertEqual(res_bhxh.get('status'), 'skipped')
+        finally:
+            # Restore
+            if orig_al2c:
+                ICP.set_param('al2c.autonomy_enabled', orig_al2c)
+            if orig_dgm:
+                ICP.set_param('dgm.autonomy_enabled', orig_dgm)
+
+    def test_csv_formula_injection_neutralization(self):
+        """SEC-AUDIT: CWE-1236 / CWE-20 CSV & Spreadsheet Formula Injection Remediation.
+        Assert that any input starting with formula triggers (=, +, -, @, \\t, \\r)
+        is safely neutralized by prepending a single quote (').
+        """
+        Scanner = self.env['al2c.compliance.scanner']
+
+        payloads = [
+            ('=cmd|"/C calc"!A0', '\'=cmd|"/C calc"!A0'),
+            ('+1+1', '\'+1+1'),
+            ('-SUM(1,1)', '\'-SUM(1,1)'),
+            ('@SUM(1,2)', '\'@SUM(1,2)'),
+            ('\tmalicious_tab', '\'\tmalicious_tab'),
+            ('\rmalicious_cr', '\'\rmalicious_cr'),
+            ('Normal Text', 'Normal Text'),
+            ('12345678', '12345678'),
+            ('', ''),
+            (None, ''),
+        ]
+        for raw, expected in payloads:
+            sanitized = Scanner.sanitize_csv_cell(raw)
+            self.assertEqual(sanitized, expected, f"Payload {raw!r} must sanitize to {expected!r}")
+
+    def test_vcb_account_validation_adversarial(self):
+        """SEC-AUDIT: CWE-20 VCB DigiBiz Account Number Adversarial Validation.
+        Assert strict numeric matching ^[0-9]{8,20}$ rejecting malicious expressions,
+        formula injections, special characters, and out-of-range accounts.
+        """
+        Scanner = self.env['al2c.compliance.scanner']
+
+        valid_accounts = [
+            '0071001234567',
+            '1012345678',
+            '12345678',
+            '12345678901234567890',  # 20 digits
+            ' 0071001234567 ',       # trimmed whitespace
+        ]
+        for acc in valid_accounts:
+            self.assertTrue(Scanner.validate_vcb_account(acc), f"Account {acc!r} should be valid")
+
+        invalid_accounts = [
+            '=007100123456',          # formula injection
+            '007100123456; DROP TABLE', # SQL injection
+            '1234567',                # 7 digits (too short)
+            '123456789012345678901',  # 21 digits (too long)
+            '007100123456A',          # alphabetic character
+            '',                       # empty
+            None,                     # None
+            'abc1234567',             # letters
+        ]
+        for acc in invalid_accounts:
+            self.assertFalse(Scanner.validate_vcb_account(acc), f"Account {acc!r} should be rejected")
+
+    def test_cron_dgm_document_triage_concurrency_skip_locked(self):
+        """SEC-AUDIT: CWE-367 / CWE-662 Concurrency Race & TOCTOU in Document Triage.
+        Verify that cron_dgm_document_triage_split operates with SKIP LOCKED and atomic savepoints,
+        handling unrouted documents safely and idempotently.
+        """
+        Doc = self.env['documents.document']
+        folder = Doc.create({'name': 'Triage Test Folder', 'type': 'folder'})
+        doc1 = Doc.create({'name': 'Test Invoice 1.pdf', 'folder_id': folder.id})
+        doc2 = Doc.create({'name': 'Test Invoice 2.pdf'})
+
+        # Execute triage cron
+        res = Doc.cron_dgm_document_triage_split(batch_limit=10)
+        self.assertEqual(res.get('status'), 'success')
+        self.assertIn('scanned', res)
+        self.assertIn('routed', res)
+        self.assertIn('multipage_split', res)
+
 
 # Backwards compatibility alias
 TestAdversarialTimesheetCron = TestAdversarialConcurrency

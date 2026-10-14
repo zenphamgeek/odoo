@@ -557,3 +557,70 @@ class TestDgmGovernanceAutomation(TransactionCase):
             self.assertIn(created_tag, doc.tag_ids, "All batch documents must receive 'To Split' tag in vectorized pass")
             self.assertFalse(doc.folder_id, "All batch documents must remain unrouted")
 
+    def test_08_dgm_autonomous_crons_registration_and_execution(self):
+        """Verify the 3 DGM autonomous watchdog crons:
+        1. ir_cron_dgm_document_triage_split
+        2. ir_cron_dgm_legal_entity_sla_watchdog
+        3. ir_cron_dgm_bhxh_tk242_watchdog
+        Assert proper model binding, active status, zero branding, clean execution,
+        and kill-switch behavior when autonomy is disabled.
+        """
+        ICP = self.env['ir.config_parameter'].sudo()
+
+        # 1. Assert al2c.autonomy_enabled and dgm.autonomy_enabled exist and are True
+        al2c_on = ICP.get_param('al2c.autonomy_enabled')
+        self.assertEqual(al2c_on, 'True', "al2c.autonomy_enabled must be True")
+        dgm_on = ICP.get_param('dgm.autonomy_enabled')
+        self.assertEqual(dgm_on, 'True', "dgm.autonomy_enabled must be True")
+        self.assertTrue(self.env['al2c.autonomy.guard']._dgm_autonomy_enabled(), "Guard helper _dgm_autonomy_enabled must be True")
+
+        # 2. Check Cron 1: Document Triage & Multipage Split Watchdog
+        cron_triage = self.env.ref('insilos_al2c.ir_cron_dgm_document_triage_split', raise_if_not_found=False)
+        self.assertTrue(cron_triage, "Cron ir_cron_dgm_document_triage_split must exist")
+        self.assertTrue(cron_triage.active, "Document triage cron must be active")
+        self.assertEqual(cron_triage.model_id.model, 'documents.document')
+        self.assertNotIn("odoo", cron_triage.name.lower(), "Zero branding: 'odoo' forbidden in cron name")
+        self.assertNotIn("openerp", cron_triage.name.lower(), "Zero branding: 'openerp' forbidden in cron name")
+        res_triage = self.env['documents.document'].cron_dgm_document_triage_split()
+        self.assertEqual(res_triage.get('status'), 'success', "Document triage cron must return success")
+        self.assertIn('scanned', res_triage)
+        self.assertIn('routed', res_triage)
+        self.assertIn('multipage_split', res_triage)
+
+        # 3. Check Cron 2: Legal Entity & 24h SLA Watchdog
+        cron_legal = self.env.ref('insilos_al2c.ir_cron_dgm_legal_entity_sla_watchdog', raise_if_not_found=False)
+        self.assertTrue(cron_legal, "Cron ir_cron_dgm_legal_entity_sla_watchdog must exist")
+        self.assertTrue(cron_legal.active, "Legal entity SLA cron must be active")
+        self.assertEqual(cron_legal.model_id.model, 'al2c.compliance.scanner')
+        self.assertNotIn("odoo", cron_legal.name.lower(), "Zero branding: 'odoo' forbidden in cron name")
+        self.assertNotIn("openerp", cron_legal.name.lower(), "Zero branding: 'openerp' forbidden in cron name")
+        res_legal = self.env['al2c.compliance.scanner'].cron_dgm_legal_entity_sla_watchdog()
+        self.assertEqual(res_legal.get('status'), 'success', "Legal entity SLA watchdog must return success")
+        self.assertIn('documents_scanned', res_legal)
+        self.assertIn('documents_deviated', res_legal)
+        self.assertIn('contracts_scanned', res_legal)
+        self.assertIn('export_sla_breaches', res_legal)
+
+        # 4. Check Cron 3: BHXH & TK 242 Watchdog
+        cron_bhxh = self.env.ref('insilos_al2c.ir_cron_dgm_bhxh_tk242_watchdog', raise_if_not_found=False)
+        self.assertTrue(cron_bhxh, "Cron ir_cron_dgm_bhxh_tk242_watchdog must exist")
+        self.assertTrue(cron_bhxh.active, "BHXH & TK 242 cron must be active")
+        self.assertEqual(cron_bhxh.model_id.model, 'al2c.compliance.scanner')
+        self.assertNotIn("odoo", cron_bhxh.name.lower(), "Zero branding: 'odoo' forbidden in cron name")
+        self.assertNotIn("openerp", cron_bhxh.name.lower(), "Zero branding: 'openerp' forbidden in cron name")
+        res_bhxh = self.env['al2c.compliance.scanner'].cron_dgm_bhxh_tk242_watchdog()
+        self.assertEqual(res_bhxh.get('status'), 'success', "BHXH & TK 242 watchdog must return success")
+        self.assertIn('bhxh_zero_arrears_verified', res_bhxh)
+        self.assertIn('tk242_schedules_checked', res_bhxh)
+
+        # 5. Check Kill-Switch Graceful Behavior
+        ICP.set_param('dgm.autonomy_enabled', 'False')
+        self.assertFalse(self.env['al2c.autonomy.guard']._dgm_autonomy_enabled())
+        self.assertEqual(self.env['documents.document'].cron_dgm_document_triage_split().get('status'), 'skipped')
+        self.assertEqual(self.env['al2c.compliance.scanner'].cron_dgm_legal_entity_sla_watchdog().get('status'), 'skipped')
+        self.assertEqual(self.env['al2c.compliance.scanner'].cron_dgm_bhxh_tk242_watchdog().get('status'), 'skipped')
+
+        # Restore kill-switch
+        ICP.set_param('dgm.autonomy_enabled', 'True')
+        self.assertTrue(self.env['al2c.autonomy.guard']._dgm_autonomy_enabled())
+

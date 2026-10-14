@@ -8,7 +8,7 @@
             <field name="sequence">1</field>
             <field name="repo_path">/home/zen/O20</field>
             <field name="category">platform_core</field>
-            <field name="tech_stack">Python 3.12 / Odoo 20 LTS / OWL 2 / Bootstrap 5 SCSS / PostgreSQL</field>
+            <field name="tech_stack">Python 3.12 / Insilos 20 LTS / OWL 2 / Bootstrap 5 SCSS / PostgreSQL</field>
             <field name="complexity_rating">very_high</field>
             <field name="primary_doc_path">/home/zen/O20/AGENTS.md</field>
             <field name="state">active</field>

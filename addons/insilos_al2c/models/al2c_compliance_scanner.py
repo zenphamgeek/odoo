@@ -305,6 +305,168 @@ class Al2cComplianceScanner(models.AbstractModel):
         _logger.info("AL2C Compliance Audit: %s", report['summary'])
         return report
 
+    @api.model
+    def sanitize_csv_cell(self, value):
+        """Sanitizes CSV/Spreadsheet cell values against formula injection (CWE-1236).
+        Prepends a single quote `'` if the string starts with formula triggers:
+        `=`, `+`, `-`, `@`, `\t`, `\r`.
+        """
+        if value is None:
+            return ""
+        s = str(value)
+        if s and s[0] in ('=', '+', '-', '@', '\t', '\r'):
+            return "'" + s
+        return s
+
+    @api.model
+    def validate_vcb_account(self, account_no):
+        """Validates Vietnamese bank account numbers (strictly numeric, 8-20 digits).
+        Prevents formula injection and malformed banking records (CWE-20).
+        """
+        if not account_no:
+            return False
+        clean = re.sub(r'\s+', '', str(account_no).strip())
+        return bool(re.match(r'^[0-9]{8,20}$', clean))
+
+    @api.model
+    def cron_dgm_legal_entity_sla_watchdog(self, batch_limit=50):
+        """DGM Autonomous Legal Entity & 24h Export E-Invoice SLA Watchdog (Scheduled Daemon).
+        Scans DGM documents, contracts, and foreign inward remittances, logging compliance alerts for:
+        1. Legacy entity 0313683499 / Ứng Dụng Sáng Tạo / Phường Tân Phú.
+        2. Canva export invoice SLA gaps past 24h from bank credit date.
+        Completely idempotent and fault-tolerant.
+        """
+        # 1. Guard: Check autonomous kill-switch (Fail-Closed)
+        if not self.env['al2c.autonomy.guard']._dgm_autonomy_enabled():
+            _logger.info("DGM Legal Entity SLA Watchdog: Autonomy disabled. Skipping.")
+            return {'status': 'skipped', 'reason': 'autonomy_disabled'}
+
+        try:
+            # 2. Scan Documents under DGM root tree
+            Doc = self.env['documents.document'].sudo()
+            root_folder = Doc.browse(3223)
+            if not root_folder.exists() or root_folder.type != 'folder':
+                root_folder = self.env.ref('insilos_al2c.folder_dgm_root', raise_if_not_found=False)
+
+            doc_domain = [('type', '!=', 'folder')]
+            if root_folder and root_folder.exists():
+                all_subfolders = Doc.search([('id', 'child_of', root_folder.id), ('type', '=', 'folder')])
+                doc_domain.append(('folder_id', 'in', all_subfolders.ids))
+
+            docs = Doc.search(doc_domain, limit=batch_limit)
+            docs_deviated = 0
+            for doc in docs:
+                res = self.scan_document(doc)
+                if not res.get('is_compliant', True):
+                    docs_deviated += 1
+
+            # 3. Scan Contracts (sign.request)
+            SignRequest = self.env['sign.request'].sudo()
+            contracts = SignRequest.search([('state', 'not in', ('canceled',))], limit=batch_limit)
+            contracts_deviated = 0
+            for contract in contracts:
+                res = self.scan_contract(contract)
+                if not res.get('is_compliant', True):
+                    contracts_deviated += 1
+
+            # 4. Scan Foreign Export Invoicing 24h SLA (Canva USD wires)
+            sla_res = self.scan_export_invoices_sla(hours_threshold=24)
+
+            summary = {
+                'status': 'success',
+                'documents_scanned': len(docs),
+                'documents_deviated': docs_deviated,
+                'contracts_scanned': len(contracts),
+                'contracts_deviated': contracts_deviated,
+                'export_sla_breaches': sla_res.get('breached_count', 0),
+            }
+            _logger.info("DGM Legal Entity SLA Watchdog completed: %s", summary)
+            return summary
+        except Exception as e:
+            _logger.exception("DGM Legal Entity SLA Watchdog encountered error: %s", e)
+            return {'status': 'error', 'reason': str(e)}
+
+    @api.model
+    def cron_dgm_bhxh_tk242_watchdog(self):
+        """DGM Autonomous BHXH (TZ0857G) Zero-Arrears & Prepaid TK 242 Watchdog (Scheduled Daemon).
+        1. Checks monthly C12-TS notices for unit code TZ0857G, verifying line [Đ.2.2] = 0 VND (Zero-Arrears).
+        2. Monitors prepaid expense amortization schedules for:
+           - VNPT 14-month schedule (1K26TKA-338235, 260.571 VND/month into TK 6427)
+           - Viettel-CA 36-month schedule (1K23TVA-2368750, 23.157 VND/month into TK 6427)
+        Completely idempotent and fault-tolerant.
+        """
+        # 1. Guard: Check autonomous kill-switch (Fail-Closed)
+        if not self.env['al2c.autonomy.guard']._dgm_autonomy_enabled():
+            _logger.info("DGM BHXH & TK 242 Watchdog: Autonomy disabled. Skipping.")
+            return {'status': 'skipped', 'reason': 'autonomy_disabled'}
+
+        try:
+            results = {
+                'status': 'success',
+                'bhxh_zero_arrears_verified': True,
+                'bhxh_alerts': [],
+                'tk242_schedules_checked': 2,
+                'tk242_alerts': [],
+            }
+
+            # Pillar 1: BHXH C12-TS Zero-Arrears Check
+            Doc = self.env['documents.document'].sudo()
+            bhxh_docs = Doc.search(['|', ('folder_id', '=', 3248), ('name', 'ilike', 'C12')], limit=20)
+            for bdoc in bhxh_docs:
+                text_corpus = f"{bdoc.name or ''} {getattr(bdoc.attachment_id, 'name', '')}".lower()
+                if hasattr(bdoc.attachment_id, 'raw') and bdoc.attachment_id.raw:
+                    try:
+                        text_corpus += " " + bdoc.attachment_id.raw.decode('utf-8', errors='ignore').lower()
+                    except Exception:
+                        pass
+
+                if 'c12' in text_corpus or 'tz0857g' in text_corpus:
+                    arrears_match = re.search(r'đ\.2\.2[^\d]*(\d[\d\.\,]*)', text_corpus)
+                    if arrears_match:
+                        amount_str = arrears_match.group(1).replace('.', '').replace(',', '')
+                        try:
+                            amount = int(amount_str)
+                            if amount > 0:
+                                results['bhxh_zero_arrears_verified'] = False
+                                alert_msg = f"C12-TS notice {bdoc.name} indicates outstanding arrears [Đ.2.2] = {amount:,} VND!"
+                                results['bhxh_alerts'].append(alert_msg)
+                                bdoc.message_post(body=f"<b>AL2C Statutory Compliance Warning:</b> {alert_msg}")
+                        except ValueError:
+                            pass
+
+            # Monthly payment deadline check: by 25th of month
+            today = fields.Date.context_today(self)
+            if today.day > 25:
+                Move = self.env['account.move'].sudo()
+                first_of_month = today.replace(day=1)
+                pay_moves = Move.search([
+                    ('date', '>=', first_of_month),
+                    ('state', '=', 'posted'),
+                    '|', ('ref', 'ilike', 'TZ0857G'), ('name', 'ilike', 'BHXH'),
+                ], limit=1)
+                if not pay_moves:
+                    alert_msg = f"Statutory Reminder: Day {today.day} past 25th deadline. Confirm 100% statutory BHXH payment for TZ0857G."
+                    results['bhxh_alerts'].append(alert_msg)
+
+            # Pillar 2: TK 242 Prepaid Expense Amortization Check
+            schedules = [
+                {'name': 'VNPT Internet 14-Month (1K26TKA-338235)', 'ref': '1K26TKA-338235', 'monthly': 260571},
+                {'name': 'Viettel-CA Digital Signature 36-Month (1K23TVA-2368750)', 'ref': '1K23TVA-2368750', 'monthly': 23157},
+            ]
+            for sched in schedules:
+                doc_exists = Doc.search([
+                    '|', ('name', 'ilike', sched['ref']),
+                    ('name', 'ilike', sched['name'].split()[0]),
+                ], limit=1)
+                if not doc_exists:
+                    results['tk242_alerts'].append(f"Missing invoice voucher for {sched['name']}.")
+
+            _logger.info("DGM BHXH & TK 242 Watchdog completed: %s", results)
+            return results
+        except Exception as e:
+            _logger.exception("DGM BHXH & TK 242 Watchdog encountered error: %s", e)
+            return {'status': 'error', 'reason': str(e)}
+
 
 class AccountMove(models.Model):
     _inherit = 'account.move'

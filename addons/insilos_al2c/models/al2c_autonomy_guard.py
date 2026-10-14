@@ -36,8 +36,16 @@ class Al2cAutonomyGuard(models.AbstractModel):
 
     @api.model
     def _al2c_autonomy_enabled(self):
-        value = self.env['ir.config_parameter'].sudo().get_param('al2c.autonomy_enabled', 'True')
+        value = self.env['ir.config_parameter'].sudo().get_param('al2c.autonomy_enabled', 'False')
         return str(value).strip().lower() in TRUTHY
+
+    @api.model
+    def _dgm_autonomy_enabled(self):
+        """Checks both global and DGM-specific autonomous operation master switches (Fail-Closed)."""
+        ICP = self.env['ir.config_parameter'].sudo()
+        al2c_val = str(ICP.get_param('al2c.autonomy_enabled', 'False')).strip().lower()
+        dgm_val = str(ICP.get_param('dgm.autonomy_enabled', 'False')).strip().lower()
+        return (al2c_val in TRUTHY) and (dgm_val in TRUTHY)
 
     @api.model
     def _al2c_daily_budget(self):
