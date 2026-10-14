@@ -12,6 +12,7 @@ import json
 import os
 import subprocess
 import sys
+from unittest.mock import MagicMock
 
 ROOT_DIR = "/home/zen/O20"
 HOOKS_JS = os.path.join(ROOT_DIR, "enterprise/documents/static/src/views/hooks.js")
@@ -1688,9 +1689,9 @@ def test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox():
 
     guard = InsilosConversionGuard()
 
-    # Assert _generate_deterministic_advisory_key produces 64-bit non-negative integers
+    # Assert _generate_deterministic_advisory_key produces signed 64-bit integers
     sample_key = guard._generate_deterministic_advisory_key(1, "account.move", 100)
-    assert 0 <= sample_key <= 0x7FFFFFFFFFFFFFFF, f"Key out of 64-bit non-negative bounds: {sample_key}"
+    assert -0x8000000000000000 <= sample_key <= 0x7FFFFFFFFFFFFFFF, f"Key out of 64-bit signed bounds: {sample_key}"
 
     # Assert zero collisions across company (1..5), model ('account.move', 'sale.order', 'stock.picking'), record_id (1..100)
     seen_keys = set()
@@ -1699,7 +1700,7 @@ def test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox():
         for m in test_models:
             for rec in range(1, 101):
                 k = guard._generate_deterministic_advisory_key(comp, m, rec)
-                assert 0 <= k <= 0x7FFFFFFFFFFFFFFF, f"Key out of bounds: {k}"
+                assert -0x8000000000000000 <= k <= 0x7FFFFFFFFFFFFFFF, f"Key out of bounds: {k}"
                 assert k not in seen_keys, f"Collision detected for company={comp}, model={m}, record={rec}: {k}"
                 seen_keys.add(k)
     assert len(seen_keys) == 5 * 3 * 100, f"Expected 1500 distinct keys, got {len(seen_keys)}"
@@ -1715,28 +1716,22 @@ def test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox():
     mock_cr_lock.fetchone.return_value = (True,)
     res_acquired = lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, 1, "account.move", 42)
     assert res_acquired is True
-    mock_cr_lock.execute.assert_any_call("SAVEPOINT flat_sp_42;")
-    mock_cr_lock.execute.assert_any_call("SELECT pg_try_advisory_xact_lock(%s);", (lock_mgr.derive_deterministic_advisory_key(1, "account.move", 42),))
-    mock_cr_lock.execute.assert_any_call("RELEASE SAVEPOINT flat_sp_42;")
 
     # Contention: lock not acquired
     mock_cr_lock.reset_mock()
     mock_cr_lock.fetchone.return_value = (False,)
     res_busy = lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, 1, "account.move", 42)
     assert res_busy is False
-    mock_cr_lock.execute.assert_any_call("SAVEPOINT flat_sp_42;")
-    mock_cr_lock.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_42;")
 
     # Exception during lock acquisition
     mock_cr_lock.reset_mock()
-    mock_cr_lock.fetchone.side_effect = RuntimeError("Lock failure")
+    import psycopg2
+    mock_cr_lock.execute.side_effect = psycopg2.OperationalError("Lock failure")
     try:
         lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, 1, "account.move", 42)
         raise AssertionError("Expected exception")
-    except RuntimeError:
+    except psycopg2.OperationalError:
         pass
-    mock_cr_lock.execute.assert_any_call("SAVEPOINT flat_sp_42;")
-    mock_cr_lock.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_42;")
 
     # 4. Test _process_pinned_batch_safe
     mock_env = MagicMock()
@@ -1763,22 +1758,21 @@ def test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox():
             return self.return_val if self.return_val is not None else f"res_{self.id}"
 
     # 4a. Backpressure: truncates batch > max_batch_size
-    large_batch = [DummyRecord(i) for i in range(75)]
+    large_batch = [DummyRecord(i + 1) for i in range(75)]
     proc, errs = guard._process_pinned_batch_safe(large_batch, max_batch_size=50)
     assert len(proc) == 50, f"Expected 50 processed, got {len(proc)}"
     assert len(errs) == 0
-    assert proc == [f"res_{i}" for i in range(50)]
+    assert proc == [f"res_{i + 1}" for i in range(50)]
 
-    # 4b. Happy path calls SAVEPOINT flat_sp_... and RELEASE SAVEPOINT flat_sp_...
+    # 4b. Happy path calls savepoint
     mock_cr.reset_mock()
     rec_happy = DummyRecord(99, return_val="success_99")
     proc, errs = guard._process_pinned_batch_safe([rec_happy], max_batch_size=50)
     assert proc == ["success_99"]
     assert errs == []
-    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_99;")
-    mock_cr.execute.assert_any_call("RELEASE SAVEPOINT flat_sp_99;")
+    mock_cr.savepoint.assert_called()
 
-    # 4c. UserError / ValidationError calls ROLLBACK TO SAVEPOINT flat_sp_..., appends error, continues
+    # 4c. UserError / ValidationError calls savepoint, appends error, continues
     mock_cr.reset_mock()
     rec_uerr = DummyRecord(101, exc=exceptions.UserError("User invoice error"))
     rec_verr = DummyRecord(102, exc=exceptions.ValidationError("Validation rate error"))
@@ -1789,14 +1783,8 @@ def test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox():
     assert len(errs) == 2
     assert errs[0] == (101, "User invoice error")
     assert errs[1] == (102, "Validation rate error")
-    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_101;")
-    mock_cr.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_101;")
-    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_102;")
-    mock_cr.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_102;")
-    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_103;")
-    mock_cr.execute.assert_any_call("RELEASE SAVEPOINT flat_sp_103;")
 
-    # 4d. Critical error calls ROLLBACK TO SAVEPOINT flat_sp_... and trips circuit breaker (break)
+    # 4d. Critical error trips circuit breaker (break)
     mock_cr.reset_mock()
     rec_crit = DummyRecord(201, exc=RuntimeError("Fatal connection loss"))
     rec_blocked = DummyRecord(202, return_val="should_not_run")
@@ -1806,8 +1794,6 @@ def test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox():
     assert len(errs) == 1
     assert errs[0] == (201, "CRITICAL_INTERNAL_ERROR")
     assert not rec_blocked.executed, "Blocked record should not be executed after circuit breaker trip"
-    mock_cr.execute.assert_any_call("SAVEPOINT flat_sp_201;")
-    mock_cr.execute.assert_any_call("ROLLBACK TO SAVEPOINT flat_sp_201;")
 
     # 5. Test allocate_decree70_sequence
     from tools.zk_motl_merkle_outbox import allocate_decree70_sequence, ZKMOTLOutboxManager
@@ -1851,6 +1837,310 @@ def test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox():
     print("[✓] Patch 19 / DT-VPAL Advisory Locks, Flat Savepoints & Decree 70 Outbox verified")
 
 
+def test_patch_20_native_bipartite_advisory_and_savepoint_cache_guard():
+    import ast
+    import zlib
+    import psycopg2
+    from unittest.mock import MagicMock
+
+    guard_py = os.path.join(ROOT_DIR, "addons/insilos_adapter/models/cron_conversion_guard.py")
+    lock_py = os.path.join(ROOT_DIR, "tools/dpas_tsm_lock.py")
+
+    # 1. AST Verification
+    with open(guard_py, "r", encoding="utf-8") as f:
+        guard_src = f.read()
+    tree_guard = ast.parse(guard_src)
+    guard_funcs = [n.name for n in ast.walk(tree_guard) if isinstance(n, ast.FunctionDef)]
+    assert "_generate_bipartite_advisory_keys" in guard_funcs, "Missing _generate_bipartite_advisory_keys in cron_conversion_guard.py"
+    assert "_generate_deterministic_advisory_key" in guard_funcs, "Missing compatibility _generate_deterministic_advisory_key in cron_conversion_guard.py"
+    assert "_process_pinned_batch_safe" in guard_funcs, "Missing _process_pinned_batch_safe in cron_conversion_guard.py"
+
+    with open(lock_py, "r", encoding="utf-8") as f:
+        lock_src = f.read()
+    tree_lock = ast.parse(lock_src)
+    lock_funcs = [n.name for n in ast.walk(tree_lock) if isinstance(n, ast.FunctionDef)]
+    assert "derive_bipartite_advisory_keys" in lock_funcs, "Missing derive_bipartite_advisory_keys in tools/dpas_tsm_lock.py"
+    assert "derive_deterministic_advisory_key" in lock_funcs, "Missing compatibility derive_deterministic_advisory_key in tools/dpas_tsm_lock.py"
+    assert "acquire_deterministic_record_lock" in lock_funcs, "Missing acquire_deterministic_record_lock in tools/dpas_tsm_lock.py"
+
+    # 2. Test Bipartite Key Generation in both cron_conversion_guard.py and dpas_tsm_lock.py
+    try:
+        from addons.insilos_adapter.models.cron_conversion_guard import InsilosConversionGuard, exceptions
+    except Exception:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("cron_conversion_guard", guard_py)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        InsilosConversionGuard = mod.InsilosConversionGuard
+        exceptions = mod.exceptions
+
+    from tools.dpas_tsm_lock import DPASTSMTransactionManager
+
+    guard = InsilosConversionGuard()
+    lock_mgr = DPASTSMTransactionManager()
+
+    # 2a. Parity between guard and lock_mgr
+    for comp in [1, 2, 42]:
+        for model in ["account.move", "res.partner"]:
+            for rec in [1, 100, 9999]:
+                k1_g, k2_g = guard._generate_bipartite_advisory_keys(comp, model, rec)
+                k1_m, k2_m = lock_mgr.derive_bipartite_advisory_keys(comp, model, rec)
+                assert (k1_g, k2_g) == (k1_m, k2_m), f"Bipartite key mismatch: guard={(k1_g, k2_g)}, lock_mgr={(k1_m, k2_m)}"
+
+    # 2b. Assert keys are signed 32-bit integers (-2147483648 <= key <= 2147483647)
+    sample_k1, sample_k2 = lock_mgr.derive_bipartite_advisory_keys(1, "account.move", 42)
+    assert -2147483648 <= sample_k1 <= 2147483647, f"Key1 out of 32-bit signed bounds: {sample_k1}"
+    assert -2147483648 <= sample_k2 <= 2147483647, f"Key2 out of 32-bit signed bounds: {sample_k2}"
+
+    # 2c. Assert zero collisions across enterprise models
+    enterprise_models = [
+        "account.move",
+        "res.partner",
+        "sale.order",
+        "purchase.order",
+        "stock.picking",
+        "account.payment",
+        "product.template",
+        "crm.lead",
+    ]
+    seen_pairs = set()
+    for comp in range(1, 4):
+        for m in enterprise_models:
+            for rec in range(1, 51):
+                pair = lock_mgr.derive_bipartite_advisory_keys(comp, m, rec)
+                assert -2147483648 <= pair[0] <= 2147483647, f"Key1 out of bounds: {pair[0]}"
+                assert -2147483648 <= pair[1] <= 2147483647, f"Key2 out of bounds: {pair[1]}"
+                assert pair not in seen_pairs, f"Collision detected for comp={comp}, model={m}, rec={rec}: {pair}"
+                seen_pairs.add(pair)
+    assert len(seen_pairs) == 3 * len(enterprise_models) * 50
+
+    # 2d. Assert extreme bounds (0, max signed 32-bit, max unsigned 32-bit)
+    extreme_values = [
+        (0, "account.move", 0),
+        (1, "account.move", 2147483647),          # max signed 32-bit (0x7FFFFFFF)
+        (1, "account.move", 4294967295),          # max unsigned 32-bit (0xFFFFFFFF)
+        (2147483647, "account.move", 1),
+        (4294967295, "account.move", 1),
+        (0, "res.partner", 2147483648),           # 0x80000000 -> -2147483648 signed
+    ]
+    for comp_ext, mod_ext, rec_ext in extreme_values:
+        k1_ext, k2_ext = lock_mgr.derive_bipartite_advisory_keys(comp_ext, mod_ext, rec_ext)
+        assert -2147483648 <= k1_ext <= 2147483647, f"Extreme Key1 out of bounds: {k1_ext}"
+        assert -2147483648 <= k2_ext <= 2147483647, f"Extreme Key2 out of bounds: {k2_ext}"
+
+    _, k2_max_signed = lock_mgr.derive_bipartite_advisory_keys(1, "test", 0x7FFFFFFF)
+    assert k2_max_signed == 2147483647
+    _, k2_max_unsigned = lock_mgr.derive_bipartite_advisory_keys(1, "test", 0xFFFFFFFF)
+    assert k2_max_unsigned == -1
+    _, k2_zero = lock_mgr.derive_bipartite_advisory_keys(1, "test", 0)
+    assert k2_zero == 0
+
+    # 3. Test _process_pinned_batch_safe
+    mock_env = MagicMock()
+    mock_cr = MagicMock()
+    mock_env.cr = mock_cr
+    mock_env.company = MagicMock(id=1)
+    guard.env = mock_env
+
+    class DummySafeRecord:
+        def __init__(self, rec_id, return_val=None, exc=None):
+            self.id = rec_id
+            self.company_id = 1
+            self.return_val = return_val
+            self.exc = exc
+            self.executed = False
+
+        def with_company(self, company):
+            return self
+
+        def _execute_conversion(self):
+            self.executed = True
+            if self.exc:
+                raise self.exc
+            return self.return_val if self.return_val is not None else f"res_{self.id}"
+
+    # 3a. Rejects invalid or negative IDs with INVALID_RECORD_IDENTIFIER
+    invalid_records = [
+        DummySafeRecord(rec_id=-1),
+        DummySafeRecord(rec_id=0),
+        DummySafeRecord(rec_id="invalid_string"),
+        DummySafeRecord(rec_id=None),
+        DummySafeRecord(rec_id=10, return_val="valid_10"),
+    ]
+    proc, errs = guard._process_pinned_batch_safe(invalid_records, max_batch_size=50)
+    assert proc == ["valid_10"]
+    assert len(errs) == 4
+    assert errs[0] == (-1, "INVALID_RECORD_IDENTIFIER")
+    assert errs[1] == (0, "INVALID_RECORD_IDENTIFIER")
+    assert errs[2] == ("invalid_string", "INVALID_RECORD_IDENTIFIER")
+    assert errs[3] == (None, "INVALID_RECORD_IDENTIFIER")
+
+    # 3b. Uses native cr.savepoint()
+    mock_cr.reset_mock()
+    rec_valid = DummySafeRecord(101, return_val="success_101")
+    proc, errs = guard._process_pinned_batch_safe([rec_valid], max_batch_size=50)
+    assert proc == ["success_101"]
+    assert errs == []
+    mock_cr.savepoint.assert_called_once()
+
+    # 3c. Calls env.clear() / env.invalidate_all() on failure
+    mock_cr.reset_mock()
+    mock_env.clear.reset_mock()
+    mock_env.invalidate_all.reset_mock()
+    rec_err = DummySafeRecord(102, exc=exceptions.UserError("Statutory conversion locked"))
+    proc, errs = guard._process_pinned_batch_safe([rec_err], max_batch_size=50)
+    assert proc == []
+    assert len(errs) == 1
+    assert errs[0] == (102, "Statutory conversion locked")
+    mock_env.clear.assert_called_once()
+
+    # When env has no clear() but has invalidate_all()
+    mock_env_no_clear = MagicMock(spec=["cr", "company", "invalidate_all"])
+    mock_cr_no_clear = MagicMock()
+    mock_env_no_clear.cr = mock_cr_no_clear
+    mock_env_no_clear.company = MagicMock(id=1)
+    guard.env = mock_env_no_clear
+    proc, errs = guard._process_pinned_batch_safe([rec_err], max_batch_size=50)
+    assert proc == []
+    assert len(errs) == 1
+    mock_env_no_clear.invalidate_all.assert_called_once()
+    guard.env = mock_env
+
+    # 3d. Breaks on OperationalError (Circuit breaker: Halt batch on DB deadlocks)
+    mock_cr.reset_mock()
+    rec_deadlock = DummySafeRecord(103, exc=psycopg2.OperationalError("deadlock detected"))
+    rec_following = DummySafeRecord(104, return_val="should_never_run")
+    proc, errs = guard._process_pinned_batch_safe([rec_deadlock, rec_following], max_batch_size=50)
+    assert proc == []
+    assert len(errs) == 1
+    assert errs[0][0] == 103
+    assert "DB_CONCURRENCY_ABORT: deadlock detected" in errs[0][1]
+    assert not rec_following.executed, "Following record must not execute after OperationalError circuit break"
+
+    # 4. Test acquire_deterministic_record_lock
+    # 4a. Executes SELECT pg_try_advisory_xact_lock(%s, %s); with (key1, key2)
+    mock_cr_lock = MagicMock()
+    mock_cr_lock.fetchone.return_value = (True,)
+    res_acq = lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, company_id=1, model_name="account.move", record_id=42)
+    assert res_acq is True
+    expected_k1, expected_k2 = lock_mgr.derive_bipartite_advisory_keys(1, "account.move", 42)
+    mock_cr_lock.execute.assert_called_once_with(
+        "SELECT pg_try_advisory_xact_lock(%s, %s);",
+        (expected_k1, expected_k2),
+    )
+
+    # Contention returns False
+    mock_cr_lock.reset_mock()
+    mock_cr_lock.fetchone.return_value = (False,)
+    res_contention = lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, company_id=1, model_name="account.move", record_id=42)
+    assert res_contention is False
+
+    # 4b. Rejects invalid or negative IDs immediately without SQL execution
+    for bad_id in [-1, 0, -999, "invalid", None, 3.14, True, False]:
+        mock_cr_lock.reset_mock()
+        res_bad = lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, company_id=1, model_name="account.move", record_id=bad_id)
+        assert res_bad is False, f"Expected False for invalid record_id: {bad_id}"
+        assert mock_cr_lock.execute.call_count == 0, f"cr.execute should not be called for invalid ID: {bad_id}"
+
+    # 4c. Handles psycopg2.Error properly
+    mock_cr_lock.reset_mock()
+    mock_cr_lock.execute.side_effect = psycopg2.OperationalError("connection lost")
+    try:
+        lock_mgr.acquire_deterministic_record_lock(mock_cr_lock, company_id=1, model_name="account.move", record_id=42)
+        raise AssertionError("Expected psycopg2.OperationalError to be re-raised")
+    except psycopg2.OperationalError as e:
+        assert "connection lost" in str(e)
+
+    print("[✓] Patch 20 / Native Bipartite 32-bit Advisory Namespacing & Odoo Native Savepoint Cache-Sanitization verified")
+
+
+def test_adversarial_company_id_truncation_collision():
+    """
+    Verifies that Company 32769 and Company 1 DO NOT collide.
+    In the flawed version: (32769 & 0x7FFF) == (1 & 0x7FFF) == 1.
+    In the patched version: BLAKE2b derives distinct 64-bit keys.
+    """
+    from tools.dpas_tsm_lock import DPASTSMTransactionManager
+    mgr = DPASTSMTransactionManager()
+
+    key_company_1 = mgr.derive_deterministic_advisory_key(company_id=1, model_name="account.move", record_id=42)
+    key_company_32769 = mgr.derive_deterministic_advisory_key(company_id=32769, model_name="account.move", record_id=42)
+
+    assert key_company_1 != key_company_32769, (
+        f"Critical Failure: Tenant collision detected! Company 1 and 32769 generated identical key: {key_company_1}"
+    )
+    print("[✓] Adversarial test: Company 32769 vs Company 1 no collision verified")
+
+
+def test_adversarial_sql_injection_and_negative_id_handling():
+    """
+    Verifies that negative record IDs and SQL metacharacters in record_id
+    do not trigger SQL syntax crashes or injection.
+    """
+    from tools.dpas_tsm_lock import DPASTSMTransactionManager
+    mgr = DPASTSMTransactionManager()
+    mock_cr = MagicMock()
+    mock_cr.fetchone.return_value = (True,)
+
+    # Test 1: Negative record ID (transient records) rejected safely
+    res_neg = mgr.acquire_deterministic_record_lock(mock_cr, company_id=1, model_name="res.partner", record_id=-99)
+    assert res_neg is False, "Negative record IDs must be rejected safely without SQL execution"
+    assert mock_cr.execute.call_count == 0
+
+    # Test 2: SQL Injection payload in record ID rejected safely
+    mock_cr.reset_mock()
+    malicious_id = "1; DROP TABLE res_users; --"
+    res_inj = mgr.acquire_deterministic_record_lock(mock_cr, company_id=1, model_name="res.partner", record_id=malicious_id)
+    assert res_inj is False, "SQL injection string payload must be rejected safely without SQL execution"
+    assert mock_cr.execute.call_count == 0
+    print("[✓] Adversarial test: SQL injection & negative record ID handling verified")
+
+
+def test_adversarial_batch_circuit_breaker_and_cache_integrity():
+    """
+    Verifies that _process_pinned_batch_safe halts on unexpected failure
+    and wraps iterations in native ORM savepoints.
+    """
+    try:
+        from addons.insilos_adapter.models.cron_conversion_guard import InsilosConversionGuard
+    except Exception:
+        import importlib.util
+        guard_py = os.path.join(ROOT_DIR, "addons/insilos_adapter/models/cron_conversion_guard.py")
+        spec = importlib.util.spec_from_file_location("cron_conversion_guard", guard_py)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        InsilosConversionGuard = mod.InsilosConversionGuard
+
+    guard = InsilosConversionGuard()
+
+    mock_rec_1 = MagicMock()
+    mock_rec_1.id = 101
+    mock_rec_1.with_company.return_value = mock_rec_1
+    mock_rec_1._execute_conversion.return_value = "SUCCESS_101"
+
+    mock_rec_2 = MagicMock()
+    mock_rec_2.id = 102
+    mock_rec_2.with_company.return_value = mock_rec_2
+    mock_rec_2._execute_conversion.side_effect = RuntimeError("Database socket connection lost")
+
+    mock_rec_3 = MagicMock()
+    mock_rec_3.id = 103
+    mock_rec_3.with_company.return_value = mock_rec_3
+
+    # Mock environment and cr.savepoint context manager
+    mock_env = MagicMock()
+    guard.env = mock_env
+
+    processed, errors = guard._process_pinned_batch_safe([mock_rec_1, mock_rec_2, mock_rec_3])
+
+    assert processed == ["SUCCESS_101"]
+    assert len(errors) == 1
+    assert errors[0] == (102, "CRITICAL_INTERNAL_ERROR")
+    # Verify circuit breaker stopped mock_rec_3 from executing
+    assert mock_rec_3._execute_conversion.call_count == 0
+    print("[✓] Adversarial test: Batch circuit breaker & native savepoint cache integrity verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -1875,8 +2165,12 @@ def main():
     test_patch_17_zbesl_csa_and_parity_scanner_hardening()
     test_patch_18_zero_leak_sanitizer_dpas_lock_and_zk_motl()
     test_patch_19_dt_vpal_flat_savepoints_and_decree70_outbox()
-    print("[✓] ALL 19 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 19 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_20_native_bipartite_advisory_and_savepoint_cache_guard()
+    test_adversarial_company_id_truncation_collision()
+    test_adversarial_sql_injection_and_negative_id_handling()
+    test_adversarial_batch_circuit_breaker_and_cache_integrity()
+    print("[✓] ALL 20 AUDIT PATCH DIRECTIVES + ADVERSARIAL VERIFICATIONS SATISFIED")
+    print("[🎉] ALL SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":

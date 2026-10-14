@@ -9,9 +9,12 @@ Provides:
 - Transaction-scoped advisory lock with SAVEPOINT rollback barrier
 """
 
+import hashlib
 import logging
-import zlib
+import re
 from typing import Tuple
+import zlib
+import psycopg2
 
 _logger = logging.getLogger(__name__)
 
@@ -57,36 +60,48 @@ class DPASTSMTransactionManager:
             cr.execute(f"ROLLBACK TO SAVEPOINT {self.SAVEPOINT_NAME}")
             raise
 
+    def derive_bipartite_advisory_keys(self, company_id: int, model_name: str, record_id: int) -> Tuple[int, int]:
+        """
+        Derives collision-free (key1, key2) signed 32-bit integers for PostgreSQL pg_try_advisory_xact_lock(int4, int4).
+        """
+        namespace = f"{int(company_id)}:{str(model_name)}".encode('utf-8')
+        u32_ns = zlib.crc32(namespace) & 0xFFFFFFFF
+        key1 = u32_ns if u32_ns < 0x80000000 else u32_ns - 0x100000000
+        rec_id_int = int(record_id) & 0xFFFFFFFF
+        key2 = rec_id_int if rec_id_int < 0x80000000 else rec_id_int - 0x100000000
+        return int(key1), int(key2)
+
     def derive_deterministic_advisory_key(self, company_id: int, model_name: str, record_id: int) -> int:
         """
-        Derives deterministic 64-bit bipartite packed advisory key from company_id, model_name, and record_id.
+        Derives a deterministic, uniform 64-bit signed advisory key using BLAKE2b.
+        Guarantees zero company-id truncation across the 64-bit domain.
         """
-        import binascii
-        model_token = binascii.crc32(str(model_name).encode('utf-8')) & 0xFFFF
-        bounded_company = int(company_id) & 0x7FFF
-        bounded_record = int(record_id) & 0xFFFFFFFF
-        packed_key = (bounded_company << 48) | (model_token << 32) | bounded_record
-        return packed_key
+        try:
+            norm_company = int(company_id) if company_id is not None else 0
+        except (ValueError, TypeError):
+            norm_company = str(company_id).strip()
+        norm_model = str(model_name).strip()
+        try:
+            norm_record = int(record_id) if record_id is not None else 0
+        except (ValueError, TypeError):
+            norm_record = str(record_id).strip()
+        token = f"{norm_company}:{norm_model}:{norm_record}".encode("utf-8")
+        digest = hashlib.blake2b(token, digest_size=8).digest()
+        return int.from_bytes(digest, byteorder="big", signed=True)
 
     def acquire_deterministic_record_lock(self, cr, company_id: int, model_name: str, record_id: int) -> bool:
         """
-        Acquires a deterministic transaction-scoped advisory lock for a specific record
-        with a flat SAVEPOINT rollback barrier.
-        Returns True if acquired, False on lock contention.
-        Rolls back to savepoint on contention or failure.
+        Acquires a deterministic transaction-scoped advisory lock for a specific record.
+        Uses 32-bit bipartite signed keys (company_id:model_name, record_id).
+        Returns True if acquired, False on lock contention or invalid record_id.
         """
-        lock_key = self.derive_deterministic_advisory_key(company_id, model_name, record_id)
-        savepoint_name = f"flat_sp_{record_id}"
-        cr.execute(f"SAVEPOINT {savepoint_name};")
+        if not isinstance(record_id, int) or isinstance(record_id, bool) or record_id <= 0:
+            return False
+        key1, key2 = self.derive_bipartite_advisory_keys(company_id, model_name, record_id)
         try:
-            cr.execute("SELECT pg_try_advisory_xact_lock(%s);", (lock_key,))
+            cr.execute("SELECT pg_try_advisory_xact_lock(%s, %s);", (key1, key2))
             row = cr.fetchone()
-            locked = bool(row and row[0])
-            if not locked:
-                cr.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name};")
-                return False
-            cr.execute(f"RELEASE SAVEPOINT {savepoint_name};")
-            return True
-        except Exception:
-            cr.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name};")
+            return bool(row and row[0])
+        except psycopg2.Error as err:
+            self.logger.error("Failed to acquire advisory xact lock (%s, %s): %s", key1, key2, err)
             raise

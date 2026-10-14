@@ -3,6 +3,27 @@
 
 import hashlib
 import logging
+from typing import Tuple
+import zlib
+
+try:
+    import psycopg2
+    try:
+        from psycopg2.errors import TransactionRollbackError
+    except ImportError:
+        try:
+            from psycopg2.extensions import TransactionRollbackError
+        except ImportError:
+            class TransactionRollbackError(Exception):
+                pass
+except ImportError:
+    class _MockPsycopg2:
+        class OperationalError(Exception):
+            pass
+        class TransactionRollbackError(Exception):
+            pass
+    psycopg2 = _MockPsycopg2()
+    TransactionRollbackError = psycopg2.TransactionRollbackError
 
 try:
     from odoo import models, exceptions, _
@@ -41,13 +62,31 @@ class InsilosConversionGuard(models.AbstractModel):
         key2 = int.from_bytes(hash_digest[:4], byteorder='big', signed=True)
         return key1, key2
 
+    def _generate_bipartite_advisory_keys(self, company_id: int, model_name: str, record_id: int) -> Tuple[int, int]:
+        namespace = f"{int(company_id)}:{str(model_name)}".encode('utf-8')
+        u32_ns = zlib.crc32(namespace) & 0xFFFFFFFF
+        key1 = u32_ns if u32_ns < 0x80000000 else u32_ns - 0x100000000
+        rec_id_int = int(record_id) & 0xFFFFFFFF
+        key2 = rec_id_int if rec_id_int < 0x80000000 else rec_id_int - 0x100000000
+        return int(key1), int(key2)
+
     def _generate_deterministic_advisory_key(self, company_id: int, model_name: str, record_id: int) -> int:
-        import binascii
-        model_token = binascii.crc32(str(model_name).encode('utf-8')) & 0xFFFF
-        bounded_company = int(company_id) & 0x7FFF
-        bounded_record = int(record_id) & 0xFFFFFFFF
-        packed_key = (bounded_company << 48) | (model_token << 32) | bounded_record
-        return packed_key
+        """
+        Derives a collision-resistant, signed 64-bit PostgreSQL advisory lock key.
+        Prevents company truncation (CWE-190) and model CRC16 collisions (CWE-328).
+        """
+        try:
+            norm_company = int(company_id) if company_id is not None else 0
+        except (ValueError, TypeError):
+            norm_company = str(company_id).strip()
+        norm_model = str(model_name).strip()
+        try:
+            norm_record = int(record_id) if record_id is not None else 0
+        except (ValueError, TypeError):
+            norm_record = str(record_id).strip()
+        token = f"{norm_company}:{norm_model}:{norm_record}".encode("utf-8")
+        digest = hashlib.blake2b(token, digest_size=8).digest()
+        return int.from_bytes(digest, byteorder="big", signed=True)
 
     def _process_pinned_batch_safe(self, batch_records, max_batch_size=50):
         if len(batch_records) > max_batch_size:
@@ -55,24 +94,36 @@ class InsilosConversionGuard(models.AbstractModel):
         processed = []
         errors = []
         for record in batch_records:
-            savepoint_name = f"flat_sp_{getattr(record, 'id', 'item')}"
-            self.env.cr.execute(f"SAVEPOINT {savepoint_name};")
+            rec_id = getattr(record, 'id', None)
+            if not isinstance(rec_id, int) or isinstance(rec_id, bool) or rec_id <= 0:
+                errors.append((rec_id, "INVALID_RECORD_IDENTIFIER"))
+                continue
             try:
-                record_company = getattr(record, 'company_id', None) or self.env.company
-                if hasattr(record, 'with_company'):
-                    scoped_rec = record.with_company(record_company)
-                else:
-                    scoped_rec = record
-                res = scoped_rec._execute_conversion() if hasattr(scoped_rec, '_execute_conversion') else getattr(scoped_rec, 'id', None)
-                self.env.cr.execute(f"RELEASE SAVEPOINT {savepoint_name};")
-                processed.append(res)
+                with self.env.cr.savepoint():
+                    record_company = getattr(record, 'company_id', None) or self.env.company
+                    scoped_rec = record.with_company(record_company) if hasattr(record, 'with_company') else record
+                    res = scoped_rec._execute_conversion() if hasattr(scoped_rec, '_execute_conversion') else getattr(scoped_rec, 'id', None)
+                    processed.append(res)
             except (exceptions.UserError, exceptions.ValidationError) as e:
-                self.env.cr.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name};")
-                errors.append((getattr(record, 'id', None), str(e)))
+                if hasattr(self.env, 'clear'):
+                    self.env.clear()
+                elif hasattr(self.env, 'invalidate_all'):
+                    self.env.invalidate_all()
+                errors.append((rec_id, str(e)))
+            except (psycopg2.OperationalError, getattr(getattr(psycopg2, 'extensions', None), 'TransactionRollbackError', Exception)) as db_err:
+                if hasattr(self.env, 'clear'):
+                    self.env.clear()
+                elif hasattr(self.env, 'invalidate_all'):
+                    self.env.invalidate_all()
+                errors.append((rec_id, f"DB_CONCURRENCY_ABORT: {db_err}"))
+                break  # Circuit breaker: Halt batch on DB deadlocks/serialization failures
             except Exception as unhandled_err:
-                self.env.cr.execute(f"ROLLBACK TO SAVEPOINT {savepoint_name};")
-                errors.append((getattr(record, 'id', None), "CRITICAL_INTERNAL_ERROR"))
-                break  # Circuit breaker: Halt batch on unexpected failure
+                if hasattr(self.env, 'clear'):
+                    self.env.clear()
+                elif hasattr(self.env, 'invalidate_all'):
+                    self.env.invalidate_all()
+                errors.append((rec_id, "CRITICAL_INTERNAL_ERROR"))
+                break  # Circuit breaker: Halt batch on critical unexpected errors
         return processed, errors
 
     def execute_splayed_conversion(self, company_id, batch_slug, conversion_func, *args, **kwargs):
