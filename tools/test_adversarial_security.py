@@ -718,6 +718,90 @@ def test_patch_14_cellular_crash_only_pinned_conversions():
     print("[✓] Patch 14 / Cellular Crash-Only OTP Supervision & Advisory Lock for Pinned Conversions verified")
 
 
+def test_patch_14_gaopham_concurrency_and_tenant_guard():
+    import ast
+    import importlib.util
+    import unittest
+
+    showcase_lock_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/models/showcase_lock.py")
+    decree70_explainer_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/models/decree70_explainer.py")
+    procedural_guard_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/models/procedural_security_guard.py")
+    models_init_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/models/__init__.py")
+    tests_init_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/tests/__init__.py")
+    test_gaopham_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/tests/test_adversarial_gaopham_audit.py")
+
+    # 1. Existence assertions
+    for p in [showcase_lock_py, decree70_explainer_py, procedural_guard_py, models_init_py, tests_init_py, test_gaopham_py]:
+        assert os.path.exists(p), f"Missing required file: {p}"
+
+    # 2. Registration in models/__init__.py and tests/__init__.py
+    with open(models_init_py, "r", encoding="utf-8") as f:
+        models_init_src = f.read()
+        assert "showcase_lock" in models_init_src, "Missing showcase_lock registration in models/__init__.py"
+        assert "decree70_explainer" in models_init_src, "Missing decree70_explainer registration in models/__init__.py"
+        assert "procedural_security_guard" in models_init_src, "Missing procedural_security_guard registration in models/__init__.py"
+
+    with open(tests_init_py, "r", encoding="utf-8") as f:
+        tests_init_src = f.read()
+        assert "test_adversarial_gaopham_audit" in tests_init_src, "Missing test_adversarial_gaopham_audit in tests/__init__.py"
+
+    # 3. AST Invariants: showcase_lock.py
+    with open(showcase_lock_py, "r", encoding="utf-8") as f:
+        lock_src = f.read()
+    tree_lock = ast.parse(lock_src)
+    lock_fns = {n.name: n for n in ast.walk(tree_lock) if isinstance(n, ast.FunctionDef)}
+    lock_classes = {n.name: n for n in ast.walk(tree_lock) if isinstance(n, ast.ClassDef)}
+    assert "generate_tenant_lock_key" in lock_fns, "Missing generate_tenant_lock_key in showcase_lock.py"
+    assert "ShowcaseLockManager" in lock_classes, "Missing ShowcaseLockManager class in showcase_lock.py"
+    assert "hashlib.sha256" in lock_src, "Lock key derivation must use hashlib.sha256"
+    assert "struct.unpack" in lock_src and '">q"' in lock_src, "Lock key unpack must use struct.unpack('>q', ...)"
+    assert "pg_try_advisory_xact_lock" in lock_src, "Missing pg_try_advisory_xact_lock in atomic_tenant_lock"
+    assert "cr.savepoint(flush=True)" in lock_src, "Missing cr.savepoint(flush=True) in atomic_tenant_lock"
+    assert "_name = \"insilos.showcase.lock.manager\"" in lock_src or "_name = 'insilos.showcase.lock.manager'" in lock_src
+
+    # 4. AST Invariants: decree70_explainer.py
+    with open(decree70_explainer_py, "r", encoding="utf-8") as f:
+        d70_src = f.read()
+    tree_d70 = ast.parse(d70_src)
+    d70_fns = {n.name: n for n in ast.walk(tree_d70) if isinstance(n, ast.FunctionDef)}
+    assert "_sanitize_timesheet_description" in d70_fns, "Missing _sanitize_timesheet_description in decree70_explainer.py"
+    assert "generate_decree70_ai_explanation" in d70_fns, "Missing generate_decree70_ai_explanation in decree70_explainer.py"
+    assert "html.escape" in d70_src, "Missing html.escape in prompt sanitization"
+    assert "[FILTERED_INVARIANT]" in d70_src, "Missing [FILTERED_INVARIANT] replacement marker"
+    assert "[:300]" in d70_src, "Missing [:300] length clamp on timesheet description"
+    assert "self.company_id == current_company" in d70_src, "Missing self.company_id == current_company invariant"
+    assert "('company_id', '=', current_company.id)" in d70_src, "Missing ('company_id', '=', current_company.id) in timesheet query"
+    assert "('invoice_id', '=', self.id)" in d70_src, "Missing ('invoice_id', '=', self.id) in timesheet query"
+    assert "line.project_id.company_id == current_company" in d70_src, "Missing project company matching current_company"
+    assert "<timesheet_manifest" in d70_src, "Missing <timesheet_manifest encapsulation"
+    assert "<item hours=" in d70_src or "<item hours='" in d70_src, "Missing <item hours=... markup format"
+
+    # 5. AST Invariants: procedural_security_guard.py
+    with open(procedural_guard_py, "r", encoding="utf-8") as f:
+        guard_src = f.read()
+    tree_guard = ast.parse(guard_src)
+    guard_classes = {n.name: n for n in ast.walk(tree_guard) if isinstance(n, ast.ClassDef)}
+    assert "TenantProceduralMemoryGuard" in guard_classes, "Missing TenantProceduralMemoryGuard class"
+    assert "PROCEDURAL_TENANT_INVARIANTS" in guard_src, "Missing PROCEDURAL_TENANT_INVARIANTS definition"
+    assert "assert_procedural_tenant_invariant" in guard_src, "Missing assert_procedural_tenant_invariant method"
+    assert "_name = 'tenant.procedural.memory.guard'" in guard_src or '_name = "tenant.procedural.memory.guard"' in guard_src
+    assert "calling_env.su" in guard_src, "Missing calling_env.su evaluation"
+    assert "AccessError" in guard_src, "Missing AccessError escalation on procedural boundary violation"
+
+    # 6. Behavioral execution of test_adversarial_gaopham_audit suite
+    spec = importlib.util.spec_from_file_location("test_adversarial_gaopham_audit", test_gaopham_py)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    suite = unittest.TestLoader().loadTestsFromTestCase(mod.TestAdversarialGaophamAudit)
+    runner = unittest.TextTestRunner(verbosity=0)
+    res = runner.run(suite)
+    assert res.wasSuccessful() and res.testsRun == 4, (
+        f"TestAdversarialGaophamAudit failed: errors={len(res.errors)}, failures={len(res.failures)}"
+    )
+
+    print("[✓] Patch 14 / Gaopham Concurrency Advisory Lock, Decree 70 Prompt Guard & Mem0 Procedural Boundary verified")
+
+
 test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation = test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation
 
 
@@ -736,6 +820,7 @@ def main():
     test_patch_12_catalog_security_invariants()
     test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation()
     test_patch_14_cellular_crash_only_pinned_conversions()
+    test_patch_14_gaopham_concurrency_and_tenant_guard()
     print("[✓] ALL 14 AUDIT PATCH DIRECTIVES SATISFIED")
     print("[🎉] ALL 14 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
