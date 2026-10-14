@@ -1477,6 +1477,175 @@ def test_patch_18_zero_leak_sanitizer_dpas_lock_and_zk_motl():
     print("[✓] Patch 18 / Zero-Leak Sanitizer, DPAS-TSM Savepoint Lock, and ZK-MOTL Merkle Outbox verified")
 
 
+def test_patch_17_zbesl_csa_and_parity_scanner_hardening():
+    import ast
+    from unittest.mock import MagicMock
+    from psycopg2 import sql
+
+    # 1. Verify file existence and module imports
+    guard_py = os.path.join(ROOT_DIR, "addons/insilos_adapter/models/cron_conversion_guard.py")
+    models_init_py = os.path.join(ROOT_DIR, "addons/insilos_adapter/models/__init__.py")
+    assert os.path.exists(guard_py), "Missing cron_conversion_guard.py"
+    assert os.path.exists(models_init_py), "Missing addons/insilos_adapter/models/__init__.py"
+
+    with open(models_init_py, "r", encoding="utf-8") as f:
+        models_init_src = f.read()
+    assert "cron_conversion_guard" in models_init_src, "cron_conversion_guard not imported in models/__init__.py"
+
+    # 2. AST and Invariant Verification of cron_conversion_guard.py
+    with open(guard_py, "r", encoding="utf-8") as f:
+        guard_src = f.read()
+    tree = ast.parse(guard_src)
+    classes = {n.name: n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)}
+    assert "InsilosConversionGuard" in classes, "Missing InsilosConversionGuard class in cron_conversion_guard.py"
+    assert "ADVISORY_DOMAIN_SALT = 0x494E5349" in guard_src
+    assert "pg_try_advisory_xact_lock" in guard_src
+    assert "cr.savepoint()" in guard_src
+    assert "Decree 70/2025/ND-CP" in guard_src
+    assert "Circular 200 differential ledger (Account 413)" in guard_src
+
+    # 3. Dynamic Execution Test of InsilosConversionGuard
+    try:
+        from addons.insilos_adapter.models.cron_conversion_guard import (
+            InsilosConversionGuard,
+            ADVISORY_DOMAIN_SALT,
+        )
+    except Exception:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("cron_conversion_guard", guard_py)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        InsilosConversionGuard = mod.InsilosConversionGuard
+        ADVISORY_DOMAIN_SALT = mod.ADVISORY_DOMAIN_SALT
+
+    assert ADVISORY_DOMAIN_SALT == 0x494E5349
+    guard = InsilosConversionGuard()
+
+    # Test key computation
+    k1, k2 = guard._compute_lock_keys(company_id=1, batch_slug="test_batch_slug")
+    assert 0 <= k1 <= 0x7FFFFFFF, f"Key1 out of 31-bit positive bounds: {k1}"
+    assert -0x80000000 <= k2 <= 0x7FFFFFFF, f"Key2 out of 32-bit signed bounds: {k2}"
+
+    # Keys must partition across company and batch
+    k1_comp2, _ = guard._compute_lock_keys(company_id=2, batch_slug="test_batch_slug")
+    assert k1 != k1_comp2, "Key1 must differ for different company"
+    _, k2_slug2 = guard._compute_lock_keys(company_id=1, batch_slug="other_batch_slug")
+    assert k2 != k2_slug2, "Key2 must differ for different batch slug"
+
+    # Test execute_splayed_conversion
+    # Case A: Lock not acquired -> returns splayed dict
+    mock_env = MagicMock()
+    mock_cr = MagicMock()
+    mock_env.cr = mock_cr
+    guard.env = mock_env
+
+    mock_cr.fetchone.return_value = (False,)
+    func_called = []
+    res_splayed = guard.execute_splayed_conversion(1, "test_batch", lambda: func_called.append(True))
+    assert res_splayed["status"] == "splayed"
+    assert "Partition locked by concurrent worker" in res_splayed["reason"]
+    assert res_splayed["processed"] == 0
+    assert len(func_called) == 0
+
+    # Case B: Lock acquired -> executes within savepoint and returns completed
+    mock_cr.reset_mock()
+    mock_cr.fetchone.return_value = (True,)
+    res_completed = guard.execute_splayed_conversion(
+        1, "test_batch_slug", lambda x: f"converted_{x}", "item_42"
+    )
+    assert res_completed["status"] == "completed"
+    assert res_completed["result"] == "converted_item_42"
+    mock_cr.execute.assert_called_once_with("SELECT pg_try_advisory_xact_lock(%s, %s);", (k1, k2))
+    mock_cr.savepoint.assert_called_once()
+
+    # Test assert_decree70_statutory_invariant
+    # Case A: Posted with einvoice -> AccessError (Decree 70)
+    mock_posted_einvoice = MagicMock()
+    mock_posted_einvoice.state = "posted"
+    mock_posted_einvoice.name = "INV/2026/001"
+    mock_posted_einvoice.einvoice_status = "signed"
+    try:
+        guard.assert_decree70_statutory_invariant(mock_posted_einvoice)
+        raise AssertionError("Expected AccessError on posted electronic invoice")
+    except Exception as e:
+        assert "Decree 70/2025/ND-CP" in str(e)
+        assert "Adjustment Invoice" in str(e)
+
+    # Case B: Posted without einvoice -> UserError (Circular 200)
+    mock_posted_no_einvoice = MagicMock()
+    mock_posted_no_einvoice.state = "posted"
+    mock_posted_no_einvoice.name = "INV/2026/002"
+    mock_posted_no_einvoice.einvoice_status = False
+    mock_posted_no_einvoice.decree70_signed = False
+    try:
+        guard.assert_decree70_statutory_invariant(mock_posted_no_einvoice)
+        raise AssertionError("Expected UserError on posted invoice without e-invoice")
+    except Exception as e:
+        assert "Statutory Invariant Error" in str(e)
+        assert "Account 413" in str(e)
+
+    # Case C: Draft invoice -> Returns True
+    mock_draft = MagicMock()
+    mock_draft.state = "draft"
+    mock_draft.name = "INV/2026/003"
+    assert guard.assert_decree70_statutory_invariant(mock_draft) is True
+
+    # 4. Test Parity Scanner Hardening (tools/audit_erp_data_parity.py)
+    from tools.audit_erp_data_parity import (
+        sanitize_telemetry,
+        SENSITIVE_PATTERNS,
+        ERPParityAuditor,
+    )
+
+    # Test sanitize_telemetry
+    sec_payload = 'Authorization: Bearer token_xyz123, password: "super_secret_value", phone: 0912345678, sk-abcdef12345678901234567890'
+    sanitized = sanitize_telemetry(sec_payload)
+    assert "Bearer [REDACTED]" in sanitized
+    assert "token_xyz123" not in sanitized
+    assert '[REDACTED]' in sanitized
+    assert "super_secret_value" not in sanitized
+    assert "091*****78" in sanitized
+    assert "[REDACTED_API_KEY]" in sanitized
+    assert sanitize_telemetry(None) == ""
+    assert sanitize_telemetry("") == ""
+
+    # Test ERPParityAuditor SQL injection guards in _fetch_table_data
+    auditor = ERPParityAuditor("source_db", "target_db")
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_conn.cursor.return_value = mock_cursor
+    mock_cursor.fetchall.return_value = [{"id": 1, "name": "val"}]
+
+    # Valid execution uses psycopg2.sql
+    data = auditor._fetch_table_data(mock_conn, "res_partner", ["id", "name"], "id")
+    assert data == {1: {"id": 1, "name": "val"}}
+    mock_cursor.execute.assert_called_once()
+    query_obj = mock_cursor.execute.call_args[0][0]
+    assert isinstance(query_obj, sql.Composed)
+
+    # SQL injection attempts rejected
+    malicious_inputs = [
+        ("res_partner; DROP TABLE users; --", ["id"], "id"),
+        ("res_partner", ["id", "name; DROP TABLE --"], "id"),
+        ("res_partner", ["id"], "id; DROP TABLE --"),
+        ("table$name", ["id"], "id"),
+        ("res_partner", ["id$col"], "id"),
+    ]
+    for m_table, m_fields, m_order in malicious_inputs:
+        mock_cursor.reset_mock()
+        try:
+            auditor._fetch_table_data(mock_conn, m_table, m_fields, m_order)
+            raise AssertionError(f"Expected ValueError for injection attack: {m_table}, {m_fields}, {m_order}")
+        except ValueError:
+            pass
+        assert mock_cursor.execute.call_count == 0
+
+    print("[✓] Patch 17 / ZBESL-CSA Splay-Locking, Decree 70 Statutory Barrier & Parity Scanner Hardening verified")
+
+
+test_patch_18_zbesl_csa_and_parity_scanner_hardening = test_patch_17_zbesl_csa_and_parity_scanner_hardening
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -1498,9 +1667,10 @@ def main():
     test_patch_16_dpas_tsm_dual_key_and_statutory_immutability()
     test_patch_16_two_key_advisory_lock_and_paged_telemetry()
     test_patch_17_dual_partition_advisory_lock_and_sql_guards()
+    test_patch_17_zbesl_csa_and_parity_scanner_hardening()
     test_patch_18_zero_leak_sanitizer_dpas_lock_and_zk_motl()
-    print("[✓] ALL 18 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 18 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    print("[✓] ALL 17 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 17 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
