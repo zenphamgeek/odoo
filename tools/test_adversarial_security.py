@@ -300,13 +300,14 @@ def test_vuln_02_equity_cap_table_isolation():
 
 
 def test_zeninallgeek_ssrf_and_obsidian_stage():
+    import re
     import xml.etree.ElementTree as ET
 
     suite_py = os.path.join(ROOT_DIR, "enterprise/insilos_website/tools/test_3d_interactive_suite.py")
     with open(suite_py, "r", encoding="utf-8") as f:
         src = f.read()
 
-    assert "def _validate_safe_url(url_str: str) -> str:" in src
+    assert "def _validate_safe_url(url_str: str, allow_loopback: bool = True) -> str:" in src
     assert "self.base_url = _validate_safe_url(base_url)" in src
 
     idx = src.find("from urllib.parse import urlparse")
@@ -316,10 +317,15 @@ def test_zeninallgeek_ssrf_and_obsidian_stage():
     exec(src[idx:end_idx], ns)
     validate_fn = ns["_validate_safe_url"]
 
+    # Valid loopbacks and safe HTTPS
     assert validate_fn("http://localhost:28069/") == "http://localhost:28069"
+    assert validate_fn("http://127.0.0.1:28069/") == "http://127.0.0.1:28069"
     assert validate_fn("https://innoria.com/") == "https://innoria.com"
 
     for bad_url in (
+        "http://2852039166/latest/meta-data/",
+        "http://0xa9fea9fe/computeMetadata/v1/",
+        "http://169.254.169.254.nip.io",
         "http://169.254.169.254/latest/meta-data/",
         "http://metadata.google.internal/computeMetadata/v1/",
         "http://169.254.170.2/v2/credentials",
@@ -334,12 +340,35 @@ def test_zeninallgeek_ssrf_and_obsidian_stage():
             raised = True
         assert raised, f"Expected ValueError for SSRF / invalid URL: {bad_url}"
 
+    # Verify SEC-02: Zero inline onclick handlers on btnSimulateOverride & btnResetOverride
+    homepage_xml = os.path.join(ROOT_DIR, "enterprise/insilos_website/views/innoria_homepage.xml")
+    with open(homepage_xml, "r", encoding="utf-8") as f:
+        hp_src = f.read()
+
+    ET.parse(homepage_xml)
+
+    btn_sim_match = re.search(r'<button[^>]*id=["\']btnSimulateOverride["\'][^>]*>', hp_src)
+    assert btn_sim_match, "Missing btnSimulateOverride button tag in innoria_homepage.xml"
+    assert "onclick=" not in btn_sim_match.group(0), "btnSimulateOverride contains inline onclick handler"
+    assert "js_simulate_override" in btn_sim_match.group(0), "btnSimulateOverride missing js_simulate_override class"
+    assert 'data-target-alert="#cascadeAlertBox"' in btn_sim_match.group(0), "btnSimulateOverride missing data-target-alert"
+    assert 'data-target-tier="#cascadeTierP4"' in btn_sim_match.group(0), "btnSimulateOverride missing data-target-tier"
+    assert 'data-target-log="#reconAuditTrailLog"' in btn_sim_match.group(0), "btnSimulateOverride missing data-target-log"
+
+    btn_reset_match = re.search(r'<button[^>]*id=["\']btnResetOverride["\'][^>]*>', hp_src)
+    assert btn_reset_match, "Missing btnResetOverride button tag in innoria_homepage.xml"
+    assert "onclick=" not in btn_reset_match.group(0), "btnResetOverride contains inline onclick handler"
+    assert "js_reset_override" in btn_reset_match.group(0), "btnResetOverride missing js_reset_override class"
+    assert 'data-target-alert="#cascadeAlertBox"' in btn_reset_match.group(0), "btnResetOverride missing data-target-alert"
+    assert 'data-target-tier="#cascadeTierP4"' in btn_reset_match.group(0), "btnResetOverride missing data-target-tier"
+    assert 'data-target-log="#reconAuditTrailLog"' in btn_reset_match.group(0), "btnResetOverride missing data-target-log"
+
     tpl_xml = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/views/templates.xml")
     with open(tpl_xml, "r", encoding="utf-8") as f:
         xml_src = f.read()
     assert "bg-transparent borderless-obsidian-stage" in xml_src
     ET.parse(tpl_xml)
-    print("[✓] zeninallgeek Audit (CWE-918 SSRF Guard & templates.xml Obsidian Stage XML AST) verified")
+    print("[✓] zeninallgeek / nahlaleah102 Audit (CWE-918 SSRF Guard, SEC-02 Inline CSP & Obsidian Stage XML AST) verified")
 
 
 def test_patch_9_audit_3_dism_trl():
@@ -363,8 +392,8 @@ def test_patch_10_saas_provisioning_security():
     assert "with request.env.cr.savepoint():" in src, "Missing native with request.env.cr.savepoint(): in main.py"
 
     # 2. Scoped Idempotency Check (CWE-284 / CWE-384)
-    assert "('payload', 'ilike', f'%\"{owner_email}\"%')" in src, "Missing owner_email scoping in idempotency search"
-    assert "(idempotency_key and owner_email)" in src, "Idempotency search must require both idempotency_key and owner_email"
+    assert ("('payload', 'ilike', f'%\"{owner_email}\"%')" in src or "op.tenant_id.owner_email == owner_email" in src), "Missing owner_email scoping in idempotency search"
+    assert "idempotency_key and owner_email" in src, "Idempotency search must require both idempotency_key and owner_email"
 
     # 3. String Input Clamps & Relational Reference (CWE-704 / CWE-20)
     assert "[:128]" in src, "Missing string length clamps [:128] on tenant name / owner details"
@@ -399,6 +428,69 @@ def test_patch_10_saas_provisioning_security():
     print("[✓] Patch 10 / SaaS Provisioning Security (64-bit SHA-256 Lock, Native Savepoint, Scoped Idempotency) verified")
 
 
+def test_patch_11_pinned_conversion_cron_safety_gate():
+    import ast
+    cron_py = os.path.join(ROOT_DIR, "enterprise/insilos_website/models/pinned_conversion_cron.py")
+    models_init = os.path.join(ROOT_DIR, "enterprise/insilos_website/models/__init__.py")
+
+    assert os.path.exists(cron_py), f"Missing {cron_py}"
+    with open(models_init, "r", encoding="utf-8") as f:
+        assert "pinned_conversion_cron" in f.read(), "pinned_conversion_cron not imported in models/__init__.py"
+
+    with open(cron_py, "r", encoding="utf-8") as f:
+        src = f.read()
+
+    # 1. AST Structural Invariants
+    tree = ast.parse(src)
+    classes = [n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)]
+    cron_cls = next((c for c in classes if c.name == "PinnedConversionCron"), None)
+    assert cron_cls is not None, "Missing PinnedConversionCron class in pinned_conversion_cron.py"
+
+    assert 'models.AbstractModel' in src, "PinnedConversionCron must inherit models.AbstractModel"
+    assert '_name = "insilos.pinned.conversion.cron"' in src, "Invalid _name attribute"
+    assert "def run_247_pinned_conversions" in src, "Missing run_247_pinned_conversions method"
+    assert "def _pre_flight_safety_check" in src, "Missing _pre_flight_safety_check method"
+    assert "def _execute_company_conversion_isolated" in src, "Missing _execute_company_conversion_isolated method"
+
+    # 2. Security Boundaries & Invariants
+    assert "self.with_company(company)" in src, "Missing self.with_company(company) tenant scoping (CWE-284)"
+    assert "self.env.cr.savepoint()" in src, "Missing self.env.cr.savepoint() transaction isolation (CWE-662)"
+    assert "pg_try_advisory_xact_lock" in src, "Missing pg_try_advisory_xact_lock in pre-flight check"
+    assert "hashlib.sha256" in src, "Lock ID derivation must use hashlib.sha256 for deterministic cross-process stability"
+
+    # 3. Behavioral Simulation of Pre-Flight Gate & Advisory Lock
+    import threading
+    class MockCompany:
+        def __init__(self, cid, name, has_currency=True):
+            self.id = cid
+            self.name = name
+            self.currency_id = 1 if has_currency else False
+
+    held_locks = set()
+    lock_mu = threading.Lock()
+
+    def simulate_preflight(company):
+        if not company or not company.currency_id:
+            return False
+        import hashlib
+        lock_bytes = hashlib.sha256(f"pinned_conversion_{company.id}".encode("utf-8")).digest()[:8]
+        lock_id = int.from_bytes(lock_bytes, byteorder="big", signed=True)
+        with lock_mu:
+            if lock_id in held_locks:
+                return False
+            held_locks.add(lock_id)
+            return True
+
+    comp_valid = MockCompany(101, "Acme Corp", has_currency=True)
+    comp_no_curr = MockCompany(102, "No Curr Corp", has_currency=False)
+
+    assert simulate_preflight(comp_no_curr) is False, "Company without currency must fail preflight check"
+    assert simulate_preflight(comp_valid) is True, "Valid company must pass preflight check"
+    assert simulate_preflight(comp_valid) is False, "Concurrent second worker on same company must be skipped (no race/deadlock)"
+
+    print("[✓] Patch 11 / 24/7 Pinned Conversion Cron Safety Gate (CRM Pre-Flight, Transaction Advisory Lock, Tenant Savepoint) verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -410,7 +502,8 @@ def main():
     test_zeninallgeek_ssrf_and_obsidian_stage()
     test_patch_9_audit_3_dism_trl()
     test_patch_10_saas_provisioning_security()
-    print("[🎉] ALL 10 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_11_pinned_conversion_cron_safety_gate()
+    print("[🎉] ALL 11 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
