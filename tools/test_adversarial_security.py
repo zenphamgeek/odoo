@@ -491,6 +491,104 @@ def test_patch_11_pinned_conversion_cron_safety_gate():
     print("[✓] Patch 11 / 24/7 Pinned Conversion Cron Safety Gate (CRM Pre-Flight, Transaction Advisory Lock, Tenant Savepoint) verified")
 
 
+def test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation():
+    import ast
+    import importlib.util
+    import shutil
+    import subprocess
+    import unittest
+    from pathlib import Path
+
+    # 1. POS Barcodelookup Sandbox & Path Traversal Hardening (CWE-22, CWE-78, CWE-400)
+    pos_test_py = os.path.join(ROOT_DIR, "enterprise/pos_barcodelookup/tests/test_pos_barcodelookup_start.py")
+    assert os.path.exists(pos_test_py), f"Missing {pos_test_py}"
+    with open(pos_test_py, "r", encoding="utf-8") as f:
+        pos_src = f.read()
+
+    tree_pos = ast.parse(pos_src)
+    fn_names = [n.name for n in ast.walk(tree_pos) if isinstance(n, ast.FunctionDef)]
+    assert "_resolve_plugin_script" in fn_names, "Missing _resolve_plugin_script in test_pos_barcodelookup_start.py"
+    assert "_run_node_isolated" in fn_names, "Missing _run_node_isolated in test_pos_barcodelookup_start.py"
+
+    # AST verification for path traversal guards and subprocess sandboxing
+    assert 'startswith("/pos_barcodelookup/static/src/")' in pos_src, "Missing path prefix whitelist check in _resolve_plugin_script"
+    assert '".." in raw_path' in pos_src, "Missing directory traversal .. check in _resolve_plugin_script"
+    assert "is_relative_to" in pos_src, "Missing is_relative_to boundary confinement check"
+    assert "clean_env" in pos_src, "Missing clean_env sandbox environment in _run_node_isolated"
+    assert "timeout=" in pos_src, "Missing timeout bounds parameter in _run_node_isolated"
+
+    # Dynamically load test module for behavioral verification
+    spec = importlib.util.spec_from_file_location("test_pos_barcodelookup_start", pos_test_py)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+
+    # Behavioral test: CWE-22 path traversal rejection
+    adversarial_traversal_payloads = [
+        {"pos_react_plugin_scripts": ["/pos_barcodelookup/static/src/../../etc/passwd"]},
+        {"pos_react_plugin_scripts": ["/pos_barcodelookup/static/src/../../../root/.ssh/id_rsa"]},
+        {"pos_react_plugin_scripts": ["/etc/shadow"]},
+        {"pos_react_plugin_scripts": ["/pos_barcodelookup/evil.js"]},
+        {"pos_react_plugin_scripts": [None]},
+        {"pos_react_plugin_scripts": [1337]},
+    ]
+    for bad_manifest in adversarial_traversal_payloads:
+        traversal_blocked = False
+        try:
+            mod._resolve_plugin_script(bad_manifest, 0)
+        except (ValueError, TypeError):
+            traversal_blocked = True
+        assert traversal_blocked, f"Path traversal attack was not blocked for payload: {bad_manifest}"
+
+    # Verify legitimate manifest script resolution
+    manifest = ast.literal_eval((mod.MODULE / "__manifest__.py").read_text(encoding="utf-8"))
+    valid_path = mod._resolve_plugin_script(manifest, 0)
+    assert valid_path.is_file(), f"Valid plugin script not found at {valid_path}"
+    assert valid_path.name == "pos_react_plugin.js", f"Unexpected plugin script: {valid_path}"
+
+    # Behavioral test: CWE-200 / CWE-78 clean environment containment (zero host token leak)
+    os.environ["SECRET_ADVERSARIAL_CANARY"] = "CRITICAL_KEY_LEAK_FAIL"
+    node_res = mod._run_node_isolated('console.log(process.env.SECRET_ADVERSARIAL_CANARY || "ISOLATED_CLEAN");')
+    assert "ISOLATED_CLEAN" in node_res.stdout, "Isolated node process did not output expected fallback"
+    assert "CRITICAL_KEY_LEAK_FAIL" not in node_res.stdout, "Ambient host secret leaked into node sandbox environment (CWE-200)"
+
+    # Behavioral test: CWE-400 execution timeout bounds
+    timed_out = False
+    try:
+        mod._run_node_isolated("while(true){}", timeout=0.3)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+    assert timed_out, "Node isolated runner failed to enforce timeout bounds (CWE-400 DoS vulnerability)"
+
+    # Run actual isolated POS React unit tests
+    suite = unittest.TestLoader().loadTestsFromTestCase(mod.TestPOSReactPlugin)
+    test_res = unittest.TextTestRunner(verbosity=0).run(suite)
+    assert test_res.wasSuccessful() and test_res.testsRun >= 2, f"TestPOSReactPlugin unit tests failed: errors={len(test_res.errors)}, failures={len(test_res.failures)}"
+
+    # 2. MRP Workorder HR Account Valuation Inheritance Parity (Odoo 20 upstream parity)
+    mrp_test_py = os.path.join(ROOT_DIR, "enterprise/mrp_workorder_hr_account/tests/test_valuation.py")
+    assert os.path.exists(mrp_test_py), f"Missing {mrp_test_py}"
+    with open(mrp_test_py, "r", encoding="utf-8") as f:
+        mrp_src = f.read()
+
+    tree_mrp = ast.parse(mrp_src)
+    classes = {n.name: [b.id for b in n.bases if isinstance(b, ast.Name)] for n in ast.walk(tree_mrp) if isinstance(n, ast.ClassDef)}
+    assert "TestMrpWorkorderHrValuationPostInstall" in classes, "Missing TestMrpWorkorderHrValuationPostInstall class in test_valuation.py"
+    assert "TestMrpValuationStandard" in classes["TestMrpWorkorderHrValuationPostInstall"], (
+        "TestMrpWorkorderHrValuationPostInstall must inherit TestMrpValuationStandard for Odoo 20 parity"
+    )
+    assert "TestMrpValuationCommon" not in mrp_src, (
+        "Banned legacy class TestMrpValuationCommon found in test_valuation.py"
+    )
+    assert "from odoo.addons.mrp_account.tests.test_valuation_layers import TestMrpValuationStandard" in mrp_src, (
+        "Missing TestMrpValuationStandard import in test_valuation.py"
+    )
+    mrp_fn_names = [n.name for n in ast.walk(tree_mrp) if isinstance(n, ast.FunctionDef)]
+    assert "test_wip_accounting_01" in mrp_fn_names, "Missing test_wip_accounting_01 in test_valuation.py"
+    assert "test_workcenter_employee_cost_impacting_on_valuation" in mrp_fn_names, "Missing test_workcenter_employee_cost_impacting_on_valuation"
+
+    print("[✓] Patch 12 / POS Barcodelookup Node Sandbox & MRP Valuation Inheritance Parity verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -503,7 +601,8 @@ def main():
     test_patch_9_audit_3_dism_trl()
     test_patch_10_saas_provisioning_security()
     test_patch_11_pinned_conversion_cron_safety_gate()
-    print("[🎉] ALL 11 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation()
+    print("[🎉] ALL 12 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
