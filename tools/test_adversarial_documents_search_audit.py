@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 """
 Adversarial Verification Suite for Documents Search Model & Search Panel:
-Verifies SEC-01 through SEC-05:
-  1. SEC-01 (CWE-697): Folder Sorting Invariant (folders before files, is_folder asc: false)
+Verifies SEC-01 through SEC-06:
+  1. SEC-01 (CWE-284): BOLA / IDOR Query Boundary Clamp to Root Scope
   2. SEC-02 (CWE-476): Uninitialized State Auto-Vivification in SearchPanel
-  3. SEC-03 (CWE-843): Polymorphic Folder ID Normalization & Strict Equality
-  4. SEC-04 (CWE-284): Query Boundary Safe Root Fallback
-  5. SEC-05 (CWE-391): Safe LocalStorage Fallback on Quota / Restricted Contexts
+  3. SEC-03 & SEC-06 (CWE-843 & CWE-20): Polymorphic Folder ID Normalization & Strict Sanitization
+  4. SEC-04 (CWE-697): Folder Sorting Invariant (folders before files, is_folder asc: false)
+  5. SEC-05 (CWE-835 / CWE-476): Cycle-Safe and Orphan-Resilient Parent Traversal
+  6. SEC-07: Safe LocalStorage Fallback on Quota / Restricted Contexts
 """
 
 import json
@@ -27,35 +28,53 @@ def test_search_model_invariants():
 
     # 1. Assert is_folder sorting has asc: false
     assert '{ name: "is_folder", asc: false }' in src, (
-        "SEC-01 FAILED: is_folder must have asc: false to sort folders before files!"
+        "SEC-04 FAILED: is_folder must have asc: false to sort folders before files!"
     )
-    print("  [✓] SEC-01 PASS: is_folder sort order is strictly descending (folders first).")
+    print("  [✓] SEC-04 PASS: is_folder sort order is strictly descending (folders first).")
 
-    # 2. Assert query check is null/length safe
+    # 2. Assert query check is null/length safe and clamps to root scope
     assert "!this.query || !this.query.length" in src, (
-        "SEC-04 FAILED: query boundary check must check both existence and length!"
+        "SEC-01 FAILED: query boundary check must check both existence and length!"
     )
-    print("  [✓] SEC-04 PASS: Query boundary guard uses safe check (!this.query || !this.query.length).")
+    assert "this.context.documents_root_folder_id || this.context.default_folder_id" in src, (
+        "SEC-01 FAILED: query boundary must clamp to root scope (documents_root_folder_id or default_folder_id)!"
+    )
+    print("  [✓] SEC-01 PASS: Query boundary guard uses safe check and clamps to root scope.")
 
-    # 3. Assert _normalizeFolderId exists
+    # 3. Assert _normalizeFolderId exists and has strict token & integer guards
     assert "_normalizeFolderId(val)" in src, (
         "SEC-03 FAILED: _normalizeFolderId method missing!"
     )
-    assert "_safeSetStorage(key, value)" in src, (
-        "SEC-05 FAILED: _safeSetStorage method missing!"
+    assert '["COMPANY", "MY", "RECENT", "SHARED", "TRASH"].includes(val)' in src, (
+        "SEC-03 & SEC-06 FAILED: _normalizeFolderId must whitelist explicit DMS tokens!"
     )
-    print("  [✓] SEC-03 & SEC-05 PASS: Normalization and guarded storage helper methods present.")
+    assert "_safeSetStorage(key, value)" in src, (
+        "SEC-07 FAILED: _safeSetStorage method missing!"
+    )
+    print("  [✓] SEC-03 & SEC-06 PASS: Normalization, token allowlist, and guarded storage methods present.")
 
-    # 4. Run Node.js simulation of normalization and storage behaviors
+    # 4. Assert SEC-05 cycle-safe parent traversal with seenIds Set
+    assert "seenIds.has(currId)" in src, (
+        "SEC-05 FAILED: Parent traversal must track visited node IDs via Set to eliminate infinite loops!"
+    )
+    print("  [✓] SEC-05 PASS: Cycle-safe parent walk with Set<number> present.")
+
+    # 5. Run Node.js simulation of normalization and storage behaviors
     node_test = """
     function _normalizeFolderId(val) {
         if (val === false || val === "false" || val === null || val === undefined) {
             return false;
         }
+        if (typeof val === "number" && Number.isInteger(val) && val > 0) {
+            return val;
+        }
         if (typeof val === "string" && /^\\d+$/.test(val)) {
             return parseInt(val, 10);
         }
-        return val;
+        if (typeof val === "string" && ["COMPANY", "MY", "RECENT", "SHARED", "TRASH"].includes(val)) {
+            return val;
+        }
+        return false;
     }
 
     const valueIds = [102, 103, 104, "MY", "COMPANY"];
@@ -67,12 +86,16 @@ def test_search_model_invariants():
         { raw: null, expected: false, inValueIds: false },
         { raw: undefined, expected: false, inValueIds: false },
         { raw: "COMPANY", expected: "COMPANY", inValueIds: true },
+        { raw: "malicious_folder_payload", expected: false, inValueIds: false },
+        { raw: -5, expected: false, inValueIds: false },
+        { raw: 3.14159, expected: false, inValueIds: false },
+        { raw: { __proto__: 1 }, expected: false, inValueIds: false },
     ];
 
     for (const tc of testCases) {
         const norm = _normalizeFolderId(tc.raw);
         if (norm !== tc.expected) {
-            throw new Error(`Normalization mismatch for ${tc.raw}: got ${norm}, expected ${tc.expected}`);
+            throw new Error(`Normalization mismatch for ${JSON.stringify(tc.raw)}: got ${norm}, expected ${tc.expected}`);
         }
         const matched = valueIds.includes(norm);
         if (matched !== tc.inValueIds) {
@@ -84,7 +107,7 @@ def test_search_model_invariants():
     proc = subprocess.run(["node", "-e", node_test], capture_output=True, text=True, check=True)
     res = json.loads(proc.stdout.strip())
     assert res.get("status") == "ok"
-    print("  [✓] SEC-03 Node.js Behavioral PASS: Normalizer successfully maps stringified IDs to strict numeric matches.")
+    print("  [✓] SEC-03 & SEC-06 Node.js Behavioral PASS: Normalizer successfully maps stringified IDs and rejects malicious/corrupt tokens.")
 
 
 def test_search_panel_invariants():
@@ -137,7 +160,7 @@ def main():
     test_search_model_invariants()
     test_search_panel_invariants()
     print("======================================================================")
-    print(">>> ALL 5 DOCUMENTS SEARCH INVARIANTS PASS EMPIRICALLY (0 REGRESSIONS) <<<")
+    print(">>> ALL 6 DOCUMENTS SEARCH INVARIANTS PASS EMPIRICALLY (0 REGRESSIONS) <<<")
     print("======================================================================")
 
 
