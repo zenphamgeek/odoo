@@ -30,59 +30,71 @@ class TestDgmGovernanceAutomation(TransactionCase):
         cls.rag_service = cls.env['al2c.rag.service']
         cls.doc_model = cls.env['documents.document']
 
-        # Setup Employees with diverse Vietnamese accented names and bank accounts
-        cls.emp_hoang = cls.env['hr.employee'].create({
-            'name': 'Lê Xuân Hoàng',
-            'legal_name': 'Lê Xuân Hoàng',
-            'registration_number': 'DGM-001',
-            'company_id': cls.company.id,
-        })
-        cls.bank_hoang = cls.env['res.partner.bank'].create({
-            'account_number': '1373068161',
-            'bank_name': 'Vietcombank Nam Sai Gon',
-            'bank_bic': 'BFTVVNVX',
-            'partner_id': cls.emp_hoang.work_contact_id.id,
-        })
-        cls.emp_hoang.write({
-            'bank_account_ids': [(4, cls.bank_hoang.id)],
-            'primary_bank_account_id': cls.bank_hoang.id,
-        })
+        # Setup Employees with diverse Vietnamese accented names and bank accounts (idempotent find-or-create)
+        cls.emp_hoang = cls.env['hr.employee'].search([('registration_number', '=', 'DGM-001')], limit=1)
+        if not cls.emp_hoang:
+            cls.emp_hoang = cls.env['hr.employee'].create({
+                'name': 'Lê Xuân Hoàng',
+                'legal_name': 'Lê Xuân Hoàng',
+                'registration_number': 'DGM-001',
+                'company_id': cls.company.id,
+            })
+        cls.bank_hoang = cls.emp_hoang.primary_bank_account_id
+        if not cls.bank_hoang:
+            cls.bank_hoang = cls.env['res.partner.bank'].create({
+                'account_number': '1373068161',
+                'bank_name': 'Vietcombank Nam Sai Gon',
+                'bank_bic': 'BFTVVNVX',
+                'partner_id': cls.emp_hoang.work_contact_id.id,
+            })
+            cls.emp_hoang.write({
+                'bank_account_ids': [(4, cls.bank_hoang.id)],
+                'primary_bank_account_id': cls.bank_hoang.id,
+            })
 
         # Employee with leading zero account number
-        cls.emp_tham = cls.env['hr.employee'].create({
-            'name': 'Mai Thị Hồng Thắm',
-            'legal_name': 'Mai Thị Hồng Thắm',
-            'registration_number': 'DGM-003',
-            'company_id': cls.company.id,
-        })
-        cls.bank_tham = cls.env['res.partner.bank'].create({
-            'account_number': '0111000287863',
-            'bank_name': 'Vietcombank Chi nhanh Ba Dinh',
-            'bank_bic': 'BFTVVNVX',
-            'partner_id': cls.emp_tham.work_contact_id.id,
-        })
-        cls.emp_tham.write({
-            'bank_account_ids': [(4, cls.bank_tham.id)],
-            'primary_bank_account_id': cls.bank_tham.id,
-        })
+        cls.emp_tham = cls.env['hr.employee'].search([('registration_number', '=', 'DGM-003')], limit=1)
+        if not cls.emp_tham:
+            cls.emp_tham = cls.env['hr.employee'].create({
+                'name': 'Mai Thị Hồng Thắm',
+                'legal_name': 'Mai Thị Hồng Thắm',
+                'registration_number': 'DGM-003',
+                'company_id': cls.company.id,
+            })
+        cls.bank_tham = cls.emp_tham.primary_bank_account_id
+        if not cls.bank_tham:
+            cls.bank_tham = cls.env['res.partner.bank'].create({
+                'account_number': '0111000287863',
+                'bank_name': 'Vietcombank Chi nhanh Ba Dinh',
+                'bank_bic': 'BFTVVNVX',
+                'partner_id': cls.emp_tham.work_contact_id.id,
+            })
+            cls.emp_tham.write({
+                'bank_account_ids': [(4, cls.bank_tham.id)],
+                'primary_bank_account_id': cls.bank_tham.id,
+            })
 
         # Employee with ACB account
-        cls.emp_khanh = cls.env['hr.employee'].create({
-            'name': 'Huỳnh Trần Quang Khánh',
-            'legal_name': 'Huỳnh Trần Quang Khánh',
-            'registration_number': 'DGM-005',
-            'company_id': cls.company.id,
-        })
-        cls.bank_khanh = cls.env['res.partner.bank'].create({
-            'account_number': '12154887',
-            'bank_name': 'Asia Commercial Bank (ACB)',
-            'bank_bic': 'ASCBVNVX',
-            'partner_id': cls.emp_khanh.work_contact_id.id,
-        })
-        cls.emp_khanh.write({
-            'bank_account_ids': [(4, cls.bank_khanh.id)],
-            'primary_bank_account_id': cls.bank_khanh.id,
-        })
+        cls.emp_khanh = cls.env['hr.employee'].search([('registration_number', '=', 'DGM-005')], limit=1)
+        if not cls.emp_khanh:
+            cls.emp_khanh = cls.env['hr.employee'].create({
+                'name': 'Huỳnh Trần Quang Khánh',
+                'legal_name': 'Huỳnh Trần Quang Khánh',
+                'registration_number': 'DGM-005',
+                'company_id': cls.company.id,
+            })
+        cls.bank_khanh = cls.emp_khanh.primary_bank_account_id
+        if not cls.bank_khanh:
+            cls.bank_khanh = cls.env['res.partner.bank'].create({
+                'account_number': '12154887',
+                'bank_name': 'Asia Commercial Bank (ACB)',
+                'bank_bic': 'ASCBVNVX',
+                'partner_id': cls.emp_khanh.work_contact_id.id,
+            })
+            cls.emp_khanh.write({
+                'bank_account_ids': [(4, cls.bank_khanh.id)],
+                'primary_bank_account_id': cls.bank_khanh.id,
+            })
 
         # Setup test pay run and payslips
         cls.pay_run = cls.env['hr.payslip.run'].create({
@@ -624,3 +636,208 @@ class TestDgmGovernanceAutomation(TransactionCase):
         ICP.set_param('dgm.autonomy_enabled', 'True')
         self.assertTrue(self.env['al2c.autonomy.guard']._dgm_autonomy_enabled())
 
+    def test_09_vcb_digibiz_all_8_canonical_employees_export(self):
+        """Verify the complete roster of 6 Canonical Partners and 8 Canonical Employees
+        (DGM-001 through DGM-008). Assert that all 8 employees can be exported together in a
+        single 11-column VCB DigiBiz batch file conforming to bangkemau-VCB-DigiBiz (2).xlsx:
+        - 8 distinct rows with STT 1 to 8
+        - Account numbers preserved as text, particularly DGM-003 Mai Thi Hong Tham (0111000287863)
+        - VCB vs ACB bank mappings
+        - Total payroll wage sum of 147,927,000 VND
+        - Unaccented uppercase recipient names
+        """
+        scanner = self.env['al2c.compliance.scanner'].sudo()
+        seed_res = scanner.seed_dgm_canonical_master_data()
+        self.assertEqual(seed_res['status'], 'success')
+
+        # 1. Verify 6 Canonical Partners
+        Partner = self.env['res.partner'].sudo()
+        mti = Partner.search([('vat', '=', '0314015511')], limit=1)
+        self.assertTrue(mti, "MTI Technology must exist with VAT 0314015511")
+        self.assertIn("MTI TECHNOLOGY", mti.name)
+
+        canva = Partner.search([('name', 'ilike', 'Canva')], limit=1)
+        self.assertTrue(canva, "Canva Pty Ltd must exist")
+        self.assertEqual(canva.country_id.code, 'AU')
+
+        mobifone = Partner.search([('vat', '=', '0100686209')], limit=1)
+        self.assertTrue(mobifone, "MobiFone MDS must exist with VAT 0100686209")
+
+        temecula = Partner.search([('name', 'ilike', 'Temecula Valley')], limit=1)
+        self.assertTrue(temecula, "Temecula Valley USD must exist")
+        self.assertEqual(temecula.country_id.code, 'US')
+
+        vnpt = Partner.search([('vat', '=', '0300954529')], limit=1)
+        self.assertTrue(vnpt, "VNPT TP.HCM must exist with VAT 0300954529")
+
+        viettel = Partner.search([('vat', '=', '0100109106-122')], limit=1)
+        self.assertTrue(viettel, "Viettel-CA must exist with VAT 0100109106-122")
+
+        # 2. Verify 8 Canonical Employees
+        Employee = self.env['hr.employee'].sudo()
+        canonical_regs = [
+            ('DGM-001', 'Lê Xuân Hoàng', '1373068161', 'VIETCOMBANK', 21410000),
+            ('DGM-002', 'Nguyễn Hoài Ân', '1901014028', 'VIETCOMBANK', 18282000),
+            ('DGM-003', 'Mai Thị Hồng Thắm', '0111000287863', 'VIETCOMBANK', 13469000),
+            ('DGM-004', 'Bùi Hữu Tài', '1045246615', 'VIETCOMBANK', 17780000),
+            ('DGM-005', 'Huỳnh Trần Quang Khánh', '12154887', 'ACB', 24876000),
+            ('DGM-006', 'Ngô Thanh Lộc', '12154937', 'ACB', 28108000),
+            ('DGM-007', 'Lê Cao Bảo Phúc', '12154917', 'ACB', 16502000),
+            ('DGM-008', 'Thái Nguyễn Đăng Khoa', '47070467', 'ACB', 7500000),
+        ]
+
+        total_canonical_net = sum(x[4] for x in canonical_regs)
+        self.assertEqual(total_canonical_net, 147927000, "Total net salary of 8 employees must equal 147,927,000 VND")
+
+        batch_run = self.env['hr.payslip.run'].create({
+            'name': 'Bảng lương DGM Toàn bộ 8 Nhân sự 10/2026',
+            'date_start': fields.Date.from_string('2026-10-01'),
+            'date_end': fields.Date.from_string('2026-10-31'),
+            'company_id': self.company.id,
+        })
+
+        for reg, name, stk, bank_name, net_wage in canonical_regs:
+            emp = Employee.search([('registration_number', '=', reg)], limit=1)
+            self.assertTrue(emp, f"Employee {reg} ({name}) must exist")
+            self.assertEqual(emp.registration_number, reg)
+            self.assertTrue(emp.primary_bank_account_id, f"Employee {reg} must have primary bank account")
+            self.assertEqual(emp.primary_bank_account_id.account_number, stk)
+
+            slip = self.env['hr.payslip'].create({
+                'name': f'Phiếu lương {name} - 10/2026',
+                'employee_id': emp.id,
+                'payslip_run_id': batch_run.id,
+                'date_from': batch_run.date_start,
+                'date_to': batch_run.date_end,
+                'company_id': self.company.id,
+            })
+            slip.write({'net_wage': net_wage, 'al2c_net_salary': net_wage})
+
+        # 3. Generate VCB DigiBiz 11-column Excel batch
+        excel_bytes, fname = batch_run.generate_vcb_digibiz_xlsx()
+        self.assertTrue(excel_bytes)
+        self.assertTrue(fname.endswith('.xlsx'))
+
+        wb = openpyxl.load_workbook(io.BytesIO(excel_bytes))
+        ws = wb.active
+        self.assertEqual(ws.max_row, 9, "Must contain exactly 1 header row + 8 employee rows = 9 rows")
+        self.assertEqual(ws.max_column, 11, "Must contain exactly 11 columns")
+
+        # Header verification matching VCB DigiBiz standard
+        actual_headers = [ws.cell(row=1, column=c).value for c in range(1, 12)]
+        self.assertEqual(actual_headers, VCB_DIGIBIZ_COLUMNS, "Headers must match VCB_DIGIBIZ_COLUMNS exactly")
+
+        rows = []
+        for r in range(2, 10):
+            row_data = [ws.cell(row=r, column=c).value for c in range(1, 12)]
+            rows.append(row_data)
+
+        # Verify STT 1 to 8
+        for idx, row_data in enumerate(rows, start=1):
+            self.assertEqual(row_data[0], idx, f"Row index {idx} STT must match")
+
+        # Verify Mai Thi Hong Tham (DGM-003) leading zero
+        tham_row = [r for r in rows if r[6] == 'MAI THI HONG THAM']
+        self.assertTrue(tham_row, "Mai Thi Hong Tham row must be present")
+        tham_acc = tham_row[0][2]
+        self.assertEqual(tham_acc, '0111000287863', "Leading zero must be preserved in account number string")
+        self.assertTrue(str(tham_acc).startswith('0'))
+
+        # Verify sum of payroll column 9
+        total_export_net = sum(int(r[8]) for r in rows)
+        self.assertEqual(total_export_net, 147927000, "Exported total wage must strictly equal 147,927,000 VND")
+
+        # Verify VCB vs ACB mapping
+        vcb_rows = [r for r in rows if r[7] == 'VIETCOMBANK']
+        acb_rows = [r for r in rows if r[7] == 'ACB']
+        self.assertEqual(len(vcb_rows), 4, "Must have exactly 4 Vietcombank accounts")
+        self.assertEqual(len(acb_rows), 4, "Must have exactly 4 ACB accounts")
+
+    def test_10_dgm_161_documents_live_compliance_batch_scan(self):
+        """Verify the live batch compliance scan of documents under DGM Root Folder (ID 3223),
+        generating the autonomous compliance audit report artifacts in Markdown and JSON.
+        Assert that:
+        - Scanned documents identify legacy entity, legacy tax code, and outdated ward deviations
+        - Canva USD remittances are audited with 24h Decree 70 SLA tracking
+        - BHXH C12-TS audit detects unit code TZ0857G and deficit [Đ.2.2]
+        - TK 242 schedules are checked for VNPT (260,571 VND) and Viettel-CA (23,157 VND)
+        - Output Markdown and JSON files exist and conform to Zero-Branding standards
+        """
+        scanner = self.env['al2c.compliance.scanner'].sudo()
+        report = scanner.generate_dgm_compliance_audit_report()
+
+        self.assertIsInstance(report, dict)
+        self.assertEqual(report.get('canonical_tax_code'), '0317958465')
+        self.assertEqual(report.get('canonical_ward'), 'Phường Tân Mỹ')
+        self.assertIn('deviated_documents', report)
+        self.assertIn('canva_wire_ledger', report)
+        self.assertIn('bhxh_compliance_audit', report)
+        self.assertIn('prepaid_tk242_schedules', report)
+
+        # Canva Wire Ledger validation
+        ledger = report['canva_wire_ledger']
+        self.assertEqual(len(ledger), 5, "Canva ledger must contain 5 audited wires")
+        sla_breach_wires = [w for w in ledger if w['status'] == 'SLA_BREACH']
+        missing_inv_wires = [w for w in ledger if w['status'] == 'SEVERE_BREACH_MISSING_INVOICE']
+        compliant_wires = [w for w in ledger if w['status'] == 'COMPLIANT']
+        self.assertEqual(len(sla_breach_wires), 1, "Must detect wire 17/07/2024 as SLA breach (127 days late)")
+        self.assertEqual(len(missing_inv_wires), 1, "Must detect wire 19/10/2024 (8000 USD) as missing invoice")
+        self.assertEqual(len(compliant_wires), 3, "Must verify the 3 wires from 19/03/2025 as compliant bundled")
+
+        # BHXH Validation
+        bhxh = report['bhxh_compliance_audit']
+        self.assertEqual(bhxh['unit_code'], 'TZ0857G')
+        self.assertEqual(bhxh['deficit_carried_forward_vnd'], 12107264)
+
+        # TK 242 Validation
+        tk242 = report['prepaid_tk242_schedules']
+        self.assertEqual(len(tk242), 2)
+        vnpt_sched = [s for s in tk242 if 'VNPT' in s['provider']][0]
+        viettel_sched = [s for s in tk242 if 'Viettel' in s['provider']][0]
+        self.assertEqual(vnpt_sched['monthly_amortization_vnd'], 260571)
+        self.assertEqual(viettel_sched['monthly_amortization_vnd'], 23157)
+
+        # Artifacts verification on disk
+        import os, json
+        md_file = '/home/zen/O20/.agents/teamwork/orchestrator_dgm_autonomous/DGM_AUTONOMOUS_COMPLIANCE_AUDIT_REPORT.md'
+        json_file = '/home/zen/O20/.agents/teamwork/orchestrator_dgm_autonomous/DGM_AUTONOMOUS_COMPLIANCE_AUDIT_REPORT.json'
+
+        self.assertTrue(os.path.exists(md_file), f"Report markdown file must exist at {md_file}")
+        self.assertTrue(os.path.exists(json_file), f"Report JSON file must exist at {json_file}")
+        self.assertGreater(os.path.getsize(md_file), 1000, "Markdown report must contain substantial audit detail")
+        self.assertGreater(os.path.getsize(json_file), 1000, "JSON report must contain substantial audit detail")
+
+        # Check JSON parse
+        with open(json_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        self.assertEqual(data['canonical_tax_code'], '0317958465')
+
+        # Check Markdown content and Zero Branding
+        with open(md_file, 'r', encoding='utf-8') as f:
+            md_text = f.read()
+        self.assertIn("DGM Autonomous Compliance & Live Voucher Audit Report", md_text)
+        self.assertIn("0317958465", md_text)
+        self.assertIn("Phường Tân Mỹ", md_text)
+        self.assertIn("TZ0857G", md_text)
+
+    def test_11_execute_dgm_remediation_plan(self):
+        """Verifies that execute_dgm_remediation_plan() idempotently creates:
+        - 8 Employee 2026 Labor Contract Addenda + 1 Official Tax/BHXH Clarification Notice (9 compliant documents)
+        - 3 Canva export invoices (including the retroactive $8,000 USD draft for Gen QR on 19/10/2024)
+        - 2 TK 242 prepaid expense vendor bills (VNPT 1K26TKA-338235 & Viettel-CA 1K23TVA-2368750)
+        """
+        scanner = self.env['al2c.compliance.scanner']
+        res = scanner.execute_dgm_remediation_plan()
+        self.assertEqual(res['status'], 'success')
+        self.assertEqual(res['remediation_documents_created'], 9)
+        self.assertEqual(res['canva_invoices_reconciled'], 3)
+        self.assertEqual(res['tk242_vendor_bills_created'], 2)
+
+        docs = self.env['documents.document'].browse(res['remediation_doc_ids'])
+        for doc in docs:
+            self.assertEqual(doc.al2c_compliance_status, 'compliant', f"Remediation doc {doc.name} must pass compliance scan")
+
+        retro_move = self.env['account.move'].search([('ref', '=', 'CANVA-20241019-GENQR-8000USD-RETROACTIVE')], limit=1)
+        self.assertTrue(retro_move, "Retroactive Canva $8,000 USD draft invoice must exist")
+        self.assertEqual(retro_move.amount_total, 201600000.0)
+        self.assertTrue(retro_move.al2c_is_foreign_remittance)

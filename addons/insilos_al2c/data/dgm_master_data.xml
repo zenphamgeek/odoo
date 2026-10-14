@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+    <!-- ===================================================================
+         DGM / Digimate JSC (Công ty Cổ phần Người Bạn Số - MST: 0317958465)
+         Canonical Operational Partners (res.partner)
+         =================================================================== -->
+
+    <!-- Partner 1: MTI Technology (B2B Onsite Client) -->
+    <record id="partner_dgm_mti" model="res.partner">
+        <field name="name">CÔNG TY TNHH MTI TECHNOLOGY</field>
+        <field name="vat">0314015511</field>
+        <field name="street">Tòa nhà Cộng Hòa Garden, 20 Đường Cộng Hòa, Phường 12, Quận Tân Bình, TP.HCM</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="customer_rank">1</field>
+        <field name="is_company" eval="True"/>
+        <field name="comment">Canonical B2B IT engineering client under contract DIGIMATE2401-001 (Net 40 terms, tiered OT).</field>
+    </record>
+
+    <!-- Partner 2: Canva Pty Ltd (Cross-Border Platform & App Adoption Awards) -->
+    <record id="partner_dgm_canva" model="res.partner">
+        <field name="name">Canva Pty Ltd</field>
+        <field name="country_id" ref="base.au"/>
+        <field name="street">110 Kippax St, Surry Hills, NSW 2010, Australia</field>
+        <field name="email">pub@digimate.vn</field>
+        <field name="customer_rank">1</field>
+        <field name="is_company" eval="True"/>
+        <field name="comment">Cross-border platform partner. 0% export VAT category, USD wire remittance subject to Decree 70 24h e-invoicing SLA.</field>
+    </record>
+
+    <!-- Partner 3: Trung tâm Dịch vụ số MobiFone - MDS (Telecom CSP AI Partner) -->
+    <record id="partner_dgm_mobifone_mds" model="res.partner">
+        <field name="name">Trung tâm Dịch vụ số MobiFone - Chi nhánh Tổng Công ty Viễn thông MobiFone</field>
+        <field name="vat">0100686209</field>
+        <field name="street">Tầng 6, Tòa nhà MobiFone, Số 5, Ngõ 82, Phố Duy Tân, Phường Dịch Vọng Hậu, Quận Cầu Giấy, TP. Hà Nội</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="customer_rank">1</field>
+        <field name="is_company" eval="True"/>
+        <field name="comment">Telecom AI CSP revenue-share partner for MobiAI service (48h customer care SLA).</field>
+    </record>
+
+    <!-- Partner 4: Temecula Valley Unified School District (US Public Education Agency) -->
+    <record id="partner_dgm_temecula" model="res.partner">
+        <field name="name">Temecula Valley Unified School District</field>
+        <field name="street">31350 Rancho Vista Road, Temecula, CA 92592, USA</field>
+        <field name="country_id" ref="base.us"/>
+        <field name="customer_rank">1</field>
+        <field name="is_company" eval="True"/>
+        <field name="comment">California Local Education Agency client under Student Data Privacy Agreement CA-NDPA v1.5 (FERPA/COPPA 45-day privacy SLA).</field>
+    </record>
+
+    <!-- Partner 5: VNPT TP.HCM (Internet & Leased Line Provider) -->
+    <record id="partner_dgm_vnpt" model="res.partner">
+        <field name="name">CHI NHÁNH TẬP ĐOÀN BƯU CHÍNH VIỄN THÔNG VIỆT NAM - VIỄN THÔNG TP.HCM</field>
+        <field name="vat">0300954529</field>
+        <field name="street">125 Hai Bà Trưng, Phường Sài Gòn, TP.HCM</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="supplier_rank">1</field>
+        <field name="is_company" eval="True"/>
+        <field name="comment">High-speed optical internet provider under contract HDHCM1684072614 (14-month prepaid bundle 1K26TKA-338235 amortized via TK 242).</field>
+    </record>
+
+    <!-- Partner 6: Viettel-CA & SInvoice (Digital Certificate & E-Invoice Provider) -->
+    <record id="partner_dgm_viettel_ca" model="res.partner">
+        <field name="name">VIETTEL TP.HCM - CHI NHÁNH TẬP ĐOÀN CÔNG NGHIỆP - VIỄN THÔNG QUÂN ĐỘI</field>
+        <field name="vat">0100109106-122</field>
+        <field name="street">Số 285 Đường Cách Mạng Tháng Tám, Phường 12, Quận 10, TP.HCM</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="supplier_rank">1</field>
+        <field name="is_company" eval="True"/>
+        <field name="comment">Statutory digital signature authority &amp; SInvoice provider (36-month CTS combo 1K23TVA-2368750 amortized via TK 242).</field>
+    </record>
+
+    <!-- ===================================================================
+         DGM 8 Canonical Employees & VCB DigiBiz Bank Accounts
+         Strictly Preserving Leading Zeros on Account Numbers
+         =================================================================== -->
+
+    <!-- 1. Lê Xuân Hoàng (DGM-001) -->
+    <record id="partner_emp_hoang" model="res.partner">
+        <field name="name">Lê Xuân Hoàng</field>
+        <field name="is_company" eval="False"/>
+    </record>
+    <record id="bank_emp_hoang" model="res.partner.bank">
+        <field name="account_number">1373068161</field>
+        <field name="bank_name">VIETCOMBANK</field>
+        <field name="bank_bic">BFTVVNVX</field>
+        <field name="partner_id" ref="partner_emp_hoang"/>
+    </record>
+    <record id="hr_employee_dgm_001" model="hr.employee">
+        <field name="name">Lê Xuân Hoàng</field>
+        <field name="legal_name">Lê Xuân Hoàng</field>
+        <field name="registration_number">DGM-001</field>
+        <field name="id_card_name">089094016917</field>
+        <field name="job_title">Chủ tịch HĐQT &amp; Tổng Giám đốc</field>
+        <field name="work_contact_id" ref="partner_emp_hoang"/>
+        <field name="primary_bank_account_id" ref="bank_emp_hoang"/>
+        <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_hoang')])]"/>
+    </record>
+
+    <!-- 2. Nguyễn Hoài Ân (DGM-002) -->
+    <record id="partner_emp_an" model="res.partner">
+        <field name="name">Nguyễn Hoài Ân</field>
+        <field name="is_company" eval="False"/>
+    </record>
+    <record id="bank_emp_an" model="res.partner.bank">
+        <field name="account_number">1901014028</field>
+        <field name="bank_name">VIETCOMBANK</field>
+        <field name="bank_bic">BFTVVNVX</field>
+        <field name="partner_id" ref="partner_emp_an"/>
+    </record>
+    <record id="hr_employee_dgm_002" model="hr.employee">
+        <field name="name">Nguyễn Hoài Ân</field>
+        <field name="legal_name">Nguyễn Hoài Ân</field>
+        <field name="registration_number">DGM-002</field>
+        <field name="id_card_name">096095006609</field>
+        <field name="job_title">Cổ đông sáng lập &amp; CTO</field>
+        <field name="work_contact_id" ref="partner_emp_an"/>
+        <field name="primary_bank_account_id" ref="bank_emp_an"/>
+        <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_an')])]"/>
+    </record>
+
+    <!-- 3. Mai Thị Hồng Thắm (DGM-003) - MUST PRESERVE LEADING ZERO AS TEXT -->
+    <record id="partner_emp_tham" model="res.partner">
+        <field name="name">Mai Thị Hồng Thắm</field>
+        <field name="is_company" eval="False"/>
+    </record>
+    <record id="bank_emp_tham" model="res.partner.bank">
+        <field name="account_number">0111000287863</field>
+        <field name="bank_name">VIETCOMBANK</field>
+        <field name="bank_bic">BFTVVNVX</field>
+        <field name="partner_id" ref="partner_emp_tham"/>
+    </record>
+    <record id="hr_employee_dgm_003" model="hr.employee">
+        <field name="name">Mai Thị Hồng Thắm</field>
+        <field name="legal_name">Mai Thị Hồng Thắm</field>
+        <field name="registration_number">DGM-003</field>
+        <field name="id_card_name">093197003049</field>
+        <field name="job_title">Cổ đông sáng lập &amp; CFO/HR Lead</field>
+        <field name="work_contact_id" ref="partner_emp_tham"/>
+        <field name="primary_bank_account_id" ref="bank_emp_tham"/>
+        <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_tham')])]"/>
+    </record>
+
+    <!-- 4. Bùi Hữu Tài (DGM-004) -->
+    <record id="partner_emp_tai" model="res.partner">
+        <field name="name">Bùi Hữu Tài</field>
+        <field name="is_company" eval="False"/>
+    </record>
+    <record id="bank_emp_tai" model="res.partner.bank">
+        <field name="account_number">1045246615</field>
+        <field name="bank_name">VIETCOMBANK</field>
+        <field name="bank_bic">BFTVVNVX</field>
+        <field name="partner_id" ref="partner_emp_tai"/>
+    </record>
+    <record id="hr_employee_dgm_004" model="hr.employee">
+        <field name="name">Bùi Hữu Tài</field>
+        <field name="legal_name">Bùi Hữu Tài</field>
+        <field name="registration_number">DGM-004</field>
+        <field name="id_card_name">365931521</field>
+        <field name="job_title">Kỹ sư Phần mềm Senior (MTI Onsite)</field>
+        <field name="work_contact_id" ref="partner_emp_tai"/>
+        <field name="primary_bank_account_id" ref="bank_emp_tai"/>
+        <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_tai')])]"/>
+    </record>
+
+    <!-- 5. Huỳnh Trần Quang Khánh (DGM-005) - ACB Bank -->
+    <record id="partner_emp_khanh" model="res.partner">
+        <field name="name">Huỳnh Trần Quang Khánh</field>
+        <field name="is_company" eval="False"/>
+    </record>
+    <record id="bank_emp_khanh" model="res.partner.bank">
+        <field name="account_number">12154887</field>
+        <field name="bank_name">ACB</field>
+        <field name="bank_bic">ASCBVNVX</field>
+        <field name="partner_id" ref="partner_emp_khanh"/>
+    </record>
+    <record id="hr_employee_dgm_005" model="hr.employee">
+        <field name="name">Huỳnh Trần Quang Khánh</field>
+        <field name="legal_name">Huỳnh Trần Quang Khánh</field>
+        <field name="registration_number">DGM-005</field>
+        <field name="id_card_name">089085004243</field>
+        <field name="job_title">Kỹ sư Phần mềm Senior / Tech Lead</field>
+        <field name="work_contact_id" ref="partner_emp_khanh"/>
+        <field name="primary_bank_account_id" ref="bank_emp_khanh"/>
+        <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_khanh')])]"/>
+    </record>
+
+    <!-- 6. Ngô Thanh Lộc (DGM-006) - ACB Bank -->
+    <record id="partner_emp_loc" model="res.partner">
+        <field name="name">Ngô Thanh Lộc</field>
+        <field name="is_company" eval="False"/>
+    </record>
+    <record id="bank_emp_loc" model="res.partner.bank">
+        <field name="account_number">12154937</field>
+        <field name="bank_name">ACB</field>
+        <field name="bank_bic">ASCBVNVX</field>
+        <field name="partner_id" ref="partner_emp_loc"/>
+    </record>
+    <record id="hr_employee_dgm_006" model="hr.employee">
+        <field name="name">Ngô Thanh Lộc</field>
+        <field name="legal_name">Ngô Thanh Lộc</field>
+        <field name="registration_number">DGM-006</field>
+        <field name="job_title">Kỹ sư Phần mềm Senior (MTI Onsite)</field>
+        <field name="work_contact_id" ref="partner_emp_loc"/>
+        <field name="primary_bank_account_id" ref="bank_emp_loc"/>
+        <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_loc')])]"/>
+    </record>
+
+    <!-- 7. Lê Cao Bảo Phúc (DGM-007) - ACB Bank -->
+    <record id="partner_emp_phuc" model="res.partner">
+        <field name="name">Lê Cao Bảo Phúc</field>
+        <field name="is_company" eval="False"/>
+    </record>
+    <record id="bank_emp_phuc" model="res.partner.bank">
+        <field name="account_number">12154917</field>
+        <field name="bank_name">ACB</field>
+        <field name="bank_bic">ASCBVNVX</field>
+        <field name="partner_id" ref="partner_emp_phuc"/>
+    </record>
+    <record id="hr_employee_dgm_007" model="hr.employee">
+        <field name="name">Lê Cao Bảo Phúc</field>
+        <field name="legal_name">Lê Cao Bảo Phúc</field>
+        <field name="registration_number">DGM-007</field>
+        <field name="job_title">Kỹ sư Phần mềm (MTI Onsite)</field>
+        <field name="work_contact_id" ref="partner_emp_phuc"/>
+        <field name="primary_bank_account_id" ref="bank_emp_phuc"/>
+        <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_phuc')])]"/>
+    </record>
+
+    <!-- 8. Thái Nguyễn Đăng Khoa (DGM-008) - ACB Bank -->
+    <record id="partner_emp_khoa" model="res.partner">
+        <field name="name">Thái Nguyễn Đăng Khoa</field>
+        <field name="is_company" eval="False"/>
+    </record>
+    <record id="bank_emp_khoa" model="res.partner.bank">
+        <field name="account_number">47070467</field>
+        <field name="bank_name">ACB</field>
+        <field name="bank_bic">ASCBVNVX</field>
+        <field name="partner_id" ref="partner_emp_khoa"/>
+    </record>
+    <record id="hr_employee_dgm_008" model="hr.employee">
+        <field name="name">Thái Nguyễn Đăng Khoa</field>
+        <field name="legal_name">Thái Nguyễn Đăng Khoa</field>
+        <field name="registration_number">DGM-008</field>
+        <field name="job_title">Kỹ sư Phần mềm / Junior Developer</field>
+        <field name="work_contact_id" ref="partner_emp_khoa"/>
+        <field name="primary_bank_account_id" ref="bank_emp_khoa"/>
+        <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_khoa')])]"/>
+    </record>
+
+</data>
+</odoo>

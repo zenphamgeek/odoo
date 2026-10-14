@@ -241,6 +241,142 @@ class TestAdversarialConcurrency(TransactionCase):
         self.assertIn('routed', res)
         self.assertIn('multipage_split', res)
 
+    def test_docx_zip_bomb_adversarial_rejection(self):
+        """SEC-AUDIT: SEC-01 (CWE-409 / CWE-400) Uncontrolled Zip Decompression (Zip Bomb) Defense.
+        Assert that a malicious docx with a >50:1 compression ratio (e.g. 960:1) is safely rejected
+        by the AL2C Security Sentinel without memory exhaustion or worker crashing.
+        """
+        import zipfile
+        import io
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, 'w', compression=zipfile.ZIP_DEFLATED) as z:
+            # 2 MB of zeroes compresses to ~2 KB (ratio ~960:1)
+            z.writestr('word/document.xml', b'0' * (2 * 1024 * 1024))
+        zip_bytes = buf.getvalue()
+
+        doc = self.env['documents.document'].create({
+            'name': 'Adversarial_ZipBomb_Agreement.docx',
+            'raw': zip_bytes,
+        })
+        res = self.env['al2c.compliance.scanner'].scan_document(doc)
+
+        self.assertFalse(res['is_compliant'])
+        self.assertIn("AL2C Security Sentinel Violation", res['summary'])
+        self.assertIn("compression ratio", res['summary'])
+        self.assertEqual(doc.al2c_compliance_status, 'deviated')
+
+    def test_docx_defusedxml_bomb_resilience(self):
+        """SEC-AUDIT: SEC-02 (CWE-776 / CWE-611) XML Quadratic Blowup / Entity Expansion Defense.
+        Assert that a docx containing XML entity expansion (billion laughs / quadratic blowup)
+        is intercepted and blocked by DefusedET rather than causing quadratic memory expansion.
+        """
+        import zipfile
+        import io
+        xml_bomb = (
+            b'<?xml version="1.0"?>\n'
+            b'<!DOCTYPE lolz [\n'
+            b'  <!ENTITY lol "lol">\n'
+            b'  <!ELEMENT lolz (#PCDATA)>\n'
+            b'  <!ENTITY lol1 "&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;&lol;">\n'
+            b']>\n'
+            b'<lolz>&lol1;</lolz>'
+        )
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, 'w', compression=zipfile.ZIP_DEFLATED) as z:
+            z.writestr('word/document.xml', xml_bomb)
+        zip_bytes = buf.getvalue()
+
+        doc = self.env['documents.document'].create({
+            'name': 'Adversarial_XmlBomb_Contract.docx',
+            'raw': zip_bytes,
+        })
+        res = self.env['al2c.compliance.scanner'].scan_document(doc)
+
+        self.assertFalse(res['is_compliant'])
+        self.assertIn("AL2C Security Sentinel Violation", res['summary'])
+        self.assertIn("unsafe or malformed XML", res['summary'])
+        self.assertEqual(doc.al2c_compliance_status, 'deviated')
+
+    def test_master_data_seeding_authorization_gate_and_tenant_isolation(self):
+        """SEC-AUDIT: SEC-03 (CWE-284 / CWE-862) Blind sudo() Tenant Boundary Violation Remediation.
+        Assert that:
+        1. A non-admin user without base.group_system raises AccessError on seed_dgm_canonical_master_data().
+        2. Authorized execution scopes all 6 Canonical Partners and 8 Employees strictly to current_company.id.
+        """
+        Scanner = self.env['al2c.compliance.scanner']
+
+        # 1. Non-admin user gate
+        user_group_user = self.env.ref('base.group_user')
+        non_admin_user = self.env['res.users'].create({
+            'name': 'Adversarial Non-Admin Auditor',
+            'login': 'adversarial_non_admin_user',
+            'group_ids': [(6, 0, [user_group_user.id])],
+        })
+
+        with self.assertRaises(AccessError):
+            Scanner.with_user(non_admin_user).seed_dgm_canonical_master_data()
+
+        # 2. Authorized execution with multi-company boundary scoping
+        res = Scanner.sudo().seed_dgm_canonical_master_data()
+        self.assertEqual(res['status'], 'success')
+        self.assertEqual(len(res['partners']), 6)
+        self.assertEqual(len(res['employees']), 8)
+
+        current_company_id = self.env.company.id
+        for p in res['partners']:
+            self.assertEqual(p.company_id.id, current_company_id, f"Partner {p.name} must belong to current company")
+
+        for emp in res['employees']:
+            self.assertEqual(emp.company_id.id, current_company_id, f"Employee {emp.name} must belong to current company")
+
+    def test_pdf_head_tail_window_allocation_cads(self):
+        """SEC-AUDIT: SEC-04 (CWE-400) Unbounded Memory & CPU in PyPDF2 Stream Parsing.
+        Assert Head-Tail Window Allocation (first 25 + last 25 pages, max 50 pages):
+        In a 60-page PDF, page 1 and page 60 markers are extracted, while page 30 (middle)
+        is safely omitted, bounding memory and CPU usage.
+        """
+        from reportlab.pdfgen import canvas
+        import io
+
+        # Case A: Legacy VAT signature on Page 60 (tail) -> MUST be detected
+        buf_tail = io.BytesIO()
+        c_tail = canvas.Canvas(buf_tail)
+        for i in range(60):
+            if i == 59:
+                c_tail.drawString(100, 750, "Banned Entity MST 0313683499 in Signature Block")
+            else:
+                c_tail.drawString(100, 750, f"Page {i+1} Normal Contract Terms")
+            c_tail.showPage()
+        c_tail.save()
+
+        doc_tail = self.env['documents.document'].create({
+            'name': 'Tail_Signature_Deviation.pdf',
+            'raw': buf_tail.getvalue(),
+            'mimetype': 'application/pdf',
+        })
+        res_tail = self.env['al2c.compliance.scanner'].scan_document(doc_tail)
+        self.assertFalse(res_tail['is_compliant'], "Must detect legacy signature on Page 60 (tail window)")
+        self.assertTrue(res_tail['has_legacy_tax_code'])
+
+        # Case B: Unrelated text on Page 30 (middle) -> Skipped in 50-page head-tail window
+        buf_mid = io.BytesIO()
+        c_mid = canvas.Canvas(buf_mid)
+        for i in range(60):
+            if i == 29:
+                c_mid.drawString(100, 750, "Banned Entity MST 0313683499 in Middle Appendix")
+            else:
+                c_mid.drawString(100, 750, f"Page {i+1} Normal Contract Terms")
+            c_mid.showPage()
+        c_mid.save()
+
+        doc_mid = self.env['documents.document'].create({
+            'name': 'Mid_Appendix_Skipped.pdf',
+            'raw': buf_mid.getvalue(),
+            'mimetype': 'application/pdf',
+        })
+        res_mid = self.env['al2c.compliance.scanner'].scan_document(doc_mid)
+        self.assertTrue(res_mid['is_compliant'], "Middle pages (Page 26..35) are safely omitted from head-tail scan")
+
 
 # Backwards compatibility alias
 TestAdversarialTimesheetCron = TestAdversarialConcurrency

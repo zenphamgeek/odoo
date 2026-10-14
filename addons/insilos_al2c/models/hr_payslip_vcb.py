@@ -219,6 +219,15 @@ class HrPayslipRun(models.Model):
         filename = f"VCB_DigiBiz_Luong_Thang_{int(m):02d}_{int(y)}.xlsx"
         return excel_data, filename
 
+    def generate_vcb_digibiz_batch(self, payslips=None, month=None, year=None):
+        """Alias for generate_vcb_digibiz_xlsx conforming to DGM autonomous specifications."""
+        return self.generate_vcb_digibiz_xlsx(payslips=payslips, month=month, year=year)
+
+    def export_vcb_digibiz_excel(self, payslips=None, month=None, year=None):
+        """Alias for generate_vcb_digibiz_xlsx conforming to DGM autonomous specifications."""
+        return self.generate_vcb_digibiz_xlsx(payslips=payslips, month=month, year=year)
+
+
 
 class HrPayslip(models.Model):
     _inherit = 'hr.payslip'
@@ -265,3 +274,12 @@ class HrPayslip(models.Model):
         excel_data = build_vcb_digibiz_workbook(slips, month=m, year=y)
         filename = f"VCB_DigiBiz_Luong_Thang_{int(m):02d}_{int(y)}.xlsx"
         return excel_data, filename
+
+    def generate_vcb_digibiz_batch(self, month=None, year=None):
+        """Alias for generate_vcb_digibiz_xlsx."""
+        return self.generate_vcb_digibiz_xlsx(month=month, year=year)
+
+    def export_vcb_digibiz_excel(self, month=None, year=None):
+        """Alias for generate_vcb_digibiz_xlsx."""
+        return self.generate_vcb_digibiz_xlsx(month=month, year=year)
+
