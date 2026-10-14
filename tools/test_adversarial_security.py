@@ -987,6 +987,93 @@ def test_patch_15_ders_zlrr_and_decree70_statutory_barrier():
     print("[✓] Patch 15 / DERS-ZLRR and Decree 70 Statutory Barrier for Pinned Conversions verified")
 
 
+def test_patch_16_dpas_tsm_dual_key_and_statutory_immutability():
+    import ast
+    import importlib.util
+    import unittest
+
+    init_py = os.path.join(ROOT_DIR, "addons/insilos_currency_cron/__init__.py")
+    manifest_py = os.path.join(ROOT_DIR, "addons/insilos_currency_cron/__manifest__.py")
+    cron_xml = os.path.join(ROOT_DIR, "addons/insilos_currency_cron/data/ir_cron_data.xml")
+    models_init_py = os.path.join(ROOT_DIR, "addons/insilos_currency_cron/models/__init__.py")
+    account_conv_py = os.path.join(ROOT_DIR, "addons/insilos_currency_cron/models/account_pinned_conversion.py")
+    engine_py = os.path.join(ROOT_DIR, "addons/insilos_currency_cron/models/pinned_conversion_engine.py")
+    tests_init_py = os.path.join(ROOT_DIR, "addons/insilos_currency_cron/tests/__init__.py")
+    test_adv_py = os.path.join(ROOT_DIR, "addons/insilos_currency_cron/tests/test_adversarial_pinned_conversion.py")
+
+    # 1. Existence assertions
+    for p in [init_py, manifest_py, cron_xml, models_init_py, account_conv_py, engine_py, tests_init_py, test_adv_py]:
+        assert os.path.exists(p), f"Missing required file: {p}"
+
+    # 2. addons/insilos_currency_cron/__init__.py safe fallback
+    with open(init_py, "r", encoding="utf-8") as f:
+        init_src = f.read()
+    assert "from . import models" in init_src, "Missing models import in __init__.py"
+    assert "except Exception:" in init_src, "models import must be wrapped in try/except"
+    assert "models = None" in init_src, "models must fall back to None on exception"
+
+    # 3. addons/insilos_currency_cron/__manifest__.py
+    with open(manifest_py, "r", encoding="utf-8") as f:
+        man_src = f.read()
+    assert "'base'" in man_src and "'account'" in man_src, "Missing base or account in manifest depends"
+    assert "data/ir_cron_data.xml" in man_src, "data/ir_cron_data.xml not registered in manifest data"
+
+    # 4. addons/insilos_currency_cron/data/ir_cron_data.xml
+    with open(cron_xml, "r", encoding="utf-8") as f:
+        xml_src = f.read()
+    assert "ir_cron_insilos_pinned_conversion_engine" in xml_src, "Missing ir_cron_insilos_pinned_conversion_engine in cron xml"
+    assert "model.process_pinned_conversions_cron()" in xml_src, "Missing model.process_pinned_conversions_cron() in cron xml"
+
+    # 5. addons/insilos_currency_cron/models/__init__.py
+    with open(models_init_py, "r", encoding="utf-8") as f:
+        mod_init_src = f.read()
+    assert "account_pinned_conversion" in mod_init_src, "Missing account_pinned_conversion in models/__init__.py"
+    assert "pinned_conversion_engine" in mod_init_src, "Missing pinned_conversion_engine in models/__init__.py"
+
+    # 6. AST & Invariants: account_pinned_conversion.py
+    with open(account_conv_py, "r", encoding="utf-8") as f:
+        acc_src = f.read()
+    tree_acc = ast.parse(acc_src)
+    classes_acc = {n.name: n for n in ast.walk(tree_acc) if isinstance(n, ast.ClassDef)}
+    assert "AccountPinnedConversion" in classes_acc, "Missing AccountPinnedConversion in account_pinned_conversion.py"
+    assert "_name = 'account.pinned.conversion'" in acc_src, "Missing _name = 'account.pinned.conversion'"
+    for field_name in ["name", "company_id", "invoice_id", "currency_id", "date_conversion", "rate", "state", "statutory_locked", "idempotency_key", "last_error"]:
+        assert field_name in acc_src, f"Missing field {field_name} in account_pinned_conversion.py"
+    assert "_compute_and_lock_statutory_rate" in acc_src, "Missing _compute_and_lock_statutory_rate method"
+
+    # 7. AST & Invariants: pinned_conversion_engine.py
+    with open(engine_py, "r", encoding="utf-8") as f:
+        eng_src = f.read()
+    tree_eng = ast.parse(eng_src)
+    classes_eng = {n.name: n for n in ast.walk(tree_eng) if isinstance(n, ast.ClassDef)}
+    assert "PinnedConversionEngine" in classes_eng, "Missing PinnedConversionEngine in pinned_conversion_engine.py"
+    assert "_name = 'insilos.pinned.conversion.engine'" in eng_src, "Missing _name = 'insilos.pinned.conversion.engine'"
+    assert "_generate_dual_key_lock_id" in eng_src, "Missing _generate_dual_key_lock_id method"
+    assert "process_pinned_conversions_cron" in eng_src, "Missing process_pinned_conversions_cron method"
+    assert "_process_company_conversions_isolated" in eng_src, "Missing _process_company_conversions_isolated method"
+    assert "namespace_hash = int(hashlib.blake2b(LOCK_NAMESPACE.encode()).hexdigest()[:8], 16) & 0xFFFFFFFF" in eng_src
+    assert "return (namespace_hash << 32) | (company_id & 0xFFFFFFFF)" in eng_src
+    assert "pg_try_advisory_xact_lock" in eng_src, "Missing pg_try_advisory_xact_lock"
+    assert "allowed_company_ids=[company.id]" in eng_src, "Missing allowed_company_ids tenant isolation"
+    assert "statutory_locked = True" in eng_src, "Missing Decree 70 statutory immutability barrier assignment"
+    assert "hashlib.blake2b(token_payload.encode(), digest_size=8).hexdigest()" in eng_src, "Missing Blake2b idempotency token derivation"
+    assert "with self.env.cr.savepoint(): record._compute_and_lock_statutory_rate(idempotency_token)" in eng_src, "Missing Airflow-inspired savepoint execution"
+    assert "pg_advisory_lock" not in eng_src.replace("pg_try_advisory_xact_lock", ""), "Prohibited session-scoped advisory lock found"
+
+    # 8. Behavioral execution of test_adversarial_pinned_conversion
+    spec = importlib.util.spec_from_file_location("test_adversarial_pinned_conversion", test_adv_py)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    suite = unittest.TestLoader().loadTestsFromTestCase(mod.TestAdversarialPinnedConversion)
+    runner = unittest.TextTestRunner(verbosity=0)
+    res = runner.run(suite)
+    assert res.wasSuccessful() and res.testsRun == 4, (
+        f"TestAdversarialPinnedConversion failed: errors={len(res.errors)}, failures={len(res.failures)}"
+    )
+
+    print("[✓] Patch 16 / DPAS-TSM Dual-Key Prefect-Airflow Slot-Sensing Transactional State Machine verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -1005,8 +1092,9 @@ def main():
     test_patch_14_gaopham_concurrency_and_tenant_guard()
     test_patch_15_blake2b_advisory_lock_and_tenant_guard()
     test_patch_15_ders_zlrr_and_decree70_statutory_barrier()
-    print("[✓] ALL 15 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 15 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_16_dpas_tsm_dual_key_and_statutory_immutability()
+    print("[✓] ALL 16 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 16 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
