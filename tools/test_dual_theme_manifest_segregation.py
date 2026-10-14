@@ -12,6 +12,7 @@ Enforces AGENTS.md Section 4 invariants across all 700+ modules in addons/ and e
 import ast
 import glob
 import os
+import re
 import unittest
 
 WORKSPACE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -19,6 +20,33 @@ WORKSPACE_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
 class TestDualThemeManifestSegregation(unittest.TestCase):
     """Verifies AGENTS.md Rule 4 invariants across the entire codebase."""
+
+    def test_zero_banned_light_hex_fallbacks_with_important(self):
+        """Ensure no SCSS file uses light hex fallbacks inside var(--insilos-bg-*) with !important."""
+        banned_pattern = re.compile(
+            r"var\(\s*--insilos-bg-[a-z0-9_-]+\s*,\s*(#fff(?:fff)?|#f8fafc|#f4f6f8|#f1f5f9)\s*\)\s*!important",
+            re.IGNORECASE,
+        )
+        violations = []
+        scss_globs = (
+            "enterprise/insilos_theme_genesis/static/src/scss/*.scss",
+            "addons/insilos_sap_fiori/static/src/scss/*.scss",
+            "enterprise/insilos_logistics_idp/static/src/**/*.scss",
+            "enterprise/insilos_market_terminal/static/src/**/*.scss",
+        )
+        for rel_glob in scss_globs:
+            for fpath in sorted(glob.glob(os.path.join(WORKSPACE_ROOT, rel_glob), recursive=True)):
+                with open(fpath, "r", encoding="utf-8") as fh:
+                    for line_no, line in enumerate(fh, 1):
+                        if banned_pattern.search(line):
+                            violations.append(
+                                (os.path.relpath(fpath, WORKSPACE_ROOT), line_no, line.strip())
+                            )
+        self.assertEqual(
+            violations,
+            [],
+            f"Found banned light hex fallbacks coupled with !important: {violations}",
+        )
 
     def test_zero_dark_scss_leaks_and_valid_removes_in_assets_backend(self):
         """Ensure no module leaks .dark.scss into web.assets_backend or removes unbundled files."""
