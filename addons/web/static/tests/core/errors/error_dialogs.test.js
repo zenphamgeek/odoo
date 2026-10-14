@@ -24,6 +24,8 @@ import {
     SessionExpiredDialog,
     UnlinkBlockedErrorDialog,
     WarningDialog,
+    sanitizeErrorPayload,
+    sanitizeUrl,
 } from "@web/core/errors/error_dialogs";
 
 describe.current.tags("desktop");
@@ -394,3 +396,36 @@ test("ErrorDialog with timestamp provided", async () => {
         "Something bad happened",
     ]);
 });
+
+describe("Adversarial Telemetry Payload Sanitization", () => {
+    test("strips query secrets and OAuth fragments from URL", () => {
+        const dirtyUrl = "https://erp.insilos.com/web#access_token=ya29.secret&id_token=xyz&session_id=deadbeef";
+        expect(sanitizeUrl(dirtyUrl)).toBe("https://erp.insilos.com/web");
+
+        const queryUrl = "https://erp.insilos.com/action?token=SECRET_AUTH_KEY&user=admin";
+        expect(sanitizeUrl(queryUrl)).toBe("https://erp.insilos.com/action");
+    });
+
+    test("redacts nested credentials, bearer tokens, and session IDs", () => {
+        const rawTrace = `
+            Error: Unauthorized access
+            at checkAuth (auth.js:42)
+            Headers: Authorization: Bearer abc-123456.789_xyz
+            Payload: {"password": "SuperSecretPass!123", "sid": "9876543210abcdef"}
+        `;
+        const sanitized = sanitizeErrorPayload(rawTrace);
+        expect(sanitized).not.toContain("abc-123456.789_xyz");
+        expect(sanitized).not.toContain("SuperSecretPass!123");
+        expect(sanitized).not.toContain("9876543210abcdef");
+        expect(sanitized).toContain("Bearer [REDACTED]");
+        expect(sanitized).toContain("password=[REDACTED]");
+    });
+
+    test("correctly redacts valid phone numbers without regex catastrophic backtracking", () => {
+        const payload = "Contact customer at 0912345678 or 0834567890 for verification";
+        const sanitized = sanitizeErrorPayload(payload);
+        expect(sanitized).not.toContain("0912345678");
+        expect(sanitized).toContain("09****5678");
+    });
+});
+

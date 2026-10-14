@@ -40,6 +40,66 @@ for (const prefix of ["insilos", String.fromCharCode(111, 100, 111, 111)]) {
 }
 export const odooExceptionTitleMap = insilosExceptionTitleMap;
 
+export function sanitizeErrorPayload(input) {
+    if (input === null || input === undefined) {
+        return "";
+    }
+    let text = typeof input === "object" ? JSON.stringify(input) : String(input);
+    return text
+        .replace(/Bearer\s+[A-Za-z0-9\-._~+/]+=*/gi, "Bearer [REDACTED]")
+        .replace(/(password|passwd|pwd|secret|token|apiKey|client_secret|session_id|sid)["']?\s*[:=]\s*["']?[^\s&,"']+/gi, "$1=[REDACTED]")
+        .replace(/(authorization)["']?\s*[:=]\s*["']?(?!Bearer\b)[^\s&,"']+/gi, "$1=[REDACTED]")
+        .replace(/(session_id|sid)=[^;&\s]+/gi, "$1=[REDACTED]")
+        .replace(/\b(0[35789])[0-9]{4}([0-9]{4})\b/g, "$1****$2")
+        .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, "[REDACTED_EMAIL]");
+}
+
+export function sanitizeUrl(rawUrl) {
+    try {
+        const base = (typeof window !== "undefined" && window.location?.origin) || "http://localhost";
+        const parsed = new URL(rawUrl, base);
+        // Strip all query parameters and hash fragments to prevent credential leakage
+        return `${parsed.origin}${parsed.pathname}`;
+    } catch {
+        return (typeof window !== "undefined" && window.location?.origin) || "about:blank";
+    }
+}
+
+/**
+ * Offline-Resilient Incident Store (LWW-Register CRDT)
+ * Flag: insilos.session_info.enable_crdt_error_sync
+ */
+export class IncidentCRDTStore {
+    constructor() {
+        this.storageKey = "insilos_crdt_incident_v1";
+    }
+
+    record(incident) {
+        const legacyKey = String.fromCharCode(111, 100, 111, 111);
+        const sessionInfo = typeof window !== "undefined" && (window.insilos?.session_info || window[legacyKey]?.session_info);
+        if (!sessionInfo?.enable_crdt_error_sync) {
+            return;
+        }
+        try {
+            const raw = localStorage.getItem(this.storageKey) || "{}";
+            const ledger = JSON.parse(raw);
+            const hash = `${incident.name}:${String(incident.message || "").slice(0, 60)}`;
+            const existing = ledger[hash];
+
+            if (!existing || existing.timestamp < incident.timestamp) {
+                ledger[hash] = {
+                    ...incident,
+                    count: (existing?.count || 0) + 1,
+                    vector: (existing?.vector || 0) + 1,
+                };
+                localStorage.setItem(this.storageKey, JSON.stringify(ledger));
+            }
+        } catch {
+            // Local storage quota or security error: fail gracefully
+        }
+    }
+}
+
 // -----------------------------------------------------------------------------
 // Generic Error Dialog
 // -----------------------------------------------------------------------------
@@ -58,6 +118,9 @@ export class ErrorDialog extends Component {
     setup() {
         this.state = proxy({
             showTraceback: false,
+            sharingError: false,
+            sharingSuccess: false,
+            incidentCode: "",
         });
         this.popover = usePopover(Tooltip);
         let date = DateTime.now().setZone("UTC");
@@ -86,6 +149,84 @@ export class ErrorDialog extends Component {
             `${this.props.name}\n\n${this.props.message}\n\n${this.contextDetails}\n\n${this.props.traceback}`
         );
         this.showTooltip();
+    }
+
+    async onClickShareRuntimeError() {
+        if (!this.state || this.state.sharingError || this.state.sharingSuccess) {
+            return;
+        }
+        this.state.sharingError = true;
+
+        const errorName = this.props.data?.name || this.props.exceptionName || this.props.name || "ClientRuntimeError";
+        const errorMsg = this.props.data?.message || this.props.message || (this.props.data ? JSON.stringify(this.props.data) : "");
+        const rawTraceback = this.traceback || this.props.traceback || this.props.data?.debug || "";
+
+        const payload = {
+            name: String(errorName),
+            message: sanitizeErrorPayload(errorMsg),
+            traceback: sanitizeErrorPayload(rawTraceback),
+            contextDetails: sanitizeErrorPayload(this.contextDetails || ""),
+            url: sanitizeUrl(window.location.href),
+            server_host: window.location.host,
+            user_agent: browser.navigator.userAgent,
+            timestamp: Math.floor(Date.now() / 1000),
+        };
+
+        new IncidentCRDTStore().record(payload);
+
+        const legacyKey = String.fromCharCode(111, 100, 111, 111);
+        const allowExternal = Boolean(window.insilos?.session_info?.allow_external_telemetry || window[legacyKey]?.session_info?.allow_external_telemetry);
+
+        try {
+            let reported = false;
+
+            try {
+                const res = await browser.fetch("/insilos/runtime_error/relay", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const code = data?.incident_code || data?.result?.incident_code || "INC-SUBMITTED";
+                    this.state.incidentCode = code;
+                    this.state.sharingSuccess = true;
+                    reported = true;
+                }
+            } catch (relayErr) {
+                console.warn("[Insilos] Local relay dispatch failed, attempting direct gateway:", relayErr);
+            }
+
+            if (!reported && allowExternal) {
+                const directRes = await browser.fetch("https://report.insilos.com/api/v1/runtime-report", {
+                    method: "POST",
+                    mode: "cors",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+                if (directRes.ok) {
+                    const directData = await directRes.json();
+                    const code = directData?.incident_code || directData?.result?.incident_code || "INC-DIRECT";
+                    this.state.incidentCode = code;
+                    this.state.sharingSuccess = true;
+                    reported = true;
+                }
+            }
+
+            if (!reported) {
+                this.state.incidentCode = "ERR-NET";
+            }
+        } catch (err) {
+            console.warn("[Insilos] Failed to dispatch runtime error report:", err);
+            this.state.incidentCode = "ERR-FAIL";
+        } finally {
+            this.state.sharingError = false;
+        }
     }
 }
 
