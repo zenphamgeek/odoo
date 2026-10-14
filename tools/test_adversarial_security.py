@@ -299,6 +299,53 @@ def test_vuln_02_equity_cap_table_isolation():
     print("[✓] VULN-02 (enterprise/equity/models/equity_cap_table.py): EBVLP single-tenant isolation & table-qualified SQL verified")
 
 
+def test_zeninallgeek_ssrf_and_obsidian_stage():
+    import xml.etree.ElementTree as ET
+
+    suite_py = os.path.join(ROOT_DIR, "enterprise/insilos_website/tools/test_3d_interactive_suite.py")
+    with open(suite_py, "r", encoding="utf-8") as f:
+        src = f.read()
+
+    assert "def _validate_safe_url(url_str: str) -> str:" in src
+    assert "self.base_url = _validate_safe_url(base_url)" in src
+
+    idx = src.find("from urllib.parse import urlparse")
+    end_idx = src.find("class Insilos3DTestSuite:")
+    assert idx != -1 and end_idx != -1
+    ns = {}
+    exec(src[idx:end_idx], ns)
+    validate_fn = ns["_validate_safe_url"]
+
+    assert validate_fn("http://localhost:28069/") == "http://localhost:28069"
+    assert validate_fn("https://innoria.com/") == "https://innoria.com"
+
+    for bad_url in (
+        "http://169.254.169.254/latest/meta-data/",
+        "http://metadata.google.internal/computeMetadata/v1/",
+        "http://169.254.170.2/v2/credentials",
+        "http://100.100.100.200/latest/meta-data/",
+        "ftp://localhost:28069",
+        "file:///etc/passwd",
+    ):
+        raised = False
+        try:
+            validate_fn(bad_url)
+        except ValueError:
+            raised = True
+        assert raised, f"Expected ValueError for SSRF / invalid URL: {bad_url}"
+
+    tpl_xml = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/views/templates.xml")
+    with open(tpl_xml, "r", encoding="utf-8") as f:
+        xml_src = f.read()
+    assert "bg-transparent borderless-obsidian-stage" in xml_src
+    ET.parse(tpl_xml)
+    print("[✓] zeninallgeek Audit (CWE-918 SSRF Guard & templates.xml Obsidian Stage XML AST) verified")
+
+
+def test_patch_9_audit_3_dism_trl():
+    import test_adversarial_dism_trl
+    test_adversarial_dism_trl.main()
+    print("[✓] Patch 9 / Audit 3 (DISM-TRL: saas.workspace, InsilosSaaSController, advisory lock & concurrency) verified")
 
 
 def main():
@@ -309,10 +356,13 @@ def main():
     test_patch_5_documents_search_model()
     test_vuln_01_clipboard_sanitization()
     test_vuln_02_equity_cap_table_isolation()
-    print("[🎉] ALL 7 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_zeninallgeek_ssrf_and_obsidian_stage()
+    test_patch_9_audit_3_dism_trl()
+    print("[🎉] ALL 9 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
