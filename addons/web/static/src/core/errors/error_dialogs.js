@@ -144,6 +144,67 @@ export function sanitizeUrl(rawUrl) {
 }
 
 /**
+ * Self-tripping latency-aware circuit breaker for error scrubbing.
+ */
+export class SanitizerCircuitBreaker {
+    static state = "CLOSED"; // CLOSED | OPEN | HALF_OPEN
+    static failureCount = 0;
+    static lastStateChange = 0;
+    static LATENCY_THRESHOLD_MS = 25.0;
+    static COOL_OFF_MS = 30000;
+
+    static sanitize(payload, standardScrubber = sanitizeErrorPayload) {
+        const now = Date.now();
+        // Check if cool-off window expired to enter HALF_OPEN
+        if (this.state === "OPEN") {
+            if (now - this.lastStateChange > this.COOL_OFF_MS) {
+                this.state = "HALF_OPEN";
+            } else {
+                // Trip to structural byte-level scrubber
+                return this.fallbackScrubber(payload);
+            }
+        }
+
+        const t0 = (typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now();
+        try {
+            const result = standardScrubber(payload);
+            const duration = ((typeof performance !== "undefined" && performance.now) ? performance.now() : Date.now()) - t0;
+
+            if (duration > this.LATENCY_THRESHOLD_MS) {
+                this.trip("Latency limit breached: " + duration.toFixed(2) + "ms");
+            } else if (this.state === "HALF_OPEN") {
+                this.reset();
+            }
+            return result;
+        } catch (err) {
+            this.trip("Scrubber thrown exception: " + err.message);
+            return this.fallbackScrubber(payload);
+        }
+    }
+
+    static trip(reason) {
+        this.failureCount++;
+        this.state = "OPEN";
+        this.lastStateChange = Date.now();
+        if (typeof console !== "undefined" && console.warn) {
+            console.warn(`[SanitizerCircuitBreaker TRIP] Switching to fallback. Reason: ${reason}`);
+        }
+    }
+
+    static reset() {
+        this.state = "CLOSED";
+        this.failureCount = 0;
+    }
+
+    static fallbackScrubber(str) {
+        // Fast, deterministic string-replacement without backtracking risk
+        return String(str)
+            .replace(/[a-zA-Z0-9_-]{24,}/g, "[REDACTED_TOKEN]")
+            .slice(0, 32768);
+    }
+}
+
+/**
  * Offline-Resilient Incident Store (LWW-Register CRDT)
  * Flag: insilos.session_info.enable_crdt_error_sync
  */
@@ -215,6 +276,13 @@ export class ErrorDialog extends Component {
             this.contextDetails += `on model ${this.props.model} `;
         }
         this.contextDetails += `on ${this.logDate}`;
+        // Defensive clamp and idempotent sanitization
+        try {
+            this.contextDetails = sanitizeErrorPayload(this.contextDetails || "");
+        } catch (err) {
+            browser.console.warn("Failed to sanitize error context details:", err);
+            this.contextDetails = "[SANITIZATION_FAILED] Context suppressed for security.";
+        }
     }
 
     showTooltip() {
@@ -223,8 +291,22 @@ export class ErrorDialog extends Component {
     }
 
     onClickClipboard() {
+        const rawTraceback = this.traceback || this.props.traceback || "";
+        // Bounded length protection (Max 128KB to prevent main-thread ReDoS)
+        const clampedTraceback = rawTraceback.length > 131072
+            ? rawTraceback.slice(0, 131072) + "\n\n[TRUNCATED: Traceback exceeded 128KB limit]"
+            : rawTraceback;
+
+        let payload = `${this.props.name || ""}\n\n${this.props.message || ""}\n\n${this.contextDetails || ""}\n\n${clampedTraceback}`;
+        try {
+            payload = sanitizeErrorPayload(payload);
+        } catch (err) {
+            browser.console.warn("Sanitization pass failed; falling back to scrubbed header:", err);
+            payload = `${this.props.name || "Error"}\n\n${this.props.message || "An error occurred."}\n\n[PAYLOAD_SCRUBBED_DUE_TO_PARSING_FAILURE]`;
+        }
+
         browser.navigator.clipboard.writeText(
-            `${this.props.name}\n\n${this.props.message}\n\n${this.contextDetails}\n\n${this.props.traceback}`
+            payload
         );
         this.showTooltip();
     }
@@ -238,11 +320,14 @@ export class ErrorDialog extends Component {
         const errorName = this.props.data?.name || this.props.exceptionName || this.props.name || "ClientRuntimeError";
         const errorMsg = this.props.data?.message || this.props.message || (this.props.data ? JSON.stringify(this.props.data) : "");
         const rawTraceback = this.traceback || this.props.traceback || this.props.data?.debug || "";
+        const clampedTraceback = rawTraceback.length > 131072
+            ? rawTraceback.slice(0, 131072) + "\n\n[TRUNCATED: Traceback exceeded 128KB limit]"
+            : rawTraceback;
 
         const payload = {
             name: String(errorName),
             message: sanitizeErrorPayload(errorMsg),
-            traceback: sanitizeErrorPayload(rawTraceback),
+            traceback: sanitizeErrorPayload(clampedTraceback),
             contextDetails: sanitizeErrorPayload(this.contextDetails || ""),
             url: sanitizeUrl(window.location.href),
             server_host: window.location.host,
