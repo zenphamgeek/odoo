@@ -805,6 +805,86 @@ def test_patch_14_gaopham_concurrency_and_tenant_guard():
 test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation = test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation
 
 
+def test_patch_15_blake2b_advisory_lock_and_tenant_guard():
+    import ast
+    import importlib.util
+    import unittest
+
+    sec_init_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/__init__.py")
+    adv_lock_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py")
+    tenant_guard_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/tenant_guard.py")
+    module_init_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/__init__.py")
+    showcase_lock_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/models/showcase_lock.py")
+    tests_init_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/tests/__init__.py")
+    test_tenant_locking_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/tests/test_adversarial_tenant_locking.py")
+
+    # 1. Existence assertions
+    for p in [sec_init_py, adv_lock_py, tenant_guard_py, module_init_py, showcase_lock_py, tests_init_py, test_tenant_locking_py]:
+        assert os.path.exists(p), f"Missing required file: {p}"
+
+    # 2. Registration in security/__init__.py, module __init__.py, tests/__init__.py
+    with open(sec_init_py, "r", encoding="utf-8") as f:
+        sec_init_src = f.read()
+    assert "advisory_lock" in sec_init_src, "Missing advisory_lock import in security/__init__.py"
+    assert "tenant_guard" in sec_init_src, "Missing tenant_guard import in security/__init__.py"
+
+    with open(module_init_py, "r", encoding="utf-8") as f:
+        mod_init_src = f.read()
+    assert "security" in mod_init_src, "Missing security import in enterprise/insilos_industry_showcase/__init__.py"
+
+    with open(tests_init_py, "r", encoding="utf-8") as f:
+        tests_init_src = f.read()
+    assert "test_adversarial_tenant_locking" in tests_init_src, "Missing test_adversarial_tenant_locking in tests/__init__.py"
+
+    # 3. AST & Invariants: advisory_lock.py
+    with open(adv_lock_py, "r", encoding="utf-8") as f:
+        adv_src = f.read()
+    tree_adv = ast.parse(adv_src)
+    adv_fns = {n.name: n for n in ast.walk(tree_adv) if isinstance(n, ast.FunctionDef)}
+    assert "compute_partitioned_lock_key" in adv_fns, "Missing compute_partitioned_lock_key in advisory_lock.py"
+    assert "acquire_tenant_xact_lock" in adv_fns, "Missing acquire_tenant_xact_lock in advisory_lock.py"
+    assert "execute_with_detached_rpc" in adv_fns, "Missing execute_with_detached_rpc in advisory_lock.py"
+    assert "hashlib.blake2b" in adv_src, "Lock key derivation must use hashlib.blake2b"
+    assert "digest_size=8" in adv_src, "Blake2b digest size must be 8 bytes (64-bit)"
+    assert "struct.unpack" in adv_src and '">q"' in adv_src, "Lock key unpack must use struct.unpack('>q', ...)"
+    assert "pg_try_advisory_xact_lock" in adv_src, "Missing pg_try_advisory_xact_lock in acquire_tenant_xact_lock"
+    assert "cr.savepoint(flush=True)" in adv_src, "Missing cr.savepoint(flush=True) in acquire_tenant_xact_lock"
+    assert "_is_lock_active" in adv_src or "is_lock_active" in adv_src, "Missing audit check _is_lock_active in advisory_lock.py"
+
+    # 4. AST & Invariants: tenant_guard.py
+    with open(tenant_guard_py, "r", encoding="utf-8") as f:
+        tg_src = f.read()
+    tree_tg = ast.parse(tg_src)
+    tg_fns = {n.name: n for n in ast.walk(tree_tg) if isinstance(n, ast.FunctionDef)}
+    assert "enforce_tenant_isolation" in tg_fns, "Missing enforce_tenant_isolation in tenant_guard.py"
+    assert "AccessError" in tg_src, "Missing AccessError in tenant_guard.py"
+    assert "companies.ids" in tg_src, "Missing companies.ids check in tenant_guard.py"
+    assert "env.su" in tg_src, "Missing sudo check in tenant_guard.py"
+    assert "allowed_company_ids" in tg_src, "Missing allowed_company_ids context check in tenant_guard.py"
+
+    # 5. AST & Invariants: showcase_lock.py backward compatibility
+    with open(showcase_lock_py, "r", encoding="utf-8") as f:
+        lock_src = f.read()
+    assert "compute_partitioned_lock_key" in lock_src, "Missing compute_partitioned_lock_key in showcase_lock.py"
+    assert "acquire_tenant_xact_lock" in lock_src, "Missing acquire_tenant_xact_lock in showcase_lock.py"
+    assert "execute_with_detached_rpc" in lock_src, "Missing execute_with_detached_rpc in showcase_lock.py"
+    assert "generate_tenant_lock_key" in lock_src, "generate_tenant_lock_key must be retained for backward compatibility"
+    assert "ShowcaseLockManager" in lock_src, "ShowcaseLockManager must be retained for backward compatibility"
+
+    # 6. Behavioral execution of test_adversarial_tenant_locking suite
+    spec = importlib.util.spec_from_file_location("test_adversarial_tenant_locking", test_tenant_locking_py)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    suite = unittest.TestLoader().loadTestsFromTestCase(mod.TestAdversarialTenantLocking)
+    runner = unittest.TextTestRunner(verbosity=0)
+    res = runner.run(suite)
+    assert res.wasSuccessful() and res.testsRun == 4, (
+        f"TestAdversarialTenantLocking failed: errors={len(res.errors)}, failures={len(res.failures)}"
+    )
+
+    print("[✓] Patch 15 / Blake2b 64-bit Advisory Lock, Strict Lock-RPC Separation & Tenant Guard verified")
+
+
 def test_patch_15_ders_zlrr_and_decree70_statutory_barrier():
     import ast
     import importlib.util
@@ -923,6 +1003,7 @@ def main():
     test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation()
     test_patch_14_cellular_crash_only_pinned_conversions()
     test_patch_14_gaopham_concurrency_and_tenant_guard()
+    test_patch_15_blake2b_advisory_lock_and_tenant_guard()
     test_patch_15_ders_zlrr_and_decree70_statutory_barrier()
     print("[✓] ALL 15 AUDIT PATCH DIRECTIVES SATISFIED")
     print("[🎉] ALL 15 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
