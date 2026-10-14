@@ -14,17 +14,20 @@ const { chromium } = require("playwright");
     await context.addCookies([{ name: "color_scheme", value: "light", domain: "localhost", path: "/" }]);
     console.log("Authenticating session...");
     await page.goto("http://localhost:28069/web/login", { waitUntil: "domcontentloaded" });
-    await page.evaluate(async () => {
+    const authDb = process.env.ODOO_DB || "insilos20_dev";
+    const authLogin = process.env.ODOO_LOGIN || "admin";
+    const authPassword = process.env.ODOO_PASSWORD || "admin";
+    await page.evaluate(async ({ db, login, password }) => {
         await fetch("/web/session/authenticate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 jsonrpc: "2.0",
                 method: "call",
-                params: { db: "insilos20_dev", login: "admin", password: "admin" }
+                params: { db, login, password }
             })
         });
-    });
+    }, { db: authDb, login: authLogin, password: authPassword });
     await page.goto("http://localhost:28069/odoo", { waitUntil: "domcontentloaded" });
     await page.waitForSelector(".o_navbar", { timeout: 60000 });
 
