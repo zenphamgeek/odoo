@@ -1327,6 +1327,156 @@ def test_patch_17_dual_partition_advisory_lock_and_sql_guards():
     print("[✓] Patch 17 / Dual-Partition Advisory Locks, Tenant Telemetry Barrier, and SQL Injection Guards verified")
 
 
+def test_patch_18_zero_leak_sanitizer_dpas_lock_and_zk_motl():
+    from unittest.mock import MagicMock
+    import tools.error_dialog_sanitizer as sanitizer_mod
+    from tools.error_dialog_sanitizer import sanitize_error_payload
+    import tools.dpas_tsm_lock as lock_mod
+    from tools.dpas_tsm_lock import DPASTSMTransactionManager
+    import tools.zk_motl_merkle_outbox as outbox_mod
+    from tools.zk_motl_merkle_outbox import (
+        ZKMOTLOutboxManager,
+        canonical_dumps,
+        compute_record_hash,
+        compute_merkle_root,
+    )
+
+    # 1. Test sanitize_error_payload
+    # Multi-word secrets in quotes: '{"db_password": "super secret production vault key 2026"}' -> '[REDACTED]'
+    json_sec = '{"db_password": "super secret production vault key 2026"}'
+    s_json = sanitize_error_payload(json_sec)
+    assert "[REDACTED]" in s_json, f"Multi-word secret not redacted: {s_json}"
+    assert "super secret production vault key 2026" not in s_json
+
+    # Multi-word single quotes
+    sq_sec = "api_key: 'top secret production token 99'"
+    s_sq = sanitize_error_payload(sq_sec)
+    assert "[REDACTED]" in s_sq
+    assert "top secret production token 99" not in s_sq
+
+    # Bearer tokens, Basic auth headers, sk- and AKIA prefixes
+    bearer_hdr = "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.xyz"
+    s_bearer = sanitize_error_payload(bearer_hdr)
+    assert "Bearer [REDACTED]" in s_bearer
+    assert "eyJhbGciOi" not in s_bearer
+
+    raw_bearer = "Bearer secret_bearer_token_abc123"
+    assert "Bearer [REDACTED]" in sanitize_error_payload(raw_bearer)
+
+    basic_hdr = "Authorization: Basic dXNlcjpwYXNzd29yZDEyMw=="
+    s_basic = sanitize_error_payload(basic_hdr)
+    assert "Basic [REDACTED]" in s_basic
+    assert "dXNlcjpwYXNzd29yZDEyMw==" not in s_basic
+
+    raw_basic = "Basic dXNlcjpwYXNzd29yZA=="
+    assert "Basic [REDACTED]" in sanitize_error_payload(raw_basic)
+
+    tokens_str = "Keys: sk-proj12345678901234567890 and AKIAIOSFODNN7EXAMPLE and ghp_1234567890abcdefghijklmnopqrstuvwxyz leaked"
+    s_tokens = sanitize_error_payload(tokens_str)
+    assert "[REDACTED_API_KEY]" in s_tokens
+    assert "sk-proj12345678901234567890" not in s_tokens
+    assert "AKIAIOSFODNN7EXAMPLE" not in s_tokens
+    assert "ghp_1234567890abcdefghijklmnopqrstuvwxyz" not in s_tokens
+
+    # Vietnamese phone numbers: '0912345678' -> '091*****78'
+    phone_str = "Customer contact: 0912345678, alternate 0387654321"
+    s_phone = sanitize_error_payload(phone_str)
+    assert "091*****78" in s_phone
+    assert "038*****21" in s_phone
+    assert "0912345678" not in s_phone
+
+    # Null / empty / non-string safety
+    assert sanitize_error_payload(None) == ""
+    assert sanitize_error_payload("") == ""
+    assert sanitize_error_payload(12345) == ""
+
+    # 2. Test DPASTSMTransactionManager.acquire_partitioned_lock
+    lock_mgr = DPASTSMTransactionManager()
+    k1, k2 = lock_mgr.derive_partition_keys(company_id=1, subsystem_key="accounting")
+    # Generates 31-bit positive CRC32 keys
+    assert 0 <= k1 <= 0x7FFFFFFF, f"Key1 out of 31-bit positive bounds: {k1}"
+    assert 0 <= k2 <= 0x7FFFFFFF, f"Key2 out of 31-bit positive bounds: {k2}"
+
+    # Verify keys differ across companies & subsystems
+    k1_diff, _ = lock_mgr.derive_partition_keys(company_id=2, subsystem_key="accounting")
+    assert k1 != k1_diff, "Key1 must differ for different company_id"
+    _, k2_diff = lock_mgr.derive_partition_keys(company_id=1, subsystem_key="payroll")
+    assert k2 != k2_diff, "Key2 must differ for different subsystem_key"
+
+    # Mock cr with SAVEPOINT sp_dism_trl_lock, RELEASE on success
+    mock_cr_ok = MagicMock()
+    mock_cr_ok.fetchone.return_value = (True,)
+    res_ok = lock_mgr.acquire_partitioned_lock(mock_cr_ok, 1, "accounting")
+    assert res_ok is True
+    mock_cr_ok.execute.assert_any_call("SAVEPOINT sp_dism_trl_lock")
+    mock_cr_ok.execute.assert_any_call("SELECT pg_try_advisory_xact_lock(%s, %s)", (k1, k2))
+    mock_cr_ok.execute.assert_any_call("RELEASE SAVEPOINT sp_dism_trl_lock")
+
+    # Mock cr with ROLLBACK on lock failure (returns False)
+    mock_cr_busy = MagicMock()
+    mock_cr_busy.fetchone.return_value = (False,)
+    res_busy = lock_mgr.acquire_partitioned_lock(mock_cr_busy, 1, "accounting")
+    assert res_busy is False
+    mock_cr_busy.execute.assert_any_call("SAVEPOINT sp_dism_trl_lock")
+    mock_cr_busy.execute.assert_any_call("SELECT pg_try_advisory_xact_lock(%s, %s)", (k1, k2))
+    mock_cr_busy.execute.assert_any_call("ROLLBACK TO SAVEPOINT sp_dism_trl_lock")
+
+    # Mock cr with ROLLBACK on exception
+    mock_cr_err = MagicMock()
+    mock_cr_err.fetchone.side_effect = RuntimeError("Database connection reset")
+    try:
+        lock_mgr.acquire_partitioned_lock(mock_cr_err, 1, "accounting")
+        raise AssertionError("Expected exception to be re-raised")
+    except RuntimeError as e:
+        assert "Database connection reset" in str(e)
+    mock_cr_err.execute.assert_any_call("SAVEPOINT sp_dism_trl_lock")
+    mock_cr_err.execute.assert_any_call("ROLLBACK TO SAVEPOINT sp_dism_trl_lock")
+
+    # 3. Test ZKMOTLOutboxManager
+    outbox = ZKMOTLOutboxManager()
+    raw_records = []
+    # 1,000 outbox records
+    for i in range(1000):
+        payload = {
+            "batch_id": f"batch_{i}",
+            "amount": i * 12.5,
+            "account_code": f"111{i % 5}",
+            "tenant_id": 1,
+        }
+        rec = outbox.append_record(payload)
+        raw_records.append(dict(rec))
+
+    assert len(raw_records) == 1000
+
+    # 10 injected Byzantine bit-flips (1% chaos test)
+    byzantine_indices = [23, 107, 245, 388, 499, 567, 682, 791, 854, 989]
+    for idx in byzantine_indices:
+        raw_records[idx]["payload"] = dict(raw_records[idx]["payload"])
+        raw_records[idx]["payload"]["amount"] += 999999.99
+
+    # Verify and commit batch
+    verifier = ZKMOTLOutboxManager()
+    committed, quarantined = verifier.verify_and_commit_batch(raw_records)
+
+    # Exactly 10 records isolated to quarantine, 990 valid records committed with unbroken Merkle root
+    assert len(quarantined) == 10, f"Expected 10 quarantined records, got {len(quarantined)}"
+    assert len(committed) == 990, f"Expected 990 committed records, got {len(committed)}"
+
+    quarantined_seqs = {r["seq"] for r in quarantined}
+    expected_byzantine_seqs = {idx + 1 for idx in byzantine_indices}
+    assert (
+        quarantined_seqs == expected_byzantine_seqs
+    ), f"Quarantined seq mismatch: {quarantined_seqs} vs {expected_byzantine_seqs}"
+
+    # Compute unbroken Merkle root for the 990 valid records
+    merkle_root = compute_merkle_root(committed)
+    assert isinstance(merkle_root, str)
+    assert len(merkle_root) == 64
+    assert verifier.get_merkle_root() == merkle_root
+
+    print("[✓] Patch 18 / Zero-Leak Sanitizer, DPAS-TSM Savepoint Lock, and ZK-MOTL Merkle Outbox verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -1348,8 +1498,9 @@ def main():
     test_patch_16_dpas_tsm_dual_key_and_statutory_immutability()
     test_patch_16_two_key_advisory_lock_and_paged_telemetry()
     test_patch_17_dual_partition_advisory_lock_and_sql_guards()
-    print("[✓] ALL 17 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 17 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_18_zero_leak_sanitizer_dpas_lock_and_zk_motl()
+    print("[✓] ALL 18 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 18 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
