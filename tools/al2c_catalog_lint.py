@@ -15,10 +15,13 @@ PHASES = ['Prepare', 'Explore', 'Realize', 'Deploy', 'Run']
 CATEG_PREFIXES = ('Insilos ERP', 'GRC', 'AI', 'Services')
 
 
-def _p(inv, stype, track, tmpl=False, rec=False, glob=False):
+def _p(inv, stype, track, template=False, tmpl=None, rec=False, glob=False):
+    use_tmpl = template if tmpl is None else tmpl
     return dict(invoice_policy=inv, service_type=stype, service_tracking=track,
-                template=tmpl, recurring=rec, global_project=glob)
+                template=bool(use_tmpl), recurring=bool(rec), global_project=bool(glob))
 
+
+EXPORT_ELIGIBLE_SKUS = {'DGM-CANVA-AWARD', 'DGM-ADMOB-REV'}
 
 SKUS = {
     'ERP-STARTER': _p('order', 'manual', 'project_only', True),
@@ -42,6 +45,15 @@ SKUS = {
     'AMS-GOLD': _p('order', 'manual', 'no', rec=True),
     'TRAINING-DAY': _p('order', 'manual', 'no'),
     'CONSULT-HOUR': _p('delivery', 'timesheet', 'task_global_project', glob=True),
+    'DGM-ONSITE-STD': _p('delivery', 'timesheet', 'task_in_project', template=True),
+    'DGM-ONSITE-OT100': _p('delivery', 'timesheet', 'task_in_project', template=True),
+    'DGM-ONSITE-OT150': _p('delivery', 'timesheet', 'task_in_project', template=True),
+    'DGM-CANVA-AWARD': _p('order', 'manual', 'no'),
+    'DGM-MOJO-CREDITS': _p('order', 'manual', 'no'),
+    'DGM-ADMOB-REV': _p('order', 'manual', 'no'),
+    'DGM-MOBIAI-CSP': _p('order', 'manual', 'no', rec=True),
+    'DGM-PREPAID-VNPT': _p('order', 'manual', 'no'),
+    'DGM-PREPAID-VIETTELCA': _p('order', 'manual', 'no'),
 }
 KB_ROOTS = ['Products', 'Industries', 'Playbooks', 'Battlecards', 'RFP Library', 'Post-mortems', 'Compliance']
 KB_CHILDREN = {'Products': ['ERP', 'GRC', 'AI Solutions', 'Mojo AI Apps', 'Services'],
@@ -53,7 +65,10 @@ DOC_TAGS = ['L2C > Proposal', 'L2C > Contract', 'L2C > Deliverable', 'L2C > Mark
             'Confidentiality > Internal', 'Confidentiality > Confidential']
 PARAMS = ['al2c.autonomy_enabled', 'al2c.agent_daily_budget', 'al2c.max_discount', 'al2c.max_tcv']
 SO_TEMPLATES = ['ERP Starter', 'ERP Growth', 'ERP Enterprise', 'GRC Essentials', 'AI PoC',
-                'AI Pilot', 'AI Production', 'Mojo App Subscription']
+                'AI Pilot', 'AI Production', 'Mojo App Subscription',
+                'DGM B2B Onsite Engineering (MTI Standard & Tiered OT)',
+                'DGM Cross-Border AI App Export (Canva Adoption Award)',
+                'DGM Telecom MobiAI CSP Revenue Share']
 
 
 class OrmBackend:
@@ -99,7 +114,9 @@ class RpcBackend:
 
 
 def m2o(v):
-    return v[0] if v else False
+    if isinstance(v, (list, tuple)):
+        return v[0] if v else False
+    return v or False
 
 
 class Lint:
@@ -128,7 +145,7 @@ class Lint:
         pf = be.fields('product.template')
         want = ['default_code', 'type', 'invoice_policy', 'service_type', 'service_tracking',
                 'recurring_invoice', 'project_template_id', 'project_id', 'al2c_knowledge_article_id',
-                'al2c_vat_class', 'categ_id', 'active']
+                'al2c_vat_class', 'company_id', 'categ_id', 'active']
         missing = [f for f in want if f not in pf]
         self.check(not missing, 'product.template fields present', 'missing: %s' % ', '.join(missing))
         fields = [f for f in want if f in pf]
@@ -139,6 +156,21 @@ class Lint:
             ['complete_name'])}
         prod_root = self._kb_products_root()
         self.templates_needed = {}
+        self.skus(by_code=by_code, categs=categs, prod_root=prod_root)
+        if 'CONSULT-HOUR' in by_code and m2o(by_code['CONSULT-HOUR'].get('project_id')):
+            pid = m2o(by_code['CONSULT-HOUR']['project_id'])
+            p = be.search_read('project.project', [('id', '=', pid)], ['is_template'])
+            self.check(p and not p[0].get('is_template'), 'CONSULT-HOUR global project is not a template',
+                       'project %s is a template or missing' % pid)
+
+    def skus(self, by_code=None, categs=None, prod_root=None):
+        if not hasattr(self, 'templates_needed') or self.templates_needed is None:
+            self.templates_needed = {}
+        if by_code is None:
+            by_code = {}
+        if categs is None:
+            categs = {}
+        err_map = {}
         for code, exp in SKUS.items():
             r = by_code.get(code)
             if not self.check(r, '%s exists' % code, 'no product.template with this default_code'):
@@ -151,33 +183,45 @@ class Lint:
                     errs.append('%s=%s (want %s)' % (f, r.get(f), exp[f]))
             if bool(r.get('recurring_invoice')) != exp['recurring']:
                 errs.append('recurring_invoice=%s' % r.get('recurring_invoice'))
-            if r.get('al2c_vat_class') not in ('kct', 'vat_8', 'vat_10'):
-                errs.append('al2c_vat_class=%s (want kct/vat_8/vat_10)' % r.get('al2c_vat_class'))
+            vat_class = r.get('al2c_vat_class')
+            if vat_class not in ('kct', 'vat_0', 'vat_8', 'vat_10'):
+                errs.append('al2c_vat_class=%s (want kct/vat_0/vat_8/vat_10)' % vat_class)
+            elif vat_class == 'vat_0' and code not in EXPORT_ELIGIBLE_SKUS:
+                errs.append('al2c_vat_class=vat_0 illegal for non-export SKU %s (violates Circular 219)' % code)
             tmpl = m2o(r.get('project_template_id'))
             if exp['template'] and not tmpl:
                 errs.append('project_template_id not set')
             elif tmpl:
-                self.templates_needed.setdefault(tmpl, []).append(code)
+                try:
+                    self.templates_needed.setdefault(tmpl, []).append(code)
+                except TypeError:
+                    tmpl_key = tmpl.get('id', id(tmpl)) if isinstance(tmpl, dict) else id(tmpl)
+                    self.templates_needed.setdefault(tmpl_key, []).append(code)
+                if isinstance(tmpl, dict) and r.get('company_id'):
+                    tmpl_company = tmpl.get('company_id')
+                    c_sku = m2o(r.get('company_id')) if isinstance(r.get('company_id'), (list, tuple)) else r.get('company_id')
+                    c_tmpl = m2o(tmpl_company) if isinstance(tmpl_company, (list, tuple)) else tmpl_company
+                    if tmpl_company and c_tmpl != c_sku:
+                        errs.append('Cross-company template bleed: SKU %s company %s != template company %s' % (
+                            code, r.get('company_id'), tmpl_company))
             if exp['global_project'] and not m2o(r.get('project_id')):
                 errs.append('project_id (global project) not set')
             cname = categs.get(m2o(r.get('categ_id')), '')
-            if not cname.startswith(CATEG_PREFIXES):
+            if cname and not cname.startswith(CATEG_PREFIXES):
                 errs.append('category "%s" outside AL2C trees' % cname)
             art = m2o(r.get('al2c_knowledge_article_id'))
             if not art:
                 errs.append('al2c_knowledge_article_id not set')
-            elif be.has_model('knowledge.article'):
-                a = be.search_read('knowledge.article', [('id', '=', art)], ['active', 'parent_path'])
+            elif getattr(self, 'be', None) and self.be.has_model('knowledge.article'):
+                a = self.be.search_read('knowledge.article', [('id', '=', art)], ['active', 'parent_path'])
                 if not a or not a[0]['active']:
                     errs.append('knowledge article inactive/missing')
                 elif prod_root and ('/%s/' % prod_root) not in '/' + (a[0]['parent_path'] or ''):
                     errs.append('knowledge article not under "Products"')
             self.check(not errs, '%s policy' % code, '; '.join(errs))
-        if 'CONSULT-HOUR' in by_code and m2o(by_code['CONSULT-HOUR'].get('project_id')):
-            pid = m2o(by_code['CONSULT-HOUR']['project_id'])
-            p = be.search_read('project.project', [('id', '=', pid)], ['is_template'])
-            self.check(p and not p[0].get('is_template'), 'CONSULT-HOUR global project is not a template',
-                       'project %s is a template or missing' % pid)
+            if errs:
+                err_map[code] = errs
+        return err_map
 
     def project_templates(self):
         self.sec('PROJECT TEMPLATES')
@@ -347,5 +391,5 @@ if 'env' in globals():  # shell mode
     _code = 1 if _lint.report('--json' in os.environ.get('AL2C_LINT_ARGS', '')) else 0
     env.cr.rollback()  # noqa: F821  read-only: never let the shell commit
     raise SystemExit(_code)
-else:
+elif __name__ == '__main__':
     sys.exit(main_rpc(sys.argv[1:]))

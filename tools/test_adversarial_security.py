@@ -491,7 +491,17 @@ def test_patch_11_pinned_conversion_cron_safety_gate():
     print("[✓] Patch 11 / 24/7 Pinned Conversion Cron Safety Gate (CRM Pre-Flight, Transaction Advisory Lock, Tenant Savepoint) verified")
 
 
-def test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation():
+def test_patch_12_catalog_security_invariants():
+    import unittest
+    from tools.__tests__ import test_catalog_security_invariants
+    suite = unittest.defaultTestLoader.loadTestsFromModule(test_catalog_security_invariants)
+    runner = unittest.TextTestRunner(verbosity=1)
+    result = runner.run(suite)
+    assert result.wasSuccessful(), "Catalog security invariants failed"
+    print("[✓] Patch 12 / Catalog Security Invariants (Decree 70 VAT_0 & Multi-Company Bulkheads) verified")
+
+
+def test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation():
     import ast
     import importlib.util
     import shutil
@@ -586,7 +596,10 @@ def test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation():
     assert "test_wip_accounting_01" in mrp_fn_names, "Missing test_wip_accounting_01 in test_valuation.py"
     assert "test_workcenter_employee_cost_impacting_on_valuation" in mrp_fn_names, "Missing test_workcenter_employee_cost_impacting_on_valuation"
 
-    print("[✓] Patch 12 / POS Barcodelookup Node Sandbox & MRP Valuation Inheritance Parity verified")
+    print("[✓] Patch 13 / POS Barcodelookup Node Sandbox & MRP Valuation Inheritance Parity verified")
+
+
+test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation = test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation
 
 
 def main():
@@ -601,8 +614,10 @@ def main():
     test_patch_9_audit_3_dism_trl()
     test_patch_10_saas_provisioning_security()
     test_patch_11_pinned_conversion_cron_safety_gate()
-    test_patch_12_pos_barcodelookup_sandbox_and_mrp_valuation()
-    print("[🎉] ALL 12 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_12_catalog_security_invariants()
+    test_patch_13_pos_barcodelookup_sandbox_and_mrp_valuation()
+    print("[✓] ALL 12 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 13 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
