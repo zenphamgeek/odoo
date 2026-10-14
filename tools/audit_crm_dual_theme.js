@@ -13,25 +13,42 @@ const { chromium } = require("playwright");
     // 1. Set Light Cookie & Authenticate
     await context.addCookies([{ name: "color_scheme", value: "light", domain: "localhost", path: "/" }]);
     console.log("Navigating to login...");
-    await page.goto("http://localhost:28069/web/login", { waitUntil: "domcontentloaded" });
-    await page.fill("input[name=\"login\"]", "admin");
-    await page.fill("input[name=\"password\"]", "admin");
+    await page.goto("http://localhost:28069/web/login", { waitUntil: "networkidle" });
+    await page.fill("form.oe_login_form input[name=\"login\"]", "admin");
+    await page.fill("form.oe_login_form input[name=\"password\"]", "admin");
     await Promise.all([
         page.waitForNavigation({ waitUntil: "domcontentloaded", timeout: 60000 }),
-        page.click("button[type=\"submit\"]")
+        page.locator("form.oe_login_form button[type=\"submit\"]").click()
     ]);
-    await page.waitForSelector(".o_navbar", { timeout: 45000 });
+    await page.waitForSelector(".o_navbar", { timeout: 60000 });
 
-    // 2. Light Mode Verification
-    console.log("Opening CRM Pipeline (Light Mode)...");
-    await page.goto("http://localhost:28069/web#action=crm.crm_lead_action_pipeline", { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".o_kanban_record", { timeout: 20000 });
-
-    const card = await page.$(".o_kanban_record");
-    if (card) {
-        await card.click();
+    // 2. Light Mode Verification (Direct Form URL via JSON-RPC ID lookup)
+    console.log("Opening CRM Pipeline Form (Light Mode)...");
+    const leadId = await page.evaluate(async () => {
+        const res = await fetch("/web/dataset/call_kw/crm.lead/search", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                jsonrpc: "2.0",
+                method: "call",
+                params: {
+                    model: "crm.lead",
+                    method: "search",
+                    args: [[]],
+                    kwargs: { limit: 1 }
+                }
+            })
+        });
+        const data = await res.json();
+        return (data.result && data.result[0]) || 1;
+    });
+    await page.goto(`http://localhost:28069/odoo/crm/${leadId}`, { waitUntil: "domcontentloaded" });
+    try {
+        await page.waitForSelector(".o_form_view .o_form_sheet", { timeout: 15000 });
+    } catch (e) {
+        await page.goto(`http://localhost:28069/web#id=${leadId}&model=crm.lead&view_type=form`, { waitUntil: "domcontentloaded" });
+        await page.waitForSelector(".o_form_view .o_form_sheet", { timeout: 30000 });
     }
-    await page.waitForSelector(".o_form_view .o_form_sheet", { timeout: 20000 });
     await page.waitForTimeout(1000);
 
     const lightAudit = await page.evaluate(() => {
@@ -72,7 +89,7 @@ const { chromium } = require("playwright");
     });
     await context.addCookies([{ name: "color_scheme", value: "dark", domain: "localhost", path: "/" }]);
     await page.reload({ waitUntil: "domcontentloaded" });
-    await page.waitForSelector(".o_form_view .o_form_sheet", { timeout: 20000 });
+    await page.waitForSelector(".o_form_view .o_form_sheet", { timeout: 30000 });
     await page.waitForTimeout(1000);
 
     const darkAudit = await page.evaluate(() => {
