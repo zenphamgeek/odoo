@@ -416,6 +416,14 @@ async function executeSingleSuite(browser, storageState, runConfig) {
  */
 async function main() {
   const args = process.argv.slice(2);
+
+  // Fast-Path: 4-Vector Adversarial Scenario Test Suite
+  if (args.includes('--adversarial') || args.some((a) => a.includes('test_adversarial_hoot_invariants.js'))) {
+    const { runAdversarialSuite } = require('./tools/test_adversarial_hoot_invariants.js');
+    const exitCode = await runAdversarialSuite();
+    process.exit(exitCode || 0);
+  }
+
   let concurrency = 2; // Default concurrency
   let skipWarmup = false;
   let headlessMode = true;
