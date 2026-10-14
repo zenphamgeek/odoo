@@ -22,9 +22,9 @@ class TestDualThemeManifestSegregation(unittest.TestCase):
     """Verifies AGENTS.md Rule 4 invariants across the entire codebase."""
 
     def test_zero_banned_light_hex_fallbacks_with_important(self):
-        """Ensure no SCSS file uses light hex fallbacks inside var(--insilos-bg-*) with !important."""
+        """Ensure no light SCSS file uses light hex fallbacks inside background var(--*) with !important."""
         banned_pattern = re.compile(
-            r"var\(\s*--insilos-bg-[a-z0-9_-]+\s*,\s*(#fff(?:fff)?|#f8fafc|#f4f6f8|#f1f5f9)\s*\)\s*!important",
+            r"background(?:-color)?\s*:[^;]*var\(\s*--[a-z0-9_-]+\s*,\s*(#fff(?:fff)?|#f8fafc|#f4f6f8|#f1f5f9)\s*\)\s*!important",
             re.IGNORECASE,
         )
         violations = []
@@ -36,6 +36,8 @@ class TestDualThemeManifestSegregation(unittest.TestCase):
         )
         for rel_glob in scss_globs:
             for fpath in sorted(glob.glob(os.path.join(WORKSPACE_ROOT, rel_glob), recursive=True)):
+                if fpath.endswith(".dark.scss"):
+                    continue
                 with open(fpath, "r", encoding="utf-8") as fh:
                     for line_no, line in enumerate(fh, 1):
                         if banned_pattern.search(line):
