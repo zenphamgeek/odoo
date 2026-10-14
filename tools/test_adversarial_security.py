@@ -1669,8 +1669,8 @@ def main():
     test_patch_17_dual_partition_advisory_lock_and_sql_guards()
     test_patch_17_zbesl_csa_and_parity_scanner_hardening()
     test_patch_18_zero_leak_sanitizer_dpas_lock_and_zk_motl()
-    print("[✓] ALL 17 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 17 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    print("[✓] ALL 18 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 18 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":

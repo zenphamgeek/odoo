@@ -1,14 +1,14 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-13T21:38:12.007529+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-14T18:09:02.470780+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `5feaf49f1` | 443 | ⚠️ 105 | 287,479 | 2,395.7 d | 329.4 d | 🟢 0 stale (20 missing) | ⚠️ 6 risks |
-| **`VerticalRisk`** | `Development` | `2df3457e9` | 168 | ✅ 0 | 724,572 | 5,031.8 d | 2,402.6 d | 🟢 0 stale (67 missing) | ⚠️ 6 risks |
-| **`insilos_mobile`** | `main` | `5752506c1` | 150 | ⚠️ 1 | 1,194,523 | 8,295.3 d | 2,758.2 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
-| **`zencode-ent`** | `main` | `380873ca1` | 109 | ⚠️ 3 | 1,233,547 | 10,279.6 d | 152.6 d | 🟢 0 stale (0 missing) | ⚠️ 51 risks |
+| **`O20`** | `insilos-genesis-fork` | `51d847cf4` | 473 | ⚠️ 116 | 287,485 | 2,395.7 d | 452.6 d | 🟢 0 stale (19 missing) | ⚠️ 6 risks |
+| **`VerticalRisk`** | `Development` | `6f7daf03e` | 176 | ✅ 0 | 729,263 | 5,064.3 d | 2,731.4 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
+| **`insilos_mobile`** | `main` | `6d7c31272` | 178 | ✅ 0 | 1,205,314 | 8,370.2 d | 2,960.5 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
+| **`zencode-ent`** | `main` | `eb7ecf615` | 111 | ⚠️ 6 | 1,234,102 | 10,284.2 d | 155.6 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
 
 ---
 
@@ -17,27 +17,27 @@
 | Repository | Module / Package | Category | Drift (Days) | Status | Last Code Commit | Last Doc Commit |
 |:---|:---|:---|---:|:---:|:---|:---|
 | `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-13T08:48:17+00:00 | N/A |
-| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-13T19:15:00+00:00 | N/A |
+| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T09:55:39+00:00 | N/A |
 | `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-13T19:02:16+00:00 | N/A |
 | `O20` | `enterprise/innokafe_website` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-13T08:42:14+00:00 | N/A |
 | `O20` | `enterprise/insilos_capital_markets_decision_governance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_chemical_trade_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
+| `O20` | `enterprise/insilos_chemical_trade_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T16:52:55+00:00 | N/A |
 | `O20` | `enterprise/insilos_esg_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
 | `O20` | `enterprise/insilos_finance_agent_os` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
 | `O20` | `enterprise/insilos_hs_sync` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
 | `O20` | `enterprise/insilos_hse_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
-| `O20` | `enterprise/insilos_industry_showcase` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-11T10:05:26+00:00 | N/A |
+| `O20` | `enterprise/insilos_industry_showcase` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T17:54:13+00:00 | N/A |
 | `O20` | `enterprise/insilos_knowledge_graph` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_logistics_idp` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-13T12:44:53+00:00 | N/A |
+| `O20` | `enterprise/insilos_logistics_idp` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T05:23:10+00:00 | N/A |
 | `O20` | `enterprise/insilos_market_data` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_market_terminal` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-13T12:44:53+00:00 | N/A |
+| `O20` | `enterprise/insilos_market_terminal` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T05:23:10+00:00 | N/A |
 | `O20` | `enterprise/insilos_preferential_origin` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
 | `O20` | `enterprise/insilos_pubsub_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
 | `O20` | `enterprise/insilos_tenant_control` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_theme_genesis` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-13T12:44:53+00:00 | N/A |
 | `O20` | `enterprise/insilos_treasury_market_risk` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-advance-awareness-campaigns` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-ai-copilot` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
+| `VerticalRisk` | `extensions/verticalrisk-analytics-engine` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-14T02:18:38+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-assessment` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-assessment-portal` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-assets-third-parties` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
@@ -79,6 +79,7 @@
 | `VerticalRisk` | `extensions/verticalrisk-identity-sso` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-import-templates` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-incident-triage` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
+| `VerticalRisk` | `extensions/verticalrisk-integrations` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-14T05:39:11+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-itsm-bridge` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-landing-dashboard` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-multi-tenancy` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
@@ -111,10 +112,11 @@
 | `insilos_mobile` | `mobo_vert_evidence` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_hse` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_risk` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_shell` | `flutter_package` | **38.6 d** | 🔴 STALE | 2026-10-13T20:04:41+00:00 | 2026-09-05T05:51:48+00:00 |
+| `insilos_mobile` | `mobo_vert_shell` | `flutter_package` | **39.5 d** | 🔴 STALE | 2026-10-14T17:12:12+00:00 | 2026-09-05T05:51:48+00:00 |
 | `insilos_mobile` | `mobo_vert_work` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-13T20:04:41+00:00 | N/A |
-| `insilos_mobile` | `packages/insilos_design_system` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-13T20:04:41+00:00 | N/A |
+| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-14T17:12:12+00:00 | N/A |
+| `insilos_mobile` | `packages/insilos_design_system` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-14T06:23:48+00:00 | N/A |
+| `zencode-ent` | `mobo_vert_core` | `flutter_package` | **N/A** | ⚠️ MISSING | N/A | N/A |
 
 ---
 
@@ -170,6 +172,8 @@
 | 🔴 HIGH | `DEP03` | `zencode-ent/zencode/packages/desktop/package.json` | `@getpaseo/cli` | `*` | Replace wildcard pin with explicit version for @getpaseo/cli |
 | 🔴 HIGH | `DEP03` | `zencode-ent/zencode/packages/desktop/package.json` | `@getpaseo/server` | `*` | Replace wildcard pin with explicit version for @getpaseo/server |
 | 🔵 LOW | `DEP03` | `zencode-ent/zencode/packages/desktop/package.json` | `vitest` | `^4.1.6` | Pin critical runtime package vitest to exact version or tilde range |
+| 🔴 HIGH | `DEP03` | `zencode-ent/zencode/packages/desktop/release/linux-unpacked/resources/builtin-plugins/package.json` | `@getpaseo/plugin` | `*` | Replace wildcard pin with explicit version for @getpaseo/plugin |
+| 🔵 LOW | `DEP03` | `zencode-ent/zencode/packages/desktop/release/linux-unpacked/resources/builtin-plugins/package.json` | `vitest` | `^4.1.6` | Pin critical runtime package vitest to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `zencode-ent/zencode/packages/plugin/package.json` | `vitest` | `^4.1.6` | Pin critical runtime package vitest to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `zencode-ent/zencode/packages/highlight/package.json` | `vitest` | `^4.1.6` | Pin critical runtime package vitest to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `zencode-ent/zencode/packages/relay/package.json` | `vitest` | `^4.1.6` | Pin critical runtime package vitest to exact version or tilde range |
@@ -193,6 +197,7 @@
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `websockets` | `>=12.0` | Constrain upper bound for websockets |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `packaging` | `>=24.0` | Constrain upper bound for packaging |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `mcp` | `>=1.0.0` | Constrain upper bound for mcp |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `pytest` | `>=9.1.1` | Constrain upper bound for pytest |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/zencode-core/script/update_top_ranking_issues/pyproject.toml` | `mypy` | `>=1.15.0` | Constrain upper bound for mypy |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/zencode-core/script/update_top_ranking_issues/pyproject.toml` | `pytz` | `>=2025.1` | Constrain upper bound for pytz |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/zencode-core/script/update_top_ranking_issues/pyproject.toml` | `requests` | `>=2.32.0` | Constrain upper bound for requests |
@@ -224,7 +229,7 @@
 - [ ] [DEP01-MOBO_TODO-FLUTTER_SVG][P1][security] Pin loose ': any' dependency for flutter_svg in mobo_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
 - [ ] [DEP01-MOBO_TODO-PATH_PROVIDER][P1][security] Pin loose ': any' dependency for path_provider in mobo_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
 - [ ] [DEP01-MOBO_VERT_SHELL-INTL][P1][security] Pin loose ': any' dependency for intl in mobo_vert_shell/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_vert_shell/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_vert_shell/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 38.6d) — DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify="test -f mobo_vert_shell/README.md" risk=R1 -->
+- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 39.5d) — DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify="test -f mobo_vert_shell/README.md" risk=R1 -->
 - [ ] [DOC02-INNOKAFE_WEBSITE][P1][docs] Author sovereign localized README for innokafe_website — DoD: Create enterprise/innokafe_website/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/innokafe_website/README.md verify="test -f enterprise/innokafe_website/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_ADAPTER][P1][docs] Author sovereign localized README for insilos_adapter — DoD: Create addons/insilos_adapter/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_adapter/README.md verify="test -f addons/insilos_adapter/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_AL2C][P1][docs] Author sovereign localized README for insilos_al2c — DoD: Create addons/insilos_al2c/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_al2c/README.md verify="test -f addons/insilos_al2c/README.md" risk=R0 -->
@@ -245,12 +250,12 @@
 - [ ] [DOC02-INSILOS_PUBSUB_BRIDGE][P1][docs] Author sovereign localized README for insilos_pubsub_bridge — DoD: Create enterprise/insilos_pubsub_bridge/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_pubsub_bridge/README.md verify="test -f enterprise/insilos_pubsub_bridge/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_SAP_FIORI][P1][docs] Author sovereign localized README for insilos_sap_fiori — DoD: Create addons/insilos_sap_fiori/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_sap_fiori/README.md verify="test -f addons/insilos_sap_fiori/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_TENANT_CONTROL][P1][docs] Author sovereign localized README for insilos_tenant_control — DoD: Create enterprise/insilos_tenant_control/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_tenant_control/README.md verify="test -f enterprise/insilos_tenant_control/README.md" risk=R0 -->
-- [ ] [DOC02-INSILOS_THEME_GENESIS][P1][docs] Author sovereign localized README for insilos_theme_genesis — DoD: Create enterprise/insilos_theme_genesis/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_theme_genesis/README.md verify="test -f enterprise/insilos_theme_genesis/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_TREASURY_MARKET_RISK][P1][docs] Author sovereign localized README for insilos_treasury_market_risk — DoD: Create enterprise/insilos_treasury_market_risk/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_treasury_market_risk/README.md verify="test -f enterprise/insilos_treasury_market_risk/README.md" risk=R0 -->
 - [ ] [DOC02-MOBO_VERT_AUDIT][P1][docs] Author sovereign localized README for mobo_vert_audit — DoD: Create mobo_vert_audit/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_audit/README.md verify="test -f mobo_vert_audit/README.md" risk=R0 -->
 - [ ] [DOC02-MOBO_VERT_CAPA][P1][docs] Author sovereign localized README for mobo_vert_capa — DoD: Create mobo_vert_capa/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_capa/README.md verify="test -f mobo_vert_capa/README.md" risk=R0 -->
 - [ ] [DOC02-MOBO_VERT_CONTROLS][P1][docs] Author sovereign localized README for mobo_vert_controls — DoD: Create mobo_vert_controls/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_controls/README.md verify="test -f mobo_vert_controls/README.md" risk=R0 -->
 - [ ] [DOC02-MOBO_VERT_CORE][P1][docs] Author sovereign localized README for mobo_vert_core — DoD: Create mobo_vert_core/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_core/README.md verify="test -f mobo_vert_core/README.md" risk=R0 -->
+- [ ] [DOC02-MOBO_VERT_CORE][P1][docs] Author sovereign localized README for mobo_vert_core — DoD: Create mobo_vert_core/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=zencode-ent path=mobo_vert_core/README.md verify="test -f mobo_vert_core/README.md" risk=R0 -->
 - [ ] [DOC02-MOBO_VERT_ECM][P1][docs] Author sovereign localized README for mobo_vert_ecm — DoD: Create mobo_vert_ecm/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_ecm/README.md verify="test -f mobo_vert_ecm/README.md" risk=R0 -->
 - [ ] [DOC02-MOBO_VERT_EVIDENCE][P1][docs] Author sovereign localized README for mobo_vert_evidence — DoD: Create mobo_vert_evidence/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_evidence/README.md verify="test -f mobo_vert_evidence/README.md" risk=R0 -->
 - [ ] [DOC02-MOBO_VERT_HSE][P1][docs] Author sovereign localized README for mobo_vert_hse — DoD: Create mobo_vert_hse/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_hse/README.md verify="test -f mobo_vert_hse/README.md" risk=R0 -->
@@ -258,6 +263,7 @@
 - [ ] [DOC02-MOBO_VERT_WORK][P1][docs] Author sovereign localized README for mobo_vert_work — DoD: Create mobo_vert_work/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_work/README.md verify="test -f mobo_vert_work/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_ADVANCE_AWARENESS_CAMPAIGNS][P1][docs] Author sovereign localized README for verticalrisk-advance-awareness-campaigns — DoD: Create extensions/verticalrisk-advance-awareness-campaigns/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-advance-awareness-campaigns/README.md verify="test -f extensions/verticalrisk-advance-awareness-campaigns/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_AI_COPILOT][P1][docs] Author sovereign localized README for verticalrisk-ai-copilot — DoD: Create extensions/verticalrisk-ai-copilot/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-ai-copilot/README.md verify="test -f extensions/verticalrisk-ai-copilot/README.md" risk=R0 -->
+- [ ] [DOC02-VERTICALRISK_ANALYTICS_ENGINE][P1][docs] Author sovereign localized README for verticalrisk-analytics-engine — DoD: Create extensions/verticalrisk-analytics-engine/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-analytics-engine/README.md verify="test -f extensions/verticalrisk-analytics-engine/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_ASSESSMENT][P1][docs] Author sovereign localized README for verticalrisk-assessment — DoD: Create extensions/verticalrisk-assessment/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-assessment/README.md verify="test -f extensions/verticalrisk-assessment/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_ASSESSMENT_PORTAL][P1][docs] Author sovereign localized README for verticalrisk-assessment-portal — DoD: Create extensions/verticalrisk-assessment-portal/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-assessment-portal/README.md verify="test -f extensions/verticalrisk-assessment-portal/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_ASSETS_THIRD_PARTIES][P1][docs] Author sovereign localized README for verticalrisk-assets-third-parties — DoD: Create extensions/verticalrisk-assets-third-parties/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-assets-third-parties/README.md verify="test -f extensions/verticalrisk-assets-third-parties/README.md" risk=R0 -->
@@ -299,6 +305,7 @@
 - [ ] [DOC02-VERTICALRISK_IDENTITY_SSO][P1][docs] Author sovereign localized README for verticalrisk-identity-sso — DoD: Create extensions/verticalrisk-identity-sso/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-identity-sso/README.md verify="test -f extensions/verticalrisk-identity-sso/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_IMPORT_TEMPLATES][P1][docs] Author sovereign localized README for verticalrisk-import-templates — DoD: Create extensions/verticalrisk-import-templates/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-import-templates/README.md verify="test -f extensions/verticalrisk-import-templates/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_INCIDENT_TRIAGE][P1][docs] Author sovereign localized README for verticalrisk-incident-triage — DoD: Create extensions/verticalrisk-incident-triage/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-incident-triage/README.md verify="test -f extensions/verticalrisk-incident-triage/README.md" risk=R0 -->
+- [ ] [DOC02-VERTICALRISK_INTEGRATIONS][P1][docs] Author sovereign localized README for verticalrisk-integrations — DoD: Create extensions/verticalrisk-integrations/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-integrations/README.md verify="test -f extensions/verticalrisk-integrations/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_ITSM_BRIDGE][P1][docs] Author sovereign localized README for verticalrisk-itsm-bridge — DoD: Create extensions/verticalrisk-itsm-bridge/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-itsm-bridge/README.md verify="test -f extensions/verticalrisk-itsm-bridge/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_LANDING_DASHBOARD][P1][docs] Author sovereign localized README for verticalrisk-landing-dashboard — DoD: Create extensions/verticalrisk-landing-dashboard/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-landing-dashboard/README.md verify="test -f extensions/verticalrisk-landing-dashboard/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_MULTI_TENANCY][P1][docs] Author sovereign localized README for verticalrisk-multi-tenancy — DoD: Create extensions/verticalrisk-multi-tenancy/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-multi-tenancy/README.md verify="test -f extensions/verticalrisk-multi-tenancy/README.md" risk=R0 -->
@@ -323,7 +330,7 @@
 - [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks — DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify="test -f extensions/verticalrisk-webhooks/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api — DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify="test -f extensions/verticalrisk-workflow-api/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel — DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify="test -f extensions/verticalrisk-workflow-kernel/README.md" risk=R0 -->
-- [ ] [WIP01-O20][P1][plan] Triage 105 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
+- [ ] [WIP01-O20][P1][plan] Triage 116 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml — DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MCP][P2][security] Pin upper bound on Python dependency mcp in router/pyproject.toml — DoD: Add explicit upper bound constraint to mcp in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MODAL][P2][security] Pin upper bound on Python dependency modal in router/pyproject.toml — DoD: Add explicit upper bound constraint to modal in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
@@ -331,6 +338,7 @@
 - [ ] [DEP02-PYPROJECT-NUMPY][P2][security] Pin upper bound on Python dependency numpy in router/pyproject.toml — DoD: Add explicit upper bound constraint to numpy in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-PACKAGING][P2][security] Pin upper bound on Python dependency packaging in router/pyproject.toml — DoD: Add explicit upper bound constraint to packaging in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-PILLOW][P2][security] Pin upper bound on Python dependency pillow in router/pyproject.toml — DoD: Add explicit upper bound constraint to pillow in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
+- [ ] [DEP02-PYPROJECT-PYTEST][P2][security] Pin upper bound on Python dependency pytest in router/pyproject.toml — DoD: Add explicit upper bound constraint to pytest in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-PYTZ][P2][security] Pin upper bound on Python dependency pytz in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to pytz in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-REQUESTS][P2][security] Pin upper bound on Python dependency requests in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to requests in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-RUFF][P2][security] Pin upper bound on Python dependency ruff in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to ruff in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
@@ -357,6 +365,7 @@
 - [ ] [DEP03-4CC6569E-905F-44C2-9249-9B585AE763EA-VITEST][P3][plan] Pin explicit version for vitest in vertical/extensions/.registry/4cc6569e-905f-44c2-9249-9b585ae763ea/package.json — DoD: Replace loose caret with exact SemVer pin in vertical/extensions/.registry/4cc6569e-905f-44c2-9249-9b585ae763ea/package.json <!-- meta: repo=zencode-ent path=vertical/extensions/.registry/4cc6569e-905f-44c2-9249-9b585ae763ea/package.json verify="pnpm test" risk=R0 -->
 - [ ] [DEP03-APP-PLAYWRIGHT][P3][plan] Pin explicit version for playwright in zencode/packages/app/package.json — DoD: Replace loose caret with exact SemVer pin in zencode/packages/app/package.json <!-- meta: repo=zencode-ent path=zencode/packages/app/package.json verify="pnpm test" risk=R0 -->
 - [ ] [DEP03-APP-VITEST][P3][plan] Pin explicit version for vitest in zencode/packages/app/package.json — DoD: Replace loose caret with exact SemVer pin in zencode/packages/app/package.json <!-- meta: repo=zencode-ent path=zencode/packages/app/package.json verify="pnpm test" risk=R0 -->
+- [ ] [DEP03-BUILTIN-PLUGINS-VITEST][P3][plan] Pin explicit version for vitest in zencode/packages/desktop/release/linux-unpacked/resources/builtin-plugins/package.json — DoD: Replace loose caret with exact SemVer pin in zencode/packages/desktop/release/linux-unpacked/resources/builtin-plugins/package.json <!-- meta: repo=zencode-ent path=zencode/packages/desktop/release/linux-unpacked/resources/builtin-plugins/package.json verify="pnpm test" risk=R0 -->
 - [ ] [DEP03-CLI-VITEST][P3][plan] Pin explicit version for vitest in zencode/packages/cli/package.json — DoD: Replace loose caret with exact SemVer pin in zencode/packages/cli/package.json <!-- meta: repo=zencode-ent path=zencode/packages/cli/package.json verify="pnpm test" risk=R0 -->
 - [ ] [DEP03-CLIENT-VITEST][P3][plan] Pin explicit version for vitest in zencode/packages/client/package.json — DoD: Replace loose caret with exact SemVer pin in zencode/packages/client/package.json <!-- meta: repo=zencode-ent path=zencode/packages/client/package.json verify="pnpm test" risk=R0 -->
 - [ ] [DEP03-DESKTOP-VITEST][P3][plan] Pin explicit version for vitest in zencode/packages/desktop/package.json — DoD: Replace loose caret with exact SemVer pin in zencode/packages/desktop/package.json <!-- meta: repo=zencode-ent path=zencode/packages/desktop/package.json verify="pnpm test" risk=R0 -->
