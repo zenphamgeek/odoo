@@ -1158,6 +1158,175 @@ def test_patch_16_two_key_advisory_lock_and_paged_telemetry():
     print("[✓] Patch 16 / Two-Key Partitioned Advisory Lock, Tenant Guard & Paged Telemetry Accumulator verified")
 
 
+def test_patch_17_dual_partition_advisory_lock_and_sql_guards():
+    from unittest.mock import MagicMock
+
+    dism_lock_py = os.path.join(ROOT_DIR, "tools/dism_advisory_lock.py")
+    telemetry_acc_py = os.path.join(ROOT_DIR, "tools/telemetry_accumulator.py")
+    schema_comp_py = os.path.join(ROOT_DIR, "tools/audit_v19_v20_schema_compliance.py")
+
+    assert os.path.exists(dism_lock_py), f"Missing {dism_lock_py}"
+    assert os.path.exists(telemetry_acc_py), f"Missing {telemetry_acc_py}"
+    assert os.path.exists(schema_comp_py), f"Missing {schema_comp_py}"
+
+    # 1. Test tools/dism_advisory_lock.py
+    import tools.dism_advisory_lock as dism_lock
+    assert hasattr(dism_lock, "GLOBAL_ADVISORY_SALT")
+    assert dism_lock.GLOBAL_ADVISORY_SALT == b"insilos_genesis_v20_dpas_salt"
+
+    # Bounds & input validation for derive_dual_partition_keys
+    for bad_tenant in [0, -1, -999, "1", None, True, False, 3.14]:
+        try:
+            dism_lock.derive_dual_partition_keys(bad_tenant, "res.partner")
+            raise AssertionError(f"Expected ValueError for bad tenant_id: {bad_tenant}")
+        except ValueError:
+            pass
+
+    for bad_resource in ["", None, 123]:
+        try:
+            dism_lock.derive_dual_partition_keys(1, bad_resource)
+            raise AssertionError(f"Expected ValueError for bad resource_name: {bad_resource}")
+        except (ValueError, AttributeError):
+            pass
+
+    # Key derivation & bounds
+    k1, k2 = dism_lock.derive_dual_partition_keys(1, "res.partner")
+    assert 0 <= k1 <= 0x7FFFFFFF, f"Key1 {k1} out of 31-bit positive bounds"
+    assert -2147483648 <= k2 <= 2147483647, f"Key2 {k2} out of signed 32-bit bounds"
+
+    # Partition isolation: company 1 vs 2 (Key 1 differs, Key 2 identical for same resource)
+    k1_comp1, k2_comp1 = dism_lock.derive_dual_partition_keys(1, "res.partner")
+    k1_comp2, k2_comp2 = dism_lock.derive_dual_partition_keys(2, "res.partner")
+    assert k1_comp1 != k1_comp2, f"Key1 must differ across companies: {k1_comp1} vs {k1_comp2}"
+    assert k2_comp1 == k2_comp2, f"Key2 must be identical for same resource across companies: {k2_comp1} vs {k2_comp2}"
+
+    # Resource differentiation: different resources yield different key2
+    _, k2_users = dism_lock.derive_dual_partition_keys(1, "res.users")
+    assert k2_comp1 != k2_users, f"Key2 must differ for different resources: {k2_comp1} vs {k2_users}"
+
+    # Test transaction_advisory_guard
+    # Case A: Successful acquisition
+    mock_cr_success = MagicMock()
+    mock_cr_success.fetchone.return_value = (True,)
+    with dism_lock.transaction_advisory_guard(mock_cr_success, 1, "res.partner") as acquired:
+        assert acquired is True
+    mock_cr_success.execute.assert_called_once_with(
+        "SELECT pg_try_advisory_xact_lock(%s, %s);", (k1_comp1, k2_comp1)
+    )
+
+    # Case B: Contention with raise_on_busy=True (raises BlockingIOError)
+    mock_cr_busy = MagicMock()
+    mock_cr_busy.fetchone.return_value = (False,)
+    try:
+        with dism_lock.transaction_advisory_guard(mock_cr_busy, 1, "res.partner", raise_on_busy=True):
+            pass
+        raise AssertionError("Expected BlockingIOError on lock contention with raise_on_busy=True")
+    except BlockingIOError as e:
+        assert "locked by concurrent transaction in tenant 1" in str(e)
+
+    # Case C: Contention with raise_on_busy=False (yields False)
+    mock_cr_busy.reset_mock()
+    mock_cr_busy.fetchone.return_value = (False,)
+    with dism_lock.transaction_advisory_guard(mock_cr_busy, 1, "res.partner", raise_on_busy=False) as acquired:
+        assert acquired is False
+
+    # 2. Test tools/telemetry_accumulator.py
+    import tools.telemetry_accumulator as tel_acc
+    from tools.telemetry_accumulator import PagedTelemetryAccumulator, AccessDenied
+
+    # AccessDenied on cross-tenant mismatch
+    mock_env_mismatch = MagicMock()
+    mock_env_mismatch.company.id = 2
+    try:
+        PagedTelemetryAccumulator(mock_env_mismatch, tenant_company_id=1)
+        raise AssertionError("Expected AccessDenied on company mismatch")
+    except AccessDenied as e:
+        assert "Cross-tenant telemetry accumulation breach detected!" in str(e)
+
+    # Matching company initializes properly
+    mock_env_match = MagicMock()
+    mock_env_match.company.id = 1
+    mock_cr = MagicMock()
+    mock_env_match.cr = mock_cr
+
+    acc = PagedTelemetryAccumulator(mock_env_match, tenant_company_id=1, batch_size=100)
+    assert acc.batch_size == 100
+    acc_clamp_high = PagedTelemetryAccumulator(mock_env_match, tenant_company_id=1, batch_size=1000)
+    assert acc_clamp_high.batch_size == 500
+    acc_clamp_low = PagedTelemetryAccumulator(mock_env_match, tenant_company_id=1, batch_size=-5)
+    assert acc_clamp_low.batch_size == 1
+
+    # Integer cursor enforcement
+    for bad_cursor in ["abc", "123", None, [1], {"ts": 1}, 12.34, True, False]:
+        try:
+            acc.fetch_page(bad_cursor)
+            raise AssertionError(f"Expected ValueError for non-integer cursor: {bad_cursor}")
+        except ValueError as e:
+            assert "Invalid cursor format" in str(e)
+
+    # Parameterized SQL query validation
+    mock_cr.reset_mock()
+    mock_cr.dictfetchall.return_value = [
+        {"id": 1, "module_name": "insilos_auth", "payload": "{}", "commit_ts": 1700000000}
+    ]
+    rows = acc.fetch_page(1700000000)
+    assert len(rows) == 1
+    mock_cr.execute.assert_called_once()
+    sql_query, params = mock_cr.execute.call_args[0]
+    assert "SELECT id, module_name, payload, commit_ts" in sql_query
+    assert "WHERE company_id = %s" in sql_query
+    assert "AND commit_ts > %s" in sql_query
+    assert "ORDER BY commit_ts ASC, id ASC" in sql_query
+    assert "LIMIT %s" in sql_query
+    assert params == (1, 1700000000, 100)
+
+    # Fallback to fetchall if dictfetchall not available
+    mock_cr_no_dict = MagicMock(spec=["execute", "fetchall"])
+    mock_cr_no_dict.fetchall.return_value = [(1, "insilos_auth", "{}", 1700000000)]
+    mock_env_no_dict = MagicMock()
+    mock_env_no_dict.company.id = 1
+    mock_env_no_dict.cr = mock_cr_no_dict
+    acc_no_dict = PagedTelemetryAccumulator(mock_env_no_dict, tenant_company_id=1)
+    res_no_dict = acc_no_dict.fetch_page(0)
+    assert len(res_no_dict) == 1
+
+    # 3. Test tools/audit_v19_v20_schema_compliance.py
+    import tools.audit_v19_v20_schema_compliance as schema_comp
+    assert hasattr(schema_comp, "TABLE_ALLOWLIST_REGEX")
+    assert hasattr(schema_comp, "audit_table_compliance")
+
+    # Valid table query execution
+    mock_cursor_valid = MagicMock()
+    mock_cursor_valid.fetchall.return_value = [("id", "integer", "NO"), ("name", "varchar", "YES")]
+    res = schema_comp.audit_table_compliance(mock_cursor_valid, "res_partner")
+    assert len(res) == 2
+    mock_cursor_valid.execute.assert_called_once()
+    assert mock_cursor_valid.execute.call_args[0][1] == ("res_partner",)
+
+    # SQL Injection attack vectors rejected with ValueError, cursor.execute never called
+    malicious_vectors = [
+        "res_partner; DROP TABLE users; --",
+        "res_users' OR '1'='1",
+        "ir_model/**/WHERE/**/1=1",
+        "res_company UNION SELECT * FROM res_users",
+        ";--",
+        "table$name",
+        "res_partner\x00",
+        "",
+        "a" * 64,  # Over max length 63
+    ]
+    for vector in malicious_vectors:
+        mock_cursor_attack = MagicMock()
+        try:
+            schema_comp.audit_table_compliance(mock_cursor_attack, vector)
+            raise AssertionError(f"Expected ValueError for SQL injection vector: {vector}")
+        except ValueError as e:
+            assert f"Rejected illegal table identifier: {vector}" in str(e)
+        assert mock_cursor_attack.execute.call_count == 0, f"Cursor.execute was called for vector: {vector}"
+
+    print("[✓] Patch 17 / Dual-Partition Advisory Locks, Tenant Telemetry Barrier, and SQL Injection Guards verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -1178,8 +1347,9 @@ def main():
     test_patch_15_ders_zlrr_and_decree70_statutory_barrier()
     test_patch_16_dpas_tsm_dual_key_and_statutory_immutability()
     test_patch_16_two_key_advisory_lock_and_paged_telemetry()
-    print("[✓] ALL 16 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 16 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_17_dual_partition_advisory_lock_and_sql_guards()
+    print("[✓] ALL 17 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 17 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
