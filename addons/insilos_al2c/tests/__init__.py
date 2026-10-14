@@ -35,4 +35,5 @@ from . import test_pricelist_type_dispatch
 from . import test_al2c_rag_grounding
 from . import test_ai_concierge_portal
 from . import test_rag_grounding
+from . import test_adversarial_concurrency
 

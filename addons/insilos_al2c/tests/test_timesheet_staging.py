@@ -664,5 +664,115 @@ class TestAl2cTimesheetStaging(TransactionCase):
         self.assertNotEqual(st_empty1.id, st_empty2.id, "Empty nonces/fingerprints normalized to NULL must not collide")
         self.assertFalse(getattr(st_empty2, '_is_idempotent_duplicate', False))
 
+    def test_15_multisheet_onsite_engineer_xlsx_workbook(self):
+        """Test multi-sheet Onsite Engineer Excel workbook (MTI-Tech / DIGIMATE format)
+        with sheet metadata headers, 2-row merged Working/Overtime columns, timedelta durations,
+        holiday/weekend skipping, summary row skipping, and rate card lookup."""
+        import io
+        import openpyxl
+        from datetime import datetime, time, timedelta
 
+        emp_khanh = self.env['hr.employee'].create({
+            'name': 'Huynh Tran Quang Khanh Test',
+            'work_email': 'khanh.test@inno.ai.vn',
+            'hourly_cost': 450000.0,
+        })
+        emp_tai = self.env['hr.employee'].create({
+            'name': 'Bui Huu Tai Test',
+            'work_email': 'tai.test@inno.ai.vn',
+            'hourly_cost': 450000.0,
+        })
+        prj_ls = self.env['project.project'].create({
+            'name': 'LifeSocket Test Project',
+            'allow_timesheets': True,
+        })
+        tsk_ls = self.env['project.task'].create({
+            'name': 'Onsite Delivery LifeSocket',
+            'project_id': prj_ls.id,
+        })
+        prj_clv = self.env['project.project'].create({
+            'name': 'CLV Test Project',
+            'allow_timesheets': True,
+        })
+        tsk_clv = self.env['project.task'].create({
+            'name': 'Onsite Delivery CLV',
+            'project_id': prj_clv.id,
+        })
 
+        wb = openpyxl.Workbook()
+        ws1 = wb.active
+        ws1.title = 'KhanhHTQ'
+        sheet1_rows = [
+            ['TIME SHEET 9 - 2026', None, None, None, None, None, None, None, None, None],
+            ['( Onsite Engineer)', None, None, None, None, None, None, None, None, None],
+            [None] * 10,
+            ['Partner:', 'DIGIMATE', None, None, 'Lunch time:', time(1, 15), None, 'PM/L', 'Applicant ', None],
+            ['Full name:', 'Huynh Tran Quang Khanh Test', None, None, 'Break duration:', timedelta(seconds=4500), None, None, None, None],
+            ['Project name:', 'LifeSocket Test Project', None, None, 'Working Duration:', timedelta(seconds=28800), None, None, None, None],
+            [None] * 10,
+            [None] * 10,
+            ['Date', None, 'Working hour', None, None, 'Over time ', None, None, 'Confirmed by ', 'Note '],
+            [None, 'Day ', 'Coming ', 'Leaving ', 'Total hour', 'From ', 'To ', 'Total hour ', None, None],
+            [datetime(2026, 9, 1), 'Tue', None, None, None, None, None, None, None, 'Independence Day '],
+            [datetime(2026, 9, 3), 'Thu', time(8, 30), time(17, 45), timedelta(seconds=28800), None, None, None, None, None],
+            [datetime(2026, 9, 4), 'Fri', time(7, 25), time(16, 25), timedelta(seconds=28800), None, None, timedelta(seconds=5400), None, 'nghỉ trưa 1h'],
+            [datetime(2026, 9, 5), 'Sat', None, None, None, None, None, None, None, None],
+            [None, None, None, None, 'TOTAL', 16.0, None, time(1, 30), None, None],
+        ]
+        for r in sheet1_rows:
+            ws1.append(r)
+
+        ws2 = wb.create_sheet(title='TaiBH')
+        sheet2_rows = [
+            ['TIME SHEET 9 - 2026', None, None, None, None, None, None, None, None, None],
+            ['( Onsite Engineer)', None, None, None, None, None, None, None, None, None],
+            [None] * 10,
+            ['Partner:', 'DIGIMATE', None, None, 'Lunch time:', time(1, 15), None, 'PM/L', 'Applicant ', None],
+            ['Full name:', 'Bui Huu Tai Test', None, None, 'Break duration:', timedelta(seconds=4500), None, None, None, None],
+            ['Project name:', 'CLV Test Project', None, None, 'Working Duration:', timedelta(seconds=28800), None, None, None, None],
+            [None] * 10,
+            [None] * 10,
+            ['Date', None, 'Working hour', None, None, 'Over time ', None, None, 'Confirmed by ', 'Note '],
+            [None, 'Day ', 'Coming ', 'Leaving ', 'Total hour', 'From ', 'To ', 'Total hour ', None, None],
+            [datetime(2026, 9, 3), 'Thu', time(8, 0), time(17, 15), timedelta(seconds=28800), None, None, None, None, None],
+            [datetime(2026, 9, 18), 'Fri', None, None, None, None, None, None, None, 'MTI Company Trip'],
+            [None, None, None, None, 'TOTAL', 8.0, None, None, None, None],
+        ]
+        for r in sheet2_rows:
+            ws2.append(r)
+
+        buf = io.BytesIO()
+        wb.save(buf)
+        att = self.env['ir.attachment'].create({
+            'name': 'Innoria_Time Sheet_2026.09.xlsx',
+            'type': 'binary',
+            'raw': buf.getvalue(),
+        })
+
+        staging = self.env['al2c.timesheet.staging'].create({
+            'name': 'Fwd: [MTI-Tech] Timesheet 9.2026',
+            'sender_email': 'thang@inno.ai.vn',
+            'attachment_ids': [(4, att.id)],
+            'submission_channel': 'email_pubsub',
+        })
+        staging.action_parse_content()
+
+        self.assertEqual(staging.state, 'parsed')
+        self.assertEqual(staging.parse_status, 'success')
+        self.assertEqual(len(staging.line_ids), 3)
+        # Sheet 1: 8.0h + (8.0h + 1.5h OT) = 17.5h; Sheet 2: 8.0h -> Total = 25.5h
+        self.assertAlmostEqual(staging.total_hours, 25.5, places=2)
+        self.assertAlmostEqual(staging.total_amount_billable, 25.5 * 450000.0, places=0)
+
+        khanh_lines = staging.line_ids.filtered(lambda l: l.employee_id == emp_khanh)
+        tai_lines = staging.line_ids.filtered(lambda l: l.employee_id == emp_tai)
+        self.assertEqual(len(khanh_lines), 2)
+        self.assertEqual(len(tai_lines), 1)
+        self.assertEqual(khanh_lines[0].project_id, prj_ls)
+        self.assertEqual(khanh_lines[0].task_id, tsk_ls)
+        self.assertEqual(tai_lines[0].project_id, prj_clv)
+        self.assertEqual(tai_lines[0].task_id, tsk_clv)
+
+        staging.with_user(self.pm_user).action_approve_and_commit()
+        self.assertEqual(staging.state, 'approved')
+        self.assertEqual(len(staging.line_ids.filtered(lambda l: l.state == 'committed')), 3)

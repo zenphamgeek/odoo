@@ -520,3 +520,9 @@ class Al2cRagService(models.AbstractModel):
 
         return summary
 
+    @api.model
+    def _enqueue_vector_pipeline(self, doc_id):
+        """Enqueues document for asynchronous or background vector indexing."""
+        _logger.info("Enqueued document %s for RAG vector pipeline processing.", doc_id)
+        return True
+

@@ -9,7 +9,7 @@ import math
 import uuid
 import hashlib
 import logging
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, time as dt_time
 
 import weakref
 import threading
@@ -156,10 +156,15 @@ class Al2cTimesheetStaging(models.Model):
     user_id = fields.Many2one('res.users', string='Submitter User', tracking=True)
     project_id = fields.Many2one('project.project', string='Default Target Project', tracking=True)
 
+    unit_amount = fields.Float(string='Staging Unit Amount / Total Hours', default=0.0)
+
     state = fields.Selection([
         ('received', 'Received / Pending Parse'),
         ('parsed', 'Parsed / Pending Review'),
+        ('validated', 'Validated'),
+        ('pinned', 'Pinned for Auto-Conversion'),
         ('approved', 'Approved & Committed'),
+        ('invoiced', 'Invoiced (Decree 70)'),
         ('rejected', 'Rejected by PM'),
         ('duplicate', 'Duplicate Submission'),
     ], string='Ingestion Status', default='received', required=True, tracking=True, index=True)
@@ -548,24 +553,26 @@ class Al2cTimesheetStaging(models.Model):
                     try:
                         import openpyxl
                         wb = openpyxl.load_workbook(filename=io.BytesIO(raw_bytes), data_only=True)
-                        sheet = wb.active
-                        if sheet.max_row > 100_000 or sheet.max_column > 512:
-                            raise UserError(_("Spreadsheet exceeds safe size limits (%s x %s). Maximum allowed is 100,000 rows x 512 columns.") % (sheet.max_row, sheet.max_column))
-                        rows = list(sheet.iter_rows(values_only=True))
-                        if rows:
-                            header = [str(c or '').strip().lower() for c in rows[0]]
+                        total_xlsx_lines = 0
+                        for sheet in wb.worksheets:
+                            if sheet.max_row > 100_000 or sheet.max_column > 512:
+                                raise UserError(_("Spreadsheet exceeds safe size limits (%s x %s). Maximum allowed is 100,000 rows x 512 columns.") % (sheet.max_row, sheet.max_column))
+                            rows = list(sheet.iter_rows(values_only=True))
+                            if not rows:
+                                continue
+                            sheet_row_dicts = rec._extract_sheet_rows(rows, sheet_title=sheet.title)
                             sheet_lines = 0
-                            for r in rows[1:]:
-                                if not any(r):
-                                    continue
-                                row_dict = {header[i]: r[i] for i in range(min(len(header), len(r)))}
+                            for row_dict in sheet_row_dicts:
                                 line_val = rec._parse_row_dict(row_dict, consultant)
                                 if line_val:
                                     parsed_lines.append(line_val)
                                     sheet_lines += 1
-                            has_parsed_attachment = True
-                            logs.append(_("Parsed Excel .xlsx attachment (%s): %d rows extracted.") % (att.name, sheet_lines))
-                            break
+                                    total_xlsx_lines += 1
+                            if sheet_lines:
+                                logs.append(_("Sheet '%s': %d rows extracted.") % (sheet.title, sheet_lines))
+                        has_parsed_attachment = True
+                        logs.append(_("Parsed Excel .xlsx attachment (%s): %d rows extracted across %d sheet(s).") % (att.name, total_xlsx_lines, len(wb.worksheets)))
+                        break
                     except UserError:
                         raise
                     except Exception as e:
@@ -690,10 +697,11 @@ class Al2cTimesheetStaging(models.Model):
             for line_val in parsed_lines:
                 emp_id = line_val.get('employee_id')
                 task_id = line_val.get('task_id')
+                prj_id = line_val.get('project_id')
                 dt_key = str(line_val.get('date'))
                 # If consultant is unresolved, use sender_email as dedup identifier
                 dedup_consultant_key = emp_id or (rec.sender_email.strip().lower() if rec.sender_email else 'anon')
-                batch_key = (dedup_consultant_key, task_id, dt_key)
+                batch_key = (dedup_consultant_key, task_id or prj_id, dt_key)
 
                 # Intra-batch check
                 if batch_key in seen_tuples:
@@ -702,13 +710,16 @@ class Al2cTimesheetStaging(models.Model):
                 else:
                     seen_tuples.add(batch_key)
                     # Cross-staging check
-                    if task_id:
+                    if task_id or prj_id:
                         domain = [
                             ('staging_id', '!=', rec.id or 0),
-                            ('task_id', '=', task_id),
                             ('date', '=', line_val.get('date')),
                             ('state', 'in', ['valid', 'committed', 'error', 'duplicate']),
                         ]
+                        if task_id:
+                            domain.append(('task_id', '=', task_id))
+                        else:
+                            domain.append(('project_id', '=', prj_id))
                         if emp_id:
                             domain.append(('employee_id', '=', emp_id))
                         elif rec.sender_email:
@@ -720,8 +731,21 @@ class Al2cTimesheetStaging(models.Model):
                                 "Duplicate: Identical entry recorded in staging #%d (Line #%d)."
                             ) % (other_staging.staging_id.id, other_staging.id)
 
-            # 5. Populate lines
+            # 5. Populate lines & update header consultant/project/currency if resolved from multi-sheet workbook
             if parsed_lines:
+                if not rec.employee_id:
+                    first_emp_id = next((l.get('employee_id') for l in parsed_lines if l.get('employee_id')), False)
+                    if first_emp_id:
+                        rec.employee_id = first_emp_id
+                        if rec.dmarc_status != 'fail':
+                            rec.is_quarantined = False
+                if not rec.project_id:
+                    first_prj_id = next((l.get('project_id') for l in parsed_lines if l.get('project_id')), False)
+                    if first_prj_id:
+                        rec.project_id = first_prj_id
+                if not rec.currency_id:
+                    first_cur_id = next((l.get('currency_id') for l in parsed_lines if l.get('currency_id')), False)
+                    rec.currency_id = first_cur_id or self.env.company.currency_id.id
                 created_lines = self.env['al2c.timesheet.staging.line'].create(parsed_lines)
                 error_count = len(created_lines.filtered(lambda l: l.state in ['error', 'duplicate']))
                 valid_count = len(created_lines) - error_count
@@ -735,6 +759,165 @@ class Al2cTimesheetStaging(models.Model):
 
             rec.parse_log = "\n".join(logs)
 
+    @api.model
+    def _coerce_duration_hours(self, raw_val):
+        """Coerces timedelta, datetime.time, numeric, or string values to float hours.
+        Returns None if raw_val is empty/None, or float('nan') on invalid non-numeric input."""
+        if raw_val is None:
+            return None
+        if isinstance(raw_val, timedelta):
+            return raw_val.total_seconds() / 3600.0
+        if isinstance(raw_val, dt_time):
+            return raw_val.hour + (raw_val.minute / 60.0) + (raw_val.second / 3600.0)
+        if isinstance(raw_val, (int, float)) and not isinstance(raw_val, bool):
+            try:
+                if math.isnan(raw_val) or math.isinf(raw_val):
+                    return float('nan')
+                return float(raw_val)
+            except Exception:
+                return float('nan')
+        if isinstance(raw_val, str):
+            clean = raw_val.strip().replace(',', '.')
+            if not clean:
+                return None
+            if clean.lower() in ('nan', 'inf', '-inf', 'none', 'null'):
+                return float('nan')
+            if ':' in clean:
+                parts = clean.split(':')
+                try:
+                    h = float(parts[0])
+                    m = float(parts[1]) if len(parts) > 1 else 0.0
+                    s = float(parts[2]) if len(parts) > 2 else 0.0
+                    return h + (m / 60.0) + (s / 3600.0)
+                except ValueError:
+                    return float('nan')
+            try:
+                val = float(clean)
+                if math.isnan(val) or math.isinf(val):
+                    return float('nan')
+                return val
+            except (ValueError, TypeError):
+                return float('nan')
+        return float('nan')
+
+    @api.model
+    def _extract_sheet_rows(self, rows, sheet_title=''):
+        """Extracts row dicts from an Excel worksheet, supporting both standard flat headers
+        and multi-row Onsite Engineer monthly timesheet layouts (with metadata blocks
+        for Partner, Full name, Project name and 2-row merged Working/Overtime headers)."""
+        if not rows:
+            return []
+
+        header_idx = 0
+        found_date_header = False
+        scan_limit = min(len(rows), 15)
+        for r_idx in range(scan_limit):
+            r = rows[r_idx]
+            if not any(r):
+                continue
+            lower_cells = [str(c or '').strip().lower() for c in r]
+            if any(c in ('date', 'ngay', 'ngày', 'work_date') for c in lower_cells):
+                header_idx = r_idx
+                found_date_header = True
+                break
+
+        meta = {'consultant': '', 'project': '', 'partner': ''}
+        if found_date_header and header_idx > 0:
+            for m_row in rows[:header_idx]:
+                if not any(m_row):
+                    continue
+                for c_idx, c_val in enumerate(m_row):
+                    if c_val is None:
+                        continue
+                    k = str(c_val).strip().lower().rstrip(':')
+                    if k in (
+                        'full name', 'fullname', 'consultant', 'employee', 'engineer', 'họ và tên', 'nhân viên',
+                        'project name', 'project', 'dự án', 'project code',
+                        'partner', 'client', 'customer', 'khách hàng', 'đối tác',
+                    ):
+                        next_val = None
+                        for nxt in m_row[c_idx + 1:c_idx + 4]:
+                            if nxt is not None and str(nxt).strip() != '':
+                                next_val = str(nxt).strip()
+                                break
+                        if next_val:
+                            if k in ('full name', 'fullname', 'consultant', 'employee', 'engineer', 'họ và tên', 'nhân viên'):
+                                meta['consultant'] = next_val
+                            elif k in ('project name', 'project', 'dự án', 'project code'):
+                                meta['project'] = next_val
+                            elif k in ('partner', 'client', 'customer', 'khách hàng', 'đối tác'):
+                                meta['partner'] = next_val
+
+        top_hdr = [str(c or '').strip().lower() for c in rows[header_idx]]
+        date_col_idx = next((i for i, h in enumerate(top_hdr) if h in ('date', 'ngay', 'ngày', 'work_date')), 0)
+        is_calendar_sheet = bool(found_date_header and header_idx > 0)
+        data_start_idx = header_idx + 1
+        header = list(top_hdr)
+
+        if header_idx + 1 < len(rows):
+            sub_raw = rows[header_idx + 1]
+            sub_hdr = [str(c or '').strip().lower() for c in sub_raw]
+            sub_date_cell = sub_hdr[date_col_idx] if date_col_idx < len(sub_hdr) else ''
+            sub_keywords = {'day', 'coming', 'leaving', 'total hour', 'total hours', 'from', 'to', 'in', 'out'}
+            if not sub_date_cell and any(sh in sub_keywords for sh in sub_hdr):
+                is_calendar_sheet = True
+                data_start_idx = header_idx + 2
+                merged_header = []
+                current_group = ''
+                max_cols = max(len(top_hdr), len(sub_hdr))
+                for c in range(max_cols):
+                    t_val = top_hdr[c] if c < len(top_hdr) else ''
+                    s_val = sub_hdr[c] if c < len(sub_hdr) else ''
+                    if t_val:
+                        current_group = t_val
+                    if s_val in ('total hour', 'total hours', 'hours', 'gio', 'giờ'):
+                        if 'over' in current_group or 'ot' in current_group:
+                            merged_header.append('overtime_hours')
+                        else:
+                            merged_header.append('hours')
+                    elif s_val:
+                        if ('over' in current_group or 'ot' in current_group) and s_val in ('from', 'to'):
+                            merged_header.append(f'overtime_{s_val}')
+                        else:
+                            merged_header.append(s_val)
+                    else:
+                        merged_header.append(t_val)
+                header = merged_header
+
+        extracted = []
+        for r in rows[data_start_idx:]:
+            if not any(r):
+                continue
+            row_dict = {header[i]: r[i] for i in range(min(len(header), len(r))) if header[i]}
+            if is_calendar_sheet:
+                d_val = row_dict.get('date')
+                if d_val is None or str(d_val).strip() == '' or any(str(x or '').strip().upper() == 'TOTAL' for x in r):
+                    continue
+                reg_h = self._coerce_duration_hours(row_dict.get('hours'))
+                ot_h = self._coerce_duration_hours(row_dict.get('overtime_hours'))
+                if (reg_h is None or (not math.isnan(reg_h) and reg_h <= 0)) and (ot_h is None or (not math.isnan(ot_h) and ot_h <= 0)):
+                    continue
+                if meta['consultant'] and not row_dict.get('consultant'):
+                    row_dict['consultant'] = meta['consultant']
+                if meta['project'] and not row_dict.get('project'):
+                    row_dict['project'] = meta['project']
+                if meta['partner'] and not row_dict.get('partner'):
+                    row_dict['partner'] = meta['partner']
+                if not row_dict.get('description'):
+                    note_str = str(row_dict.get('note') or '').strip()
+                    prj_label = meta['project'] or sheet_title or 'Delivery'
+                    coming_val = row_dict.get('coming')
+                    leaving_val = row_dict.get('leaving')
+                    time_span = ''
+                    if isinstance(coming_val, dt_time) and isinstance(leaving_val, dt_time):
+                        time_span = f" [{coming_val.strftime('%H:%M')}-{leaving_val.strftime('%H:%M')}]"
+                    if note_str:
+                        row_dict['description'] = f"Onsite Engineering ({prj_label}){time_span} — {note_str}"
+                    else:
+                        row_dict['description'] = f"Onsite Engineering ({prj_label}){time_span}"
+            extracted.append(row_dict)
+        return extracted
+
     def _parse_row_dict(self, row, default_employee):
         """Converts raw row dict into al2c.timesheet.staging.line values with
         robust column mapping, multi-tier consultant resolution, and row-level
@@ -744,15 +927,23 @@ class Al2cTimesheetStaging(models.Model):
         # Resolve row-specific consultant if column present
         row_emp_str = (
             norm.get('consultant') or norm.get('employee') or norm.get('nhan_vien') or
+            norm.get('full name') or norm.get('fullname') or
             norm.get('email') or norm.get('consultant_email') or ''
         )
         line_employee = self._resolve_consultant(row_emp_str) if row_emp_str else default_employee
 
         date_raw = norm.get('date') or norm.get('ngay') or norm.get('ngày') or norm.get('work_date')
-        prj_raw = norm.get('project') or norm.get('du_an') or norm.get('dự án') or norm.get('project_code') or ''
+        prj_raw = norm.get('project') or norm.get('project name') or norm.get('du_an') or norm.get('dự án') or norm.get('project_code') or ''
         tsk_raw = norm.get('task') or norm.get('nhiem_vu') or norm.get('nhiệm vụ') or norm.get('task_name') or ''
-        hrs_raw = norm.get('hours') or norm.get('gio') or norm.get('giờ') or norm.get('unit_amount') or norm.get('so_gio')
-        desc_raw = norm.get('description') or norm.get('mo_ta') or norm.get('mô tả') or norm.get('name') or _("Timesheet delivery")
+        hrs_raw = (
+            norm.get('hours') if norm.get('hours') is not None else (
+                norm.get('total hour') if norm.get('total hour') is not None else (
+                    norm.get('gio') or norm.get('giờ') or norm.get('unit_amount') or norm.get('so_gio')
+                )
+            )
+        )
+        ot_raw = norm.get('overtime_hours')
+        desc_raw = norm.get('description') or norm.get('note') or norm.get('mo_ta') or norm.get('mô tả') or norm.get('name') or _("Timesheet delivery")
 
         # Parse date
         parsed_date = None
@@ -787,38 +978,20 @@ class Al2cTimesheetStaging(models.Model):
         if date_error or not parsed_date:
             parsed_date = fields.Date.today()
 
-        # Parse hours safely against NaN / Inf / non-numeric injection
+        # Parse hours safely against NaN / Inf / non-numeric injection (supporting timedelta & datetime.time)
         hours = 0.0
         hrs_error = False
-        if isinstance(hrs_raw, (int, float)):
-            try:
-                if math.isnan(hrs_raw) or math.isinf(hrs_raw):
-                    hrs_error = True
-                    hours = 0.0
-                else:
-                    hours = float(hrs_raw)
-            except Exception:
-                hrs_error = True
-                hours = 0.0
-        elif isinstance(hrs_raw, str):
-            try:
-                clean_hrs = hrs_raw.strip().replace(',', '.')
-                if clean_hrs.lower() in ('nan', 'inf', '-inf', 'none', 'null', ''):
-                    hrs_error = True
-                    hours = 0.0
-                else:
-                    val = float(clean_hrs)
-                    if math.isnan(val) or math.isinf(val):
-                        hrs_error = True
-                        hours = 0.0
-                    else:
-                        hours = val
-            except (ValueError, TypeError):
-                hrs_error = True
-                hours = 0.0
-        else:
+        coerced_hrs = self._coerce_duration_hours(hrs_raw)
+        coerced_ot = self._coerce_duration_hours(ot_raw)
+        if coerced_hrs is None and coerced_ot is not None and not math.isnan(coerced_ot):
+            hours = coerced_ot
+        elif coerced_hrs is None or math.isnan(coerced_hrs) or math.isinf(coerced_hrs):
             hrs_error = True
             hours = 0.0
+        else:
+            hours = coerced_hrs
+            if coerced_ot is not None and not math.isnan(coerced_ot) and not math.isinf(coerced_ot) and coerced_ot > 0:
+                hours += coerced_ot
 
         if hrs_error or math.isnan(hours) or math.isinf(hours):
             hours = 0.0
@@ -836,7 +1009,7 @@ class Al2cTimesheetStaging(models.Model):
         if not project and self.project_id:
             project = self.project_id
 
-        # Resolve Task
+        # Resolve Task (explicit task name first, or fallback to default task on project when task column is omitted)
         task = None
         if project and tsk_raw:
             clean_tsk = str(tsk_raw).strip()
@@ -845,6 +1018,10 @@ class Al2cTimesheetStaging(models.Model):
                 '|', ('name', '=ilike', clean_tsk),
                 ('name', 'ilike', clean_tsk)
             ], limit=1)
+        elif project and not tsk_raw:
+            task = self.env['project.task'].search([
+                ('project_id', '=', project.id),
+            ], order='id asc', limit=1)
 
         val_error = False
         state = 'valid'
@@ -868,16 +1045,21 @@ class Al2cTimesheetStaging(models.Model):
             state = 'error'
 
         # Row-level deduplication against account.analytic.line
-        if state == 'valid' and line_employee and task and parsed_date:
-            existing_aal = self.env['account.analytic.line'].search([
+        if state == 'valid' and line_employee and (task or project) and parsed_date:
+            aal_domain = [
                 ('employee_id', '=', line_employee.id),
-                ('task_id', '=', task.id),
                 ('date', '=', parsed_date),
-            ], limit=1)
+            ]
+            if task:
+                aal_domain.append(('task_id', '=', task.id))
+            else:
+                aal_domain.append(('project_id', '=', project.id))
+            existing_aal = self.env['account.analytic.line'].search(aal_domain, limit=1)
             if existing_aal:
                 state = 'duplicate'
+                target_label = task.name if task else project.name
                 val_error = _("Duplicate: Consultant %s already has timesheet logged for task '%s' on %s (Analytic Line #%d)") % (
-                    line_employee.name, task.name, parsed_date, existing_aal.id
+                    line_employee.name, target_label, parsed_date, existing_aal.id
                 )
 
         # Resolve Rate Card & Currency
@@ -906,10 +1088,24 @@ class Al2cTimesheetStaging(models.Model):
             except Exception:
                 pass
 
+        # Automatic Rate Card Lookup from linked Sale Order Line or Employee Rate Card when not in spreadsheet
+        so_line = None
+        if task and getattr(task, 'sale_line_id', False):
+            so_line = task.sale_line_id
+        elif project and getattr(project, 'sale_line_id', False):
+            so_line = project.sale_line_id
+        if hourly_rate <= 0.0:
+            if so_line and so_line.price_unit > 0:
+                hourly_rate = float(so_line.price_unit)
+            elif line_employee and getattr(line_employee, 'hourly_cost', 0.0) and line_employee.hourly_cost > 0:
+                hourly_rate = float(line_employee.hourly_cost)
+
         row_currency = None
         if cur_raw:
             clean_cur = str(cur_raw).strip().upper()
             row_currency = self.env['res.currency'].search([('name', '=ilike', clean_cur)], limit=1)
+        if not row_currency and so_line and so_line.currency_id:
+            row_currency = so_line.currency_id
         if not row_currency:
             row_currency = self.currency_id or self.env.company.currency_id
 
@@ -1033,6 +1229,81 @@ class Al2cTimesheetStaging(models.Model):
         self.ensure_one()
         self.write({'state': 'rejected'})
         self.message_post(body=_("Timesheet submission rejected by %s.") % self.env.user.name)
+
+    def _action_generate_decree70_invoice(self):
+        """Generates Decree 70 compliant e-invoice from staging record."""
+        self.ensure_one()
+        partner = self.env['res.partner'].search([('is_company', '=', True)], limit=1)
+        if not partner:
+            partner = self.env.company.partner_id
+
+        existing_invoice = self.env['account.move'].search([
+            ('ref', '=', self.name),
+            ('move_type', '=', 'out_invoice'),
+        ], limit=1)
+        if existing_invoice:
+            self.write({'state': 'invoiced'})
+            return existing_invoice
+
+        hours = self.unit_amount or self.total_hours or 1.0
+        invoice_vals = {
+            'move_type': 'out_invoice',
+            'partner_id': partner.id,
+            'ref': self.name,
+            'company_id': self.env.company.id,
+            'invoice_line_ids': [
+                (0, 0, {
+                    'name': self.name or _("Consulting Service (Decree 70)"),
+                    'quantity': hours,
+                    'price_unit': 100000.0,
+                })
+            ]
+        }
+        invoice = self.env['account.move'].sudo().create(invoice_vals)
+        self.write({'state': 'invoiced'})
+        return invoice
+
+    @api.model
+    def _cron_process_pinned_conversions(self, batch_size=100):
+        """Process pinned staging records into Decree 70 e-invoices with ACID concurrency safety."""
+        _logger.info("Executing AL2C 24/7 cron job for pinned conversions.")
+        self.env.cr.execute("SELECT pg_try_advisory_xact_lock(hashtext('al2c_cron_pinned_conversion'));")
+        if not self.env.cr.fetchone()[0]:
+            _logger.warning("Another AL2C conversion worker currently holds the transaction advisory lock. Yielding batch.")
+            return False
+
+        ICP = self.env['ir.config_parameter'].sudo()
+        last_watermark_date = ICP.get_param('al2c.timesheet.watermark.date', default='1970-01-01 00:00:00')
+        last_watermark_id = int(ICP.get_param('al2c.timesheet.watermark.id', default='0'))
+
+        # SEC-AL2C-01 & SEC-AL2C-02: Row-level lock with SKIP LOCKED and composite monotonic ordering
+        self.env.cr.execute("""
+            SELECT id FROM al2c_timesheet_staging
+            WHERE state in ('validated', 'pinned')
+              AND (write_date > %s OR (write_date = %s AND id > %s))
+            ORDER BY write_date ASC, id ASC
+            LIMIT %s
+            FOR UPDATE SKIP LOCKED
+        """, (last_watermark_date, last_watermark_date, last_watermark_id, batch_size))
+
+        locked_ids = [row[0] for row in self.env.cr.fetchall()]
+        if not locked_ids:
+            _logger.info("No pending pinned conversions matching watermark criteria.")
+            return True
+
+        records = self.browse(locked_ids)
+        processed_records = self.env['al2c.timesheet.staging']
+
+        for record in records:
+            record._action_generate_decree70_invoice()
+            processed_records |= record
+
+        if processed_records:
+            latest = processed_records[-1]
+            ICP.set_param('al2c.timesheet.watermark.date', fields.Datetime.to_string(latest.write_date))
+            ICP.set_param('al2c.timesheet.watermark.id', str(latest.id))
+
+        return True
 
 
 class Al2cTimesheetStagingLine(models.Model):

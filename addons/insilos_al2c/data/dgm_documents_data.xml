@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+    <!-- ===================================================================
+         DGM / Digimate JSC (Công ty Cổ phần Người Bạn Số - MST: 0317958465)
+         Sovereign Document Management Taxonomy (Folders & Classification Tags)
+         =================================================================== -->
+    <record id="folder_dgm_root" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">DGM · Công ty Cổ phần Người Bạn Số (Digimate JSC)</field>
+        <field name="access_internal">view</field>
+        <field name="sequence">10</field>
+    </record>
+
+    <!-- 01. Corporate Legal & Registration (ĐKTL) -->
+    <record id="folder_dgm_legal" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">01. Pháp lý &amp; Quản trị Doanh nghiệp (DGM - ĐKTL)</field>
+        <field name="folder_id" ref="folder_dgm_root"/>
+        <field name="access_internal">view</field>
+        <field name="sequence">1</field>
+    </record>
+
+    <!-- 02. Finance, Accounting, Tax & Revenue Risk Controls -->
+    <record id="folder_dgm_finance" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">02. Tài chính, Kế toán &amp; Thuế (DGM - TÀI CHÍNH)</field>
+        <field name="folder_id" ref="folder_dgm_root"/>
+        <field name="access_internal">none</field>
+        <field name="access_via_link">none</field>
+        <field name="is_access_via_link_hidden" eval="True"/>
+        <field name="sequence">2</field>
+    </record>
+
+    <!-- 03. Commercial Contracts & Projects -->
+    <record id="folder_dgm_contracts" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">03. Hợp đồng Thương mại &amp; Dự án (DGM - HỢP ĐỒNG)</field>
+        <field name="folder_id" ref="folder_dgm_root"/>
+        <field name="access_internal">none</field>
+        <field name="access_via_link">none</field>
+        <field name="is_access_via_link_hidden" eval="True"/>
+        <field name="sequence">3</field>
+    </record>
+
+    <!-- 04. Human Resources, Labor Contracts & Payroll -->
+    <record id="folder_dgm_hr" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">04. Nhân sự &amp; Hợp đồng Lao động (DGM - NHÂN SỰ)</field>
+        <field name="folder_id" ref="folder_dgm_root"/>
+        <field name="access_internal">none</field>
+        <field name="access_via_link">none</field>
+        <field name="is_access_via_link_hidden" eval="True"/>
+        <field name="sequence">4</field>
+    </record>
+
+    <!-- 05. Intellectual Property & Software Copyright -->
+    <record id="folder_dgm_ip" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">05. Sở hữu Trí tuệ &amp; Bản quyền (DGM - SỞ HỮU TRÍ TUỆ)</field>
+        <field name="folder_id" ref="folder_dgm_root"/>
+        <field name="access_internal">view</field>
+        <field name="sequence">5</field>
+    </record>
+
+    <!-- 06. Brand Assets & Corporate Media -->
+    <record id="folder_dgm_brand" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">06. Thương hiệu &amp; Hình ảnh (DGM - HÌNH ẢNH 2025)</field>
+        <field name="folder_id" ref="folder_dgm_root"/>
+        <field name="access_internal">edit</field>
+        <field name="sequence">6</field>
+    </record>
+
+    <!-- Classification Tags for DGM / Digimate JSC -->
+    <record id="tag_dgm_legal" model="documents.tag">
+        <field name="name">DGM &gt; 01. Pháp lý &amp; ĐKTL</field>
+        <field name="sequence">50</field>
+    </record>
+    <record id="tag_dgm_finance_tax" model="documents.tag">
+        <field name="name">DGM &gt; 02. Tài chính &amp; Quyết toán Thuế</field>
+        <field name="sequence">51</field>
+    </record>
+    <record id="tag_dgm_invoice_out" model="documents.tag">
+        <field name="name">DGM &gt; 03. Hóa đơn Đầu ra (Canva / Xuất khẩu)</field>
+        <field name="sequence">52</field>
+    </record>
+    <record id="tag_dgm_invoice_in" model="documents.tag">
+        <field name="name">DGM &gt; 04. Hóa đơn Đầu vào (VNPT / Viettel)</field>
+        <field name="sequence">53</field>
+    </record>
+    <record id="tag_dgm_bhxh" model="documents.tag">
+        <field name="name">DGM &gt; 05. BHXH (C12-TS · TZ0857G)</field>
+        <field name="sequence">54</field>
+    </record>
+    <record id="tag_dgm_payroll" model="documents.tag">
+        <field name="name">DGM &gt; 06. Bảng lương &amp; VCB DigiBiz</field>
+        <field name="sequence">55</field>
+    </record>
+    <record id="tag_dgm_contract_comm" model="documents.tag">
+        <field name="name">DGM &gt; 07. Hợp đồng Thương mại (MTI / MBF / US DPA)</field>
+        <field name="sequence">56</field>
+    </record>
+    <record id="tag_dgm_hr_records" model="documents.tag">
+        <field name="name">DGM &gt; 08. Hồ sơ Nhân sự &amp; HĐLĐ</field>
+        <field name="sequence">57</field>
+    </record>
+    <record id="tag_dgm_ip_copyright" model="documents.tag">
+        <field name="name">DGM &gt; 09. Sở hữu Trí tuệ (Mojo AI Copyright)</field>
+        <field name="sequence">58</field>
+    </record>
+    <record id="tag_dgm_brand_media" model="documents.tag">
+        <field name="name">DGM &gt; 10. Thương hiệu &amp; Media</field>
+        <field name="sequence">59</field>
+    </record>
+    <record id="tag_dgm_rev_risk_control" model="documents.tag">
+        <field name="name">DGM &gt; Khung Kiểm soát Rủi ro Doanh thu AI</field>
+        <field name="sequence">60</field>
+    </record>
+</data>
+</odoo>
