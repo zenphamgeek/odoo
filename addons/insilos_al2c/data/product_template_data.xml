@@ -391,6 +391,178 @@
         <field name="description_sale">Senior consultant hour billed on timesheets.</field>
         <field name="project_id" ref="project_consulting_pool"/>
     </record>
+
+    <!-- ===================================================================
+         DGM / Digimate JSC (MST: 0317958465) Real Operational SKUs (9 SKUs)
+         =================================================================== -->
+    <record id="product_dgm_onsite_std" model="product.template">
+        <field name="name">Dịch vụ Kỹ sư Phần mềm Onsite B2B — Giờ Chuẩn (Standard Engineering Hour)</field>
+        <field name="default_code">DGM-ONSITE-STD</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_dgm_onsite"/>
+        <field name="uom_id" ref="uom.product_uom_hour"/>
+        <field name="list_price">450000.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">timesheet</field>
+        <field name="service_tracking">task_in_project</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_onsite_std"/>
+        <field name="description_sale">Dịch vụ kỹ sư phần mềm Onsite B2B theo hợp đồng khung (HĐ DIGIMATE2401-001 MTI Technology). Nghiệm thu theo bảng chấm công trước ngày làm việc thứ 5 hàng tháng, thanh toán Net 40.</field>
+        <field name="project_template_id" ref="tpl_dgm_onsite_mti"/>
+    </record>
+    <record id="product_dgm_onsite_ot100" model="product.template">
+        <field name="name">Dịch vụ Kỹ sư Phần mềm Onsite B2B — Overtime Bậc 1 &lt;=20h/tháng (100% Rate)</field>
+        <field name="default_code">DGM-ONSITE-OT100</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_dgm_onsite"/>
+        <field name="uom_id" ref="uom.product_uom_hour"/>
+        <field name="list_price">316030.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">timesheet</field>
+        <field name="service_tracking">task_in_project</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_onsite_ot100"/>
+        <field name="description_sale">Giờ làm thêm bậc 1 (&lt;=20 giờ/tháng) cho kỹ sư Onsite B2B, tính 100% đơn giá cơ sở (316,030 VND/giờ theo Phụ lục 02 HĐ DIGIMATE2401-001).</field>
+        <field name="project_template_id" ref="tpl_dgm_onsite_mti"/>
+    </record>
+    <record id="product_dgm_onsite_ot150" model="product.template">
+        <field name="name">Dịch vụ Kỹ sư Phần mềm Onsite B2B — Overtime Bậc 2 &gt;20h/tháng (150% Rate)</field>
+        <field name="default_code">DGM-ONSITE-OT150</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_dgm_onsite"/>
+        <field name="uom_id" ref="uom.product_uom_hour"/>
+        <field name="list_price">474045.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">timesheet</field>
+        <field name="service_tracking">task_in_project</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_onsite_ot150"/>
+        <field name="description_sale">Giờ làm thêm bậc 2 (&gt;20 giờ/tháng) cho kỹ sư Onsite B2B, tính 150% đơn giá cơ sở (474,045 VND/giờ theo Phụ lục 02 HĐ DIGIMATE2401-001).</field>
+        <field name="project_template_id" ref="tpl_dgm_onsite_mti"/>
+    </record>
+    <record id="product_dgm_canva_award" model="product.template">
+        <field name="name">Xuất khẩu Phần mềm Ứng dụng Sáng tạo AI — Canva App Adoption Award</field>
+        <field name="default_code">DGM-CANVA-AWARD</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_custom"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">25370000.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">ai</field>
+        <field name="al2c_vat_class">vat_0</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_canva_award"/>
+        <field name="description_sale">Xuất khẩu phần mềm ứng dụng sáng tạo ảnh/logo/QR (Gen Logo, Gen QR Art, Mojo AI) cho Canva Pty Ltd (Australia). Thuế suất GTGT 0% theo Nghị định 70/2025/NĐ-CP.</field>
+    </record>
+    <record id="product_dgm_mojo_credits" model="product.template">
+        <field name="name">Gói Tín dụng Sáng tạo Ảnh Mojo AI — 75 Credits ($1.99 USD Pack)</field>
+        <field name="default_code">DGM-MOJO-CREDITS</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_mojo"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">50000.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">mojo</field>
+        <field name="al2c_vat_class">vat_0</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_mojo_credits"/>
+        <field name="description_sale">Gói 75 Mojo AI Credits cho người dùng toàn cầu trên hệ sinh thái Mojo AI / Canva Apps ($1.99 USD).</field>
+    </record>
+    <record id="product_dgm_admob_rev" model="product.template">
+        <field name="name">Doanh thu Quảng cáo Ứng dụng Di động Quốc tế — Google AdMob Finalized Earnings</field>
+        <field name="default_code">DGM-ADMOB-REV</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_mojo"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">25000000.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">mojo</field>
+        <field name="al2c_vat_class">vat_0</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_admob_rev"/>
+        <field name="description_sale">Doanh thu quảng cáo di động quốc tế Google AdMob chốt sổ ngày 21 hàng tháng, thuế suất GTGT 0%.</field>
+    </record>
+    <record id="product_dgm_mobiai_csp" model="product.template">
+        <field name="name">Dịch vụ Nội dung AI Viễn thông MobiFone MobiAI — Đối soát Doanh thu CSP Hàng tháng</field>
+        <field name="default_code">DGM-MOBIAI-CSP</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_ai_custom"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">50000000.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="True"/>
+        <field name="al2c_product_line">ai</field>
+        <field name="al2c_vat_class">vat_10</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_mobiai_csp"/>
+        <field name="description_sale">Dịch vụ phân chia doanh thu nội dung AI viễn thông MobiAI hợp tác cùng Trung tâm Dịch vụ số MobiFone (MDS), đối soát định kỳ hàng tháng.</field>
+    </record>
+    <record id="product_dgm_prepaid_vnpt" model="product.template">
+        <field name="name">Cước Internet Cáp quang VNPT FiberEco2 — Trả trước 14 tháng (Phân bổ TK 242)</field>
+        <field name="default_code">DGM-PREPAID-VNPT</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_dgm_prepaid"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">3648000.0</field>
+        <field name="standard_price">3648000.0</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">vat_10</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_prepaid_vnpt"/>
+        <field name="description_purchase">Gói cước Internet cáp quang FiberEco2 trả trước 14 tháng (HĐ HDHCM1684072614, HĐĐT 1K26TKA-338235: 3,648,000 VND chưa thuế, phân bổ TK 242 -&gt; TK 6427: 260,571 VND/tháng).</field>
+    </record>
+    <record id="product_dgm_prepaid_viettelca" model="product.template">
+        <field name="name">Chứng thư số Viettel-CA &amp; Hóa đơn điện tử SInvoice — Trả trước 36 tháng (Phân bổ TK 242)</field>
+        <field name="default_code">DGM-PREPAID-VIETTELCA</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_dgm_prepaid"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">833636.0</field>
+        <field name="standard_price">833636.0</field>
+        <field name="sale_ok" eval="False"/>
+        <field name="purchase_ok" eval="True"/>
+        <field name="invoice_policy">order</field>
+        <field name="service_type">manual</field>
+        <field name="service_tracking">no</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">vat_10</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_prepaid_viettelca"/>
+        <field name="description_purchase">Gói gia hạn Chứng thư số Viettel-CA &amp; SInvoice 36 tháng (HĐĐT 1K23TVA-2368750: 833,636 VND chưa thuế, phân bổ TK 242 -&gt; TK 6427: 23,157 VND/tháng).</field>
+    </record>
+
     <!-- expose single variants as XML ids (insilos_al2c.product_<sku>_variant) for quotation template lines -->
     <function model="product.template" name="_al2c_ensure_variant_xmlids"/>
 </data>

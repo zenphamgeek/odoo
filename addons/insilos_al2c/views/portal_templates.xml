@@ -29,7 +29,7 @@
             </header>
         </xpath>
 
-        <!-- Sovereign Enterprise Footer: ISO 27001, Decree 13/2023/ND-CP, UNG DUNG SANG TAO LLC -->
+        <!-- Sovereign Enterprise Footer: ISO 27001, Decree 13/2023/ND-CP, DIGIMATE JSC -->
         <xpath expr="//div[@id='footer']" position="replace">
             <div id="footer" class="bg-dark text-white pt-4 pb-3 border-top" style="border-top-color: #262626 !important; background-color: #161616 !important;">
                 <div class="container">
@@ -37,7 +37,7 @@
                         <div class="col-12 col-md-6 d-flex align-items-center gap-3">
                             <img src="/insilos_al2c/static/src/img/logo_innoria_header.svg" style="max-height: 24px; filter: brightness(0) invert(1);" alt="Innoria Enterprise"/>
                             <div class="text-white-50 small border-start ps-3" style="border-color: #393939 !important; font-size: 11px;">
-                                <strong class="text-white">CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO</strong> (UNG DUNG SANG TAO LLC)<br/>
+                                <strong class="text-white">CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ</strong> (DIGIMATE JSC · MST: 0317958465)<br/>
                                 Nền tảng Quản trị Doanh nghiệp Tự chủ AL2C · Innoria Enterprise Platform
                             </div>
                         </div>
@@ -48,10 +48,10 @@
                     </div>
                     <div class="row pt-3 text-white-50" style="font-size: 11px;">
                         <div class="col-12 col-md-8">
-                            Bản quyền &amp;copy; <t t-out="datetime.date.today().year"/> CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO. Tất cả quyền được bảo lưu. Tuân thủ tiêu chuẩn an toàn thông tin &amp; bảo vệ dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP.
+                            Bản quyền &amp;copy; <t t-out="datetime.date.today().year"/> CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC). Tất cả quyền được bảo lưu. Tuân thủ tiêu chuẩn an toàn thông tin &amp; bảo vệ dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP.
                         </div>
                         <div class="col-12 col-md-4 text-md-end">
-                            <span>Hỗ trợ kỹ thuật: <strong class="text-white">contact@innoria.com</strong> · <a href="https://innoria.com" target="_blank" class="text-info text-decoration-none">https://innoria.com</a></span>
+                            <span>Hỗ trợ kỹ thuật: <strong class="text-white">info@inno.ai.vn</strong> · <a href="https://innoria.com" target="_blank" class="text-info text-decoration-none">https://innoria.com</a></span>
                         </div>
                     </div>
                 </div>
@@ -62,7 +62,7 @@
         <xpath expr="//div[@name='footer_copyright_col']" position="replace">
             <div name="footer_copyright_col" class="col-md text-center text-sm-start text-muted small" style="font-size: 11px;">
                 <span class="o_footer_copyright_name">
-                    CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO · Innoria Enterprise Platform
+                    CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC) · Innoria Enterprise Platform
                 </span>
                 <t id="language_selector_hook"/>
             </div>
@@ -234,7 +234,7 @@
                         <table class="table table-sm table-borderless mb-0" style="font-size: 12px;">
                             <tr>
                                 <td class="text-muted p-1" style="width: 35%;">Đơn vị thụ hưởng:</td>
-                                <td class="fw-bold p-1" style="color: #161616;">CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO</td>
+                                <td class="fw-bold p-1" style="color: #161616;">CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ</td>
                             </tr>
                             <tr>
                                 <td class="text-muted p-1">Tài khoản ngân hàng:</td>
@@ -252,7 +252,7 @@
                     </div>
                     <div class="col-12 col-md-5 text-center">
                         <div class="p-2 bg-white border rounded d-inline-block shadow-sm">
-                            <img t-attf-src="https://img.vietqr.io/image/970436-0071001234567-compact2.png?amount={{ int(sale_order.amount_total) }}&amp;addInfo={{ sale_order.name }}&amp;accountName=CONG%20TY%20TNHH%20UNG%20DUNG%20SANG%20TAO"
+                            <img t-attf-src="https://img.vietqr.io/image/970436-0071001234567-compact2.png?amount={{ int(sale_order.amount_total) }}&amp;addInfo={{ sale_order.name }}&amp;accountName=CONG%20TY%20CO%20PHAN%20NGUOI%20BAN%20SO"
                                  alt="Napas247 VietQR"
                                  style="max-height: 140px; width: auto;"
                                  class="img-fluid"/>

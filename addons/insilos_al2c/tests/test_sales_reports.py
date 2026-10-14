@@ -21,14 +21,19 @@ class TestSalesReports(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.company = cls.env.company
-        cls.company.write({
-            'name': 'CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO',
-            'vat': '0317654321',
-            'phone': '+84 28 7300 8888',
-            'street': 'Tòa nhà Innovation Hub, Khu Công Nghệ Cao',
-            'city': 'TP. Thủ Đức, TP. Hồ Chí Minh',
-        })
+        dgm = cls.env.ref('insilos_al2c.company_digimate_jsc', raise_if_not_found=False)
+        if dgm:
+            cls.company = dgm
+        else:
+            cls.company = cls.env.company
+            cls.company.write({
+                'name': 'CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ',
+                'vat': '0317958465',
+                'phone': '+84 28 7300 8888',
+                'street': 'Số 11, Đường số 3, KDC CityLand, Phường Tân Mỹ',
+                'city': 'TP. Hồ Chí Minh',
+            })
+
 
         cls.partner = cls.env['res.partner'].create({
             'name': 'Tập Đoàn Thép Pomina - Chi Nhánh Cảng Biển',

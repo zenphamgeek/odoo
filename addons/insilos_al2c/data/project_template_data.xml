@@ -912,6 +912,86 @@
         <field name="sequence">50</field>
         <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
     </record>
+
+    <record id="tpl_dgm_onsite_mti" model="project.project">
+        <field name="name">[TPL] DGM B2B Onsite Engineering (MTI Technology)</field>
+        <field name="is_template" eval="True"/>
+        <field name="allow_milestones" eval="True"/>
+        <field name="allow_billable" eval="True"/>
+        <field name="allow_timesheets" eval="True"/>
+        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
+        <field name="description">DGM B2B IT Engineering &amp; Onsite Resource Delivery template (HĐ DIGIMATE2401-001): Prepare, Explore, Realize, Deploy, Run.</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_ms_prepare" model="project.milestone">
+        <field name="name">Prepare</field>
+        <field name="sequence">10</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="quantity_percentage">0.15</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_task_prepare" model="project.task">
+        <field name="name">Prepare: Onboarding &amp; Environment Access</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="stage_id" ref="stage_prepare"/>
+        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_prepare"/>
+        <field name="sequence">10</field>
+        <field name="description">Engineer onboarding, NDA &amp; security clearance, repo &amp; VPN provisioning.</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_ms_explore" model="project.milestone">
+        <field name="name">Explore</field>
+        <field name="sequence">20</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="quantity_percentage">0.25</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_task_explore" model="project.task">
+        <field name="name">Explore: Sprint Backlog &amp; Architecture Alignment</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="stage_id" ref="stage_explore"/>
+        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_explore"/>
+        <field name="sequence">20</field>
+        <field name="description">Sprint planning, architecture review, and technical specification sign-off.</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_ms_realize" model="project.milestone">
+        <field name="name">Realize</field>
+        <field name="sequence">30</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="quantity_percentage">0.35</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_task_realize" model="project.task">
+        <field name="name">Realize: Core Software Engineering &amp; Timesheet Execution</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="stage_id" ref="stage_realize"/>
+        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_realize"/>
+        <field name="sequence">30</field>
+        <field name="description">Standard hours and approved tiered overtime (OT 100% &lt;=20h, OT 150% &gt;20h) software development.</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_ms_deploy" model="project.milestone">
+        <field name="name">Deploy</field>
+        <field name="sequence">40</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="quantity_percentage">0.15</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_task_deploy" model="project.task">
+        <field name="name">Deploy: UAT &amp; Production Release Verification</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="stage_id" ref="stage_deploy"/>
+        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_deploy"/>
+        <field name="sequence">40</field>
+        <field name="description">Release verification, monthly timesheet PM sign-off before the 5th business day.</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_ms_run" model="project.milestone">
+        <field name="name">Run</field>
+        <field name="sequence">50</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="quantity_percentage">0.10</field>
+    </record>
+    <record id="tpl_dgm_onsite_mti_task_run" model="project.task">
+        <field name="name">Run: Monthly Acceptance &amp; Net 40 Settlement</field>
+        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
+        <field name="stage_id" ref="stage_run"/>
+        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_run"/>
+        <field name="sequence">50</field>
+        <field name="description">Monthly acceptance certificate, KCT e-invoice issuance, and Net 40 settlement tracking.</field>
+    </record>
     <function model="project.project" name="_al2c_detach_template_folders"/>
 </data>
 </odoo>

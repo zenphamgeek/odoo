@@ -37,4 +37,5 @@ from . import test_ai_concierge_portal
 from . import test_rag_grounding
 from . import test_adversarial_concurrency
 from . import test_dgm_governance_automation
+from . import test_adversarial_pinned_conversion
 

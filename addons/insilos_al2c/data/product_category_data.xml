@@ -29,5 +29,13 @@
     <record id="categ_services" model="product.category">
         <field name="name">Services</field>
     </record>
+    <record id="categ_dgm_onsite" model="product.category">
+        <field name="name">B2B Onsite Engineering</field>
+        <field name="parent_id" ref="categ_services"/>
+    </record>
+    <record id="categ_dgm_prepaid" model="product.category">
+        <field name="name">Prepaid Infrastructure &amp; Licenses (TK 242)</field>
+        <field name="parent_id" ref="categ_services"/>
+    </record>
 </data>
 </odoo>

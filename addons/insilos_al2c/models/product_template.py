@@ -19,13 +19,14 @@ class ProductTemplate(models.Model):
     al2c_vat_class = fields.Selection(
         [
             ('kct', 'KCT Software (VAT Exempt - Law 48/2024/QH15)'),
+            ('vat_0', '0% Export Software & Digital Services (Decree 70/2025/ND-CP)'),
             ('vat_8', 'IT Services 8% (Decree 174/2025/ND-CP)'),
             ('vat_10', 'Standard 10% (Infrastructure / Hosting / Hardware)'),
         ],
         string='VAT Classification',
         default='kct',
         index=True,
-        help='Vietnamese statutory tax classification under Law 48/2024/QH15 and Decree 174/2025/ND-CP.',
+        help='Vietnamese statutory tax classification under Law 48/2024/QH15, Decree 70/2025/ND-CP, and Decree 174/2025/ND-CP.',
     )
     al2c_knowledge_article_id = fields.Many2one(
         'knowledge.article',
@@ -60,8 +61,9 @@ class ProductTemplate(models.Model):
 
     @api.model
     def _al2c_align_catalog_prices(self):
-        """Align product.template.list_price and product.pricelist.item with VND catalog fixed prices per SRS v1.1 Section 5.1."""
+        """Align product.template.list_price, product.pricelist.item, and Circular 200/99 accounting accounts across all 30 canonical SKUs."""
         catalog_prices = {
+            # 21 AL2C Enterprise SKUs
             'ERP-STARTER': 150_000_000.0,
             'ERP-GROWTH': 450_000_000.0,
             'ERP-ENT': 1_200_000_000.0,
@@ -83,14 +85,40 @@ class ProductTemplate(models.Model):
             'AMS-GOLD': 65_000_000.0,
             'TRAINING-DAY': 15_000_000.0,
             'CONSULT-HOUR': 1_200_000.0,
+            # 9 DGM / Digimate JSC Operational Revenue & Prepaid Expense SKUs
+            'DGM-ONSITE-STD': 450_000.0,
+            'DGM-ONSITE-OT100': 316_030.0,
+            'DGM-ONSITE-OT150': 474_045.0,
+            'DGM-CANVA-AWARD': 25_370_000.0,
+            'DGM-MOJO-CREDITS': 50_000.0,
+            'DGM-ADMOB-REV': 25_000_000.0,
+            'DGM-MOBIAI-CSP': 50_000_000.0,
+            'DGM-PREPAID-VNPT': 3_648_000.0,
+            'DGM-PREPAID-VIETTELCA': 833_636.0,
         }
         pricelist_vnd = self.env.ref('insilos_al2c.pricelist_vnd', raise_if_not_found=False)
         PricelistItem = self.env['product.pricelist.item'].sudo()
+        Account = self.env['account.account'].sudo()
         IMD = self.env['ir.model.data'].sudo()
+
+        acc_5111 = Account.search([('code', '=like', '5111%')], limit=1) or Account.search([('code', '=like', '511%')], limit=1)
+        acc_632 = Account.search([('code', '=like', '632%')], limit=1)
+        acc_242 = Account.search([('code', '=like', '242%')], limit=1) or Account.search([('code', '=like', '6427%')], limit=1)
+
         for sku, price in catalog_prices.items():
             tmpl = self.search([('default_code', '=', sku)], limit=1)
             if tmpl:
-                tmpl.sudo().write({'list_price': price})
+                vals = {'list_price': price}
+                if sku in ('DGM-PREPAID-VNPT', 'DGM-PREPAID-VIETTELCA'):
+                    vals['standard_price'] = price
+                    if acc_242:
+                        vals['property_account_expense_id'] = acc_242.id
+                else:
+                    if acc_5111:
+                        vals['property_account_income_id'] = acc_5111.id
+                    if acc_632:
+                        vals['property_account_expense_id'] = acc_632.id
+                tmpl.sudo().write(vals)
                 if tmpl.product_variant_id:
                     tmpl.product_variant_id.sudo().write({'lst_price': price})
                 domain = [('product_tmpl_id', '=', tmpl.id)]

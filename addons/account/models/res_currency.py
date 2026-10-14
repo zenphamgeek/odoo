@@ -41,6 +41,12 @@ class ResCurrency(models.Model):
         self.ensure_one()
         return bool(self.env['account.move.line'].sudo().search_count(['|', ('currency_id', '=', self.id), ('company_currency_id', '=', self.id)]))
 
+    @api.model
+    def _check_currency_table_monocurrency(self, companies):
+        """ Return True if all companies share the same currency as the current company. """
+        return len((companies | self.env.company).currency_id) <= 1
+
+
     def _get_raw_rates(self, companies, date_from, date_to):
         before = Domain.custom(to_sql=lambda table: SQL("%s <= date.date", table.name))
         company_match = Domain.custom(to_sql=lambda table: SQL("%s = target_root_company.id", table.company_id))

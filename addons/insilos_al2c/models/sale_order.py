@@ -1,7 +1,14 @@
+import datetime
+import logging
 import re
 from odoo import SUPERUSER_ID, api, fields, models
 from odoo.exceptions import AccessError, UserError
 from odoo.addons.sale.models.sale_order import SaleOrder as BaseSaleOrder
+
+_logger = logging.getLogger(__name__)
+
+LEASE_TIMEOUT_MINUTES = 10
+BATCH_CHUNK_SIZE = 50
 
 # Defensive hardening: ensure BaseSaleOrder._create_invoices accepts **kwargs (e.g. date passed by sale_subscription)
 _orig_create_invoices = BaseSaleOrder._create_invoices
@@ -33,6 +40,19 @@ CPQ_AGENT = 'CPQ Agent'
 class SaleOrder(models.Model):
     _name = 'sale.order'
     _inherit = ['sale.order', 'al2c.autonomy.guard']
+
+    is_pinned_rate = fields.Boolean(
+        string="Pinned Currency Rate", default=False, copy=False
+    )
+    pinned_exchange_rate = fields.Float(
+        string="Pinned Exchange Rate", digits=(12, 6), copy=False, readonly=True
+    )
+    conversion_lease_token = fields.Char(
+        string="Conversion Lease Token", copy=False, index=True
+    )
+    conversion_lease_time = fields.Datetime(
+        string="Lease Expiration Time", copy=False, index=True
+    )
 
     al2c_approved = fields.Boolean(
         string='Deal Desk Approved',
@@ -428,6 +448,66 @@ class SaleOrder(models.Model):
                 res['models']['sale.order.line'] = res['models']['order.line']
         return res
 
+    @api.model
+    def cron_process_pinned_conversions(self, batch_size=BATCH_CHUNK_SIZE):
+        """Heartbeat-Guarded Pinned Lease Protocol (HPLP):
+        Process pinned currency conversions on draft/sent quotations with FOR UPDATE SKIP LOCKED,
+        transaction savepoints, and multi-tenant company isolation.
+        """
+        now = fields.Datetime.now()
+        timeout_threshold = now - datetime.timedelta(minutes=LEASE_TIMEOUT_MINUTES)
+        query = f"""
+            SELECT id FROM {self._table}
+            WHERE state IN ('draft', 'sent')
+              AND is_pinned_rate = TRUE
+              AND (conversion_lease_time IS NULL OR conversion_lease_time < %s)
+            ORDER BY id ASC
+            LIMIT %s
+            FOR UPDATE SKIP LOCKED
+        """
+        self.env.cr.execute(query, (timeout_threshold, batch_size))
+        candidate_ids = [row[0] for row in self.env.cr.fetchall()]
+        if not candidate_ids:
+            return True
+
+        for order_id in candidate_ids:
+            try:
+                with self.env.cr.savepoint():
+                    order = self.browse(order_id)
+                    order_tenant = order.with_company(order.company_id).sudo()
+                    lease_token = f"lease_{order_id}_{fields.Datetime.to_string(now)}"
+                    order_tenant.write({
+                        'conversion_lease_token': lease_token,
+                        'conversion_lease_time': now + datetime.timedelta(minutes=LEASE_TIMEOUT_MINUTES),
+                    })
+                    order_tenant._execute_pinned_conversion_logic()
+                    order_tenant.write({
+                        'conversion_lease_token': False,
+                        'conversion_lease_time': False,
+                    })
+            except Exception as exc:
+                _logger.error(
+                    "Critical failure processing pinned conversion on Order #%s: %s",
+                    order_id,
+                    exc,
+                    exc_info=True,
+                )
+
+        return True
+
+    def _execute_pinned_conversion_logic(self):
+        self.ensure_one()
+        if not self.currency_id or not self.company_id:
+            return
+        rate = self.env['res.currency']._get_conversion_rate(
+            from_currency=self.currency_id,
+            to_currency=self.company_id.currency_id,
+            company=self.company_id,
+            date=self.date_order or fields.Date.context_today(self),
+        )
+        self.write({'pinned_exchange_rate': rate})
+
+
 
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
@@ -440,6 +520,7 @@ class SaleOrderLine(models.Model):
     al2c_vat_class = fields.Selection(
         [
             ('kct', 'KCT Software (VAT Exempt - Law 48/2024/QH15)'),
+            ('vat_0', '0% Export Software & Digital Services (Decree 70/2025/ND-CP)'),
             ('vat_8', 'IT Services 8% (Decree 174/2025/ND-CP)'),
             ('vat_10', 'Standard 10% (Infrastructure / Hosting / Hardware)'),
         ],
@@ -448,7 +529,7 @@ class SaleOrderLine(models.Model):
         store=True,
         readonly=False,
         index=True,
-        help="Statutory Vietnamese tax classification mapped from product template under Law 48/2024 and Decree 174/2025.",
+        help="Statutory Vietnamese tax classification mapped from product template under Law 48/2024, Decree 70/2025, and Decree 174/2025.",
     )
 
     @api.depends('product_id', 'product_id.al2c_vat_class')
@@ -466,8 +547,12 @@ class SaleOrderLine(models.Model):
         if company:
             domain.append(('company_id', '=', company.id))
 
-        if vat_class == 'kct':
-            # Law 48/2024/QH15: VAT Exempt Software (0% VAT or exempt)
+        if vat_class in ('kct', 'vat_0'):
+            # Law 48/2024/QH15 (KCT) or Decree 70/2025/ND-CP (0% Export VAT)
+            if vat_class == 'vat_0':
+                tax_0 = Tax.search(domain + [('amount', '=', 0.0), ('name', 'ilike', '0%')], limit=1)
+                if tax_0:
+                    return tax_0
             kct_tax = Tax.search(domain + [('amount', '=', 0.0), ('name', 'ilike', 'KCT')], limit=1)
             if not kct_tax:
                 kct_tax = Tax.search(domain + [('amount', '=', 0.0)], limit=1)

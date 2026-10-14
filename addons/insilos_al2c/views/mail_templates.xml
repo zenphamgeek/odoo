@@ -178,7 +178,7 @@
     <t t-else="">
         <div style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; line-height: 1.5;">
             <strong style="color: #0070F2; text-transform: uppercase; font-size: 11px;">Thông tin chuyển khoản thanh toán:</strong><br/>
-            • Đơn vị thụ hưởng: <strong>CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO (INNORIA)</strong><br/>
+            • Đơn vị thụ hưởng: <strong>CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC - INNORIA)</strong><br/>
             • Số tài khoản: <strong>0071001234567</strong> tại <strong>Vietcombank - CN TP.HCM</strong><br/>
             • Nội dung chuyển khoản: <strong style="color: #0070F2;"><t t-out="object.name"/></strong>
         </div>
@@ -227,7 +227,7 @@
         <span style="font-size: 15px; font-weight: 700; color: #161616;">Kính gửi Quý Khách hàng <t t-out="object.name"/>,</span>
     </div>
     <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #333333;">
-        Công ty TNHH Ứng Dụng Sáng Tạo (Innoria) trân trọng thông báo tài khoản truy cập <strong>Cổng Khách hàng Doanh nghiệp (Innoria Enterprise Portal)</strong> của Quý Đơn vị đã được khởi tạo thành công trên hệ sinh thái điều hành <strong t-out="object.company_id.name"/>.
+        Công ty Cổ phần Người Bạn Số (Digimate JSC - Innoria) trân trọng thông báo tài khoản truy cập <strong>Cổng Khách hàng Doanh nghiệp (Innoria Enterprise Portal)</strong> của Quý Đơn vị đã được khởi tạo thành công trên hệ sinh thái điều hành <strong t-out="object.company_id.name"/>.
     </p>
 
     <!-- IBM Carbon Credential Card -->
@@ -465,7 +465,7 @@
     <!-- Napas247 Bank Transfer Details -->
     <div style="background-color: #FFFFFF; border: 1px solid #E0E0E0; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 12px; line-height: 1.6;">
         <strong style="color: #0070F2; text-transform: uppercase; font-size: 11px;">Thông tin chuyển khoản thanh toán nhanh (Napas247):</strong><br/>
-        • Đơn vị thụ hưởng: <strong>CÔNG TY TNHH ỨNG DỤNG SÁNG TẠO (INNORIA)</strong><br/>
+        • Đơn vị thụ hưởng: <strong>CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC - INNORIA)</strong><br/>
         • Số tài khoản: <strong>0071001234567</strong> tại <strong>Vietcombank - CN TP.HCM</strong><br/>
         • Nội dung chuyển khoản: <strong style="color: #0070F2;"><t t-out="object.name"/></strong>
     </div>

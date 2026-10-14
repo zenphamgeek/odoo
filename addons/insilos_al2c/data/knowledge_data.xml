@@ -206,6 +206,60 @@
         <field name="sequence">21</field>
         <field name="body">&lt;h1&gt;CONSULT-HOUR · Consulting Hour (time and materials)&lt;/h1&gt;&lt;p&gt;Senior consultant hour billed on timesheets.&lt;/p&gt;&lt;p&gt;Service policy: delivered_timesheet; tracking: task_global_project; recurring: no; unit: hour.&lt;/p&gt;&lt;p&gt;Scope, deliverables, assumptions, exclusions: to be completed by the product owner.&lt;/p&gt;&lt;p&gt;Freshness: review every 90 days. Status: stub.&lt;/p&gt;</field>
     </record>
+    <record id="kb_sku_dgm_onsite_std" model="knowledge.article">
+        <field name="name">DGM-ONSITE-STD · Dịch vụ Kỹ sư Phần mềm Onsite B2B — Giờ Chuẩn</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">22</field>
+        <field name="body">&lt;h1&gt;DGM-ONSITE-STD · Dịch vụ Kỹ sư Phần mềm Onsite B2B — Giờ Chuẩn&lt;/h1&gt;&lt;p&gt;Dịch vụ kỹ sư phần mềm Onsite B2B theo hợp đồng khung (ví dụ HĐ DIGIMATE2401-001 với MTI Technology). Đơn giá niêm yết 450,000 VND/giờ (hoặc 316,030 VND/giờ theo phụ lục).&lt;/p&gt;&lt;p&gt;Service policy: delivered_timesheet; tracking: task_in_project; VAT: KCT (Phần mềm).&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_dgm_onsite_ot100" model="knowledge.article">
+        <field name="name">DGM-ONSITE-OT100 · Dịch vụ Kỹ sư Phần mềm Onsite B2B — Overtime Bậc 1 (&lt;=20h, 100%)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">23</field>
+        <field name="body">&lt;h1&gt;DGM-ONSITE-OT100 · Overtime Bậc 1 (&amp;le;20h/tháng, 100% Rate)&lt;/h1&gt;&lt;p&gt;Giờ làm thêm bậc 1 tối đa 20 giờ/tháng cho kỹ sư Onsite B2B, tính 100% đơn giá cơ sở (316,030 VND/giờ).&lt;/p&gt;&lt;p&gt;Service policy: delivered_timesheet; tracking: task_in_project; VAT: KCT.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_dgm_onsite_ot150" model="knowledge.article">
+        <field name="name">DGM-ONSITE-OT150 · Dịch vụ Kỹ sư Phần mềm Onsite B2B — Overtime Bậc 2 (&gt;20h, 150%)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">24</field>
+        <field name="body">&lt;h1&gt;DGM-ONSITE-OT150 · Overtime Bậc 2 (&amp;gt;20h/tháng, 150% Rate)&lt;/h1&gt;&lt;p&gt;Giờ làm thêm bậc 2 vượt trên 20 giờ/tháng cho kỹ sư Onsite B2B, tính 150% đơn giá cơ sở (474,045 VND/giờ).&lt;/p&gt;&lt;p&gt;Service policy: delivered_timesheet; tracking: task_in_project; VAT: KCT.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_dgm_canva_award" model="knowledge.article">
+        <field name="name">DGM-CANVA-AWARD · Xuất khẩu Phần mềm Ứng dụng Sáng tạo AI — Canva Adoption Award</field>
+        <field name="parent_id" ref="kb_line_ai"/>
+        <field name="sequence">25</field>
+        <field name="body">&lt;h1&gt;DGM-CANVA-AWARD · Xuất khẩu Phần mềm Ứng dụng Sáng tạo AI (Canva App Adoption Award)&lt;/h1&gt;&lt;p&gt;Doanh thu xuất khẩu phần mềm ứng dụng sáng tạo ảnh/logo/QR trên nền tảng Canva Pty Ltd (Australia). Thuế suất GTGT 0% (xuất khẩu phần mềm qua biên giới, đối chiếu SWIFT MT103 và xuất HĐĐT trong 24h theo Nghị định 70/2025/NĐ-CP).&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_dgm_mojo_credits" model="knowledge.article">
+        <field name="name">DGM-MOJO-CREDITS · Gói Tín dụng Sáng tạo Ảnh Mojo AI — 75 Credits ($1.99 USD)</field>
+        <field name="parent_id" ref="kb_line_mojo"/>
+        <field name="sequence">26</field>
+        <field name="body">&lt;h1&gt;DGM-MOJO-CREDITS · Gói Tín dụng Sáng tạo Ảnh Mojo AI — 75 Credits ($1.99 USD)&lt;/h1&gt;&lt;p&gt;Gói 75 Mojo AI Credits cho người dùng toàn cầu trên mojo.vn / Canva Apps ($1.99 USD ~ 50,000 VND).&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_dgm_admob_rev" model="knowledge.article">
+        <field name="name">DGM-ADMOB-REV · Doanh thu Quảng cáo Ứng dụng Di động Quốc tế — Google AdMob</field>
+        <field name="parent_id" ref="kb_line_mojo"/>
+        <field name="sequence">27</field>
+        <field name="body">&lt;h1&gt;DGM-ADMOB-REV · Doanh thu Quảng cáo Ứng dụng Di động Quốc tế — Google AdMob&lt;/h1&gt;&lt;p&gt;Doanh thu quảng cáo AdMob chốt sổ ngày 21 hàng tháng từ hệ sinh thái ứng dụng di động của Digimate JSC.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_dgm_mobiai_csp" model="knowledge.article">
+        <field name="name">DGM-MOBIAI-CSP · Dịch vụ Nội dung AI Viễn thông MobiFone MobiAI — CSP Revenue Share</field>
+        <field name="parent_id" ref="kb_line_ai"/>
+        <field name="sequence">28</field>
+        <field name="body">&lt;h1&gt;DGM-MOBIAI-CSP · Dịch vụ Nội dung AI Viễn thông MobiFone MobiAI — CSP Revenue Share&lt;/h1&gt;&lt;p&gt;Doanh thu phân chia cước dịch vụ giá trị gia tăng AI hợp tác cùng Trung tâm Dịch vụ số MobiFone (MDS), đối soát biên bản cước hàng tháng, thuế GTGT 10%.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_dgm_prepaid_vnpt" model="knowledge.article">
+        <field name="name">DGM-PREPAID-VNPT · Cước Internet Cáp quang VNPT FiberEco2 — Phân bổ TK 242 (14 tháng)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">29</field>
+        <field name="body">&lt;h1&gt;DGM-PREPAID-VNPT · Cước Internet Cáp quang VNPT FiberEco2 — Phân bổ TK 242 (14 tháng)&lt;/h1&gt;&lt;p&gt;Hạng mục mua vào chi phí trả trước dài hạn theo HĐ HDHCM1684072614 (HĐĐT 1K26TKA-338235: 3,648,000 VND chưa thuế / 14 tháng = 260,571 VND/tháng, hạch toán Nợ TK 242 -&amp;gt; Nợ TK 6427).&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_dgm_prepaid_viettelca" model="knowledge.article">
+        <field name="name">DGM-PREPAID-VIETTELCA · Chứng thư số Viettel-CA &amp; SInvoice — Phân bổ TK 242 (36 tháng)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">30</field>
+        <field name="body">&lt;h1&gt;DGM-PREPAID-VIETTELCA · Chứng thư số Viettel-CA &amp;amp; SInvoice — Phân bổ TK 242 (36 tháng)&lt;/h1&gt;&lt;p&gt;Hạng mục mua vào chi phí trả trước dài hạn theo HĐĐT 1K23TVA-2368750 (833,636 VND chưa thuế / 36 tháng = 23,157 VND/tháng, hạch toán Nợ TK 242 -&amp;gt; Nợ TK 6427).&lt;/p&gt;</field>
+    </record>
     <record id="kb_ind_0" model="knowledge.article">
         <field name="name">Manufacturing</field>
         <field name="parent_id" ref="kb_industries"/>

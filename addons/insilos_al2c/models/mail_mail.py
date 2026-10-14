@@ -53,11 +53,19 @@ class MailMail(models.Model):
         if not allowed_mails:
             return True
 
-        return super(MailMail, allowed_mails).send(
+        auto_delete_ids = allowed_mails.sudo().filtered('auto_delete').ids
+        if auto_delete_ids:
+            allowed_mails.sudo().browse(auto_delete_ids).write({'auto_delete': False})
+        res = super(MailMail, allowed_mails).send(
             auto_commit=auto_commit,
             raise_exception=raise_exception,
             post_send_callback=post_send_callback,
         )
+        if auto_delete_ids:
+            self.env['mail.mail'].sudo().browse(auto_delete_ids).exists().filtered(
+                lambda m: m.state == 'sent'
+            ).unlink()
+        return res
 
     def action_approve_and_send(self):
         """Action for sales managers to approve and release trapped autonomous emails."""

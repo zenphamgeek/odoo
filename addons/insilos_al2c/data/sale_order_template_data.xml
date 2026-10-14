@@ -166,5 +166,54 @@
         <field name="product_id" ref="product_mojo_tokens_variant"/>
         <field name="product_uom_qty">1</field>
     </record>
+
+    <!-- ===================================================================
+         DGM / Digimate JSC Operational Quotation Templates
+         =================================================================== -->
+    <record id="sot_dgm_onsite_mti" model="sale.order.template">
+        <field name="name">DGM B2B Onsite Engineering (MTI Standard &amp; Tiered OT)</field>
+        <field name="note">Hợp đồng cung ứng nhân sự kỹ sư phần mềm Onsite B2B (mẫu HĐ DIGIMATE2401-001). Chốt bảng chấm công có chữ ký PM trước ngày làm việc thứ 5 hàng tháng; xuất hóa đơn KCT và thanh toán Net 40.</field>
+    </record>
+    <record id="sot_dgm_onsite_mti_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_dgm_onsite_mti"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_dgm_onsite_std_variant"/>
+        <field name="product_uom_qty">168</field>
+    </record>
+    <record id="sot_dgm_onsite_mti_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_dgm_onsite_mti"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_dgm_onsite_ot100_variant"/>
+        <field name="product_uom_qty">20</field>
+    </record>
+    <record id="sot_dgm_onsite_mti_line_2" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_dgm_onsite_mti"/>
+        <field name="sequence">30</field>
+        <field name="product_id" ref="product_dgm_onsite_ot150_variant"/>
+        <field name="product_uom_qty">10</field>
+    </record>
+
+    <record id="sot_dgm_canva_award" model="sale.order.template">
+        <field name="name">DGM Cross-Border AI App Export (Canva Adoption Award)</field>
+        <field name="note">Xuất khẩu phần mềm ứng dụng sáng tạo AI cho Canva Pty Ltd (Australia). Thuế suất GTGT 0% (kèm hợp đồng điện tử và chứng từ báo có SWIFT MT103 qua ngân hàng; xuất hóa đơn điện tử trong 24h theo Nghị định 70/2025/NĐ-CP).</field>
+    </record>
+    <record id="sot_dgm_canva_award_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_dgm_canva_award"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_dgm_canva_award_variant"/>
+        <field name="product_uom_qty">2</field>
+    </record>
+
+    <record id="sot_dgm_mobiai_csp" model="sale.order.template">
+        <field name="name">DGM Telecom MobiAI CSP Revenue Share</field>
+        <field name="plan_id" ref="sale_subscription.subscription_plan_month"/>
+        <field name="note">Đối soát cước phân chia doanh thu dịch vụ AI viễn thông MobiAI hợp tác cùng Trung tâm Dịch vụ số MobiFone (MDS). Cam kết SLA xử lý phản ánh khiếu nại khách hàng trong 48 giờ.</field>
+    </record>
+    <record id="sot_dgm_mobiai_csp_line_0" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sot_dgm_mobiai_csp"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_dgm_mobiai_csp_variant"/>
+        <field name="product_uom_qty">1</field>
+    </record>
 </data>
 </odoo>

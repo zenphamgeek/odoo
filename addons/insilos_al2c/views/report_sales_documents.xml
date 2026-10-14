@@ -224,7 +224,7 @@
                         <!-- Statutory Privacy and Sign-Off -->
                         <div class="mt-4 pt-3 border-top" style="font-size: 9px; color: #6F6F6F;">
                             <div class="alert alert-light border p-2 mb-3">
-                                <strong>BẢO MẬT &amp; TUÂN THỦ NGHỊ ĐỊNH 13/2023/NĐ-CP:</strong> Toàn bộ thông tin kiến trúc và giải pháp trong tài liệu này thuộc quyền sở hữu trí tuệ của UNG DUNG SANG TAO LLC và được cam kết bảo mật theo các quy định hiện hành của pháp luật Việt Nam.
+                                <strong>BẢO MẬT &amp; TUÂN THỦ NGHỊ ĐỊNH 13/2023/NĐ-CP:</strong> Toàn bộ thông tin kiến trúc và giải pháp trong tài liệu này thuộc quyền sở hữu trí tuệ của CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC - MST: 0317958465) và được cam kết bảo mật theo các quy định hiện hành của pháp luật Việt Nam.
                             </div>
                             <div class="row text-center mt-4">
                                 <div class="col-6">
@@ -323,6 +323,7 @@
                                     </td>
                                     <td class="text-center">
                                         <span t-if="line.product_id.al2c_vat_class == 'kct'" class="badge bg-secondary">KCT</span>
+                                        <span t-elif="line.product_id.al2c_vat_class == 'vat_0'" class="badge bg-success">VAT 0%</span>
                                         <span t-elif="line.product_id.al2c_vat_class == 'vat_8'" class="badge bg-info text-dark">VAT 8%</span>
                                         <span t-else="" class="badge bg-light text-dark">VAT 10%</span>
                                     </td>
@@ -344,7 +345,7 @@
                                             <strong style="color: #0070F2;">CỔNG THANH TOÁN NAPAS247 CHÍNH THỨC</strong><br/>
                                             Ngân hàng: <strong>Vietcombank (VCB)</strong><br/>
                                             Số tài khoản: <strong>0071001234567</strong><br/>
-                                            Chủ TK: <strong>CONG TY TNHH UNG DUNG SANG TAO</strong><br/>
+                                            Chủ TK: <strong>CONG TY CO PHAN NGUOI BAN SO</strong><br/>
                                             Nội dung CK: <strong t-out="doc.name"/>
                                         </div>
                                     </div>

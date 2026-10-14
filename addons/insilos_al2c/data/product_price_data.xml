@@ -195,7 +195,121 @@
         <field name="compute_price">fixed</field>
         <field name="fixed_price">1200000</field>
     </record>
-    <!-- Idempotent alignment of product.template list_price with SRS v1.1 Section 5.1 -->
+
+    <!-- ===================================================================
+         DGM / Digimate JSC (MST: 0317958465) 9 Operational SKUs in VND Catalog
+         =================================================================== -->
+    <!-- 22. DGM-ONSITE-STD: 450,000 VND / hour -->
+    <function model="product.template" name="write" eval="[[ref('product_dgm_onsite_std')], {'list_price': 450000.0}]"/>
+    <record id="pricelist_vnd_product_dgm_onsite_std" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_vnd"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_onsite_std"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">450000</field>
+    </record>
+    <!-- 23. DGM-ONSITE-OT100: 316,030 VND / hour -->
+    <function model="product.template" name="write" eval="[[ref('product_dgm_onsite_ot100')], {'list_price': 316030.0}]"/>
+    <record id="pricelist_vnd_product_dgm_onsite_ot100" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_vnd"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_onsite_ot100"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">316030</field>
+    </record>
+    <!-- 24. DGM-ONSITE-OT150: 474,045 VND / hour -->
+    <function model="product.template" name="write" eval="[[ref('product_dgm_onsite_ot150')], {'list_price': 474045.0}]"/>
+    <record id="pricelist_vnd_product_dgm_onsite_ot150" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_vnd"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_onsite_ot150"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">474045</field>
+    </record>
+    <!-- 25. DGM-CANVA-AWARD: 25,370,000 VND / unit ($1,000 USD block) -->
+    <function model="product.template" name="write" eval="[[ref('product_dgm_canva_award')], {'list_price': 25370000.0}]"/>
+    <record id="pricelist_vnd_product_dgm_canva_award" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_vnd"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_canva_award"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">25370000</field>
+    </record>
+    <!-- 26. DGM-MOJO-CREDITS: 50,000 VND / pack (75 Credits - $1.99 USD) -->
+    <function model="product.template" name="write" eval="[[ref('product_dgm_mojo_credits')], {'list_price': 50000.0}]"/>
+    <record id="pricelist_vnd_product_dgm_mojo_credits" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_vnd"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_mojo_credits"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">50000</field>
+    </record>
+    <!-- 27. DGM-ADMOB-REV: 25,000,000 VND -->
+    <function model="product.template" name="write" eval="[[ref('product_dgm_admob_rev')], {'list_price': 25000000.0}]"/>
+    <record id="pricelist_vnd_product_dgm_admob_rev" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_vnd"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_admob_rev"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">25000000</field>
+    </record>
+    <!-- 28. DGM-MOBIAI-CSP: 50,000,000 VND / month -->
+    <function model="product.template" name="write" eval="[[ref('product_dgm_mobiai_csp')], {'list_price': 50000000.0}]"/>
+    <record id="pricelist_vnd_product_dgm_mobiai_csp" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_vnd"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_mobiai_csp"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">50000000</field>
+    </record>
+    <!-- 29. DGM-PREPAID-VNPT: 3,648,000 VND (14-month FiberEco2) -->
+    <function model="product.template" name="write" eval="[[ref('product_dgm_prepaid_vnpt')], {'list_price': 3648000.0, 'standard_price': 3648000.0}]"/>
+    <record id="pricelist_vnd_product_dgm_prepaid_vnpt" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_vnd"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_prepaid_vnpt"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">3648000</field>
+    </record>
+    <!-- 30. DGM-PREPAID-VIETTELCA: 833,636 VND (36-month Viettel-CA & SInvoice) -->
+    <function model="product.template" name="write" eval="[[ref('product_dgm_prepaid_viettelca')], {'list_price': 833636.0, 'standard_price': 833636.0}]"/>
+    <record id="pricelist_vnd_product_dgm_prepaid_viettelca" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_vnd"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_prepaid_viettelca"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">833636</field>
+    </record>
+
+    <!-- Dedicated MTI Technology Contract Pricelist (HĐ DIGIMATE2401-001) -->
+    <record id="pricelist_dgm_mti" model="product.pricelist">
+        <field name="name">DGM - MTI Technology Contract Pricelist (HĐ DIGIMATE2401-001)</field>
+        <field name="currency_id" ref="base.VND"/>
+        <field name="sequence">110</field>
+    </record>
+    <record id="pricelist_mti_onsite_std" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_dgm_mti"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_onsite_std"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">450000</field>
+    </record>
+    <record id="pricelist_mti_onsite_ot100" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_dgm_mti"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_onsite_ot100"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">316030</field>
+    </record>
+    <record id="pricelist_mti_onsite_ot150" model="product.pricelist.item">
+        <field name="pricelist_id" ref="pricelist_dgm_mti"/>
+        <field name="applied_on">1_product</field>
+        <field name="product_tmpl_id" ref="product_dgm_onsite_ot150"/>
+        <field name="compute_price">fixed</field>
+        <field name="fixed_price">474045</field>
+    </record>
+
+    <!-- Idempotent alignment of product.template list_price with SRS v1.1 Section 5.1 & DGM Catalog -->
     <function model="product.template" name="_al2c_align_catalog_prices"/>
 </data>
 </odoo>
