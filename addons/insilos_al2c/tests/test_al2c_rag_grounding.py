@@ -339,6 +339,7 @@ class TestAl2cRagAdversarialAudit(TransactionCase):
             self.article_model.create({
                 'name': f'Pagination Adv Article {i}',
                 'body': f'<p>Content for pagination adversarial testing {i}</p>',
+                'internal_permission': 'write',
                 'active': True
             })
             for i in range(100)
@@ -381,9 +382,12 @@ class TestAl2cRagAdversarialAudit(TransactionCase):
         if last_art:
             ICP.set_param('al2c.rag.kms_last_sync_date', fields.Datetime.to_string(last_art.write_date))
             ICP.set_param('al2c.rag.kms_last_sync_id', str(last_art.id))
+        else:
+            ICP.set_param('al2c.rag.kms_last_sync_date', '2000-01-01 00:00:00')
+            ICP.set_param('al2c.rag.kms_last_sync_id', '0')
 
-        a1 = self.article_model.create({'name': 'Valid Doc Adv', 'active': True, 'body': '<p>Valid content</p>'})
-        a2 = self.article_model.create({'name': 'Failing Doc Adv', 'active': True, 'body': '<p>Failing content</p>'})
+        a1 = self.article_model.create({'name': 'Valid Doc Adv', 'active': True, 'internal_permission': 'write', 'body': '<p>Valid content</p>'})
+        a2 = self.article_model.create({'name': 'Failing Doc Adv', 'active': True, 'internal_permission': 'write', 'body': '<p>Failing content</p>'})
 
         def mock_index(article, *args, **kwargs):
             if article.id == a2.id:

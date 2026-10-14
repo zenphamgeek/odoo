@@ -382,6 +382,8 @@ class TableSQL(SQL):
     __slots__ = ('_alias', '_model', '_query')
 
     def __init__(self, alias: str, model: BaseModel | None, query: Query):
+        if hasattr(alias, '_alias'):
+            alias = alias._alias
         assert isinstance(alias, str)
         self._alias = alias
         self._model = model

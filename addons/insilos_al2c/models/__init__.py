@@ -29,3 +29,5 @@ from . import sale_order_line
 from . import account_analytic_line
 from . import al2c_rag_service
 from . import documents_document
+from . import hr_payslip_vcb
+from . import al2c_compliance_scanner
