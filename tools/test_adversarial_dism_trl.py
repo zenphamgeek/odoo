@@ -131,11 +131,11 @@ def test_main_controller_ast():
     with open(MAIN_PY, "r", encoding="utf-8") as f:
         src = f.read()
 
-    assert "import zlib" in src, "Missing import zlib in main.py"
+    assert "import hashlib" in src, "Missing import hashlib in main.py"
     assert "pg_try_advisory_xact_lock" in src, "Missing pg_try_advisory_xact_lock in main.py"
-    assert "SAVEPOINT saas_provision_atomic" in src, "Missing SAVEPOINT saas_provision_atomic in main.py"
-    assert "RELEASE SAVEPOINT saas_provision_atomic" in src, "Missing RELEASE SAVEPOINT in main.py"
-    assert "ROLLBACK TO SAVEPOINT saas_provision_atomic" in src, "Missing ROLLBACK TO SAVEPOINT in main.py"
+    assert "request.env.cr.savepoint()" in src, "Missing request.env.cr.savepoint() in main.py"
+    assert "zlib" not in src, "zlib must not be present in main.py"
+    assert "SAVEPOINT saas_provision_atomic" not in src, "Raw SQL SAVEPOINT must be replaced by request.env.cr.savepoint()"
     assert "error=system_busy" in src, "Missing error=system_busy redirect in main.py"
     assert "error=subdomain_taken" in src, "Missing error=subdomain_taken redirect in main.py"
 
