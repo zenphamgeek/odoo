@@ -110,6 +110,22 @@ CANONICAL_ONBOARDING_PARTNERS = [
         "dgm_partner_code": "PTN-DGM-2026-0006",
         "dgm_onboarding_state": "approved",
     },
+    {
+        "match_id": None,
+        "name": "CÔNG TY CỔ PHẦN AIFIN COMPANY GLOBAL",
+        "vat": "0319631994",
+        "country_code": "VN",
+        "email": "huy.nguyen@aifin.com.vn",
+        "street": "51-53 Võ Văn Tần, Phường Xuân Hòa, Thành Phố Hồ Chí Minh, Việt Nam",
+        "dgm_partner_group": "strategic_b2b",
+        "dgm_partner_tier": "tier_s",
+        "dgm_tier_score": 100,
+        "dgm_credit_limit_vnd": 2_000_000_000.0,
+        "dgm_allowed_payment_rail": "vcb_digibiz",
+        "dgm_provisional_code": "TMP-DGM-0007",
+        "dgm_partner_code": "PTN-DGM-2026-0007",
+        "dgm_onboarding_state": "approved",
+    },
 ]
 
 
@@ -245,6 +261,21 @@ def render_companion_docs_for_seed(p):
     <p>Hai Bên cam kết bảo mật toàn bộ dữ liệu thương mại, mã nguồn, tài liệu kỹ thuật và dữ liệu cá nhân theo chuẩn ISO/IEC 27001, ISO/IEC 27701 và Nghị định 13/2023/NĐ-CP.</p>
 </body></html>"""
 
+    staff_aug_block = ""
+    if code == "PTN-DGM-2026-0007":
+        staff_aug_block = """
+        <h2>PHỤ LỤC CUNG ỨNG &amp; THUÊ NHÂN SỰ KỸ THUẬT (MTI STAFF AUGMENTATION MODEL — HĐ DIGIMATE-AIFIN-VN_2610-001)</h2>
+        <table>
+            <tr><th>Đại diện Pháp luật Bên A (AIfin)</th><td><strong>Ông Nguyễn Khắc Huy</strong> — Chức vụ: <strong>GIÁM ĐỐC</strong></td></tr>
+            <tr><th>Hợp đồng Cung ứng Nhân sự</th><td><strong>DIGIMATE-AIFIN-VN_2610-001</strong> &amp; Phụ lục <strong>2610-001</strong> (Hiệu lực: 01/10/2026 – 30/09/2027)</td></tr>
+            <tr><th>Nhân sự Kỹ thuật Biệt phái</th><td><strong>Ông Trần Văn Huỳnh Phố</strong> — Mã NV: <strong>DGM-009</strong> (Legacy: <code>NV-00074</code>) • CCCD: <code>079098014567</code> • Email: <code>pho.tran@inno.ai.vn</code></td></tr>
+            <tr><th>Chức danh &amp; Đơn giá Dịch vụ</th><td><strong>Kỹ sư Phần mềm Senior (AIfin Onsite)</strong> • Đơn giá: <strong>350,000 VND/giờ</strong> (<strong>56,000,000 VND/tháng</strong> tiêu chuẩn 160h)</td></tr>
+            <tr><th>Khung giờ chuẩn &amp; OT (MTI SLA)</th><td>Khung giờ chuẩn: <strong>140 – 180 giờ/tháng</strong> • OT &gt;180h: <strong>100%</strong> (ngày thường) / <strong>150%</strong> (cuối tuần &amp; Lễ) • Thay thế nhân sự: báo trước 30 ngày, miễn phí 05 ngày thử việc</td></tr>
+            <tr><th>Hợp đồng Giải pháp 360-Sales</th><td><strong>AIFIN-DIGIMATE/360-SALES/2026</strong> (Ký ngày 11/09/2026 • Giá trị: <strong>200,000,000 VND</strong> • Đợt 1: 65% = 130,000,000 VND • Đợt 2: 35% = 70,000,000 VND)</td></tr>
+            <tr><th>Điều khoản Thanh toán</th><td>Chuyển khoản vào TK VCB <strong>1202703007</strong> (PGD Trung Sơn) của CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ trong vòng <strong>40 ngày làm việc (Net 40)</strong></td></tr>
+        </table>
+        """
+
     doc_03 = f"""<!DOCTYPE html>
 <html lang="vi"><head><meta charset="utf-8"/><title>TPL-ONB-03 Master Commercial Frame - {p_name}</title>{base_style}</head>
 <body>
@@ -258,6 +289,7 @@ def render_companion_docs_for_seed(p):
         <tr><th>Phân nhóm &amp; Hạng</th><td><code>{p['dgm_partner_group']}</code> • <strong>{p['dgm_partner_tier'].upper()}</strong></td></tr>
         <tr><th>Hạn mức &amp; Kênh Thanh toán</th><td><strong>{credit_str}</strong> • <code>{p['dgm_allowed_payment_rail']}</code></td></tr>
     </table>
+    {staff_aug_block}
     <p>Tuân thủ quy định xuất hóa đơn điện tử Nghị định 70/2025/NĐ-CP (Ký hiệu 1C26TAA) và kiểm soát đối soát công nợ tự động.</p>
 </body></html>"""
 
@@ -609,6 +641,170 @@ def seed_partner_onboarding(dbname=None):
             ),
         )
         seeded_summary.append((pid, p["dgm_partner_code"], p["name"], p["dgm_partner_group"], p["dgm_partner_tier"], len(doc_ids)))
+
+        # For AIfin (PTN-DGM-2026-0007), also ensure the dedicated B2B Staff Augmentation Project & Confirmed Sale Order exist
+        if p["dgm_partner_code"] == "PTN-DGM-2026-0007":
+            prj_name = "AIFin 360-Sales & Onsite Engineering (Trần Văn Huỳnh Phố - DGM-009)"
+            cur.execute(
+                "SELECT id FROM project_project WHERE partner_id = %s OR name->>'en_US' ILIKE 'AIFin 360-Sales%%' ORDER BY id ASC LIMIT 1;",
+                (pid,),
+            )
+            prj_row = cur.fetchone()
+            prj_json = json.dumps({"en_US": prj_name, "vi_VN": prj_name})
+            if prj_row:
+                aifin_prj_id = prj_row[0]
+                cur.execute(
+                    "UPDATE project_project SET name = %s::jsonb, partner_id = %s, active = TRUE, write_date = NOW() WHERE id = %s;",
+                    (prj_json, pid, aifin_prj_id),
+                )
+            else:
+                cur.execute("SELECT id FROM ir_model WHERE model = 'project.task' LIMIT 1;")
+                task_model_id = (cur.fetchone() or [1])[0]
+                cur.execute(
+                    """
+                    INSERT INTO mail_alias (
+                        alias_model_id, alias_contact, alias_defaults, create_uid, write_uid, create_date, write_date
+                    ) VALUES (%s, 'everyone', '{}', 1, 1, NOW(), NOW())
+                    RETURNING id;
+                    """,
+                    (task_model_id,),
+                )
+                prj_alias_id = cur.fetchone()[0]
+                cur.execute(
+                    """
+                    INSERT INTO project_project (
+                        name, label_tasks, partner_id, company_id, user_id, alias_id,
+                        privacy_visibility, last_update_status, billing_type, fleet_classification,
+                        active, sequence, allow_timesheets, allow_billable,
+                        create_uid, write_uid, create_date, write_date
+                    ) VALUES (
+                        %s::jsonb, '{"en_US": "Tasks", "vi_VN": "Nhiệm vụ"}'::jsonb, %s, 1, 2, %s,
+                        'portal', 'to_define', 'not_billable', 'unknown',
+                        TRUE, 15, TRUE, TRUE,
+                        1, 1, NOW(), NOW()
+                    ) RETURNING id;
+                    """,
+                    (prj_json, pid, prj_alias_id),
+                )
+                aifin_prj_id = cur.fetchone()[0]
+
+            # Find product_id for DGM-ONSITE-STD (or fallback to any service product)
+            cur.execute("SELECT id FROM product_product WHERE default_code = 'DGM-ONSITE-STD' LIMIT 1;")
+            prod_row = cur.fetchone()
+            if not prod_row:
+                cur.execute("SELECT id FROM product_product ORDER BY id ASC LIMIT 1;")
+                prod_row = cur.fetchone()
+            prod_id = prod_row[0]
+
+            # Find VND currency_id and pricelist_id
+            cur.execute("SELECT id FROM res_currency WHERE name = 'VND' LIMIT 1;")
+            vnd_row = cur.fetchone()
+            vnd_id = vnd_row[0] if vnd_row else 23
+            cur.execute("SELECT id FROM product_pricelist WHERE currency_id = %s ORDER BY id ASC LIMIT 1;", (vnd_id,))
+            pl_row = cur.fetchone()
+            if not pl_row:
+                cur.execute("SELECT id FROM product_pricelist ORDER BY id ASC LIMIT 1;")
+                pl_row = cur.fetchone()
+            pl_id = pl_row[0] if pl_row else 1
+
+            cur.execute(
+                "SELECT id FROM sale_order WHERE client_order_ref = 'DIGIMATE-AIFIN-VN_2610-001' OR (partner_id = %s AND state = 'sale') ORDER BY id ASC LIMIT 1;",
+                (pid,),
+            )
+            so_row = cur.fetchone()
+            if so_row:
+                so_id = so_row[0]
+                cur.execute(
+                    """
+                    UPDATE sale_order
+                       SET partner_id = %s,
+                           partner_invoice_id = %s,
+                           partner_shipping_id = %s,
+                           client_order_ref = 'DIGIMATE-AIFIN-VN_2610-001',
+                           state = 'sale',
+                           project_id = %s,
+                           amount_untaxed = 256000000.0,
+                           amount_tax = 0.0,
+                           amount_total = 256000000.0,
+                           write_date = NOW()
+                     WHERE id = %s;
+                    """,
+                    (pid, pid, pid, aifin_prj_id, so_id),
+                )
+            else:
+                cur.execute(
+                    """
+                    INSERT INTO sale_order (
+                        name, company_id, partner_id, partner_invoice_id, partner_shipping_id,
+                        pricelist_id, currency_id, currency_rate, user_id, team_id,
+                        client_order_ref, state, document_tax_mode, invoice_status, picking_policy, warehouse_id,
+                        date_order, validity_date, amount_untaxed, amount_tax, amount_total,
+                        project_id, require_signature, require_payment, prepayment_percent,
+                        create_uid, write_uid, create_date, write_date
+                    ) VALUES (
+                        'SO-DGM-AIFIN-2610', 1, %s, %s, %s,
+                        %s, %s, 1.0, 2, 1,
+                        'DIGIMATE-AIFIN-VN_2610-001', 'sale', 'tax_excluded', 'to invoice', 'direct', 1,
+                        '2026-10-01 09:00:00', '2027-09-30', 256000000.0, 0.0, 256000000.0,
+                        %s, TRUE, FALSE, 0.0,
+                        1, 1, NOW(), NOW()
+                    ) RETURNING id;
+                    """,
+                    (pid, pid, pid, pl_id, vnd_id, aifin_prj_id),
+                )
+                so_id = cur.fetchone()[0]
+
+            # Upsert the 2 canonical sale_order_line rows (Staff Augmentation Trần Văn Huỳnh Phố + 360-Sales Platform)
+            cur.execute("DELETE FROM sale_order_line WHERE order_id = %s;", (so_id,))
+            lines_to_insert = [
+                (
+                    10,
+                    "Onsite Engineering Services — Project AIFin 360-Sales (Partner: DIGIMATE) — Trần Văn Huỳnh Phố (DGM-009 / PhoTVH) [HĐ DIGIMATE-AIFIN-VN_2610-001 & Phụ lục 2610-001 • Khung 140-180h/tháng]",
+                    160.0,
+                    350000.0,
+                    56000000.0,
+                ),
+                (
+                    20,
+                    "Phát triển Hệ thống Phần mềm Quản lý Bán hàng & Đội ngũ Kinh doanh 360-Sales (Web App, Mobile App, Zalo MiniApp, AI Call Coaching) [HĐ AIFIN-DIGIMATE/360-SALES/2026]",
+                    1.0,
+                    200000000.0,
+                    200000000.0,
+                ),
+            ]
+            for seq_no, line_name, qty, p_unit, subtotal in lines_to_insert:
+                cur.execute(
+                    """
+                    INSERT INTO sale_order_line (
+                        order_id, sequence, company_id, currency_id, order_partner_id,
+                        salesman_id, product_id, name, product_uom_qty, product_uom_id,
+                        price_unit, discount, price_subtotal, price_tax, price_total,
+                        price_reduce_taxexcl, price_reduce_taxinc,
+                        qty_delivered, qty_invoiced, qty_to_invoice,
+                        untaxed_amount_invoiced, untaxed_amount_to_invoice,
+                        state, invoice_status, customer_lead, is_service, project_id,
+                        create_uid, write_uid, create_date, write_date
+                    ) VALUES (
+                        %s, %s, 1, %s, %s,
+                        2, %s, %s, %s, 4,
+                        %s, 0.0, %s, 0.0, %s,
+                        %s, %s,
+                        %s, 0.0, %s,
+                        0.0, %s,
+                        'sale', 'to invoice', 0.0, TRUE, %s,
+                        1, 1, NOW(), NOW()
+                    );
+                    """,
+                    (
+                        so_id, seq_no, vnd_id, pid,
+                        prod_id, line_name, qty,
+                        p_unit, subtotal, subtotal,
+                        p_unit, p_unit,
+                        qty, qty,
+                        subtotal,
+                        aifin_prj_id,
+                    ),
+                )
 
     # Ensure SOP-DGM-06 Knowledge Article exists under DGM SOP Root
     sop_title = "SOP-DGM-06: Quy trình On-boarding Đối tác, Xếp hạng Tier & Cổng Kiểm soát Thanh toán Không Nghẽn Sales"

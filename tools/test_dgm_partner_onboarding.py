@@ -31,7 +31,7 @@ def verify_db_partner_onboarding(dbname):
     conn = get_local_conn(dbname)
     cur = conn.cursor()
 
-    # 1. Verify the 6 canonical DGM partners have PTN-DGM-2026-0001..0006, exact groups, tiers, and 4/4 docs
+    # 1. Verify the 7 canonical DGM partners have PTN-DGM-2026-0001..0007, exact groups, tiers, and 4/4 docs
     cur.execute(
         """
         SELECT id, dgm_partner_code, dgm_provisional_code, name,
@@ -42,13 +42,14 @@ def verify_db_partner_onboarding(dbname):
           FROM res_partner
          WHERE dgm_partner_code IN (
              'PTN-DGM-2026-0001', 'PTN-DGM-2026-0002', 'PTN-DGM-2026-0003',
-             'PTN-DGM-2026-0004', 'PTN-DGM-2026-0005', 'PTN-DGM-2026-0006'
+             'PTN-DGM-2026-0004', 'PTN-DGM-2026-0005', 'PTN-DGM-2026-0006',
+             'PTN-DGM-2026-0007'
          )
          ORDER BY dgm_partner_code ASC;
         """
     )
     rows = cur.fetchall()
-    assert len(rows) == 6, f"{dbname}: Expected 6 canonical approved DGM partners, got {len(rows)}"
+    assert len(rows) == 7, f"{dbname}: Expected 7 canonical approved DGM partners, got {len(rows)}"
 
     expected = [
         ("PTN-DGM-2026-0001", "strategic_b2b", "tier_s", 2_000_000_000.0, "vcb_digibiz"),
@@ -57,6 +58,7 @@ def verify_db_partner_onboarding(dbname):
         ("PTN-DGM-2026-0004", "gov_edu", "tier_s", 2_000_000_000.0, "swift_usd"),
         ("PTN-DGM-2026-0005", "infra_vendor", "tier_a", 500_000_000.0, "vcb_digibiz"),
         ("PTN-DGM-2026-0006", "infra_vendor", "tier_a", 500_000_000.0, "vcb_digibiz"),
+        ("PTN-DGM-2026-0007", "strategic_b2b", "tier_s", 2_000_000_000.0, "vcb_digibiz"),
     ]
     for row, exp in zip(rows, expected):
         pid, pcode, prov_code, name, grp, tier, score, limit_vnd, rail, state, doc_cnt, docs_ready, folder_id = row
@@ -93,6 +95,23 @@ def verify_db_partner_onboarding(dbname):
             assert own_id is None, f"{dbname}: Company document {d_name} must have owner_id=None, got {own_id}"
             assert fsize and fsize > 400, f"{dbname}: Attachment {att_name} empty or too small ({fsize})"
 
+    # 1b. Verify AIfin (PTN-DGM-2026-0007) MTI-Style Staff Augmentation sale.order, project & Documents folder files
+    cur.execute(
+        "SELECT id, client_order_ref, state, amount_total FROM sale_order WHERE client_order_ref = 'DIGIMATE-AIFIN-VN_2610-001' AND state = 'sale';"
+    )
+    aifin_so = cur.fetchone()
+    assert aifin_so is not None and float(aifin_so[3]) == 256_000_000.0, f"{dbname}: Missing AIfin confirmed sale.order: {aifin_so}"
+
+    cur.execute(
+        """
+        SELECT COUNT(*) FROM documents_document
+         WHERE active = TRUE AND type != 'folder'
+           AND (name->>'en_US' ILIKE '%AIFIN%' OR name->>'en_US' ILIKE '%Huynh_Pho%' OR name->>'en_US' ILIKE '%HUỲNH PHỐ%');
+        """
+    )
+    aifin_doc_cnt = cur.fetchone()[0]
+    assert aifin_doc_cnt >= 9, f"{dbname}: Expected >= 9 active AIfin / Trần Văn Huỳnh Phố documents in Documents, got {aifin_doc_cnt}"
+
     # 2. Verify Zero Empty Folders Invariant (Rule 6) across active folders in documents_document
     cur.execute(
         """
@@ -116,7 +135,7 @@ def verify_db_partner_onboarding(dbname):
     assert kb is not None, f"{dbname}: Missing SOP-DGM-06 Knowledge Article"
 
     conn.close()
-    print(f"[✓] {dbname}: 6 canonical DGM partners (PTN-DGM-2026-0001..0006), 24 companion documents (TPL-ONB-01..04), 0 empty folders, and SOP-DGM-06 Knowledge Article verified")
+    print(f"[✓] {dbname}: 7 canonical DGM partners (PTN-DGM-2026-0001..0007 incl. AIfin), 28 companion documents (TPL-ONB-01..04), AIfin Staff Augmentation SO (Trần Văn Huỳnh Phố), 0 empty folders, and SOP-DGM-06 Knowledge Article verified")
 
 
 def verify_workflow_state_machine_and_gates():
@@ -486,11 +505,11 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 cur.execute("SELECT COUNT(*) FROM res_partner WHERE dgm_partner_code LIKE 'PTN-DGM-2026-000%' AND dgm_onboarding_state = 'approved' AND dgm_all_companion_docs_ready = TRUE;")
 p_cnt = cur.fetchone()[0]
-assert p_cnt == 6, f'Expected 6 canonical approved DGM partners on K8s, got {p_cnt}'
+assert p_cnt == 7, f'Expected 7 canonical approved DGM partners on K8s, got {p_cnt}'
 
 cur.execute("SELECT COUNT(*) FROM dgm_partner_onboarding_doc_rel;")
 doc_cnt = cur.fetchone()[0]
-assert doc_cnt >= 24, f'Expected >=24 companion docs on K8s, got {doc_cnt}'
+assert doc_cnt >= 28, f'Expected >=28 companion docs on K8s, got {doc_cnt}'
 
 cur.execute('''
     SELECT COUNT(*) FROM documents_document f

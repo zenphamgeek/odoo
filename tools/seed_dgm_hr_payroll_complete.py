@@ -874,6 +874,7 @@ def seed_hr_payroll_for_db(dbname):
             "DGM-006": ("006", "loc"),
             "DGM-007": ("007", "phuc"),
             "DGM-008": ("008", "khoa"),
+            "DGM-009": ("009", "pho"),
         }[e["reg"]]
         for xname, xmodel, xid in [
             (f"emp_dgm_{emp_xml_suffix[0]}", "hr.employee", emp_id),
