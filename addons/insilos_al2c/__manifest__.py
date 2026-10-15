@@ -72,6 +72,7 @@ Autonomous Lead-to-Cash foundation for Innoria / Insilos.
         'views/portal_templates.xml',
         'views/website_ai_concierge_templates.xml',
         'views/al2c_timesheet_staging_views.xml',
+        'views/dgm_project_timesheet_billing_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [

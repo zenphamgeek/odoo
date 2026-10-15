@@ -1063,7 +1063,7 @@ for t in $CHOWN_TARGETS; do
     fi
 done
 
-for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py; do
+for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py /app/insilos/tools/seed_dgm_timesheet_billing.py; do
     if [ -e "$f" ]; then
         chmod 0755 "$f"
     fi
@@ -1111,6 +1111,7 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/safe_asset_warmup.py", f"{pod}:/app/insilos/tools/safe_asset_warmup.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_tech_assets.py", f"{pod}:/app/insilos/tools/sync_tech_assets.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sweep_all_models_rpc_and_views.py", f"{pod}:/app/insilos/tools/sweep_all_models_rpc_and_views.py"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/seed_dgm_timesheet_billing.py", f"{pod}:/app/insilos/tools/seed_dgm_timesheet_billing.py"])
 
             # Verify and extract on pod server-side
             run_cmd([
@@ -1187,6 +1188,15 @@ def main():
     print("\n=== 3. RUNNING DB SYNC ON INNORIA LEAD POD ===")
     if innoria_pods:
         lead_pod = innoria_pods[0]
+        print(f"[*] Running SOP-DGM-08 schema and data sync on {lead_pod} (container: innoria)...")
+        res_sop08 = run_cmd([
+            "kubectl", "exec", "-n", NAMESPACE, lead_pod, "-c", "innoria", "--",
+            "python3", "/app/insilos/tools/seed_dgm_timesheet_billing.py", "innoria_prod"
+        ], check=False)
+        print(res_sop08.stdout)
+        if res_sop08.stderr:
+            print("Stderr:", res_sop08.stderr)
+
         print(f"[*] Running view and asset sync on {lead_pod} (container: innoria)...")
         res = run_cmd([
             "kubectl", "exec", "-n", NAMESPACE, lead_pod, "-c", "innoria", "--",

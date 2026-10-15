@@ -1,0 +1,345 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =================================================================== -->
+    <!-- 1. DGM Project Timesheet Sheet Views (dgm.project.timesheet.sheet)  -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_project_timesheet_sheet_list" model="ir.ui.view">
+        <field name="name">dgm.project.timesheet.sheet.list</field>
+        <field name="model">dgm.project.timesheet.sheet</field>
+        <field name="arch" type="xml">
+            <list string="Bảng Chấm công &amp; Nghiệm thu Dự án (SOP-DGM-08)"
+                  decoration-info="state in ('draft', 'pm_verified')"
+                  decoration-warning="state == 'revision_requested'"
+                  decoration-primary="state == 'customer_approved'"
+                  decoration-success="state in ('draft_invoiced', 'official_invoiced')">
+                <field name="name"/>
+                <field name="billing_period"/>
+                <field name="partner_id"/>
+                <field name="dgm_partner_code"/>
+                <field name="project_id"/>
+                <field name="sale_order_id"/>
+                <field name="total_logged_hours" sum="Tổng Giờ"/>
+                <field name="total_billable_days" sum="Tổng Ngày công"/>
+                <field name="amount_untaxed_vnd" sum="Tổng Chưa Thuế"/>
+                <field name="vat_rate"/>
+                <field name="amount_total_vnd" sum="Tổng Thanh Toán"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('draft', 'pm_verified')"
+                       decoration-warning="state == 'revision_requested'"
+                       decoration-primary="state == 'customer_approved'"
+                       decoration-success="state in ('draft_invoiced', 'official_invoiced')"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_project_timesheet_sheet_form" model="ir.ui.view">
+        <field name="name">dgm.project.timesheet.sheet.form</field>
+        <field name="model">dgm.project.timesheet.sheet</field>
+        <field name="arch" type="xml">
+            <form string="Bảng Chấm công &amp; Đối soát Hóa đơn Dự án (SOP-DGM-08)">
+                <header>
+                    <button name="action_sync_from_project_timesheets"
+                            string="🔄 Tập hợp Timesheet Dự án"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state not in ('draft', 'revision_requested')"/>
+                    <button name="action_submit_for_customer_approval"
+                            string="📤 Gửi KH Phê duyệt Timesheet (TPL-TS-01)"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state not in ('draft', 'revision_requested')"/>
+                    <button name="action_customer_approve"
+                            string="✅ KH Phê duyệt &amp; Nghiệm thu (TPL-TS-02)"
+                            type="object"
+                            class="btn-success"
+                            invisible="state not in ('pm_verified', 'revision_requested')"/>
+                    <button name="action_generate_mti_draft_invoice"
+                            string="🧾 Xuất Hóa đơn Nháp Đối soát (MTI Flow)"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'customer_approved'"/>
+                    <button name="action_confirm_draft_and_issue_official_invoice"
+                            string="⚡ KH Xác nhận Nháp &amp; Xuất HĐĐT Chính thức (1C26TAA)"
+                            type="object"
+                            class="btn-success"
+                            invisible="state != 'draft_invoiced'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,pm_verified,customer_approved,draft_invoiced,official_invoiced"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Mã Bảng Chấm công &amp; Nghiệm thu (SOP-DGM-08)"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Thông tin Dự án &amp; Đối tác (SOP-DGM-06/07/08)">
+                            <field name="partner_id"/>
+                            <field name="dgm_partner_code"/>
+                            <field name="dgm_onboarding_state" widget="badge"/>
+                            <field name="project_id"/>
+                            <field name="sale_order_id"/>
+                        </group>
+                        <group string="Kỳ Đối soát &amp; Định mức Ngày công">
+                            <field name="billing_period"/>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="standard_working_days"/>
+                            <field name="vat_rate"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Chi tiết Chấm công Nhân sự (Timesheet Lines)" name="timesheet_lines">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="employee_id"/>
+                                    <field name="role_title"/>
+                                    <field name="task_id" optional="show"/>
+                                    <field name="work_summary"/>
+                                    <field name="standard_days"/>
+                                    <field name="actual_worked_days" sum="Tổng Công Thực tế"/>
+                                    <field name="overtime_hours" sum="Tổng Giờ OT"/>
+                                    <field name="billable_days" sum="Tổng Công Nghiệm thu"/>
+                                    <field name="pro_rata_ratio"/>
+                                    <field name="contract_monthly_rate_vnd"/>
+                                    <field name="subtotal_vnd" sum="Tổng Chưa Thuế (VNĐ)"/>
+                                </list>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="total_logged_hours"/>
+                                <field name="total_billable_days"/>
+                                <field name="amount_untaxed_vnd"/>
+                                <field name="amount_tax_vnd"/>
+                                <field name="amount_total_vnd" class="oe_subtotal_footer_separator"/>
+                            </group>
+                        </page>
+
+                        <page string="Phê duyệt của Khách hàng &amp; Hồ sơ Lưu trữ" name="customer_approval_docs">
+                            <group>
+                                <group string="Xác thực Phê duyệt của Khách hàng">
+                                    <field name="customer_approver_name"/>
+                                    <field name="customer_approver_email"/>
+                                    <field name="customer_approver_title"/>
+                                    <field name="customer_approved_at" readonly="1"/>
+                                    <field name="customer_signature_hash" readonly="1"/>
+                                    <field name="approval_token" readonly="1" groups="base.group_no_one"/>
+                                    <field name="customer_approval_note"/>
+                                </group>
+                                <group string="Bộ 4 Chứng từ Bàn giao &amp; Hóa đơn (Documents)">
+                                    <field name="timesheet_doc_id" readonly="1"/>
+                                    <field name="acceptance_doc_id" readonly="1"/>
+                                    <field name="draft_invoice_id" readonly="1"/>
+                                    <field name="draft_invoice_doc_id" readonly="1"/>
+                                    <field name="official_invoice_doc_id" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Lịch sử Thông báo Dự án (Notifications)" name="project_notifications">
+                            <field name="notification_ids" nolabel="1">
+                                <list>
+                                    <field name="name"/>
+                                    <field name="notification_type"/>
+                                    <field name="recipient_email"/>
+                                    <field name="sent_date"/>
+                                    <field name="document_id"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_project_timesheet_sheet" model="ir.actions.act_window">
+        <field name="name">Bảng Chấm công &amp; Đối soát Hóa đơn (SOP-DGM-08)</field>
+        <field name="res_model">dgm.project.timesheet.sheet</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 2. DGM Project Notification Views (dgm.project.notification)        -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_project_notification_list" model="ir.ui.view">
+        <field name="name">dgm.project.notification.list</field>
+        <field name="model">dgm.project.notification</field>
+        <field name="arch" type="xml">
+            <list string="Thông báo Dự án &amp; Chấm công (SOP-DGM-08)"
+                  decoration-info="state == 'draft'"
+                  decoration-primary="state == 'sent'"
+                  decoration-success="state == 'acknowledged'">
+                <field name="name"/>
+                <field name="notification_type"/>
+                <field name="project_id"/>
+                <field name="partner_id"/>
+                <field name="sale_order_id"/>
+                <field name="timesheet_sheet_id"/>
+                <field name="recipient_email"/>
+                <field name="sent_date"/>
+                <field name="document_id"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_project_notification_form" model="ir.ui.view">
+        <field name="name">dgm.project.notification.form</field>
+        <field name="model">dgm.project.notification</field>
+        <field name="arch" type="xml">
+            <form string="Thông báo Dự án (SOP-DGM-08)">
+                <header>
+                    <button name="action_send_project_notification"
+                            string="📨 Phát hành &amp; Gửi Thông báo Dự án"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_acknowledge_notification"
+                            string="✅ Đánh dấu KH Đã Xác nhận"
+                            type="object"
+                            class="btn-success"
+                            invisible="state != 'sent'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,sent,acknowledged"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Mã Thông báo Dự án"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Liên kết Dự án &amp; Khách hàng">
+                            <field name="notification_type"/>
+                            <field name="project_id"/>
+                            <field name="partner_id"/>
+                            <field name="sale_order_id"/>
+                            <field name="timesheet_sheet_id"/>
+                        </group>
+                        <group string="Người nhận &amp; Hồ sơ Lưu trữ">
+                            <field name="recipient_email"/>
+                            <field name="employee_ids" widget="many2many_tags"/>
+                            <field name="sent_date" readonly="1"/>
+                            <field name="document_id" readonly="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Nội dung Thông báo (HTML Preview)" name="summary_html_page">
+                            <field name="summary_html" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_project_notification" model="ir.actions.act_window">
+        <field name="name">Thông báo Dự án &amp; Bàn giao (SOP-DGM-08)</field>
+        <field name="res_model">dgm.project.notification</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menu items under Timesheets / Operations -->
+    <menuitem id="menu_dgm_project_timesheet_sheet"
+              name="Bảng Chấm công &amp; Nghiệm thu (SOP-DGM-08)"
+              parent="hr_timesheet.menu_hr_time_tracking"
+              action="action_dgm_project_timesheet_sheet"
+              sequence="55"
+              groups="project.group_project_manager,sales_team.group_sale_manager,account.group_account_manager"/>
+
+    <menuitem id="menu_dgm_project_notification"
+              name="Thông báo Dự án (SOP-DGM-08)"
+              parent="hr_timesheet.menu_hr_time_tracking"
+              action="action_dgm_project_notification"
+              sequence="56"
+              groups="project.group_project_manager,sales_team.group_sale_manager,account.group_account_manager"/>
+
+    <!-- =================================================================== -->
+    <!-- 3. Account Move Form Inheritance (MTI Draft-to-Official Invoice)    -->
+    <!-- =================================================================== -->
+    <record id="view_move_form_dgm_billing" model="ir.ui.view">
+        <field name="name">account.move.form.dgm.billing</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="SOP-DGM-08 Timesheet &amp; MTI E-Invoice" name="dgm_timesheet_mti_billing">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button name="action_dgm_issue_official_einvoice"
+                                type="object"
+                                string="⚡ Xác nhận Nháp &amp; Phát hành HĐĐT Chính thức (1C26TAA)"
+                                class="btn btn-primary"
+                                invisible="dgm_invoice_stage == 'official_issued'"/>
+                    </div>
+                    <group>
+                        <group string="Đối soát Bảng Chấm công &amp; Hóa đơn Nháp (MTI Flow)">
+                            <field name="dgm_timesheet_sheet_id"/>
+                            <field name="dgm_invoice_stage" widget="badge"
+                                   decoration-info="dgm_invoice_stage == 'draft_internal'"
+                                   decoration-warning="dgm_invoice_stage == 'draft_reconciliation'"
+                                   decoration-primary="dgm_invoice_stage == 'customer_reconciled'"
+                                   decoration-success="dgm_invoice_stage == 'official_issued'"/>
+                            <field name="dgm_draft_confirmed_by"/>
+                            <field name="dgm_draft_confirmed_at"/>
+                        </group>
+                        <group string="Hóa đơn GTGT Chính thức (Nghị định 70/2025/NĐ-CP)">
+                            <field name="dgm_einvoice_symbol"/>
+                            <field name="dgm_einvoice_number"/>
+                            <field name="dgm_einvoice_issued_at"/>
+                            <field name="dgm_einvoice_lookup_code"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 4. Sale Order Form Inheritance (SOP-DGM-07 & SOP-DGM-08)            -->
+    <!-- =================================================================== -->
+    <record id="view_order_form_dgm_billing" model="ir.ui.view">
+        <field name="name">sale.order.form.dgm.billing</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="Chấm công, Nghiệm thu &amp; Biệt phái (SOP-DGM-07/08)" name="dgm_staff_aug_and_timesheets">
+                    <group>
+                        <group string="Cấu hình Biệt phái Nhân sự (SOP-DGM-07)">
+                            <field name="dgm_is_staff_augmentation"/>
+                            <field name="dgm_assigned_employee_id"/>
+                            <field name="dgm_hourly_rate_vnd"/>
+                            <field name="dgm_min_monthly_hours"/>
+                            <field name="dgm_max_standard_hours"/>
+                        </group>
+                        <group string="Điều khoản Thanh toán &amp; SLA Thay thế">
+                            <field name="dgm_payment_term_days"/>
+                            <field name="dgm_replacement_notice_days"/>
+                            <field name="dgm_free_trial_days"/>
+                        </group>
+                    </group>
+                    <group string="Bảng Chấm công &amp; Nghiệm thu Hàng tháng (SOP-DGM-08)">
+                        <field name="dgm_timesheet_sheet_ids" nolabel="1">
+                            <list>
+                                <field name="name"/>
+                                <field name="billing_period"/>
+                                <field name="project_id"/>
+                                <field name="total_logged_hours"/>
+                                <field name="total_billable_days"/>
+                                <field name="amount_untaxed_vnd"/>
+                                <field name="amount_total_vnd"/>
+                                <field name="state" widget="badge"/>
+                            </list>
+                        </field>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
