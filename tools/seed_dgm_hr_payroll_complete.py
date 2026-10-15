@@ -197,6 +197,25 @@ EMPLOYEES = [
         "join_date": "2024-06-01",
         "link_admin_uid": None,
     },
+    {
+        "reg": "DGM-009",
+        "match_id": 86,
+        "name": "Trần Văn Huỳnh Phố",
+        "aliases": ["Trần Văn Huỳnh Phố", "TRAN VAN HUYNH PHO"],
+        "id_card_name": "079098014567",
+        "job_title": "Kỹ sư Phần mềm Senior (AIfin Onsite)",
+        "dept_code": "DEPT-B2B-MTI",
+        "manager_reg": "DGM-004",
+        "work_email": "pho.tran@inno.ai.vn",
+        "work_phone": "0903881009",
+        "bank_name": "VIETCOMBANK",
+        "bank_bic": "BFTVVNVX",
+        "bank_branch": "CN Tân Bình",
+        "account_number": "1045289901",
+        "gross_wage": 30000000,
+        "join_date": "2024-04-01",
+        "link_admin_uid": None,
+    },
 ]
 
 
