@@ -238,6 +238,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         WEBSITE_MEMBERS = [
             "__manifest__.py",
             "controllers",
+            "data",
             "views",
             "static/src/scss",
             "static/src/js",
@@ -1099,7 +1100,7 @@ for t in $CHOWN_TARGETS; do
     fi
 done
 
-for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py /app/insilos/tools/seed_dgm_timesheet_billing.py /app/insilos/tools/seed_dgm_standardized_templates.py /app/insilos/tools/audit_insilos_modules_maturity.py /app/insilos/tools/audit_insilos_naming_taxonomy.py; do
+for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py /app/insilos/tools/seed_dgm_timesheet_billing.py /app/insilos/tools/seed_dgm_standardized_templates.py /app/insilos/tools/audit_insilos_modules_maturity.py /app/insilos/tools/audit_insilos_naming_taxonomy.py /app/insilos/tools/test_website_concierge_and_marketing.py; do
     if [ -e "$f" ]; then
         chmod 0755 "$f"
     fi
@@ -1151,6 +1152,7 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/seed_dgm_standardized_templates.py", f"{pod}:/app/insilos/tools/seed_dgm_standardized_templates.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/audit_insilos_modules_maturity.py", f"{pod}:/app/insilos/tools/audit_insilos_modules_maturity.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/audit_insilos_naming_taxonomy.py", f"{pod}:/app/insilos/tools/audit_insilos_naming_taxonomy.py"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/test_website_concierge_and_marketing.py", f"{pod}:/app/insilos/tools/test_website_concierge_and_marketing.py"])
 
             # Verify and extract on pod server-side
             run_cmd([

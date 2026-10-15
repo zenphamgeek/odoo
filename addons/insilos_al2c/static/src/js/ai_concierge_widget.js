@@ -1,15 +1,251 @@
 /** @odoo-module **/
 /* =============================================================================
- * INNORIA PUBLIC AI CONCIERGE OWL 2 COMPONENT
+ * INNORIA PUBLIC AI CONCIERGE & SOFTWARE SERVICES CONFIGURATOR (OWL 2)
  * Part of Insilos AL2C Enterprise Architecture (SOP-AI-004 & SOP-RAG-003)
  * Standards: OWL 2 Reactive Component, Grounded KMS, Zero Bare White
  * ============================================================================= */
 
-import { Component, useState, onMounted, useRef, markup } from "@odoo/owl";
+import { Component, useState, onMounted, onWillUnmount, useRef, markup } from "@odoo/owl";
 import { Interaction } from "@web/public/interaction";
 import { registry } from "@web/core/registry";
 import { mountComponent } from "@web/env";
 import { whenReady } from "@insilos/owl";
+
+/**
+ * Default Software Services & Solution Catalog (Immediate Zero-Flicker Fallback).
+ * Synchronized live with /innoria/ai_concierge/services_catalog on mount.
+ */
+const DEFAULT_SERVICES_CATALOG = [
+    {
+        code: "sw_squad",
+        name: "Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad)",
+        short_label: "👨‍💻 Squad Đồng Phát Triển",
+        badge: "TT 13/2020/TT-BTTTT • Agile Pod",
+        summary:
+            "Cung cấp đội ngũ Kỹ sư Phần mềm, Solution Architect & QA/SecOps chuyên trách theo chuẩn Agile/Scrum, tích hợp giám sát năng suất AGY Telemetry và định mức quy trình phần mềm Thông tư 13/2020/TT-BTTTT.",
+        unit_label: "Kỹ sư chuyên trách (FTE)",
+        unit_options: [2, 4, 6, 8, 12],
+        default_units: 4,
+        base_unit_monthly_vnd: 42000000,
+        starting_price: "Từ 84.000.000 ₫ / tháng",
+        lead_option: "Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad - TT 13/2020)",
+        deliverables: [
+            "Dedicated Full-stack / AI / Odoo Engineers + Scrum Master",
+            "Báo cáo Velocity, Burn-down & Timesheet tự động qua info@inno.ai.vn",
+            "Kiểm thử bảo mật SAST/DAST & bàn giao 100% quyền sở hữu trí tuệ (IP)",
+        ],
+        payment_schedule:
+            "Thanh toán định kỳ hàng tháng theo biên bản nghiệm thu Sprint & bảng chấm công điện tử xác thực (HĐĐT Nghị định 70/2025/NĐ-CP).",
+        lifecycle_steps: [
+            "1. Khảo sát kiến trúc & Phỏng vấn chọn kỹ sư (48h)",
+            "2. Thiết lập môi trường CI/CD, GitSecOps & Quy ước Sprint",
+            "3. Thực thi phát triển song song (2 tuần/Sprint) & Demo nghiệm thu",
+            "4. Chuyển giao mã nguồn, tài liệu kiến trúc & vận hành dài hạn",
+        ],
+        compliance_guarantees: [
+            "Tuân thủ quy trình sản xuất phần mềm Thông tư 13/2020/TT-BTTTT",
+            "Cam kết bảo mật NDA & Bảo vệ dữ liệu cá nhân Nghị định 13/2023/NĐ-CP",
+            "Xuất hóa đơn điện tử GTGT hợp lệ 1C26TAA (Nghị định 70/2025/NĐ-CP)",
+        ],
+    },
+    {
+        code: "sw_turnkey",
+        name: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software)",
+        short_label: "🏗️ Phần Mềm Trọn Gói",
+        badge: "SAP Activate • Fixed-Scope SLA",
+        summary:
+            "Thiết kế kiến trúc, phát triển trọn gói hệ thống phần mềm doanh nghiệp, cổng giao dịch B2B/B2C, Web/Mobile App đặc thù theo phương pháp luận SAP Activate (Prepare → Explore → Realize → Deploy → Run).",
+        unit_label: "Phân hệ nghiệp vụ (Modules)",
+        unit_options: [2, 3, 5, 8, 12],
+        default_units: 3,
+        base_unit_monthly_vnd: 48000000,
+        starting_price: "Từ 144.000.000 ₫ / giai đoạn",
+        lead_option: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - SAP Activate)",
+        deliverables: [
+            "Hồ sơ kiến trúc BRD/SRS, UI/UX Prototype & Database Blueprint",
+            "Mã nguồn Clean-Room chuẩn hóa, bộ kiểm thử tự động E2E Playwright",
+            "Triển khai Kubernetes HA, đào tạo chuyển giao & bảo hành SLA 12 tháng",
+        ],
+        payment_schedule:
+            "Thanh toán theo 4 mốc nghiệm thu: 30% Khởi động (Prepare) • 30% Thiết kế & Prototype (Explore) • 30% Kiểm thử UAT (Realize) • 10% Go-Live (Deploy).",
+        lifecycle_steps: [
+            "1. Prepare & Explore: Phân tích nghiệp vụ, chốt Blueprint & Prototype",
+            "2. Realize: Lập trình Clean-Core, tích hợp API & kiểm thử bảo mật",
+            "3. Deploy: Kiểm thử chấp thuận UAT, đào tạo & cắt chuyển dữ liệu Go-Live",
+            "4. Run: Bảo hành SLA 99.95%, tối ưu hiệu năng & bàn giao toàn bộ mã nguồn",
+        ],
+        compliance_guarantees: [
+            "Đáp ứng 7 công đoạn sản xuất phần mềm Thông tư 13/2020/TT-BTTTT",
+            "Kiểm định an toàn thông tin theo tiêu chuẩn ISO/IEC 27001 & OWASP Top 10",
+            "Bàn giao 100% Source Code, Docker/K8s Manifests & tài liệu vận hành",
+        ],
+    },
+    {
+        code: "erp",
+        name: "Insilos Clean-Core ERP & HĐĐT 1C26TAA",
+        short_label: "📊 Clean-Core ERP",
+        badge: "VAS 200/133 • NĐ 70/2025",
+        summary:
+            "Nền tảng ERP thế hệ mới hợp nhất Kế toán chuẩn VAS (Thông tư 200/133) & IFRS, Chuỗi cung ứng WMS, Sản xuất MRP, Nhân sự Tiền lương BHXH/PIT 2026 và Hóa đơn điện tử 1C26TAA.",
+        unit_label: "Phân hệ cốt lõi triển khai",
+        unit_options: [2, 4, 6, 8, 10],
+        default_units: 4,
+        base_unit_monthly_vnd: 35000000,
+        starting_price: "Từ 140.000.000 ₫ / gói",
+        lead_option: "Insilos ERP (VAS & Hóa đơn ĐT Nghị định 70/2025)",
+        deliverables: [
+            "Hệ thống Kế toán VAS/IFRS, Mua hàng, Bán hàng AL2C, Kho WMS & HRM",
+            "Tích hợp trực tiếp Hóa đơn điện tử Nghị định 70/2025 & Ngân hàng số VCB DigiBiz",
+            "Báo cáo quản trị thời gian thực CFO/CEO Dashboard & phân quyền đa công ty",
+        ],
+        payment_schedule:
+            "35% Ký hợp đồng & Khảo sát Fit-Gap • 40% Bàn giao cấu hình & Kiểm thử UAT • 25% Nghiệm thu Go-Live & Đào tạo.",
+        lifecycle_steps: [
+            "1. Khảo sát Fit-Gap & Chuẩn hóa danh mục dữ liệu gốc (Master Data)",
+            "2. Cấu hình quy trình Clean-Core ERP & tích hợp HĐĐT / Ngân hàng",
+            "3. Chuyển đổi số dư đầu kỳ, đào tạo Key Users & chạy thử nghiệm UAT",
+            "4. Go-Live chính thức & hỗ trợ quyết toán kỳ kế toán đầu tiên",
+        ],
+        compliance_guarantees: [
+            "Chuẩn mực Kế toán Việt Nam (TT 200/2014 & TT 133/2016) & IFRS",
+            "Tích hợp Hóa đơn điện tử có mã CQT theo Nghị định 70/2025/NĐ-CP",
+            "Bảo mật phân quyền RBAC/ABAC và nhật ký kiểm toán bất biến",
+        ],
+    },
+    {
+        code: "grc",
+        name: "Vertical Resilience (GRC, ISO 27701 & e-CO)",
+        short_label: "🛡️ GRC & ISO 27701",
+        badge: "ISO 27701 • NĐ 13/2023",
+        summary:
+            "Hệ thống Quản trị Rủi ro Doanh nghiệp (ERM), Ma trận Kiểm soát Nội bộ (RCM), bảo vệ dữ liệu cá nhân Nghị định 13/2023/NĐ-CP (ISO 27701), truy xuất nguồn gốc xuất xứ e-CO và kiểm kê ESG/CSRD.",
+        unit_label: "Khung tuân thủ & Phân hệ GRC",
+        unit_options: [1, 2, 3, 5, 8],
+        default_units: 2,
+        base_unit_monthly_vnd: 38000000,
+        starting_price: "Từ 76.000.000 ₫ / khung",
+        lead_option: "Vertical Resilience (GRC, ISO 27001 & PDPD 13/2023)",
+        deliverables: [
+            "Ma trận rủi ro - kiểm soát (RCM), hồ sơ xử lý dữ liệu cá nhân الد-PDPD",
+            "Cơ chế che giấu PII tự động (Need-to-Know Masking) & Nhật ký bất biến",
+            "Hồ sơ truy xuất nguồn gốc e-CO & báo cáo kiểm toán ISO 27001 / ISO 27701",
+        ],
+        payment_schedule:
+            "40% Đánh giá Gap Assessment • 40% Triển khai hệ thống kiểm soát GRC • 20% Nghiệm thu hồ sơ đánh giá tuân thủ.",
+        lifecycle_steps: [
+            "1. Đánh giá mức độ trưởng thành bảo mật & rà soát lỗ hổng tuân thủ",
+            "2. Thiết lập Ma trận Kiểm soát (RCM) & cổng bảo vệ dữ liệu ISO 27701",
+            "3. Diễn tập ứng cứu sự cố, kiểm toán nội bộ & hoàn thiện hồ sơ pháp lý",
+            "4. Giám sát tuân thủ liên tục (Continuous Compliance Monitoring)",
+        ],
+        compliance_guarantees: [
+            "Tuân thủ toàn diện Nghị định 13/2023/NĐ-CP về Bảo vệ dữ liệu cá nhân",
+            "Đáp ứng tiêu chuẩn quốc tế ISO/IEC 27001:2022 & ISO/IEC 27701",
+            "Sẵn sàng hồ sơ chứng nhận xuất xứ điện tử e-CO & báo cáo ESG",
+        ],
+    },
+    {
+        code: "ai",
+        name: "Mojo AI (AL2C Swarm, Grounded RAG & IDP)",
+        short_label: "🤖 Mojo AI & RAG",
+        badge: "Claim Atom • Entailment ≥ 0.75",
+        summary:
+            "Triển khai hệ thống Tác tử AI tự chủ (AL2C Swarm), trợ lý tri thức nội bộ Grounded RAG triệt tiêu ảo giác (trích dẫn KMS chuẩn xác) và công nhân bóc tách chứng từ/hợp đồng thông minh (IDP).",
+        unit_label: "Tác tử AI & Đường ống RAG",
+        unit_options: [1, 2, 4, 6, 10],
+        default_units: 2,
+        base_unit_monthly_vnd: 45000000,
+        starting_price: "Từ 90.000.000 ₫ / cụm AI",
+        lead_option: "Mojo AI (Tác tử AL2C & Bóc tách thông minh)",
+        deliverables: [
+            "Cơ sở tri thức KMS chuẩn hóa Claim Atom kèm cổng kiểm chứng Entailment Gate",
+            "Tác tử tự động hóa Lead-to-Cash, bóc tách hóa đơn/hợp đồng & đối soát",
+            "Cơ chế Kill-Switch, giới hạn ngân sách token theo ngày & lọc rò rỉ PII/Secret",
+        ],
+        payment_schedule:
+            "30% Khởi tạo & Chuẩn hóa dữ liệu KMS • 40% Huấn luyện & Tích hợp Tác tử AI • 30% Nghiệm thu độ chính xác Grounding.",
+        lifecycle_steps: [
+            "1. Khảo sát nguồn dữ liệu & xây dựng kiến trúc KMS Claim Atom",
+            "2. Cấu hình đường ống Grounded RAG & cổng kiểm chứng chống ảo giác",
+            "3. Tích hợp Tác tử AI vào quy trình CRM/ERP & kiểm thử Red-Team",
+            "4. Vận hành thực tế kèm bảng điều khiển giám sát chất lượng AI",
+        ],
+        compliance_guarantees: [
+            "Kiểm chứng Entailment Score ≥ 0.75 trên 100% câu trả lời tư vấn",
+            "Tự động lọc sạch khóa bí mật (API Keys) & che số điện thoại/CCCD",
+            "Lưu vết toàn bộ quyết định của AI phục vụ hậu kiểm (Audit Trail)",
+        ],
+    },
+    {
+        code: "zencode",
+        name: "Zencode Ent (Hiện Đại Hóa Mã Nguồn & AGY Fleet)",
+        short_label: "⚡ Zencode Refactor",
+        badge: "Hegelian Dialectic • 13 Gates",
+        summary:
+            "Dịch vụ tái cấu trúc và hiện đại hóa hệ thống phần mềm kế thừa (Legacy ERP, Monolith, .NET/Java/Python/Odoo cũ) sang kiến trúc hiện đại bằng phương pháp Biện chứng Hegelian và 13 cổng kiểm định tự động.",
+        unit_label: "Quy mô phân hệ / Cụm mã nguồn",
+        unit_options: [1, 2, 4, 6, 8],
+        default_units: 2,
+        base_unit_monthly_vnd: 52000000,
+        starting_price: "Từ 104.000.000 ₫ / dự án",
+        lead_option: "Zencode Ent (Hiện đại hóa mã kế thừa & AGY Fleet)",
+        deliverables: [
+            "Báo cáo giải phẫu kiến trúc, phát hiện nợ kỹ thuật & lỗ hổng bảo mật",
+            "Tái cấu trúc Clean-Room bảo toàn 100% nghiệp vụ cốt lõi & dữ liệu lịch sử",
+            "Bộ kiểm thử hồi quy tự động (Regression Suite) & tối ưu hóa hiệu năng DB",
+        ],
+        payment_schedule:
+            "30% Kiểm toán mã nguồn & Kiến trúc (Thesis) • 40% Tái cấu trúc & Đối chứng (Antithesis) • 30% Nghiệm thu hợp nhất (Synthesis).",
+        lifecycle_steps: [
+            "1. Thesis: Giải dịch & lập bản đồ phụ thuộc toàn bộ hệ thống kế thừa",
+            "2. Antithesis: Tái thiết kế Clean-Core & viết bộ kiểm thử bất biến",
+            "3. Synthesis: Chuyển đổi dữ liệu song song & vượt qua 13 cổng kiểm định",
+            "4. Cutover: Chuyển giao vận hành không gián đoạn (Zero-Downtime)",
+        ],
+        compliance_guarantees: [
+            "Bảo toàn 100% tính toàn vẹn dữ liệu lịch sử và luồng nghiệp vụ",
+            "Vượt qua 13 cổng kiểm soát chất lượng mã nguồn & bảo mật tự động",
+            "Giảm thiểu 40% - 65% chi phí vận hành hạ tầng và nợ kỹ thuật",
+        ],
+    },
+];
+
+const SCALE_TIER_META = {
+    starter: {
+        key: "starter",
+        label: "Khởi đầu (Starter)",
+        multiplier: 1.0,
+        employee_hint: "Dưới 50 nhân sự",
+    },
+    growth: {
+        key: "growth",
+        label: "Tăng trưởng (Growth)",
+        multiplier: 1.35,
+        employee_hint: "50 - 200 nhân sự",
+    },
+    enterprise: {
+        key: "enterprise",
+        label: "Tập đoàn (Enterprise)",
+        multiplier: 1.85,
+        employee_hint: "Trên 500 nhân sự",
+    },
+};
+
+const DURATION_DISCOUNTS = {
+    3: 1.0,
+    6: 0.93,
+    12: 0.85,
+};
+
+/**
+ * Format integer amount into Vietnamese Dong currency string.
+ * @param {number} amount
+ * @returns {string}
+ */
+function formatVnd(amount) {
+    const rounded = Math.round((Number(amount) || 0) / 100000) * 100000;
+    return `${rounded.toLocaleString("vi-VN")} ₫`;
+}
 
 /**
  * Safely escape HTML characters.
@@ -112,6 +348,93 @@ async function callJsonRpc(url, params = {}) {
 }
 
 /**
+ * Normalize a service card object from backend or fallback catalog.
+ * @param {Object} raw
+ * @returns {Object}
+ */
+function normalizeServiceCard(raw) {
+    const fallback =
+        DEFAULT_SERVICES_CATALOG.find((s) => s.code === (raw.code || raw.service_code)) ||
+        DEFAULT_SERVICES_CATALOG[0];
+    return {
+        code: raw.code || raw.service_code || fallback.code,
+        name: raw.name || raw.title || fallback.name,
+        short_label: raw.short_label || fallback.short_label || raw.name || fallback.name,
+        badge: raw.badge || raw.pricing_model || raw.category || fallback.badge,
+        summary: raw.summary || raw.description || fallback.summary,
+        starting_price:
+            raw.starting_price ||
+            raw.formatted_base_price ||
+            raw.price_hint ||
+            (raw.base_unit_monthly_vnd ? `Từ ${formatVnd(raw.base_unit_monthly_vnd)} / tháng` : fallback.starting_price),
+        unit_label: raw.unit_label || fallback.unit_label,
+        unit_options:
+            Array.isArray(raw.unit_options) && raw.unit_options.length
+                ? raw.unit_options
+                : fallback.unit_options,
+        default_units: Number(raw.default_units) || fallback.default_units,
+        base_unit_monthly_vnd:
+            Number(raw.base_unit_monthly_vnd || raw.base_monthly_vnd || raw.unit_price_vnd) ||
+            fallback.base_unit_monthly_vnd,
+        lead_option: raw.lead_option || fallback.lead_option || raw.name || fallback.name,
+        deliverables:
+            Array.isArray(raw.deliverables) && raw.deliverables.length
+                ? raw.deliverables
+                : fallback.deliverables,
+        payment_schedule: raw.payment_schedule || fallback.payment_schedule,
+        lifecycle_steps:
+            Array.isArray(raw.lifecycle_steps) && raw.lifecycle_steps.length
+                ? raw.lifecycle_steps
+                : fallback.lifecycle_steps,
+        compliance_guarantees:
+            Array.isArray(raw.compliance_guarantees) && raw.compliance_guarantees.length
+                ? raw.compliance_guarantees
+                : fallback.compliance_guarantees,
+    };
+}
+
+/**
+ * Compute deterministic client-side estimate for instant UI responsiveness.
+ * @param {Object} serviceObj
+ * @param {string} scaleTier
+ * @param {number} units
+ * @param {number} durationMonths
+ * @returns {Object}
+ */
+function computeClientEstimate(serviceObj, scaleTier = "growth", units = 4, durationMonths = 6) {
+    const svc = serviceObj || DEFAULT_SERVICES_CATALOG[0];
+    const tierInfo = SCALE_TIER_META[scaleTier] || SCALE_TIER_META.growth;
+    const safeUnits = Math.max(1, Math.min(50, Number(units) || svc.default_units || 2));
+    const safeDuration = [3, 6, 12].includes(Number(durationMonths)) ? Number(durationMonths) : 6;
+    const discountFactor = DURATION_DISCOUNTS[safeDuration] || 1.0;
+
+    const monthlyRaw = svc.base_unit_monthly_vnd * safeUnits * tierInfo.multiplier * discountFactor;
+    const monthlyRounded = Math.round(monthlyRaw / 100000) * 100000;
+    const totalRounded = monthlyRounded * safeDuration;
+
+    const paymentSchedule = Array.isArray(svc.payment_schedule)
+        ? svc.payment_schedule.join(" • ")
+        : String(svc.payment_schedule || "");
+
+    return {
+        service_code: svc.code,
+        service_name: svc.name,
+        scale_tier: tierInfo.key,
+        scale_label: tierInfo.label,
+        units: safeUnits,
+        unit_label: svc.unit_label,
+        duration_months: safeDuration,
+        monthly_vnd: monthlyRounded,
+        total_vnd: totalRounded,
+        formatted_monthly_vnd: `${formatVnd(monthlyRounded)} / tháng`,
+        formatted_total_vnd: formatVnd(totalRounded),
+        payment_schedule: paymentSchedule,
+        lifecycle_steps: Array.isArray(svc.lifecycle_steps) ? svc.lifecycle_steps : [],
+        compliance_guarantees: Array.isArray(svc.compliance_guarantees) ? svc.compliance_guarantees : [],
+    };
+}
+
+/**
  * Innoria Public AI Concierge OWL 2 Component
  */
 export class AiConciergeWidget extends Component {
@@ -121,20 +444,36 @@ export class AiConciergeWidget extends Component {
         this.messagesContainerRef = useRef("messagesContainer");
         this.queryInputRef = useRef("queryInput");
 
+        const initialCatalog = DEFAULT_SERVICES_CATALOG.map((item) => normalizeServiceCard(item));
+        const defaultService = initialCatalog[0];
+        const initialEstimate = computeClientEstimate(defaultService, "growth", defaultService.default_units, 6);
+
         this.state = useState({
             isOpen: false,
             isLoading: false,
+            activeTab: "chat", // 'chat' | 'services' | 'lead'
             showLeadForm: false,
+            proactiveNudgeVisible: true,
+            proactiveNudgeText: "Dự toán phần mềm & Thuê Squad Kỹ sư AI/ERP",
             leadSuccessMessage: null,
             leadErrorMessage: null,
             currentQuery: "",
-            selectedPillar: "enterprise",
+            selectedPillar: "sw_squad",
+            servicesCatalog: initialCatalog,
+            configurator: {
+                service_code: defaultService.code,
+                scale_tier: "growth",
+                units: defaultService.default_units,
+                duration_months: 6,
+                isEstimating: false,
+                estimate: initialEstimate,
+            },
             leadForm: {
                 name: "",
                 email: "",
                 phone: "",
                 company_name: "",
-                product_interest: "Insilos ERP (VAS & Hóa đơn ĐT Nghị định 70/2025)",
+                product_interest: defaultService.lead_option,
                 employee_count: "50 - 200 nhân sự",
                 notes: "",
             },
@@ -142,36 +481,41 @@ export class AiConciergeWidget extends Component {
                 {
                     id: "welcome-01",
                     sender: "assistant",
-                    text: "Kính chào Quý khách! Tôi là Executive AI Concierge của Innoria.\n\nTôi sẵn sàng giải đáp kiến trúc giải pháp, báo giá dự toán và phương pháp luận triển khai cho:\n• **Insilos ERP:** Nền tảng quản trị tài chính kế toán VAS & Hóa đơn điện tử Nghị định 70/2025/NĐ-CP.\n• **Vertical Resilience:** Hệ thống quản trị rủi ro GRC, kiểm soát nội bộ & ISO 27001 / PDPD 13/2023.\n• **Mojo AI:** Tác tử AL2C Swarm, RAG triệt tiêu ảo giác & bóc tách chứng từ thông minh.\n• **Zencode Ent:** Hiện đại hóa mã kế thừa, điều phối cụm AGY Fleet & 13 cổng kiểm soát kỹ thuật.\n\nQuý khách có thể bấm chọn câu hỏi nhanh bên dưới hoặc nhập câu hỏi trực tiếp!",
+                    text: "Kính chào Quý khách! Tôi là **Executive AI Concierge & Kiến trúc sư Dự toán** của Innoria.\n\nTôi hỗ trợ tư vấn kiến trúc, cấu hình đội ngũ kỹ sư phần mềm (Dedicated Co-Dev Squad theo **Thông tư 13/2020/TT-BTTTT**), phát triển phần mềm trọn gói (**SAP Activate**) và báo giá dự toán tức thì cho:\n• **Squad Kỹ Sư Đồng Phát Triển & Turnkey Software:** Xây dựng hệ thống may đo, Web/Mobile App & tích hợp AI/ERP.\n• **Insilos ERP:** Quản trị tài chính kế toán VAS (TT 200/133), WMS & Hóa đơn điện tử **1C26TAA** (Nghị định 70/2025/NĐ-CP).\n• **Vertical Resilience:** Quản trị rủi ro GRC, bảo vệ dữ liệu **ISO 27701 / Nghị định 13/2023** & truy xuất e-CO.\n• **Mojo AI & Zencode Ent:** Tác tử AL2C Swarm, Grounded RAG triệt tiêu ảo giác & Hiện đại hóa mã nguồn kế thừa.\n\nQuý khách có thể chọn trực tiếp gói dịch vụ bên dưới để **Cấu hình & Xem dự toán tự động** hoặc đặt câu hỏi cho AI!",
                     formattedText: null,
+                    service_cards: initialCatalog.slice(0, 4),
                     citations: [
-                        "[KMS | Master Architecture | SOP-00 | innoria]",
-                        "[KMS | AL2C Foundation | SOP-12 | innoria]",
+                        "[KMS | Software Services & TT 13/2020 | SOP-SW-01 | innoria]",
+                        "[KMS | Master Architecture & AL2C | SOP-12 | innoria]",
                     ],
                     citationsExpanded: false,
                     grounded: true,
-                    entailment_score: 0.96,
-                    reason: "Thông tin được trích xuất trực tiếp từ tài liệu kiến trúc quy chuẩn Innoria KMS (SOP-00 đến SOP-12).",
+                    entailment_score: 0.98,
+                    reason: "Thông tin được trích xuất từ khung năng lực Dịch vụ Phần mềm & Giải pháp Doanh nghiệp Innoria KMS (Thông tư 13/2020/TT-BTTTT, Nghị định 70/2025/NĐ-CP, Nghị định 13/2023/NĐ-CP).",
                     suggested_actions: [
                         {
-                            label: "Báo giá ERP Starter",
-                            action: "prompt",
-                            text: "Báo giá và phạm vi triển khai gói Insilos ERP Starter cho doanh nghiệp?",
+                            label: "🧮 Mở Công Cụ Dự Toán Dịch Vụ Phần Mềm",
+                            type: "open_configurator",
+                            action: "open_configurator",
+                            service_code: "sw_squad",
                         },
                         {
-                            label: "Tư vấn GRC & ISO 27001",
+                            label: "👨‍💻 Tư vấn thuê Squad Kỹ sư (TT 13/2020)",
+                            type: "prompt",
                             action: "prompt",
-                            text: "Tư vấn giải pháp quản trị rủi ro GRC và tuân thủ ISO 27001, Nghị định 13/2023?",
+                            prompt: "Tư vấn mô hình thuê Squad Kỹ sư Đồng phát triển theo Thông tư 13/2020/TT-BTTTT và cơ chế nghiệm thu?",
                         },
                         {
-                            label: "Đăng ký Demo Mojo AI",
-                            action: "book_lead",
-                            pillar: "ai",
+                            label: "🏗️ Quy trình Phần mềm Trọn gói (Turnkey)",
+                            type: "prompt",
+                            action: "prompt",
+                            prompt: "Quy trình phát triển phần mềm trọn gói (Turnkey) theo chuẩn SAP Activate và cam kết bàn giao mã nguồn?",
                         },
                         {
-                            label: "Hiện đại hóa mã nguồn Zencode",
-                            action: "prompt",
-                            text: "Năng lực và quy trình hiện đại hóa mã nguồn kế thừa của Zencode Ent?",
+                            label: "📅 Nhận Báo Giá & Hồ Sơ Năng Lực",
+                            type: "open_lead",
+                            action: "open_lead",
+                            service_code: "sw_squad",
                         },
                     ],
                     time: this.getNowTime(),
@@ -182,9 +526,328 @@ export class AiConciergeWidget extends Component {
         // Preformat initial greeting message
         this.state.messages[0].formattedText = markup(parseMarkdownToHtml(this.state.messages[0].text));
 
+        // Bind external website trigger handler
+        this._onDocumentConciergeClick = this._handleDocumentConciergeClick.bind(this);
+
         onMounted(() => {
             this.scrollToBottom();
+            this.loadServicesCatalog();
+            this._registerGlobalBridge();
+            document.addEventListener("click", this._onDocumentConciergeClick);
         });
+
+        onWillUnmount(() => {
+            document.removeEventListener("click", this._onDocumentConciergeClick);
+        });
+    }
+
+    /**
+     * Get currently selected service object in configurator.
+     * @returns {Object}
+     */
+    get currentConfigService() {
+        const found = this.state.servicesCatalog.find(
+            (s) => s.code === this.state.configurator.service_code
+        );
+        return found || this.state.servicesCatalog[0] || DEFAULT_SERVICES_CATALOG[0];
+    }
+
+    /**
+     * Register global window.InnoriaConcierge bridge for website CTA buttons.
+     */
+    _registerGlobalBridge() {
+        window.InnoriaConcierge = {
+            open: (tab = "chat") => {
+                this.state.isOpen = true;
+                this.state.proactiveNudgeVisible = false;
+                this.setActiveTab(tab);
+            },
+            openService: (serviceCode = "sw_squad", mode = "configurator") => {
+                this.state.isOpen = true;
+                this.state.proactiveNudgeVisible = false;
+                if (mode === "lead") {
+                    this.openLeadFormForService(serviceCode);
+                } else {
+                    this.openServiceConfigurator(serviceCode);
+                }
+            },
+            openConfigurator: (serviceCode = "sw_squad") => {
+                this.state.isOpen = true;
+                this.state.proactiveNudgeVisible = false;
+                this.openServiceConfigurator(serviceCode);
+            },
+            askPrompt: (promptText, serviceCode = null) => {
+                this.state.isOpen = true;
+                this.state.proactiveNudgeVisible = false;
+                if (serviceCode) {
+                    this.state.selectedPillar = serviceCode;
+                }
+                this.setActiveTab("chat");
+                if (promptText) {
+                    this.sendQuickPrompt(promptText);
+                }
+            },
+        };
+    }
+
+    /**
+     * Delegated click handler for any website element with [data-concierge-service] or [data-concierge-prompt].
+     * @param {MouseEvent} ev
+     */
+    _handleDocumentConciergeClick(ev) {
+        const trigger = ev.target && ev.target.closest
+            ? ev.target.closest("[data-concierge-service], [data-concierge-prompt]")
+            : null;
+        if (!trigger) {
+            return;
+        }
+        ev.preventDefault();
+        const serviceCode = trigger.getAttribute("data-concierge-service");
+        const promptText = trigger.getAttribute("data-concierge-prompt");
+        const targetTab = trigger.getAttribute("data-concierge-tab");
+
+        this.state.isOpen = true;
+        this.state.proactiveNudgeVisible = false;
+
+        if (promptText) {
+            if (serviceCode) {
+                this.state.selectedPillar = serviceCode;
+            }
+            this.setActiveTab("chat");
+            this.sendQuickPrompt(promptText);
+        } else if (serviceCode) {
+            if (targetTab === "lead") {
+                this.openLeadFormForService(serviceCode);
+            } else {
+                this.openServiceConfigurator(serviceCode);
+            }
+        }
+    }
+
+    /**
+     * Load live software services catalog from backend controller.
+     */
+    async loadServicesCatalog() {
+        try {
+            const result = await callJsonRpc("/innoria/ai_concierge/services_catalog", {});
+            const rawList = result?.services || result?.catalog || (Array.isArray(result) ? result : null);
+            if (Array.isArray(rawList) && rawList.length > 0) {
+                const normalized = rawList.map((item) => normalizeServiceCard(item));
+                this.state.servicesCatalog = normalized;
+                if (this.state.messages.length > 0 && this.state.messages[0].id === "welcome-01") {
+                    this.state.messages[0].service_cards = normalized.slice(0, 4);
+                }
+                this.updateServiceEstimate();
+            }
+        } catch (_err) {
+            // Keep embedded DEFAULT_SERVICES_CATALOG fallback seamlessly
+        }
+    }
+
+    /**
+     * Dismiss the floating proactive nudge pill.
+     * @param {MouseEvent} ev
+     */
+    dismissProactiveNudge(ev) {
+        if (ev && ev.stopPropagation) {
+            ev.stopPropagation();
+        }
+        this.state.proactiveNudgeVisible = false;
+    }
+
+    /**
+     * Open drawer from the proactive nudge pill directly to the Services Configurator or Chat.
+     */
+    openFromProactiveNudge() {
+        this.state.proactiveNudgeVisible = false;
+        this.state.isOpen = true;
+        this.setActiveTab("services");
+    }
+
+    /**
+     * Switch active drawer tab ('chat' | 'services' | 'lead') and synchronize state.showLeadForm.
+     * @param {string} tab
+     */
+    setActiveTab(tab) {
+        const validTab = ["chat", "services", "lead"].includes(tab) ? tab : "chat";
+        this.state.activeTab = validTab;
+        this.state.showLeadForm = validTab === "lead";
+        if (validTab === "chat") {
+            this.scrollToBottom();
+            setTimeout(() => {
+                if (this.queryInputRef && this.queryInputRef.el) {
+                    this.queryInputRef.el.focus();
+                }
+            }, 120);
+        }
+    }
+
+    /**
+     * Open the interactive Software Services Configurator for a specific service code.
+     * @param {string} serviceCode
+     */
+    openServiceConfigurator(serviceCode = "sw_squad") {
+        this.selectConfiguratorService(serviceCode);
+        this.setActiveTab("services");
+    }
+
+    /**
+     * Open Lead Capture Form pre-selected for a specific service code.
+     * @param {string} serviceCode
+     */
+    openLeadFormForService(serviceCode = "sw_squad") {
+        this.selectConfiguratorService(serviceCode);
+        const svc = this.currentConfigService;
+        if (svc) {
+            this.state.leadForm.product_interest = svc.lead_option || svc.name;
+        }
+        this.setActiveTab("lead");
+    }
+
+    /**
+     * Select a service inside the Services Configurator and recalculate estimate.
+     * @param {string} serviceCode
+     */
+    selectConfiguratorService(serviceCode) {
+        const target =
+            this.state.servicesCatalog.find((s) => s.code === serviceCode) ||
+            this.state.servicesCatalog[0];
+        if (!target) {
+            return;
+        }
+        this.state.configurator.service_code = target.code;
+        this.state.selectedPillar = target.code;
+        if (!target.unit_options.includes(this.state.configurator.units)) {
+            this.state.configurator.units = target.default_units || target.unit_options[0] || 2;
+        }
+        this.state.leadForm.product_interest = target.lead_option || target.name;
+        this.updateServiceEstimate();
+    }
+
+    /**
+     * Set scale tier ('starter' | 'growth' | 'enterprise') and update estimate.
+     * @param {string} tierKey
+     */
+    setConfiguratorTier(tierKey) {
+        if (!SCALE_TIER_META[tierKey]) {
+            return;
+        }
+        this.state.configurator.scale_tier = tierKey;
+        this.state.leadForm.employee_count = SCALE_TIER_META[tierKey].employee_hint;
+        this.updateServiceEstimate();
+    }
+
+    /**
+     * Set exact unit count and update estimate.
+     * @param {number} units
+     */
+    setConfiguratorUnits(units) {
+        const safeUnits = Math.max(1, Math.min(50, Number(units) || 1));
+        this.state.configurator.units = safeUnits;
+        this.updateServiceEstimate();
+    }
+
+    /**
+     * Increment or decrement configurator units via - / + controls.
+     * @param {number} delta
+     */
+    adjustConfiguratorUnits(delta) {
+        const next = Math.max(1, Math.min(50, (Number(this.state.configurator.units) || 1) + delta));
+        this.state.configurator.units = next;
+        this.updateServiceEstimate();
+    }
+
+    /**
+     * Set contract/project duration in months (3 | 6 | 12) and update estimate.
+     * @param {number} months
+     */
+    setConfiguratorDuration(months) {
+        const safeMonths = [3, 6, 12].includes(Number(months)) ? Number(months) : 6;
+        this.state.configurator.duration_months = safeMonths;
+        this.updateServiceEstimate();
+    }
+
+    /**
+     * Calculate immediate client-side estimate and synchronize with /innoria/ai_concierge/estimate_service.
+     */
+    async updateServiceEstimate() {
+        const svc = this.currentConfigService;
+        const { scale_tier, units, duration_months } = this.state.configurator;
+
+        // 1. Immediate deterministic calculation (Zero Flicker)
+        const localEst = computeClientEstimate(svc, scale_tier, units, duration_months);
+        this.state.configurator.estimate = localEst;
+
+        // 2. Live server calculation via /innoria/ai_concierge/estimate_service
+        this.state.configurator.isEstimating = true;
+        try {
+            const serverRes = await callJsonRpc("/innoria/ai_concierge/estimate_service", {
+                service_code: svc.code,
+                scale_tier: scale_tier,
+                units: units,
+                duration_months: duration_months,
+            });
+            const payload = serverRes?.estimate || serverRes;
+            if (payload && (payload.formatted_total_vnd || payload.total_vnd)) {
+                const mergedPayment = Array.isArray(payload.payment_schedule)
+                    ? payload.payment_schedule.join(" • ")
+                    : payload.payment_schedule || localEst.payment_schedule;
+                this.state.configurator.estimate = {
+                    ...localEst,
+                    ...payload,
+                    formatted_total_vnd:
+                        payload.formatted_total_vnd || formatVnd(payload.total_vnd || localEst.total_vnd),
+                    formatted_monthly_vnd:
+                        payload.formatted_monthly_vnd ||
+                        `${formatVnd(payload.monthly_vnd || localEst.monthly_vnd)} / tháng`,
+                    payment_schedule: mergedPayment,
+                    lifecycle_steps:
+                        Array.isArray(payload.lifecycle_steps) && payload.lifecycle_steps.length
+                            ? payload.lifecycle_steps
+                            : localEst.lifecycle_steps,
+                    compliance_guarantees:
+                        Array.isArray(payload.compliance_guarantees) && payload.compliance_guarantees.length
+                            ? payload.compliance_guarantees
+                            : localEst.compliance_guarantees,
+                };
+            }
+        } catch (_err) {
+            // Keep deterministic client-side estimate
+        } finally {
+            this.state.configurator.isEstimating = false;
+        }
+    }
+
+    /**
+     * Ask AI Concierge an in-depth architectural question about the currently configured service.
+     */
+    askAiAboutCurrentConfig() {
+        const svc = this.currentConfigService;
+        const est = this.state.configurator.estimate;
+        const promptText =
+            `Tư vấn chuyên sâu gói **${svc.name}** với cấu hình: Quy mô **${est.scale_label}**, ` +
+            `số lượng **${est.units} ${svc.unit_label}**, thời lượng **${est.duration_months} tháng** ` +
+            `(Dự toán: **${est.formatted_total_vnd}**). Xin cho biết chi tiết lộ trình triển khai, cơ chế bàn giao mã nguồn và cam kết SLA?`;
+        this.state.selectedPillar = svc.code;
+        this.setActiveTab("chat");
+        this.sendQuickPrompt(promptText);
+    }
+
+    /**
+     * Proceed from Services Configurator to Lead Capture tab with configured parameters pre-filled.
+     */
+    proceedToLeadWithConfig() {
+        const svc = this.currentConfigService;
+        const est = this.state.configurator.estimate;
+        this.state.leadForm.product_interest = svc.lead_option || svc.name;
+        const configSummary =
+            `[Cấu hình dự toán] Dịch vụ: ${svc.name} | Quy mô: ${est.scale_label} | ` +
+            `Số lượng: ${est.units} ${svc.unit_label} | Thời hạn: ${est.duration_months} tháng | ` +
+            `Tổng dự toán: ${est.formatted_total_vnd}`;
+        if (!this.state.leadForm.notes || this.state.leadForm.notes.startsWith("[Cấu hình dự toán]")) {
+            this.state.leadForm.notes = configSummary;
+        }
+        this.setActiveTab("lead");
     }
 
     /**
@@ -213,6 +876,7 @@ export class AiConciergeWidget extends Component {
     toggleDrawer() {
         this.state.isOpen = !this.state.isOpen;
         if (this.state.isOpen) {
+            this.state.proactiveNudgeVisible = false;
             this.scrollToBottom();
             setTimeout(() => {
                 if (this.queryInputRef && this.queryInputRef.el) {
@@ -232,6 +896,7 @@ export class AiConciergeWidget extends Component {
         this.state.currentQuery = "";
         this.state.leadSuccessMessage = null;
         this.state.leadErrorMessage = null;
+        this.setActiveTab("chat");
         this.scrollToBottom();
     }
 
@@ -240,12 +905,13 @@ export class AiConciergeWidget extends Component {
      * @param {string} pillar
      */
     openLeadForm(pillar = "all") {
-        this.state.showLeadForm = true;
         this.state.leadSuccessMessage = null;
         this.state.leadErrorMessage = null;
 
         if (pillar && pillar !== "all") {
             const pillarMap = {
+                sw_squad: "Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad - TT 13/2020)",
+                sw_turnkey: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - SAP Activate)",
                 erp: "Insilos ERP (VAS & Hóa đơn ĐT Nghị định 70/2025)",
                 grc: "Vertical Resilience (GRC, ISO 27001 & PDPD 13/2023)",
                 ai: "Mojo AI (Tác tử AL2C & Bóc tách thông minh)",
@@ -256,16 +922,16 @@ export class AiConciergeWidget extends Component {
                 this.state.leadForm.product_interest = pillarMap[pillar];
             }
         }
+        this.setActiveTab("lead");
     }
 
     /**
-     * Close lead capture drawer section.
+     * Close lead capture drawer section and return to chat tab.
      */
     closeLeadForm() {
-        this.state.showLeadForm = false;
         this.state.leadSuccessMessage = null;
         this.state.leadErrorMessage = null;
-        this.scrollToBottom();
+        this.setActiveTab("chat");
     }
 
     /**
@@ -306,16 +972,37 @@ export class AiConciergeWidget extends Component {
 
     /**
      * Handle clicks on suggested action chips.
+     * Supports type/action: 'open_configurator', 'open_lead', 'book_lead', 'book_meeting', 'prompt'.
      * @param {Object} act
      */
     onSuggestedActionClick(act) {
-        if (act.action === "book_meeting" || act.action === "book_lead") {
-            this.openLeadForm(act.pillar || this.state.selectedPillar);
-        } else if (act.action === "prompt" || !act.action) {
-            const query = act.text || act.label;
-            this.sendQuickPrompt(query);
-        } else if (act.action === "download_catalog") {
+        if (!act) {
+            return;
+        }
+        const actionType = act.type || act.action || "prompt";
+        const targetService =
+            act.service_code || act.service || act.code || act.pillar || this.state.selectedPillar;
+
+        if (actionType === "open_configurator") {
+            const code = targetService && targetService !== "enterprise" ? targetService : "sw_squad";
+            this.openServiceConfigurator(code);
+        } else if (
+            actionType === "open_lead" ||
+            actionType === "book_meeting" ||
+            actionType === "book_lead"
+        ) {
+            if (act.service_code || act.service || act.code) {
+                this.openLeadFormForService(act.service_code || act.service || act.code);
+            } else {
+                this.openLeadForm(targetService);
+            }
+        } else if (actionType === "download_catalog") {
             this.openLeadForm("enterprise");
+        } else {
+            const query = act.prompt || act.text || act.label;
+            if (query) {
+                this.sendQuickPrompt(query);
+            }
         }
     }
 
@@ -326,6 +1013,51 @@ export class AiConciergeWidget extends Component {
     sendQuickPrompt(promptText) {
         this.state.currentQuery = promptText;
         this.sendMessage();
+    }
+
+    /**
+     * Resolve matching service cards for a given query or pillar when backend does not return service_cards.
+     * @param {string} query
+     * @param {string} matchedPillar
+     * @returns {Array<Object>}
+     */
+    _resolveRelevantServiceCards(query, matchedPillar) {
+        const q = String(query || "").toLowerCase();
+        const matches = [];
+        const addByCode = (code) => {
+            const found = this.state.servicesCatalog.find((s) => s.code === code);
+            if (found && !matches.some((m) => m.code === found.code)) {
+                matches.push(found);
+            }
+        };
+
+        if (q.includes("squad") || q.includes("thuê") || q.includes("13/2020") || q.includes("kỹ sư")) {
+            addByCode("sw_squad");
+        }
+        if (q.includes("trọn gói") || q.includes("turnkey") || q.includes("phần mềm") || q.includes("activate")) {
+            addByCode("sw_turnkey");
+        }
+        if (q.includes("erp") || q.includes("kế toán") || q.includes("hđđt") || q.includes("1c26taa") || q.includes("70/2025")) {
+            addByCode("erp");
+        }
+        if (q.includes("grc") || q.includes("27701") || q.includes("27001") || q.includes("13/2023") || q.includes("e-co")) {
+            addByCode("grc");
+        }
+        if (q.includes("ai") || q.includes("mojo") || q.includes("rag") || q.includes("bóc tách")) {
+            addByCode("ai");
+        }
+        if (q.includes("zencode") || q.includes("hiện đại hóa") || q.includes("legacy") || q.includes("fleet")) {
+            addByCode("zencode");
+        }
+
+        if (matchedPillar && matchedPillar !== "enterprise") {
+            addByCode(matchedPillar);
+        }
+        if (matches.length === 0) {
+            addByCode("sw_squad");
+            addByCode("sw_turnkey");
+        }
+        return matches.slice(0, 3);
     }
 
     /**
@@ -356,11 +1088,18 @@ export class AiConciergeWidget extends Component {
             });
 
             if (result && result.success) {
+                const matchedPillar = result.matched_pillar || this.state.selectedPillar;
+                const serviceCards =
+                    Array.isArray(result.service_cards) && result.service_cards.length
+                        ? result.service_cards.map((c) => normalizeServiceCard(c))
+                        : this._resolveRelevantServiceCards(query, matchedPillar);
+
                 this.state.messages.push({
                     id: `ai-${Date.now()}`,
                     sender: "assistant",
                     text: result.answer,
                     formattedText: markup(parseMarkdownToHtml(result.answer)),
+                    service_cards: serviceCards,
                     citations: result.citations || [],
                     citationsExpanded: false,
                     grounded: result.grounded !== false,
@@ -379,6 +1118,7 @@ export class AiConciergeWidget extends Component {
                     sender: "assistant",
                     text: errorMsg,
                     formattedText: markup(parseMarkdownToHtml(errorMsg)),
+                    service_cards: this._resolveRelevantServiceCards(query, this.state.selectedPillar),
                     citations: [],
                     citationsExpanded: false,
                     grounded: false,
@@ -386,7 +1126,14 @@ export class AiConciergeWidget extends Component {
                     reason: "",
                     suggested_actions: [
                         {
-                            label: "Đăng Ký Tư Vấn Trực Tiếp",
+                            label: "🧮 Dự Toán Dịch Vụ Phần Mềm",
+                            type: "open_configurator",
+                            action: "open_configurator",
+                            service_code: "sw_squad",
+                        },
+                        {
+                            label: "📅 Đăng Ký Tư Vấn Trực Tiếp",
+                            type: "open_lead",
                             action: "book_lead",
                             pillar: this.state.selectedPillar,
                         },
@@ -396,12 +1143,13 @@ export class AiConciergeWidget extends Component {
             }
         } catch (err) {
             const fallbackText =
-                "Đã xảy ra sự cố kết nối tới dịch vụ AI Concierge. Quý khách vui lòng thử lại hoặc gửi yêu cầu tư vấn để Chuyên gia Innoria hỗ trợ trực tiếp.";
+                "Đã xảy ra sự cố kết nối tới dịch vụ AI Concierge. Quý khách có thể sử dụng ngay tab **🧮 Dịch Vụ & Dự Toán** hoặc gửi yêu cầu để Chuyên gia Innoria hỗ trợ trực tiếp.";
             this.state.messages.push({
                 id: `ai-err-${Date.now()}`,
                 sender: "assistant",
                 text: fallbackText,
                 formattedText: markup(parseMarkdownToHtml(fallbackText)),
+                service_cards: this._resolveRelevantServiceCards(query, this.state.selectedPillar),
                 citations: [],
                 citationsExpanded: false,
                 grounded: false,
@@ -409,7 +1157,14 @@ export class AiConciergeWidget extends Component {
                 reason: err.message || "",
                 suggested_actions: [
                     {
-                        label: "Đăng Ký Tư Vấn Doanh Nghiệp",
+                        label: "🧮 Mở Công Cụ Dự Toán",
+                        type: "open_configurator",
+                        action: "open_configurator",
+                        service_code: "sw_squad",
+                    },
+                    {
+                        label: "📅 Đăng Ký Tư Vấn Doanh Nghiệp",
+                        type: "open_lead",
                         action: "book_lead",
                         pillar: "enterprise",
                     },
@@ -423,7 +1178,7 @@ export class AiConciergeWidget extends Component {
     }
 
     /**
-     * Submit lead capture form to /innoria/ai_concierge/book_lead.
+     * Submit lead capture form to /innoria/ai_concierge/book_lead including configurator parameters.
      */
     async submitLeadForm() {
         const form = this.state.leadForm;
@@ -444,6 +1199,9 @@ export class AiConciergeWidget extends Component {
         this.state.leadSuccessMessage = null;
         this.state.isLoading = true;
 
+        const cfg = this.state.configurator;
+        const est = cfg.estimate || {};
+
         try {
             const result = await callJsonRpc("/innoria/ai_concierge/book_lead", {
                 name: form.name.trim(),
@@ -453,19 +1211,25 @@ export class AiConciergeWidget extends Component {
                 product_interest: form.product_interest,
                 employee_count: form.employee_count,
                 notes: form.notes ? form.notes.trim() : "",
+                service_code: cfg.service_code,
+                scale_tier: cfg.scale_tier,
+                units: cfg.units,
+                duration_months: cfg.duration_months,
+                estimated_total_vnd: est.total_vnd || 0,
             });
 
             if (result && result.success) {
                 const successMsg =
-                    result.message || "Yêu cầu khảo sát của Quý khách đã được tiếp nhận thành công.";
+                    result.message || "Yêu cầu khảo sát và báo giá của Quý khách đã được tiếp nhận thành công.";
                 this.state.leadSuccessMessage = successMsg;
 
                 // Add confirmation assistant message to chat thread
                 const confirmText =
-                    `🎉 **Tiếp nhận hồ sơ thành công!**\n\n` +
+                    `🎉 **Tiếp nhận hồ sơ & cấu hình dự toán thành công!**\n\n` +
                     `Kính chào Quý khách **${form.name}** (${form.company_name}), yêu cầu tư vấn giải pháp **${form.product_interest}** ` +
                     `đã được khởi tạo thành công trên hệ thống Innoria AL2C.\n` +
                     `• **Mã hồ sơ CRM:** #${result.lead_id} (${result.lead_name})\n` +
+                    `• **Cấu hình dự toán:** ${est.scale_label || cfg.scale_tier} • ${cfg.units} ${est.unit_label || "đơn vị"} • ${cfg.duration_months} tháng (**${est.formatted_total_vnd || "Theo khảo sát"}**)\n` +
                     `• **Điểm đánh giá tiềm năng B2B (Fit Score):** ${Math.round(result.fit_score)}/100\n` +
                     `• **Phân hạng:** ${result.qualification_state === "qualified" ? "Ưu tiên cao (Qualified)" : "Đang xử lý (In Progress)"}\n\n` +
                     `Chuyên gia Solution Architect phụ trách khối doanh nghiệp sẽ liên hệ với Quý khách qua **${form.email || form.phone}** trong vòng 24 giờ làm việc.`;
@@ -475,21 +1239,22 @@ export class AiConciergeWidget extends Component {
                     sender: "assistant",
                     text: confirmText,
                     formattedText: markup(parseMarkdownToHtml(confirmText)),
+                    service_cards: [],
                     citations: ["[KMS | Lead-to-Cash SLA | SOP-AI-004 | innoria]"],
                     citationsExpanded: false,
                     grounded: true,
                     entailment_score: 1.0,
-                    reason: "Đã tạo Lead trên hệ thống crm.lead với BANT qualification và cam kết SLA phản hồi 24h.",
+                    reason: "Đã tạo Lead trên hệ thống crm.lead với BANT qualification, cấu hình dự toán dịch vụ và cam kết SLA phản hồi 24h.",
                     suggested_actions: [],
                     time: this.getNowTime(),
                 });
 
-                // Auto-close lead drawer after 2.5 seconds and return to chat view
+                // Auto-close lead drawer after 2.2 seconds and return to chat view
                 setTimeout(() => {
-                    this.state.showLeadForm = false;
+                    this.setActiveTab("chat");
                     this.state.leadSuccessMessage = null;
                     this.scrollToBottom();
-                }, 2500);
+                }, 2200);
 
                 // Reset notes
                 this.state.leadForm.notes = "";
@@ -530,7 +1295,7 @@ whenReady(async () => {
         el.dataset.conciergeMounted = "true";
         try {
             await mountComponent(AiConciergeWidget, el, { name: "Innoria AI Concierge" });
-        } catch (err) {
+        } catch (_err) {
             // Handled or already mounted by interaction
         }
     }

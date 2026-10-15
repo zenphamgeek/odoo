@@ -1,5 +1,5 @@
 // =============================================================================
-// INNORIA PUBLIC AI CONCIERGE — LIGHT MODE SCSS BUNDLE
+// INNORIA PUBLIC AI CONCIERGE & SERVICES CONFIGURATOR — LIGHT MODE SCSS BUNDLE
 // Part of Insilos AL2C Enterprise Architecture (SOP-AI-004 & SOP-RAG-003)
 // Adheres strictly to AGENTS.md Rule 1 (Native QWeb/Bootstrap 5 SCSS)
 // and Rule 4 (Sovereign Dark Mode Token Architecture - Zero Bare White Surfaces)
@@ -7,7 +7,7 @@
 // =============================================================================
 
 :root {
-    // 1. Surface and Canvas Hierarchy (Zero Bare White)
+    // 1. Surface and Canvas Hierarchy (Zero Bare White in component rules)
     --al2c-concierge-bg-canvas: var(--insilos-bg-canvas, #F4F6F9);
     --al2c-concierge-bg-surface: var(--insilos-bg-surface, #FFFFFF);
     --al2c-concierge-bg-card: var(--insilos-bg-card, #FFFFFF);
@@ -83,6 +83,74 @@
     color: var(--al2c-concierge-text-primary);
 }
 
+// 0. Proactive Context Nudge Pill
+.al2c-proactive-nudge {
+    position: fixed;
+    bottom: 32px;
+    right: 96px;
+    z-index: var(--al2c-concierge-zindex);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px 8px 10px;
+    border-radius: 999px;
+    background: var(--al2c-concierge-bg-surface);
+    border: 1px solid var(--al2c-concierge-border-medium);
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+    cursor: pointer;
+    max-width: calc(100vw - 120px);
+    transition: transform 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+        transform: translateY(-2px);
+        border-color: var(--al2c-concierge-primary);
+    }
+
+    .al2c-nudge-badge {
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #0070F2 0%, #0ABBDB 100%);
+        color: var(--al2c-concierge-text-on-primary);
+        font-size: 10.5px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .al2c-nudge-text {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--al2c-concierge-text-primary);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .al2c-nudge-dismiss {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: none;
+        background: var(--al2c-concierge-bg-subtle);
+        color: var(--al2c-concierge-text-muted);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        cursor: pointer;
+        padding: 0;
+        flex-shrink: 0;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+            color: var(--al2c-concierge-text-primary);
+        }
+    }
+
+    @media (max-width: 576px) {
+        display: none;
+    }
+}
+
 // 1. Floating Action Launcher Button
 .al2c-concierge-launcher {
     position: fixed;
@@ -128,7 +196,7 @@
     }
 
     .al2c-launcher-icon-close {
-        color: #ffffff;
+        color: var(--al2c-concierge-text-on-primary);
         font-size: 22px;
     }
 
@@ -145,15 +213,15 @@
     }
 }
 
-// 2. Chat Drawer Container
+// 2. Chat & Configurator Drawer Container
 .al2c-concierge-drawer {
     position: fixed;
     bottom: 96px;
     right: 24px;
-    width: 420px;
+    width: 448px;
     max-width: calc(100vw - 32px);
-    height: 640px;
-    max-height: calc(100vh - 120px);
+    height: 670px;
+    max-height: calc(100vh - 116px);
     background: var(--al2c-concierge-bg-surface);
     border: 1px solid var(--al2c-concierge-border-subtle);
     border-radius: 16px;
@@ -195,7 +263,7 @@
 
 // Drawer Header
 .al2c-concierge-header {
-    padding: 12px 16px;
+    padding: 11px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -283,11 +351,48 @@
     }
 }
 
+// 3-Tab Interactive Navigation Bar
+.al2c-concierge-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 6px 12px;
+    background: var(--al2c-concierge-bg-subtle);
+    border-bottom: 1px solid var(--al2c-concierge-border-subtle);
+    flex-shrink: 0;
+
+    .al2c-tab-btn {
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--al2c-concierge-text-secondary);
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 6px 8px;
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        white-space: nowrap;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+            color: var(--al2c-concierge-text-primary);
+        }
+
+        &.is-active {
+            background: var(--al2c-concierge-bg-card);
+            color: var(--al2c-concierge-primary);
+            border-color: var(--al2c-concierge-border-medium);
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+        }
+    }
+}
+
 // Messages Viewport
 .al2c-messages-viewport {
     flex: 1 1 auto;
     overflow-y: auto;
-    padding: 16px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
     gap: 14px;
@@ -343,13 +448,13 @@
 
         &.user {
             align-items: flex-end;
-            max-width: 82%;
+            max-width: 84%;
         }
     }
 
     .al2c-bubble {
         padding: 12px 14px;
-        font-size: 13.5px;
+        font-size: 13px;
         line-height: 1.55;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 
@@ -409,6 +514,101 @@
         &.user {
             margin-right: 4px;
             margin-left: 0;
+        }
+    }
+}
+
+// Interactive Software Service Cards inside Assistant Messages
+.al2c-service-cards-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+
+    .al2c-service-card {
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        border-radius: 10px;
+        padding: 10px 12px;
+        transition: border-color 0.15s ease;
+
+        &:hover {
+            border-color: var(--al2c-concierge-border-medium);
+        }
+    }
+
+    .al2c-service-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        margin-bottom: 4px;
+    }
+
+    .al2c-service-card-badge {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: rgba(0, 112, 242, 0.1);
+        color: var(--al2c-concierge-primary);
+    }
+
+    .al2c-service-card-price {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--al2c-concierge-badge-green);
+    }
+
+    .al2c-service-card-title {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--al2c-concierge-text-primary);
+        margin-bottom: 3px;
+    }
+
+    .al2c-service-card-summary {
+        font-size: 11.5px;
+        color: var(--al2c-concierge-text-secondary);
+        line-height: 1.4;
+        margin-bottom: 8px;
+    }
+
+    .al2c-service-card-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .al2c-service-card-btn {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 5px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.15s ease;
+
+        &.config {
+            background: var(--al2c-concierge-bg-subtle);
+            border: 1px solid var(--al2c-concierge-border-medium);
+            color: var(--al2c-concierge-text-primary);
+
+            &:hover {
+                background: var(--al2c-concierge-bg-hover);
+                border-color: var(--al2c-concierge-primary);
+                color: var(--al2c-concierge-primary);
+            }
+        }
+
+        &.quote {
+            background: var(--al2c-concierge-primary);
+            border: 1px solid var(--al2c-concierge-primary);
+            color: var(--al2c-concierge-text-on-primary);
+
+            &:hover {
+                background: var(--al2c-concierge-primary-hover);
+            }
         }
     }
 }
@@ -546,13 +746,13 @@
 
 // Quick Prompt Chips Bar
 .al2c-quick-prompts-bar {
-    padding: 8px 16px;
+    padding: 8px 14px;
     background: var(--al2c-concierge-bg-surface);
     border-top: 1px solid var(--al2c-concierge-border-subtle);
     flex-shrink: 0;
 
     .al2c-quick-label {
-        font-size: 11px;
+        font-size: 10.5px;
         font-weight: 600;
         color: var(--al2c-concierge-text-muted);
         margin-bottom: 5px;
@@ -571,7 +771,7 @@
 
     .al2c-quick-chip {
         padding: 4px 10px;
-        font-size: 11.5px;
+        font-size: 11px;
         border-radius: 12px;
         background: var(--al2c-concierge-bg-subtle);
         border: 1px solid var(--al2c-concierge-border-subtle);
@@ -615,7 +815,7 @@
         border: none;
         background: transparent;
         color: var(--al2c-concierge-text-primary);
-        font-size: 13.5px;
+        font-size: 13px;
         line-height: 1.4;
         resize: none;
         outline: none;
@@ -635,7 +835,7 @@
         height: 34px;
         border-radius: 8px;
         background: var(--al2c-concierge-primary);
-        color: #ffffff;
+        color: var(--al2c-concierge-text-on-primary);
         border: none;
         display: flex;
         align-items: center;
@@ -663,7 +863,312 @@
     }
 }
 
-// 3. Lead Capture Form Section
+// =============================================================================
+// TAB 2: INTERACTIVE SOFTWARE SERVICES CONFIGURATOR ('services')
+// =============================================================================
+.al2c-configurator-section {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--al2c-concierge-bg-canvas);
+
+    .al2c-cfg-block {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .al2c-cfg-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: var(--al2c-concierge-text-secondary);
+    }
+
+    .al2c-cfg-service-pills {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+    }
+
+    .al2c-cfg-service-pill {
+        padding: 7px 10px;
+        border-radius: 8px;
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        color: var(--al2c-concierge-text-secondary);
+        font-size: 11.5px;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+            border-color: var(--al2c-concierge-border-medium);
+        }
+
+        &.is-selected {
+            background: rgba(0, 112, 242, 0.1);
+            border-color: var(--al2c-concierge-primary);
+            color: var(--al2c-concierge-primary);
+        }
+    }
+
+    .al2c-cfg-service-overview {
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+
+        .al2c-cfg-service-title {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--al2c-concierge-text-primary);
+        }
+
+        .al2c-cfg-service-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0, 112, 242, 0.1);
+            color: var(--al2c-concierge-primary);
+            white-space: nowrap;
+        }
+
+        .al2c-cfg-service-desc {
+            font-size: 11.5px;
+            color: var(--al2c-concierge-text-secondary);
+            line-height: 1.45;
+        }
+    }
+
+    .al2c-cfg-tier-grid,
+    .al2c-cfg-duration-pills {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+    }
+
+    .al2c-cfg-option-btn {
+        padding: 6px 8px;
+        border-radius: 7px;
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        color: var(--al2c-concierge-text-secondary);
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.15s ease;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+        }
+
+        &.is-selected {
+            background: var(--al2c-concierge-primary);
+            border-color: var(--al2c-concierge-primary);
+            color: var(--al2c-concierge-text-on-primary);
+        }
+    }
+
+    .al2c-cfg-row {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .al2c-cfg-units-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .al2c-cfg-unit-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .al2c-cfg-unit-pill {
+        min-width: 34px;
+        height: 30px;
+        padding: 0 8px;
+        border-radius: 6px;
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        color: var(--al2c-concierge-text-secondary);
+        font-size: 11.5px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &.is-selected {
+            background: var(--al2c-concierge-primary);
+            border-color: var(--al2c-concierge-primary);
+            color: var(--al2c-concierge-text-on-primary);
+        }
+    }
+
+    .al2c-cfg-stepper {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--al2c-concierge-border-medium);
+        border-radius: 7px;
+        background: var(--al2c-concierge-bg-card);
+        overflow: hidden;
+
+        .al2c-stepper-btn {
+            width: 28px;
+            height: 28px;
+            border: none;
+            background: var(--al2c-concierge-bg-subtle);
+            color: var(--al2c-concierge-text-primary);
+            font-weight: 700;
+            cursor: pointer;
+
+            &:hover {
+                background: var(--al2c-concierge-bg-hover);
+            }
+        }
+
+        .al2c-stepper-val {
+            min-width: 32px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--al2c-concierge-text-primary);
+        }
+    }
+
+    // Live Estimate Card
+    .al2c-estimate-card {
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid var(--al2c-concierge-border-medium);
+        border-radius: 12px;
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+    }
+
+    .al2c-estimate-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--al2c-concierge-border-subtle);
+    }
+
+    .al2c-estimate-caption {
+        font-size: 10.5px;
+        color: var(--al2c-concierge-text-muted);
+        margin-bottom: 2px;
+    }
+
+    .al2c-estimate-total {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--al2c-concierge-primary);
+        line-height: 1.2;
+    }
+
+    .al2c-estimate-monthly-box {
+        text-align: right;
+    }
+
+    .al2c-estimate-monthly {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--al2c-concierge-badge-green);
+    }
+
+    .al2c-estimate-details {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .al2c-estimate-detail-group {
+        font-size: 11.5px;
+    }
+
+    .al2c-estimate-detail-title {
+        font-weight: 700;
+        color: var(--al2c-concierge-text-primary);
+        margin-bottom: 2px;
+    }
+
+    .al2c-estimate-detail-text {
+        color: var(--al2c-concierge-text-secondary);
+        line-height: 1.4;
+    }
+
+    .al2c-estimate-list {
+        margin: 2px 0 0;
+        padding-left: 16px;
+        color: var(--al2c-concierge-text-secondary);
+        line-height: 1.4;
+
+        li {
+            margin-bottom: 2px;
+        }
+    }
+
+    .al2c-estimate-ctas {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        padding-top: 6px;
+        border-top: 1px dashed var(--al2c-concierge-border-subtle);
+    }
+
+    .al2c-btn-cfg-ask {
+        width: 100%;
+        padding: 7px 12px;
+        border-radius: 8px;
+        background: var(--al2c-concierge-bg-subtle);
+        border: 1px solid var(--al2c-concierge-border-medium);
+        color: var(--al2c-concierge-text-primary);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+
+        &:hover {
+            background: var(--al2c-concierge-bg-hover);
+            border-color: var(--al2c-concierge-primary);
+            color: var(--al2c-concierge-primary);
+        }
+    }
+
+    .al2c-btn-cfg-proceed {
+        width: 100%;
+        padding: 9px 12px;
+        border-radius: 8px;
+        background: var(--al2c-concierge-primary);
+        border: none;
+        color: var(--al2c-concierge-text-on-primary);
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+
+        &:hover {
+            background: var(--al2c-concierge-primary-hover);
+        }
+    }
+}
+
+// =============================================================================
+// TAB 3: LEAD CAPTURE FORM SECTION ('lead')
+// =============================================================================
 .al2c-lead-section {
     flex: 1 1 auto;
     overflow-y: auto;
@@ -672,7 +1177,7 @@
     background: var(--al2c-concierge-bg-surface);
 
     .al2c-lead-header {
-        padding: 14px 16px;
+        padding: 12px 16px;
         border-bottom: 1px solid var(--al2c-concierge-border-subtle);
     }
 
@@ -695,7 +1200,7 @@
     }
 
     .al2c-lead-title {
-        font-size: 14.5px;
+        font-size: 14px;
         font-weight: 600;
         color: var(--al2c-concierge-text-primary);
     }
@@ -706,11 +1211,62 @@
     }
 
     .al2c-lead-body {
-        padding: 16px;
+        padding: 14px 16px;
         flex: 1 1 auto;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 10px;
+    }
+
+    .al2c-lead-config-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: var(--al2c-concierge-bg-subtle);
+        border: 1px solid var(--al2c-concierge-border-medium);
+
+        .al2c-lead-config-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--al2c-concierge-text-muted);
+        }
+
+        .al2c-lead-config-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--al2c-concierge-text-primary);
+        }
+
+        .al2c-lead-config-meta {
+            font-size: 11px;
+            color: var(--al2c-concierge-text-secondary);
+        }
+
+        .al2c-lead-config-price {
+            font-size: 12px;
+            color: var(--al2c-concierge-primary);
+            margin-top: 2px;
+        }
+
+        .al2c-btn-edit-config {
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            border-radius: 6px;
+            background: var(--al2c-concierge-bg-card);
+            border: 1px solid var(--al2c-concierge-border-medium);
+            color: var(--al2c-concierge-text-primary);
+            white-space: nowrap;
+
+            &:hover {
+                border-color: var(--al2c-concierge-primary);
+                color: var(--al2c-concierge-primary);
+            }
+        }
     }
 
     .al2c-form-group {
@@ -785,7 +1341,7 @@
         padding: 9px 16px;
         border-radius: 8px;
         background: var(--al2c-concierge-primary);
-        color: #ffffff;
+        color: var(--al2c-concierge-text-on-primary);
         border: none;
         font-size: 13px;
         font-weight: 600;

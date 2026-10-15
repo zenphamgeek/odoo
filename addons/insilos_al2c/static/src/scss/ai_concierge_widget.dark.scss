@@ -1,7 +1,7 @@
 // =============================================================================
-// INNORIA PUBLIC AI CONCIERGE — SOVEREIGN DARK MODE SCSS BUNDLE
+// INNORIA PUBLIC AI CONCIERGE & CONFIGURATOR — SOVEREIGN DARK MODE SCSS BUNDLE
 // Part of Insilos AL2C Enterprise Architecture (SOP-AI-004 & SOP-RAG-003)
-// Adheres strictly to AGENTS.md Rule 4 (Dual-Asset Bundle Segregation & Zero Bare White)
+// Adheres strictly to AGENTS.md Rule 4 & 9.1 (Dual-Asset Bundle Segregation & Zero Bare White)
 // Registered under web.assets_web_dark in __manifest__.py
 // =============================================================================
 
@@ -34,7 +34,7 @@ body.o_dark_mode,
     --al2c-concierge-text-primary: #F8FAFC;
     --al2c-concierge-text-secondary: #CBD5E1;
     --al2c-concierge-text-muted: #94A3B8;
-    --al2c-concierge-text-on-primary: #070B14;
+    --al2c-concierge-text-on-primary: #F8FAFC;
 
     // 4. High-Contrast Tech Cyan Accents
     --al2c-concierge-primary: #00F2FE;
@@ -52,9 +52,26 @@ body.o_dark_mode,
 [data-bs-theme="dark"],
 body.o_dark_mode,
 .o_dark_mode {
+    .al2c-proactive-nudge {
+        background: #0F172A;
+        border-color: rgba(0, 242, 254, 0.3);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+    }
+
     .al2c-concierge-drawer {
         border-color: rgba(255, 255, 255, 0.14);
         box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+    }
+
+    .al2c-concierge-tabs {
+        background: #0B1120;
+        border-color: rgba(255, 255, 255, 0.12);
+
+        .al2c-tab-btn.is-active {
+            background: #1E293B;
+            color: #00F2FE;
+            border-color: rgba(0, 242, 254, 0.35);
+        }
     }
 
     .al2c-bubble-assistant {
@@ -63,7 +80,53 @@ body.o_dark_mode,
 
     .al2c-bubble-user {
         background: #0070F2;
-        color: #FFFFFF;
+        color: var(--al2c-concierge-text-on-primary);
+    }
+
+    .al2c-service-cards-grid {
+        .al2c-service-card {
+            background: #0F172A;
+            border-color: rgba(255, 255, 255, 0.14);
+        }
+
+        .al2c-service-card-badge {
+            background: rgba(0, 242, 254, 0.14);
+            color: #00F2FE;
+        }
+
+        .al2c-service-card-btn.quote {
+            background: #0070F2;
+            border-color: #0070F2;
+            color: var(--al2c-concierge-text-on-primary);
+
+            &:hover {
+                background: #005BB5;
+            }
+        }
+    }
+
+    .al2c-configurator-section {
+        .al2c-cfg-service-pill.is-selected {
+            background: rgba(0, 242, 254, 0.14);
+            border-color: #00F2FE;
+            color: #00F2FE;
+        }
+
+        .al2c-cfg-option-btn.is-selected,
+        .al2c-cfg-unit-pill.is-selected {
+            background: #0070F2;
+            border-color: #0070F2;
+            color: var(--al2c-concierge-text-on-primary);
+        }
+
+        .al2c-btn-cfg-proceed {
+            background: #0070F2;
+            color: var(--al2c-concierge-text-on-primary);
+
+            &:hover {
+                background: #005BB5;
+            }
+        }
     }
 
     .al2c-citation-chip {
@@ -126,7 +189,7 @@ body.o_dark_mode,
 
     .al2c-btn-send {
         background: #0070F2;
-        color: #FFFFFF;
+        color: var(--al2c-concierge-text-on-primary);
 
         &:not(:disabled):hover {
             background: #005BB5;
@@ -135,7 +198,7 @@ body.o_dark_mode,
 
     .al2c-btn-primary {
         background: #0070F2;
-        color: #FFFFFF;
+        color: var(--al2c-concierge-text-on-primary);
 
         &:hover {
             background: #005BB5;

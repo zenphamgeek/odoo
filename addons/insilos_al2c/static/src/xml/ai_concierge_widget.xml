@@ -1,21 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <templates xml:space="preserve">
     <!-- =====================================================================
-         INNORIA PUBLIC AI CONCIERGE OWL 2 COMPONENT TEMPLATE
+         INNORIA PUBLIC AI CONCIERGE & SOFTWARE SERVICES CONFIGURATOR (OWL 2)
          Platform: Innoria Enterprise / Insilos AL2C
          Design: IBM Carbon Typography & SAP Fiori Horizon Standards
          Architecture: OWL 2 Reactive Component, Grounded KMS, Zero Bare White
          ===================================================================== -->
     <t t-name="innoria.ai_concierge_widget">
         <div class="al2c-concierge-root">
+            <!-- 0. Proactive Context Nudge Pill -->
+            <t t-if="!state.isOpen and state.proactiveNudgeVisible">
+                <div
+                    class="al2c-proactive-nudge"
+                    role="button"
+                    tabindex="0"
+                    t-on-click="this.openFromProactiveNudge"
+                    title="Khám phá Dịch vụ Phần mềm &amp; Dự toán tự động"
+                >
+                    <span class="al2c-nudge-badge">AI Dự Toán</span>
+                    <span class="al2c-nudge-text" t-esc="state.proactiveNudgeText"/>
+                    <button
+                        type="button"
+                        class="al2c-nudge-dismiss"
+                        t-on-click="(ev) => this.dismissProactiveNudge(ev)"
+                        title="Đóng gợi ý"
+                        aria-label="Đóng gợi ý"
+                    >
+                        <i class="fa fa-times" aria-hidden="true"/>
+                    </button>
+                </div>
+            </t>
+
             <!-- 1. Floating Action Launcher Button -->
             <button
                 type="button"
                 class="al2c-concierge-launcher"
                 t-att-class="{'is-active': state.isOpen}"
                 t-on-click="this.toggleDrawer"
-                title="Trợ Lý AI Doanh Nghiệp Innoria"
-                aria-label="Trợ Lý AI Doanh Nghiệp Innoria"
+                title="Trợ Lý AI &amp; Dự Toán Dịch Vụ Phần Mềm Innoria"
+                aria-label="Trợ Lý AI &amp; Dự Toán Dịch Vụ Phần Mềm Innoria"
             >
                 <div class="al2c-launcher-content">
                     <t t-if="state.isOpen">
@@ -32,7 +55,7 @@
                 </div>
             </button>
 
-            <!-- 2. Chat Drawer Container -->
+            <!-- 2. Chat & Services Configurator Drawer Container -->
             <div
                 class="al2c-concierge-drawer"
                 t-att-class="{'is-open': state.isOpen}"
@@ -55,13 +78,13 @@
                             <h6 id="al2c-concierge-title" class="al2c-header-title">Innoria AI Concierge</h6>
                             <div class="al2c-status-badge">
                                 <span class="al2c-status-dot" aria-hidden="true"/>
-                                <span class="al2c-status-text">Online • Grounded RAG</span>
+                                <span class="al2c-status-text">Grounded RAG • Software &amp; ERP</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="al2c-header-actions">
-                        <t t-if="!state.showLeadForm">
+                        <t t-if="state.activeTab !== 'lead'">
                             <button
                                 type="button"
                                 class="btn al2c-btn-header-quote"
@@ -104,8 +127,44 @@
                     </div>
                 </header>
 
-                <!-- Lead Capture Form Drawer Section -->
-                <t t-if="state.showLeadForm">
+                <!-- 3-Tab Interactive Navigation Bar -->
+                <nav class="al2c-concierge-tabs" role="tablist" aria-label="Điều hướng AI Concierge">
+                    <button
+                        type="button"
+                        role="tab"
+                        class="al2c-tab-btn"
+                        t-att-class="{'is-active': state.activeTab === 'chat'}"
+                        t-att-aria-selected="state.activeTab === 'chat' ? 'true' : 'false'"
+                        t-on-click="() => this.setActiveTab('chat')"
+                    >
+                        <span>💬 Hội Thoại AI</span>
+                    </button>
+                    <button
+                        type="button"
+                        role="tab"
+                        class="al2c-tab-btn"
+                        t-att-class="{'is-active': state.activeTab === 'services'}"
+                        t-att-aria-selected="state.activeTab === 'services' ? 'true' : 'false'"
+                        t-on-click="() => this.setActiveTab('services')"
+                    >
+                        <span>🧮 Dịch Vụ &amp; Dự Toán</span>
+                    </button>
+                    <button
+                        type="button"
+                        role="tab"
+                        class="al2c-tab-btn"
+                        t-att-class="{'is-active': state.activeTab === 'lead'}"
+                        t-att-aria-selected="state.activeTab === 'lead' ? 'true' : 'false'"
+                        t-on-click="() => this.setActiveTab('lead')"
+                    >
+                        <span>📅 Nhận Báo Giá</span>
+                    </button>
+                </nav>
+
+                <!-- =========================================================
+                     TAB 3: LEAD CAPTURE FORM SECTION ('lead')
+                     ========================================================= -->
+                <t t-if="state.activeTab === 'lead' or state.showLeadForm">
                     <section class="al2c-lead-section">
                         <div class="al2c-lead-header">
                             <div class="d-flex align-items-center gap-2">
@@ -119,13 +178,45 @@
                                     <i class="fa fa-arrow-left" aria-hidden="true"/>
                                 </button>
                                 <div>
-                                    <h5 class="al2c-lead-title mb-0">Đăng Ký Tư Vấn Doanh Nghiệp</h5>
-                                    <p class="al2c-lead-subtitle mb-0">Chuyên gia Solution Architect sẽ liên hệ trong 24 giờ</p>
+                                    <h5 class="al2c-lead-title mb-0">Đăng Ký Tư Vấn &amp; Nhận Báo Giá</h5>
+                                    <p class="al2c-lead-subtitle mb-0">Solution Architect sẽ gửi hồ sơ dự toán chi tiết trong 24 giờ</p>
                                 </div>
                             </div>
                         </div>
 
                         <div class="al2c-lead-body">
+                            <!-- Configured Service & Estimate Summary Banner -->
+                            <t t-if="state.configurator and state.configurator.estimate">
+                                <div class="al2c-lead-config-banner">
+                                    <div class="al2c-lead-config-info">
+                                        <div class="al2c-lead-config-label">Cấu hình dịch vụ đã chọn:</div>
+                                        <div class="al2c-lead-config-title" t-esc="state.configurator.estimate.service_name"/>
+                                        <div class="al2c-lead-config-meta">
+                                            <span t-esc="state.configurator.estimate.scale_label"/>
+                                            <span> • </span>
+                                            <span t-esc="state.configurator.units"/>
+                                            <span> </span>
+                                            <span t-esc="state.configurator.estimate.unit_label"/>
+                                            <span> • </span>
+                                            <span t-esc="state.configurator.duration_months"/>
+                                            <span> tháng</span>
+                                        </div>
+                                        <div class="al2c-lead-config-price">
+                                            <span>Dự toán sơ bộ: </span>
+                                            <strong t-esc="state.configurator.estimate.formatted_total_vnd"/>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        class="btn al2c-btn-edit-config"
+                                        t-on-click="() => this.setActiveTab('services')"
+                                    >
+                                        <i class="fa fa-sliders me-1" aria-hidden="true"/>
+                                        <span>Chỉnh sửa</span>
+                                    </button>
+                                </div>
+                            </t>
+
                             <!-- Success Banner -->
                             <t t-if="state.leadSuccessMessage">
                                 <div class="alert al2c-alert-success d-flex align-items-center gap-2" role="alert">
@@ -186,7 +277,7 @@
 
                                 <div class="al2c-form-row">
                                     <div class="al2c-form-group">
-                                        <label class="al2c-form-label" for="al2c_lead_company">Tên công ty / Doanh nghiệp <span class="text-danger">*</span></label>
+                                        <label class="al2c-form-label" for="al2c_lead_company">Tên công ty / Tổ chức <span class="text-danger">*</span></label>
                                         <input
                                             type="text"
                                             id="al2c_lead_company"
@@ -214,15 +305,17 @@
                                 </div>
 
                                 <div class="al2c-form-group">
-                                    <label class="al2c-form-label" for="al2c_lead_solution">Giải pháp quan tâm</label>
+                                    <label class="al2c-form-label" for="al2c_lead_solution">Dịch vụ &amp; Giải pháp quan tâm</label>
                                     <select
                                         id="al2c_lead_solution"
                                         class="form-select al2c-form-input"
                                         t-att-value="state.leadForm.product_interest"
                                         t-on-change="(ev) => this.updateLeadField('product_interest', ev)"
                                     >
+                                        <option value="Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad - TT 13/2020)">Squad Kỹ Sư Đồng Phát Triển (Co-Dev Squad - TT 13/2020)</option>
+                                        <option value="Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - SAP Activate)">Phát Triển Phần Mềm Trọn Gói (Turnkey Software - SAP Activate)</option>
                                         <option value="Insilos ERP (VAS &amp; Hóa đơn ĐT Nghị định 70/2025)">Insilos ERP (VAS &amp; Hóa đơn ĐT 70/2025)</option>
-                                        <option value="Vertical Resilience (GRC, ISO 27001 &amp; PDPD 13/2023)">Vertical Resilience (GRC, ISO 27001 &amp; PDPD 13/2023)</option>
+                                        <option value="Vertical Resilience (GRC, ISO 27001 &amp; PDPD 13/2023)">Vertical Resilience (GRC, ISO 27701 &amp; PDPD 13/2023)</option>
                                         <option value="Mojo AI (Tác tử AL2C &amp; Bóc tách thông minh)">Mojo AI (Tác tử AL2C &amp; Bóc tách thông minh)</option>
                                         <option value="Zencode Ent (Hiện đại hóa mã kế thừa &amp; AGY Fleet)">Zencode Ent (Hiện đại hóa mã kế thừa &amp; AGY Fleet)</option>
                                         <option value="Hệ sinh thái Tứ Trụ Toàn Diện (ERP + GRC + AI + Zencode)">Hệ sinh thái Tứ Trụ Toàn Diện</option>
@@ -230,12 +323,12 @@
                                 </div>
 
                                 <div class="al2c-form-group">
-                                    <label class="al2c-form-label" for="al2c_lead_notes">Nhu cầu hoặc thách thức vận hành cần giải quyết</label>
+                                    <label class="al2c-form-label" for="al2c_lead_notes">Yêu cầu kỹ thuật, phạm vi tích hợp hoặc lộ trình dự kiến</label>
                                     <textarea
                                         id="al2c_lead_notes"
                                         class="form-control al2c-form-input"
                                         rows="3"
-                                        placeholder="Mô tả sơ lược quy trình, số lượng người dùng hoặc lộ trình triển khai mong muốn..."
+                                        placeholder="Mô tả sơ lược quy trình, số lượng kỹ sư/người dùng hoặc thời gian Go-Live mong muốn..."
                                         t-att-value="state.leadForm.notes"
                                         t-on-input="(ev) => this.updateLeadField('notes', ev)"
                                     />
@@ -249,11 +342,11 @@
                                     >
                                         <t t-if="state.isLoading">
                                             <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"/>
-                                            <span>Đang xử lý hồ sơ...</span>
+                                            <span>Đang khởi tạo hồ sơ...</span>
                                         </t>
                                         <t t-else="">
                                             <i class="fa fa-paper-plane me-2" aria-hidden="true"/>
-                                            <span>Gửi Yêu Cầu Khảo Sát &amp; Báo Giá</span>
+                                            <span>Gửi Yêu Cầu Khảo Sát &amp; Báo Giá Chính Thức</span>
                                         </t>
                                     </button>
                                     <button
@@ -261,7 +354,7 @@
                                         class="btn al2c-btn-secondary"
                                         t-on-click="this.closeLeadForm"
                                     >
-                                        Quay lại hội thoại
+                                        Quay lại hội thoại AI
                                     </button>
                                 </div>
                             </form>
@@ -269,7 +362,217 @@
                     </section>
                 </t>
 
-                <!-- Messages Container -->
+                <!-- =========================================================
+                     TAB 2: INTERACTIVE SOFTWARE SERVICES CONFIGURATOR ('services')
+                     ========================================================= -->
+                <t t-elif="state.activeTab === 'services'">
+                    <section class="al2c-configurator-section">
+                        <!-- 1. 6-Service Selector Pills -->
+                        <div class="al2c-cfg-block">
+                            <div class="al2c-cfg-label">1. Chọn Dịch Vụ Phần Mềm &amp; Giải Pháp</div>
+                            <div class="al2c-cfg-service-pills">
+                                <t t-foreach="state.servicesCatalog" t-as="svc" t-key="svc.code">
+                                    <button
+                                        type="button"
+                                        class="al2c-cfg-service-pill"
+                                        t-att-class="{'is-selected': state.configurator.service_code === svc.code}"
+                                        t-on-click="() => this.selectConfiguratorService(svc.code)"
+                                    >
+                                        <span t-esc="svc.short_label || svc.name"/>
+                                    </button>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Selected Service Brief Card -->
+                        <t t-set="currentService" t-value="this.currentConfigService"/>
+                        <div class="al2c-cfg-service-overview">
+                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                                <h6 class="al2c-cfg-service-title mb-0" t-esc="currentService.name"/>
+                                <span class="al2c-cfg-service-badge" t-esc="currentService.badge"/>
+                            </div>
+                            <p class="al2c-cfg-service-desc mb-0" t-esc="currentService.summary"/>
+                        </div>
+
+                        <!-- 2. Scale Tier Selector -->
+                        <div class="al2c-cfg-block">
+                            <div class="al2c-cfg-label">2. Cấp Độ Kiến Trúc &amp; SLA (Scale Tier)</div>
+                            <div class="al2c-cfg-tier-grid">
+                                <button
+                                    type="button"
+                                    class="al2c-cfg-option-btn"
+                                    t-att-class="{'is-selected': state.configurator.scale_tier === 'starter'}"
+                                    t-on-click="() => this.setConfiguratorTier('starter')"
+                                >
+                                    Khởi đầu (Starter)
+                                </button>
+                                <button
+                                    type="button"
+                                    class="al2c-cfg-option-btn"
+                                    t-att-class="{'is-selected': state.configurator.scale_tier === 'growth'}"
+                                    t-on-click="() => this.setConfiguratorTier('growth')"
+                                >
+                                    Tăng trưởng (Growth)
+                                </button>
+                                <button
+                                    type="button"
+                                    class="al2c-cfg-option-btn"
+                                    t-att-class="{'is-selected': state.configurator.scale_tier === 'enterprise'}"
+                                    t-on-click="() => this.setConfiguratorTier('enterprise')"
+                                >
+                                    Tập đoàn (Enterprise)
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 3. Units / Squad Size & Duration Controls -->
+                        <div class="al2c-cfg-row">
+                            <div class="al2c-cfg-block flex-grow-1">
+                                <div class="al2c-cfg-label">
+                                    <span>3. Quy mô: </span>
+                                    <strong t-esc="currentService.unit_label"/>
+                                </div>
+                                <div class="al2c-cfg-units-row">
+                                    <div class="al2c-cfg-unit-pills">
+                                        <t t-foreach="currentService.unit_options" t-as="uOpt" t-key="uOpt">
+                                            <button
+                                                type="button"
+                                                class="al2c-cfg-unit-pill"
+                                                t-att-class="{'is-selected': state.configurator.units === uOpt}"
+                                                t-on-click="() => this.setConfiguratorUnits(uOpt)"
+                                            >
+                                                <t t-esc="uOpt"/>
+                                            </button>
+                                        </t>
+                                    </div>
+                                    <div class="al2c-cfg-stepper">
+                                        <button
+                                            type="button"
+                                            class="al2c-stepper-btn"
+                                            t-on-click="() => this.adjustConfiguratorUnits(-1)"
+                                            aria-label="Giảm số lượng"
+                                        >
+                                            -
+                                        </button>
+                                        <span class="al2c-stepper-val" t-esc="state.configurator.units"/>
+                                        <button
+                                            type="button"
+                                            class="al2c-stepper-btn"
+                                            t-on-click="() => this.adjustConfiguratorUnits(1)"
+                                            aria-label="Tăng số lượng"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="al2c-cfg-block">
+                                <div class="al2c-cfg-label">4. Thời Lượng Cam Kết</div>
+                                <div class="al2c-cfg-duration-pills">
+                                    <button
+                                        type="button"
+                                        class="al2c-cfg-option-btn"
+                                        t-att-class="{'is-selected': state.configurator.duration_months === 3}"
+                                        t-on-click="() => this.setConfiguratorDuration(3)"
+                                    >
+                                        3 tháng
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="al2c-cfg-option-btn"
+                                        t-att-class="{'is-selected': state.configurator.duration_months === 6}"
+                                        t-on-click="() => this.setConfiguratorDuration(6)"
+                                    >
+                                        6 tháng (-7%)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="al2c-cfg-option-btn"
+                                        t-att-class="{'is-selected': state.configurator.duration_months === 12}"
+                                        t-on-click="() => this.setConfiguratorDuration(12)"
+                                    >
+                                        12 tháng (-15%)
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Live Estimate Display Card -->
+                        <t t-set="est" t-value="state.configurator.estimate"/>
+                        <div class="al2c-estimate-card">
+                            <div class="al2c-estimate-header">
+                                <div>
+                                    <div class="al2c-estimate-caption">Tổng Dự Toán Đầu Tư (Tạm tính chưa VAT)</div>
+                                    <div class="al2c-estimate-total" t-esc="est.formatted_total_vnd"/>
+                                </div>
+                                <div class="al2c-estimate-monthly-box">
+                                    <div class="al2c-estimate-caption">Chi phí bình quân/tháng</div>
+                                    <div class="al2c-estimate-monthly" t-esc="est.formatted_monthly_vnd"/>
+                                </div>
+                            </div>
+
+                            <div class="al2c-estimate-details">
+                                <div class="al2c-estimate-detail-group">
+                                    <div class="al2c-estimate-detail-title">
+                                        <i class="fa fa-credit-card me-1" aria-hidden="true"/>
+                                        <span>Phương thức Nghiệm thu &amp; Thanh toán:</span>
+                                    </div>
+                                    <div class="al2c-estimate-detail-text" t-esc="est.payment_schedule"/>
+                                </div>
+
+                                <t t-if="est.lifecycle_steps and est.lifecycle_steps.length">
+                                    <div class="al2c-estimate-detail-group">
+                                        <div class="al2c-estimate-detail-title">
+                                            <i class="fa fa-sitemap me-1" aria-hidden="true"/>
+                                            <span>Quy trình Chuẩn (SAP Activate / TT 13/2020):</span>
+                                        </div>
+                                        <ul class="al2c-estimate-list">
+                                            <t t-foreach="est.lifecycle_steps" t-as="step" t-key="step_index">
+                                                <li t-esc="step"/>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+
+                                <t t-if="est.compliance_guarantees and est.compliance_guarantees.length">
+                                    <div class="al2c-estimate-detail-group">
+                                        <div class="al2c-estimate-detail-title">
+                                            <i class="fa fa-shield me-1" aria-hidden="true"/>
+                                            <span>Cam kết Tuân thủ &amp; Bàn giao:</span>
+                                        </div>
+                                        <ul class="al2c-estimate-list">
+                                            <t t-foreach="est.compliance_guarantees" t-as="guar" t-key="guar_index">
+                                                <li t-esc="guar"/>
+                                            </t>
+                                        </ul>
+                                    </div>
+                                </t>
+                            </div>
+
+                            <div class="al2c-estimate-ctas">
+                                <button
+                                    type="button"
+                                    class="btn al2c-btn-cfg-ask"
+                                    t-on-click="this.askAiAboutCurrentConfig"
+                                >
+                                    <span>💬 Hỏi AI Chuyên Sâu Về Cấu Hình Này</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn al2c-btn-cfg-proceed"
+                                    t-on-click="this.proceedToLeadWithConfig"
+                                >
+                                    <span>🚀 Chốt Cấu Hình &amp; Nhận Báo Giá Chính Thức</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                </t>
+
+                <!-- =========================================================
+                     TAB 1: AI CONVERSATION VIEWPORT ('chat')
+                     ========================================================= -->
                 <t t-else="">
                     <div class="al2c-messages-viewport" t-ref="messagesContainer">
                         <t t-foreach="state.messages" t-as="msg" t-key="msg.id">
@@ -286,6 +589,38 @@
                                     <div class="al2c-bubble-container">
                                         <div class="al2c-bubble al2c-bubble-assistant">
                                             <div class="al2c-bubble-content" t-out="msg.formattedText || msg.text"/>
+
+                                            <!-- Interactive Software Service Cards -->
+                                            <t t-if="msg.service_cards and msg.service_cards.length">
+                                                <div class="al2c-service-cards-grid">
+                                                    <t t-foreach="msg.service_cards" t-as="card" t-key="card.code">
+                                                        <div class="al2c-service-card">
+                                                            <div class="al2c-service-card-top">
+                                                                <span class="al2c-service-card-badge" t-esc="card.badge"/>
+                                                                <span class="al2c-service-card-price" t-esc="card.starting_price"/>
+                                                            </div>
+                                                            <div class="al2c-service-card-title" t-esc="card.name"/>
+                                                            <div class="al2c-service-card-summary" t-esc="card.summary"/>
+                                                            <div class="al2c-service-card-actions">
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn al2c-service-card-btn config"
+                                                                    t-on-click="() => this.openServiceConfigurator(card.code)"
+                                                                >
+                                                                    <span>⚙️ Dự Toán &amp; Cấu Hình</span>
+                                                                </button>
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn al2c-service-card-btn quote"
+                                                                    t-on-click="() => this.openLeadFormForService(card.code)"
+                                                                >
+                                                                    <span>📅 Nhận Báo Giá Gói Này</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </t>
+                                                </div>
+                                            </t>
 
                                             <!-- Grounded Verification Badge -->
                                             <t t-if="msg.grounded">
@@ -388,36 +723,36 @@
                     <div class="al2c-quick-prompts-bar">
                         <div class="al2c-quick-label">
                             <i class="fa fa-bolt me-1" aria-hidden="true"/>
-                            <span>Khám phá nhanh:</span>
+                            <span>Khám phá nhanh Dịch vụ Phần mềm &amp; Giải pháp:</span>
                         </div>
                         <div class="al2c-quick-chips-wrapper">
                             <button
                                 type="button"
                                 class="btn al2c-quick-chip"
-                                t-on-click="() => this.sendQuickPrompt('Báo giá ERP Starter')"
+                                t-on-click="() => this.sendQuickPrompt('👨‍💻 Thuê Squad Kỹ sư Đồng phát triển (TT 13/2020)')"
                             >
-                                Báo giá ERP Starter
+                                👨‍💻 Thuê Squad Kỹ sư Đồng phát triển (TT 13/2020)
                             </button>
                             <button
                                 type="button"
                                 class="btn al2c-quick-chip"
-                                t-on-click="() => this.sendQuickPrompt('Tư vấn GRC &amp; ISO 27001')"
+                                t-on-click="() => this.sendQuickPrompt('🏗️ Phát triển Phần mềm Trọn gói (Turnkey)')"
                             >
-                                Tư vấn GRC &amp; ISO 27001
+                                🏗️ Phát triển Phần mềm Trọn gói (Turnkey)
                             </button>
                             <button
                                 type="button"
                                 class="btn al2c-quick-chip"
-                                t-on-click="() => this.sendQuickPrompt('Đăng ký Demo Mojo AI')"
+                                t-on-click="() => this.sendQuickPrompt('📊 Báo giá Clean-Core ERP &amp; HĐĐT 1C26TAA')"
                             >
-                                Đăng ký Demo Mojo AI
+                                📊 Báo giá Clean-Core ERP &amp; HĐĐT 1C26TAA
                             </button>
                             <button
                                 type="button"
                                 class="btn al2c-quick-chip"
-                                t-on-click="() => this.sendQuickPrompt('Hiện đại hóa mã nguồn Zencode')"
+                                t-on-click="() => this.sendQuickPrompt('🛡️ Tuân thủ ISO 27701 / GRC / e-CO')"
                             >
-                                Hiện đại hóa Zencode
+                                🛡️ Tuân thủ ISO 27701 / GRC / e-CO
                             </button>
                         </div>
                     </div>
@@ -428,7 +763,7 @@
                             <textarea
                                 t-ref="queryInput"
                                 class="form-control al2c-textarea"
-                                placeholder="Hỏi AI Concierge về ERP, GRC, Mojo AI hoặc Zencode..."
+                                placeholder="Hỏi về thuê Squad Kỹ sư, Phần mềm Trọn gói, ERP, GRC, AI..."
                                 rows="1"
                                 t-att-value="state.currentQuery"
                                 t-on-input="this.updateQuery"
@@ -451,7 +786,7 @@
                         <!-- Sovereign Security & Compliance Watermark -->
                         <div class="al2c-watermark">
                             <i class="fa fa-shield me-1" aria-hidden="true"/>
-                            <span>Innoria Enterprise AI · Grounded KMS Architecture · ISO/IEC 27001 &amp; Nghị định 13/2023/NĐ-CP</span>
+                            <span>Innoria Software &amp; AI · TT 13/2020/TT-BTTTT · ISO/IEC 27701 &amp; NĐ 13/2023/NĐ-CP</span>
                         </div>
                     </footer>
                 </t>
