@@ -82,10 +82,17 @@ class DPASTSMTransactionManager:
         Derives a deterministic, uniform 64-bit signed advisory key using BLAKE2b.
         Uses length-prefixed canonical encoding to eliminate CWE-20 delimiter injection collisions.
         """
-        norm_comp = str(company_id if company_id is not None else 0).strip()
-        norm_model = str(model_name or "").strip()
-        norm_rec = str(record_id if record_id is not None else 0).strip()
-        token = f"C{len(norm_comp)}:{norm_comp}|M{len(norm_model)}:{norm_model}|R{len(norm_rec)}:{norm_rec}".encode("utf-8")
+        try:
+            norm_company = int(company_id) if company_id is not None else 0
+        except (ValueError, TypeError):
+            norm_company = str(company_id).strip()
+        norm_model = str(model_name).strip()
+        try:
+            norm_record = int(record_id) if record_id is not None else 0
+        except (ValueError, TypeError):
+            norm_record = str(record_id).strip()
+        c_str, m_str, r_str = str(norm_company), str(norm_model), str(norm_record)
+        token = f"{len(c_str)}:{c_str}|{len(m_str)}:{m_str}|{len(r_str)}:{r_str}".encode("utf-8")
         digest = hashlib.blake2b(token, digest_size=8).digest()
         return int.from_bytes(digest, byteorder="big", signed=True)
 
