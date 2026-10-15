@@ -645,13 +645,15 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_terminal_cmd, check=True)
         print(f"[✓] Created {tar_path_terminal}")
 
-        # 4Q. Core Release 26.0, Build Metadata, Module Loader & CLI Server Sync
+        # 4Q. Core Release 26.0, Build Metadata, Module Loader, HTTP Router/Dispatcher & CLI Server Sync
         tar_path_release_core = os.path.join(staging_dir, "release_core_sync.tar.gz")
         RELEASE_CORE_MEMBERS = [
             "release.py",
             "build_info.json",
             "modules/module.py",
             "cli/server.py",
+            "http/router.py",
+            "http/dispatcher.py",
         ]
         frozen_release_core = os.path.join(staging_dir, "frozen_release_core")
         freeze_and_audit_members("odoo", RELEASE_CORE_MEMBERS, frozen_release_core)
@@ -666,12 +668,13 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_release_core_cmd, check=True)
         print(f"[✓] Created {tar_path_release_core}")
 
-        # 4R. Web Core Session Info, Version Info, DB Compatibility & Settings About Edition Widget
+        # 4R. Web Core Session Info, Version Info, DB Compatibility, Error Dialogs & Settings About Edition Widget
         tar_path_web_core = os.path.join(staging_dir, "web_core_sync.tar.gz")
         WEB_CORE_MEMBERS = [
             "models/ir_http.py",
             "controllers/webclient.py",
             "controllers/database.py",
+            "static/src/core/errors/error_dialogs.js",
             "static/src/webclient/settings_form_view/widgets/res_config_edition.js",
             "static/src/webclient/settings_form_view/widgets/res_config_edition.xml",
         ]
@@ -687,6 +690,38 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         ]
         subprocess.run(tar_web_core_cmd, check=True)
         print(f"[✓] Created {tar_path_web_core}")
+
+        # 4S. HR Employee Core Fix (Salary Distribution Dict Guard INC-2026-26176)
+        tar_path_hr = os.path.join(staging_dir, "odoo_hr_sync.tar.gz")
+        HR_MEMBERS = ["hr_employee.py"]
+        frozen_hr = os.path.join(staging_dir, "frozen_hr")
+        freeze_and_audit_members("addons/hr/models", HR_MEMBERS, frozen_hr)
+        tar_hr_cmd = [
+            "tar",
+            "-czf",
+            tar_path_hr,
+            "-C",
+            frozen_hr,
+            *HR_MEMBERS,
+        ]
+        subprocess.run(tar_hr_cmd, check=True)
+        print(f"[✓] Created {tar_path_hr}")
+
+        # 4T. Account Journal Dashboard Fix (Dynamic Move Table Resolution)
+        tar_path_account = os.path.join(staging_dir, "odoo_account_sync.tar.gz")
+        ACCOUNT_MEMBERS = ["account_journal_dashboard.py"]
+        frozen_account = os.path.join(staging_dir, "frozen_account")
+        freeze_and_audit_members("addons/account/models", ACCOUNT_MEMBERS, frozen_account)
+        tar_account_cmd = [
+            "tar",
+            "-czf",
+            tar_path_account,
+            "-C",
+            frozen_account,
+            *ACCOUNT_MEMBERS,
+        ]
+        subprocess.run(tar_account_cmd, check=True)
+        print(f"[✓] Created {tar_path_account}")
 
         # 5. Digest-Pinning Manifest (Content-Addressed Attestation)
         manifest_path = os.path.join(staging_dir, "manifest.sha256")
@@ -714,6 +749,8 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             f.write(f"{compute_sha256(tar_path_terminal)}  insilos_market_terminal_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_release_core)}  release_core_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_web_core)}  web_core_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_hr)}  odoo_hr_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_account)}  odoo_account_sync.tar.gz\n")
         print(f"[✓] Generated Content-Addressed Manifest: {manifest_path}")
 
         print("\n=== 2. DEPLOYING ARCHIVES TO ALL PODS & PERSISTENT VOLUMES IN PARALLEL ===")
@@ -847,6 +884,14 @@ for doc_dir in /app/insilos/enterprise/documents /app/insilos/apps/documents; do
     fi
 done
 
+if [ -d "/app/insilos/addons/hr/models" ]; then
+    tar -xzf /tmp/odoo_hr_sync.tar.gz -C /app/insilos/addons/hr/models/
+fi
+
+if [ -d "/app/insilos/addons/account/models" ]; then
+    tar -xzf /tmp/odoo_account_sync.tar.gz -C /app/insilos/addons/account/models/
+fi
+
 CHOWN_TARGETS="
   /var/lib/insilos/filestore/custom_addons/insilos_website
   /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis
@@ -867,12 +912,15 @@ CHOWN_TARGETS="
   /app/insilos/odoo/build_info.json
   /app/insilos/odoo/modules/module.py
   /app/insilos/odoo/cli/server.py
+  /app/insilos/odoo/http
   /app/insilos/odoo/orm
   /app/insilos/odoo/service
   /app/insilos/odoo/addons/base/models
   /app/insilos/addons/web
   /app/insilos/addons/product
   /app/insilos/addons/mrp
+  /app/insilos/addons/hr/models
+  /app/insilos/addons/account/models
   /app/insilos/addons/mail/tools
   /app/insilos/enterprise/sale_renting
   /app/insilos/apps/sale_renting
@@ -902,7 +950,7 @@ for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_log
     fi
 done
 
-rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/odoo_server_sync.tar.gz /tmp/odoo_product_sync.tar.gz /tmp/odoo_mrp_sync.tar.gz /tmp/sale_renting_sync.tar.gz /tmp/ai_sync.tar.gz /tmp/ai_livechat_sync.tar.gz /tmp/mail_tools_sync.tar.gz /tmp/documents_sync.tar.gz /tmp/insilos_market_terminal_sync.tar.gz /tmp/release_core_sync.tar.gz /tmp/web_core_sync.tar.gz /tmp/manifest.sha256
+rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/odoo_server_sync.tar.gz /tmp/odoo_product_sync.tar.gz /tmp/odoo_mrp_sync.tar.gz /tmp/sale_renting_sync.tar.gz /tmp/ai_sync.tar.gz /tmp/ai_livechat_sync.tar.gz /tmp/mail_tools_sync.tar.gz /tmp/documents_sync.tar.gz /tmp/insilos_market_terminal_sync.tar.gz /tmp/release_core_sync.tar.gz /tmp/web_core_sync.tar.gz /tmp/odoo_hr_sync.tar.gz /tmp/odoo_account_sync.tar.gz /tmp/manifest.sha256
 """
 
         for target in targets:
@@ -933,6 +981,8 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_terminal, f"{pod}:/tmp/insilos_market_terminal_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_release_core, f"{pod}:/tmp/release_core_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_web_core, f"{pod}:/tmp/web_core_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_hr, f"{pod}:/tmp/odoo_hr_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_account, f"{pod}:/tmp/odoo_account_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, manifest_path, f"{pod}:/tmp/manifest.sha256"])
             # Copy tools into /app/insilos/tools (0755 non-world-writable)
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_innoria_views_db.py", f"{pod}:/app/insilos/tools/sync_innoria_views_db.py"])

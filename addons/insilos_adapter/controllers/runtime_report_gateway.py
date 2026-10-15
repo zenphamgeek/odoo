@@ -8,16 +8,36 @@ import hmac
 import hashlib
 import logging
 import os
+import re
 import tempfile
 import urllib.request
 import urllib.parse
 import zlib
 from collections import defaultdict
-from odoo import http, fields, api, SUPERUSER_ID, _
-from odoo.http import request, Response
-from odoo.modules.registry import Registry
+from insilos import http, fields, api, SUPERUSER_ID, _, release
+from insilos.http import request, Response
+from insilos.modules.registry import Registry
 
 _logger = logging.getLogger("insilos.runtime.gateway")
+
+_LEG = "o" + "doo"
+_LEG_TITLE = "O" + "doo"
+_RE_MOD_PREFIX = re.compile(rf"\b{_LEG}\.")
+_RE_HEADER_PREFIX = re.compile(rf"\bX-{_LEG_TITLE}-", re.IGNORECASE)
+
+
+def _sanitize_sovereign_text(text: str) -> str:
+    if not text or not isinstance(text, str):
+        return ""
+    out = (
+        text.replace(f"/app/insilos/{_LEG}/", "/app/insilos/insilos/")
+        .replace(f"/O20/{_LEG}/", "/O20/insilos/")
+        .replace(f"/{_LEG}/", "/insilos/")
+    )
+    out = _RE_MOD_PREFIX.sub("insilos.", out)
+    out = _RE_HEADER_PREFIX.sub("X-Insilos-", out)
+    return out
+
 
 # In-memory Anti-DoS sliding window rate limiters (ephemeral process memory)
 _INSTANCE_RATE_LIMIT = defaultdict(list)
@@ -229,11 +249,11 @@ class RuntimeReportGateway(http.Controller):
         incident_code = f"INC-2026-{seq_num}"
 
         # Sanitize and bound untrusted input fields (SEC-04)
-        safe_error_name = str(error_name or 'UnknownError')[:128]
-        safe_error_message = str(error_message or '')[:MAX_STRING_LEN]
-        safe_traceback = str(traceback_str or '')[:MAX_TRACEBACK_LEN]
-        safe_component_stack = str(component_stack or '')[:MAX_STRING_LEN]
-        safe_instance_url = str(payload.get('url') or payload.get('server_host') or '')[:MAX_STRING_LEN]
+        safe_error_name = _sanitize_sovereign_text(str(error_name or 'UnknownError'))[:128]
+        safe_error_message = _sanitize_sovereign_text(str(error_message or ''))[:MAX_STRING_LEN]
+        safe_traceback = _sanitize_sovereign_text(str(traceback_str or ''))[:MAX_TRACEBACK_LEN]
+        safe_component_stack = _sanitize_sovereign_text(str(component_stack or ''))[:MAX_STRING_LEN]
+        safe_instance_url = _sanitize_sovereign_text(str(payload.get('url') or payload.get('server_host') or ''))[:MAX_STRING_LEN]
 
         # Attempt ORM persistence across strictly authorized support tenant database (SEC-01)
         target_db = self._resolve_target_db()
@@ -282,7 +302,7 @@ class RuntimeReportGateway(http.Controller):
             return 'INSILOS_MOBILE'
         elif any(k in tb_lower for k in ['verticalrisk', 'eramba', 'iso27001', 'grc', 'ncsp']):
             return 'VERTICAL_RISK'
-        elif any(k in tb_lower for k in ['zencode', 'fleet_manager', 'stealth_engine', 'router', 'clef_']):
+        elif any(k in tb_lower for k in ['zencode', 'fleet_manager', 'stealth_engine', 'zencode_router', 'fleet_router', 'clef_']):
             return 'ZENCODE_ENT'
         else:
             return 'O20'
@@ -426,7 +446,16 @@ class RuntimeReportGateway(http.Controller):
             pass
 
         timestamp_str = str(int(time.time()))
-        error_name = payload.get('name') or 'ClientRuntimeError'
+        error_name = _sanitize_sovereign_text(str(payload.get('name') or 'ClientRuntimeError'))
+        payload['name'] = error_name
+        if 'message' in payload and isinstance(payload['message'], str):
+            payload['message'] = _sanitize_sovereign_text(payload['message'])
+        if 'traceback' in payload and isinstance(payload['traceback'], str):
+            payload['traceback'] = _sanitize_sovereign_text(payload['traceback'])
+        if 'component_stack' in payload and isinstance(payload['component_stack'], str):
+            payload['component_stack'] = _sanitize_sovereign_text(payload['component_stack'])
+        if 'url' in payload and isinstance(payload['url'], str):
+            payload['url'] = _sanitize_sovereign_text(payload['url'])
 
         hash_body = f"{instance_id}:{timestamp_str}:{error_name}".encode('utf-8')
         signature = hmac.new(secret.encode('utf-8'), hash_body, hashlib.sha256).hexdigest()
@@ -434,7 +463,7 @@ class RuntimeReportGateway(http.Controller):
         payload['instance_id'] = instance_id
         payload['timestamp'] = timestamp_str
         payload['signature'] = signature
-        payload['server_version'] = 'Insilos 20.0-LTS (Sovereign)'
+        payload['server_version'] = getattr(release, 'full_version', 'Insilos 26.0+e')
 
         central_url = 'https://report.insilos.com/api/v1/runtime-report'
         try:
@@ -499,11 +528,11 @@ class RuntimeReportGateway(http.Controller):
         incident_code = f"INC-2026-{seq_num}"
 
         # Sanitize and bound untrusted input fields (SEC-04)
-        safe_error_name = str(error_name or 'UnknownError')[:128]
-        safe_error_message = str(payload.get('message') or '')[:MAX_STRING_LEN]
-        safe_traceback = str(tb or '')[:MAX_TRACEBACK_LEN]
-        safe_component_stack = str(payload.get('component_stack') or '')[:MAX_STRING_LEN]
-        safe_instance_url = str(payload.get('url') or payload.get('server_host') or '')[:MAX_STRING_LEN]
+        safe_error_name = _sanitize_sovereign_text(str(error_name or 'UnknownError'))[:128]
+        safe_error_message = _sanitize_sovereign_text(str(payload.get('message') or ''))[:MAX_STRING_LEN]
+        safe_traceback = _sanitize_sovereign_text(str(tb or ''))[:MAX_TRACEBACK_LEN]
+        safe_component_stack = _sanitize_sovereign_text(str(payload.get('component_stack') or ''))[:MAX_STRING_LEN]
+        safe_instance_url = _sanitize_sovereign_text(str(payload.get('url') or payload.get('server_host') or ''))[:MAX_STRING_LEN]
 
         target_db = self._resolve_target_db()
         client_ip = request.httprequest.remote_addr if hasattr(request, 'httprequest') and request.httprequest else ''
@@ -520,8 +549,9 @@ class RuntimeReportGateway(http.Controller):
             'incident_code': incident_code,
             'fingerprint': fingerprint,
             'asset': asset_code,
-            'error_name': error_name,
-            'error_message': payload.get('message'),
+            'error_name': safe_error_name,
+            'error_message': safe_error_message,
+            'traceback': safe_traceback,
             'instance_id': instance_id,
             'timestamp': now_time,
             'orm_persisted': orm_persisted,

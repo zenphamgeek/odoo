@@ -13,11 +13,12 @@ class BankAccountAllocationWizard(models.TransientModel):
     def _prepare_allocations_from_employee(self):
         self.ensure_one()
         wizard_lines = []
-        distribution = self.employee_id.salary_distribution or {}
+        distribution = self.employee_id.salary_distribution if isinstance(self.employee_id.salary_distribution, dict) else {}
         for ba in self.employee_id.bank_account_ids:
             if str(ba.id) not in distribution:
                 raise ValidationError(self.env._("Bank account %s not found within the salary distribution of the employee", ba))
-            dist_entry = distribution.get(str(ba.id))
+            raw_entry = distribution.get(str(ba.id))
+            dist_entry = raw_entry if isinstance(raw_entry, dict) else {}
             amount = dist_entry.get('amount')
             is_percentage = dist_entry.get('amount_is_percentage')
             sequence = dist_entry.get('sequence')

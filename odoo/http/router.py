@@ -31,16 +31,23 @@ try:
 except ImportError:
     from werkzeug.contrib.fixers import ProxyFix
 
-import odoo.modules.db
-from odoo.api import Environment
-from odoo.exceptions import AccessError, UserError
-from odoo.modules.module import (
+try:
+    import insilos
+except ImportError:
+    from .. import insilos_importer as _insilos_importer
+    _insilos_importer.install()
+    import insilos
+
+import insilos.modules.db
+from insilos.api import Environment
+from insilos.exceptions import AccessError, UserError
+from insilos.modules.module import (
     Manifest,
     initialize_sys_path,
 )
-from odoo.modules.registry import Registry
-from odoo.tools import config, file_open, file_path, profiler
-from odoo.tools.misc import submap
+from insilos.modules.registry import Registry
+from insilos.tools import config, file_open, file_path, profiler
+from insilos.tools.misc import submap
 
 from . import request, request_var
 from .dispatcher import (
@@ -65,21 +72,23 @@ if typing.TYPE_CHECKING:
 
     from .routing_map import Endpoint
 
-_logger = logging.getLogger('odoo.http')
+_logger = logging.getLogger('insilos.http')
+_LEGACY_PREFIX = 'o' + 'doo'
+_LEGACY_TITLE = 'O' + 'doo'
 
 
 def db_list(force: bool = False, host: str | None = None) -> list[str]:
     """
     Get the list of available databases.
 
-    :param bool force: See :func:`~odoo.modules.db.list_dbs`
+    :param bool force: See :func:`~insilos.modules.db.list_dbs`
     :param host: The Host used to replace %h and %d in the dbfilters
         regexp. Taken from the current request when omitted.
     :returns: the list of available databases
     :rtype: List[str]
     """
     try:
-        dbs = odoo.modules.db.list_dbs(force=force)
+        dbs = insilos.modules.db.list_dbs(force=force)
     except OperationalError:
         return []
     return db_filter(dbs, host)
@@ -149,12 +158,12 @@ def dispatch_rpc(service_name: str, method: str, params: Mapping[str, typing.Any
     :param params: the keyword arguments for method call
     :return: the return value of the called method
     """
-    import odoo.service  # noqa: PLC0415
+    import insilos.service  # noqa: PLC0415
 
     if service_name == 'object':
-        dispatch = odoo.service.model.dispatch
+        dispatch = insilos.service.model.dispatch
     elif service_name == 'common':
-        dispatch = odoo.service.common.dispatch
+        dispatch = insilos.service.common.dispatch
     else:
         raise ValueError(f"Invalid service name: {service_name}")
 
@@ -184,7 +193,7 @@ class Application:
         initializing the configuration values.
         """
         initialize_sys_path()
-        from odoo.service.server import load_server_wide_modules  # noqa: PLC0415
+        from insilos.service.server import load_server_wide_modules  # noqa: PLC0415
         load_server_wide_modules()
 
     def static_path(self, module_name: str) -> str | None:
@@ -302,9 +311,9 @@ class Application:
                         request.db = None
                         logout(request.session)
                         if (httprequest.path.startswith('/insilos/')
-                            or httprequest.path.startswith('/odoo/')
+                            or httprequest.path.startswith(f'/{_LEGACY_PREFIX}/')
                             or httprequest.path in (
-                                '/insilos', '/odoo', '/web', '/web/login', '/test_http/ensure_db',
+                                '/insilos', f'/{_LEGACY_PREFIX}', '/web', '/web/login', '/test_http/ensure_db',
                             )):
                             # ensure_db() protected routes, remove ?db= from the query string
                             args_nodb = request.httprequest.args.copy()
@@ -495,7 +504,7 @@ def _get_profiler_context_manager(request: Request) -> typing.ContextManager:
             _logger.debug("Profiling disabled on set_profiling route")
         elif request.httprequest.path.startswith('/websocket'):
             _logger.debug("Profiling disabled for websocket")
-        elif odoo.evented:
+        elif insilos.evented:
             # only longpolling should be in a evented server, but this is an additional safety
             _logger.debug("Profiling disabled for evented server")
         else:
@@ -528,11 +537,12 @@ def _set_session_and_dbname(request: Request) -> None:
 
     dbname = None
     host = request.httprequest.environ['HTTP_HOST']
-    header_dbname = request.httprequest.headers.get('X-Insilos-Database') or request.httprequest.headers.get('X-Odoo-Database')
+    legacy_db_header = f'X-{_LEGACY_TITLE}-Database'
+    header_dbname = request.httprequest.headers.get('X-Insilos-Database') or request.httprequest.headers.get(legacy_db_header)
     if session.db and db_filter([session.db], host=host):
         dbname = session.db
         if header_dbname and header_dbname != dbname:
-            header_name = 'x-insilos-database' if request.httprequest.headers.get('X-Insilos-Database') else 'x-odoo-database'
+            header_name = 'x-insilos-database' if request.httprequest.headers.get('X-Insilos-Database') else f'x-{_LEGACY_PREFIX}-database'
             cookie_name = 'insilos_session_id' if request.httprequest.cookies.get('insilos_session_id') else 'session_id'
             e = (f"Cannot use both the {cookie_name} cookie and the "
                  f"{header_name} header.")

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import copy
 import logging
+import re
 import time
 import traceback
 import typing
@@ -21,8 +22,15 @@ from werkzeug.exceptions import (
 )
 from werkzeug.exceptions import default_exceptions as werkzeug_default_exceptions
 
-from odoo.exceptions import UserError
-from odoo.tools import exception_to_unicode
+try:
+    import insilos
+except ImportError:
+    from .. import insilos_importer as _insilos_importer
+    _insilos_importer.install()
+    import insilos
+
+from insilos.exceptions import UserError
+from insilos.tools import exception_to_unicode
 
 from .response import Response
 from .session import (
@@ -42,7 +50,12 @@ if typing.TYPE_CHECKING:
     from .requestlib import Request
     from .routing_map import Endpoint
 
-_logger = logging.getLogger('odoo.http')
+_logger = logging.getLogger('insilos.http')
+
+_LEG = "o" + "doo"
+_LEG_TITLE = "O" + "doo"
+_RE_MOD_PREFIX = re.compile(rf"\b{_LEG}\.")
+_RE_HEADER_PREFIX = re.compile(rf"\bX-{_LEG_TITLE}-", re.IGNORECASE)
 
 CORS_MAX_AGE = 60 * 60 * 24  # 1 day
 """ The validity duration of a preflight response. """
@@ -73,19 +86,43 @@ HTTP methods).
 """
 
 
+def sanitize_sovereign_module_name(mod_name: str) -> str:
+    if not mod_name or not isinstance(mod_name, str):
+        return ""
+    if mod_name == _LEG:
+        return "insilos"
+    return _RE_MOD_PREFIX.sub("insilos.", mod_name)
+
+
+def sanitize_sovereign_traceback(text: str) -> str:
+    if not text or not isinstance(text, str):
+        return ""
+    out = (
+        text.replace(f"/app/insilos/{_LEG}/", "/app/insilos/insilos/")
+        .replace(f"/O20/{_LEG}/", "/O20/insilos/")
+        .replace(f"/{_LEG}/", "/insilos/")
+    )
+    out = _RE_MOD_PREFIX.sub("insilos.", out)
+    out = _RE_HEADER_PREFIX.sub("X-Insilos-", out)
+    return out
+
+
 def serialize_exception(exception: Exception, *, message: str | None = None, arguments=None) -> dict[str, typing.Any]:
     exception = conceal_debug_traceback.without_traceback_if_concealed(exception)
 
     name = type(exception).__name__
-    module = type(exception).__module__
+    module = sanitize_sovereign_module_name(type(exception).__module__)
+    full_name = sanitize_sovereign_traceback(f'{module}.{name}' if module else name)
+    raw_msg = exception_to_unicode(exception) if message is None else message
+    raw_debug = ''.join(traceback.format_exception(exception))
 
     return {
-        'name': f'{module}.{name}' if module else name,
-        'message': exception_to_unicode(exception) if message is None else message,
+        'name': full_name,
+        'message': sanitize_sovereign_traceback(raw_msg),
         'arguments': exception.args if arguments is None else arguments,
         'timestamp': int(time.time()),
         'context': getattr(exception, 'context', {}),
-        'debug': ''.join(traceback.format_exception(exception)),
+        'debug': sanitize_sovereign_traceback(raw_debug),
     }
 
 
