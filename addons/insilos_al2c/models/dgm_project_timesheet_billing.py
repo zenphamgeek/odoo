@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 import base64
 import hashlib
+import hmac
 import html
 import logging
 import secrets
+from xml.sax.saxutils import escape as xml_escape
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
@@ -608,6 +610,36 @@ class DgmProjectTimesheetSheet(models.Model):
                 rec.sudo().write(updates)
         return records
 
+    IMMUTABLE_FISCAL_SHEET_FIELDS = {
+        'partner_id',
+        'vat_rate',
+        'standard_working_days',
+        'billing_period',
+        'line_ids',
+    }
+
+    def write(self, vals):
+        if vals.get('state') != 'draft' and self.IMMUTABLE_FISCAL_SHEET_FIELDS.intersection(vals.keys()):
+            for sheet in self:
+                if sheet.state == 'official_invoiced':
+                    raise UserError(_(
+                        "⛔ [SOP-DGM-08 Fiscal Barrier — Decree 70/2025/ND-CP] "
+                        "Không được phép chỉnh sửa thông tin pháp nhân, kỳ đối soát, thuế suất "
+                        "hoặc dòng chấm công trên Bảng chấm công (%s) đã phát hành Hóa đơn GTGT Chính thức (1C26TAA)!",
+                        sheet.name,
+                    ))
+        return super().write(vals)
+
+    def unlink(self):
+        for sheet in self:
+            if sheet.state == 'official_invoiced':
+                raise UserError(_(
+                    "⛔ [SOP-DGM-08 Fiscal Barrier — Decree 70/2025/ND-CP] "
+                    "Không được phép xóa Bảng chấm công (%s) đã phát hành Hóa đơn GTGT Chính thức (1C26TAA)!",
+                    sheet.name,
+                ))
+        return super().unlink()
+
     def _get_partner_target_folder(self):
         self.ensure_one()
         Document = self.env['documents.document'].sudo()
@@ -866,7 +898,7 @@ class DgmProjectTimesheetSheet(models.Model):
         for idx, line in enumerate(self.line_ids, start=1):
             emp_name = html.escape(line.employee_id.name or 'Engineer')
             role_title = html.escape(line.role_title or 'Senior Engineer')
-            work_desc = html.escape(line.work_summary or '')
+            work_desc = xml_escape(html.escape(line.work_summary or ''))
             rows_html.append(
                 f"<tr>"
                 f"<td>{idx}</td>"
@@ -1068,6 +1100,8 @@ class DgmProjectTimesheetSheet(models.Model):
         note=None,
     ):
         for sheet in self:
+            if isinstance(sheet.id, int) and sheet.id > 0:
+                self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", [int(sheet.id) + 260000000])
             now_dt = fields.Datetime.now()
             resolved_name = (
                 (approver_name or '').strip()
@@ -1089,12 +1123,22 @@ class DgmProjectTimesheetSheet(models.Model):
                 or sheet.customer_approval_note
                 or 'Đồng ý nghiệm thu 100% khối lượng bảng chấm công.'
             )
-            payload_str = (
-                f"{sheet.id}|{sheet.name}|{sheet.billing_period}|"
-                f"{sheet.total_billable_days:.2f}|{sheet.amount_total_vnd:.0f}|"
+            secret_key = (
+                self.env['ir.config_parameter'].sudo().get_param('database.secret')
+                or 'insilos-dgm-fiscal-secret-2026'
+            )
+            partner_id_val = sheet.partner_id.id if sheet.partner_id else 0
+            partner_vat_val = (sheet.partner_id.vat or '') if sheet.partner_id else ''
+            payload = (
+                f"{sheet.id}|{sheet.name}|{partner_id_val}|{partner_vat_val}|"
+                f"{sheet.billing_period}|{sheet.total_billable_days:.2f}|{sheet.amount_total_vnd:.0f}|"
                 f"{resolved_name}|{resolved_email}|{now_dt}"
             )
-            sig_hash = hashlib.sha256(payload_str.encode('utf-8')).hexdigest()
+            sig_hash = hmac.new(
+                secret_key.encode('utf-8'),
+                payload.encode('utf-8'),
+                hashlib.sha256,
+            ).hexdigest()
 
             sheet.write({
                 'customer_approver_name': resolved_name,
@@ -1195,12 +1239,15 @@ class DgmProjectTimesheetSheet(models.Model):
                 ('amount', '=', target_vat),
             ], order='id asc', limit=1)
 
+        safe_period = xml_escape(str(self.billing_period or '10/2026'))
         inv_lines_cmds = []
         for line in self.line_ids:
+            safe_emp_name = xml_escape(str(line.employee_id.name or 'Engineer'))
+            safe_role_title = xml_escape(str(line.role_title or 'Senior Engineer'))
             line_vals = {
                 'name': (
-                    f"[{self.billing_period}] Dịch vụ Kỹ thuật Phần mềm ({line.employee_id.name or 'Engineer'} - "
-                    f"{line.role_title or 'Senior Engineer'}): Nghiệm thu {line.billable_days:.1f}/{line.standard_days:.1f} ngày công"
+                    f"[{safe_period}] Dịch vụ Kỹ thuật Phần mềm ({safe_emp_name} - "
+                    f"{safe_role_title}): Nghiệm thu {line.billable_days:.1f}/{line.standard_days:.1f} ngày công"
                 ),
                 'quantity': 1.0,
                 'price_unit': line.subtotal_vnd,
@@ -1249,6 +1296,8 @@ class DgmProjectTimesheetSheet(models.Model):
     def action_generate_mti_draft_invoice(self):
         Notification = self.env['dgm.project.notification'].sudo()
         for sheet in self:
+            if isinstance(sheet.id, int) and sheet.id > 0:
+                self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", [int(sheet.id) + 260000000])
             if sheet.state not in ('customer_approved', 'draft_invoiced', 'official_invoiced'):
                 raise UserError(_(
                     "⛔ [SOP-DGM-08 Guardrail] Không thể xuất Hóa đơn Nháp khi Khách hàng chưa phê duyệt Timesheet "
@@ -1299,6 +1348,16 @@ class DgmProjectTimesheetSheet(models.Model):
         Notification = self.env['dgm.project.notification'].sudo()
         Document = self.env['documents.document'].sudo()
         for sheet in self:
+            if isinstance(sheet.id, int) and sheet.id > 0:
+                self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", [int(sheet.id) + 260000000])
+            if (
+                sheet.state == 'official_invoiced'
+                and sheet.draft_invoice_id
+                and sheet.draft_invoice_id.dgm_invoice_stage == 'official_issued'
+                and sheet.draft_invoice_id.dgm_einvoice_number
+                and sheet.official_invoice_doc_id
+            ):
+                continue
             if sheet.state not in ('draft_invoiced', 'official_invoiced') or not sheet.draft_invoice_id:
                 raise UserError(_(
                     "⛔ [SOP-DGM-08 Guardrail] Chỉ được phép phát hành Hóa đơn GTGT Chính thức sau khi đã gửi Hóa đơn Nháp Đối soát "
@@ -1362,7 +1421,7 @@ class DgmProjectTimesheetSheet(models.Model):
                 'official_invoice_doc_id': official_doc.id,
                 'state': 'official_invoiced',
             })
-        return True
+        return self[:1].draft_invoice_id or True
 
 
 class DgmProjectTimesheetLine(models.Model):
@@ -1400,6 +1459,11 @@ class DgmProjectTimesheetLine(models.Model):
         string='Ngày công Chuẩn',
         default=22.0,
     )
+    standard_work_days = fields.Float(
+        related='standard_days',
+        string='Ngày công Chuẩn (Alias)',
+        readonly=False,
+    )
     actual_worked_days = fields.Float(
         string='Ngày công Thực tế',
         default=22.0,
@@ -1433,6 +1497,39 @@ class DgmProjectTimesheetLine(models.Model):
         'analytic_line_id',
         string='Bản ghi Timesheet Gốc',
     )
+
+    IMMUTABLE_FISCAL_LINE_FIELDS = {
+        'actual_worked_days',
+        'standard_days',
+        'standard_work_days',
+        'contract_monthly_rate_vnd',
+        'overtime_hours',
+        'employee_id',
+        'sheet_id',
+    }
+
+    def write(self, vals):
+        if self.IMMUTABLE_FISCAL_LINE_FIELDS.intersection(vals.keys()):
+            for line in self:
+                if line.sheet_id and line.sheet_id.state == 'official_invoiced':
+                    raise UserError(_(
+                        "⛔ [SOP-DGM-08 Fiscal Barrier — Decree 70/2025/ND-CP] "
+                        "Không được phép chỉnh sửa dữ liệu ngày công / đơn giá trên Bảng chấm công (%s) "
+                        "đã phát hành Hóa đơn GTGT Chính thức (1C26TAA)!",
+                        line.sheet_id.name,
+                    ))
+        return super().write(vals)
+
+    def unlink(self):
+        for line in self:
+            if line.sheet_id and line.sheet_id.state == 'official_invoiced':
+                raise UserError(_(
+                    "⛔ [SOP-DGM-08 Fiscal Barrier — Decree 70/2025/ND-CP] "
+                    "Không được phép xóa dòng chấm công thuộc Bảng chấm công (%s) "
+                    "đã phát hành Hóa đơn GTGT Chính thức (1C26TAA)!",
+                    line.sheet_id.name,
+                ))
+        return super().unlink()
 
     @api.depends(
         'contract_monthly_rate_vnd',
@@ -1508,50 +1605,56 @@ class AccountMoveDgmBilling(models.Model):
 
     def action_dgm_issue_official_einvoice(self, confirmed_by=None):
         for move in self:
+            if isinstance(move.id, int) and move.id > 0:
+                self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", [int(move.id) + 261000000])
+            if move.dgm_invoice_stage == 'official_issued' and move.dgm_einvoice_number:
+                continue
             now_dt = fields.Datetime.now()
-            confirmer = (
+            raw_confirmer = (
                 (confirmed_by or '').strip()
                 or move.dgm_draft_confirmed_by
                 or (move.partner_id.name if move.partner_id else 'Đại diện Khách hàng')
             )
-            if move.state == 'draft':
-                posted_ok = False
-                if hasattr(move, 'action_post'):
-                    try:
-                        with self.env.cr.savepoint():
-                            move.action_post()
-                            posted_ok = True
-                    except Exception as exc:
-                        _logger.debug("Fallback state='posted' for invoice %s: %s", move.id, exc)
-                if not posted_ok:
-                    try:
-                        with self.env.cr.savepoint():
-                            move.write({'state': 'posted'})
-                    except Exception:
-                        pass
+            confirmer = xml_escape(raw_confirmer)
+            with self.env.cr.savepoint():
+                if move.state == 'draft':
+                    posted_ok = False
+                    if hasattr(move, 'action_post'):
+                        try:
+                            with self.env.cr.savepoint():
+                                move.action_post()
+                                posted_ok = True
+                        except Exception as exc:
+                            _logger.debug("Fallback state='posted' for invoice %s: %s", move.id, exc)
+                    if not posted_ok:
+                        try:
+                            with self.env.cr.savepoint():
+                                move.write({'state': 'posted'})
+                        except Exception:
+                            pass
 
-            move_id_num = move.id if isinstance(move.id, int) and move.id > 0 else 1
-            symbol = move.dgm_einvoice_symbol or '1C26TAA'
-            einv_num = move.dgm_einvoice_number or f"{move_id_num:08d}"
-            lookup_code = move.dgm_einvoice_lookup_code or f"DGM-{symbol}-{move_id_num:06d}"
+                move_id_num = move.id if isinstance(move.id, int) and move.id > 0 else 1
+                symbol = move.dgm_einvoice_symbol or '1C26TAA'
+                einv_num = move.dgm_einvoice_number or f"{move_id_num:08d}"
+                lookup_code = move.dgm_einvoice_lookup_code or f"DGM-{symbol}-{move_id_num:06d}"
 
-            update_vals = {
-                'dgm_draft_confirmed_by': confirmer,
-                'dgm_draft_confirmed_at': now_dt,
-                'dgm_einvoice_symbol': symbol,
-                'dgm_einvoice_number': einv_num,
-                'dgm_einvoice_issued_at': now_dt,
-                'dgm_einvoice_lookup_code': lookup_code,
-                'dgm_invoice_stage': 'official_issued',
-            }
-            if 'al2c_einvoice_state' in move._fields:
-                update_vals.update({
-                    'al2c_einvoice_state': 'issued',
-                    'al2c_einvoice_number': f"{symbol}-{einv_num}",
-                    'al2c_einvoice_lookup_code': lookup_code,
-                    'al2c_einvoice_issue_date': now_dt,
-                })
-            move.sudo().write(update_vals)
+                update_vals = {
+                    'dgm_draft_confirmed_by': confirmer,
+                    'dgm_draft_confirmed_at': now_dt,
+                    'dgm_einvoice_symbol': symbol,
+                    'dgm_einvoice_number': einv_num,
+                    'dgm_einvoice_issued_at': now_dt,
+                    'dgm_einvoice_lookup_code': lookup_code,
+                    'dgm_invoice_stage': 'official_issued',
+                }
+                if 'al2c_einvoice_state' in move._fields:
+                    update_vals.update({
+                        'al2c_einvoice_state': 'issued',
+                        'al2c_einvoice_number': f"{symbol}-{einv_num}",
+                        'al2c_einvoice_lookup_code': lookup_code,
+                        'al2c_einvoice_issue_date': now_dt,
+                    })
+                move.sudo().write(update_vals)
 
             if hasattr(move, 'message_post'):
                 try:
@@ -1571,7 +1674,7 @@ class AccountMoveDgmBilling(models.Model):
                     )
                 except Exception:
                     pass
-        return True
+        return self or True
 
 
 class ProjectProjectDgmBilling(models.Model):

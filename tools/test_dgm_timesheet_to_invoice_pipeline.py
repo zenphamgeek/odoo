@@ -442,7 +442,7 @@ def verify_workflow_and_security_guards(dbname="insilos20_dev"):
             )
             assert test_sheet.draft_invoice_doc_id, "Expected draft_invoice_doc_id to be generated"
 
-            test_sheet.action_confirm_draft_and_issue_official_invoice(
+            first_inv = test_sheet.action_confirm_draft_and_issue_official_invoice(
                 confirmed_by="Nguyễn Quốc Huy — CEO (AIfin)"
             )
             assert test_sheet.state == "official_invoiced", (
@@ -456,6 +456,44 @@ def verify_workflow_and_security_guards(dbname="insilos20_dev"):
             )
             assert test_sheet.draft_invoice_id.dgm_einvoice_number, "Expected non-empty dgm_einvoice_number"
             assert test_sheet.official_invoice_doc_id, "Expected official_invoice_doc_id to be generated"
+            first_einv_num = test_sheet.draft_invoice_id.dgm_einvoice_number
+            first_inv_id = test_sheet.draft_invoice_id.id
+
+            # Guardrail 2: Calling action_confirm_draft_and_issue_official_invoice() a second time MUST be idempotent
+            second_inv = test_sheet.action_confirm_draft_and_issue_official_invoice(
+                confirmed_by="Nguyễn Quốc Huy — CEO (AIfin)"
+            )
+            assert second_inv, "Expected truthy return from idempotent action_confirm_draft_and_issue_official_invoice()"
+            assert test_sheet.draft_invoice_id.id == first_inv_id, (
+                f"Idempotency violation: draft_invoice_id changed from {first_inv_id} to {test_sheet.draft_invoice_id.id}"
+            )
+            assert test_sheet.draft_invoice_id.dgm_einvoice_number == first_einv_num, (
+                f"Idempotency violation: dgm_einvoice_number changed from {first_einv_num} to {test_sheet.draft_invoice_id.dgm_einvoice_number}"
+            )
+
+            # Guardrail 3: Decree 70/2025/ND-CP Immutability Barrier on official_invoiced lines & sheets
+            test_line = test_sheet.line_ids[0]
+            for forbidden_vals in (
+                {"actual_worked_days": 10.0},
+                {"contract_monthly_rate_vnd": 10_000_000.0},
+            ):
+                raised_immutable_write = False
+                try:
+                    test_line.write(forbidden_vals)
+                except UserError:
+                    raised_immutable_write = True
+                assert raised_immutable_write, (
+                    f"Fiscal barrier violation: line.write({forbidden_vals}) did not raise UserError when sheet.state == 'official_invoiced'!"
+                )
+
+            raised_immutable_unlink = False
+            try:
+                test_line.unlink()
+            except UserError:
+                raised_immutable_unlink = True
+            assert raised_immutable_unlink, (
+                "Fiscal barrier violation: line.unlink() did not raise UserError when sheet.state == 'official_invoiced'!"
+            )
 
             # Rollback savepoint automatically by raising a sentinel or using cr.execute("ROLLBACK TO SAVEPOINT ...")
             raise RuntimeError("_ROLLBACK_TEST_SAVEPOINT_")

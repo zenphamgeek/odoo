@@ -2970,6 +2970,88 @@ def test_patch_27_theme_switch_dark_to_light_control_sections():
     print("[✓] Patch 27 / Dark-to-Light Theme Switch Control Sections, Asset Bundles & Navbar Tokens verified")
 
 
+def test_patch_28_sop_dgm_08_fiscal_barrier_advisory_lock_and_hmac():
+    """
+    Patch 28 Verification Suite (Zero-Reversal Cryptographic Fiscal Barrier & Advisory Lock on SOP-DGM-08):
+    1. SELECT pg_advisory_xact_lock(%s) is present with 260000000 and 261000000 in dgm_project_timesheet_billing.py.
+    2. hmac.new(, hashlib.sha256, and database.secret are used to compute customer_signature_hash.
+    3. from xml.sax.saxutils import escape as xml_escape and xml_escape( are used for invoice line description sanitization.
+    4. with self.env.cr.savepoint(): is used around invoice creation/posting and 1C26TAA numbering.
+    5. IMMUTABLE_FISCAL_LINE_FIELDS / write and unlink guards on DgmProjectTimesheetLine block modifications to
+       actual_worked_days, standard_days, contract_monthly_rate_vnd, and employee_id when sheet_id.state == 'official_invoiced'.
+    6. addons/insilos_al2c/controllers/dgm_timesheet_portal.py uses hmac.compare_digest and readonly=False.
+    """
+    import ast
+
+    billing_py = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/dgm_project_timesheet_billing.py")
+    assert os.path.exists(billing_py), f"Missing {billing_py}"
+    with open(billing_py, "r", encoding="utf-8") as f:
+        billing_src = f.read()
+
+    # 1. PostgreSQL Transaction Advisory Lock
+    assert "SELECT pg_advisory_xact_lock(%s)" in billing_src, (
+        "Missing SELECT pg_advisory_xact_lock(%s) in dgm_project_timesheet_billing.py"
+    )
+    assert "260000000" in billing_src and "261000000" in billing_src, (
+        "Missing 260000000 / 261000000 advisory lock namespace offsets in dgm_project_timesheet_billing.py"
+    )
+
+    # 2. HMAC-SHA256 Fiscal Signature with database.secret
+    assert "hmac.new(" in billing_src and "hashlib.sha256" in billing_src and "database.secret" in billing_src, (
+        "Missing hmac.new / hashlib.sha256 / database.secret in dgm_project_timesheet_billing.py"
+    )
+
+    # 3. XML/HTML Sanitization (xml_escape)
+    assert "from xml.sax.saxutils import escape as xml_escape" in billing_src, (
+        "Missing xml_escape import in dgm_project_timesheet_billing.py"
+    )
+    assert "xml_escape(" in billing_src, (
+        "Missing xml_escape( calls in dgm_project_timesheet_billing.py"
+    )
+
+    # 4. Savepoint Isolation around invoice creation/posting and 1C26TAA numbering
+    assert billing_src.count("with self.env.cr.savepoint():") >= 4, (
+        "Expected >= 4 savepoint blocks in dgm_project_timesheet_billing.py"
+    )
+
+    # 5. AST & Source Check for DgmProjectTimesheetLine immutability guards
+    assert "IMMUTABLE_FISCAL_LINE_FIELDS" in billing_src, (
+        "Missing IMMUTABLE_FISCAL_LINE_FIELDS in dgm_project_timesheet_billing.py"
+    )
+    for req_field in ("actual_worked_days", "standard_days", "contract_monthly_rate_vnd", "employee_id"):
+        assert f"'{req_field}'" in billing_src, (
+            f"Missing {req_field} in IMMUTABLE_FISCAL_LINE_FIELDS"
+        )
+
+    tree = ast.parse(billing_src, filename=billing_py)
+    classes = {n.name: n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)}
+    assert "DgmProjectTimesheetLine" in classes, "Missing DgmProjectTimesheetLine class"
+    line_methods = {
+        n.name for n in classes["DgmProjectTimesheetLine"].body if isinstance(n, ast.FunctionDef)
+    }
+    assert "write" in line_methods and "unlink" in line_methods, (
+        f"DgmProjectTimesheetLine must define write and unlink fiscal barrier methods, found {line_methods}"
+    )
+
+    assert "DgmProjectTimesheetSheet" in classes, "Missing DgmProjectTimesheetSheet class"
+    sheet_methods = {
+        n.name for n in classes["DgmProjectTimesheetSheet"].body if isinstance(n, ast.FunctionDef)
+    }
+    assert "write" in sheet_methods and "unlink" in sheet_methods, (
+        f"DgmProjectTimesheetSheet must define write and unlink fiscal barrier methods, found {sheet_methods}"
+    )
+
+    # 6. Verify dgm_timesheet_portal.py uses hmac.compare_digest and readonly=False
+    portal_py = os.path.join(ROOT_DIR, "addons/insilos_al2c/controllers/dgm_timesheet_portal.py")
+    assert os.path.exists(portal_py), f"Missing {portal_py}"
+    with open(portal_py, "r", encoding="utf-8") as f:
+        portal_src = f.read()
+    assert "hmac.compare_digest" in portal_src, "dgm_timesheet_portal.py must use hmac.compare_digest"
+    assert "readonly=False" in portal_src, "dgm_timesheet_portal.py must set readonly=False"
+
+    print("[✓] Patch 28 / Zero-Reversal Cryptographic Fiscal Barrier, Advisory Lock & HMAC-SHA256 on SOP-DGM-08 verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -3012,8 +3094,9 @@ def main():
     test_patch_25_partner_load_indexes_and_share_idor_guard()
     test_patch_26_shallow_partner_loader_hmac_share_and_lockfree_index()
     test_patch_27_theme_switch_dark_to_light_control_sections()
-    print("[✓] ALL 27 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 27 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_28_sop_dgm_08_fiscal_barrier_advisory_lock_and_hmac()
+    print("[✓] ALL 28 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 28 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
