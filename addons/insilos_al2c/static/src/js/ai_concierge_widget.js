@@ -459,6 +459,8 @@ export class AiConciergeWidget extends Component {
             leadErrorMessage: null,
             currentQuery: "",
             selectedPillar: "sw_squad",
+            pctToken: null,
+            capabilityBudgetRemaining: 3,
             servicesCatalog: initialCatalog,
             configurator: {
                 service_code: defaultService.code,
@@ -630,6 +632,12 @@ export class AiConciergeWidget extends Component {
     async loadServicesCatalog() {
         try {
             const result = await callJsonRpc("/innoria/ai_concierge/services_catalog", {});
+            if (result?.pct_token) {
+                this.state.pctToken = result.pct_token;
+            }
+            if (typeof result?.capability_budget_remaining === "number") {
+                this.state.capabilityBudgetRemaining = result.capability_budget_remaining;
+            }
             const rawList = result?.services || result?.catalog || (Array.isArray(result) ? result : null);
             if (Array.isArray(rawList) && rawList.length > 0) {
                 const normalized = rawList.map((item) => normalizeServiceCard(item));
@@ -1088,6 +1096,12 @@ export class AiConciergeWidget extends Component {
             });
 
             if (result && result.success) {
+                if (result.pct_token) {
+                    this.state.pctToken = result.pct_token;
+                }
+                if (typeof result.capability_budget_remaining === "number") {
+                    this.state.capabilityBudgetRemaining = result.capability_budget_remaining;
+                }
                 const matchedPillar = result.matched_pillar || this.state.selectedPillar;
                 const serviceCards =
                     Array.isArray(result.service_cards) && result.service_cards.length
@@ -1216,9 +1230,13 @@ export class AiConciergeWidget extends Component {
                 units: cfg.units,
                 duration_months: cfg.duration_months,
                 estimated_total_vnd: est.total_vnd || 0,
+                pct_token: this.state.pctToken,
             });
 
             if (result && result.success) {
+                if (typeof result.capability_budget_remaining === "number") {
+                    this.state.capabilityBudgetRemaining = result.capability_budget_remaining;
+                }
                 const successMsg =
                     result.message || "Yêu cầu khảo sát và báo giá của Quý khách đã được tiếp nhận thành công.";
                 this.state.leadSuccessMessage = successMsg;

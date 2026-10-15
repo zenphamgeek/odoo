@@ -1,13 +1,24 @@
 # -*- coding: utf-8 -*-
 # Part of Insilos AL2C Enterprise Architecture (SOP-12 & SOP-11)
 import copy
+import hashlib
+import hmac
 import logging
 import re
-from markupsafe import escape
+import secrets
+import threading
+import time
+try:
+    from markupsafe import escape
+except ImportError:
+    from html import escape
 from odoo import http, _
 from odoo.http import request
 
 _logger = logging.getLogger(__name__)
+
+_PCT_LOCK = threading.Lock()
+_PCT_BUDGET_LEDGER = {}
 
 CANONICAL_CATALOG_SKUS = [
     'ERP-STARTER',
@@ -267,6 +278,9 @@ class InnoriaAiConciergeController(http.Controller):
     4. Platform Health & Capability Telemetry.
     """
 
+    DEFAULT_PCT_BUDGET = 3
+    DEFAULT_PCT_TTL_SECONDS = 3600
+
     @property
     def env(self):
         if hasattr(self, '_custom_env') and self._custom_env:
@@ -283,6 +297,73 @@ class InnoriaAiConciergeController(http.Controller):
     @env.setter
     def env(self, val):
         self._custom_env = val
+
+    def _get_pct_secret(self, env=None):
+        """Resolve database.secret for HMAC-SHA256 Proof-Carrying Token signing."""
+        resolved_env = env or self.env
+        if resolved_env:
+            try:
+                sec = resolved_env['ir.config_parameter'].sudo().get_param('database.secret')
+                if sec:
+                    return str(sec)
+            except Exception:
+                pass
+        return 'insilos_sovereign_pct_secret_v1'
+
+    def mint_capability_token(self, env=None, session_id='public', budget=DEFAULT_PCT_BUDGET, ttl=DEFAULT_PCT_TTL_SECONDS):
+        """
+        Mint a signed Proof-Carrying Token (AB-PCT) with a bounded capability budget
+        and register it in the thread-safe _PCT_BUDGET_LEDGER (max 4096 entries).
+        """
+        nonce = secrets.token_hex(8)
+        exp_ts = int(time.time()) + int(ttl)
+        max_b = max(1, int(budget))
+        sid = str(session_id or 'public')
+        payload = f"{nonce}:{sid}:{max_b}:{exp_ts}"
+        secret = self._get_pct_secret(env)
+        sig = hmac.new(secret.encode('utf-8'), payload.encode('utf-8'), hashlib.sha256).hexdigest()[:24]
+        token = f"pct.{nonce}.{max_b}.{exp_ts}.{sig}"
+        with _PCT_LOCK:
+            if len(_PCT_BUDGET_LEDGER) >= 4096:
+                oldest_key = next(iter(_PCT_BUDGET_LEDGER))
+                _PCT_BUDGET_LEDGER.pop(oldest_key, None)
+            _PCT_BUDGET_LEDGER[nonce] = {'remaining': max_b, 'exp': exp_ts, 'sid': sid}
+        return token
+
+    def verify_and_consume_pct(self, pct_token, env=None, cost=1):
+        """
+        Verify HMAC-SHA256 signature, TTL expiry, and remaining capability budget,
+        atomically decrementing by `cost`. Returns (ok: bool, status_code: str, remaining: int).
+        """
+        if not pct_token or not isinstance(pct_token, str):
+            return False, 'missing_pct_token', 0
+        parts = pct_token.strip().split('.')
+        if len(parts) != 5 or parts[0] != 'pct':
+            return False, 'malformed_pct_token', 0
+        _, nonce, max_b_str, exp_str, sig = parts
+        try:
+            max_b = int(max_b_str)
+            exp_ts = int(exp_str)
+        except ValueError:
+            return False, 'malformed_pct_token', 0
+        if int(time.time()) > exp_ts:
+            return False, 'expired_pct_token', 0
+        with _PCT_LOCK:
+            entry = _PCT_BUDGET_LEDGER.get(nonce)
+            sid = entry['sid'] if entry else 'public'
+        payload = f"{nonce}:{sid}:{max_b}:{exp_ts}"
+        secret = self._get_pct_secret(env)
+        expected_sig = hmac.new(secret.encode('utf-8'), payload.encode('utf-8'), hashlib.sha256).hexdigest()[:24]
+        if not hmac.compare_digest(sig, expected_sig):
+            return False, 'invalid_pct_signature', 0
+        with _PCT_LOCK:
+            entry = _PCT_BUDGET_LEDGER.get(nonce)
+            if not entry:
+                return False, 'unknown_or_evicted_pct_nonce', 0
+            if entry['remaining'] < cost:
+                return False, 'pct_capability_budget_exhausted', 0
+            entry['remaining'] -= cost
+            return True, 'ok', entry['remaining']
 
     @http.route(['/innoria/ai_concierge/services_catalog'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=True)
     def ai_concierge_services_catalog(self, **kw):
@@ -316,11 +397,14 @@ class InnoriaAiConciergeController(http.Controller):
                 for code in CANONICAL_CATALOG_SKUS
             ]
 
+        pct_token = self.mint_capability_token(env=env)
         return {
             'status': 'ok',
             'success': True,
             'services': services_out,
             'catalog_skus': catalog_skus,
+            'pct_token': pct_token,
+            'capability_budget_remaining': self.DEFAULT_PCT_BUDGET,
         }
 
     @http.route(['/innoria/ai_concierge/estimate_service'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=True)
@@ -623,6 +707,7 @@ class InnoriaAiConciergeController(http.Controller):
                 })
 
         primary_service_code = service_cards[0]['code'] if service_cards else 'sw_squad'
+        pct_token = self.mint_capability_token(env=env)
 
         return {
             'success': True,
@@ -633,6 +718,8 @@ class InnoriaAiConciergeController(http.Controller):
             'reason': reason,
             'matched_pillar': matched_pillar or 'enterprise',
             'service_cards': service_cards,
+            'pct_token': pct_token,
+            'capability_budget_remaining': self.DEFAULT_PCT_BUDGET,
             'suggested_actions': [
                 {
                     'type': 'open_configurator',
@@ -676,16 +763,32 @@ class InnoriaAiConciergeController(http.Controller):
         duration_months=None,
         estimated_total_vnd=None,
         campaign_source=None,
+        pct_token=None,
         **kw
     ):
         """
         B2B Lead Booking, Service Estimate Attachment & Marketing Campaign Enrollment Endpoint (SOP-AI-004 §2.2).
         Calculates qualification fit score, assigns CRM tags, populates expected_revenue, and enrolls in
-        the AL2C Marketing Automation Campaign.
+        the AL2C Marketing Automation Campaign. Enforces Proof-Carrying Token (AB-PCT) capability budget.
         """
         env = _resolve_env(self, kw)
         if not env:
             return {'success': False, 'error': _("Invalid request context"), 'status': 'bad_request'}
+
+        resolved_pct_token = pct_token if pct_token is not None else kw.get('pct_token')
+        pct_remaining = self.DEFAULT_PCT_BUDGET
+        pct_status = None
+        if isinstance(resolved_pct_token, str) and resolved_pct_token.strip():
+            ok, status_code, rem = self.verify_and_consume_pct(resolved_pct_token.strip(), env=env, cost=1)
+            if not ok:
+                return {
+                    'success': False,
+                    'status': status_code,
+                    'error': _("Hạn mức tạo hồ sơ khảo sát tự động (Capability Budget) đã hết hoặc mã xác thực không hợp lệ."),
+                    'capability_budget_remaining': 0,
+                }
+            pct_remaining = rem
+            pct_status = 'ok'
 
         contact_name = (name or '').strip()
         contact_email = (email or '').strip()
@@ -904,7 +1007,7 @@ class InnoriaAiConciergeController(http.Controller):
             subtype_xmlid='mail.mt_comment',
         )
 
-        return {
+        out = {
             'status': 'ok',
             'success': True,
             'lead_id': lead.id,
@@ -921,8 +1024,12 @@ class InnoriaAiConciergeController(http.Controller):
             'campaign_id': campaign_id,
             'campaign_name': campaign_name,
             'tags': tag_names,
+            'capability_budget_remaining': pct_remaining,
             'message': _("Yêu cầu khảo sát của Quý khách đã được tiếp nhận thành công. Chuyên gia tư vấn Innoria sẽ liên hệ trong vòng 24 giờ làm việc.")
         }
+        if pct_status:
+            out['pct_status'] = pct_status
+        return out
 
     @http.route(['/innoria/ai_concierge/status'], type='jsonrpc', auth='public', methods=['POST', 'GET'], website=True, csrf=False, readonly=True)
     def ai_concierge_status(self, **kw):

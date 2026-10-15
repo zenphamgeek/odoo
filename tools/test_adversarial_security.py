@@ -3447,6 +3447,115 @@ def test_patch_31_sop_dgm_09_mti_codev_and_ktt_turnkey_software_contracts():
     print("[✓] Patch 31 / SOP-DGM-09 Best-Practice Software Tax Incentive Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04) verified")
 
 
+def test_patch_32_ab_pct_capability_budget_guard():
+    """Patch 32 (`AB-PCT`): Verifies Autonomous AI-Agent Capability Budget & Proof-Carrying Token
+    (`mint_capability_token` / `verify_and_consume_pct`) in `addons/insilos_al2c/controllers/ai_concierge.py`
+    and `addons/insilos_al2c/static/src/js/ai_concierge_widget.js`.
+    """
+    import importlib.util
+    import types
+
+    ctrl_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/controllers/ai_concierge.py")
+    js_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/static/src/js/ai_concierge_widget.js")
+    assert os.path.isfile(ctrl_path), f"Missing {ctrl_path}"
+    assert os.path.isfile(js_path), f"Missing {js_path}"
+
+    with open(ctrl_path, "r", encoding="utf-8") as f:
+        ctrl_src = f.read()
+    for sym in (
+        "_PCT_LOCK",
+        "_PCT_BUDGET_LEDGER",
+        "mint_capability_token",
+        "verify_and_consume_pct",
+        "hmac.compare_digest",
+        "pct_capability_budget_exhausted",
+        "invalid_pct_signature",
+        "expired_pct_token",
+    ):
+        assert sym in ctrl_src, f"ai_concierge.py missing AB-PCT symbol: {sym}"
+
+    with open(js_path, "r", encoding="utf-8") as f:
+        js_src = f.read()
+    for js_sym in ("pctToken", "capabilityBudgetRemaining", "pct_token: this.state.pctToken"):
+        assert js_sym in js_src, f"ai_concierge_widget.js missing AB-PCT binding: {js_sym}"
+
+    odoo_mod = types.ModuleType("odoo")
+    odoo_mod._ = lambda s, **kw: (s % kw if kw else s)
+    http_mod = types.ModuleType("odoo.http")
+    http_mod.Controller = object
+    http_mod.route = lambda *a, **kw: (lambda fn: fn)
+    http_mod.request = None
+    odoo_mod.http = http_mod
+
+    saved_odoo = sys.modules.get("odoo")
+    saved_http = sys.modules.get("odoo.http")
+    saved_ms = sys.modules.get("markupsafe")
+    try:
+        sys.modules["odoo"] = odoo_mod
+        sys.modules["odoo.http"] = http_mod
+        if "markupsafe" not in sys.modules:
+            import html as _html_mod
+            ms_mod = types.ModuleType("markupsafe")
+            ms_mod.escape = _html_mod.escape
+            ms_mod.Markup = str
+            sys.modules["markupsafe"] = ms_mod
+        spec = importlib.util.spec_from_file_location("insilos_al2c_ai_concierge_pct_test", ctrl_path)
+        mod_ctrl = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod_ctrl)
+    finally:
+        if saved_odoo is None:
+            sys.modules.pop("odoo", None)
+        else:
+            sys.modules["odoo"] = saved_odoo
+        if saved_http is None:
+            sys.modules.pop("odoo.http", None)
+        else:
+            sys.modules["odoo.http"] = saved_http
+        if saved_ms is None:
+            sys.modules.pop("markupsafe", None)
+        else:
+            sys.modules["markupsafe"] = saved_ms
+
+    ctrl = mod_ctrl.InnoriaAiConciergeController()
+
+    # 1. Mint token with budget=2 and consume twice
+    tok = ctrl.mint_capability_token(session_id="adv-test-session", budget=2, ttl=3600)
+    assert tok.startswith("pct.") and len(tok.split(".")) == 5, f"Malformed minted PCT token: {tok}"
+
+    ok1, st1, rem1 = ctrl.verify_and_consume_pct(tok, cost=1)
+    assert (ok1, st1, rem1) == (True, "ok", 1), f"Unexpected 1st consume result: {(ok1, st1, rem1)}"
+
+    ok2, st2, rem2 = ctrl.verify_and_consume_pct(tok, cost=1)
+    assert (ok2, st2, rem2) == (True, "ok", 0), f"Unexpected 2nd consume result: {(ok2, st2, rem2)}"
+
+    # 2. 3rd attempt must fail-closed with pct_capability_budget_exhausted
+    ok3, st3, rem3 = ctrl.verify_and_consume_pct(tok, cost=1)
+    assert (ok3, st3, rem3) == (False, "pct_capability_budget_exhausted", 0), (
+        f"Expected budget exhaustion on 3rd consume, got {(ok3, st3, rem3)}"
+    )
+
+    # 3. Tampered budget escalation (e.g. changing budget=2 to budget=999 in token string)
+    parts = tok.split(".")
+    escalated_tok = f"pct.{parts[1]}.999.{parts[3]}.{parts[4]}"
+    ok_esc, st_esc, _ = ctrl.verify_and_consume_pct(escalated_tok, cost=1)
+    assert not ok_esc and st_esc == "invalid_pct_signature", (
+        f"Expected invalid_pct_signature on budget tampering, got {(ok_esc, st_esc)}"
+    )
+
+    # 4. Expired token must fail-closed with expired_pct_token
+    exp_tok = ctrl.mint_capability_token(session_id="adv-exp", budget=3, ttl=-10)
+    ok_exp, st_exp, _ = ctrl.verify_and_consume_pct(exp_tok, cost=1)
+    assert not ok_exp and st_exp == "expired_pct_token", (
+        f"Expected expired_pct_token, got {(ok_exp, st_exp)}"
+    )
+
+    # 5. Missing and malformed tokens
+    assert ctrl.verify_and_consume_pct(None)[0:2] == (False, "missing_pct_token")
+    assert ctrl.verify_and_consume_pct("invalid.token")[0:2] == (False, "malformed_pct_token")
+
+    print("[✓] Patch 32 / AB-PCT Autonomous AI-Agent Capability Budget & Proof-Carrying Token Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -3493,12 +3602,14 @@ def main():
     test_patch_29_sop08_rev2_namespaced_lock_post_approval_seal_and_c14n_xml()
     test_patch_30_dgm_drive_logo_brand_footer_standardization()
     test_patch_31_sop_dgm_09_mti_codev_and_ktt_turnkey_software_contracts()
-    print("[✓] ALL 31 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 31 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_32_ab_pct_capability_budget_guard()
+    print("[✓] ALL 32 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 32 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 

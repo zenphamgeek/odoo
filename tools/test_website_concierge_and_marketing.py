@@ -251,7 +251,59 @@ def verify_database(dbname):
             assert "1.140.000.000 VNĐ" in (lead_rec.description or ""), (
                 f"{dbname}: Missing formatted estimate in lead.description"
             )
-            print(f"[✓] {dbname} [4/4]: /innoria/ai_concierge/book_lead verified (lead_id={lead_rec.id}, expected_revenue={lead_rec.expected_revenue:,.0f} VND, tags={sorted(tag_names)}, marketing_campaign_enrolled=True)")
+
+            # Verify AB-PCT (Autonomous AI-Agent Capability Budget & Proof-Carrying Token)
+            pct_tok = controller.mint_capability_token(env=env, budget=2, ttl=3600)
+            assert pct_tok.startswith("pct."), f"{dbname}: Expected pct. prefix on minted token, got {pct_tok}"
+            pct_lead_1 = controller.ai_concierge_book_lead(
+                name="Trần Minh Quân",
+                email="quan.tran@fintech-vietnam.vn",
+                company_name="Công ty Cổ phần Công nghệ Tài chính Việt Nam",
+                service_code="sw_turnkey",
+                scale_tier="growth",
+                pct_token=pct_tok,
+                env=env,
+            )
+            assert pct_lead_1.get("success") is True and pct_lead_1.get("capability_budget_remaining") == 1, (
+                f"{dbname}: Expected capability_budget_remaining=1 on 1st PCT use, got {pct_lead_1}"
+            )
+            pct_lead_2 = controller.ai_concierge_book_lead(
+                name="Trần Minh Quân",
+                email="quan.tran@fintech-vietnam.vn",
+                company_name="Công ty Cổ phần Công nghệ Tài chính Việt Nam",
+                service_code="sw_turnkey",
+                scale_tier="growth",
+                pct_token=pct_tok,
+                env=env,
+            )
+            assert pct_lead_2.get("success") is True and pct_lead_2.get("capability_budget_remaining") == 0, (
+                f"{dbname}: Expected capability_budget_remaining=0 on 2nd PCT use, got {pct_lead_2}"
+            )
+            pct_lead_exhausted = controller.ai_concierge_book_lead(
+                name="Trần Minh Quân",
+                email="quan.tran@fintech-vietnam.vn",
+                company_name="Công ty Cổ phần Công nghệ Tài chính Việt Nam",
+                service_code="sw_turnkey",
+                scale_tier="growth",
+                pct_token=pct_tok,
+                env=env,
+            )
+            assert pct_lead_exhausted.get("success") is False and pct_lead_exhausted.get("status") == "pct_capability_budget_exhausted", (
+                f"{dbname}: Expected pct_capability_budget_exhausted on 3rd use, got {pct_lead_exhausted}"
+            )
+            tampered_tok = pct_tok[:-4] + ("0000" if not pct_tok.endswith("0000") else "ffff")
+            pct_lead_tampered = controller.ai_concierge_book_lead(
+                name="Trần Minh Quân",
+                email="quan.tran@fintech-vietnam.vn",
+                company_name="Công ty Cổ phần Công nghệ Tài chính Việt Nam",
+                pct_token=tampered_tok,
+                env=env,
+            )
+            assert pct_lead_tampered.get("success") is False and pct_lead_tampered.get("status") == "invalid_pct_signature", (
+                f"{dbname}: Expected invalid_pct_signature on tampered token, got {pct_lead_tampered}"
+            )
+
+            print(f"[✓] {dbname} [4/4]: /innoria/ai_concierge/book_lead + AB-PCT capability guard verified (lead_id={lead_rec.id}, expected_revenue={lead_rec.expected_revenue:,.0f} VND, tags={sorted(tag_names)}, marketing_campaign_enrolled=True)")
         finally:
             # Rollback cursor so test records do not pollute dev or prod databases
             cr.rollback()
