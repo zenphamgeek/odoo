@@ -134,6 +134,7 @@ class TestPinnedConversionAdversarial(TransactionCase):
 
         num_threads = 16
         barrier = threading.Barrier(num_threads)
+        completion_barrier = threading.Barrier(num_threads)
         results = []
         errors = []
 
@@ -160,7 +161,7 @@ class TestPinnedConversionAdversarial(TransactionCase):
 
             def execute_pipeline_simulation(comp):
                 # Simulate transaction work while holding transaction-scoped lock
-                time.sleep(0.05)
+                time.sleep(0.01)
                 return True
 
             cron_inst = MagicMock()
@@ -177,6 +178,8 @@ class TestPinnedConversionAdversarial(TransactionCase):
             except Exception as e:
                 errors.append((thread_idx, e))
             finally:
+                # Wait for all threads to complete their attempts before releasing transaction lock
+                completion_barrier.wait()
                 if current_held_key[0] is not None:
                     # Simulating transaction commit auto-release
                     mock_release_lock(current_held_key[0])
