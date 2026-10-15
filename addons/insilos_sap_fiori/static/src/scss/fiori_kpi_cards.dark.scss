@@ -1,0 +1,173 @@
+// =============================================================================
+// Insilos Enterprise Platform — SAP Fiori 4 Horizon KPI Cards & Object Header
+// Dark Mode Bundle (web.assets_web_dark)
+// Complies with AGENTS.md Rule 4 & Rule 9.1 (Sovereign Dark Mode Token Architecture)
+// =============================================================================
+
+:root,
+html,
+body,
+.o_web_client,
+body.o_dark_mode,
+.o_dark_mode,
+[data-bs-theme="dark"],
+[data-theme="dark"] {
+    --insilos-bg-canvas: #070b14;
+    --insilos-bg-surface: #0f172a;
+    --insilos-bg-card: #141e33;
+    --insilos-bg-header: #0f172a;
+    --insilos-bg-hover: #1e293b;
+    --insilos-bg-active: #334155;
+    --insilos-bg-subtle: #0b0f19;
+    --insilos-bg-selected: rgba(0, 242, 254, 0.12);
+
+    --insilos-border-subtle: rgba(255, 255, 255, 0.1);
+    --insilos-border-medium: rgba(255, 255, 255, 0.18);
+    --insilos-border-strong: rgba(255, 255, 255, 0.32);
+    --insilos-border-focus: #00f2fe;
+
+    --insilos-text-primary: #f8fafc;
+    --insilos-text-secondary: #cbd5e1;
+    --insilos-text-tertiary: #94a3b8;
+    --insilos-text-muted: #cbd5e1;
+    --insilos-text-on-primary: #05101e;
+
+    --insilos-primary: #00f2fe;
+    --insilos-primary-hover: #38bdf8;
+    --insilos-accent: #00f2fe;
+
+    --fiori-surface-card: var(--insilos-bg-card);
+    --fiori-surface-subtle: var(--insilos-bg-subtle);
+    --fiori-border-subtle: var(--insilos-border-subtle);
+    --fiori-border-strong: var(--insilos-border-medium);
+    --fiori-text-primary: var(--insilos-text-primary);
+    --fiori-text-secondary: var(--insilos-text-secondary);
+    --fiori-text-muted: var(--insilos-text-tertiary);
+    --fiori-primary: var(--insilos-primary);
+    --fiori-shadow-card: 0 2px 6px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.25);
+    --fiori-shadow-hover: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+
+body.o_dark_mode,
+.o_dark_mode,
+[data-bs-theme="dark"],
+[data-theme="dark"] {
+    .o_fiori_kpi_tile_grid {
+        .o_fiori_kpi_tile {
+            background: var(--insilos-bg-card) !important;
+            border-color: var(--insilos-border-subtle) !important;
+            box-shadow: var(--fiori-shadow-card) !important;
+
+            &:hover {
+                border-color: var(--insilos-primary) !important;
+                box-shadow: 0 6px 16px rgba(0, 242, 254, 0.15), var(--fiori-shadow-hover) !important;
+            }
+
+            .o_fiori_kpi_header {
+                .o_fiori_kpi_title {
+                    color: var(--insilos-text-secondary) !important;
+                }
+                .o_fiori_kpi_icon {
+                    color: var(--insilos-primary) !important;
+                    background: rgba(0, 242, 254, 0.12) !important;
+                }
+            }
+
+            .o_fiori_kpi_body {
+                .o_fiori_kpi_value {
+                    color: var(--insilos-text-primary) !important;
+
+                    &.text-positive {
+                        color: #34d399 !important;
+                    }
+                    &.text-warning {
+                        color: #fbbf24 !important;
+                    }
+                    &.text-critical {
+                        color: #fda4af !important;
+                    }
+                }
+                .o_fiori_kpi_unit {
+                    color: var(--insilos-text-tertiary) !important;
+                }
+            }
+
+            .o_fiori_kpi_footer {
+                border-top-color: var(--insilos-border-subtle) !important;
+                color: var(--insilos-text-tertiary) !important;
+            }
+        }
+    }
+
+    .o_fiori_micro_progress {
+        background-color: var(--insilos-bg-hover) !important;
+
+        .o_fiori_micro_bar {
+            background-color: var(--insilos-primary) !important;
+
+            &.bar-positive {
+                background-color: #10b981 !important;
+            }
+            &.bar-warning {
+                background-color: #f59e0b !important;
+            }
+            &.bar-critical {
+                background-color: #f43f5e !important;
+            }
+        }
+    }
+
+    .o_form_view .o_form_sheet_bg > .o_form_sheet .o_sap_object_header_sheet {
+        background: linear-gradient(180deg, var(--insilos-bg-surface) 0%, var(--insilos-bg-card) 100%) !important;
+        border-bottom-color: var(--insilos-border-subtle) !important;
+    }
+
+    .o_form_view .oe_button_box {
+        .oe_stat_button {
+            background-color: var(--insilos-bg-card) !important;
+            border-color: var(--insilos-border-subtle) !important;
+            color: var(--insilos-text-primary) !important;
+
+            &:hover {
+                background-color: var(--insilos-bg-hover) !important;
+                border-color: var(--insilos-primary) !important;
+            }
+
+            .o_button_icon {
+                color: var(--insilos-primary) !important;
+            }
+
+            .o_stat_info {
+                .o_stat_value {
+                    color: var(--insilos-text-primary) !important;
+                }
+                .o_stat_text {
+                    color: var(--insilos-text-secondary) !important;
+                }
+            }
+        }
+    }
+}
+
+html[data-theme="light"] body:not(.o_dark_mode) {
+    --insilos-bg-canvas: #f4f6f8;
+    --insilos-bg-surface: #ffffff;
+    --insilos-bg-card: #ffffff;
+    --insilos-bg-header: #ffffff;
+    --insilos-bg-hover: #f1f5f9;
+    --insilos-bg-active: #e2e8f0;
+    --insilos-bg-subtle: #f8fafc;
+    --insilos-bg-selected: rgba(15, 98, 254, 0.08);
+    --insilos-border-subtle: #e2e8f0;
+    --insilos-border-medium: #cbd5e1;
+    --insilos-border-strong: #94a3b8;
+    --insilos-border-focus: #0f62fe;
+    --insilos-text-primary: #0f172a;
+    --insilos-text-secondary: #475569;
+    --insilos-text-tertiary: #64748b;
+    --insilos-text-muted: #64748b;
+    --insilos-text-on-primary: #ffffff;
+    --insilos-primary: #0b2e64;
+    --insilos-primary-hover: #082147;
+    --insilos-accent: #0f62fe;
+}
