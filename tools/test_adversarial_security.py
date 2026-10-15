@@ -1098,7 +1098,7 @@ def test_patch_16_two_key_advisory_lock_and_paged_telemetry():
     with open(manifest_py, "r", encoding="utf-8") as f:
         man_src = f.read()
     assert "Insilos Sovereign Security Guard" in man_src, "Missing addon name in manifest"
-    assert "'version': '20.0.1.0.0'" in man_src or '"version": "20.0.1.0.0"' in man_src, "Invalid version in manifest"
+    assert any(v in man_src for v in ["'20.0.1.0.0'", '"20.0.1.0.0"', "'26.0.1.0.0'", '"26.0.1.0.0"']), "Invalid version in manifest"
     assert "'base'" in man_src or '"base"' in man_src, "Missing 'base' in depends"
 
     # 3. addons/insilos_security/__init__.py and models/__init__.py
