@@ -654,6 +654,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             "cli/server.py",
             "http/router.py",
             "http/dispatcher.py",
+            "tools/sql.py",
         ]
         frozen_release_core = os.path.join(staging_dir, "frozen_release_core")
         freeze_and_audit_members("odoo", RELEASE_CORE_MEMBERS, frozen_release_core)
@@ -723,6 +724,49 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_account_cmd, check=True)
         print(f"[✓] Created {tar_path_account}")
 
+        # 4U. Core Addons Sweep Fixes (analytic, delivery, resource, hr_work_entry, hr wizard)
+        tar_path_addons_sweep = os.path.join(staging_dir, "odoo_addons_sweep_sync.tar.gz")
+        ADDONS_SWEEP_MEMBERS = [
+            "analytic/models/analytic_mixin.py",
+            "delivery/models/delivery_carrier.py",
+            "resource/models/resource_calendar.py",
+            "hr_work_entry/models/hr_version.py",
+            "hr/wizard/hr_bank_account_wizard.py",
+        ]
+        frozen_addons_sweep = os.path.join(staging_dir, "frozen_addons_sweep")
+        freeze_and_audit_members("addons", ADDONS_SWEEP_MEMBERS, frozen_addons_sweep)
+        tar_addons_sweep_cmd = [
+            "tar",
+            "-czf",
+            tar_path_addons_sweep,
+            "-C",
+            frozen_addons_sweep,
+            *ADDONS_SWEEP_MEMBERS,
+        ]
+        subprocess.run(tar_addons_sweep_cmd, check=True)
+        print(f"[✓] Created {tar_path_addons_sweep}")
+
+        # 4V. Enterprise Sweep Fixes (pos_enterprise, website_helpdesk_livechat, account_followup, equity)
+        tar_path_ent_sweep = os.path.join(staging_dir, "enterprise_sweep_sync.tar.gz")
+        ENT_SWEEP_MEMBERS = [
+            "pos_enterprise/models/pos_prep_display.py",
+            "website_helpdesk_livechat/models/chatbot_script.py",
+            "account_followup/models/res_partner.py",
+            "equity/models/equity_cap_table.py",
+        ]
+        frozen_ent_sweep = os.path.join(staging_dir, "frozen_ent_sweep")
+        freeze_and_audit_members("enterprise", ENT_SWEEP_MEMBERS, frozen_ent_sweep)
+        tar_ent_sweep_cmd = [
+            "tar",
+            "-czf",
+            tar_path_ent_sweep,
+            "-C",
+            frozen_ent_sweep,
+            *ENT_SWEEP_MEMBERS,
+        ]
+        subprocess.run(tar_ent_sweep_cmd, check=True)
+        print(f"[✓] Created {tar_path_ent_sweep}")
+
         # 5. Digest-Pinning Manifest (Content-Addressed Attestation)
         manifest_path = os.path.join(staging_dir, "manifest.sha256")
         with open(manifest_path, "w", encoding="utf-8") as f:
@@ -751,6 +795,8 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             f.write(f"{compute_sha256(tar_path_web_core)}  web_core_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_hr)}  odoo_hr_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_account)}  odoo_account_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_addons_sweep)}  odoo_addons_sweep_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_ent_sweep)}  enterprise_sweep_sync.tar.gz\n")
         print(f"[✓] Generated Content-Addressed Manifest: {manifest_path}")
 
         print("\n=== 2. DEPLOYING ARCHIVES TO ALL PODS & PERSISTENT VOLUMES IN PARALLEL ===")
@@ -892,6 +938,16 @@ if [ -d "/app/insilos/addons/account/models" ]; then
     tar -xzf /tmp/odoo_account_sync.tar.gz -C /app/insilos/addons/account/models/
 fi
 
+if [ -d "/app/insilos/addons" ]; then
+    tar -xzf /tmp/odoo_addons_sweep_sync.tar.gz -C /app/insilos/addons/
+fi
+
+for ent_dir in /app/insilos/enterprise /app/insilos/apps; do
+    if [ -d "$ent_dir" ] && [ ! -L "$ent_dir" ]; then
+        tar -xzf /tmp/enterprise_sweep_sync.tar.gz -C "$ent_dir/"
+    fi
+done
+
 CHOWN_TARGETS="
   /var/lib/insilos/filestore/custom_addons/insilos_website
   /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis
@@ -919,8 +975,12 @@ CHOWN_TARGETS="
   /app/insilos/addons/web
   /app/insilos/addons/product
   /app/insilos/addons/mrp
-  /app/insilos/addons/hr/models
+  /app/insilos/addons/hr
   /app/insilos/addons/account/models
+  /app/insilos/addons/analytic/models
+  /app/insilos/addons/delivery/models
+  /app/insilos/addons/resource/models
+  /app/insilos/addons/hr_work_entry/models
   /app/insilos/addons/mail/tools
   /app/insilos/enterprise/sale_renting
   /app/insilos/apps/sale_renting
@@ -930,6 +990,10 @@ CHOWN_TARGETS="
   /app/insilos/apps/ai_livechat
   /app/insilos/enterprise/documents
   /app/insilos/apps/documents
+  /app/insilos/enterprise/pos_enterprise/models
+  /app/insilos/enterprise/website_helpdesk_livechat/models
+  /app/insilos/enterprise/account_followup/models
+  /app/insilos/enterprise/equity/models
   /app/insilos/apps/insilos_website
   /app/insilos/apps/insilos_theme_genesis
   /app/insilos/apps/web_enterprise
@@ -944,13 +1008,13 @@ for t in $CHOWN_TARGETS; do
     fi
 done
 
-for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py; do
+for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py; do
     if [ -e "$f" ]; then
         chmod 0755 "$f"
     fi
 done
 
-rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/odoo_server_sync.tar.gz /tmp/odoo_product_sync.tar.gz /tmp/odoo_mrp_sync.tar.gz /tmp/sale_renting_sync.tar.gz /tmp/ai_sync.tar.gz /tmp/ai_livechat_sync.tar.gz /tmp/mail_tools_sync.tar.gz /tmp/documents_sync.tar.gz /tmp/insilos_market_terminal_sync.tar.gz /tmp/release_core_sync.tar.gz /tmp/web_core_sync.tar.gz /tmp/odoo_hr_sync.tar.gz /tmp/odoo_account_sync.tar.gz /tmp/manifest.sha256
+rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/odoo_server_sync.tar.gz /tmp/odoo_product_sync.tar.gz /tmp/odoo_mrp_sync.tar.gz /tmp/sale_renting_sync.tar.gz /tmp/ai_sync.tar.gz /tmp/ai_livechat_sync.tar.gz /tmp/mail_tools_sync.tar.gz /tmp/documents_sync.tar.gz /tmp/insilos_market_terminal_sync.tar.gz /tmp/release_core_sync.tar.gz /tmp/web_core_sync.tar.gz /tmp/odoo_hr_sync.tar.gz /tmp/odoo_account_sync.tar.gz /tmp/odoo_addons_sweep_sync.tar.gz /tmp/enterprise_sweep_sync.tar.gz /tmp/manifest.sha256
 """
 
         for target in targets:
@@ -983,12 +1047,15 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_web_core, f"{pod}:/tmp/web_core_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_hr, f"{pod}:/tmp/odoo_hr_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_account, f"{pod}:/tmp/odoo_account_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_addons_sweep, f"{pod}:/tmp/odoo_addons_sweep_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_ent_sweep, f"{pod}:/tmp/enterprise_sweep_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, manifest_path, f"{pod}:/tmp/manifest.sha256"])
             # Copy tools into /app/insilos/tools (0755 non-world-writable)
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_innoria_views_db.py", f"{pod}:/app/insilos/tools/sync_innoria_views_db.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_logos_to_assets_library.py", f"{pod}:/app/insilos/tools/sync_logos_to_assets_library.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/safe_asset_warmup.py", f"{pod}:/app/insilos/tools/safe_asset_warmup.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_tech_assets.py", f"{pod}:/app/insilos/tools/sync_tech_assets.py"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sweep_all_models_rpc_and_views.py", f"{pod}:/app/insilos/tools/sweep_all_models_rpc_and_views.py"])
 
             # Verify and extract on pod server-side
             run_cmd([

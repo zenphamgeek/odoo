@@ -238,3 +238,39 @@ class TestRuntimeReportGateway(HttpCase):
         self.assertLessEqual(len(inc.error_message), MAX_STRING_LEN)
         self.assertLessEqual(len(inc.traceback), MAX_TRACEBACK_LEN)
 
+    def test_10_vertical_resilience_runtime_error_classification_and_dedup(self):
+        """Verify Vertical Resilience (VERTICAL_RISK) runtime error payloads (e.g. ForbiddenError on vertical_rl_experience_ledger) are classified, HMAC-verified, and deduplicated."""
+        from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import RuntimeReportGateway
+        gateway = RuntimeReportGateway()
+
+        payload = {
+            'name': 'ForbiddenError',
+            'message': '[FORBIDDEN] You don\'t have permission to access collection "vertical_rl_experience_ledger" or it does not exist. Queried in root.',
+            'traceback': 'ForbiddenError: [FORBIDDEN] You don\'t have permission to access collection "vertical_rl_experience_ledger" or it does not exist. Queried in root.\n    at ItemsService.readByQuery (headless_be/api/src/services/items.ts:412:11)',
+            'component_stack': 'v-error -> insights-dashboard',
+            'url': 'https://vertical.insilos.com/admin/content/vertical_rl_experience_ledger',
+            'server_host': 'vertical.insilos.com',
+            'instance_id': 'vertical-resilience-prod',
+            'user_id': 'grc-admin-01',
+            'user_agent': 'Mozilla/5.0 VerticalResilience/1.0',
+            'timestamp': int(time.time()),
+        }
+        asset_code = gateway._classify_tech_asset(payload['traceback'], payload)
+        self.assertEqual(asset_code, 'VERTICAL_RISK', "Vertical Resilience collection/domain errors must classify as VERTICAL_RISK")
+
+        explicit_payload = {
+            'asset': 'VERTICAL_RISK',
+            'name': 'TypeError',
+            'message': 'Cannot read properties of undefined',
+            'traceback': 'TypeError: Cannot read properties of undefined\n    at eval (app.js:10:5)',
+            'url': 'http://localhost:8055/admin',
+        }
+        self.assertEqual(gateway._classify_tech_asset(explicit_payload['traceback'], explicit_payload), 'VERTICAL_RISK')
+
+        raw_bytes = json.dumps(payload, sort_keys=True).encode('utf-8')
+        ts_str = str(payload['timestamp'])
+        sig = self._compute_hmac_sig(payload['instance_id'], ts_str, raw_bytes)
+        expected_msg = f"{payload['instance_id']}:{ts_str}:".encode('utf-8') + raw_bytes
+        expected_sig = hmac.new(self.secret.encode('utf-8'), expected_msg, hashlib.sha256).hexdigest()
+        self.assertTrue(hmac.compare_digest(sig, expected_sig))
+

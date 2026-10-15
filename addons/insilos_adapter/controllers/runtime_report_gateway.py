@@ -238,6 +238,7 @@ class RuntimeReportGateway(http.Controller):
                     json.dumps({
                         'status': 'deduplicated',
                         'incident_code': cached_code,
+                        'asset': asset_code,
                         'occurrences': hit_count + 1,
                         'message': 'Duplicate incident aggregated successfully.',
                     }),
@@ -294,13 +295,50 @@ class RuntimeReportGateway(http.Controller):
         )
 
     def _classify_tech_asset(self, traceback_str, payload):
-        """Maps an error traceback to one of the 4 core repositories."""
-        tb = (traceback_str or '') + ' ' + (payload.get('url') or '') + ' ' + (payload.get('name') or '')
+        """Maps an error traceback or explicit asset tag to one of the 4 core repositories."""
+        explicit_asset = str(payload.get('asset') or '').strip().upper()
+        if explicit_asset in ('O20', 'INSILOS_MOBILE', 'VERTICAL_RISK', 'ZENCODE_ENT'):
+            return explicit_asset
+
+        tb = ' '.join(
+            str(x or '')
+            for x in (
+                traceback_str,
+                payload.get('url'),
+                payload.get('server_host'),
+                payload.get('instance_id'),
+                payload.get('name'),
+                payload.get('message'),
+            )
+        )
         tb_lower = tb.lower()
 
         if any(k in tb_lower for k in ['flutter', 'dart', 'mobo_vert', 'peek_', 'polycondensation', 'insilos_mobile']):
             return 'INSILOS_MOBILE'
-        elif any(k in tb_lower for k in ['verticalrisk', 'eramba', 'iso27001', 'grc', 'ncsp']):
+        elif any(
+            k in tb_lower
+            for k in [
+                'verticalrisk',
+                'vertical_risk',
+                'vertical-resilience',
+                'vertical.insilos.com',
+                'vertical_',
+                'headless_be',
+                'eramba',
+                'iso27001',
+                'grc',
+                'grc_',
+                'ncsp',
+                'ncsp_',
+                'hse_',
+                'rcm_',
+                'dpm_',
+                'aes_',
+                'tkv_',
+                'hpg_',
+                'dhg_',
+            ]
+        ):
             return 'VERTICAL_RISK'
         elif any(k in tb_lower for k in ['zencode', 'fleet_manager', 'stealth_engine', 'zencode_router', 'fleet_router', 'clef_']):
             return 'ZENCODE_ENT'

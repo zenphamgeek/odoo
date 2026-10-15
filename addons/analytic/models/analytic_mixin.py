@@ -151,13 +151,17 @@ class AnalyticMixin(models.AbstractModel):
 
     def _get_count_id(self, query):
         match query.table._alias:
-            case 'account_move_line':
+            case 'account_move_line' | 'finance_journal_line':
                 return SQL('move_id')
-            case 'purchase_order_line':
+            case 'purchase_order_line' | 'procurement_order_line':
                 return SQL('order_id')
-            case 'account_asset' | 'hr_expense':
+            case 'account_asset' | 'finance_asset' | 'hr_expense' | 'workforce_expense':
                 return SQL('id')
-        raise ValueError(f"{query.table._alias} does not support analytic_distribution grouping.")
+        if 'move_id' in self._fields and self._fields['move_id'].store:
+            return SQL('move_id')
+        if 'order_id' in self._fields and self._fields['order_id'].store:
+            return SQL('order_id')
+        return SQL('id')
 
     def filtered_domain(self, domain):
         # Filter based on the accounts used (i.e. allowing a name_search) instead of the distribution
