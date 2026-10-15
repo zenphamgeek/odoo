@@ -63,30 +63,40 @@ class InsilosConversionGuard(models.AbstractModel):
         return key1, key2
 
     def _generate_bipartite_advisory_keys(self, company_id: int, model_name: str, record_id: int) -> Tuple[int, int]:
-        namespace = f"{int(company_id)}:{str(model_name)}".encode('utf-8')
+        """
+        Derives two collision-resistant signed 32-bit keys for pg_advisory_xact_lock(int4, int4).
+        Prevents 32-bit BigInt overflow aliasing (CWE-190) and namespace collisions.
+        """
+        rec_int = int(record_id)
+        rec_high = (rec_int >> 32) if rec_int >= 0 else -((-rec_int) >> 32)
+        if rec_high != 0:
+            namespace = f"{int(company_id)}:{str(model_name)}:hi{rec_high}".encode('utf-8')
+        else:
+            namespace = f"{int(company_id)}:{str(model_name)}".encode('utf-8')
         u32_ns = zlib.crc32(namespace) & 0xFFFFFFFF
         key1 = u32_ns if u32_ns < 0x80000000 else u32_ns - 0x100000000
-        rec_id_int = int(record_id) & 0xFFFFFFFF
+        rec_id_int = rec_int & 0xFFFFFFFF
         key2 = rec_id_int if rec_id_int < 0x80000000 else rec_id_int - 0x100000000
         return int(key1), int(key2)
 
     def _generate_deterministic_advisory_key(self, company_id: int, model_name: str, record_id: int) -> int:
         """
         Derives a collision-resistant, signed 64-bit PostgreSQL advisory lock key.
-        Prevents company truncation (CWE-190) and model CRC16 collisions (CWE-328).
+        Uses length-prefixed canonical encoding to eliminate CWE-20 delimiter injection collisions.
         """
-        try:
-            norm_company = int(company_id) if company_id is not None else 0
-        except (ValueError, TypeError):
-            norm_company = str(company_id).strip()
-        norm_model = str(model_name).strip()
-        try:
-            norm_record = int(record_id) if record_id is not None else 0
-        except (ValueError, TypeError):
-            norm_record = str(record_id).strip()
-        token = f"{norm_company}:{norm_model}:{norm_record}".encode("utf-8")
+        norm_comp = str(company_id if company_id is not None else 0).strip()
+        norm_model = str(model_name or "").strip()
+        norm_rec = str(record_id if record_id is not None else 0).strip()
+        token = f"C{len(norm_comp)}:{norm_comp}|M{len(norm_model)}:{norm_model}|R{len(norm_rec)}:{norm_rec}".encode("utf-8")
         digest = hashlib.blake2b(token, digest_size=8).digest()
         return int.from_bytes(digest, byteorder="big", signed=True)
+
+    def _flush_orm_cache(self):
+        """Safely invalidates the thread-local ORM cache across Odoo versions."""
+        if hasattr(self.env, 'clear'):
+            self.env.clear()
+        elif hasattr(self.env, 'invalidate_all'):
+            self.env.invalidate_all()
 
     def _process_pinned_batch_safe(self, batch_records, max_batch_size=50):
         if len(batch_records) > max_batch_size:
@@ -100,28 +110,30 @@ class InsilosConversionGuard(models.AbstractModel):
                 continue
             try:
                 with self.env.cr.savepoint():
-                    record_company = getattr(record, 'company_id', None) or self.env.company
+                    # Multi-tenant boundary check: ensure record_company is valid singleton or positive integer
+                    raw_company = getattr(record, 'company_id', None)
+                    if isinstance(raw_company, int) and raw_company > 0:
+                        record_company = raw_company
+                    elif raw_company and getattr(raw_company, 'id', False):
+                        record_company = raw_company
+                    else:
+                        record_company = self.env.company
+
                     scoped_rec = record.with_company(record_company) if hasattr(record, 'with_company') else record
                     res = scoped_rec._execute_conversion() if hasattr(scoped_rec, '_execute_conversion') else getattr(scoped_rec, 'id', None)
                     processed.append(res)
             except (exceptions.UserError, exceptions.ValidationError) as e:
-                if hasattr(self.env, 'clear'):
-                    self.env.clear()
-                elif hasattr(self.env, 'invalidate_all'):
-                    self.env.invalidate_all()
+                self._flush_orm_cache()
+                _logger.warning("Validation failure in record %s: %s", rec_id, e)
                 errors.append((rec_id, str(e)))
-            except (psycopg2.OperationalError, getattr(getattr(psycopg2, 'extensions', None), 'TransactionRollbackError', Exception)) as db_err:
-                if hasattr(self.env, 'clear'):
-                    self.env.clear()
-                elif hasattr(self.env, 'invalidate_all'):
-                    self.env.invalidate_all()
+            except (TransactionRollbackError, psycopg2.OperationalError) as db_err:
+                self._flush_orm_cache()
+                _logger.error("Database concurrency conflict on record %s: %s", rec_id, db_err)
                 errors.append((rec_id, f"DB_CONCURRENCY_ABORT: {db_err}"))
                 break  # Circuit breaker: Halt batch on DB deadlocks/serialization failures
             except Exception as unhandled_err:
-                if hasattr(self.env, 'clear'):
-                    self.env.clear()
-                elif hasattr(self.env, 'invalidate_all'):
-                    self.env.invalidate_all()
+                self._flush_orm_cache()
+                _logger.critical("Unexpected failure during conversion of record %s: %s", rec_id, unhandled_err)
                 errors.append((rec_id, "CRITICAL_INTERNAL_ERROR"))
                 break  # Circuit breaker: Halt batch on critical unexpected errors
         return processed, errors

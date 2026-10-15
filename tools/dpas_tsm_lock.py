@@ -63,29 +63,29 @@ class DPASTSMTransactionManager:
     def derive_bipartite_advisory_keys(self, company_id: int, model_name: str, record_id: int) -> Tuple[int, int]:
         """
         Derives collision-free (key1, key2) signed 32-bit integers for PostgreSQL pg_try_advisory_xact_lock(int4, int4).
+        Prevents 32-bit BigInt overflow aliasing (CWE-190) and namespace collisions.
         """
-        namespace = f"{int(company_id)}:{str(model_name)}".encode('utf-8')
+        rec_int = int(record_id)
+        rec_high = (rec_int >> 32) if rec_int >= 0 else -((-rec_int) >> 32)
+        if rec_high != 0:
+            namespace = f"{int(company_id)}:{str(model_name)}:hi{rec_high}".encode('utf-8')
+        else:
+            namespace = f"{int(company_id)}:{str(model_name)}".encode('utf-8')
         u32_ns = zlib.crc32(namespace) & 0xFFFFFFFF
         key1 = u32_ns if u32_ns < 0x80000000 else u32_ns - 0x100000000
-        rec_id_int = int(record_id) & 0xFFFFFFFF
+        rec_id_int = rec_int & 0xFFFFFFFF
         key2 = rec_id_int if rec_id_int < 0x80000000 else rec_id_int - 0x100000000
         return int(key1), int(key2)
 
     def derive_deterministic_advisory_key(self, company_id: int, model_name: str, record_id: int) -> int:
         """
         Derives a deterministic, uniform 64-bit signed advisory key using BLAKE2b.
-        Guarantees zero company-id truncation across the 64-bit domain.
+        Uses length-prefixed canonical encoding to eliminate CWE-20 delimiter injection collisions.
         """
-        try:
-            norm_company = int(company_id) if company_id is not None else 0
-        except (ValueError, TypeError):
-            norm_company = str(company_id).strip()
-        norm_model = str(model_name).strip()
-        try:
-            norm_record = int(record_id) if record_id is not None else 0
-        except (ValueError, TypeError):
-            norm_record = str(record_id).strip()
-        token = f"{norm_company}:{norm_model}:{norm_record}".encode("utf-8")
+        norm_comp = str(company_id if company_id is not None else 0).strip()
+        norm_model = str(model_name or "").strip()
+        norm_rec = str(record_id if record_id is not None else 0).strip()
+        token = f"C{len(norm_comp)}:{norm_comp}|M{len(norm_model)}:{norm_model}|R{len(norm_rec)}:{norm_rec}".encode("utf-8")
         digest = hashlib.blake2b(token, digest_size=8).digest()
         return int.from_bytes(digest, byteorder="big", signed=True)
 

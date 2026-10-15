@@ -2141,6 +2141,112 @@ def test_adversarial_batch_circuit_breaker_and_cache_integrity():
     print("[✓] Adversarial test: Batch circuit breaker & native savepoint cache integrity verified")
 
 
+def test_adversarial_bipartite_key_bigint_overflow_no_aliasing():
+    """
+    Verifies that record IDs exceeding 32-bit integer limits (PostgreSQL BigInt > 2^32-1)
+    do not alias with low-range record IDs in bipartite advisory keys.
+    """
+    from tools.dpas_tsm_lock import DPASTSMTransactionManager
+    mgr = DPASTSMTransactionManager()
+    low_id = 42
+    overflow_id = 42 + (1 << 32)  # 4294967338
+
+    k1_low, k2_low = mgr.derive_bipartite_advisory_keys(company_id=1, model_name="sale.order", record_id=low_id)
+    k1_high, k2_high = mgr.derive_bipartite_advisory_keys(company_id=1, model_name="sale.order", record_id=overflow_id)
+
+    assert (k1_low, k2_low) != (k1_high, k2_high), (
+        f"Critical Failure: 64-bit ID aliasing detected in bipartite advisory keys! low={(k1_low, k2_low)} vs high={(k1_high, k2_high)}"
+    )
+    assert -2147483648 <= k1_high <= 2147483647
+    assert -2147483648 <= k2_high <= 2147483647
+    print("[✓] Adversarial test: Bipartite key BigInt 64-bit overflow zero-aliasing verified")
+
+
+def test_adversarial_deterministic_key_delimiter_injection_resistance():
+    """
+    Verifies that colon injections in model/company names cannot forge identical keys.
+    """
+    from tools.dpas_tsm_lock import DPASTSMTransactionManager
+    mgr = DPASTSMTransactionManager()
+
+    key_a = mgr.derive_deterministic_advisory_key(company_id="1:res", model_name="partner", record_id=10)
+    key_b = mgr.derive_deterministic_advisory_key(company_id="1", model_name="res:partner", record_id=10)
+
+    assert key_a != key_b, "Critical Failure: Delimiter canonicalization collision permits advisory key forgery!"
+    print("[✓] Adversarial test: Length-prefixed delimiter injection resistance verified")
+
+
+def test_adversarial_multitenant_empty_company_recordset_fallback():
+    """
+    Verifies that an empty company recordset (e.g., res.company() with id=False)
+    safely falls back to self.env.company rather than poisoning multi-tenant context.
+    """
+    try:
+        from addons.insilos_adapter.models.cron_conversion_guard import InsilosConversionGuard
+    except Exception:
+        import importlib.util
+        guard_py = os.path.join(ROOT_DIR, "addons/insilos_adapter/models/cron_conversion_guard.py")
+        spec = importlib.util.spec_from_file_location("cron_conversion_guard", guard_py)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        InsilosConversionGuard = mod.InsilosConversionGuard
+
+    guard = InsilosConversionGuard()
+    mock_env = MagicMock()
+    fallback_company = MagicMock(id=99)
+    mock_env.company = fallback_company
+    guard.env = mock_env
+
+    # Record with empty company recordset (id=False)
+    empty_company_rec = MagicMock(id=105)
+    empty_company_rec.company_id = MagicMock(id=False)
+    captured_company = []
+    def fake_with_company(comp):
+        captured_company.append(comp)
+        return empty_company_rec
+    empty_company_rec.with_company.side_effect = fake_with_company
+    empty_company_rec._execute_conversion.return_value = "OK_105"
+
+    proc, errs = guard._process_pinned_batch_safe([empty_company_rec])
+    assert proc == ["OK_105"]
+    assert errs == []
+    assert len(captured_company) == 1
+    assert captured_company[0] == fallback_company, "Empty company recordset must fall back to env.company"
+    print("[✓] Adversarial test: Multi-tenant empty company recordset fallback verified")
+
+
+def test_adversarial_orm_cache_purging_called_on_validation_error():
+    """
+    Verifies that _flush_orm_cache strictly executes either invalidate_all() or clear()
+    with parentheses on ValidationError.
+    """
+    try:
+        from addons.insilos_adapter.models.cron_conversion_guard import InsilosConversionGuard, exceptions
+    except Exception:
+        import importlib.util
+        guard_py = os.path.join(ROOT_DIR, "addons/insilos_adapter/models/cron_conversion_guard.py")
+        spec = importlib.util.spec_from_file_location("cron_conversion_guard", guard_py)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        InsilosConversionGuard = mod.InsilosConversionGuard
+        exceptions = mod.exceptions
+
+    guard = InsilosConversionGuard()
+    mock_env = MagicMock(spec=["cr", "company", "invalidate_all"])
+    guard.env = mock_env
+
+    bad_rec = MagicMock(id=106)
+    bad_rec.company_id = MagicMock(id=1)
+    bad_rec.with_company.return_value = bad_rec
+    bad_rec._execute_conversion.side_effect = exceptions.ValidationError("Simulated constraint violation")
+
+    proc, errs = guard._process_pinned_batch_safe([bad_rec])
+    assert proc == []
+    assert len(errs) == 1
+    assert mock_env.invalidate_all.call_count == 1, "invalidate_all() must be called with execution parentheses"
+    print("[✓] Adversarial test: ORM cache purge invocation verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2169,6 +2275,10 @@ def main():
     test_adversarial_company_id_truncation_collision()
     test_adversarial_sql_injection_and_negative_id_handling()
     test_adversarial_batch_circuit_breaker_and_cache_integrity()
+    test_adversarial_bipartite_key_bigint_overflow_no_aliasing()
+    test_adversarial_deterministic_key_delimiter_injection_resistance()
+    test_adversarial_multitenant_empty_company_recordset_fallback()
+    test_adversarial_orm_cache_purging_called_on_validation_error()
     print("[✓] ALL 20 AUDIT PATCH DIRECTIVES + ADVERSARIAL VERIFICATIONS SATISFIED")
     print("[🎉] ALL SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
