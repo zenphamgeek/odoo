@@ -10,13 +10,15 @@
 - Use native Odoo text effects, snippet options, and brand tokens.
 - All styles must be encapsulated in SCSS using appropriate CSS variables (`--o-theme-*`).
 
-## 2. OWL 2 Component Architecture
-- Adhere strictly to Odoo Web Library (OWL 2) reactive component standards (`xml` templates, hooks `useState`, `useSubEnv`).
+## 2. OWL 2 / OWL 3 Component & Reactive Props Architecture
+- Adhere strictly to Odoo Web Library reactive component standards (`xml` templates, hooks `useState`, `useSubEnv`, `@insilos/owl` `proxy`/`signal`).
 - Never introduce legacy Widget classes or manual DOM mutation outside the OWL reactive lifecycle.
+- **Reactive Props Setter & Frozen Props Guard**: In `@insilos/owl` (`addons/web/static/lib/owl/owl.js`), `defineProp` in `makeProps` MUST maintain both `get` and `set` accessors updating `signals[key]`. In view hooks (such as `enterprise/documents/static/src/views/hooks.js` `preSuperSetup`), NEVER call `Object.defineProperty(props, ...)` without checking `!Object.isFrozen(props) && Object.isExtensible(props)`, and always mirror shared controller state onto `component.modelState`.
+- **Core ErrorDialog Telemetry & Zero-Leak PII/Secret Sanitization**: The `⚡ Send to report.insilos.com` button (`o_insilos_share_error_btn`) and `SanitizedCopyButton` MUST reside natively in `addons/web/static/src/core/errors/error_dialogs.js` & `.xml` (with 100% parity in `runtime_error_dialog_patch.js`). All error payloads, context details, URLs (`sanitizeUrl`), and clipboard copies MUST strip quoted secrets with spaces, DSN URIs, multi-provider API keys (`sk-*`, `sk-ant-*`, `AIzaSy*`, `AKIA*`, `ghp_*`, `github_pat_*`), and mask the middle 5 digits of 10-digit VN phone numbers (`/\b(0[35789]\d)(\d{5})(\d{2})\b/g` -> `"$1*****$3"`).
 
 ## 3. Zero-Signature & Clean Enterprise Branding
 - Strictly maintain Insilos enterprise branding without leaving raw, unstyled AI templates or placeholder text.
-- Verify all changes with local test suites and live headless audits (`test_innokafe_playwright_e2e.js`, `unslop_scss_rigorous.py`).
+- Verify all changes with local test suites and live headless audits (`test_innokafe_playwright_e2e.js`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`).
 
 ## 4. Sovereign Dark Mode Token Architecture & Anti-Slop SCSS Standards
 - **Banned Hex Fallbacks with `!important`**: Never write hardcoded light fallbacks inside `var()` coupled with `!important` (e.g. `var(--insilos-bg-subtle, #f8fafc) !important`). Semantic variables must always be guaranteed at root level.
@@ -32,4 +34,16 @@
 - **Explicit `noupdate="1"` on Navigation Data Records**: All default or starter website menu definitions declared in XML views (`website_menu.xml`) MUST be wrapped in `<odoo noupdate="1">` so subsequent module upgrades (`-u <module>`) do not overwrite or duplicate existing menu trees.
 - **Zero Raw SQL Unmanaged Menu Inserts**: Synchronization scripts, migrations, or database loaders MUST NEVER execute naive `INSERT INTO website_menu` without prior canonical deduplication and cleanup. Any sync script must resolve canonical URLs and prune redundant duplicates.
 - **Fail-Closed Verification Gates**: Every tenant deployment, upgrade, or pipeline check MUST run `tools/audit_header_menu_collision.py --check` and verify rendered HTML nav uniqueness in Playwright/E2E test suites with zero duplicate route assertions.
+
+## 6. Sovereign Documents Multi-Level Tree & Data Room Architecture
+- **Hierarchical Tree Parentage (`user_folder_id`)**: All company folders (`type = 'folder'`) MUST set `owner_id = False` and `access_internal = 'edit'` (or `'view'`), never `'none'`, so `_compute_user_folder_id()` preserves `user_folder_id = 'COMPANY'` for roots and `str(folder_id.id)` for every nested subfolder across all depths.
+- **Default Root Selection & Auto-Expanded SearchPanel Tree**: `DocumentsSearchModel._ensureCategoryValue` MUST default internal users to the primary company root folder (or `"COMPANY"`) rather than `"All"` (`activeValueId = false`), use cycle-safe (`visited` / `seenIds`) traversal and `_normalizeFolderId` safe-integer normalization, and keep `{ name: "is_folder", asc: true }` (since PostgreSQL maps `is_folder` to `type != 'folder'`, sorting `FALSE` folders before `TRUE` files). `DocumentsSearchPanel.onWillStart` MUST auto-expand `"COMPANY"` and depth-1/depth-2 folders on load.
+- **Zero Empty Folders Invariant**: Archive (`active = False`) all empty demo/starter/legacy folders after data room synchronization so 100% of active folders contain real documents or non-empty child folders.
+
+## 7. Enterprise HR, Statutory VN Payroll (VCB DigiBiz) & Login Employee Hub
+- **Login Employee Self-Service Hub (`HomeMenu`)**: Maintain the integrated OWL Employee Dashboard (`.o_insilos_emp_dashboard`) inside `enterprise/web_enterprise/static/src/webclient/home_menu/` backed by `/insilos/employee_dashboard/*` controllers, providing immediate post-login access to: (1) Basic Profile & Contract (`hr.version`), (2) Statutory VN 2026 Payroll (`BHXH 8%`, `BHYT 1.5%`, `BHTN 1%` under unit `TZ0857G`, 5-bracket PIT) & 11-column VCB DigiBiz `.xlsx` export (preserving leading zeros as text format `@`), (3) 5-Step Onboarding Checklist (`SOP-DGM-04`), and (4) 5-Gate Leaving/Offboarding Workflow (`SOP-DGM-03/04`).
+
+## 8. Source-to-Cluster Parity & Pre-Push Verification Gate
+- Every production fix or feature applied to `innoria.com` (K8s `innoria-prod-app-*` and `insilos-saas-app-*` pods in namespace `production`) MUST be reflected in the local source tree (`/home/zen/O20` and `/home/zen/O20/enterprise`), backed by declarative module data (`addons/insilos_al2c/data/`) and verified via `python3 tools/test_adversarial_security.py && python3 tools/test_dgm_hr_payroll_dashboard.py` (`exit code 0`) before `git commit` and `git push`.
+
 
