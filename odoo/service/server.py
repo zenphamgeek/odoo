@@ -1053,7 +1053,7 @@ class PreforkServer(CommonServer):
             if respawn_time:
                 # gevent servers take a bit longer to start so sleep a bit as a best effort to avoid downtime
                 time.sleep(respawn_time + 1)
-                for pid in self.servers_gevent:
+                for pid in list(self.servers_gevent):
                     self.worker_kill(pid, signal.SIGINT)
 
         timeout_gevent = time.monotonic()

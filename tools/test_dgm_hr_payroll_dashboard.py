@@ -91,11 +91,11 @@ def verify_db_state(dbname):
     print(f"[✓] {dbname}: 8 DGM employees, 4 departments, 8 contracts, {slips_cnt} payslips, and VCB bank accounts verified")
 
 
-def verify_vcb_xlsx_generator():
+def _setup_controller_module():
     import types
 
-    odoo_mod = types.ModuleType("odoo")
-    http_mod = types.ModuleType("odoo.http")
+    insilos_mod = types.ModuleType("insilos")
+    http_mod = types.ModuleType("insilos.http")
 
     class _DummyController:
         pass
@@ -108,12 +108,20 @@ def verify_vcb_xlsx_generator():
 
     http_mod.Controller = _DummyController
     http_mod.route = _route
-    http_mod.request = None
-    odoo_mod.http = http_mod
-    sys.modules["odoo"] = odoo_mod
+    http_mod.request = types.SimpleNamespace(env=None)
+    insilos_mod.http = http_mod
+    sys.modules["insilos"] = insilos_mod
+    sys.modules["insilos.http"] = http_mod
+    sys.modules["odoo"] = insilos_mod
     sys.modules["odoo.http"] = http_mod
 
     import employee_dashboard as ed
+
+    return ed, http_mod
+
+
+def verify_vcb_xlsx_generator():
+    ed, _ = _setup_controller_module()
 
     headers = [
         "STT",
@@ -161,6 +169,162 @@ def verify_vcb_xlsx_generator():
         assert "Lê Xuân Hoàng" in all_xml
         assert "Thái Nguyễn Đăng Khoa" in all_xml
     print("[✓] VCB DigiBiz 11-Column Excel (.xlsx) generator verified (0111000287863 leading zero preserved)")
+
+
+def verify_iso27701_privacy_and_maker_checker_workflow():
+    import types
+
+    ed, http_mod = _setup_controller_module()
+
+    # 1. Verify Deterministic Partial Masking Helpers (ISO/IEC 27701 A.8.11)
+    assert ed._mask_cccd("089094016917") == "089******917", ed._mask_cccd("089094016917")
+    assert ed._mask_cccd("365931521") == "365***521", ed._mask_cccd("365931521")
+    assert ed._mask_phone("0903881001") == "090*****01", ed._mask_phone("0903881001")
+    assert ed._mask_bank_acc("1373068161") == "13****8161", ed._mask_bank_acc("1373068161")
+    assert ed._mask_bank_acc("0111000287863") == "01*******7863", ed._mask_bank_acc("0111000287863")
+    assert ed._mask_bank_acc("12154887") == "12**4887", ed._mask_bank_acc("12154887")
+
+    # 2. Setup Mock Request Environment for Controller Functional Testing
+    config_store = {}
+    executed_queries = []
+
+    class _MockIrConfig:
+        def sudo(self):
+            return self
+
+        def get_param(self, key, default=None):
+            return config_store.get(key, default)
+
+        def set_param(self, key, value):
+            config_store[key] = value
+
+    class _MockHrEmployee:
+        def sudo(self):
+            return self
+
+        def search(self, domain, limit=None):
+            return None
+
+        def browse(self, emp_id):
+            return types.SimpleNamespace(
+                id=emp_id,
+                exists=lambda: True,
+                user_id=types.SimpleNamespace(id=2 if emp_id == 1 else None),
+                parent_id=types.SimpleNamespace(user_id=types.SimpleNamespace(id=2)),
+                department_id=types.SimpleNamespace(
+                    manager_id=types.SimpleNamespace(user_id=types.SimpleNamespace(id=2))
+                ),
+            )
+
+    class _MockCr:
+        def execute(self, query, params=None):
+            executed_queries.append((query, params))
+
+    class _MockEnv:
+        def __init__(self, uid=2, user_name="Lê Xuân Hoàng (CEO)", groups=None):
+            self.uid = uid
+            self.cr = _MockCr()
+            self._groups = set(groups or [])
+            self.user = types.SimpleNamespace(
+                id=uid,
+                name=user_name,
+                has_group=lambda g: g in self._groups,
+            )
+
+        def __getitem__(self, model_name):
+            if model_name == "ir.config_parameter":
+                return _MockIrConfig()
+            if model_name == "hr.employee":
+                return _MockHrEmployee()
+            raise KeyError(model_name)
+
+    ed.request.env = _MockEnv(uid=2, user_name="Lê Xuân Hoàng (CEO)", groups={"base.group_system"})
+    ctrl = ed.InsilosEmployeeDashboardController()
+
+    # 2a. Verify default /insilos/employee_dashboard/data returns partially masked PII & Contract Lock
+    dash_data = ctrl.get_employee_dashboard_data(employee_id=1)
+    curr = dash_data["current_employee"]
+    assert curr["is_partially_masked"] is True
+    assert curr["identification_id"] == "089******917", curr["identification_id"]
+    assert curr["work_phone"] == "090*****01", curr["work_phone"]
+    assert curr["bank_acc_number"] == "13****8161", curr["bank_acc_number"]
+    assert curr["has_active_contract"] is True
+    assert curr["viewer_role"] == "HR_EXEC"
+    assert curr["can_reveal_pii"] is True
+    assert curr["can_approve_changes"] is True
+    assert len(dash_data["change_requests"]) >= 2
+    assert dash_data["pending_approval_count"] >= 1
+
+    # Verify DGM-003 bank account is masked in payload ("01*******7863") while raw registry stays unmasked
+    emp_003_masked = next(e for e in dash_data["all_employees"] if e["registration_number"] == "DGM-003")
+    assert emp_003_masked["bank_acc_number"] == "01*******7863", emp_003_masked["bank_acc_number"]
+
+    # 2b. Verify Controlled Audited 30s PII Reveal
+    reveal_res = ctrl.reveal_pii(employee_id=3)
+    assert reveal_res["ok"] is True
+    assert reveal_res["identification_id_full"] == "093197003049"
+    assert reveal_res["work_phone_full"] == "0903881003"
+    assert reveal_res["bank_acc_number_full"] == "0111000287863"
+    assert reveal_res["expires_in_seconds"] == 30
+    assert reveal_res["privacy_audit_log"][0]["action"] == "REVEAL_PARTIAL_PII_30S"
+
+    # 2c. Verify Role-Based Need-to-Know Scoping for LINE_MANAGER (no compensation, no PII reveal)
+    ed.request.env = _MockEnv(uid=99, user_name="Line Manager", groups={"hr.group_hr_user"})
+    lm_data = ctrl.get_employee_dashboard_data(employee_id=4)
+    lm_emp = lm_data["current_employee"]
+    assert lm_emp["viewer_role"] == "LINE_MANAGER"
+    assert lm_emp["can_reveal_pii"] is False
+    assert lm_emp["can_approve_changes"] is False
+    assert lm_emp["can_view_compensation"] is False
+    assert lm_emp["gross_wage"] == 0
+    assert lm_emp["net_wage"] == 0
+    assert lm_emp["gross_wage_masked"] == "**.***.000 ₫"
+    lm_reveal = ctrl.reveal_pii(employee_id=4)
+    assert lm_reveal["ok"] is False
+
+    # 2d. Verify 2-Step Legal Profile Update Workflow (Maker -> Checker)
+    ed.request.env = _MockEnv(uid=2, user_name="Lê Xuân Hoàng (CEO)", groups={"base.group_system"})
+    step1_payload = ctrl.submit_change_request(
+        employee_id=4,
+        field_type="work_phone",
+        new_value="0903887777",
+        legal_reason="Đổi SĐT định danh VNeID Mức 2 theo Phụ lục HĐLĐ",
+        evidence_doc_ref="VNeID-DGM004-TEST",
+    )
+    created_ticket = step1_payload["change_requests"][0]
+    assert created_ticket["state"] == "pending"
+    assert created_ticket["employee_code"] == "DGM-004"
+    assert created_ticket["new_value"] == "0903887777"
+    assert created_ticket["new_value_masked"] == "090*****77"
+    assert step1_payload["privacy_audit_log"][0]["action"] == "STEP1_SUBMIT_CHANGE_REQUEST"
+
+    # Ensure Step 1 did NOT mutate the underlying employee phone number yet
+    pre_approve_reveal = ctrl.reveal_pii(employee_id=4)
+    assert pre_approve_reveal["work_phone_full"] == "0903881004", pre_approve_reveal["work_phone_full"]
+
+    # Step 2: Approve the change request as HR_EXEC
+    step2_payload = ctrl.decide_change_request(
+        request_id=created_ticket["request_id"],
+        decision="approve",
+        approver_note="Đã đối chiếu VNeID Mức 2 & Phụ lục HĐLĐ.",
+        employee_id=4,
+    )
+    approved_ticket = next(
+        r for r in step2_payload["change_requests"] if r["request_id"] == created_ticket["request_id"]
+    )
+    assert approved_ticket["state"] == "approved"
+    assert "Lê Xuân Hoàng" in approved_ticket["approved_by_name"]
+    assert step2_payload["privacy_audit_log"][0]["action"] == "STEP2_APPROVE_LEGAL_CHANGE"
+    assert step2_payload["current_employee"]["work_phone"] == "090*****77"
+    assert len(executed_queries) >= 1
+
+    # Ensure Step 2 mutated the underlying employee record
+    post_approve_reveal = ctrl.reveal_pii(employee_id=4)
+    assert post_approve_reveal["work_phone_full"] == "0903887777", post_approve_reveal["work_phone_full"]
+
+    print(
+        "[✓] ISO/IEC 27701 & Decree 13/2023/ND-CP Partial Masking, Need-to-Know RBAC, 30s Audited Reveal & 2-Step Maker->Checker Workflow verified"
+    )
 
 
 def verify_frontend_sources():
@@ -286,6 +450,7 @@ def main():
     verify_db_state("insilos20_dev")
     verify_db_state("innoria_prod")
     verify_vcb_xlsx_generator()
+    verify_iso27701_privacy_and_maker_checker_workflow()
     verify_frontend_sources()
     verify_k8s_and_live_bundles()
     print("[🎉] ALL DGM HR, PAYROLL, ONBOARDING, LEAVING & VCB DIGIBIZ DASHBOARD CHECKS PASSED (EXIT 0)")
@@ -293,4 +458,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 

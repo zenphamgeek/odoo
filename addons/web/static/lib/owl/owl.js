@@ -4754,11 +4754,23 @@ ${issueStrings}`);
     const signals = /* @__PURE__ */ Object.create(null);
     const result = /* @__PURE__ */ Object.create(null);
     function defineProp(key) {
+      if (key === "__proto__" || key === "constructor" || key === "prototype") {
+        return;
+      }
       signals[key] = signal(resolveValue(node.props, key));
       Reflect.defineProperty(result, key, {
         enumerable: true,
         configurable: true,
-        get: signals[key]
+        get: signals[key],
+        set(val) {
+          if (app.dev || (typeof window !== "undefined" && window.__OWL_DEBUG__)) {
+            console.warn(
+              `[OWL-SECURITY] Direct mutation of props.${key} is forbidden in unidirectional reactive flow. ` +
+              `Mutate component.modelState or dispatch an action to parent.`
+            );
+          }
+          signals[key].set(val);
+        }
       });
     }
     function defineProps(keys) {

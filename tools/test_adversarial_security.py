@@ -2332,6 +2332,16 @@ def test_patch_21_manifest_semver_and_release_compatibility():
     print("[✓] Patch 21 / Manifest Semver Normalization & Centralized Release Compatibility Matrix verified")
 
 
+def test_patch_22_owl_telemetry_payroll_gate():
+    """
+    Patch 22: ErrorDialog Telemetry Bounded Sanitization, PagedTelemetryBlockTable,
+    OWL makeProps Prototype Pollution Guard, Document Tree Cycle Interception, and VCB Formula Guard.
+    """
+    from tools.__tests__ import test_adversarial_owl_telemetry_payroll_gate
+    test_adversarial_owl_telemetry_payroll_gate.run_all_tests()
+    print("[✓] Patch 22 / OWL Reactive Props, Telemetry Block Table, Document Cycle & VCB DigiBiz Gate verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2367,7 +2377,8 @@ def main():
     test_adversarial_orm_cache_purging_called_on_validation_error()
     test_adversarial_kpi_and_database_compatibility()
     test_patch_21_manifest_semver_and_release_compatibility()
-    print("[✓] ALL 21 AUDIT PATCH DIRECTIVES + ADVERSARIAL VERIFICATIONS SATISFIED")
+    test_patch_22_owl_telemetry_payroll_gate()
+    print("[✓] ALL 22 AUDIT PATCH DIRECTIVES + ADVERSARIAL VERIFICATIONS SATISFIED")
     print("[🎉] ALL SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 

@@ -437,8 +437,8 @@ class HrEmployee(models.Model):
     @api.depends('bank_account_ids.active')
     def _sync_salary_distribution(self):
         for employee in self:
-            current_salary_distribution = employee.salary_distribution or {}
-            current_ids = set(map(int, current_salary_distribution.keys()))
+            current_salary_distribution = employee.salary_distribution if isinstance(employee.salary_distribution, dict) else {}
+            current_ids = {int(k) for k in current_salary_distribution.keys() if str(k).isdigit()}
             account_ids = set(employee.bank_account_ids.ids)
 
             added_ids = account_ids - current_ids
@@ -447,24 +447,24 @@ class HrEmployee(models.Model):
 
             # Preserve existing data and order
             ordered = sorted([
-                (int(i), data) for i, data in current_salary_distribution.items()
-                if int(i) in unchanged_ids
+                (int(i), data if isinstance(data, dict) else {}) for i, data in current_salary_distribution.items()
+                if str(i).isdigit() and int(i) in unchanged_ids
             ], key=lambda x: (not x[1].get('amount_is_percentage'), x[1].get('sequence', float('inf'))))
 
             new_salary_distribution = {str(i): data for i, data in ordered}
 
             # Redistribute removed % to first item
-            removed_percentage = sum(current_salary_distribution[str(i)]['amount']
-                for i in removed_ids if str(i) in current_salary_distribution and current_salary_distribution[str(i)]['amount_is_percentage'])
+            removed_percentage = sum(current_salary_distribution[str(i)].get('amount', 0)
+                for i in removed_ids if str(i) in current_salary_distribution and isinstance(current_salary_distribution[str(i)], dict) and current_salary_distribution[str(i)].get('amount_is_percentage'))
             if removed_percentage and ordered:
                 first_id = str(ordered[0][0])
-                if new_salary_distribution[first_id]['amount_is_percentage']:
-                    new_salary_distribution[first_id]['amount'] += removed_percentage
+                if new_salary_distribution[first_id].get('amount_is_percentage'):
+                    new_salary_distribution[first_id]['amount'] = new_salary_distribution[first_id].get('amount', 0) + removed_percentage
 
             # Add new entries with remaining %
-            total_allocated = sum(d['amount'] for d in new_salary_distribution.values() if d['amount_is_percentage'])
+            total_allocated = sum(d.get('amount', 0) for d in new_salary_distribution.values() if isinstance(d, dict) and d.get('amount_is_percentage'))
             remaining = max(0.0, 100.0 - total_allocated)
-            seq = max((d.get('sequence', 0) for d in new_salary_distribution.values()), default=0)
+            seq = max((d.get('sequence', 0) for d in new_salary_distribution.values() if isinstance(d, dict)), default=0)
             amount = employee.currency_id.round(remaining / len(added_ids)) if added_ids else 0.0
             for i, new_id in enumerate(added_ids):
                 seq += 1
@@ -482,13 +482,15 @@ class HrEmployee(models.Model):
     @api.constrains('salary_distribution')
     def _check_salary_distribution(self):
         for employee in self:
-            dist = employee.salary_distribution
+            dist = employee.salary_distribution if isinstance(employee.salary_distribution, dict) else {}
             if not dist:
                 continue
 
             total = 0
             check_total = False
             for ba_values in dist.values():
+                if not isinstance(ba_values, dict):
+                    continue
                 amount = ba_values.get('amount')
                 is_percentage = ba_values.get('amount_is_percentage', True)
                 if is_percentage and (not isinstance(amount, (float, int)) or not (0 <= amount <= 100)):
@@ -2414,9 +2416,10 @@ class HrEmployee(models.Model):
     def _compute_primary_bank_account_id(self):
         for employee in self:
             if employee.bank_account_ids:
+                dist = employee.salary_distribution if isinstance(employee.salary_distribution, dict) else {}
                 primary_account = min(
                     employee.bank_account_ids,
-                    key=lambda acc: employee.salary_distribution.get(str(acc.id), {}).get("sequence", float("inf")),
+                    key=lambda acc: (dist.get(str(acc.id)) if isinstance(dist.get(str(acc.id)), dict) else {}).get("sequence", float("inf")),
                 )
                 employee.primary_bank_account_id = primary_account
             else:
@@ -2424,21 +2427,23 @@ class HrEmployee(models.Model):
 
     def get_accounts_with_fixed_allocations(self):
         self.ensure_one()
+        dist = self.salary_distribution if isinstance(self.salary_distribution, dict) else {}
         return self.bank_account_ids.filtered(
-            lambda a: not self.salary_distribution.get(str(a.id), {}).get('amount_is_percentage', True)
+            lambda a: not (dist.get(str(a.id)) if isinstance(dist.get(str(a.id)), dict) else {}).get('amount_is_percentage', True)
         )
 
     def get_bank_account_salary_allocation(self, account_id):
-        ba_info = self.salary_distribution.get(str(account_id), {})
+        dist = self.salary_distribution if isinstance(self.salary_distribution, dict) else {}
+        ba_info = dist.get(str(account_id)) if isinstance(dist.get(str(account_id)), dict) else {}
         return ba_info.get('amount', 0), ba_info.get('amount_is_percentage')
 
     def get_remaining_percentage(self):
         self.ensure_one()
-        distribution = self.salary_distribution or {}
+        distribution = self.salary_distribution if isinstance(self.salary_distribution, dict) else {}
         allocated = 0.0
 
         for ba_id, vals in distribution.items():
-            if vals.get('amount_is_percentage'):
+            if isinstance(vals, dict) and vals.get('amount_is_percentage'):
                 allocated += vals.get('amount', 0.0)
 
         remaining = 100.0 - allocated

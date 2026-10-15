@@ -40,12 +40,13 @@ def remove_vietnamese_accents(text):
 def sanitize_csv_cell(value):
     """Sanitizes CSV/Spreadsheet cell values against formula injection (CWE-1236).
     Prepends a single quote `'` if the string starts with formula triggers:
-    `=`, `+`, `-`, `@`, `\t`, `\r`.
+    `=`, `+`, `-`, `@`, `\t`, `\r` (even after leading whitespace).
     """
     if value is None:
         return ""
     s = str(value)
-    if s and s[0] in ('=', '+', '-', '@', '\t', '\r'):
+    stripped = s.lstrip()
+    if stripped and stripped[0] in ('=', '+', '-', '@', '\t', '\r'):
         return "'" + s
     return s
 
