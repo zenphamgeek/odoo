@@ -13,6 +13,27 @@ from lxml import etree
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
+try:
+    from .dgm_brand_footer import (
+        get_digimate_logo_data_uri,
+        get_digimate_logo_url,
+        render_dgm_brand_footer_html,
+        render_dgm_brand_header_html,
+        wrap_dgm_branded_html_document,
+    )
+except ImportError:
+    import importlib.util as _importlib_util
+    from pathlib import Path as _Path
+    _bf_path = _Path(__file__).resolve().parent / "dgm_brand_footer.py"
+    _bf_spec = _importlib_util.spec_from_file_location("dgm_brand_footer", _bf_path)
+    _bf_mod = _importlib_util.module_from_spec(_bf_spec)
+    _bf_spec.loader.exec_module(_bf_mod)
+    get_digimate_logo_data_uri = _bf_mod.get_digimate_logo_data_uri
+    get_digimate_logo_url = _bf_mod.get_digimate_logo_url
+    render_dgm_brand_footer_html = _bf_mod.render_dgm_brand_footer_html
+    render_dgm_brand_header_html = _bf_mod.render_dgm_brand_header_html
+    wrap_dgm_branded_html_document = _bf_mod.wrap_dgm_branded_html_document
+
 _logger = logging.getLogger(__name__)
 
 ADVISORY_LOCK_SOP08_NS = 1397706800  # ASCII 'SOP0' 32-bit namespace key
@@ -212,7 +233,7 @@ class DgmProjectNotification(models.Model):
                 f"<a href='{html.escape(portal_url)}'>{html.escape(portal_url)}</a></p>"
             )
 
-        return f"""<!DOCTYPE html>
+        raw_html = f"""<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="utf-8"/>
@@ -271,6 +292,17 @@ class DgmProjectNotification(models.Model):
   </div>
 </body>
 </html>"""
+        return wrap_dgm_branded_html_document(
+            raw_html,
+            doc_title=ntf_label,
+            doc_code=ntf_code,
+            sop_ref='SOP-DGM-08',
+            classification='PROJECT & TIMESHEET NOTIFICATION',
+            include_header=True,
+        )
+
+    def _render_notification_document_html(self):
+        return self._render_notification_html()
 
     def action_send_project_notification(self):
         Attachment = self.env['ir.attachment'].sudo()
@@ -320,7 +352,6 @@ class DgmProjectNotification(models.Model):
                 existing_doc.write({
                     'owner_id': False,
                     'access_internal': 'edit',
-                    'active': True,
                 })
                 doc_record = existing_doc
             else:
@@ -819,7 +850,6 @@ class DgmProjectTimesheetSheet(models.Model):
                 'partner_id': self.partner_id.id if self.partner_id else False,
                 'access_internal': 'edit',
                 'access_via_link': 'view',
-                'active': True,
             })
             return existing
 
@@ -1081,7 +1111,7 @@ class DgmProjectTimesheetSheet(models.Model):
             </div>
             """
 
-        return f"""<!DOCTYPE html>
+        raw_html = f"""<!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="utf-8"/>
@@ -1170,6 +1200,46 @@ class DgmProjectTimesheetSheet(models.Model):
   {einvoice_block}
 </body>
 </html>"""
+        stage_code_map = {
+            'timesheet': f"{self.name}-TIMESHEET",
+            'acceptance': f"{self.name}-ACCEPTANCE",
+            'draft_invoice': f"{self.name}-DRAFT-INV",
+            'official_invoice': f"{self.name}-EINVOICE-1C26TAA",
+        }
+        stage_class_map = {
+            'timesheet': 'MONTHLY TIMESHEET STATEMENT',
+            'acceptance': 'TIMESHEET ACCEPTANCE CERTIFICATE',
+            'draft_invoice': 'MTI DRAFT INVOICE RECONCILIATION',
+            'official_invoice': 'OFFICIAL VAT E-INVOICE (DECREE 70/2025/ND-CP)',
+        }
+        return wrap_dgm_branded_html_document(
+            raw_html,
+            doc_title=main_title,
+            doc_code=stage_code_map.get(doc_stage, self.name),
+            sop_ref='SOP-DGM-08',
+            classification=stage_class_map.get(doc_stage, 'B2B COMMERCIAL & FINOPS RECORD'),
+            include_header=True,
+        )
+
+    def _generate_timesheet_html(self):
+        if hasattr(self, '_render_sheet_document_html'):
+            return self._render_sheet_document_html('timesheet')
+        return DgmProjectTimesheetSheet._render_sheet_document_html(self, 'timesheet')
+
+    def _generate_acceptance_html(self):
+        if hasattr(self, '_render_sheet_document_html'):
+            return self._render_sheet_document_html('acceptance')
+        return DgmProjectTimesheetSheet._render_sheet_document_html(self, 'acceptance')
+
+    def _generate_draft_invoice_html(self):
+        if hasattr(self, '_render_sheet_document_html'):
+            return self._render_sheet_document_html('draft_invoice')
+        return DgmProjectTimesheetSheet._render_sheet_document_html(self, 'draft_invoice')
+
+    def _generate_official_invoice_html(self):
+        if hasattr(self, '_render_sheet_document_html'):
+            return self._render_sheet_document_html('official_invoice')
+        return DgmProjectTimesheetSheet._render_sheet_document_html(self, 'official_invoice')
 
     @staticmethod
     def _clean_code_slug(val):

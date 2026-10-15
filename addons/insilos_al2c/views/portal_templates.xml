@@ -10,15 +10,16 @@
 
     <!-- 1. Master Frontend & Portal Layout Enhancement -->
     <template id="portal_frontend_layout_inherit_al2c" inherit_id="portal.frontend_layout">
-        <!-- SAP Horizon 3px gradient header stripe and Small Web Innoria Logo in Header -->
+        <!-- SAP Horizon 3px gradient header stripe and Official Digimate Google Drive Logo in Header -->
         <xpath expr="//header" position="replace">
             <div class="al2c_portal_horizon_stripe" style="height: 3px; background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%); width: 100%; position: relative; z-index: 1050;"/>
-            <header t-if="not no_header" id="top" data-anchor="true">
+            <header t-if="not no_header" id="top" data-anchor="true" class="dgm-brand-header" data-dgm-header="drive-logo-v1">
                 <nav class="navbar navbar-expand navbar-light bg-light border-bottom">
                     <div class="container">
                         <a href="/my" class="navbar-brand logo d-flex align-items-center gap-2">
-                            <img src="/insilos_al2c/static/src/img/logo_innoria_header.svg" style="max-height: 28px; width: auto;" alt="Innoria Enterprise Portal" title="Innoria Enterprise Portal"/>
-                            <span class="badge bg-light text-dark border text-uppercase" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px; letter-spacing: 0.05em; font-weight: 600;">PORTAL</span>
+                            <img class="dgm-header-drive-logo" src="/insilos_al2c/static/src/img/digimate_drive_logo.png" data-logo-source="google-drive-logo-folder" style="max-height: 32px; width: auto; object-fit: contain;" alt="Digimate Official Brand Logo" title="Digimate JSC"/>
+                            <img src="/insilos_al2c/static/src/img/logo_innoria_header.svg" style="max-height: 26px; width: auto;" alt="Innoria Enterprise Portal" title="Innoria Enterprise Portal"/>
+                            <span class="badge bg-light border text-uppercase" style="color: var(--insilos-text-primary, #1e293b); font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px; letter-spacing: 0.05em; font-weight: 600;">PORTAL</span>
                         </a>
                         <ul id="top_menu" class="nav navbar-nav ms-auto">
                             <t t-call="portal.placeholder_user_sign_in" _item_class.f="nav-item" _link_class.f="nav-link"/>
@@ -29,29 +30,31 @@
             </header>
         </xpath>
 
-        <!-- Sovereign Enterprise Footer: ISO 27001, Decree 13/2023/ND-CP, DIGIMATE JSC -->
+        <!-- Sovereign Enterprise Footer: Digimate Google Drive Logo, ISO 27001, Decree 13/2023/ND-CP, DIGIMATE JSC -->
         <xpath expr="//div[@id='footer']" position="replace">
-            <div id="footer" class="bg-dark text-white pt-4 pb-3 border-top" style="border-top-color: #262626 !important; background-color: #161616 !important;">
+            <div id="footer" class="dgm-brand-footer bg-dark text-white pt-4 pb-3 border-top" data-dgm-footer="drive-logo-v1" style="border-top-color: var(--insilos-border-subtle, #262626) !important; background-color: #161616 !important;">
                 <div class="container">
                     <div class="row gy-3 align-items-center justify-content-between pb-3 border-bottom" style="border-bottom-color: #393939 !important;">
-                        <div class="col-12 col-md-6 d-flex align-items-center gap-3">
-                            <img src="/insilos_al2c/static/src/img/logo_innoria_header.svg" style="max-height: 24px; filter: brightness(0) invert(1);" alt="Innoria Enterprise"/>
+                        <div class="col-12 col-md-7 d-flex align-items-center gap-3">
+                            <img class="dgm-footer-drive-logo" src="/insilos_al2c/static/src/img/digimate_drive_logo.png" data-logo-source="google-drive-logo-folder" style="max-height: 36px; width: auto; object-fit: contain;" alt="Digimate Official Brand Logo"/>
+                            <img src="/insilos_al2c/static/src/img/logo_innoria_header.svg" style="max-height: 22px; filter: brightness(0) invert(1);" alt="Innoria Enterprise"/>
                             <div class="text-white-50 small border-start ps-3" style="border-color: #393939 !important; font-size: 11px;">
-                                <strong class="text-white">CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ</strong> (DIGIMATE JSC · MST: 0317958465)<br/>
+                                <strong class="text-white">CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC)</strong> · MST: <strong>0317958465</strong> · Mã ĐV BHXH: <strong>TZ0857G</strong> · Ký hiệu HĐĐT: <strong>1C26TAA</strong><br/>
                                 Nền tảng Quản trị Doanh nghiệp Tự chủ AL2C · Innoria Enterprise Platform
                             </div>
                         </div>
-                        <div class="col-12 col-md-6 text-md-end text-white-50" style="font-size: 11px;">
+                        <div class="col-12 col-md-5 text-md-end text-white-50" style="font-size: 11px;">
                             <span class="badge bg-secondary text-light me-1" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">ISO/IEC 27001:2022</span>
+                            <span class="badge bg-secondary text-light me-1" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">ISO/IEC 27701:2019</span>
                             <span class="badge bg-secondary text-light" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">Nghị định 13/2023/NĐ-CP</span>
                         </div>
                     </div>
                     <div class="row pt-3 text-white-50" style="font-size: 11px;">
                         <div class="col-12 col-md-8">
-                            Bản quyền &amp;copy; <t t-out="datetime.date.today().year"/> CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC). Tất cả quyền được bảo lưu. Tuân thủ tiêu chuẩn an toàn thông tin &amp; bảo vệ dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP.
+                            Bản quyền &amp;copy; <t t-out="datetime.date.today().year"/> CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC). Tất cả quyền được bảo lưu. Tuân thủ Nghị định 13/2023/NĐ-CP, Nghị định 70/2025/NĐ-CP &amp; Nghị định 174/2025/NĐ-CP.
                         </div>
                         <div class="col-12 col-md-4 text-md-end">
-                            <span>Hỗ trợ kỹ thuật: <strong class="text-white">info@inno.ai.vn</strong> · <a href="https://innoria.com" target="_blank" class="text-info text-decoration-none">https://innoria.com</a></span>
+                            <span>Hỗ trợ kỹ thuật: <strong class="text-white">finance@digimate.vn · info@inno.ai.vn</strong> · <a href="https://innoria.com" target="_blank" class="text-info text-decoration-none">https://innoria.com</a></span>
                         </div>
                     </div>
                 </div>
@@ -62,7 +65,7 @@
         <xpath expr="//div[@name='footer_copyright_col']" position="replace">
             <div name="footer_copyright_col" class="col-md text-center text-sm-start text-muted small" style="font-size: 11px;">
                 <span class="o_footer_copyright_name">
-                    CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC) · Innoria Enterprise Platform
+                    CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC) · MST: 0317958465 · Innoria Enterprise Platform
                 </span>
                 <t id="language_selector_hook"/>
             </div>
@@ -72,8 +75,8 @@
     <!-- Global Zero-Platform Brand Promotion Override (Clean Sovereign Enterprise) -->
     <template id="brand_promotion_message_inherit_al2c" inherit_id="web.brand_promotion_message">
         <xpath expr="//t[@t-out]" position="replace">
-            <span style="font-size: 11px; color: #525252; font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;">
-                ISO/IEC 27001 · SOVEREIGN
+            <span style="font-size: 11px; color: var(--insilos-text-secondary, #475569); font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;">
+                ISO/IEC 27001 · DIGIMATE JSC
             </span>
         </xpath>
     </template>
@@ -84,11 +87,11 @@
             <div class="al2c-portal-cockpit mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
                     <div>
-                        <h4 class="mb-0 fw-bold" style="color: #161616; letter-spacing: -0.02em;">Cổng Thông tin &amp; Dịch vụ Doanh nghiệp Innoria</h4>
+                        <h4 class="mb-0 fw-bold" style="color: var(--insilos-text-primary, #1e293b); letter-spacing: -0.02em;">Cổng Thông tin &amp; Dịch vụ Doanh nghiệp Digimate · Innoria</h4>
                         <div class="text-muted small mt-1">Quản lý báo giá, hợp đồng SOW, hóa đơn điện tử Nghị định 70/2025, tiến độ SAP Activate và giải quyết đối soát AL2C-INV-103.</div>
                     </div>
                     <div>
-                        <span class="badge bg-light text-dark border" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">ENTERPRISE COCKPIT</span>
+                        <span class="badge bg-light border" style="color: var(--insilos-text-primary, #1e293b); font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">ENTERPRISE COCKPIT</span>
                     </div>
                 </div>
 
@@ -140,7 +143,7 @@
                     <div class="col-12 col-md-6 col-lg-3">
                         <a href="/my/invoices" class="al2c-portal-card p-3 shadow-sm">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge bg-warning text-dark" style="font-size: 10px; font-weight: 600;">AL2C-INV-103</span>
+                                <span class="badge bg-warning text-body" style="font-size: 10px; font-weight: 600;">AL2C-INV-103</span>
                                 <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
                             </div>
                             <h6 class="fw-bold mb-1" style="color: #161616;">Khiếu nại &amp; Đối soát</h6>
@@ -164,7 +167,7 @@
         <!-- SOW Framework Badge in Introduction -->
         <xpath expr="//div[@id='introduction']//div[hasclass('d-flex')][1]" position="inside">
             <div class="d-none d-md-flex align-items-center ms-auto">
-                <span class="badge bg-light text-dark border px-2 py-1" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">
+                <span class="badge bg-light text-body border px-2 py-1" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">
                     SAP ACTIVATE SOW · ISO 27001
                 </span>
             </div>
@@ -277,7 +280,7 @@
             <div class="mt-3">
                 <t t-if="invoice.al2c_has_open_dispute">
                     <div class="alert alert-warning p-2 small text-center mb-0 border-warning">
-                        <div class="fw-bold text-dark"><i class="oi oi-clock me-1"/> Đang Đối Soát AL2C-INV-103</div>
+                        <div class="fw-bold text-body"><i class="oi oi-clock me-1"/> Đang Đối Soát AL2C-INV-103</div>
                         <div class="text-muted" style="font-size: 10px;">Tiến trình nhắc nợ Dunning đã được ĐÓNG BĂNG để bảo vệ quyền lợi đối tác.</div>
                     </div>
                 </t>
@@ -300,7 +303,7 @@
                      class="img-fluid border rounded bg-white p-1 mb-2"/>
                 <div class="small text-start" style="font-size: 11px; line-height: 1.4;">
                     <div>STK: <strong class="text-primary">0071001234567</strong></div>
-                    <div>Nội dung: <strong class="text-dark" t-out="invoice.name"/></div>
+                    <div>Nội dung: <strong class="text-body" t-out="invoice.name"/></div>
                     <div>Số tiền: <strong class="text-success" t-out="invoice.amount_residual" t-options="{'widget': 'monetary', 'display_currency': invoice.currency_id}"/></div>
                 </div>
             </div>
@@ -311,7 +314,7 @@
             <!-- Active Dispute Banner (AL2C-INV-103) -->
             <div t-if="invoice.al2c_has_open_dispute" class="al2c-dispute-alert shadow-sm">
                 <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="badge bg-warning text-dark" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 11px;">AL2C-INV-103 ĐANG XỬ LÝ</span>
+                    <span class="badge bg-warning text-body" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 11px;">AL2C-INV-103 ĐANG XỬ LÝ</span>
                     <strong style="color: #8D660D;">Thông báo Đóng băng Dunning &amp; Đối soát Thương mại:</strong>
                 </div>
                 <div class="small" style="color: #4E342E; font-size: 12px; line-height: 1.5;">
@@ -371,7 +374,7 @@
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary text-white" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">SOP-RAG-003</span>
-                            <strong class="text-dark small">Trợ Lý AI Đối Soát Giờ Công &amp; Căn Cứ Hợp Đồng</strong>
+                            <strong class="text-body small">Trợ Lý AI Đối Soát Giờ Công &amp; Căn Cứ Hợp Đồng</strong>
                         </div>
                         <span class="badge bg-light text-muted border small" style="font-size: 10px;">CITATION CONTRACT [Doc | Sec | ID | Hash]</span>
                     </div>
@@ -418,11 +421,11 @@
                                 const data = await resp.json();
                                 const res = data.result || {};
                                 if (res.success) {
-                                    let html = '&lt;div class="fw-bold mb-1 text-dark"&gt;' + (res.answer || '').replace(/\n/g, '&lt;br/&gt;') + '&lt;/div&gt;';
+                                    let html = '&lt;div class="fw-bold mb-1 text-body"&gt;' + (res.answer || '').replace(/\n/g, '&lt;br/&gt;') + '&lt;/div&gt;';
                                     if (res.citations &amp;&amp; res.citations.length &gt; 0) {
                                         html += '&lt;div class="mt-2 pt-2 border-top text-muted" style="font-size: 10px;"&gt;&lt;strong&gt;Nguồn trích dẫn (Citations):&lt;/strong&gt;&lt;br/&gt;';
                                         res.citations.forEach(c =&gt; {
-                                            html += '&lt;span class="badge bg-secondary-subtle text-dark border me-1 my-1"&gt;' + c + '&lt;/span&gt;';
+                                            html += '&lt;span class="badge bg-secondary-subtle text-body border me-1 my-1"&gt;' + c + '&lt;/span&gt;';
                                         });
                                         html += '&lt;/div&gt;';
                                     }
@@ -457,7 +460,7 @@
                     <div class="col-12 col-md-8">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary text-white" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
-                            <span class="badge bg-light text-dark border" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">NGHỊ ĐỊNH 123/2020/NĐ-CP</span>
+                            <span class="badge bg-light text-body border" style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 10px;">NGHỊ ĐỊNH 123/2020/NĐ-CP</span>
                         </div>
                         <div class="fw-bold mt-1" style="font-size: 14px; color: #161616;">
                             Hóa Đơn Giá Trị Gia Tăng Điện Tử Khởi Tạo Tự Động

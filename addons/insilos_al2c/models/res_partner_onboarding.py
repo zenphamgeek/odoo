@@ -7,6 +7,25 @@ import re
 from odoo import SUPERUSER_ID, api, fields, models, _
 from odoo.exceptions import UserError
 
+try:
+    from .dgm_brand_footer import (
+        render_dgm_brand_header_html,
+        render_dgm_brand_footer_html,
+        wrap_dgm_branded_html_document,
+    )
+except ImportError:
+    import importlib.util as _ilu
+    import os as _os
+    _bf_spec = _ilu.spec_from_file_location(
+        "dgm_brand_footer",
+        _os.path.join(_os.path.dirname(__file__), "dgm_brand_footer.py"),
+    )
+    _bf_mod = _ilu.module_from_spec(_bf_spec)
+    _bf_spec.loader.exec_module(_bf_mod)
+    render_dgm_brand_header_html = _bf_mod.render_dgm_brand_header_html
+    render_dgm_brand_footer_html = _bf_mod.render_dgm_brand_footer_html
+    wrap_dgm_branded_html_document = _bf_mod.wrap_dgm_branded_html_document
+
 _logger = logging.getLogger(__name__)
 
 GENERIC_EMAIL_DOMAINS = {
@@ -693,20 +712,21 @@ class ResPartnerOnboarding(models.Model):
 
         base_style = """
         <style>
-            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: #0f172a; line-height: 1.55; padding: 28px; max-width: 920px; margin: 0 auto; }
+            body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--insilos-text-primary, #1e293b); line-height: 1.55; padding: 28px; max-width: 920px; margin: 0 auto; }
             .header-box { border-bottom: 3px solid #1e3a8a; padding-bottom: 14px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; }
             .badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12px; background: #dbeafe; color: #1e40af; }
             table { width: 100%; border-collapse: collapse; margin: 14px 0; }
-            th, td { border: 1px solid #cbd5e1; padding: 9px 12px; text-align: left; font-size: 13.5px; }
-            th { background: #f1f5f9; font-weight: 600; width: 32%; }
+            th, td { border: 1px solid var(--insilos-border-subtle, #cbd5e1); padding: 9px 12px; text-align: left; font-size: 13.5px; }
+            th { background: var(--insilos-bg-subtle, #e2e8f0); font-weight: 600; width: 32%; }
             h1 { font-size: 20px; color: #1e3a8a; margin: 6px 0; }
-            h2 { font-size: 15px; color: #0f172a; margin-top: 18px; border-left: 4px solid #2563eb; padding-left: 8px; }
+            h2 { font-size: 15px; color: var(--insilos-text-primary, #1e293b); margin-top: 18px; border-left: 4px solid #2563eb; padding-left: 8px; }
             .sig-grid { display: flex; justify-content: space-between; margin-top: 28px; gap: 20px; }
             .sig-col { width: 48%; border: 1px dashed #94a3b8; padding: 14px; border-radius: 8px; }
         </style>
         """
 
-        doc_01 = f"""<!DOCTYPE html>
+        doc_01 = wrap_dgm_branded_html_document(
+            f"""<!DOCTYPE html>
 <html lang="vi"><head><meta charset="utf-8"/><title>TPL-ONB-01 KYC &amp; Tiering - {p_name}</title>{base_style}</head>
 <body>
     <div class="header-box">
@@ -733,9 +753,16 @@ class ResPartnerOnboarding(models.Model):
     </table>
     <h2>Cam kết Linh hoạt Sales-First (Zero Bottleneck Policy)</h2>
     <p>Đối tác được cấp ngay mã tạm <code>{html.escape(self.dgm_provisional_code or code)}</code> để Sales Team gửi báo giá, ký hợp đồng và xác nhận Sale Order không độ trễ. Toàn bộ kiểm soát hạn mức và cổng thanh toán tự động kích hoạt trước kỳ giải ngân hoặc thanh toán công nợ.</p>
-</body></html>"""
+</body></html>""",
+            title=f"TPL-ONB-01 KYC & Tiering - {self.name or code}",
+            doc_code="TPL-ONB-01",
+            sop_ref="SOP-DGM-06",
+            classification="B2B PARTNER CONFIDENTIAL",
+            include_header=True,
+        )
 
-        doc_02 = f"""<!DOCTYPE html>
+        doc_02 = wrap_dgm_branded_html_document(
+            f"""<!DOCTYPE html>
 <html lang="vi"><head><meta charset="utf-8"/><title>TPL-ONB-02 Mutual NDA ISO27001 - {p_name}</title>{base_style}</head>
 <body>
     <div class="header-box">
@@ -759,9 +786,16 @@ class ResPartnerOnboarding(models.Model):
         <div class="sig-col"><strong>ĐẠI DIỆN BÊN A (DIGIMATE JSC)</strong><br/>Lê Xuân Hoàng — Chủ tịch HĐQT &amp; TGĐ<br/><em>(Đã ký số HSM Viettel-CA — MST 0317958465)</em></div>
         <div class="sig-col"><strong>ĐẠI DIỆN BÊN B ({p_name})</strong><br/>Đại diện Pháp luật / Ủy quyền<br/><em>(Xác nhận đồng thuận điện tử)</em></div>
     </div>
-</body></html>"""
+</body></html>""",
+            title=f"TPL-ONB-02 Mutual NDA ISO 27001 - {self.name or code}",
+            doc_code="TPL-ONB-02",
+            sop_ref="SOP-DGM-06",
+            classification="B2B PARTNER CONFIDENTIAL",
+            include_header=True,
+        )
 
-        doc_03 = f"""<!DOCTYPE html>
+        doc_03 = wrap_dgm_branded_html_document(
+            f"""<!DOCTYPE html>
 <html lang="vi"><head><meta charset="utf-8"/><title>TPL-ONB-03 Master Commercial Frame - {p_name}</title>{base_style}</head>
 <body>
     <div class="header-box">
@@ -782,9 +816,16 @@ class ResPartnerOnboarding(models.Model):
     <p>{html.escape(msa_terms)}</p>
     <h2>Quy định Xuất Hóa đơn Điện tử Chuẩn Nghị định 70/2025/NĐ-CP</h2>
     <p>Mọi hóa đơn GTGT đầu ra (Ký hiệu <code>1C26TAA</code>) và hóa đơn đầu vào phải ghi nhận chính xác tên pháp nhân <strong>CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ</strong>, Mã số thuế <strong>0317958465</strong>.</p>
-</body></html>"""
+</body></html>""",
+            title=f"TPL-ONB-03 Master Commercial Frame - {self.name or code}",
+            doc_code="TPL-ONB-03",
+            sop_ref="SOP-DGM-06",
+            classification="B2B PARTNER CONFIDENTIAL",
+            include_header=True,
+        )
 
-        doc_04 = f"""<!DOCTYPE html>
+        doc_04 = wrap_dgm_branded_html_document(
+            f"""<!DOCTYPE html>
 <html lang="vi"><head><meta charset="utf-8"/><title>TPL-ONB-04 Payment Gate Approval Cert - {p_name}</title>{base_style}</head>
 <body>
     <div class="header-box">
@@ -811,7 +852,13 @@ class ResPartnerOnboarding(models.Model):
         <li><strong>[✓] TPL-ONB-04:</strong> Chứng nhận Phê duyệt Mã Đối tác &amp; Kiểm soát Tách biệt Nhiệm vụ (Maker-Checker SoD).</li>
     </ul>
     <p><em>Ghi chú vận hành: Các khoản thu tiền từ khách hàng (Inbound Receipts) luôn được phép ghi nhận tự động 24/7. Các khoản chi thanh toán ra ngoài (Outbound Disbursements) bắt buộc Đối tác phải ở trạng thái <strong>Approved</strong> với đầy đủ 4 chứng từ đi kèm.</em></p>
-</body></html>"""
+</body></html>""",
+            title=f"TPL-ONB-04 Payment Gate Approval Cert - {self.name or code}",
+            doc_code="TPL-ONB-04",
+            sop_ref="SOP-DGM-06",
+            classification="B2B PARTNER CONFIDENTIAL",
+            include_header=True,
+        )
 
         return [
             {
@@ -891,7 +938,6 @@ class ResPartnerOnboarding(models.Model):
                     existing_doc.write({
                         'name': tpl['doc_name'],
                         'partner_id': partner.id,
-                        'active': True,
                         'access_internal': 'edit',
                         'owner_id': False,
                     })

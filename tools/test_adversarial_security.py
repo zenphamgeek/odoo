@@ -2766,7 +2766,7 @@ def test_patch_26_shallow_partner_loader_hmac_share_and_lockfree_index():
         Datetime=_DummyDatetime,
         Text=lambda *a, **kw: None,
     )
-    odoo_mod.models = types.SimpleNamespace(Model=object)
+    odoo_mod.models = types.SimpleNamespace(Model=object, AbstractModel=object, TransientModel=object)
     odoo_mod.modules = types.SimpleNamespace(module=types.SimpleNamespace(current_test=False))
     exc_mod = types.ModuleType("odoo.exceptions")
     exc_mod.AccessError = DummyAccessError
@@ -3121,6 +3121,332 @@ def test_patch_29_sop08_rev2_namespaced_lock_post_approval_seal_and_c14n_xml():
     print("[✓] Patch 29 / SOP08-REV2 Two-Key Namespaced Advisory Lock, Post-Approval Seal & C14N/NFC 1C26TAA XML verified")
 
 
+def test_patch_30_dgm_drive_logo_brand_footer_standardization():
+    """
+    Patch 30 Verification Suite (Digimate Google Drive Logo & Brand Footer Standardization):
+    1. Authentic Google Drive logo PNGs (`digimate_drive_logo.png`, `digimate_drive_logo_black.png`,
+       `digimate_drive_logo_white.png`) exist on disk with valid PNG magic bytes (\\x89PNG\\r\\n\\x1a\\n).
+    2. `addons/insilos_al2c/models/dgm_brand_footer.py` and `addons/insilos_al2c/models/dgm_hr_document_templates.py`
+       exist, are imported in `addons/insilos_al2c/models/__init__.py`, and `render_dgm_brand_footer_html()`,
+       `render_dgm_brand_header_html()`, `wrap_dgm_branded_html_document()`, and
+       `DgmHrDocumentTemplates.render_dgm_hr_template_html()` produce valid HTML containing
+       `dgm-brand-footer`, `data-dgm-footer="drive-logo-v1"`, `data-logo-source="google-drive-logo-folder"`,
+       `CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC)`, `0317958465`, `TZ0857G`, and `1C26TAA` with zero bare hex colors.
+    3. `addons/insilos_al2c/views/portal_templates.xml` and `addons/insilos_al2c/views/report_templates.xml`
+       include `dgm-brand-footer` and `digimate_drive_logo.png`.
+    4. In both `insilos20_dev` and `innoria_prod`:
+       - The `Logo` folder under `06. Thương hiệu & Hình ảnh` has >= 5 active Google Drive logo files with `owner_id IS NULL`.
+       - The Master Template Library folder (`Bộ Mẫu Biểu Chuẩn Digimate - HR, Partner, Project, Finance`)
+         under `07. Quy trình Chuẩn & Tự động hóa` has >= 14 active standardized HTML templates
+         (`TPL-HR-01..05`, `TPL-ONB-01..05`, `TPL-PRJ-01..04`).
+       - `0` empty active folders across `documents_document`.
+    """
+    import importlib.util
+    import types
+    import psycopg2
+
+    # 1. Verify Google Drive logo PNGs on disk
+    img_dir = os.path.join(ROOT_DIR, "addons/insilos_al2c/static/src/img")
+    for logo_fname in (
+        "digimate_drive_logo.png",
+        "digimate_drive_logo_black.png",
+        "digimate_drive_logo_white.png",
+    ):
+        logo_path = os.path.join(img_dir, logo_fname)
+        assert os.path.isfile(logo_path), f"Missing Drive logo file: {logo_path}"
+        with open(logo_path, "rb") as f:
+            raw_png = f.read()
+        assert len(raw_png) > 5000, f"Drive logo {logo_fname} unexpectedly small: {len(raw_png)} bytes"
+        assert raw_png[:8] == b"\x89PNG\r\n\x1a\n", f"Invalid PNG magic header in {logo_fname}"
+
+    # 2. Verify dgm_brand_footer.py and dgm_hr_document_templates.py & __init__.py
+    models_init_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/__init__.py")
+    with open(models_init_path, "r", encoding="utf-8") as f:
+        init_src = f.read()
+    assert "dgm_brand_footer" in init_src, "dgm_brand_footer not imported in addons/insilos_al2c/models/__init__.py"
+    assert "dgm_hr_document_templates" in init_src, (
+        "dgm_hr_document_templates not imported in addons/insilos_al2c/models/__init__.py"
+    )
+
+    bf_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/dgm_brand_footer.py")
+    hr_tpl_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/dgm_hr_document_templates.py")
+    assert os.path.isfile(bf_path), f"Missing {bf_path}"
+    assert os.path.isfile(hr_tpl_path), f"Missing {hr_tpl_path}"
+
+    odoo_mod = types.ModuleType("odoo")
+    odoo_mod._ = lambda s, **kw: (s % kw if kw else s)
+    odoo_mod.api = types.SimpleNamespace(
+        model=lambda fn: fn,
+        depends=lambda *a: (lambda fn: fn),
+    )
+    odoo_mod.models = types.SimpleNamespace(Model=object, AbstractModel=object, TransientModel=object)
+
+    saved_odoo = sys.modules.get("odoo")
+    try:
+        sys.modules["odoo"] = odoo_mod
+        spec_bf = importlib.util.spec_from_file_location("dgm_brand_footer_patch30", bf_path)
+        mod_bf = importlib.util.module_from_spec(spec_bf)
+        spec_bf.loader.exec_module(mod_bf)
+
+        pkg_name = "addons.insilos_al2c.models"
+        pkg_mod = types.ModuleType(pkg_name)
+        pkg_mod.__path__ = [os.path.dirname(bf_path)]
+        pkg_mod.dgm_brand_footer = mod_bf
+        sys.modules[pkg_name] = pkg_mod
+        sys.modules[f"{pkg_name}.dgm_brand_footer"] = mod_bf
+
+        spec_hr = importlib.util.spec_from_file_location(f"{pkg_name}.dgm_hr_document_templates", hr_tpl_path)
+        mod_hr = importlib.util.module_from_spec(spec_hr)
+        spec_hr.loader.exec_module(mod_hr)
+    finally:
+        if saved_odoo is None:
+            sys.modules.pop("odoo", None)
+        else:
+            sys.modules["odoo"] = saved_odoo
+
+    data_uri = mod_bf.get_digimate_logo_data_uri("default")
+    assert data_uri.startswith("data:image/png;base64,"), "get_digimate_logo_data_uri must return base64 PNG data URI"
+    logo_url = mod_bf.get_digimate_logo_url("default")
+    assert logo_url == "/insilos_al2c/static/src/img/digimate_drive_logo.png"
+
+    header_html = mod_bf.render_dgm_brand_header_html("Hồ sơ Kiểm thử", "TPL-TEST-01", "SOP-DGM-08")
+    footer_html = mod_bf.render_dgm_brand_footer_html("TPL-TEST-01", "SOP-DGM-08", "INTERNAL / B2B CONFIDENTIAL")
+    wrapped_html = mod_bf.wrap_dgm_branded_html_document(
+        "<main><p>Nội dung tài liệu chuẩn Digimate</p></main>",
+        title="Hồ sơ Kiểm thử",
+        doc_code="TPL-TEST-01",
+        sop_ref="SOP-DGM-08",
+        include_header=True,
+    )
+
+    banned_tokens = (
+        "#" + "ffffff",
+        "#" + "f8fafc",
+        "#" + "f1f5f9",
+        "#" + "070b14",
+        "#" + "0f172a",
+        "text-bg-" + "light",
+        "text-" + "dark",
+    )
+    for sample_html in (header_html, footer_html, wrapped_html):
+        lower_html = sample_html.lower()
+        for b_tok in banned_tokens:
+            assert b_tok not in lower_html, f"Banned token `{b_tok}` found in brand HTML output"
+
+    for req_marker in (
+        "dgm-brand-header",
+        'data-dgm-header="drive-logo-v1"',
+        "dgm-brand-footer",
+        'data-dgm-footer="drive-logo-v1"',
+        'data-logo-source="google-drive-logo-folder"',
+        "CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC)",
+        "0317958465",
+        "TZ0857G",
+        "1C26TAA",
+    ):
+        assert req_marker in wrapped_html, f"Missing `{req_marker}` in wrap_dgm_branded_html_document output"
+
+    # Verify idempotency of wrap_dgm_branded_html_document (no duplicate footers)
+    wrapped_twice = mod_bf.wrap_dgm_branded_html_document(
+        wrapped_html,
+        title="Hồ sơ Kiểm thử",
+        doc_code="TPL-TEST-01",
+        sop_ref="SOP-DGM-08",
+        include_header=True,
+    )
+    assert wrapped_twice.count('data-dgm-footer="drive-logo-v1"') == 1, (
+        "wrap_dgm_branded_html_document must idempotently replace existing footer without duplication"
+    )
+
+    # Verify DgmHrDocumentTemplates.render_dgm_hr_template_html across TPL-HR-01..05
+    class _DummyEmpEnv(mod_hr.DgmHrDocumentTemplates):
+        def __getitem__(self, item):
+            return []
+
+    dummy_emp = _DummyEmpEnv()
+    for hr_code in ("TPL-HR-01", "TPL-HR-02", "TPL-HR-03", "TPL-HR-04", "TPL-HR-05"):
+        hr_html = dummy_emp.render_dgm_hr_template_html(hr_code)
+        assert 'data-dgm-header="drive-logo-v1"' in hr_html, f"{hr_code} missing Drive Logo header"
+        assert 'data-dgm-footer="drive-logo-v1"' in hr_html, f"{hr_code} missing Drive Logo footer"
+        assert 'data-logo-source="google-drive-logo-folder"' in hr_html, f"{hr_code} missing Drive Logo source attr"
+        assert "0317958465" in hr_html and "TZ0857G" in hr_html
+
+    # 3. Verify portal_templates.xml and report_templates.xml include dgm-brand-footer and digimate_drive_logo.png
+    for xml_rel in ("views/portal_templates.xml", "views/report_templates.xml"):
+        xml_path = os.path.join(ROOT_DIR, "addons/insilos_al2c", xml_rel)
+        assert os.path.isfile(xml_path), f"Missing {xml_path}"
+        with open(xml_path, "r", encoding="utf-8") as f:
+            xml_src = f.read()
+        assert "dgm-brand-footer" in xml_src, f"{xml_rel} missing dgm-brand-footer"
+        assert "digimate_drive_logo.png" in xml_src, f"{xml_rel} missing digimate_drive_logo.png"
+
+    # 4. Verify database state across insilos20_dev and innoria_prod
+    for db_name in ("insilos20_dev", "innoria_prod"):
+        conn = psycopg2.connect(
+            host=os.environ.get("PGHOST", "127.0.0.1"),
+            port=int(os.environ.get("PGPORT", 5434)),
+            user=os.environ.get("PGUSER", "odoo"),
+            password=os.environ.get("PGPASSWORD", "1NN0R1@2026"),
+            dbname=db_name,
+        )
+        try:
+            with conn.cursor() as cur:
+                # 4a. Logo folder under 06. Thương hiệu & Hình ảnh has >= 5 active Google Drive logo files
+                cur.execute(
+                    """
+                    SELECT COUNT(*)
+                      FROM documents_document d
+                      JOIN documents_document f ON f.id = d.folder_id
+                      JOIN ir_attachment a ON a.id = d.attachment_id
+                     WHERE f.type = 'folder' AND f.active = TRUE
+                       AND (f.name->>'en_US' = 'Logo' OR f.name::text ILIKE '%Logo%')
+                       AND d.active = TRUE AND d.type != 'folder'
+                       AND d.owner_id IS NULL AND a.file_size > 1000;
+                    """
+                )
+                logo_cnt = cur.fetchone()[0]
+                assert logo_cnt >= 5, (
+                    f"{db_name}: Expected >= 5 active Google Drive logo files in Logo folder, got {logo_cnt}"
+                )
+
+                # 4b. Master Template Library folder has >= 14 active standardized HTML templates
+                cur.execute(
+                    """
+                    SELECT COUNT(*)
+                      FROM documents_document d
+                      JOIN documents_document f ON f.id = d.folder_id
+                     WHERE f.type = 'folder' AND f.active = TRUE
+                       AND (f.name->>'en_US' ILIKE '%Bộ Mẫu Biểu Chuẩn Digimate%' OR f.name::text ILIKE '%Bộ Mẫu Biểu Chuẩn Digimate%')
+                       AND d.active = TRUE AND d.type != 'folder'
+                       AND d.owner_id IS NULL;
+                    """
+                )
+                tpl_cnt = cur.fetchone()[0]
+                assert tpl_cnt >= 14, (
+                    f"{db_name}: Expected >= 14 active standardized templates in Bộ Mẫu Biểu Chuẩn Digimate, got {tpl_cnt}"
+                )
+
+                # 4c. 0 empty active folders across documents_document
+                cur.execute(
+                    """
+                    SELECT COUNT(*)
+                      FROM documents_document f
+                     WHERE f.type = 'folder' AND f.active = TRUE
+                       AND NOT EXISTS (
+                           SELECT 1 FROM documents_document c
+                            WHERE c.folder_id = f.id AND c.active = TRUE
+                       );
+                    """
+                )
+                empty_cnt = cur.fetchone()[0]
+                assert empty_cnt == 0, f"{db_name}: Expected 0 empty active folders, got {empty_cnt}"
+        finally:
+            conn.close()
+
+    print("[✓] Patch 30 / Google Drive Logo & Brand Footer Standardization across HR, Partner, Project, Finance & Master Template Library verified")
+
+
+def test_patch_31_sop_dgm_09_mti_codev_and_ktt_turnkey_software_contracts():
+    """Patch 31 (`SOP-DGM-09`): Verifies the Best-Practice Software Tax Incentive Contract Suite
+    (`TPL-SW-MTI-01..04` for MTI/AIfin Software Co-Development & `TPL-SW-KTT-01..04` for KTT Khang
+    Trường Thịnh Turnkey Software Package) under Circular 13/2020/TT-BTTTT & Circular 219/2013/TT-BTC.
+    """
+    import importlib.util
+    import types
+
+    init_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/__init__.py")
+    sw_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/dgm_software_contract_templates.py")
+    assert os.path.isfile(sw_path), f"Missing {sw_path}"
+
+    with open(init_path, "r", encoding="utf-8") as f:
+        init_src = f.read()
+    assert "dgm_software_contract_templates" in init_src, (
+        "addons/insilos_al2c/models/__init__.py must import dgm_software_contract_templates"
+    )
+
+    with open(sw_path, "r", encoding="utf-8") as f:
+        sw_src = f.read()
+    for code in (
+        "TPL-SW-MTI-01", "TPL-SW-MTI-02", "TPL-SW-MTI-03", "TPL-SW-MTI-04",
+        "TPL-SW-KTT-01", "TPL-SW-KTT-02", "TPL-SW-KTT-03", "TPL-SW-KTT-04",
+    ):
+        assert code in sw_src, f"dgm_software_contract_templates.py missing template code {code}"
+
+    odoo_mod = types.ModuleType("odoo")
+    odoo_mod.SUPERUSER_ID = 1
+    odoo_mod._ = lambda s, **kw: (s % kw if kw else s)
+    odoo_mod.api = types.SimpleNamespace(
+        model=lambda fn: fn,
+        model_create_multi=lambda fn: fn,
+        depends=lambda *a: (lambda fn: fn),
+    )
+    odoo_mod.fields = types.SimpleNamespace(
+        Selection=lambda *a, **kw: None,
+        Many2many=lambda *a, **kw: None,
+        Integer=lambda *a, **kw: None,
+    )
+    odoo_mod.models = types.SimpleNamespace(Model=object, AbstractModel=object, TransientModel=object)
+    saved_odoo = sys.modules.get("odoo")
+    try:
+        sys.modules["odoo"] = odoo_mod
+        pkg_name = "addons.insilos_al2c.models"
+        spec_sw = importlib.util.spec_from_file_location(f"{pkg_name}.dgm_software_contract_templates", sw_path)
+        mod_sw = importlib.util.module_from_spec(spec_sw)
+        spec_sw.loader.exec_module(mod_sw)
+    finally:
+        if saved_odoo is None:
+            sys.modules.pop("odoo", None)
+        else:
+            sys.modules["odoo"] = saved_odoo
+
+    # Verify canonical profiles
+    assert mod_sw.CANONICAL_SW_PARTNER_PROFILES["AIFIN"]["partner_code"] == "PTN-DGM-2026-0007"
+    assert mod_sw.CANONICAL_SW_PARTNER_PROFILES["KTT"]["partner_code"] == "PTN-DGM-2026-0008"
+    assert mod_sw.CANONICAL_SW_PARTNER_PROFILES["KTT"]["partner_group"] == "strategic_b2b"
+    assert mod_sw.CANONICAL_SW_PARTNER_PROFILES["KTT"]["vat"] == "0316889922"
+
+    all_tpls = mod_sw.render_all_master_software_contract_templates()
+    assert len(all_tpls) == 8, f"Expected 8 software contract templates, got {len(all_tpls)}"
+
+    by_code = {t["tpl_code"]: t for t in all_tpls}
+    for code, tpl in by_code.items():
+        html_doc = tpl["html"]
+        assert "dgm-brand-header" in html_doc, f"{code} missing dgm-brand-header"
+        assert "dgm-brand-footer" in html_doc, f"{code} missing dgm-brand-footer"
+        assert 'data-dgm-footer="drive-logo-v1"' in html_doc, f"{code} missing data-dgm-footer=drive-logo-v1"
+        assert 'data-logo-source="google-drive-logo-folder"' in html_doc, f"{code} missing data-logo-source"
+        assert "0317958465" in html_doc, f"{code} missing Digimate Tax ID 0317958465"
+
+    # Group A: MTI/AIfin Software Co-Development Suite (TPL-SW-MTI-01..04)
+    mti_joined = "\n".join(by_code[f"TPL-SW-MTI-0{i}"]["html"] for i in range(1, 5))
+    assert "13/2020/TT-BTTTT" in mti_joined, "TPL-SW-MTI-01..04 must reference 13/2020/TT-BTTTT"
+    assert "219/2013/TT-BTC" in mti_joined, "TPL-SW-MTI-01..04 must reference 219/2013/TT-BTC"
+    for stage_kw in ("Công đoạn 2", "Công đoạn 3", "Công đoạn 4"):
+        assert stage_kw in mti_joined, f"TPL-SW-MTI-01..04 missing {stage_kw}"
+    assert "cho thuê lại lao động" in mti_joined and "không phải là hoạt động" in mti_joined, (
+        "TPL-SW-MTI-01..04 must explicitly disclaim raw labor subleasing"
+    )
+
+    # Group B: KTT Khang Trường Thịnh Turnkey Software Suite (TPL-SW-KTT-01..04)
+    ktt_joined = "\n".join(by_code[f"TPL-SW-KTT-0{i}"]["html"] for i in range(1, 5))
+    assert "13/2020/TT-BTTTT" in ktt_joined, "TPL-SW-KTT-01..04 must reference 13/2020/TT-BTTTT"
+    assert "219/2013/TT-BTC" in ktt_joined, "TPL-SW-KTT-01..04 must reference 219/2013/TT-BTC"
+    assert "30% – 40% – 30%" in ktt_joined or ("30%" in ktt_joined and "40%" in ktt_joined), (
+        "TPL-SW-KTT-01..04 must include 30%-40%-30% Milestone Payment schedule"
+    )
+    assert "Deemed Acceptance" in ktt_joined or "Deemed Accepted" in ktt_joined, (
+        "TPL-SW-KTT-01..04 must include 5-business-day Deemed Acceptance guardrail"
+    )
+    assert "100% tổng giá trị Hợp đồng" in ktt_joined, (
+        "TPL-SW-KTT-01..04 must include IP Transfer upon 100% payment"
+    )
+    assert "90-day Bug-Fix Warranty" in ktt_joined or "90 ngày" in ktt_joined, (
+        "TPL-SW-KTT-01..04 must include 90-day Bug-Fix Warranty"
+    )
+
+    print("[✓] Patch 31 / SOP-DGM-09 Best-Practice Software Tax Incentive Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04) verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -3165,12 +3491,15 @@ def main():
     test_patch_27_theme_switch_dark_to_light_control_sections()
     test_patch_28_sop_dgm_08_fiscal_barrier_advisory_lock_and_hmac()
     test_patch_29_sop08_rev2_namespaced_lock_post_approval_seal_and_c14n_xml()
-    print("[✓] ALL 29 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 29 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_30_dgm_drive_logo_brand_footer_standardization()
+    test_patch_31_sop_dgm_09_mti_codev_and_ktt_turnkey_software_contracts()
+    print("[✓] ALL 31 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 31 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 

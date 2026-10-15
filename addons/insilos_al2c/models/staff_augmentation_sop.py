@@ -3,6 +3,25 @@ import base64
 from odoo import api, fields, models, _
 from odoo.exceptions import ValidationError
 
+try:
+    from .dgm_brand_footer import (
+        render_dgm_brand_header_html,
+        render_dgm_brand_footer_html,
+        wrap_dgm_branded_html_document,
+    )
+except ImportError:
+    import importlib.util as _ilu
+    import os as _os
+    _bf_spec = _ilu.spec_from_file_location(
+        "dgm_brand_footer",
+        _os.path.join(_os.path.dirname(__file__), "dgm_brand_footer.py"),
+    )
+    _bf_mod = _ilu.module_from_spec(_bf_spec)
+    _bf_spec.loader.exec_module(_bf_mod)
+    render_dgm_brand_header_html = _bf_mod.render_dgm_brand_header_html
+    render_dgm_brand_footer_html = _bf_mod.render_dgm_brand_footer_html
+    wrap_dgm_branded_html_document = _bf_mod.wrap_dgm_branded_html_document
+
 
 class SaleOrderStaffAugmentation(models.Model):
     _inherit = 'sale.order'
@@ -146,14 +165,14 @@ class SaleOrderStaffAugmentation(models.Model):
             f"[TPL-ONB-05] Biên bản Nghiệm thu Timesheet & Đề nghị Thanh toán "
             f"({period_label}) - {partner.name}.html"
         )
-        html_body = f"""<!DOCTYPE html>
+        raw_html = f"""<!DOCTYPE html>
 <html lang="vi">
 <head><meta charset="utf-8"/><title>{doc_name}</title>
 <style>
-  body {{ font-family: 'Inter', Arial, sans-serif; color: #0f172a; margin: 32px; line-height: 1.5; }}
+  body {{ font-family: 'Inter', Arial, sans-serif; color: var(--insilos-text-primary, #1e293b); margin: 32px; line-height: 1.5; }}
   table {{ width: 100%; border-collapse: collapse; margin-top: 16px; }}
-  th, td {{ border: 1px solid #cbd5e1; padding: 8px 12px; font-size: 13px; }}
-  th {{ background: #f1f5f9; text-align: left; }}
+  th, td {{ border: 1px solid var(--insilos-border-subtle, #cbd5e1); padding: 8px 12px; font-size: 13px; }}
+  th {{ background: var(--insilos-bg-subtle, #e2e8f0); text-align: left; }}
 </style>
 </head>
 <body>
@@ -162,7 +181,7 @@ class SaleOrderStaffAugmentation(models.Model):
   <h3 style="text-align:center;">BIÊN BẢN NGHIỆM THU BẢNG CHẤM CÔNG (TIMESHEET) &amp; ĐỀ NGHỊ THANH TOÁN<br/>
   <small>Kỳ đối soát: {period_label} | Hợp đồng / SO: {self.name} | Theo quy định SOP-DGM-07</small></h3>
   <p><strong>Bên A (Khách hàng):</strong> {partner.name} (Mã ĐT: {settlement['partner_code']} | MST: {partner.vat or 'N/A'})</p>
-  <p><strong>Bên B (Nhà cung cấp):</strong> CÔNG TY CỔ PHẦN DIGIMATE (MST: 0317958465)</p>
+  <p><strong>Bên B (Nhà cung cấp):</strong> CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC — MST: 0317958465)</p>
   <table>
     <thead>
       <tr><th>Hạng mục Đối soát</th><th>Số giờ</th><th>Hệ số</th><th>Đơn giá (VNĐ/giờ)</th><th>Thành tiền (VNĐ)</th></tr>
@@ -180,6 +199,14 @@ class SaleOrderStaffAugmentation(models.Model):
   <p><strong>Điều khoản Thanh toán:</strong> Net {settlement['payment_term_days']} ngày làm việc kể từ ngày nhận đủ Hóa đơn GTGT hợp lệ và Biên bản nghiệm thu Timesheet.</p>
 </body>
 </html>"""
+        html_body = wrap_dgm_branded_html_document(
+            raw_html,
+            title=doc_name,
+            doc_code='TPL-ONB-05',
+            sop_ref='SOP-DGM-07',
+            classification='B2B COMMERCIAL & SLA CONFIDENTIAL',
+            include_header=True,
+        )
 
         Attachment = self.env['ir.attachment'].sudo()
         Document = self.env['documents.document'].sudo()

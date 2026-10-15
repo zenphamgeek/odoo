@@ -470,7 +470,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
 
         # 4H. Odoo ORM Core Fixes (Foreign Key Invariance & Sovereign Recovery)
         tar_path_orm = os.path.join(staging_dir, "odoo_orm_sync.tar.gz")
-        ORM_MEMBERS = ["fields_relational.py", "registry.py"]
+        ORM_MEMBERS = ["fields_relational.py", "registry.py", "query.py"]
         frozen_orm = os.path.join(staging_dir, "frozen_orm")
         freeze_and_audit_members("odoo/orm", ORM_MEMBERS, frozen_orm)
         tar_orm_cmd = [
@@ -618,6 +618,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         # 4O. Documents ErrorDialog Patch, FileViewer, Renderer Mixin, Control Panel & Action Buttons Sync
         tar_path_docs = os.path.join(staging_dir, "documents_sync.tar.gz")
         DOCS_MEMBERS = [
+            "models/documents_document.py",
             "controllers/home.py",
             "static/src/web/error_dialog/error_dialog_patch.xml",
             "static/src/views/documents_renderer_mixin.js",
@@ -1063,7 +1064,7 @@ for t in $CHOWN_TARGETS; do
     fi
 done
 
-for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py /app/insilos/tools/seed_dgm_timesheet_billing.py; do
+for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py /app/insilos/tools/seed_dgm_timesheet_billing.py /app/insilos/tools/seed_dgm_standardized_templates.py; do
     if [ -e "$f" ]; then
         chmod 0755 "$f"
     fi
@@ -1112,6 +1113,7 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_tech_assets.py", f"{pod}:/app/insilos/tools/sync_tech_assets.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sweep_all_models_rpc_and_views.py", f"{pod}:/app/insilos/tools/sweep_all_models_rpc_and_views.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/seed_dgm_timesheet_billing.py", f"{pod}:/app/insilos/tools/seed_dgm_timesheet_billing.py"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/seed_dgm_standardized_templates.py", f"{pod}:/app/insilos/tools/seed_dgm_standardized_templates.py"])
 
             # Verify and extract on pod server-side
             run_cmd([
@@ -1196,6 +1198,15 @@ def main():
         print(res_sop08.stdout)
         if res_sop08.stderr:
             print("Stderr:", res_sop08.stderr)
+
+        print(f"[*] Running Patch 30 & SOP-DGM-09 standardized template & software contract sync on {lead_pod} (container: innoria)...")
+        res_sop09 = run_cmd([
+            "kubectl", "exec", "-n", NAMESPACE, lead_pod, "-c", "innoria", "--",
+            "python3", "/app/insilos/tools/seed_dgm_standardized_templates.py", "innoria_prod"
+        ], check=False)
+        print(res_sop09.stdout)
+        if res_sop09.stderr:
+            print("Stderr:", res_sop09.stderr)
 
         print(f"[*] Running view and asset sync on {lead_pod} (container: innoria)...")
         res = run_cmd([

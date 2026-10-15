@@ -23,58 +23,65 @@
         </t>
 
         <!-- HEADER -->
-        <div t-attf-class="o_company_#{company.id}_layout header" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #161616;">
+        <div t-attf-class="o_company_#{company.id}_layout header dgm-brand-header" data-dgm-header="drive-logo-v1" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: var(--insilos-text-primary, #1e293b);">
             <!-- SAP Fiori Horizon Sapphire Accent Stripe -->
             <div style="height: 3px; background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%); margin-bottom: 12px;"/>
             
             <table class="table-borderless w-100" style="margin-bottom: 8px;">
                 <tr>
-                    <!-- Small Web Innoria Logo and Enterprise Badge -->
+                    <!-- Authentic Digimate Google Drive Logo and Enterprise Badge -->
                     <td class="align-middle text-start" style="width: 50%;">
-                        <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 32px; width: auto; display: block;" alt="Innoria"/>
+                        <div class="d-flex align-items-center gap-2">
+                            <img class="dgm-header-drive-logo" src="/insilos_al2c/static/src/img/digimate_drive_logo.png" data-logo-source="google-drive-logo-folder" style="max-height: 36px; width: auto; display: inline-block; object-fit: contain;" alt="Digimate Official Brand Logo"/>
+                            <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 28px; width: auto; display: inline-block;" alt="Innoria"/>
+                        </div>
                         <div style="margin-top: 4px;">
-                            <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 9px; letter-spacing: 0.05em; color: #525252; background: #F4F4F4; border: 1px solid #E0E0E0; padding: 2px 6px; border-radius: 2px;">
-                                ISO/IEC 27001 · SOVEREIGN ENTERPRISE
+                            <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 9px; letter-spacing: 0.05em; color: var(--insilos-text-secondary, #475569); background: var(--insilos-bg-subtle, #e2e8f0); border: 1px solid var(--insilos-border-subtle, #cbd5e1); padding: 2px 6px; border-radius: 2px;">
+                                ISO/IEC 27001 · ISO/IEC 27701 · SOVEREIGN ENTERPRISE
                             </span>
                         </div>
                     </td>
                     <!-- Discrete IBM Masthead Information -->
-                    <td class="align-middle text-end" style="width: 50%; font-size: 10px; line-height: 1.4; color: #525252;">
-                        <strong style="font-size: 11px; color: #161616;" t-out="company.name"/><br/>
-                        <span t-if="company.vat">Mã số thuế / Tax ID: <strong style="color: #161616;" t-out="company.vat"/> | </span>
-                        <span t-if="company.phone" t-out="company.phone"/><br/>
+                    <td class="align-middle text-end" style="width: 50%; font-size: 10px; line-height: 1.4; color: var(--insilos-text-secondary, #475569);">
+                        <strong style="font-size: 11px; color: var(--insilos-text-primary, #1e293b);" t-out="company.name or 'CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC)'"/><br/>
+                        <span>Mã số thuế / Tax ID: <strong style="color: var(--insilos-text-primary, #1e293b);" t-out="company.vat or '0317958465'"/> | Mã ĐV BHXH: <strong>TZ0857G</strong> | Ký hiệu HĐĐT: <strong>1C26TAA</strong></span><br/>
                         <span t-if="company.street" t-out="company.street"/>, <span t-if="company.city" t-out="company.city"/><br/>
-                        <span style="color: #0070F2; font-weight: 600;">https://innoria.com</span>
+                        <span style="color: #0070F2; font-weight: 600;">https://innoria.com · finance@digimate.vn</span>
                     </td>
                 </tr>
             </table>
-            <div style="height: 1px; background-color: #E0E0E0; width: 100%; margin-bottom: 16px;"/>
+            <div style="height: 1px; background-color: var(--insilos-border-subtle, #cbd5e1); width: 100%; margin-bottom: 16px;"/>
         </div>
 
         <!-- BODY -->
         <t t-call="web.external_layout_body" snail_mail_compatible="True">
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: #161616;">
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; color: var(--insilos-text-primary, #1e293b);">
                 <t t-out="0"/>
             </div>
         </t>
 
         <!-- FOOTER -->
-        <div t-attf-class="footer o_company_#{company.id}_layout {{report_type != 'pdf' and 'mt-auto'}}" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 9px; color: #6F6F6F; border-top: 1px solid #E0E0E0; padding-top: 6px;">
+        <div t-attf-class="footer dgm-brand-footer o_company_#{company.id}_layout {{report_type != 'pdf' and 'mt-auto'}}" data-dgm-footer="drive-logo-v1" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 9px; color: var(--insilos-text-secondary, #475569); border-top: 2px solid var(--insilos-border-subtle, #cbd5e1); padding-top: 8px;">
             <table class="table-borderless w-100">
                 <tr>
-                    <td class="text-start align-middle" style="width: 75%;">
-                        <div>
-                            <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử khởi tạo tự động theo Nghị định 123/2020/NĐ-CP &amp; Nghị định 70/2025/NĐ-CP.
-                        </div>
-                        <div style="color: #8D8D8D; margin-top: 2px;">
-                            Bảo mật dữ liệu tuân thủ Nghị định 13/2023/NĐ-CP. Tra cứu tính hợp lệ tại cổng khách hàng: <span style="color: #0070F2;">https://innoria.com</span>
+                    <td class="text-start align-middle" style="width: 78%;">
+                        <div class="d-flex align-items-center gap-2">
+                            <img class="dgm-footer-drive-logo" src="/insilos_al2c/static/src/img/digimate_drive_logo.png" alt="Digimate Official Brand Logo" data-logo-source="google-drive-logo-folder" style="height: 32px; width: auto; object-fit: contain;"/>
+                            <div>
+                                <div>
+                                    <strong style="color: var(--insilos-text-primary, #1e293b);">CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC)</strong> · MST: <strong>0317958465</strong> · Mã ĐV BHXH: <strong>TZ0857G</strong> · Ký hiệu HĐĐT: <strong>1C26TAA</strong>
+                                </div>
+                                <div style="color: var(--insilos-text-muted, #64748b); margin-top: 2px;">
+                                    <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử chuẩn ISO/IEC 27001:2022, ISO/IEC 27701:2019, Nghị định 13/2023/NĐ-CP, Nghị định 70/2025/NĐ-CP &amp; Nghị định 174/2025/NĐ-CP. Tra cứu: <span style="color: #0070F2;">https://innoria.com</span>
+                                </div>
+                            </div>
                         </div>
                     </td>
-                    <td class="text-end align-middle" style="width: 25%;">
-                        <div t-if="report_type == 'pdf'" class="text-nowrap" style="font-weight: 600; color: #161616;">
+                    <td class="text-end align-middle" style="width: 22%;">
+                        <div t-if="report_type == 'pdf'" class="text-nowrap" style="font-weight: 600; color: var(--insilos-text-primary, #1e293b);">
                             Trang <span class="page"/> / <span class="topage"/>
                         </div>
-                        <div t-else="" class="text-nowrap" style="font-weight: 600; color: #161616;">
+                        <div t-else="" class="text-nowrap" style="font-weight: 600; color: var(--insilos-text-primary, #1e293b);">
                             Trang 1 / 1
                         </div>
                     </td>
@@ -83,54 +90,61 @@
         </div>
     </template>
 
-    <!-- 2. Global Extension on web.external_layout_standard ensuring all default reports adopt IBM/SAP and Innoria Small Logo -->
+    <!-- 2. Global Extension on web.external_layout_standard ensuring all default reports adopt IBM/SAP and Digimate Brand Footer -->
     <template id="external_layout_standard_inherit_al2c" inherit_id="web.external_layout_standard">
         <!-- Replace Header (First div) -->
         <xpath expr="//div[1]" position="replace">
-            <div t-attf-class="o_company_#{company.id}_layout header" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: #161616;">
+            <div t-attf-class="o_company_#{company.id}_layout header dgm-brand-header" data-dgm-header="drive-logo-v1" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 11px; color: var(--insilos-text-primary, #1e293b);">
                 <!-- SAP Horizon Blue accent stripe -->
                 <div style="height: 3px; background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%); margin-bottom: 12px;"/>
                 <table class="table-borderless w-100" style="margin-bottom: 8px;">
                     <tr>
                         <td class="align-middle text-start" style="width: 50%;">
-                            <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 32px; width: auto; display: block;" alt="Innoria"/>
+                            <div class="d-flex align-items-center gap-2">
+                                <img class="dgm-header-drive-logo" src="/insilos_al2c/static/src/img/digimate_drive_logo.png" data-logo-source="google-drive-logo-folder" style="max-height: 36px; width: auto; display: inline-block; object-fit: contain;" alt="Digimate Official Brand Logo"/>
+                                <img src="/insilos_al2c/static/src/img/logo_innoria_header.png" style="max-height: 28px; width: auto; display: inline-block;" alt="Innoria"/>
+                            </div>
                             <div style="margin-top: 4px;">
-                                <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 9px; letter-spacing: 0.05em; color: #525252; background: #F4F4F4; border: 1px solid #E0E0E0; padding: 2px 6px; border-radius: 2px;">
-                                    ISO/IEC 27001 · SOVEREIGN ENTERPRISE
+                                <span style="font-family: ui-monospace, Menlo, Monaco, Consolas, monospace; font-size: 9px; letter-spacing: 0.05em; color: var(--insilos-text-secondary, #475569); background: var(--insilos-bg-subtle, #e2e8f0); border: 1px solid var(--insilos-border-subtle, #cbd5e1); padding: 2px 6px; border-radius: 2px;">
+                                    ISO/IEC 27001 · ISO/IEC 27701 · SOVEREIGN ENTERPRISE
                                 </span>
                             </div>
                         </td>
-                        <td class="align-middle text-end" style="width: 50%; font-size: 10px; line-height: 1.4; color: #525252;">
-                            <strong style="font-size: 11px; color: #161616;" t-out="company.name"/><br/>
-                            <span t-if="company.vat">Mã số thuế: <strong style="color: #161616;" t-out="company.vat"/> | </span>
-                            <span t-if="company.phone" t-out="company.phone"/><br/>
+                        <td class="align-middle text-end" style="width: 50%; font-size: 10px; line-height: 1.4; color: var(--insilos-text-secondary, #475569);">
+                            <strong style="font-size: 11px; color: var(--insilos-text-primary, #1e293b);" t-out="company.name or 'CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC)'"/><br/>
+                            <span>Mã số thuế: <strong style="color: var(--insilos-text-primary, #1e293b);" t-out="company.vat or '0317958465'"/> | Mã ĐV BHXH: <strong>TZ0857G</strong> | Ký hiệu HĐĐT: <strong>1C26TAA</strong></span><br/>
                             <span t-if="company.street" t-out="company.street"/>, <span t-if="company.city" t-out="company.city"/><br/>
-                            <span style="color: #0070F2; font-weight: 600;">https://innoria.com</span>
+                            <span style="color: #0070F2; font-weight: 600;">https://innoria.com · finance@digimate.vn</span>
                         </td>
                     </tr>
                 </table>
-                <div style="height: 1px; background-color: #E0E0E0; width: 100%; margin-bottom: 16px;"/>
+                <div style="height: 1px; background-color: var(--insilos-border-subtle, #cbd5e1); width: 100%; margin-bottom: 16px;"/>
             </div>
         </xpath>
 
         <!-- Replace Footer (Last div) -->
         <xpath expr="//div[last()]" position="replace">
-            <div t-attf-class="footer o_company_#{company.id}_layout {{report_type != 'pdf' and 'mt-auto'}}" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 9px; color: #6F6F6F; border-top: 1px solid #E0E0E0; padding-top: 6px;">
+            <div t-attf-class="footer dgm-brand-footer o_company_#{company.id}_layout {{report_type != 'pdf' and 'mt-auto'}}" data-dgm-footer="drive-logo-v1" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 9px; color: var(--insilos-text-secondary, #475569); border-top: 2px solid var(--insilos-border-subtle, #cbd5e1); padding-top: 8px;">
                 <table class="table-borderless w-100">
                     <tr>
-                        <td class="text-start align-middle" style="width: 75%;">
-                            <div>
-                                <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử chuẩn ISO/IEC 27001 &amp; Nghị định 123/2020/NĐ-CP.
-                            </div>
-                            <div style="color: #8D8D8D; margin-top: 2px;">
-                                Bảo mật dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP. Tra cứu trực tuyến tại: <span style="color: #0070F2;">https://innoria.com</span>
+                        <td class="text-start align-middle" style="width: 78%;">
+                            <div class="d-flex align-items-center gap-2">
+                                <img class="dgm-footer-drive-logo" src="/insilos_al2c/static/src/img/digimate_drive_logo.png" alt="Digimate Official Brand Logo" data-logo-source="google-drive-logo-folder" style="height: 32px; width: auto; object-fit: contain;"/>
+                                <div>
+                                    <div>
+                                        <strong style="color: var(--insilos-text-primary, #1e293b);">CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC)</strong> · MST: <strong>0317958465</strong> · Mã ĐV BHXH: <strong>TZ0857G</strong> · Ký hiệu HĐĐT: <strong>1C26TAA</strong>
+                                    </div>
+                                    <div style="color: var(--insilos-text-muted, #64748b); margin-top: 2px;">
+                                        <strong>INNORIA ENTERPRISE PLATFORM</strong> · Chứng từ điện tử chuẩn ISO/IEC 27001:2022, ISO/IEC 27701:2019 &amp; Nghị định 13/2023/NĐ-CP. Tra cứu trực tuyến tại: <span style="color: #0070F2;">https://innoria.com</span>
+                                    </div>
+                                </div>
                             </div>
                         </td>
-                        <td class="text-end align-middle" style="width: 25%;">
-                            <div t-if="report_type == 'pdf'" class="text-nowrap" style="font-weight: 600; color: #161616;">
+                        <td class="text-end align-middle" style="width: 22%;">
+                            <div t-if="report_type == 'pdf'" class="text-nowrap" style="font-weight: 600; color: var(--insilos-text-primary, #1e293b);">
                                 Trang <span class="page"/> / <span class="topage"/>
                             </div>
-                            <div t-else="" class="text-nowrap" style="font-weight: 600; color: #161616;">
+                            <div t-else="" class="text-nowrap" style="font-weight: 600; color: var(--insilos-text-primary, #1e293b);">
                                 Trang 1 / 1
                             </div>
                         </td>

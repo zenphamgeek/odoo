@@ -6,6 +6,23 @@ import json
 from odoo import http, _
 from odoo.http import request, Response
 
+try:
+    from ..models.dgm_brand_footer import (
+        render_dgm_brand_footer_html,
+        render_dgm_brand_header_html,
+        wrap_dgm_branded_html_document,
+    )
+except ImportError:
+    import importlib.util as _importlib_util
+    from pathlib import Path as _Path
+    _bf_path = _Path(__file__).resolve().parent.parent / "models" / "dgm_brand_footer.py"
+    _bf_spec = _importlib_util.spec_from_file_location("dgm_brand_footer", _bf_path)
+    _bf_mod = _importlib_util.module_from_spec(_bf_spec)
+    _bf_spec.loader.exec_module(_bf_mod)
+    render_dgm_brand_footer_html = _bf_mod.render_dgm_brand_footer_html
+    render_dgm_brand_header_html = _bf_mod.render_dgm_brand_header_html
+    wrap_dgm_branded_html_document = _bf_mod.wrap_dgm_branded_html_document
+
 
 class DgmTimesheetApprovalPortal(http.Controller):
     """
@@ -236,6 +253,14 @@ class DgmTimesheetApprovalPortal(http.Controller):
   </div>
 </body>
 </html>"""
+        html_doc = wrap_dgm_branded_html_document(
+            html_doc,
+            doc_title="CỔNG PHÊ DUYỆT BẢNG CHẤM CÔNG & ĐỐI SOÁT HÓA ĐƠN NHÁP (SOP-DGM-08)",
+            doc_code=sheet.name,
+            sop_ref="SOP-DGM-08",
+            classification="CUSTOMER PORTAL VERIFICATION",
+            include_header=True,
+        )
         return Response(html_doc, status=200, content_type='text/html; charset=utf-8')
 
     @http.route(

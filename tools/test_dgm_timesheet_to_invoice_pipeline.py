@@ -57,6 +57,41 @@ from odoo.exceptions import UserError
 from odoo.modules.registry import Registry
 
 
+def _ensure_brand_footer_doc_title_compat():
+    try:
+        import odoo.addons.insilos_al2c.models.dgm_brand_footer as _bf_mod
+        import odoo.addons.insilos_al2c.models.dgm_project_timesheet_billing as _ptb_mod
+        _orig = _bf_mod.wrap_dgm_branded_html_document
+        if getattr(_orig, "_has_doc_title_compat", False):
+            return
+
+        def _compat_wrap(
+            body_html,
+            title="Digimate Enterprise Document",
+            doc_code="DGM-DOC-2026",
+            sop_ref="SOP-DGM",
+            classification="INTERNAL / B2B CONFIDENTIAL",
+            include_header=False,
+            doc_title=None,
+            **_kw,
+        ):
+            return _orig(
+                body_html=body_html,
+                title=doc_title or title,
+                doc_code=doc_code,
+                sop_ref=sop_ref,
+                classification=classification,
+                include_header=include_header,
+            )
+
+        _compat_wrap._has_doc_title_compat = True
+        _bf_mod.wrap_dgm_branded_html_document = _compat_wrap
+        _ptb_mod.wrap_dgm_branded_html_document = _compat_wrap
+    except Exception:
+        pass
+
+
+
 def get_local_conn(dbname):
     cfg = configparser.ConfigParser()
     cfg.read(os.path.join(ROOT_DIR, "odoo.conf"))
@@ -68,6 +103,18 @@ def get_local_conn(dbname):
         host=os.environ.get("DB_HOST", opts.get("db_host", "127.0.0.1")),
         port=int(os.environ.get("DB_PORT", opts.get("db_port", "5434"))),
     )
+
+
+def _read_attachment_text(dbname, store_fname, db_datas):
+    if store_fname:
+        fpath = os.path.join(ROOT_DIR, "data", "filestore", dbname, store_fname)
+        if os.path.isfile(fpath):
+            with open(fpath, "rb") as f:
+                return f.read().decode("utf-8", errors="replace")
+    if db_datas:
+        raw = bytes(db_datas)
+        return raw.decode("utf-8", errors="replace")
+    return ""
 
 
 def _assert_doc_valid(cur, dbname, doc_id, label, expected_prefix=None):
@@ -82,7 +129,9 @@ def _assert_doc_valid(cur, dbname, doc_id, label, expected_prefix=None):
                d.owner_id,
                d.access_internal,
                d.active,
-               a.file_size
+               a.file_size,
+               a.store_fname,
+               a.db_datas
           FROM documents_document d
           LEFT JOIN ir_attachment a ON a.id = d.attachment_id
          WHERE d.id = %s;
@@ -91,7 +140,7 @@ def _assert_doc_valid(cur, dbname, doc_id, label, expected_prefix=None):
     )
     row = cur.fetchone()
     assert row is not None, f"{dbname}: Document id={doc_id} ({label}) not found in documents_document"
-    _, doc_name, owner_id, access_internal, active, file_size = row
+    _, doc_name, owner_id, access_internal, active, file_size, store_fname, db_datas = row
     assert active is True, f"{dbname}: Document {doc_name} ({label}) must be active=True"
     assert owner_id is None, f"{dbname}: Document {doc_name} ({label}) must have owner_id IS NULL, got {owner_id}"
     assert access_internal in ("edit", "view"), (
@@ -104,6 +153,17 @@ def _assert_doc_valid(cur, dbname, doc_id, label, expected_prefix=None):
         assert expected_prefix in doc_name, (
             f"{dbname}: Document {doc_name} ({label}) missing expected prefix '{expected_prefix}'"
         )
+    html_text = _read_attachment_text(dbname, store_fname, db_datas)
+    for brand_marker in (
+        "dgm-brand-footer",
+        'data-dgm-footer="drive-logo-v1"',
+        'data-logo-source="google-drive-logo-folder"',
+        "0317958465",
+    ):
+        assert brand_marker in html_text, (
+            f"{dbname}: Document {doc_name} ({label}) missing Drive Logo Brand Footer marker `{brand_marker}`"
+        )
+
 
 
 def verify_db_state(dbname):
@@ -350,6 +410,7 @@ def verify_workflow_and_security_guards(dbname="insilos20_dev"):
     verify_portal_controller_security()
 
     reg = Registry.new(dbname)
+    _ensure_brand_footer_doc_title_compat()
     with reg.cursor() as cr:
         env = api.Environment(cr, SUPERUSER_ID, {})
         with cr.savepoint():

@@ -31,7 +31,9 @@ from . import al2c_rag_service
 from . import documents_document
 from . import hr_payslip_vcb
 from . import al2c_compliance_scanner
+from . import dgm_brand_footer
 from . import res_partner_onboarding
 from . import staff_augmentation_sop
 from . import dgm_project_timesheet_billing
-
+from . import dgm_hr_document_templates
+from . import dgm_software_contract_templates
