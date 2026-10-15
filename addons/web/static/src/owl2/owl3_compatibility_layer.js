@@ -456,15 +456,20 @@ class App extends owl.App {
                                 return componentNode.__owl_refs__[prop];
                             }
                             const comp = target.this;
-                            if (comp && typeof prop === "string" && prop in comp) {
-                                const val = comp[prop];
-                                if (typeof val === "function") {
-                                    if (Object.getOwnPropertySymbols(val).length > 0 || typeof val.set === "function") {
-                                        return val;
+                            if (comp && typeof prop === "string") {
+                                if (prop in comp) {
+                                    const val = comp[prop];
+                                    if (typeof val === "function") {
+                                        if (Object.getOwnPropertySymbols(val).length > 0 || typeof val.set === "function") {
+                                            return val;
+                                        }
+                                        return val.bind(comp);
                                     }
-                                    return val.bind(comp);
+                                    return val;
                                 }
-                                return val;
+                                if (prop + "Ref" in comp) {
+                                    return comp[prop + "Ref"];
+                                }
                             }
                             return Reflect.get(target, prop, receiver);
                         },

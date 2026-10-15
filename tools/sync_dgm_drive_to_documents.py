@@ -10,11 +10,23 @@ import base64
 import json
 import mimetypes
 import os
+import re
 import sys
 
 sys.path.insert(0, "/home/zen/O20")
 import odoo
 from odoo import api, SUPERUSER_ID
+
+
+def normalize_folder_segment(seg):
+    return re.sub(r"\s*\(Root Shared\)\s*$", "", seg or "", flags=re.IGNORECASE).strip()
+
+
+def normalize_folder_path(fpath):
+    if not fpath:
+        return ""
+    return "/".join(normalize_folder_segment(p) for p in fpath.split("/") if p)
+
 
 MANIFEST_PATH = "/tmp/dgm_drive_sync/dgm_manifest.json"
 SOPS_DIR = "/tmp/dgm_drive_sync/sops"
@@ -466,14 +478,14 @@ def run_dgm_sync(env):
     ensure_xmlid(env, "insilos_al2c", sop_xmlid, "documents.document", sop_folder.id)
     canonical_folder_ids.add(sop_folder.id)
 
-    # Ensure all nested subfolders from manifest
+    # Ensure all nested subfolders from manifest (normalizing away '(Root Shared)' suffixes)
     all_folder_paths = sorted(
         {
-            m["rel_path"]
+            normalize_folder_path(m["rel_path"])
             for m in manifest
             if m["mimeType"] == "application/vnd.google-apps.folder"
         }
-        | {m["folder_path"] for m in manifest if m.get("folder_path")}
+        | {normalize_folder_path(m["folder_path"]) for m in manifest if m.get("folder_path")}
         | {"DGM- HÌNH ẢNH 2025/Logo"}
     )
     for seq_idx, fpath in enumerate(all_folder_paths, start=10):
@@ -523,21 +535,35 @@ def run_dgm_sync(env):
     ]:
         core_tags[k] = env.ref(xid, raise_if_not_found=False)
 
-    # 4. Ingest All 163 Google Drive Files Idempotently
-    file_entries = [m for m in manifest if m["mimeType"] != "application/vnd.google-apps.folder"]
+    # 4. Ingest All Google Drive Files Idempotently (prioritizing canonical paths over '(Root Shared)' duplicates)
+    file_entries = sorted(
+        [m for m in manifest if m["mimeType"] != "application/vnd.google-apps.folder"],
+        key=lambda e: (1 if "(root shared)" in (e.get("folder_path") or "").lower() else 0),
+    )
     created_docs = 0
     updated_docs = 0
+    seen_folder_files = set()
 
     for entry in file_entries:
         fid = entry["id"]
         fname = entry["name"]
-        fpath = entry.get("folder_path", "")
+        fpath = normalize_folder_path(entry.get("folder_path", ""))
         if fpath == "DGM- HÌNH ẢNH 2025" and "logo" in fname.lower():
             target_folder = folder_path_to_rec["DGM- HÌNH ẢNH 2025/Logo"]
         else:
             target_folder = folder_path_to_rec.get(fpath, root_folder)
-        tag_ids = classify_tags_for_entry(entry, tags_map, core_tags)
         local_path = entry.get("local_path")
+        eff_name = (
+            os.path.basename(local_path)
+            if (local_path and os.path.exists(local_path) and os.path.getsize(local_path) > 0)
+            else fname
+        )
+        dedup_key = (target_folder.id, (eff_name or "").strip().lower())
+        if dedup_key in seen_folder_files:
+            continue
+        seen_folder_files.add(dedup_key)
+
+        tag_ids = classify_tags_for_entry(entry, tags_map, core_tags)
         gdrive_url = entry.get("webViewLink") or f"https://drive.google.com/file/d/{fid}/view"
         note_marker = f"[GDRIVE_ID:{fid}] {entry['rel_path']}"
 

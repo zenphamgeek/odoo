@@ -1,14 +1,14 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-15T01:36:20.059608+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-15T02:19:48.299106+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `bc3aafb2a` | 505 | ⚠️ 116 | 287,502 | 2,395.8 d | 477.6 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
-| **`VerticalRisk`** | `Development` | `6f7daf03e` | 176 | ✅ 0 | 729,263 | 5,064.3 d | 2,731.4 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
+| **`O20`** | `insilos-genesis-fork` | `5ff81311c` | 509 | ⚠️ 106 | 287,512 | 2,395.9 d | 477.5 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
+| **`VerticalRisk`** | `Development` | `6f7daf03e` | 176 | ⚠️ 10 | 729,375 | 5,065.1 d | 2,733.4 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
 | **`insilos_mobile`** | `main` | `15a2b28dd` | 180 | ✅ 0 | 1,205,811 | 8,373.7 d | 2,965.6 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
-| **`zencode-ent`** | `main` | `eb7ecf615` | 111 | ⚠️ 6 | 1,234,191 | 10,284.9 d | 155.6 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
+| **`zencode-ent`** | `main` | `40f7dbf06` | 112 | ⚠️ 6 | 1,234,135 | 10,284.5 d | 155.6 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
 
 ---
 
@@ -16,8 +16,8 @@
 
 | Repository | Module / Package | Category | Drift (Days) | Status | Last Code Commit | Last Doc Commit |
 |:---|:---|:---|---:|:---:|:---|:---|
-| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T01:31:47+00:00 | N/A |
-| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T01:20:06+00:00 | N/A |
+| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T02:19:37+00:00 | N/A |
+| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T02:19:37+00:00 | N/A |
 | `O20` | `addons/insilos_currency_cron` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:51:00+00:00 | N/A |
 | `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T01:01:24+00:00 | N/A |
 | `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-13T19:02:16+00:00 | N/A |
@@ -336,7 +336,7 @@
 - [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks — DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify="test -f extensions/verticalrisk-webhooks/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api — DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify="test -f extensions/verticalrisk-workflow-api/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel — DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify="test -f extensions/verticalrisk-workflow-kernel/README.md" risk=R0 -->
-- [ ] [WIP01-O20][P1][plan] Triage 116 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
+- [ ] [WIP01-O20][P1][plan] Triage 106 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml — DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MCP][P2][security] Pin upper bound on Python dependency mcp in router/pyproject.toml — DoD: Add explicit upper bound constraint to mcp in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MODAL][P2][security] Pin upper bound on Python dependency modal in router/pyproject.toml — DoD: Add explicit upper bound constraint to modal in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->

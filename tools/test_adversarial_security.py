@@ -2583,6 +2583,61 @@ def test_patch_23_nahlaleah102_sql_telemetry_toctou_audit():
     print("[✓] Patch 23 / nahlaleah102 Table-Qualified Analytic SQL, Telemetry PII Scrubber & TOCTOU SoD Lock verified")
 
 
+def test_patch_24_documents_kanban_owl3_ref_searchpanel_ghost_scss():
+    # 1. DocumentsKanbanRecord XML uses OWL 3 function ref t-ref="this.rootRef"
+    kanban_xml = os.path.join(ROOT_DIR, "enterprise/documents/static/src/views/kanban/documents_kanban_record.xml")
+    with open(kanban_xml, "r", encoding="utf-8") as f:
+        kanban_xml_src = f.read()
+    assert 't-ref="this.rootRef"' in kanban_xml_src, (
+        "Missing t-ref=\"this.rootRef\" in enterprise/documents/static/src/views/kanban/documents_kanban_record.xml"
+    )
+
+    # 2. DocumentsKanbanRecord JS uses optional-chained this.rootRef?.el?.focus()
+    kanban_js = os.path.join(ROOT_DIR, "enterprise/documents/static/src/views/kanban/documents_kanban_record.js")
+    with open(kanban_js, "r", encoding="utf-8") as f:
+        kanban_js_src = f.read()
+    assert "this.rootRef?.el?.focus()" in kanban_js_src, (
+        "Missing this.rootRef?.el?.focus() in enterprise/documents/static/src/views/kanban/documents_kanban_record.js"
+    )
+
+    # 3. OWL 3 compatibility layer bridges string t-ref="foo" to this.fooRef
+    owl3_compat_js = os.path.join(ROOT_DIR, "addons/web/static/src/owl2/owl3_compatibility_layer.js")
+    with open(owl3_compat_js, "r", encoding="utf-8") as f:
+        owl3_compat_src = f.read()
+    assert 'prop + "Ref"' in owl3_compat_src, (
+        "Missing prop + \"Ref\" fallback in addons/web/static/src/owl2/owl3_compatibility_layer.js"
+    )
+
+    # 4. ui_utils.js getMediaQueryLists fallback for exact boundary innerWidth
+    ui_utils_js = os.path.join(ROOT_DIR, "addons/web/static/src/core/ui/ui_utils.js")
+    with open(ui_utils_js, "r", encoding="utf-8") as f:
+        ui_utils_src = f.read()
+    assert "idx === -1 ? SIZES.LG : idx" in ui_utils_src, (
+        "Missing idx === -1 ? SIZES.LG : idx fallback in addons/web/static/src/core/ui/ui_utils.js"
+    )
+
+    # 5. DocumentsSearchPanel explicitly sets static template = "documents.SearchPanel"
+    search_panel_js = os.path.join(ROOT_DIR, "enterprise/documents/static/src/views/search/documents_search_panel.js")
+    with open(search_panel_js, "r", encoding="utf-8") as f:
+        search_panel_src = f.read()
+    assert 'static template = "documents.SearchPanel"' in search_panel_src, (
+        "Missing static template = \"documents.SearchPanel\" in enterprise/documents/static/src/views/search/documents_search_panel.js"
+    )
+
+    # 6. insilos_kanban_restructure.scss excludes .o_kanban_ghost from card chrome and hides .o_kanban_ghost
+    kanban_scss = os.path.join(ROOT_DIR, "enterprise/insilos_theme_genesis/static/src/scss/insilos_kanban_restructure.scss")
+    with open(kanban_scss, "r", encoding="utf-8") as f:
+        kanban_scss_src = f.read()
+    assert ".o_kanban_record:not(.o_kanban_ghost)" in kanban_scss_src, (
+        "Missing .o_kanban_record:not(.o_kanban_ghost) in enterprise/insilos_theme_genesis/static/src/scss/insilos_kanban_restructure.scss"
+    )
+    assert "visibility: hidden !important;" in kanban_scss_src and ".o_kanban_ghost" in kanban_scss_src, (
+        "Missing visibility: hidden !important; for .o_kanban_ghost in enterprise/insilos_theme_genesis/static/src/scss/insilos_kanban_restructure.scss"
+    )
+
+    print("[✓] Patch 24 / Documents Kanban OWL 3 Ref, SearchPanel Template & Kanban Ghost SCSS Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2621,8 +2676,9 @@ def main():
     test_patch_22_owl_telemetry_payroll_gate()
     test_patch_22_telemetry_resilience_and_vcb_formula_hardening()
     test_patch_23_nahlaleah102_sql_telemetry_toctou_audit()
-    print("[✓] ALL 23 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 23 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_24_documents_kanban_owl3_ref_searchpanel_ghost_scss()
+    print("[✓] ALL 24 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 24 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":

@@ -36,11 +36,22 @@ export function getMediaQueryLists() {
 }
 
 // window size handling.
-let MEDIAS = [];
+let MEDIAS =
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+        ? getMediaQueryLists()
+        : [];
 
 export const utils = {
     getSize() {
-        return MEDIAS.findIndex((media) => media.matches);
+        if (
+            !MEDIAS.length &&
+            typeof window !== "undefined" &&
+            typeof window.matchMedia === "function"
+        ) {
+            MEDIAS = getMediaQueryLists();
+        }
+        const idx = MEDIAS.findIndex((media) => media.matches);
+        return idx === -1 ? SIZES.LG : idx;
     },
     /**
      * @param ui UIPlugin
