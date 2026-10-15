@@ -32,4 +32,5 @@ from . import documents_document
 from . import hr_payslip_vcb
 from . import al2c_compliance_scanner
 from . import res_partner_onboarding
+from . import staff_augmentation_sop
 

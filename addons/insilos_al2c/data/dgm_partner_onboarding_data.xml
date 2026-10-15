@@ -190,5 +190,54 @@
 </ol>
 </div>]]></field>
     </record>
+
+    <!-- ====================================================================== -->
+    <!-- SOP-DGM-07: STAFF AUGMENTATION & ONSITE ENGINEER CONTRACT LIFECYCLE    -->
+    <!-- ====================================================================== -->
+    <record id="kb_dgm_sop_07_staff_augmentation" model="knowledge.article">
+        <field name="name">SOP-DGM-07: Quy trình Quản trị Hợp đồng Thuê Nhân sự Kỹ thuật B2B (MTI / AIfin), Đối soát Khung giờ 140–180h &amp; Nghiệm thu Thanh toán Net 40</field>
+        <field name="parent_id" ref="kb_playbook_sales"/>
+        <field name="icon">👨‍💻</field>
+        <field name="is_article_item" eval="False"/>
+        <field name="internal_permission">read</field>
+        <field name="body"><![CDATA[
+<div class="o_knowledge_behavior_anchor">
+  <h1>SOP-DGM-07: QUY TRÌNH QUẢN TRỊ HỢP ĐỒNG BIỆT PHÁI NHÂN SỰ KỸ THUẬT (STAFF AUGMENTATION 140–180H &amp; NET 40)</h1>
+  <p><strong>Mã tài liệu:</strong> SOP-DGM-07 | <strong>Phiên bản:</strong> 1.0 (2026) | <strong>Áp dụng:</strong> Khối Kinh doanh B2B, Khối Delivery, Kế toán &amp; Pháp chế (Chuẩn hóa từ Hợp đồng MTI Technology &amp; AIfin)</p>
+  <hr/>
+  <h2>1. Danh mục Sản phẩm &amp; Mẫu Báo giá Chuẩn (Standard Catalog &amp; Quotation Template)</h2>
+  <ul>
+    <li><strong>SKU Kỹ sư Senior Biệt phái (<code>SVC-ONSITE-SR</code>):</strong> 350,000 VNĐ/giờ (tương đương ~56,000,000 VNĐ/tháng cho chuẩn 160 giờ).</li>
+    <li><strong>SKU Kỹ sư Mid-Level Biệt phái (<code>SVC-ONSITE-MID</code>):</strong> 250,000 VNĐ/giờ (tương đương ~40,000,000 VNĐ/tháng cho chuẩn 160 giờ).</li>
+    <li><strong>SKU Giải pháp 360-Sales (<code>ERP-360-SALES</code>):</strong> 200,000,000 VNĐ/gói (Triển khai theo Milestone: Web, Mobile, Zalo MiniApp, AI Call Coaching).</li>
+    <li><strong>Mẫu Báo giá Chuẩn:</strong> <code>sale_tpl_staff_augmentation</code> (Tích hợp sẵn các điều khoản SLA 140–180 giờ, OT 100%/150%, Net 40 và bảo hành thay thế nhân sự).</li>
+  </ul>
+  <h2>2. Khung Giờ Làm Việc Tiêu Chuẩn &amp; Quy Tắc Tính Phí Làm Thêm Giờ (SLA 140–180h &amp; OT Rules)</h2>
+  <table class="table table-bordered">
+    <thead>
+      <tr><th>Hạng mục</th><th>Định mức / Quy tắc</th><th>Hệ số Đơn giá</th><th>Hành động Kiểm soát trên ERP</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>Khung giờ chuẩn hàng tháng</strong></td><td><strong>140 giờ – 180 giờ / tháng</strong></td><td><strong>100%</strong> đơn giá chuẩn</td><td>Tự động đối soát qua <code>compute_staff_aug_monthly_settlement()</code></td></tr>
+      <tr><td><strong>Dưới mức tối thiểu (&lt; 140h)</strong></td><td>Thấp hơn 140 giờ/tháng</td><td>100% giờ thực tế</td><td>Cảnh báo SLA (<code>under_minimum_sla</code>), yêu cầu PM xác nhận nguyên nhân nghỉ phép/gián đoạn</td></tr>
+      <tr><td><strong>OT Ngày thường (Thứ 2 – Thứ 6)</strong></td><td>Giờ làm thêm ngoài giờ hành chính các ngày làm việc trong tuần</td><td><strong>100%</strong> đơn giá chuẩn</td><td>Phải có email/ticket phê duyệt trước của Quản lý Dự án Khách hàng</td></tr>
+      <tr><td><strong>OT Cuối tuần / Ngày Lễ</strong></td><td>Làm thêm vào Thứ Bảy, Chủ Nhật hoặc Ngày Lễ theo quy định</td><td><strong>150%</strong> đơn giá chuẩn</td><td>Tính hệ số 1.5x trên Biên bản Nghiệm thu Timesheet (<code>[TPL-ONB-05]</code>)</td></tr>
+    </tbody>
+  </table>
+  <h2>3. Điều Khoản Thay Thế Nhân Sự &amp; 05 Ngày Thử Việc Miễn Phí (Replacement &amp; Free Trial SLA)</h2>
+  <ul>
+    <li><strong>Thời hạn báo trước (Notice Period):</strong> Tối thiểu <strong>30 ngày</strong> bằng văn bản khi một trong hai bên có yêu cầu thay đổi hoặc rút nhân sự biệt phái.</li>
+    <li><strong>Chính sách Thử việc Miễn phí khi Thay thế (5-Day Free Trial):</strong> Khi thay thế nhân sự mới, Digimate miễn phí <strong>05 ngày làm việc đầu tiên (tối đa 40 giờ)</strong> để nhân sự mới tiếp nhận bàn giao (handover) và làm quen quy trình dự án của Khách hàng (<code>is_replacement_trial=True</code>).</li>
+  </ul>
+  <h2>4. Quy Trình Đối Soát Timesheet, Xuất Hóa Đơn GTGT &amp; Thanh Toán Net 40</h2>
+  <ol>
+    <li><strong>Bước 1 (Ngày 01–03 đầu tháng kế tiếp):</strong> Kỹ sư biệt phái và PM xuất Bảng chấm công (Timesheet) từ phân hệ Project/Timesheets và khởi tạo <code>[TPL-ONB-05] Biên bản Nghiệm thu Timesheet &amp; Đề nghị Thanh toán</code> thông qua hàm <code>action_generate_staff_aug_acceptance_doc()</code>.</li>
+    <li><strong>Bước 2 (Ngày 04–05):</strong> Khách hàng ký xác nhận Biên bản Nghiệm thu Timesheet; Kế toán Digimate phát hành Hóa đơn GTGT điện tử (Thuế suất 8% theo Nghị định 174/2025/NĐ-CP).</li>
+    <li><strong>Bước 3 (Theo dõi Công nợ Net 40):</strong> Thời hạn thanh toán là <strong>40 ngày làm việc (Net 40 business days)</strong> kể từ ngày Khách hàng nhận đủ Hóa đơn GTGT hợp lệ và Biên bản nghiệm thu Timesheet có chữ ký xác nhận.</li>
+    <li><strong>Bước 4 (Kiểm soát Cổng Thanh toán SOP-DGM-06):</strong> Trước khi chi trả hoa hồng/thưởng dự án hoặc thanh toán nhà thầu phụ, Đối tác phải đạt trạng thái <code>approved</code> với Mã đối tác chính thức <code>PTN-DGM-YYYY-XXXX</code>.</li>
+  </ol>
+</div>
+        ]]></field>
+    </record>
 </data>
 </odoo>

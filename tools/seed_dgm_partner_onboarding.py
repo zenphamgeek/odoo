@@ -183,7 +183,89 @@ def ensure_schema_columns(cur):
     )
     rp_row = cur.fetchone()
     if rp_row and rp_row[0] == "VIEW" and base_partner_table == "party_master":
-        cur.execute("CREATE OR REPLACE VIEW public.res_partner AS SELECT * FROM public.party_master;")
+        cur.execute("SAVEPOINT sp_rp_view;")
+        try:
+            cur.execute("CREATE OR REPLACE VIEW public.res_partner AS SELECT * FROM public.party_master;")
+            cur.execute("RELEASE SAVEPOINT sp_rp_view;")
+        except Exception:
+            cur.execute("ROLLBACK TO SAVEPOINT sp_rp_view;")
+
+    # Ensure SOP-DGM-07 columns on order_header / sale_order
+    cur.execute(
+        """
+        SELECT table_type FROM information_schema.tables
+         WHERE table_schema = 'public' AND table_name = 'order_header';
+        """
+    )
+    oh_row = cur.fetchone()
+    base_so_table = "order_header" if (oh_row and oh_row[0] == "BASE TABLE") else "sale_order"
+    so_cols = [
+        ("dgm_is_staff_augmentation", "BOOLEAN DEFAULT FALSE"),
+        ("dgm_assigned_employee_id", "INTEGER"),
+        ("dgm_min_monthly_hours", "DOUBLE PRECISION DEFAULT 140.0"),
+        ("dgm_max_standard_hours", "DOUBLE PRECISION DEFAULT 180.0"),
+        ("dgm_hourly_rate_vnd", "DOUBLE PRECISION DEFAULT 350000.0"),
+        ("dgm_payment_term_days", "INTEGER DEFAULT 40"),
+        ("dgm_replacement_notice_days", "INTEGER DEFAULT 30"),
+        ("dgm_free_trial_days", "INTEGER DEFAULT 5"),
+    ]
+    for col, col_def in so_cols:
+        cur.execute("SAVEPOINT sp_so_col;")
+        try:
+            cur.execute(f"ALTER TABLE public.{base_so_table} ADD COLUMN IF NOT EXISTS {col} {col_def};")
+            cur.execute("RELEASE SAVEPOINT sp_so_col;")
+        except Exception:
+            cur.execute("ROLLBACK TO SAVEPOINT sp_so_col;")
+
+    cur.execute(
+        """
+        SELECT table_type FROM information_schema.tables
+         WHERE table_schema = 'public' AND table_name = 'sale_order';
+        """
+    )
+    so_view_row = cur.fetchone()
+    if so_view_row and so_view_row[0] == "VIEW" and base_so_table == "order_header":
+        cur.execute("SAVEPOINT sp_so_view;")
+        try:
+            cur.execute("CREATE OR REPLACE VIEW public.sale_order AS SELECT * FROM public.order_header;")
+            cur.execute("RELEASE SAVEPOINT sp_so_view;")
+        except Exception:
+            cur.execute("ROLLBACK TO SAVEPOINT sp_so_view;")
+
+    # Refresh product_template view if backed by catalog_item
+    cur.execute(
+        """
+        SELECT table_type FROM information_schema.tables
+         WHERE table_schema = 'public' AND table_name = 'catalog_item';
+        """
+    )
+    ci_row = cur.fetchone()
+    if ci_row and ci_row[0] == "BASE TABLE":
+        for col, col_def in [
+            ("al2c_product_line", "VARCHAR"),
+            ("al2c_vat_class", "VARCHAR DEFAULT 'kct'"),
+            ("al2c_knowledge_article_id", "INTEGER"),
+        ]:
+            cur.execute("SAVEPOINT sp_ci_col;")
+            try:
+                cur.execute(f"ALTER TABLE public.catalog_item ADD COLUMN IF NOT EXISTS {col} {col_def};")
+                cur.execute("RELEASE SAVEPOINT sp_ci_col;")
+            except Exception:
+                cur.execute("ROLLBACK TO SAVEPOINT sp_ci_col;")
+        cur.execute(
+            """
+            SELECT table_type FROM information_schema.tables
+             WHERE table_schema = 'public' AND table_name = 'product_template';
+            """
+        )
+        pt_row = cur.fetchone()
+        if pt_row and pt_row[0] == "VIEW":
+            cur.execute("SAVEPOINT sp_pt_view;")
+            try:
+                cur.execute("CREATE OR REPLACE VIEW public.product_template AS SELECT * FROM public.catalog_item;")
+                cur.execute("RELEASE SAVEPOINT sp_pt_view;")
+            except Exception:
+                cur.execute("ROLLBACK TO SAVEPOINT sp_pt_view;")
 
     # Ensure account_payment column
     cur.execute(
@@ -688,15 +770,19 @@ def seed_partner_onboarding(dbname=None):
                 )
                 aifin_prj_id = cur.fetchone()[0]
 
-            # Find product_id for DGM-ONSITE-STD (or fallback to any service product)
-            cur.execute("SELECT id FROM product_product WHERE default_code = 'DGM-ONSITE-STD' LIMIT 1;")
-            prod_row = cur.fetchone()
-            if not prod_row:
-                cur.execute("SELECT id FROM product_product ORDER BY id ASC LIMIT 1;")
-                prod_row = cur.fetchone()
-            prod_id = prod_row[0]
+            # Find or seed SOP-DGM-07 SKUs first so AIfin's SO lines reference SVC-ONSITE-SR and ERP-360-SALES
+            cur.execute("SELECT id FROM product_category WHERE name::text ILIKE '%Onsite%' OR name::text ILIKE '%Services%' ORDER BY id DESC LIMIT 1;")
+            cat_svc_row = cur.fetchone()
+            cat_svc_id = cat_svc_row[0] if cat_svc_row else 1
+            cur.execute("SELECT id FROM product_category WHERE name::text ILIKE '%ERP%' ORDER BY id DESC LIMIT 1;")
+            cat_erp_row = cur.fetchone()
+            cat_erp_id = cat_erp_row[0] if cat_erp_row else cat_svc_id
 
-            # Find VND currency_id and pricelist_id
+            cur.execute("SELECT id FROM uom_uom WHERE name->>'en_US' ILIKE 'Hour%' OR id = 4 ORDER BY (CASE WHEN id = 4 THEN 0 ELSE 1 END) LIMIT 1;")
+            uom_hour_id = (cur.fetchone() or [4])[0]
+            cur.execute("SELECT id FROM uom_uom WHERE name->>'en_US' ILIKE 'Unit%' OR id = 1 ORDER BY (CASE WHEN id = 1 THEN 0 ELSE 1 END) LIMIT 1;")
+            uom_unit_id = (cur.fetchone() or [1])[0]
+
             cur.execute("SELECT id FROM res_currency WHERE name = 'VND' LIMIT 1;")
             vnd_row = cur.fetchone()
             vnd_id = vnd_row[0] if vnd_row else 23
@@ -707,58 +793,352 @@ def seed_partner_onboarding(dbname=None):
                 pl_row = cur.fetchone()
             pl_id = pl_row[0] if pl_row else 1
 
+            sop07_skus = [
+                {
+                    "xmlid": "product_svc_onsite_sr",
+                    "code": "SVC-ONSITE-SR",
+                    "name": "Dịch vụ Kỹ sư Phần mềm Senior Biệt phái (Staff Augmentation 140-180h)",
+                    "categ_id": cat_svc_id,
+                    "uom_id": uom_hour_id,
+                    "price": 350000.0,
+                    "service_type": "timesheet",
+                    "service_tracking": "task_in_project",
+                    "line": "svc",
+                    "vat_class": "vat_8",
+                    "desc": "Dịch vụ cung ứng nhân sự kỹ thuật trình độ Senior Biệt phái (Onsite/Remote) theo chuẩn Hợp đồng MTI Technology & AIfin (Khung 140-180h/tháng, OT 100%/150%, Net 40).",
+                },
+                {
+                    "xmlid": "product_svc_onsite_mid",
+                    "code": "SVC-ONSITE-MID",
+                    "name": "Dịch vụ Kỹ sư Phần mềm Mid-Level Biệt phái (Staff Augmentation 140-180h)",
+                    "categ_id": cat_svc_id,
+                    "uom_id": uom_hour_id,
+                    "price": 250000.0,
+                    "service_type": "timesheet",
+                    "service_tracking": "task_in_project",
+                    "line": "svc",
+                    "vat_class": "vat_8",
+                    "desc": "Dịch vụ cung ứng nhân sự kỹ thuật trình độ Mid-Level Biệt phái (Khung 140-180h/tháng, thay thế báo trước 30 ngày kèm 05 ngày thử việc miễn phí).",
+                },
+                {
+                    "xmlid": "product_erp_360_sales",
+                    "code": "ERP-360-SALES",
+                    "name": "Hệ thống Quản trị Bán hàng & Đội ngũ Kinh doanh 360-Sales (Web, Mobile, Zalo MiniApp, AI Call Coaching)",
+                    "categ_id": cat_erp_id,
+                    "uom_id": uom_unit_id,
+                    "price": 200000000.0,
+                    "service_type": "milestones",
+                    "service_tracking": "project_only",
+                    "line": "erp",
+                    "vat_class": "kct",
+                    "desc": "Giải pháp quản trị bán hàng đa kênh 360-Sales (Web Admin, Mobile App iOS/Android, Zalo MiniApp, AI Call Recording & Coaching, Quản lý KPI & Hoa hồng).",
+                },
+            ]
+
+            sku_variant_map = {}
+            for s in sop07_skus:
+                name_json = json.dumps({"en_US": s["name"], "vi_VN": s["name"]})
+                desc_json = json.dumps({"en_US": s["desc"], "vi_VN": s["desc"]})
+                cur.execute("SELECT id FROM catalog_item WHERE default_code = %s ORDER BY id ASC LIMIT 1;", (s["code"],))
+                ci_row = cur.fetchone()
+                if ci_row:
+                    tmpl_id = ci_row[0]
+                    cur.execute(
+                        """
+                        UPDATE catalog_item
+                           SET name = %s::jsonb,
+                               categ_id = %s,
+                               uom_id = %s,
+                               list_price = %s,
+                               type = 'service',
+                               sale_ok = TRUE,
+                               purchase_ok = FALSE,
+                               active = TRUE,
+                               invoice_policy = 'delivery',
+                               service_type = %s,
+                               service_tracking = %s,
+                               al2c_product_line = %s,
+                               al2c_vat_class = %s,
+                               description_sale = %s::jsonb,
+                               write_date = NOW()
+                         WHERE id = %s;
+                        """,
+                        (
+                            name_json, s["categ_id"], s["uom_id"], s["price"],
+                            s["service_type"], s["service_tracking"], s["line"], s["vat_class"],
+                            desc_json, tmpl_id,
+                        ),
+                    )
+                else:
+                    cur.execute(
+                        """
+                        INSERT INTO catalog_item (
+                            name, default_code, categ_id, uom_id, list_price,
+                            type, sale_ok, purchase_ok, active,
+                            invoice_policy, service_type, service_tracking,
+                            al2c_product_line, al2c_vat_class, description_sale,
+                            base_unit_count, urbanpiper_meal_type,
+                            create_uid, write_uid, create_date, write_date
+                        ) VALUES (
+                            %s::jsonb, %s, %s, %s, %s,
+                            'service', TRUE, FALSE, TRUE,
+                            'delivery', %s, %s,
+                            %s, %s, %s::jsonb,
+                            0, 'none',
+                            1, 1, NOW(), NOW()
+                        ) RETURNING id;
+                        """,
+                        (
+                            name_json, s["code"], s["categ_id"], s["uom_id"], s["price"],
+                            s["service_type"], s["service_tracking"],
+                            s["line"], s["vat_class"], desc_json,
+                        ),
+                    )
+                    tmpl_id = cur.fetchone()[0]
+
+                cur.execute("SELECT id FROM catalog_sku WHERE product_tmpl_id = %s ORDER BY id ASC LIMIT 1;", (tmpl_id,))
+                cs_row = cur.fetchone()
+                if cs_row:
+                    var_id = cs_row[0]
+                    cur.execute(
+                        """
+                        UPDATE catalog_sku
+                           SET default_code = %s,
+                               lst_price = %s,
+                               active = TRUE,
+                               write_date = NOW()
+                         WHERE id = %s;
+                        """,
+                        (s["code"], s["price"], var_id),
+                    )
+                else:
+                    cur.execute(
+                        """
+                        INSERT INTO catalog_sku (
+                            product_tmpl_id, default_code, lst_price, base_unit_count,
+                            active, create_uid, write_uid, create_date, write_date
+                        ) VALUES (
+                            %s, %s, %s, 0,
+                            TRUE, 1, 1, NOW(), NOW()
+                        ) RETURNING id;
+                        """,
+                        (tmpl_id, s["code"], s["price"]),
+                    )
+                    var_id = cur.fetchone()[0]
+                sku_variant_map[s["code"]] = var_id
+
+                # Upsert ir_model_data for template & variant
+                for imd_name, imd_model, imd_res_id in [
+                    (s["xmlid"], "product.template", tmpl_id),
+                    (f"{s['xmlid']}_variant", "product.product", var_id),
+                ]:
+                    cur.execute(
+                        "SELECT id FROM ir_model_data WHERE module = 'insilos_al2c' AND name = %s LIMIT 1;",
+                        (imd_name,),
+                    )
+                    imd_r = cur.fetchone()
+                    if imd_r:
+                        cur.execute(
+                            "UPDATE ir_model_data SET model = %s, res_id = %s, write_date = NOW() WHERE id = %s;",
+                            (imd_model, imd_res_id, imd_r[0]),
+                        )
+                    else:
+                        cur.execute(
+                            """
+                            INSERT INTO ir_model_data (module, name, model, res_id, noupdate, create_uid, write_uid, create_date, write_date)
+                            VALUES ('insilos_al2c', %s, %s, %s, FALSE, 1, 1, NOW(), NOW());
+                            """,
+                            (imd_name, imd_model, imd_res_id),
+                        )
+
+                # Upsert product_pricelist_item in VND pricelist
+                cur.execute(
+                    "SELECT id FROM product_pricelist_item WHERE pricelist_id = %s AND product_tmpl_id = %s LIMIT 1;",
+                    (pl_id, tmpl_id),
+                )
+                pli_r = cur.fetchone()
+                if pli_r:
+                    cur.execute(
+                        "UPDATE product_pricelist_item SET compute_price = 'fixed', fixed_price = %s, write_date = NOW() WHERE id = %s;",
+                        (s["price"], pli_r[0]),
+                    )
+                else:
+                    cur.execute(
+                        """
+                        INSERT INTO product_pricelist_item (
+                            pricelist_id, company_id, currency_id, applied_on, base,
+                            compute_price, product_tmpl_id, fixed_price, min_quantity,
+                            create_uid, write_uid, create_date, write_date
+                        ) VALUES (
+                            %s, 1, %s, '1_product', 'list_price',
+                            'fixed', %s, %s, 0.0,
+                            1, 1, NOW(), NOW()
+                        );
+                        """,
+                        (pl_id, vnd_id, tmpl_id, s["price"]),
+                    )
+
+            # Upsert sale_tpl_staff_augmentation quotation template
+            sot_name = "Hợp đồng Thuê Nhân sự Kỹ thuật B2B (MTI / AIfin Staff Augmentation — Khung 140-180h)"
+            sot_note = (
+                "<p>ĐIỀU KHOẢN THƯƠNG MẠI CHUẨN (SOP-DGM-07): Khung giờ chuẩn 140–180 giờ/tháng; "
+                "OT ngày thường 100%, OT cuối tuần/lễ 150%; Thanh toán Net 40 ngày làm việc; "
+                "Thay thế nhân sự báo trước 30 ngày kèm 05 ngày làm việc thử việc miễn phí.</p>"
+            )
+            sot_name_json = json.dumps({"en_US": sot_name, "vi_VN": sot_name})
+            sot_note_json = json.dumps({"en_US": sot_note, "vi_VN": sot_note})
             cur.execute(
-                "SELECT id FROM sale_order WHERE client_order_ref = 'DIGIMATE-AIFIN-VN_2610-001' OR (partner_id = %s AND state = 'sale') ORDER BY id ASC LIMIT 1;",
+                "SELECT id FROM sale_order_template WHERE name->>'en_US' = %s OR name->>'vi_VN' = %s LIMIT 1;",
+                (sot_name, sot_name),
+            )
+            sot_r = cur.fetchone()
+            if sot_r:
+                sot_id = sot_r[0]
+                cur.execute(
+                    "UPDATE sale_order_template SET name = %s::jsonb, note = %s::jsonb, active = TRUE, write_date = NOW() WHERE id = %s;",
+                    (sot_name_json, sot_note_json, sot_id),
+                )
+            else:
+                cur.execute(
+                    """
+                    INSERT INTO sale_order_template (
+                        company_id, sequence, template_type, name, note,
+                        active, require_signature, share_template, prepayment_percent,
+                        duration_value, duration_unit, is_unlimited,
+                        create_uid, write_uid, create_date, write_date
+                    ) VALUES (
+                        1, 25, 'quotation', %s::jsonb, %s::jsonb,
+                        TRUE, TRUE, TRUE, 0.0,
+                        1, 'month', TRUE,
+                        1, 1, NOW(), NOW()
+                    ) RETURNING id;
+                    """,
+                    (sot_name_json, sot_note_json),
+                )
+                sot_id = cur.fetchone()[0]
+
+            cur.execute(
+                "SELECT id FROM ir_model_data WHERE module = 'insilos_al2c' AND name = 'sale_tpl_staff_augmentation' LIMIT 1;"
+            )
+            sot_imd = cur.fetchone()
+            if sot_imd:
+                cur.execute(
+                    "UPDATE ir_model_data SET model = 'sale.order.template', res_id = %s, write_date = NOW() WHERE id = %s;",
+                    (sot_id, sot_imd[0]),
+                )
+            else:
+                cur.execute(
+                    """
+                    INSERT INTO ir_model_data (module, name, model, res_id, noupdate, create_uid, write_uid, create_date, write_date)
+                    VALUES ('insilos_al2c', 'sale_tpl_staff_augmentation', 'sale.order.template', %s, FALSE, 1, 1, NOW(), NOW());
+                    """,
+                    (sot_id,),
+                )
+
+            cur.execute("SELECT id FROM catalog_sku WHERE default_code = 'CONSULT-HOUR' LIMIT 1;")
+            consult_var_id = (cur.fetchone() or [sku_variant_map["SVC-ONSITE-SR"]])[0]
+            cur.execute("DELETE FROM sale_order_template_line WHERE sale_order_template_id = %s;", (sot_id,))
+            for seq_l, p_var_id, l_desc, l_qty in [
+                (10, sku_variant_map["SVC-ONSITE-SR"], "Kỹ sư Phần mềm Senior Biệt phái (Cam kết SLA 140–180 giờ/tháng — Tạm tính chuẩn 160 giờ)", 160.0),
+                (20, consult_var_id, "Giờ Tư vấn Kiến trúc Giải pháp & Code Review (Solution Architect Oversight)", 16.0),
+            ]:
+                cur.execute(
+                    """
+                    INSERT INTO sale_order_template_line (
+                        sale_order_template_id, sequence, company_id, product_id,
+                        name, product_uom_qty, product_uom_id,
+                        create_uid, write_uid, create_date, write_date
+                    ) VALUES (
+                        %s, %s, 1, %s,
+                        %s::jsonb, %s, %s,
+                        1, 1, NOW(), NOW()
+                    );
+                    """,
+                    (sot_id, seq_l, p_var_id, json.dumps({"en_US": l_desc, "vi_VN": l_desc}), l_qty, uom_hour_id),
+                )
+
+            # Find DGM-009 employee_id (Trần Văn Huỳnh Phố)
+            cur.execute("SELECT id FROM hr_employee WHERE registration_number = 'DGM-009' OR name ILIKE '%Trần Văn Huỳnh Phố%' ORDER BY id ASC LIMIT 1;")
+            emp_pho_row = cur.fetchone()
+            emp_pho_id = emp_pho_row[0] if emp_pho_row else None
+
+            prod_sr_id = sku_variant_map["SVC-ONSITE-SR"]
+            prod_360_id = sku_variant_map["ERP-360-SALES"]
+
+            cur.execute(
+                "SELECT table_type FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'order_header';"
+            )
+            oh_check = cur.fetchone()
+            so_tbl = "order_header" if (oh_check and oh_check[0] == "BASE TABLE") else "sale_order"
+
+            cur.execute(
+                f"SELECT id FROM {so_tbl} WHERE client_order_ref = 'DIGIMATE-AIFIN-VN_2610-001' OR (partner_id = %s AND state = 'sale') ORDER BY id ASC LIMIT 1;",
                 (pid,),
             )
             so_row = cur.fetchone()
             if so_row:
                 so_id = so_row[0]
                 cur.execute(
-                    """
-                    UPDATE sale_order
+                    f"""
+                    UPDATE {so_tbl}
                        SET partner_id = %s,
                            partner_invoice_id = %s,
                            partner_shipping_id = %s,
                            client_order_ref = 'DIGIMATE-AIFIN-VN_2610-001',
                            state = 'sale',
                            project_id = %s,
+                           dgm_is_staff_augmentation = TRUE,
+                           dgm_assigned_employee_id = %s,
+                           dgm_min_monthly_hours = 140.0,
+                           dgm_max_standard_hours = 180.0,
+                           dgm_hourly_rate_vnd = 350000.0,
+                           dgm_payment_term_days = 40,
+                           dgm_replacement_notice_days = 30,
+                           dgm_free_trial_days = 5,
                            amount_untaxed = 256000000.0,
                            amount_tax = 0.0,
                            amount_total = 256000000.0,
                            write_date = NOW()
                      WHERE id = %s;
                     """,
-                    (pid, pid, pid, aifin_prj_id, so_id),
+                    (pid, pid, pid, aifin_prj_id, emp_pho_id, so_id),
                 )
             else:
                 cur.execute(
-                    """
-                    INSERT INTO sale_order (
+                    f"""
+                    INSERT INTO {so_tbl} (
                         name, company_id, partner_id, partner_invoice_id, partner_shipping_id,
                         pricelist_id, currency_id, currency_rate, user_id, team_id,
                         client_order_ref, state, document_tax_mode, invoice_status, picking_policy, warehouse_id,
                         date_order, validity_date, amount_untaxed, amount_tax, amount_total,
-                        project_id, require_signature, require_payment, prepayment_percent,
+                        project_id, dgm_is_staff_augmentation, dgm_assigned_employee_id,
+                        dgm_min_monthly_hours, dgm_max_standard_hours, dgm_hourly_rate_vnd,
+                        dgm_payment_term_days, dgm_replacement_notice_days, dgm_free_trial_days,
+                        require_signature, require_payment, prepayment_percent,
                         create_uid, write_uid, create_date, write_date
                     ) VALUES (
                         'SO-DGM-AIFIN-2610', 1, %s, %s, %s,
                         %s, %s, 1.0, 2, 1,
                         'DIGIMATE-AIFIN-VN_2610-001', 'sale', 'tax_excluded', 'to invoice', 'direct', 1,
                         '2026-10-01 09:00:00', '2027-09-30', 256000000.0, 0.0, 256000000.0,
-                        %s, TRUE, FALSE, 0.0,
+                        %s, TRUE, %s,
+                        140.0, 180.0, 350000.0,
+                        40, 30, 5,
+                        TRUE, FALSE, 0.0,
                         1, 1, NOW(), NOW()
                     ) RETURNING id;
                     """,
-                    (pid, pid, pid, pl_id, vnd_id, aifin_prj_id),
+                    (pid, pid, pid, pl_id, vnd_id, aifin_prj_id, emp_pho_id),
                 )
                 so_id = cur.fetchone()[0]
 
-            # Upsert the 2 canonical sale_order_line rows (Staff Augmentation Trần Văn Huỳnh Phố + 360-Sales Platform)
+            # Upsert the 2 canonical sale_order_line rows (SVC-ONSITE-SR Trần Văn Huỳnh Phố + ERP-360-SALES Platform)
             cur.execute("DELETE FROM sale_order_line WHERE order_id = %s;", (so_id,))
             lines_to_insert = [
                 (
                     10,
+                    prod_sr_id,
+                    uom_hour_id,
                     "Onsite Engineering Services — Project AIFin 360-Sales (Partner: DIGIMATE) — Trần Văn Huỳnh Phố (DGM-009 / PhoTVH) [HĐ DIGIMATE-AIFIN-VN_2610-001 & Phụ lục 2610-001 • Khung 140-180h/tháng]",
                     160.0,
                     350000.0,
@@ -766,13 +1146,15 @@ def seed_partner_onboarding(dbname=None):
                 ),
                 (
                     20,
+                    prod_360_id,
+                    uom_unit_id,
                     "Phát triển Hệ thống Phần mềm Quản lý Bán hàng & Đội ngũ Kinh doanh 360-Sales (Web App, Mobile App, Zalo MiniApp, AI Call Coaching) [HĐ AIFIN-DIGIMATE/360-SALES/2026]",
                     1.0,
                     200000000.0,
                     200000000.0,
                 ),
             ]
-            for seq_no, line_name, qty, p_unit, subtotal in lines_to_insert:
+            for seq_no, line_prod_id, line_uom_id, line_name, qty, p_unit, subtotal in lines_to_insert:
                 cur.execute(
                     """
                     INSERT INTO sale_order_line (
@@ -786,7 +1168,7 @@ def seed_partner_onboarding(dbname=None):
                         create_uid, write_uid, create_date, write_date
                     ) VALUES (
                         %s, %s, 1, %s, %s,
-                        2, %s, %s, %s, 4,
+                        2, %s, %s, %s, %s,
                         %s, 0.0, %s, 0.0, %s,
                         %s, %s,
                         %s, 0.0, %s,
@@ -797,7 +1179,7 @@ def seed_partner_onboarding(dbname=None):
                     """,
                     (
                         so_id, seq_no, vnd_id, pid,
-                        prod_id, line_name, qty,
+                        line_prod_id, line_name, qty, line_uom_id,
                         p_unit, subtotal, subtotal,
                         p_unit, p_unit,
                         qty, qty,
@@ -806,7 +1188,7 @@ def seed_partner_onboarding(dbname=None):
                     ),
                 )
 
-    # Ensure SOP-DGM-06 Knowledge Article exists under DGM SOP Root
+    # Ensure SOP-DGM-06 & SOP-DGM-07 Knowledge Articles exist under DGM SOP Root
     sop_title = "SOP-DGM-06: Quy trình On-boarding Đối tác, Xếp hạng Tier & Cổng Kiểm soát Thanh toán Không Nghẽn Sales"
     sop_body = (
         '<div class="dgm-sop-container">'
@@ -856,10 +1238,77 @@ def seed_partner_onboarding(dbname=None):
             (sop_title, sop_body, root_kb_id, root_kb_id),
         )
 
+    sop07_title = "SOP-DGM-07: Quy trình Quản trị Hợp đồng Thuê Nhân sự Kỹ thuật B2B (MTI / AIfin), Đối soát Khung giờ 140–180h & Nghiệm thu Thanh toán Net 40"
+    sop07_body = (
+        '<div class="o_knowledge_behavior_anchor">'
+        '<h1>SOP-DGM-07: QUY TRÌNH QUẢN TRỊ HỢP ĐỒNG BIỆT PHÁI NHÂN SỰ KỸ THUẬT (STAFF AUGMENTATION 140–180H &amp; NET 40)</h1>'
+        '<p><strong>Mã tài liệu:</strong> SOP-DGM-07 | <strong>Phiên bản:</strong> 1.0 (2026) | <strong>Áp dụng:</strong> Khối Kinh doanh B2B, Khối Delivery, Kế toán &amp; Pháp chế (Chuẩn hóa từ Hợp đồng MTI Technology &amp; AIfin)</p>'
+        '<ul>'
+        '<li><strong>SKU Kỹ sư Senior Biệt phái (<code>SVC-ONSITE-SR</code>):</strong> 350,000 VNĐ/giờ (~56,000,000 VNĐ/tháng chuẩn 160h).</li>'
+        '<li><strong>SKU Kỹ sư Mid-Level Biệt phái (<code>SVC-ONSITE-MID</code>):</strong> 250,000 VNĐ/giờ (~40,000,000 VNĐ/tháng chuẩn 160h).</li>'
+        '<li><strong>SKU Giải pháp 360-Sales (<code>ERP-360-SALES</code>):</strong> 200,000,000 VNĐ/gói (Triển khai theo Milestone: Web, Mobile, Zalo MiniApp, AI Call Coaching).</li>'
+        '<li><strong>Khung SLA 140–180 giờ/tháng:</strong> OT ngày thường 100%, OT cuối tuần/lễ 150%, Thanh toán Net 40 ngày làm việc, Thay thế nhân sự báo trước 30 ngày kèm 05 ngày làm việc thử việc miễn phí (40 giờ).</li>'
+        '</ul></div>'
+    )
+    cur.execute("SELECT id FROM knowledge_article WHERE name ILIKE 'SOP-DGM-07%' ORDER BY id ASC LIMIT 1;")
+    kb07_row = cur.fetchone()
+    if kb07_row:
+        kb07_id = kb07_row[0]
+        cur.execute(
+            """
+            UPDATE knowledge_article
+               SET name = %s,
+                   body = %s,
+                   parent_id = COALESCE(%s, parent_id),
+                   root_article_id = COALESCE(%s, root_article_id),
+                   internal_permission = 'write',
+                   active = TRUE,
+                   write_date = NOW()
+             WHERE id = %s;
+            """,
+            (sop07_title, sop07_body, root_kb_id, root_kb_id, kb07_id),
+        )
+    else:
+        cur.execute(
+            """
+            INSERT INTO knowledge_article (
+                name, icon, body, parent_id, root_article_id,
+                internal_permission, category, sequence, active,
+                is_article_visible_by_everyone, create_uid, write_uid, create_date, write_date
+            ) VALUES (
+                %s, '👨‍💻', %s, %s, %s,
+                'write', 'workspace', 150, TRUE,
+                TRUE, 1, 1, NOW(), NOW()
+            ) RETURNING id;
+            """,
+            (sop07_title, sop07_body, root_kb_id, root_kb_id),
+        )
+        kb07_id = cur.fetchone()[0]
+
+    cur.execute(
+        "SELECT id FROM ir_model_data WHERE module = 'insilos_al2c' AND name = 'kb_dgm_sop_07_staff_augmentation' LIMIT 1;"
+    )
+    kb07_imd = cur.fetchone()
+    if kb07_imd:
+        cur.execute(
+            "UPDATE ir_model_data SET model = 'knowledge.article', res_id = %s, write_date = NOW() WHERE id = %s;",
+            (kb07_id, kb07_imd[0]),
+        )
+    else:
+        cur.execute(
+            """
+            INSERT INTO ir_model_data (module, name, model, res_id, noupdate, create_uid, write_uid, create_date, write_date)
+            VALUES ('insilos_al2c', 'kb_dgm_sop_07_staff_augmentation', 'knowledge.article', %s, FALSE, 1, 1, NOW(), NOW());
+            """,
+            (kb07_id,),
+        )
+
     conn.commit()
-    print(f"=== SOP-DGM-06 PARTNER ONBOARDING SEED SUMMARY ({dbname or os.environ.get('DB_NAME', 'innoria_prod')}) ===")
+    print(f"=== SOP-DGM-06 & SOP-DGM-07 PARTNER ONBOARDING + STAFF AUGMENTATION SEED SUMMARY ({dbname or os.environ.get('DB_NAME', 'innoria_prod')}) ===")
     for item in seeded_summary:
         print(f"  [✓] Partner ID={item[0]} | Code={item[1]} | {item[2]} | Group={item[3]} | Tier={item[4]} | Docs={item[5]}/4")
+    print("  [✓] Seeded SKUs: SVC-ONSITE-SR (350,000 VND/h), SVC-ONSITE-MID (250,000 VND/h), ERP-360-SALES (200,000,000 VND)")
+    print("  [✓] Seeded Quotation Template: sale_tpl_staff_augmentation & Knowledge Article: SOP-DGM-07")
     cur.close()
     conn.close()
 

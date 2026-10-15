@@ -95,6 +95,10 @@ class ProductTemplate(models.Model):
             'DGM-MOBIAI-CSP': 50_000_000.0,
             'DGM-PREPAID-VNPT': 3_648_000.0,
             'DGM-PREPAID-VIETTELCA': 833_636.0,
+            # 3 Staff Augmentation (MTI / AIfin) & 360-Sales SKUs (SOP-DGM-07)
+            'SVC-ONSITE-SR': 350_000.0,
+            'SVC-ONSITE-MID': 250_000.0,
+            'ERP-360-SALES': 200_000_000.0,
         }
         pricelist_vnd = self.env.ref('insilos_al2c.pricelist_vnd', raise_if_not_found=False)
         PricelistItem = self.env['product.pricelist.item'].sudo()

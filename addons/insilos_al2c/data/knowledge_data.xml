@@ -260,6 +260,24 @@
         <field name="sequence">30</field>
         <field name="body">&lt;h1&gt;DGM-PREPAID-VIETTELCA · Chứng thư số Viettel-CA &amp;amp; SInvoice — Phân bổ TK 242 (36 tháng)&lt;/h1&gt;&lt;p&gt;Hạng mục mua vào chi phí trả trước dài hạn theo HĐĐT 1K23TVA-2368750 (833,636 VND chưa thuế / 36 tháng = 23,157 VND/tháng, hạch toán Nợ TK 242 -&amp;gt; Nợ TK 6427).&lt;/p&gt;</field>
     </record>
+    <record id="kb_sku_svc_onsite_sr" model="knowledge.article">
+        <field name="name">SVC-ONSITE-SR · Dịch vụ Kỹ sư Phần mềm Senior Biệt phái (Staff Augmentation 140-180h)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">31</field>
+        <field name="body">&lt;h1&gt;SVC-ONSITE-SR · Dịch vụ Kỹ sư Phần mềm Senior Biệt phái (Staff Augmentation 140-180h)&lt;/h1&gt;&lt;p&gt;Dịch vụ cung ứng nhân sự kỹ thuật trình độ Senior Biệt phái (Onsite/Remote) theo chuẩn Hợp đồng MTI Technology &amp;amp; AIfin. Cam kết khung giờ chuẩn 140–180 giờ/tháng; OT ngày thường 100% đơn giá, OT cuối tuần/lễ 150% đơn giá; thanh toán Net 40 ngày làm việc.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_svc_onsite_mid" model="knowledge.article">
+        <field name="name">SVC-ONSITE-MID · Dịch vụ Kỹ sư Phần mềm Mid-Level Biệt phái (Staff Augmentation 140-180h)</field>
+        <field name="parent_id" ref="kb_line_svc"/>
+        <field name="sequence">32</field>
+        <field name="body">&lt;h1&gt;SVC-ONSITE-MID · Dịch vụ Kỹ sư Phần mềm Mid-Level Biệt phái (Staff Augmentation 140-180h)&lt;/h1&gt;&lt;p&gt;Dịch vụ cung ứng kỹ sư phần mềm trình độ Mid-Level theo khung SLA 140–180 giờ/tháng, báo trước thay thế 30 ngày kèm 05 ngày làm việc thử việc miễn phí.&lt;/p&gt;</field>
+    </record>
+    <record id="kb_sku_erp_360_sales" model="knowledge.article">
+        <field name="name">ERP-360-SALES · Hệ thống Quản trị Bán hàng &amp; Đội ngũ Kinh doanh 360-Sales</field>
+        <field name="parent_id" ref="kb_line_erp"/>
+        <field name="sequence">33</field>
+        <field name="body">&lt;h1&gt;ERP-360-SALES · Hệ thống Quản trị Bán hàng &amp;amp; Đội ngũ Kinh doanh 360-Sales&lt;/h1&gt;&lt;p&gt;Giải pháp quản trị bán hàng đa kênh 360-Sales (Web Admin, Mobile App iOS/Android, Zalo MiniApp, AI Call Recording &amp;amp; Coaching, Quản lý KPI &amp;amp; Hoa hồng) theo chuẩn hợp đồng AIfin 01/2025/HĐNT.&lt;/p&gt;</field>
+    </record>
     <record id="kb_ind_0" model="knowledge.article">
         <field name="name">Manufacturing</field>
         <field name="parent_id" ref="kb_industries"/>

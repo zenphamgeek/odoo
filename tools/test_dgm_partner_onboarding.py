@@ -127,15 +127,46 @@ def verify_db_partner_onboarding(dbname):
     empty_folders = cur.fetchall()
     assert len(empty_folders) == 0, f"{dbname}: Found empty active folders violating Rule 6: {empty_folders}"
 
-    # 3. Verify SOP-DGM-06 Knowledge Article exists
+    # 3. Verify SOP-DGM-06 & SOP-DGM-07 Knowledge Articles exist
     cur.execute(
         "SELECT id, name FROM knowledge_article WHERE name ILIKE 'SOP-DGM-06%' AND active = TRUE;"
     )
     kb = cur.fetchone()
     assert kb is not None, f"{dbname}: Missing SOP-DGM-06 Knowledge Article"
 
+    cur.execute(
+        "SELECT id, name FROM knowledge_article WHERE name ILIKE 'SOP-DGM-07%' AND active = TRUE;"
+    )
+    kb07 = cur.fetchone()
+    assert kb07 is not None, f"{dbname}: Missing SOP-DGM-07 Knowledge Article"
+
+    # 4. Verify SOP-DGM-07 SKUs (SVC-ONSITE-SR, SVC-ONSITE-MID, ERP-360-SALES) & Quotation Template
+    for sku_code, expected_price in [
+        ("SVC-ONSITE-SR", 350_000.0),
+        ("SVC-ONSITE-MID", 250_000.0),
+        ("ERP-360-SALES", 200_000_000.0),
+    ]:
+        cur.execute(
+            "SELECT id, list_price FROM product_template WHERE default_code = %s AND active = TRUE;",
+            (sku_code,),
+        )
+        sku_row = cur.fetchone()
+        assert sku_row is not None and float(sku_row[1]) == expected_price, (
+            f"{dbname}: Missing or wrong price for SKU {sku_code}: {sku_row}"
+        )
+
+    cur.execute(
+        """
+        SELECT id FROM sale_order_template
+         WHERE active = TRUE
+           AND (name->>'en_US' ILIKE '%Staff Augmentation%' OR name->>'vi_VN' ILIKE '%Staff Augmentation%');
+        """
+    )
+    sot_row = cur.fetchone()
+    assert sot_row is not None, f"{dbname}: Missing sale_tpl_staff_augmentation quotation template"
+
     conn.close()
-    print(f"[✓] {dbname}: 7 canonical DGM partners (PTN-DGM-2026-0001..0007 incl. AIfin), 28 companion documents (TPL-ONB-01..04), AIfin Staff Augmentation SO (Trần Văn Huỳnh Phố), 0 empty folders, and SOP-DGM-06 Knowledge Article verified")
+    print(f"[✓] {dbname}: 7 canonical DGM partners (PTN-DGM-2026-0001..0007 incl. AIfin), 28 companion documents (TPL-ONB-01..04), 3 SOP-DGM-07 SKUs, Staff Augmentation Quotation Template, 0 empty folders, and SOP-DGM-06/07 Knowledge Articles verified")
 
 
 def verify_workflow_state_machine_and_gates():
@@ -488,7 +519,107 @@ def verify_workflow_state_machine_and_gates():
     assert p_sales_new.dgm_onboarding_state == "docs_ready"
     assert p_sales_new.dgm_onboarding_doc_count == 4 and p_sales_new.dgm_all_companion_docs_ready is True
 
-    print("[✓] SOP-DGM-06 Partner Tiering, Sales-First Non-Blocking Confirm, Companion Docs (TPL-ONB-01..04), Anti-Conflict Dedup & Outbound Payment Gate verified")
+    # Test 7: SOP-DGM-07 Staff Augmentation Contract Lifecycle (`compute_staff_aug_monthly_settlement` & `action_generate_staff_aug_acceptance_doc`)
+    staff_aug_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/staff_augmentation_sop.py")
+    assert os.path.exists(staff_aug_path), "Missing staff_augmentation_sop.py"
+
+    class DummyValidationError(Exception):
+        pass
+
+    exc_mod.ValidationError = DummyValidationError
+    sys.modules["odoo"] = odoo_mod
+    sys.modules["odoo.exceptions"] = exc_mod
+    try:
+        spec_sa = importlib.util.spec_from_file_location("staff_augmentation_sop_test", staff_aug_path)
+        mod_sa = importlib.util.module_from_spec(spec_sa)
+        spec_sa.loader.exec_module(mod_sa)
+    finally:
+        if old_odoo is not None:
+            sys.modules["odoo"] = old_odoo
+        else:
+            sys.modules.pop("odoo", None)
+        if old_exc is not None:
+            sys.modules["odoo.exceptions"] = old_exc
+        else:
+            sys.modules.pop("odoo.exceptions", None)
+
+    StaffAugCls = mod_sa.SaleOrderStaffAugmentation
+
+    class MockStaffAugOrder:
+        def __init__(self, partner):
+            self.id = 7701
+            self.name = "SO-DGM-AIFIN-2610"
+            self.partner_id = partner
+            self.dgm_is_staff_augmentation = True
+            self.dgm_min_monthly_hours = 140.0
+            self.dgm_max_standard_hours = 180.0
+            self.dgm_hourly_rate_vnd = 350000.0
+            self.dgm_payment_term_days = 40
+            self.dgm_replacement_notice_days = 30
+            self.dgm_free_trial_days = 5
+            self.env = mock_env
+
+        def ensure_one(self):
+            return self
+
+        def compute_staff_aug_monthly_settlement(self, *a, **kw):
+            return StaffAugCls.compute_staff_aug_monthly_settlement(self, *a, **kw)
+
+        def action_generate_staff_aug_acceptance_doc(self, *a, **kw):
+            return StaffAugCls.action_generate_staff_aug_acceptance_doc(self, *a, **kw)
+
+    p_aifin = MockPartnerRecord(
+        id=9007,
+        name="CÔNG TY CỔ PHẦN AIFIN COMPANY GLOBAL",
+        vat="0319631994",
+        dgm_partner_group="strategic_b2b",
+        dgm_partner_code="PTN-DGM-2026-0007",
+        dgm_onboarding_state="approved",
+    )
+    p_aifin.dgm_onboarding_folder_id = types.SimpleNamespace(id=3227)
+    so_aug = MockStaffAugOrder(p_aifin)
+
+    # 7a. Within 140-180h SLA band (160h standard, 0 OT)
+    res_std = so_aug.compute_staff_aug_monthly_settlement(160.0)
+    assert res_std["sla_status"] == "within_sla_band"
+    assert res_std["billable_std_hours"] == 160.0
+    assert res_std["base_amount_vnd"] == 56_000_000.0
+    assert res_std["vat_amount_vnd"] == 4_480_000
+    assert res_std["total_with_vat_vnd"] == 60_480_000.0
+    assert res_std["payment_term_days"] == 40
+    assert res_std["payment_gate_ready"] is True
+
+    # 7b. Under 140h minimum SLA warning (120h logged, not replacement trial)
+    res_under = so_aug.compute_staff_aug_monthly_settlement(120.0)
+    assert res_under["sla_status"] == "under_minimum_sla"
+    assert res_under["billable_std_hours"] == 120.0
+    assert res_under["base_amount_vnd"] == 42_000_000.0
+
+    # 7c. Weekday OT (100%) + Weekend/Holiday OT (150%): 160h std + 10h weekday OT + 8h weekend OT
+    res_ot = so_aug.compute_staff_aug_monthly_settlement(
+        160.0, ot_weekday_hours=10.0, ot_weekend_hours=8.0
+    )
+    assert res_ot["ot_weekday_amount_vnd"] == 3_500_000.0
+    assert res_ot["ot_weekend_amount_vnd"] == 4_200_000.0  # 8h * 350,000 * 1.5
+    assert res_ot["subtotal_vnd"] == 63_700_000.0
+
+    # 7d. 5-day Replacement Free Trial deduction (5 days * 8h = 40h deducted from 160h -> 120h billable)
+    res_trial = so_aug.compute_staff_aug_monthly_settlement(
+        160.0, is_replacement_trial=True
+    )
+    assert res_trial["trial_deducted_hours"] == 40.0
+    assert res_trial["billable_std_hours"] == 120.0
+    assert res_trial["base_amount_vnd"] == 42_000_000.0
+    assert res_trial["sla_status"] == "within_sla_band"
+
+    # 7e. Generate [TPL-ONB-05] Acceptance & Billing Certificate in Documents
+    doc_05 = so_aug.action_generate_staff_aug_acceptance_doc(
+        period_label="10/2026", logged_hours=160.0, ot_weekday_hours=10.0, ot_weekend_hours=8.0
+    )
+    assert doc_05 is not None and "[TPL-ONB-05]" in doc_05.name
+    assert doc_05.owner_id is False and doc_05.access_internal == "edit"
+
+    print("[✓] SOP-DGM-06 & SOP-DGM-07 Partner Tiering, Sales-First Confirm, Companion Docs (TPL-ONB-01..05), Staff Augmentation 140-180h SLA, OT 100%/150%, 5-Day Trial & Net 40 Gate verified")
 
 
 def verify_k8s_partner_onboarding():
@@ -522,9 +653,18 @@ assert empty_cnt == 0, f'Expected 0 empty active folders on K8s, got {empty_cnt}
 cur.execute("SELECT COUNT(*) FROM knowledge_article WHERE name ILIKE 'SOP-DGM-06%' AND active = TRUE;")
 kb_cnt = cur.fetchone()[0]
 assert kb_cnt >= 1, 'Missing SOP-DGM-06 Knowledge Article on K8s'
+
+cur.execute("SELECT COUNT(*) FROM knowledge_article WHERE name ILIKE 'SOP-DGM-07%' AND active = TRUE;")
+kb07_cnt = cur.fetchone()[0]
+assert kb07_cnt >= 1, 'Missing SOP-DGM-07 Knowledge Article on K8s'
+
+cur.execute("SELECT COUNT(*) FROM product_template WHERE default_code IN ('SVC-ONSITE-SR', 'SVC-ONSITE-MID', 'ERP-360-SALES') AND active = TRUE;")
+sku_cnt = cur.fetchone()[0]
+assert sku_cnt == 3, f'Expected 3 SOP-DGM-07 SKUs on K8s, got {sku_cnt}'
 conn.close()
 assert os.path.exists('/app/insilos/addons/insilos_al2c/models/res_partner_onboarding.py'), 'Missing res_partner_onboarding.py on K8s pod'
-print(f'K8S_SOP_DGM_06_OK partners={p_cnt} companion_docs={doc_cnt} empty_folders={empty_cnt} kb={kb_cnt}')
+assert os.path.exists('/app/insilos/addons/insilos_al2c/models/staff_augmentation_sop.py'), 'Missing staff_augmentation_sop.py on K8s pod'
+print(f'K8S_SOP_DGM_06_07_OK partners={p_cnt} companion_docs={doc_cnt} empty_folders={empty_cnt} kb06={kb_cnt} kb07={kb07_cnt} skus={sku_cnt}')
 """
     # Dynamically discover active innoria-prod pod
     pod_name = "innoria-prod-app-7cdc9b8ddc-8st7m"
@@ -549,8 +689,8 @@ print(f'K8S_SOP_DGM_06_OK partners={p_cnt} companion_docs={doc_cnt} empty_folder
         text=True,
         check=True,
     )
-    assert "K8S_SOP_DGM_06_OK" in proc.stdout, proc.stdout
-    print(f"[✓] K8s live production (`innoria_prod` SOP-DGM-06): {proc.stdout.strip()}")
+    assert "K8S_SOP_DGM_06_07_OK" in proc.stdout, proc.stdout
+    print(f"[✓] K8s live production (`innoria_prod` SOP-DGM-06 & SOP-DGM-07): {proc.stdout.strip()}")
 
 
 def main():
@@ -558,7 +698,7 @@ def main():
         verify_db_partner_onboarding(db)
     verify_workflow_state_machine_and_gates()
     verify_k8s_partner_onboarding()
-    print("[🎉] ALL SOP-DGM-06 PARTNER ONBOARDING & PAYMENT GATE CHECKS PASSED (EXIT 0)")
+    print("[🎉] ALL SOP-DGM-06 & SOP-DGM-07 PARTNER ONBOARDING, STAFF AUGMENTATION & PAYMENT GATE CHECKS PASSED (EXIT 0)")
 
 
 if __name__ == "__main__":

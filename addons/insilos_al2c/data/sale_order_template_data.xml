@@ -215,5 +215,35 @@
         <field name="product_id" ref="product_dgm_mobiai_csp_variant"/>
         <field name="product_uom_qty">1</field>
     </record>
+
+    <!-- ====================================================================== -->
+    <!-- QUOTATION TEMPLATE: STAFF AUGMENTATION CONTRACT (MTI / AIFIN 140-180h) -->
+    <!-- ====================================================================== -->
+    <record id="sale_tpl_staff_augmentation" model="sale.order.template">
+        <field name="name">Hợp đồng Thuê Nhân sự Kỹ thuật B2B (MTI / AIfin Staff Augmentation — Khung 140-180h)</field>
+        <field name="note">ĐIỀU KHOẢN THƯƠNG MẠI CHUẨN (SOP-DGM-07):
+1. Khung giờ làm việc tiêu chuẩn: Tối thiểu 140 giờ/tháng — Tối đa 180 giờ/tháng (tương đương 08 giờ/ngày x 20–22 ngày làm việc).
+2. Đơn giá Làm thêm giờ (Overtime - OT):
+   - OT ngày thường (Thứ Hai – Thứ Sáu): 100% đơn giá giờ tiêu chuẩn.
+   - OT ngày nghỉ cuối tuần (Thứ Bảy, Chủ Nhật) &amp; Ngày Lễ: 150% đơn giá giờ tiêu chuẩn.
+3. Thời hạn Thanh toán (Payment Term): Net 40 ngày làm việc kể từ ngày Khách hàng nhận đủ Hóa đơn GTGT hợp lệ và Bảng chấm công (Timesheet) có xác nhận của Quản lý Dự án.
+4. Thay thế Nhân sự &amp; Thử việc Miễn phí: Báo trước bằng văn bản tối thiểu 30 ngày; Digimate hỗ trợ 05 ngày làm việc đầu tiên miễn phí (Free Replacement Trial) đối với nhân sự thay thế để bàn giao công việc.</field>
+    </record>
+    <record id="sale_tpl_staff_augmentation_line_1" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sale_tpl_staff_augmentation"/>
+        <field name="sequence">10</field>
+        <field name="product_id" ref="product_svc_onsite_sr_variant"/>
+        <field name="name">Kỹ sư Phần mềm Senior Biệt phái (Cam kết SLA 140–180 giờ/tháng — Tạm tính chuẩn 160 giờ)</field>
+        <field name="product_uom_qty">160</field>
+        <field name="product_uom_id" ref="uom.product_uom_hour"/>
+    </record>
+    <record id="sale_tpl_staff_augmentation_line_2" model="sale.order.template.line">
+        <field name="sale_order_template_id" ref="sale_tpl_staff_augmentation"/>
+        <field name="sequence">20</field>
+        <field name="product_id" ref="product_consult_hour_variant"/>
+        <field name="name">Giờ Tư vấn Kiến trúc Giải pháp &amp; Code Review (Solution Architect Oversight)</field>
+        <field name="product_uom_qty">16</field>
+        <field name="product_uom_id" ref="uom.product_uom_hour"/>
+    </record>
 </data>
 </odoo>

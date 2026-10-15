@@ -563,6 +563,69 @@
         <field name="description_purchase">Gói gia hạn Chứng thư số Viettel-CA &amp; SInvoice 36 tháng (HĐĐT 1K23TVA-2368750: 833,636 VND chưa thuế, phân bổ TK 242 -&gt; TK 6427: 23,157 VND/tháng).</field>
     </record>
 
+    <!-- 31. SVC-ONSITE-SR: Senior Onsite Software Engineer (MTI / AIfin Staff Augmentation 140-180h) -->
+    <record id="product_svc_onsite_sr" model="product.template">
+        <field name="name">Dịch vụ Kỹ sư Phần mềm Senior Biệt phái (Staff Augmentation 140-180h)</field>
+        <field name="default_code">SVC-ONSITE-SR</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_dgm_onsite"/>
+        <field name="uom_id" ref="uom.product_uom_hour"/>
+        <field name="list_price">350000.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">timesheet</field>
+        <field name="service_tracking">task_in_project</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">vat_8</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_svc_onsite_sr"/>
+        <field name="project_template_id" ref="tpl_erp_starter"/>
+        <field name="description_sale">Dịch vụ cung ứng nhân sự kỹ thuật trình độ Senior Biệt phái (Onsite/Remote) theo chuẩn Hợp đồng MTI Technology &amp; AIfin. Cam kết khung giờ chuẩn: tối thiểu 140 giờ/tháng — tối đa 180 giờ/tháng; OT ngày thường: 100% đơn giá; OT cuối tuần/lễ: 150% đơn giá; Thanh toán: Net 40 ngày làm việc sau khi nhận đủ Hóa đơn GTGT &amp; Timesheet xác nhận; Thay thế nhân sự: báo trước 30 ngày kèm 05 ngày làm việc thử việc miễn phí.</field>
+    </record>
+
+    <!-- 32. SVC-ONSITE-MID: Mid-Level Onsite Software Engineer (Staff Augmentation 140-180h) -->
+    <record id="product_svc_onsite_mid" model="product.template">
+        <field name="name">Dịch vụ Kỹ sư Phần mềm Mid-Level Biệt phái (Staff Augmentation 140-180h)</field>
+        <field name="default_code">SVC-ONSITE-MID</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_dgm_onsite"/>
+        <field name="uom_id" ref="uom.product_uom_hour"/>
+        <field name="list_price">250000.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">timesheet</field>
+        <field name="service_tracking">task_in_project</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">svc</field>
+        <field name="al2c_vat_class">vat_8</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_svc_onsite_mid"/>
+        <field name="project_template_id" ref="tpl_erp_starter"/>
+        <field name="description_sale">Dịch vụ cung ứng nhân sự kỹ thuật trình độ Mid-Level Biệt phái (Onsite/Remote). Khung giờ chuẩn 140–180 giờ/tháng; OT ngày thường 100%, OT cuối tuần 150%; điều khoản thay thế nhân sự báo trước 30 ngày kèm 05 ngày thử việc miễn phí.</field>
+    </record>
+
+    <!-- 33. ERP-360-SALES: 360-Sales Omni-Channel & AI Call Coaching Platform -->
+    <record id="product_erp_360_sales" model="product.template">
+        <field name="name">Hệ thống Quản trị Bán hàng &amp; Đội ngũ Kinh doanh 360-Sales (Web, Mobile, Zalo MiniApp, AI Call Coaching)</field>
+        <field name="default_code">ERP-360-SALES</field>
+        <field name="type">service</field>
+        <field name="categ_id" ref="categ_erp_impl"/>
+        <field name="uom_id" ref="uom.product_uom_unit"/>
+        <field name="list_price">200000000.0</field>
+        <field name="sale_ok" eval="True"/>
+        <field name="purchase_ok" eval="False"/>
+        <field name="invoice_policy">delivery</field>
+        <field name="service_type">milestones</field>
+        <field name="service_tracking">project_only</field>
+        <field name="recurring_invoice" eval="False"/>
+        <field name="al2c_product_line">erp</field>
+        <field name="al2c_vat_class">kct</field>
+        <field name="al2c_knowledge_article_id" ref="kb_sku_erp_360_sales"/>
+        <field name="project_template_id" ref="tpl_erp_growth"/>
+        <field name="description_sale">Giải pháp quản trị bán hàng đa kênh 360-Sales (Web Admin, Mobile App iOS/Android, Zalo MiniApp, AI Call Recording &amp; Coaching, Quản lý KPI &amp; Hoa hồng) theo chuẩn hợp đồng AIfin 01/2025/HĐNT.</field>
+    </record>
+
     <!-- expose single variants as XML ids (insilos_al2c.product_<sku>_variant) for quotation template lines -->
     <function model="product.template" name="_al2c_ensure_variant_xmlids"/>
 </data>
