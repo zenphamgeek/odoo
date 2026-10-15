@@ -1098,7 +1098,7 @@ def test_patch_16_two_key_advisory_lock_and_paged_telemetry():
     with open(manifest_py, "r", encoding="utf-8") as f:
         man_src = f.read()
     assert "Insilos Sovereign Security Guard" in man_src, "Missing addon name in manifest"
-    assert any(v in man_src for v in ["'20.0.1.0.0'", '"20.0.1.0.0"', "'26.0.1.0.0'", '"26.0.1.0.0"']), "Invalid version in manifest"
+    assert "'version': '20.0.1.0.0'" in man_src or '"version": "20.0.1.0.0"' in man_src, "Invalid version in manifest"
     assert "'base'" in man_src or '"base"' in man_src, "Missing 'base' in depends"
 
     # 3. addons/insilos_security/__init__.py and models/__init__.py
@@ -2272,6 +2272,66 @@ def test_adversarial_kpi_and_database_compatibility():
     print("[✓] Adversarial test: KPI null-state, config-driven versioning & manifest parity verified")
 
 
+def test_patch_21_manifest_semver_and_release_compatibility():
+    """
+    Patch 21: Manifest Semver Normalization & Centralized Release Compatibility Matrix
+    - Verifies all 7 custom manifests declare canonical 'version': '20.0.1.0.0'
+    - Verifies odoo.release has COMPATIBLE_SERIES and is_version_compatible
+    - Tests is_version_compatible with '20.0.1.0', '19.1.0.5', '20.0', '26.0' (False), None (False), 'invalid' (False)
+    - Executes tools/lint_manifest_invariants.py --check and asserts exit code 0
+    """
+    import subprocess
+    import sys
+    from odoo import release
+
+    # 1. Verify 7 custom manifests have canonical version
+    custom_manifests = [
+        "addons/gpu_fleet_manager/__manifest__.py",
+        "addons/insilos_adapter/__manifest__.py",
+        "addons/insilos_al2c/__manifest__.py",
+        "addons/insilos_currency_cron/__manifest__.py",
+        "addons/insilos_pinned_conversion/__manifest__.py",
+        "addons/insilos_sap_fiori/__manifest__.py",
+        "addons/insilos_security/__manifest__.py",
+    ]
+    for rel_path in custom_manifests:
+        full_path = os.path.join(ROOT_DIR, rel_path)
+        with open(full_path, "r", encoding="utf-8") as f:
+            src = f.read()
+        assert "'version': '20.0.1.0.0'" in src or '"version": "20.0.1.0.0"' in src, (
+            f"Manifest {rel_path} must declare 'version': '20.0.1.0.0'"
+        )
+
+    # 2. Verify odoo.release has COMPATIBLE_SERIES and is_version_compatible
+    assert hasattr(release, "COMPATIBLE_SERIES"), "odoo.release must define COMPATIBLE_SERIES"
+    assert isinstance(release.COMPATIBLE_SERIES, (frozenset, set)), "COMPATIBLE_SERIES must be frozenset or set"
+    assert "20.0" in release.COMPATIBLE_SERIES, "20.0 must be in COMPATIBLE_SERIES"
+    assert "19.1" in release.COMPATIBLE_SERIES, "19.1 must be in COMPATIBLE_SERIES"
+
+    assert hasattr(release, "is_version_compatible"), "odoo.release must define is_version_compatible"
+    assert callable(release.is_version_compatible), "is_version_compatible must be callable"
+
+    # 3. Test is_version_compatible with specified values
+    assert release.is_version_compatible("20.0.1.0") is True, "20.0.1.0 must be compatible"
+    assert release.is_version_compatible("19.1.0.5") is True, "19.1.0.5 must be compatible"
+    assert release.is_version_compatible("20.0") is True, "20.0 must be compatible"
+    assert release.is_version_compatible("26.0") is False, "26.0 must NOT be compatible"
+    assert release.is_version_compatible(None) is False, "None must NOT be compatible"
+    assert release.is_version_compatible("invalid") is False, "'invalid' must NOT be compatible"
+
+    # 4. Execute tools/lint_manifest_invariants.py --check
+    lint_path = os.path.join(ROOT_DIR, "tools/lint_manifest_invariants.py")
+    res = subprocess.run(
+        [sys.executable, lint_path, "--check"],
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+    )
+    assert res.returncode == 0, f"tools/lint_manifest_invariants.py --check failed with code {res.returncode}:\n{res.stderr}\n{res.stdout}"
+
+    print("[✓] Patch 21 / Manifest Semver Normalization & Centralized Release Compatibility Matrix verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2306,7 +2366,8 @@ def main():
     test_adversarial_multitenant_empty_company_recordset_fallback()
     test_adversarial_orm_cache_purging_called_on_validation_error()
     test_adversarial_kpi_and_database_compatibility()
-    print("[✓] ALL 20 AUDIT PATCH DIRECTIVES + ADVERSARIAL VERIFICATIONS SATISFIED")
+    test_patch_21_manifest_semver_and_release_compatibility()
+    print("[✓] ALL 21 AUDIT PATCH DIRECTIVES + ADVERSARIAL VERIFICATIONS SATISFIED")
     print("[🎉] ALL SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 

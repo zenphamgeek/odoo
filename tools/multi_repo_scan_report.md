@@ -1,14 +1,14 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-14T18:09:02.470780+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-15T00:27:57.710445+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `51d847cf4` | 473 | ⚠️ 116 | 287,485 | 2,395.7 d | 452.6 d | 🟢 0 stale (19 missing) | ⚠️ 6 risks |
+| **`O20`** | `insilos-genesis-fork` | `29b91e16d` | 496 | ⚠️ 113 | 287,485 | 2,395.7 d | 474.1 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
 | **`VerticalRisk`** | `Development` | `6f7daf03e` | 176 | ✅ 0 | 729,263 | 5,064.3 d | 2,731.4 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
-| **`insilos_mobile`** | `main` | `6d7c31272` | 178 | ✅ 0 | 1,205,314 | 8,370.2 d | 2,960.5 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
-| **`zencode-ent`** | `main` | `eb7ecf615` | 111 | ⚠️ 6 | 1,234,102 | 10,284.2 d | 155.6 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
+| **`insilos_mobile`** | `main` | `7ca7c0058` | 179 | ✅ 0 | 1,205,589 | 8,372.1 d | 2,963.3 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
+| **`zencode-ent`** | `main` | `eb7ecf615` | 111 | ⚠️ 6 | 1,234,188 | 10,284.9 d | 155.6 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
 
 ---
 
@@ -16,9 +16,12 @@
 
 | Repository | Module / Package | Category | Drift (Days) | Status | Last Code Commit | Last Doc Commit |
 |:---|:---|:---|---:|:---:|:---|:---|
-| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-13T08:48:17+00:00 | N/A |
-| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T09:55:39+00:00 | N/A |
+| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T00:15:16+00:00 | N/A |
+| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:00:00+00:00 | N/A |
+| `O20` | `addons/insilos_currency_cron` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:51:00+00:00 | N/A |
+| `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:26:22+00:00 | N/A |
 | `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-13T19:02:16+00:00 | N/A |
+| `O20` | `addons/insilos_security` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:51:00+00:00 | N/A |
 | `O20` | `enterprise/innokafe_website` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-13T08:42:14+00:00 | N/A |
 | `O20` | `enterprise/insilos_capital_markets_decision_governance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
 | `O20` | `enterprise/insilos_chemical_trade_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T16:52:55+00:00 | N/A |
@@ -26,7 +29,7 @@
 | `O20` | `enterprise/insilos_finance_agent_os` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
 | `O20` | `enterprise/insilos_hs_sync` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
 | `O20` | `enterprise/insilos_hse_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
-| `O20` | `enterprise/insilos_industry_showcase` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T17:54:13+00:00 | N/A |
+| `O20` | `enterprise/insilos_industry_showcase` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T21:33:30+00:00 | N/A |
 | `O20` | `enterprise/insilos_knowledge_graph` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
 | `O20` | `enterprise/insilos_logistics_idp` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T05:23:10+00:00 | N/A |
 | `O20` | `enterprise/insilos_market_data` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
@@ -107,14 +110,14 @@
 | `insilos_mobile` | `mobo_vert_audit` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_capa` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_controls` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_core` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-08T00:44:28+00:00 | N/A |
+| `insilos_mobile` | `mobo_vert_core` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-15T00:27:53+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_ecm` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_evidence` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_hse` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_risk` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_shell` | `flutter_package` | **39.5 d** | 🔴 STALE | 2026-10-14T17:12:12+00:00 | 2026-09-05T05:51:48+00:00 |
+| `insilos_mobile` | `mobo_vert_shell` | `flutter_package` | **39.8 d** | 🔴 STALE | 2026-10-15T00:27:53+00:00 | 2026-09-05T05:51:48+00:00 |
 | `insilos_mobile` | `mobo_vert_work` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-14T17:12:12+00:00 | N/A |
+| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-15T00:27:53+00:00 | N/A |
 | `insilos_mobile` | `packages/insilos_design_system` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-14T06:23:48+00:00 | N/A |
 | `zencode-ent` | `mobo_vert_core` | `flutter_package` | **N/A** | ⚠️ MISSING | N/A | N/A |
 
@@ -229,13 +232,14 @@
 - [ ] [DEP01-MOBO_TODO-FLUTTER_SVG][P1][security] Pin loose ': any' dependency for flutter_svg in mobo_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
 - [ ] [DEP01-MOBO_TODO-PATH_PROVIDER][P1][security] Pin loose ': any' dependency for path_provider in mobo_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
 - [ ] [DEP01-MOBO_VERT_SHELL-INTL][P1][security] Pin loose ': any' dependency for intl in mobo_vert_shell/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_vert_shell/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_vert_shell/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 39.5d) — DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify="test -f mobo_vert_shell/README.md" risk=R1 -->
+- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 39.8d) — DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify="test -f mobo_vert_shell/README.md" risk=R1 -->
 - [ ] [DOC02-INNOKAFE_WEBSITE][P1][docs] Author sovereign localized README for innokafe_website — DoD: Create enterprise/innokafe_website/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/innokafe_website/README.md verify="test -f enterprise/innokafe_website/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_ADAPTER][P1][docs] Author sovereign localized README for insilos_adapter — DoD: Create addons/insilos_adapter/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_adapter/README.md verify="test -f addons/insilos_adapter/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_AL2C][P1][docs] Author sovereign localized README for insilos_al2c — DoD: Create addons/insilos_al2c/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_al2c/README.md verify="test -f addons/insilos_al2c/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_CAPITAL_MARKETS_DECISION_GOVERNANCE][P1][docs] Author sovereign localized README for insilos_capital_markets_decision_governance — DoD: Create enterprise/insilos_capital_markets_decision_governance/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_capital_markets_decision_governance/README.md verify="test -f enterprise/insilos_capital_markets_decision_governance/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_CHEMICAL_TRADE_COMPLIANCE][P1][docs] Author sovereign localized README for insilos_chemical_trade_compliance — DoD: Create enterprise/insilos_chemical_trade_compliance/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_chemical_trade_compliance/README.md verify="test -f enterprise/insilos_chemical_trade_compliance/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_CORE][P1][docs] Author sovereign localized README for insilos_core — DoD: Create packages/insilos_core/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=packages/insilos_core/README.md verify="test -f packages/insilos_core/README.md" risk=R0 -->
+- [ ] [DOC02-INSILOS_CURRENCY_CRON][P1][docs] Author sovereign localized README for insilos_currency_cron — DoD: Create addons/insilos_currency_cron/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_currency_cron/README.md verify="test -f addons/insilos_currency_cron/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_DESIGN_SYSTEM][P1][docs] Author sovereign localized README for insilos_design_system — DoD: Create packages/insilos_design_system/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=packages/insilos_design_system/README.md verify="test -f packages/insilos_design_system/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_ESG_BRIDGE][P1][docs] Author sovereign localized README for insilos_esg_bridge — DoD: Create enterprise/insilos_esg_bridge/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_esg_bridge/README.md verify="test -f enterprise/insilos_esg_bridge/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_FINANCE_AGENT_OS][P1][docs] Author sovereign localized README for insilos_finance_agent_os — DoD: Create enterprise/insilos_finance_agent_os/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_finance_agent_os/README.md verify="test -f enterprise/insilos_finance_agent_os/README.md" risk=R0 -->
@@ -246,9 +250,11 @@
 - [ ] [DOC02-INSILOS_LOGISTICS_IDP][P1][docs] Author sovereign localized README for insilos_logistics_idp — DoD: Create enterprise/insilos_logistics_idp/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_logistics_idp/README.md verify="test -f enterprise/insilos_logistics_idp/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_MARKET_DATA][P1][docs] Author sovereign localized README for insilos_market_data — DoD: Create enterprise/insilos_market_data/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_market_data/README.md verify="test -f enterprise/insilos_market_data/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_MARKET_TERMINAL][P1][docs] Author sovereign localized README for insilos_market_terminal — DoD: Create enterprise/insilos_market_terminal/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_market_terminal/README.md verify="test -f enterprise/insilos_market_terminal/README.md" risk=R0 -->
+- [ ] [DOC02-INSILOS_PINNED_CONVERSION][P1][docs] Author sovereign localized README for insilos_pinned_conversion — DoD: Create addons/insilos_pinned_conversion/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_pinned_conversion/README.md verify="test -f addons/insilos_pinned_conversion/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_PREFERENTIAL_ORIGIN][P1][docs] Author sovereign localized README for insilos_preferential_origin — DoD: Create enterprise/insilos_preferential_origin/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_preferential_origin/README.md verify="test -f enterprise/insilos_preferential_origin/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_PUBSUB_BRIDGE][P1][docs] Author sovereign localized README for insilos_pubsub_bridge — DoD: Create enterprise/insilos_pubsub_bridge/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_pubsub_bridge/README.md verify="test -f enterprise/insilos_pubsub_bridge/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_SAP_FIORI][P1][docs] Author sovereign localized README for insilos_sap_fiori — DoD: Create addons/insilos_sap_fiori/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_sap_fiori/README.md verify="test -f addons/insilos_sap_fiori/README.md" risk=R0 -->
+- [ ] [DOC02-INSILOS_SECURITY][P1][docs] Author sovereign localized README for insilos_security — DoD: Create addons/insilos_security/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_security/README.md verify="test -f addons/insilos_security/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_TENANT_CONTROL][P1][docs] Author sovereign localized README for insilos_tenant_control — DoD: Create enterprise/insilos_tenant_control/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_tenant_control/README.md verify="test -f enterprise/insilos_tenant_control/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_TREASURY_MARKET_RISK][P1][docs] Author sovereign localized README for insilos_treasury_market_risk — DoD: Create enterprise/insilos_treasury_market_risk/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_treasury_market_risk/README.md verify="test -f enterprise/insilos_treasury_market_risk/README.md" risk=R0 -->
 - [ ] [DOC02-MOBO_VERT_AUDIT][P1][docs] Author sovereign localized README for mobo_vert_audit — DoD: Create mobo_vert_audit/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_audit/README.md verify="test -f mobo_vert_audit/README.md" risk=R0 -->
@@ -330,7 +336,7 @@
 - [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks — DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify="test -f extensions/verticalrisk-webhooks/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api — DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify="test -f extensions/verticalrisk-workflow-api/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel — DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify="test -f extensions/verticalrisk-workflow-kernel/README.md" risk=R0 -->
-- [ ] [WIP01-O20][P1][plan] Triage 116 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
+- [ ] [WIP01-O20][P1][plan] Triage 113 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml — DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MCP][P2][security] Pin upper bound on Python dependency mcp in router/pyproject.toml — DoD: Add explicit upper bound constraint to mcp in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MODAL][P2][security] Pin upper bound on Python dependency modal in router/pyproject.toml — DoD: Add explicit upper bound constraint to modal in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->

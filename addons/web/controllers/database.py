@@ -50,11 +50,10 @@ def list_db_incompatible(databases: Iterable[str]) -> list[str]:
                     parts = base_version[0].split('.')
                     local_version = '.'.join(parts[:2]) if len(parts) >= 2 else base_version[0]
                     compatible_cfg = insilos.tools.config.get('compatible_series') or insilos.tools.config.get('compatible_release_series') or ''
+                    supported = {release.serie} | set(release.COMPATIBLE_SERIES)
                     if compatible_cfg:
-                        supported = release.COMPATIBLE_SERIES | set(filter(None, [s.strip() for s in compatible_cfg.split(',')]))
-                        if local_version not in supported:
-                            incompatible_databases.append(database_name)
-                    elif local_version not in release.COMPATIBLE_SERIES:
+                        supported = supported | set(filter(None, [s.strip() for s in compatible_cfg.split(',')]))
+                    if local_version not in supported:
                         incompatible_databases.append(database_name)
             else:
                 incompatible_databases.append(database_name)
