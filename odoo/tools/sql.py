@@ -39,9 +39,13 @@ class _SQLMeta(type):
     @staticmethod
     def identifier(name: str, subname: str | None = None, to_flush: Field | None = None) -> SQL:
         """ Return an SQL object that represents an identifier. """
+        if hasattr(name, '_alias'):
+            name = name._alias
         assert name.isidentifier() or IDENT_RE.match(name), f"{name!r} invalid for SQL.identifier()"
         if subname is None:
             return SQL(f'"{name}"', to_flush=to_flush)  # pylint: disable=sql-injection
+        if hasattr(subname, '_alias'):
+            subname = subname._alias
         assert subname.isidentifier() or IDENT_RE.match(subname), f"{subname!r} invalid for SQL.identifier()"
         return SQL(f'"{name}"."{subname}"', to_flush=to_flush)  # pylint: disable=sql-injection
 

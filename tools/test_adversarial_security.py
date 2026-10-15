@@ -2342,6 +2342,145 @@ def test_patch_22_owl_telemetry_payroll_gate():
     print("[✓] Patch 22 / OWL Reactive Props, Telemetry Block Table, Document Cycle & VCB DigiBiz Gate verified")
 
 
+def test_patch_22_telemetry_resilience_and_vcb_formula_hardening():
+    """
+    Patch 22: Offline-Resilient Telemetry Sanitization, Standalone JWT Redaction,
+    Formatted VN Phone Masking, VCB DigiBiz Formula Neutralization & Strict RBAC Barrier.
+    """
+    import io
+    import types
+    import zipfile
+    from tools import test_remediated_error_dialog
+
+    # 1. Standalone JWT and Formatted VN Phone Sanitization in Node.js
+    for js_path in [
+        os.path.join(ROOT_DIR, "addons/web/static/src/core/errors/error_dialogs.js"),
+        os.path.join(ROOT_DIR, "enterprise/insilos_theme_genesis/static/src/errors/runtime_error_dialog_patch.js"),
+    ]:
+        san_fn = test_remediated_error_dialog.extract_function_block(js_path, "sanitizeErrorPayload")
+        node_script = f"""
+{san_fn}
+const jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+const sJwt1 = sanitizeErrorPayload(jwt);
+const sJwt2 = sanitizeErrorPayload("Raw JWT: " + jwt);
+if (sJwt1 !== "[REDACTED_JWT]" || !sJwt2.includes("[REDACTED_JWT]")) {{
+    throw new Error("Standalone JWT not redacted with [REDACTED_JWT] in " + sJwt1);
+}}
+
+const phones = [
+    "(091) 234 5678",
+    "091.234.5678",
+    "091-234-5678",
+    "091 234 5678",
+    "0912345678",
+];
+for (const p of phones) {{
+    const s = sanitizeErrorPayload("Customer phone: " + p);
+    if (s.includes("234 5678") || s.includes("234.5678") || s.includes("234-5678") || s.includes("2345678")) {{
+        throw new Error("Formatted phone leaked: " + s);
+    }}
+    if (!s.includes("*****")) {{
+        throw new Error("Phone not masked: " + s);
+    }}
+}}
+const sPlain = sanitizeErrorPayload("0912345678");
+if (sPlain !== "091*****78") {{
+    throw new Error("VULN-01 regression on plain phone: " + sPlain);
+}}
+console.log("OK");
+"""
+        proc = subprocess.run(["node", "-e", node_script], capture_output=True, text=True, check=True)
+        assert "OK" in proc.stdout, f"Node sanitization test failed for {js_path}: {proc.stderr}"
+
+    # 2. Offline check and AbortController timeout presence
+    for filepath in [
+        os.path.join(ROOT_DIR, "addons/web/static/src/core/errors/error_dialogs.js"),
+        os.path.join(ROOT_DIR, "enterprise/insilos_theme_genesis/static/src/errors/runtime_error_dialog_patch.js"),
+    ]:
+        with open(filepath, "r", encoding="utf-8") as f:
+            src = f.read()
+        assert "navigator.onLine" in src, f"Missing navigator.onLine offline guard in {filepath}"
+        assert 'this.state.incidentCode = "ERR-OFFLINE";' in src, f"Missing ERR-OFFLINE in {filepath}"
+        assert "new AbortController()" in src, f"Missing AbortController in {filepath}"
+        assert "controller.abort(), 1500" in src, f"Missing 1500ms timeout in {filepath}"
+        assert "signal: controller.signal" in src, f"Missing signal: controller.signal in {filepath}"
+        assert "clearTimeout(timeoutId)" in src, f"Missing clearTimeout(timeoutId) in {filepath}"
+
+    # 3. Test sanitize_excel_cell neutralizing payloads
+    from tools import test_dgm_hr_payroll_dashboard as td
+    ed, _ = td._setup_controller_module()
+
+    test_payloads = [
+        "=cmd|' /C calc'!A0",
+        "+1+1",
+        "-5+2",
+        "@SUM(1,2)",
+        "\t=2+2",
+        "\r=cmd|",
+    ]
+    for p in test_payloads:
+        san = ed.sanitize_excel_cell(p)
+        assert isinstance(san, str) and san.startswith("'"), f"Payload {p!r} not neutralized: {san!r}"
+
+    # Ensure normal inputs and leading zeros are preserved
+    assert ed.sanitize_excel_cell(None) == ""
+    assert ed.sanitize_excel_cell(45000000) == 45000000
+    assert ed.sanitize_excel_cell("0111000287863") == "0111000287863"
+    assert ed.sanitize_excel_cell("Normal Text") == "Normal Text"
+
+    # 4. Test _build_minimal_xlsx neutralizes formula payloads
+    headers = ["STT", "=cmd|' /C calc'!A0", "+1+1", "-5+2", "@SUM(1,2)"]
+    rows = [["1", "\t=2+2", "\r=cmd|", "=1+1", 1000000]]
+    xlsx_bytes = ed._build_minimal_xlsx(headers, rows)
+    assert len(xlsx_bytes) > 500
+    with zipfile.ZipFile(io.BytesIO(xlsx_bytes), "r") as zf:
+        names = zf.namelist()
+        all_xml = ""
+        for n in ["xl/worksheets/sheet1.xml", "xl/sharedStrings.xml"]:
+            if n in names:
+                all_xml += zf.read(n).decode("utf-8")
+    assert "'=cmd|' /C calc'!A0" in all_xml
+    assert "'+1+1" in all_xml
+    assert "'-5+2" in all_xml
+    assert "'@SUM(1,2)" in all_xml
+    assert "'=2+2" in all_xml
+    assert "'=cmd|" in all_xml
+    assert "'=1+1" in all_xml
+
+    # 5. Test export_vcb_digibiz enforces caller_role == 'HR_EXEC'
+    ctrl = ed.InsilosEmployeeDashboardController()
+
+    def make_response(data, headers=None, status=200):
+        return types.SimpleNamespace(data=data, headers=headers, status_code=status)
+
+    ed.request.make_response = make_response
+
+    class MockParam:
+        def sudo(self): return self
+        def get_param(self, k): return None
+
+    class MockEnv:
+        uid = 2
+        def __getitem__(self, k):
+            return MockParam()
+
+    ed.request.env = MockEnv()
+
+    # Unauthorized role
+    ctrl._resolve_viewer_role = lambda emp: "USER"
+    res_unauth = ctrl.export_vcb_digibiz()
+    assert res_unauth.status_code == 403, f"Expected 403, got {res_unauth.status_code}"
+    assert "Unauthorized" in res_unauth.data
+
+    # HR_EXEC role
+    ctrl._resolve_viewer_role = lambda emp: "HR_EXEC"
+    res_hr = ctrl.export_vcb_digibiz()
+    assert res_hr.status_code == 200, f"Expected 200, got {res_hr.status_code}"
+    assert len(res_hr.data) > 500
+
+    print("[✓] Patch 22 / Offline-Resilient Telemetry, Standalone JWT Redaction & VCB DigiBiz Hardening verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2378,8 +2517,9 @@ def main():
     test_adversarial_kpi_and_database_compatibility()
     test_patch_21_manifest_semver_and_release_compatibility()
     test_patch_22_owl_telemetry_payroll_gate()
-    print("[✓] ALL 22 AUDIT PATCH DIRECTIVES + ADVERSARIAL VERIFICATIONS SATISFIED")
-    print("[🎉] ALL SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_22_telemetry_resilience_and_vcb_formula_hardening()
+    print("[✓] ALL 22 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 22 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":

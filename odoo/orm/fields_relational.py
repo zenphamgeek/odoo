@@ -662,7 +662,7 @@ class _RelationalMulti(_Relational):
         elif value is False or value is None:
             return ()
 
-        elif isinstance(value, list) and value and not isinstance(value[0], (tuple, list)):  # [1,2,3]
+        elif isinstance(value, list) and value and not isinstance(value[0], (tuple, list, dict)):  # [1,2,3]
             if records and not any(records._ids):
                 return tuple(it and NewId(it) for it in value)
             return tuple(value)
@@ -1373,6 +1373,21 @@ class Many2many(_RelationalMulti):
                 legacy_tbl = SOVEREIGN_TABLE_LEGACY.get(model._table)
                 legacy_comodel_tbl = SOVEREIGN_TABLE_LEGACY.get(comodel._table)
 
+                # Dynamic relation table resolution: if canonical self.relation does not exist in DB,
+                # check if the legacy/sovereign counterpart table already exists physically.
+                cr = model.env.cr
+                if self.relation and not sql.table_exists(cr, self.relation):
+                    t1_opts = [model._table] + ([legacy_tbl] if legacy_tbl else [])
+                    t2_opts = [comodel._table] + ([legacy_comodel_tbl] if legacy_comodel_tbl else [])
+                    for t1 in t1_opts:
+                        for t2 in t2_opts:
+                            if t1 == t2:
+                                continue
+                            cand_rel = '%s_%s_rel' % tuple(sorted([t1, t2]))
+                            if cand_rel != self.relation and sql.table_exists(cr, cand_rel):
+                                self.relation = cand_rel
+                                break
+
                 if not self.column1:
                     if legacy_tbl and legacy_tbl in (self.relation or ''):
                         self.column1 = f'{legacy_tbl}_id'
@@ -1386,7 +1401,6 @@ class Many2many(_RelationalMulti):
 
                 # Dynamic self-healing: if physical relation table already exists in database,
                 # ensure column1 and column2 point to actual physical database columns (sovereign or legacy)
-                cr = model.env.cr
                 if sql.table_exists(cr, self.relation):
                     def _heal_col(col, tbl, leg_tbl):
                         if sql.column_exists(cr, self.relation, col):
@@ -1548,6 +1562,17 @@ class Many2many(_RelationalMulti):
             'finance_journal_entry': 'account_move',
             'finance_journal_line': 'account_move_line',
         }
+        if not sql.table_exists(cr, self.relation) and model_table and comodel_table:
+            t1_opts = [model_table] + ([SOVEREIGN_TABLE_LEGACY[model_table]] if model_table in SOVEREIGN_TABLE_LEGACY else [])
+            t2_opts = [comodel_table] + ([SOVEREIGN_TABLE_LEGACY[comodel_table]] if comodel_table in SOVEREIGN_TABLE_LEGACY else [])
+            for t1 in t1_opts:
+                for t2 in t2_opts:
+                    if t1 == t2:
+                        continue
+                    cand_rel = '%s_%s_rel' % tuple(sorted([t1, t2]))
+                    if cand_rel != self.relation and sql.table_exists(cr, cand_rel):
+                        self.relation = cand_rel
+                        break
         if self.column1 and not sql.column_exists(cr, self.relation, self.column1):
             candidates = []
             if model_table:

@@ -757,6 +757,14 @@ actual arch.
         assert query.from_clause == SQL.identifier('ir_ui_view'), f"Unexpected from clause: {query.from_clause}"
         where_clause = query.where_clause
 
+        alias_pairs = []
+        for attr in ('SOVEREIGN_MODEL_ALIASES', 'REVERSE_MODEL_ALIASES'):
+            mapping = getattr(self.pool, attr, None)
+            if isinstance(mapping, dict):
+                for k, v in mapping.items():
+                    alias_pairs.append((k, v))
+                    alias_pairs.append((v, k))
+
         query = SQL("""
             WITH RECURSIVE ir_ui_view_inherits AS (
                 SELECT ir_ui_view.id, %(aliased_names)s
@@ -766,7 +774,10 @@ actual arch.
                 SELECT ir_ui_view.id, %(aliased_names)s
                 FROM ir_ui_view
                 INNER JOIN ir_ui_view_inherits parent ON parent.id = ir_ui_view.inherit_id
-                WHERE coalesce(ir_ui_view.model, '') = coalesce(parent.model, '')
+                WHERE (
+                    coalesce(ir_ui_view.model, '') = coalesce(parent.model, '')
+                    OR (coalesce(ir_ui_view.model, '') != '' AND coalesce(parent.model, '') != '' AND ir_ui_view.inherit_id IS NOT NULL)
+                )
                       AND ir_ui_view.mode = 'extension'
                       AND (%(where_clause)s)
             )

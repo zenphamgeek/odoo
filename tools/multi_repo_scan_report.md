@@ -1,14 +1,14 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-15T00:27:57.710445+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-15T01:36:20.059608+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `29b91e16d` | 496 | ⚠️ 113 | 287,485 | 2,395.7 d | 474.1 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
+| **`O20`** | `insilos-genesis-fork` | `bc3aafb2a` | 505 | ⚠️ 116 | 287,502 | 2,395.8 d | 477.6 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
 | **`VerticalRisk`** | `Development` | `6f7daf03e` | 176 | ✅ 0 | 729,263 | 5,064.3 d | 2,731.4 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
-| **`insilos_mobile`** | `main` | `7ca7c0058` | 179 | ✅ 0 | 1,205,589 | 8,372.1 d | 2,963.3 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
-| **`zencode-ent`** | `main` | `eb7ecf615` | 111 | ⚠️ 6 | 1,234,188 | 10,284.9 d | 155.6 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
+| **`insilos_mobile`** | `main` | `15a2b28dd` | 180 | ✅ 0 | 1,205,811 | 8,373.7 d | 2,965.6 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
+| **`zencode-ent`** | `main` | `eb7ecf615` | 111 | ⚠️ 6 | 1,234,191 | 10,284.9 d | 155.6 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
 
 ---
 
@@ -16,26 +16,26 @@
 
 | Repository | Module / Package | Category | Drift (Days) | Status | Last Code Commit | Last Doc Commit |
 |:---|:---|:---|---:|:---:|:---|:---|
-| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T00:15:16+00:00 | N/A |
-| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:00:00+00:00 | N/A |
+| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T01:31:47+00:00 | N/A |
+| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T01:20:06+00:00 | N/A |
 | `O20` | `addons/insilos_currency_cron` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:51:00+00:00 | N/A |
-| `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:26:22+00:00 | N/A |
+| `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T01:01:24+00:00 | N/A |
 | `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-13T19:02:16+00:00 | N/A |
 | `O20` | `addons/insilos_security` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:51:00+00:00 | N/A |
-| `O20` | `enterprise/innokafe_website` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-13T08:42:14+00:00 | N/A |
+| `O20` | `enterprise/innokafe_website` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
 | `O20` | `enterprise/insilos_capital_markets_decision_governance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_chemical_trade_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T16:52:55+00:00 | N/A |
-| `O20` | `enterprise/insilos_esg_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
+| `O20` | `enterprise/insilos_chemical_trade_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
+| `O20` | `enterprise/insilos_esg_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
 | `O20` | `enterprise/insilos_finance_agent_os` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_hs_sync` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
-| `O20` | `enterprise/insilos_hse_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
+| `O20` | `enterprise/insilos_hs_sync` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
+| `O20` | `enterprise/insilos_hse_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
 | `O20` | `enterprise/insilos_industry_showcase` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T21:33:30+00:00 | N/A |
-| `O20` | `enterprise/insilos_knowledge_graph` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_logistics_idp` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T05:23:10+00:00 | N/A |
+| `O20` | `enterprise/insilos_knowledge_graph` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
+| `O20` | `enterprise/insilos_logistics_idp` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
 | `O20` | `enterprise/insilos_market_data` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
 | `O20` | `enterprise/insilos_market_terminal` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-14T05:23:10+00:00 | N/A |
-| `O20` | `enterprise/insilos_preferential_origin` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_pubsub_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-05T07:23:25+00:00 | N/A |
+| `O20` | `enterprise/insilos_preferential_origin` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
+| `O20` | `enterprise/insilos_pubsub_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
 | `O20` | `enterprise/insilos_tenant_control` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
 | `O20` | `enterprise/insilos_treasury_market_risk` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-advance-awareness-campaigns` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
@@ -115,9 +115,9 @@
 | `insilos_mobile` | `mobo_vert_evidence` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_hse` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_risk` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_shell` | `flutter_package` | **39.8 d** | 🔴 STALE | 2026-10-15T00:27:53+00:00 | 2026-09-05T05:51:48+00:00 |
+| `insilos_mobile` | `mobo_vert_shell` | `flutter_package` | **39.8 d** | 🔴 STALE | 2026-10-15T01:36:15+00:00 | 2026-09-05T05:51:48+00:00 |
 | `insilos_mobile` | `mobo_vert_work` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-15T00:27:53+00:00 | N/A |
+| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-15T01:36:15+00:00 | N/A |
 | `insilos_mobile` | `packages/insilos_design_system` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-14T06:23:48+00:00 | N/A |
 | `zencode-ent` | `mobo_vert_core` | `flutter_package` | **N/A** | ⚠️ MISSING | N/A | N/A |
 
@@ -336,7 +336,7 @@
 - [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks — DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify="test -f extensions/verticalrisk-webhooks/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api — DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify="test -f extensions/verticalrisk-workflow-api/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel — DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify="test -f extensions/verticalrisk-workflow-kernel/README.md" risk=R0 -->
-- [ ] [WIP01-O20][P1][plan] Triage 113 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
+- [ ] [WIP01-O20][P1][plan] Triage 116 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml — DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MCP][P2][security] Pin upper bound on Python dependency mcp in router/pyproject.toml — DoD: Add explicit upper bound constraint to mcp in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MODAL][P2][security] Pin upper bound on Python dependency modal in router/pyproject.toml — DoD: Add explicit upper bound constraint to modal in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->

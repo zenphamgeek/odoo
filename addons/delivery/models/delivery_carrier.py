@@ -295,9 +295,9 @@ class DeliveryCarrier(models.Model):
 
     def _match_must_have_tags(self, source):
         self.ensure_one()
-        if source._name == "sale.order":
+        if source._name in ("sale.order", "order.header"):
             products = source.order_line.product_id
-        elif source._name == "stock.picking":
+        elif source._name in ("stock.picking", "logistics.transfer"):
             products = source.move_ids.with_prefetch().mapped("product_id")
         else:
             raise UserError(self.env._("Invalid source document type"))
@@ -307,9 +307,9 @@ class DeliveryCarrier(models.Model):
 
     def _match_excluded_tags(self, source):
         self.ensure_one()
-        if source._name == "sale.order":
+        if source._name in ("sale.order", "order.header"):
             products = source.order_line.product_id
-        elif source._name == "stock.picking":
+        elif source._name in ("stock.picking", "logistics.transfer"):
             products = source.move_ids.with_prefetch().mapped("product_id")
         else:
             raise UserError(self.env._("Invalid source document type"))
@@ -317,11 +317,11 @@ class DeliveryCarrier(models.Model):
 
     def _match_weight(self, source):
         self.ensure_one()
-        if source._name == "sale.order":
+        if source._name in ("sale.order", "order.header"):
             total_weight = sum(
                 line.product_id.weight * line.product_qty for line in source.order_line
             )
-        elif source._name == "stock.picking":
+        elif source._name in ("stock.picking", "logistics.transfer"):
             total_weight = sum(
                 move.product_id.weight * move.product_qty for move in source.move_ids
             )
@@ -331,11 +331,11 @@ class DeliveryCarrier(models.Model):
 
     def _match_volume(self, source):
         self.ensure_one()
-        if source._name == "sale.order":
+        if source._name in ("sale.order", "order.header"):
             total_volume = sum(
                 line.product_id.volume * line.product_qty for line in source.order_line
             )
-        elif source._name == "stock.picking":
+        elif source._name in ("stock.picking", "logistics.transfer"):
             total_volume = sum(
                 move.product_id.volume * move.product_qty for move in source.move_ids
             )

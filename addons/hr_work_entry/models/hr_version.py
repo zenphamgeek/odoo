@@ -29,6 +29,12 @@ class HrVersion(models.Model):
         attendance = country_attendance or self.env.ref('hr_work_entry.generic_work_entry_type_attendance', raise_if_not_found=False)
         return attendance.id if attendance else False
 
+    def _get_default_work_entry_type_overtime_id(self):
+        overtime = self.env.ref('hr_work_entry.generic_work_entry_type_overtime', raise_if_not_found=False)
+        if not overtime:
+            overtime = self.env['hr.work.entry.type'].search([('code', 'ilike', 'OVERTIME')], limit=1)
+        return overtime.id if overtime else self._get_default_work_entry_type_id()
+
     def _get_leave_work_entry_type_dates(self, leave, date_from, date_to, employee):
         return self._get_leave_work_entry_type(leave)
 

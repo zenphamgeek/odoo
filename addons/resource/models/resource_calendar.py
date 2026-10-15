@@ -304,11 +304,20 @@ class ResourceCalendar(models.Model):
     # Computation API
     # --------------------------------------------------
 
-    def _attendance_intervals_batch(self, start_dt, end_dt, resources_per_tz=None, domain=None):
+    def _attendance_intervals_batch(self, start_dt, end_dt, resources_per_tz=None, domain=None, resources=None, lunch=False, tz=None):
         assert start_dt.tzinfo and end_dt.tzinfo
+        if resources is not None and resources_per_tz is None:
+            if hasattr(resources, '_get_resources_per_tz'):
+                resources_per_tz = resources._get_resources_per_tz()
+            elif isinstance(resources, (list, tuple, set)):
+                rec_set = self.env['resource.resource'].browse([r.id for r in resources if getattr(r, 'id', False)])
+                resources_per_tz = rec_set._get_resources_per_tz()
+        elif resources_per_tz and hasattr(resources_per_tz, '_get_resources_per_tz'):
+            resources_per_tz = resources_per_tz._get_resources_per_tz()
+
         if self:
             self.ensure_one()
-        elif not resources_per_tz.values():
+        elif not resources_per_tz or not resources_per_tz.values():
             raise UserError(self.env._("You cannot compute the intervals without a calendar on no resource."))
 
         if not resources_per_tz:
@@ -326,6 +335,8 @@ class ResourceCalendar(models.Model):
             end = max(end, high.replace(tzinfo=UTC))
 
         domain = Domain(domain or Domain.TRUE)
+        if lunch and 'day_period' in self.env['resource.calendar.attendance']._fields:
+            domain &= Domain('day_period', '=', 'lunch')
         if self:
             attendances_per_day = self._get_attendances_by_date(start.date(), end.date(), domain | Domain('duration_based', '=', True))
         else:
@@ -485,11 +496,18 @@ class ResourceCalendar(models.Model):
         resources_per_tz = resource._get_resources_per_tz()
         return self._leave_intervals_batch(start_dt, end_dt, resources_per_tz=resources_per_tz, domain=domain)[resource.id]
 
-    def _leave_intervals_batch(self, start_dt, end_dt, resources_per_tz=None, domain=None):
+    def _leave_intervals_batch(self, start_dt, end_dt, resources_per_tz=None, domain=None, resources=None):
         """ Return the leave intervals in the given datetime range.
             The returned intervals are expressed in specified tz or in the calendar's timezone.
         """
         assert start_dt.tzinfo and end_dt.tzinfo
+
+        if resources is not None and resources_per_tz is None:
+            if hasattr(resources, '_get_resources_per_tz'):
+                resources_per_tz = resources._get_resources_per_tz()
+            elif isinstance(resources, (list, tuple, set)):
+                rec_set = self.env['resource.resource'].browse([r.id for r in resources if getattr(r, 'id', False)])
+                resources_per_tz = rec_set._get_resources_per_tz()
 
         if domain is None:
             domain = [('count_as', '=', 'absence')]
@@ -500,9 +518,13 @@ class ResourceCalendar(models.Model):
         if not resources_per_tz or self:
             all_resources.add(self.env['resource.resource'])
             resources_per_tz = resources_per_tz or {start_dt.tzinfo: self.env['resource.resource']}
-        if resources_per_tz:
-            for _, resources in resources_per_tz.items():
-                all_resources |= set(resources)
+        if resources_per_tz and isinstance(resources_per_tz, dict):
+            for _, res_items in resources_per_tz.items():
+                all_resources |= set(res_items)
+        elif resources_per_tz and hasattr(resources_per_tz, '_get_resources_per_tz'):
+            resources_per_tz = resources_per_tz._get_resources_per_tz()
+            for _, res_items in resources_per_tz.items():
+                all_resources |= set(res_items)
 
         # for the computation, express all datetimes in UTC
         # Public leave don't have a resource_id
