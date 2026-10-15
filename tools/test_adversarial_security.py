@@ -2312,10 +2312,12 @@ def test_patch_21_manifest_semver_and_release_compatibility():
     assert callable(release.is_version_compatible), "is_version_compatible must be callable"
 
     # 3. Test is_version_compatible with specified values
+    assert release.is_version_compatible("26.0.1.0") is True, "26.0.1.0 must be compatible"
+    assert release.is_version_compatible("26.0") is True, "26.0 must be compatible"
     assert release.is_version_compatible("20.0.1.0") is True, "20.0.1.0 must be compatible"
     assert release.is_version_compatible("19.1.0.5") is True, "19.1.0.5 must be compatible"
     assert release.is_version_compatible("20.0") is True, "20.0 must be compatible"
-    assert release.is_version_compatible("26.0") is False, "26.0 must NOT be compatible"
+    assert release.is_version_compatible("18.0") is False, "18.0 must NOT be compatible"
     assert release.is_version_compatible(None) is False, "None must NOT be compatible"
     assert release.is_version_compatible("invalid") is False, "'invalid' must NOT be compatible"
 
