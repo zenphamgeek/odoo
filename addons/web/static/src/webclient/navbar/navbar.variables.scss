@@ -4,26 +4,27 @@ $o-navbar-height: 46px !default;
 $o-navbar-padding-v: 10px !default;
 $o-navbar-font-size: $o-font-size-base !default;
 
-$o-navbar-background: #070B14 !default;
+$o-navbar-background: var(--insilos-bg-header) !default;
 
 $o-navbar-entry-margin-h: 0 !default;
 $o-navbar-entry-padding-h: $o-spacer * .5 !default;
 $o-navbar-entry-border-radius: $o-border-radius !default;
-$o-navbar-entry-color: rgba($o-white, .9) !default;
-$o-navbar-entry-color--hover: #FF8000 !default;
+$o-navbar-entry-color: var(--insilos-text-primary) !default;
+$o-navbar-entry-color--hover: #0f172a !default;
 $o-navbar-entry-font-size: 1em !default;
-$o-navbar-entry-bg--hover: rgba($o-black, .08) !default;
+$o-navbar-entry-bg--hover: rgba(15, 23, 42, 0.06) !default;
 
-$o-navbar-entry-color--active: $o-navbar-entry-color--hover !default;
-$o-navbar-entry-bg--active: $o-navbar-entry-bg--hover !default;
+$o-navbar-entry-color--active: #0f172a !default;
+$o-navbar-entry-bg--active: rgba(15, 23, 42, 0.08) !default;
 
 $o-navbar-brand-font-size: 1.2em !default;
-$o-navbar-brand-color: $o-navbar-entry-color !default;
+$o-navbar-brand-color: var(--insilos-text-primary) !default;
 
 $o-navbar-badge-size: 11px !default;
 $o-navbar-badge-padding: 4px !default;
 $o-navbar-badge-bg: $o-success !default;
 $o-navbar-badge-color: inherit !default;
+$o-navbar-badge-text-color: #ffffff !default;
 $o-navbar-badge-text-shadow: 1px 1px 0 rgba($o-black, .3) !default;
 
 // = % PseudoClasses

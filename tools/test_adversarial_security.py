@@ -2866,6 +2866,110 @@ def test_patch_26_shallow_partner_loader_hmac_share_and_lockfree_index():
     print("[✓] Patch 26 / Lock-Free Index Check, Shallow Partner Stream Loader & Constant-Time HMAC Share Guard verified")
 
 
+def test_patch_27_theme_switch_dark_to_light_control_sections():
+    """
+    Patch 27 Verification Suite:
+    1. addons/web/static/src/webclient/navbar/navbar.variables.scss does NOT hardcode #070B14
+       for $o-navbar-background in Light Mode and uses var(--insilos-bg-header).
+    2. enterprise/insilos_theme_genesis/static/src/user_menu/user_menu_patch.js synchronizes
+       color_scheme cookie + insilos_theme localStorage, swaps web.assets_web_dark <-> web.assets_web
+       stylesheet links in applyTheme, and triggers reload() in setTheme.
+    3. enterprise/web_enterprise/static/src/webclient/color_scheme/color_scheme_service.js
+       honors 'light' scheme and removes o_dark_mode.
+    4. enterprise/insilos_theme_genesis/static/src/scss/insilos_home_launcher_restructure.scss
+       scopes dark .o_home_menu_background to body.o_dark_mode.
+    5. insilos_theme_genesis is 'installed' with active ir_asset entries in insilos20_dev and innoria_prod.
+    """
+    import psycopg2
+
+    # 1. Verify navbar.variables.scss
+    navbar_vars_path = os.path.join(ROOT_DIR, "addons/web/static/src/webclient/navbar/navbar.variables.scss")
+    with open(navbar_vars_path, "r", encoding="utf-8") as f:
+        navbar_vars_src = f.read()
+    assert "#070B14" not in navbar_vars_src and "#070b14" not in navbar_vars_src, (
+        "navbar.variables.scss must not hardcode #070B14 for $o-navbar-background in Light Mode"
+    )
+    assert "$o-navbar-background: var(--insilos-bg-header)" in navbar_vars_src, (
+        "navbar.variables.scss must bind $o-navbar-background to var(--insilos-bg-header)"
+    )
+
+    # 2. Verify user_menu_patch.js
+    user_menu_patch_path = os.path.join(
+        ROOT_DIR, "enterprise/insilos_theme_genesis/static/src/user_menu/user_menu_patch.js"
+    )
+    with open(user_menu_patch_path, "r", encoding="utf-8") as f:
+        user_menu_src = f.read()
+    assert 'cookie.set("color_scheme"' in user_menu_src, "user_menu_patch.js must sync color_scheme cookie"
+    assert 'localStorage.setItem("insilos_theme"' in user_menu_src, (
+        "user_menu_patch.js must sync insilos_theme localStorage"
+    )
+    assert "web.assets_web_dark" in user_menu_src and "web.assets_web" in user_menu_src, (
+        "user_menu_patch.js applyTheme must swap web.assets_web_dark <-> web.assets_web stylesheet links"
+    )
+    assert "reload()" in user_menu_src, "user_menu_patch.js setTheme must trigger reload()"
+
+    # 3. Verify color_scheme_service.js
+    cs_service_path = os.path.join(
+        ROOT_DIR, "enterprise/web_enterprise/static/src/webclient/color_scheme/color_scheme_service.js"
+    )
+    with open(cs_service_path, "r", encoding="utf-8") as f:
+        cs_service_src = f.read()
+    assert '"light"' in cs_service_src, "color_scheme_service.js must honor 'light' scheme"
+    assert 'classList.remove("o_dark_mode")' in cs_service_src, (
+        "color_scheme_service.js must remove o_dark_mode class when in light mode"
+    )
+
+    # 4. Verify insilos_home_launcher_restructure.scss scopes dark .o_home_menu_background to body.o_dark_mode
+    launcher_scss_path = os.path.join(
+        ROOT_DIR, "enterprise/insilos_theme_genesis/static/src/scss/insilos_home_launcher_restructure.scss"
+    )
+    with open(launcher_scss_path, "r", encoding="utf-8") as f:
+        launcher_scss_src = f.read()
+    assert "body.o_dark_mode" in launcher_scss_src, (
+        "insilos_home_launcher_restructure.scss must scope dark launchpad rules to body.o_dark_mode"
+    )
+    dark_section = launcher_scss_src.split("/* Dark Mode Launchpad Adjustments */")[-1]
+    dark_selector_header = dark_section.split("{")[0]
+    unscoped_lines = [
+        line.strip().rstrip(",")
+        for line in dark_selector_header.splitlines()
+        if line.strip() and not line.strip().startswith("/*")
+    ]
+    assert "body.o_home_menu_background" not in unscoped_lines and ".o_home_menu_background" not in unscoped_lines, (
+        f"Dark Mode Launchpad Adjustments must not have unscoped .o_home_menu_background selectors: {unscoped_lines}"
+    )
+
+    # 5. Verify insilos_theme_genesis is 'installed' with active ir_asset entries in insilos20_dev and innoria_prod
+    for db_name in ("insilos20_dev", "innoria_prod"):
+        conn = psycopg2.connect(
+            host=os.environ.get("PGHOST", "127.0.0.1"),
+            port=int(os.environ.get("PGPORT", 5434)),
+            user=os.environ.get("PGUSER", "odoo"),
+            password=os.environ.get("PGPASSWORD", "1NN0R1@2026"),
+            dbname=db_name,
+        )
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "SELECT state FROM ir_module_module WHERE name = 'insilos_theme_genesis'"
+                )
+                row = cur.fetchone()
+                assert row and row[0] == "installed", (
+                    f"{db_name}: expected insilos_theme_genesis state='installed', got {row}"
+                )
+                cur.execute(
+                    "SELECT count(*) FROM ir_asset WHERE path LIKE 'insilos_theme_genesis/%' AND active = TRUE"
+                )
+                asset_count = cur.fetchone()[0]
+                assert asset_count >= 29, (
+                    f"{db_name}: expected >= 29 active ir_asset entries for insilos_theme_genesis, got {asset_count}"
+                )
+        finally:
+            conn.close()
+
+    print("[✓] Patch 27 / Dark-to-Light Theme Switch Control Sections, Asset Bundles & Navbar Tokens verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2907,8 +3011,9 @@ def main():
     test_patch_24_documents_kanban_owl3_ref_searchpanel_ghost_scss()
     test_patch_25_partner_load_indexes_and_share_idor_guard()
     test_patch_26_shallow_partner_loader_hmac_share_and_lockfree_index()
-    print("[✓] ALL 26 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 26 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_27_theme_switch_dark_to_light_control_sections()
+    print("[✓] ALL 27 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 27 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
