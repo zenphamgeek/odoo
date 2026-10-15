@@ -48,7 +48,13 @@ def report_configuration():
     """
     from .. import addons  # noqa: PLC0415
     from .. import release  # noqa: PLC0415
-    _logger.info('Insilos Platform Server v%s', release.version)
+    _logger.info(
+        'Insilos Platform Server v%s (Build %s | Worktree %s | Tag %s)',
+        release.version,
+        release.build_id,
+        release.build_datetime,
+        release.build_tag,
+    )
     if os.path.isfile(config['config']):
         _logger.info("Using configuration file at %s", config['config'])
     _logger.info('addons paths: %s', addons.__path__)

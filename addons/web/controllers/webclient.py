@@ -95,6 +95,12 @@ class WebClient(http.Controller):
             'server_version': release.version,
             'server_version_info': release.version_info,
             'server_serie': release.serie,
+            'server_build_id': release.build_id,
+            'server_build_timestamp': release.build_timestamp,
+            'server_build_datetime': release.build_datetime,
+            'server_build_commit': release.build_commit,
+            'server_build_tag': release.build_tag,
+            'server_full_version': release.full_version,
         }
 
     @http.route('/web/tests', type='http', auth='user', readonly=True)

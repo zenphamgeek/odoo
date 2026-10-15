@@ -2261,6 +2261,17 @@ def test_patch_19_1_csbp_bipartite_and_dual_cache_purge():
     print("[✓] Patch 19.1 / CSBP-32x2 Bipartite Struct Keys, Length-Prefixed Tokens & Dual Cache Purge verified")
 
 
+def test_adversarial_kpi_and_database_compatibility():
+    """
+    Verifies SEC-01 (Null-state DB tuple unpacking safety in _db_kpi_summary),
+    SEC-02 (Config-driven database version compatibility enforcement), and
+    SEC-03 (Addon manifest version consistency '20.0.1.0.0').
+    """
+    from tools.__tests__ import test_adversarial_kpi_database_compatibility
+    test_adversarial_kpi_database_compatibility.run_all_tests()
+    print("[✓] Adversarial test: KPI null-state, config-driven versioning & manifest parity verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2294,6 +2305,7 @@ def main():
     test_adversarial_deterministic_key_delimiter_injection_resistance()
     test_adversarial_multitenant_empty_company_recordset_fallback()
     test_adversarial_orm_cache_purging_called_on_validation_error()
+    test_adversarial_kpi_and_database_compatibility()
     print("[✓] ALL 20 AUDIT PATCH DIRECTIVES + ADVERSARIAL VERIFICATIONS SATISFIED")
     print("[🎉] ALL SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 

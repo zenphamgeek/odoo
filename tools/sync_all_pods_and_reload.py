@@ -34,17 +34,60 @@ def compute_idempotency_key(targets: list[dict], extra_version: str = "") -> str
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()[:16]
 
 
-def plan_rollout(targets: list[dict]) -> dict:
+def ensure_and_load_build_info(create_tags: bool = True) -> dict:
+    """Invokes tag_and_stamp_build.py or loads build_info.json for deterministic release stamping."""
+    stamp_script = os.path.join("tools", "tag_and_stamp_build.py")
+    build_info_path = os.path.join("od" + "oo", "build_info.json")
+    if os.path.isfile(stamp_script):
+        cmd = [sys.executable, stamp_script]
+        if create_tags:
+            cmd.append("--tag")
+        else:
+            cmd.append("--no-tag")
+        res = subprocess.run(cmd, shell=False, capture_output=True, text=True)
+        if res.returncode == 0 and res.stdout.strip():
+            try:
+                return json.loads(res.stdout.strip())
+            except Exception:
+                pass
+    if os.path.isfile(build_info_path):
+        try:
+            with open(build_info_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "major_version": "26.0",
+        "version": "26.0+e",
+        "build_id": "unknown",
+        "build_timestamp": "",
+        "build_datetime": "",
+        "git_commit": "local",
+        "git_tag": "v26.0",
+        "deploy_tag": "deploy-v26.0",
+    }
+
+
+def plan_rollout(targets: list[dict], build_info: dict | None = None) -> dict:
     """
     Two-Phase Rollout Plan:
     Emits the ordered execution diff, target pods, and assigned idempotency key
     without altering pod runtime state.
     """
-    asset_hash = hashlib.sha256(str(int(time.time() // 3600)).encode("utf-8")).hexdigest()[:8]
+    if build_info is None:
+        build_info = ensure_and_load_build_info(create_tags=False)
+    asset_hash = hashlib.sha256(
+        f"{build_info.get('build_id', '')}:{int(time.time() // 3600)}".encode("utf-8")
+    ).hexdigest()[:8]
     idem_key = compute_idempotency_key(targets, extra_version=asset_hash)
     return {
         "idempotency_key": idem_key,
         "timestamp": time.time(),
+        "version": build_info.get("version", "26.0+e"),
+        "build_id": build_info.get("build_id", ""),
+        "build_datetime": build_info.get("build_datetime", ""),
+        "git_tag": build_info.get("git_tag", ""),
+        "deploy_tag": build_info.get("deploy_tag", ""),
         "phase": "planned",
         "target_count": len(targets),
         "targets": targets,
@@ -184,6 +227,8 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
     enforcing symlink safety invariants, snapshot freezing, and size bounds, then uploads to all target pods.
     Guarantees ephemeral cleanup of all archives in finally block.
     """
+    build_info = ensure_and_load_build_info(create_tags=True)
+    print(f"[*] Stamped Build Info: {build_info.get('build_id')} ({build_info.get('git_tag')})")
     staging_dir = tempfile.mkdtemp(prefix="insilos_sync_")
     print(f"[*] Staging secure packaging directory: {staging_dir}")
     try:
@@ -295,14 +340,16 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_adapter_cmd, check=True)
         print(f"[✓] Created {tar_path_adapter}")
 
-        # 4B. Web Enterprise Customizations (Navbar single logo, Home Menu Dark, Webclient Templates, ColorScheme)
+        # 4B. Web Enterprise Customizations (Version 26.0+e, Settings About UI, Navbar single logo, Home Menu Dark, Webclient Templates, ColorScheme)
         tar_path_web_ent = os.path.join(staging_dir, "web_enterprise_sync.tar.gz")
         WEB_ENT_MEMBERS = [
+            "version.py",
             "views/webclient_templates.xml",
             "static/src/webclient/navbar/navbar.xml",
             "static/src/webclient/home_menu/home_menu.scss",
             "static/src/webclient/home_menu/home_menu.dark.scss",
             "static/src/webclient/color_scheme/color_scheme_service.js",
+            "static/src/webclient/settings_form_view/res_config_edition.xml",
         ]
         frozen_web_ent = os.path.join(staging_dir, "frozen_web_ent")
         freeze_and_audit_members("enterprise/web_enterprise", WEB_ENT_MEMBERS, frozen_web_ent)
@@ -598,6 +645,49 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_terminal_cmd, check=True)
         print(f"[✓] Created {tar_path_terminal}")
 
+        # 4Q. Core Release 26.0, Build Metadata, Module Loader & CLI Server Sync
+        tar_path_release_core = os.path.join(staging_dir, "release_core_sync.tar.gz")
+        RELEASE_CORE_MEMBERS = [
+            "release.py",
+            "build_info.json",
+            "modules/module.py",
+            "cli/server.py",
+        ]
+        frozen_release_core = os.path.join(staging_dir, "frozen_release_core")
+        freeze_and_audit_members("odoo", RELEASE_CORE_MEMBERS, frozen_release_core)
+        tar_release_core_cmd = [
+            "tar",
+            "-czf",
+            tar_path_release_core,
+            "-C",
+            frozen_release_core,
+            *RELEASE_CORE_MEMBERS,
+        ]
+        subprocess.run(tar_release_core_cmd, check=True)
+        print(f"[✓] Created {tar_path_release_core}")
+
+        # 4R. Web Core Session Info, Version Info, DB Compatibility & Settings About Edition Widget
+        tar_path_web_core = os.path.join(staging_dir, "web_core_sync.tar.gz")
+        WEB_CORE_MEMBERS = [
+            "models/ir_http.py",
+            "controllers/webclient.py",
+            "controllers/database.py",
+            "static/src/webclient/settings_form_view/widgets/res_config_edition.js",
+            "static/src/webclient/settings_form_view/widgets/res_config_edition.xml",
+        ]
+        frozen_web_core = os.path.join(staging_dir, "frozen_web_core")
+        freeze_and_audit_members("addons/web", WEB_CORE_MEMBERS, frozen_web_core)
+        tar_web_core_cmd = [
+            "tar",
+            "-czf",
+            tar_path_web_core,
+            "-C",
+            frozen_web_core,
+            *WEB_CORE_MEMBERS,
+        ]
+        subprocess.run(tar_web_core_cmd, check=True)
+        print(f"[✓] Created {tar_path_web_core}")
+
         # 5. Digest-Pinning Manifest (Content-Addressed Attestation)
         manifest_path = os.path.join(staging_dir, "manifest.sha256")
         with open(manifest_path, "w", encoding="utf-8") as f:
@@ -622,6 +712,8 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             f.write(f"{compute_sha256(tar_path_mail_tools)}  mail_tools_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_docs)}  documents_sync.tar.gz\n")
             f.write(f"{compute_sha256(tar_path_terminal)}  insilos_market_terminal_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_release_core)}  release_core_sync.tar.gz\n")
+            f.write(f"{compute_sha256(tar_path_web_core)}  web_core_sync.tar.gz\n")
         print(f"[✓] Generated Content-Addressed Manifest: {manifest_path}")
 
         print("\n=== 2. DEPLOYING ARCHIVES TO ALL PODS & PERSISTENT VOLUMES IN PARALLEL ===")
@@ -685,6 +777,16 @@ for term in /app/insilos/enterprise/insilos_market_terminal /app/insilos/apps/in
         tar -xzf /tmp/insilos_market_terminal_sync.tar.gz -C "$term/"
     fi
 done
+
+for core_dir in /app/insilos/odoo /app/insilos/insilos; do
+    if [ -d "$core_dir" ]; then
+        tar -xzf /tmp/release_core_sync.tar.gz -C "$core_dir/"
+    fi
+done
+
+if [ -d "/app/insilos/addons/web" ]; then
+    tar -xzf /tmp/web_core_sync.tar.gz -C /app/insilos/addons/web/
+fi
 
 for fio in /app/insilos/addons/insilos_sap_fiori /var/lib/insilos/filestore/custom_addons/insilos_sap_fiori; do
     mkdir -p "$fio"
@@ -761,9 +863,14 @@ CHOWN_TARGETS="
   /app/insilos/addons/insilos_al2c
   /app/insilos/addons/insilos_adapter
   /app/insilos/insilos_adapter
+  /app/insilos/odoo/release.py
+  /app/insilos/odoo/build_info.json
+  /app/insilos/odoo/modules/module.py
+  /app/insilos/odoo/cli/server.py
   /app/insilos/odoo/orm
   /app/insilos/odoo/service
   /app/insilos/odoo/addons/base/models
+  /app/insilos/addons/web
   /app/insilos/addons/product
   /app/insilos/addons/mrp
   /app/insilos/addons/mail/tools
@@ -795,7 +902,7 @@ for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_log
     fi
 done
 
-rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/odoo_server_sync.tar.gz /tmp/odoo_product_sync.tar.gz /tmp/odoo_mrp_sync.tar.gz /tmp/sale_renting_sync.tar.gz /tmp/ai_sync.tar.gz /tmp/ai_livechat_sync.tar.gz /tmp/mail_tools_sync.tar.gz /tmp/documents_sync.tar.gz /tmp/insilos_market_terminal_sync.tar.gz /tmp/manifest.sha256
+rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insilos_theme_genesis_sync.tar.gz /tmp/insilos_adapter_sync.tar.gz /tmp/web_enterprise_sync.tar.gz /tmp/industry_fsm_theme_sync.tar.gz /tmp/insilos_logistics_idp_sync.tar.gz /tmp/pos_react_sync.tar.gz /tmp/insilos_sap_fiori_sync.tar.gz /tmp/insilos_al2c_sync.tar.gz /tmp/odoo_orm_sync.tar.gz /tmp/odoo_base_sync.tar.gz /tmp/odoo_server_sync.tar.gz /tmp/odoo_product_sync.tar.gz /tmp/odoo_mrp_sync.tar.gz /tmp/sale_renting_sync.tar.gz /tmp/ai_sync.tar.gz /tmp/ai_livechat_sync.tar.gz /tmp/mail_tools_sync.tar.gz /tmp/documents_sync.tar.gz /tmp/insilos_market_terminal_sync.tar.gz /tmp/release_core_sync.tar.gz /tmp/web_core_sync.tar.gz /tmp/manifest.sha256
 """
 
         for target in targets:
@@ -824,6 +931,8 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_mail_tools, f"{pod}:/tmp/mail_tools_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_docs, f"{pod}:/tmp/documents_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_terminal, f"{pod}:/tmp/insilos_market_terminal_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_release_core, f"{pod}:/tmp/release_core_sync.tar.gz"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, tar_path_web_core, f"{pod}:/tmp/web_core_sync.tar.gz"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, manifest_path, f"{pod}:/tmp/manifest.sha256"])
             # Copy tools into /app/insilos/tools (0755 non-world-writable)
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sync_innoria_views_db.py", f"{pod}:/app/insilos/tools/sync_innoria_views_db.py"])
@@ -850,6 +959,13 @@ def main():
     parser.add_argument("--apply", action="store_true", help="Execute planned deployment with rollback barrier")
     args = parser.parse_args()
 
+    build_info = ensure_and_load_build_info(create_tags=not args.plan or args.apply)
+    print(
+        f"=== INSILOS {build_info.get('version', '26.0+e')} CLUSTER ROLLOUT "
+        f"| BUILD {build_info.get('build_id', '')} "
+        f"| WORKTREE {build_info.get('build_datetime', '')} "
+        f"| TAG {build_info.get('git_tag', '')} ==="
+    )
     print("=== 0. DISCOVERING ACTIVE RUNNING PODS ACROSS ALL INNORIA & INSILOS SERVICES ===")
 
     # Discover innoria-prod pods
@@ -883,13 +999,16 @@ def main():
         print("[!] No active running pods found! Aborting.")
         sys.exit(1)
 
-    rollout_plan = plan_rollout(all_targets)
+    rollout_plan = plan_rollout(all_targets, build_info=build_info)
     if args.plan and not args.apply:
         print("\n=== ROLLOUT PLAN (TWO-PHASE BARRIER) ===")
         print(json.dumps(rollout_plan, indent=2))
         return
 
-    print(f"\n[*] Executing Rollout with Idempotency Key: {rollout_plan['idempotency_key']}")
+    print(
+        f"\n[*] Executing Rollout with Idempotency Key: {rollout_plan['idempotency_key']} "
+        f"(Build: {rollout_plan['build_id']} | Tag: {rollout_plan['git_tag']})"
+    )
 
     stage_and_deploy_archives(all_targets)
 

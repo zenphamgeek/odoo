@@ -629,7 +629,9 @@ def adapt_version(version: str) -> str:
         version_parts = [int(v) for v in version_str_parts]
     except ValueError as e:
         raise ValueError(f"Invalid version {version!r}") from e
-    if len(version_parts) <= 3 and not version.startswith(serie):
+    compatible_series = getattr(release, 'COMPATIBLE_SERIES', {serie, '20.0', '19.1'})
+    has_compat_prefix = any(version.startswith(f"{s}.") for s in compatible_series)
+    if len(version_parts) <= 3 and not has_compat_prefix:
         # prefix the version with serie
         return f"{serie}.{version}"
     return version
@@ -639,7 +641,8 @@ def check_version(version: str, should_raise: bool = True) -> bool:
     """Check that the version is in a valid format for the current release."""
     version = adapt_version(version)
     serie = release.major_version
-    if version.startswith(serie + '.'):
+    compatible_prefixes = tuple(f"{s}." for s in getattr(release, 'COMPATIBLE_SERIES', {serie, '20.0', '19.1'}))
+    if version.startswith(compatible_prefixes) or version.startswith((serie + '.', '20.0.', '19.1.')):
         return True
     if should_raise:
         raise ValueError(

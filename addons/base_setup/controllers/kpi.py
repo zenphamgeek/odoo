@@ -8,8 +8,9 @@ from odoo.exceptions import ValidationError
 from odoo.http import Controller, route
 from odoo.modules import Manifest
 from odoo.modules import module as odoo_modules_module
-from odoo.release import series as release_series
+from odoo.release import is_version_compatible, serie as release_series
 from odoo.sql_db import db_connect
+from odoo import tools
 from odoo.tools import SQL
 
 from odoo.addons.base.models.res_users import _check_apikey_credentials
@@ -93,10 +94,14 @@ def _db_kpi_summary(database, api_key):
 
     with cursor as cr:
         cr.execute(SQL("SELECT latest_version FROM ir_module_module WHERE name = 'base'"))
-        db_version, = cr.fetchone()
-        if not db_version.startswith(release_series):
-            _logger.error("database %r has version %r that doesn't match running version %r",
-                          database, db_version, release_series)
+        row = cr.fetchone()
+        if not row or not row[0]:
+            _logger.warning("database %r has uninitialized or missing base module", database)
+            return
+        db_version = row[0]
+        valid_series = tuple(filter(None, [release_series, tools.config.get('compatible_release_series')]))
+        if not is_version_compatible(db_version):
+            _logger.error("database %r has version %r that doesn't match compatible release series %r", database, db_version, release_series)
             return  # behave as if the database does not exist
 
         uid = _check_apikey_credentials(cr, scope='rpc', key=api_key)
