@@ -19,7 +19,7 @@
         <field name="code">dgm.partner.official</field>
         <field name="prefix">PTN-DGM-2026-</field>
         <field name="padding">4</field>
-        <field name="number_next">7</field>
+        <field name="number_next">8</field>
         <field name="company_id" eval="False"/>
     </record>
 
@@ -34,7 +34,7 @@
         <field name="sequence">5</field>
     </record>
 
-    <!-- Canonical 6 DGM Partners Classification & Tiering -->
+    <!-- Canonical 7 DGM Partners Classification & Tiering -->
     <!-- 1. MTI Technology (Strategic B2B • Tier S • PTN-DGM-2026-0001) -->
     <record id="partner_dgm_mti" model="res.partner">
         <field name="dgm_partner_group">strategic_b2b</field>
@@ -109,6 +109,19 @@
         <field name="dgm_allowed_payment_rail">vcb_digibiz</field>
         <field name="dgm_provisional_code">TMP-DGM-0006</field>
         <field name="dgm_partner_code">PTN-DGM-2026-0006</field>
+        <field name="dgm_onboarding_state">approved</field>
+        <field name="dgm_sales_flex_mode" eval="True"/>
+    </record>
+
+    <!-- 7. CÔNG TY CỔ PHẦN AIFIN COMPANY GLOBAL (Strategic B2B & Staff Augmentation • Tier S • PTN-DGM-2026-0007) -->
+    <record id="partner_dgm_customer_aifin" model="res.partner">
+        <field name="dgm_partner_group">strategic_b2b</field>
+        <field name="dgm_partner_tier">tier_s</field>
+        <field name="dgm_tier_score">100</field>
+        <field name="dgm_credit_limit_vnd">2000000000</field>
+        <field name="dgm_allowed_payment_rail">vcb_digibiz</field>
+        <field name="dgm_provisional_code">TMP-DGM-0007</field>
+        <field name="dgm_partner_code">PTN-DGM-2026-0007</field>
         <field name="dgm_onboarding_state">approved</field>
         <field name="dgm_sales_flex_mode" eval="True"/>
     </record>
