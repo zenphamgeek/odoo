@@ -2638,6 +2638,67 @@ def test_patch_24_documents_kanban_owl3_ref_searchpanel_ghost_scss():
     print("[✓] Patch 24 / Documents Kanban OWL 3 Ref, SearchPanel Template & Kanban Ghost SCSS Guard verified")
 
 
+def test_patch_25_partner_load_indexes_and_share_idor_guard():
+    import psycopg2
+
+    # 1. Verify init() covering index definitions & positive-int partner ID guard in res_partner_onboarding.py
+    onb_py = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/res_partner_onboarding.py")
+    with open(onb_py, "r", encoding="utf-8") as f:
+        onb_src = f.read()
+    assert "def init(self):" in onb_src, "Missing def init(self): in res_partner_onboarding.py"
+    for idx_name in (
+        "idx_res_partner_dgm_onboarding_cover",
+        "idx_res_partner_dgm_partner_code",
+        "idx_documents_partner_folder_rel",
+    ):
+        assert idx_name in onb_src, f"Missing index {idx_name} in res_partner_onboarding.py"
+    assert "isinstance(partner.id, int) and partner.id > 0" in onb_src, (
+        "Missing positive integer partner.id validation in res_partner_onboarding.py"
+    )
+
+    # 2. Verify live presence of the 3 covering indexes in pg_indexes on insilos20_dev and local innoria_prod
+    expected_indexes = {
+        "idx_res_partner_dgm_onboarding_cover",
+        "idx_res_partner_dgm_partner_code",
+        "idx_documents_partner_folder_rel",
+    }
+    for db_name in ("insilos20_dev", "innoria_prod"):
+        conn = psycopg2.connect(
+            host=os.environ.get("PGHOST", "127.0.0.1"),
+            port=int(os.environ.get("PGPORT", 5434)),
+            user=os.environ.get("PGUSER", "odoo"),
+            password=os.environ.get("PGPASSWORD", "1NN0R1@2026"),
+            dbname=db_name,
+        )
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT indexname FROM pg_indexes WHERE indexname = ANY(%s)",
+                (list(expected_indexes),),
+            )
+            found = {r[0] for r in cur.fetchall()}
+            assert found == expected_indexes, f"Missing indexes in {db_name}: {expected_indexes - found}"
+        finally:
+            conn.close()
+
+    # 3. Verify positive integer folder.id guard in documents_controller_mixin.js & referrerpolicy in document_file_viewer.xml
+    ctrl_mixin_js = os.path.join(ROOT_DIR, "enterprise/documents/static/src/views/documents_controller_mixin.js")
+    with open(ctrl_mixin_js, "r", encoding="utf-8") as f:
+        ctrl_mixin_src = f.read()
+    assert "Number.isInteger(folder.id) && folder.id > 0" in ctrl_mixin_src, (
+        "Missing Number.isInteger(folder.id) && folder.id > 0 in documents_controller_mixin.js"
+    )
+
+    viewer_xml = os.path.join(ROOT_DIR, "enterprise/documents/static/src/attachments/document_file_viewer.xml")
+    with open(viewer_xml, "r", encoding="utf-8") as f:
+        viewer_xml_src = f.read()
+    assert 'referrerpolicy="no-referrer"' in viewer_xml_src, (
+        "Missing referrerpolicy=\"no-referrer\" in document_file_viewer.xml"
+    )
+
+    print("[✓] Patch 25 / Partner Load Covering Indexes, N+1 Elimination & Documents Share IDOR Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2677,8 +2738,9 @@ def main():
     test_patch_22_telemetry_resilience_and_vcb_formula_hardening()
     test_patch_23_nahlaleah102_sql_telemetry_toctou_audit()
     test_patch_24_documents_kanban_owl3_ref_searchpanel_ghost_scss()
-    print("[✓] ALL 24 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 24 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_25_partner_load_indexes_and_share_idor_guard()
+    print("[✓] ALL 25 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 25 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":

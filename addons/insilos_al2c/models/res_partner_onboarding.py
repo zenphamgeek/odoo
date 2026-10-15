@@ -213,6 +213,34 @@ class ResPartnerOnboarding(models.Model):
         copy=False,
     )
 
+    def init(self):
+        if hasattr(super(), "init"):
+            super().init()
+        self.env.cr.execute(
+            """
+            SELECT relname, relkind
+              FROM pg_class
+             WHERE relname IN ('res_partner', 'party_master', 'documents_document')
+               AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
+            """
+        )
+        rels = dict(self.env.cr.fetchall() or [])
+        partner_tbl = (
+            "party_master"
+            if rels.get("res_partner") == "v" and rels.get("party_master") == "r"
+            else "res_partner"
+        )
+        for raw_sql in (
+            "CREATE INDEX IF NOT EXISTS idx_res_partner_dgm_onboarding_cover ON res_partner (is_company, customer_rank DESC, active, dgm_onboarding_state, dgm_partner_tier) WHERE active = TRUE",
+            "CREATE INDEX IF NOT EXISTS idx_res_partner_dgm_partner_code ON res_partner (dgm_partner_code) WHERE dgm_partner_code IS NOT NULL",
+        ):
+            if rels.get(partner_tbl) == "r":
+                self.env.cr.execute(raw_sql.replace(" ON res_partner ", f" ON {partner_tbl} "))
+        if rels.get("documents_document") == "r":
+            self.env.cr.execute(
+                "CREATE INDEX IF NOT EXISTS idx_documents_partner_folder_rel ON documents_document (partner_id, folder_id) WHERE active = TRUE AND partner_id IS NOT NULL"
+            )
+
     # -------------------------------------------------------------------------
     # Computed Methods
     # -------------------------------------------------------------------------
@@ -319,20 +347,30 @@ class ResPartnerOnboarding(models.Model):
         WITHOUT raising any blocking error for Sales Team!
         """
         Partner = self.env['res.partner'].sudo()
+        vat_candidates = None
         for partner in self:
-            if not partner.id:
+            if not (partner.id and isinstance(partner.id, int) and partner.id > 0):
+                continue
+            if partner.dgm_canonical_partner_id:
+                continue
+            if not partner.is_company and not partner.vat:
                 continue
             norm_vat = self._normalize_vat_code(partner.vat)
             biz_domain = self._extract_business_domain(partner.email)
+            if not norm_vat and not biz_domain:
+                continue
             existing = Partner.browse()
 
             if norm_vat:
-                candidates = Partner.search([
-                    ('id', '!=', partner.id),
-                    ('active', '=', True),
-                    ('vat', '!=', False),
-                ], order='id asc')
-                for cand in candidates:
+                if vat_candidates is None:
+                    vat_candidates = Partner.search([
+                        ('id', '!=', partner.id),
+                        ('active', '=', True),
+                        ('vat', '!=', False),
+                    ], order='id asc')
+                for cand in vat_candidates:
+                    if cand.id == partner.id:
+                        continue
                     if self._normalize_vat_code(cand.vat) == norm_vat:
                         if cand.dgm_onboarding_state == 'approved' or not existing:
                             existing = cand
@@ -402,25 +440,23 @@ class ResPartnerOnboarding(models.Model):
                 vals['dgm_sales_flex_mode'] = True
         records = super().create(vals_list)
         for rec in records:
-            if not rec.dgm_provisional_code:
+            if not rec.dgm_provisional_code and rec.id and isinstance(rec.id, int) and rec.id > 0:
                 rec.sudo().write({
                     'dgm_provisional_code': f"TMP-DGM-{rec.id:04d}",
                 })
-            if rec.vat or rec.email:
-                try:
-                    rec._resolve_or_link_existing_partner()
-                except Exception as exc:
-                    _logger.debug("Non-blocking partner conflict resolution skipped on create: %s", exc)
+        try:
+            records._resolve_or_link_existing_partner()
+        except Exception as exc:
+            _logger.debug("Non-blocking partner conflict resolution skipped on create: %s", exc)
         return records
 
     def write(self, vals):
         res = super().write(vals)
         if not self.env.context.get('skip_dgm_conflict_check') and ('vat' in vals or 'email' in vals):
-            for rec in self:
-                try:
-                    rec.with_context(skip_dgm_conflict_check=True)._resolve_or_link_existing_partner()
-                except Exception as exc:
-                    _logger.debug("Non-blocking partner conflict resolution skipped on write: %s", exc)
+            try:
+                self.with_context(skip_dgm_conflict_check=True)._resolve_or_link_existing_partner()
+            except Exception as exc:
+                _logger.debug("Non-blocking partner conflict resolution skipped on write: %s", exc)
         return res
 
     # -------------------------------------------------------------------------
@@ -735,6 +771,8 @@ class ResPartnerOnboarding(models.Model):
         tag_comm = self.env.ref('insilos_al2c.tag_dgm_contract_comm', raise_if_not_found=False)
 
         for partner in self:
+            if not (partner.id and isinstance(partner.id, int) and partner.id > 0):
+                raise UserError(_("Invalid partner ID for onboarding document generation."))
             if not partner.dgm_provisional_code:
                 partner.sudo().write({'dgm_provisional_code': f"TMP-DGM-{partner.id:04d}"})
 
@@ -836,6 +874,8 @@ class ResPartnerOnboarding(models.Model):
         and refreshing `04_Payment_Gate_Approval_Cert` with the official Partner Code.
         """
         for partner in self:
+            if not (partner.id and isinstance(partner.id, int) and partner.id > 0):
+                raise UserError(_("Invalid partner ID for partner onboarding approval."))
             if not partner.dgm_provisional_code:
                 partner.sudo().write({'dgm_provisional_code': f"TMP-DGM-{partner.id:04d}"})
             if not partner.dgm_partner_code:
