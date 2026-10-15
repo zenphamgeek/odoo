@@ -50,7 +50,7 @@ class Home(Controller):
         query = {k: v for k, v in request.params.items() if k != 'subpath'}
         return request.redirect_query(new_path, query=query)
 
-    def _web_client_readonly(self, rule, args):
+    def _web_client_readonly(self, rule=None, args=None, *a, **kw):
         return False
 
     # ideally, this route should be `auth="user"` but that don't work in non-monodb mode.

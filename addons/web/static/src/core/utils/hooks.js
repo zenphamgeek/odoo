@@ -53,9 +53,12 @@ export const autofocusParamsType = t.object({
  * @param {boolean} [params.mobile] if true, will force autofocus on touch devices.
  * @returns {import("@insilos/owl").Signal<HTMLElement>} the element reference
  */
-export function useAutofocus({ ref, selectAll, mobile } = {}) {
+export function useAutofocus({ ref, refName, selectAll, mobile } = {}) {
     const uiService = useService("ui");
-    ref ||= signal.ref();
+    if (!ref) {
+        const owlUseRef = globalThis.owl?.useRef;
+        ref = owlUseRef ? owlUseRef(refName || "autofocus") : signal.ref();
+    }
     const getEl = typeof ref === "function" ? ref : () => ref?.el;
 
     // Prevent autofocus on touch devices to avoid the virtual keyboard from popping up unexpectedly
@@ -195,13 +198,18 @@ useService.handleCallWhenDestroyed = function handleCallWhenDestroyed() {
  * longer in focus. We only add this attribute when needed. To disable this
  * behavior, use the spellcheck attribute on the element.
  */
-export function useSpellCheck({ ref } = {}) {
+export function useSpellCheck({ ref, refName } = {}) {
+    if (!ref) {
+        const owlUseRef = globalThis.owl?.useRef;
+        ref = owlUseRef ? owlUseRef(refName || "spellcheck") : signal.ref();
+    }
+    const getEl = typeof ref === "function" ? ref : () => ref?.el;
     const elements = [];
     function toggleSpellcheck(ev) {
         ev.target.spellcheck = document.activeElement === ev.target;
     }
     useOnChange(
-        () => [ref()],
+        () => [getEl()],
         (el) => {
             if (el) {
                 const inputs =

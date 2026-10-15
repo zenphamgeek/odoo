@@ -583,7 +583,7 @@ class SaleOrderLine(models.Model):
         elif vat_class == 'vat_8':
             # Decree 174/2025/ND-CP: 8% IT Services tax
             tax_8 = Tax.search(domain + [('amount', '=', 8.0)], limit=1)
-            if not tax_8 and company:
+            if not tax_8 and company and not getattr(self.env.cr, 'readonly', False):
                 tax_8 = Tax.create({
                     'name': 'Thuế GTGT 8% (Nghị định 174/2025/NĐ-CP)',
                     'amount': 8.0,
@@ -596,7 +596,7 @@ class SaleOrderLine(models.Model):
         elif vat_class == 'vat_10':
             # Standard 10% Infrastructure / Hosting tax
             tax_10 = Tax.search(domain + [('amount', '=', 10.0)], limit=1)
-            if not tax_10 and company:
+            if not tax_10 and company and not getattr(self.env.cr, 'readonly', False):
                 tax_10 = Tax.create({
                     'name': 'Thuế GTGT 10% (Bán hàng)',
                     'amount': 10.0,
@@ -611,59 +611,40 @@ class SaleOrderLine(models.Model):
     @api.depends('al2c_vat_class')
     def _compute_tax_ids(self):
         super()._compute_tax_ids()
+        tax_cache = {}
         for line in self:
             if line.env.context.get('skip_al2c_tax_mapping'):
                 continue
             vat_class = line.al2c_vat_class or (line.product_id and line.product_id.al2c_vat_class)
             if vat_class:
                 company = line.company_id or line.order_id.company_id or self.env.company
-                line.tax_ids = line._al2c_get_tax_for_vat_class(company, vat_class)
-
-    @api.depends('milestone_ids.al2c_billing_eligible')
-    def _compute_qty_delivered(self):
-        super()._compute_qty_delivered()
-
-    def _prepare_qty_delivered(self):
-        delivered_qties = super()._prepare_qty_delivered()
-        lines_by_milestones = self.filtered(lambda sol: sol.qty_delivered_method == 'milestones')
-        if not lines_by_milestones:
-            return delivered_qties
-
-        # Decree 70/2025 & SAP Activate stage gate enforcement:
-        # A milestone line only contributes to delivered quantity if it is reached AND has verified customer sign-off (al2c_billing_eligible == True).
-        project_milestone_read_group = self.env['project.milestone']._read_group(
-            [('sale_line_id', 'in', lines_by_milestones.ids), ('al2c_billing_eligible', '=', True)],
-            ['sale_line_id'],
-            ['quantity_percentage:sum'],
-        )
-        eligible_milestones_per_sol = {sale_line.id: percentage_sum for sale_line, percentage_sum in project_milestone_read_group}
-        for line in lines_by_milestones:
-            sol_id = line.id or line._origin.id
-            delivered_qties[line] = eligible_milestones_per_sol.get(sol_id, 0.0) * line.product_uom_qty
-        return delivered_qties
+                cache_key = (company.id if company else 0, vat_class)
+                if cache_key not in tax_cache:
+                    tax_cache[cache_key] = line._al2c_get_tax_for_vat_class(company, vat_class)
+                line.tax_ids = tax_cache[cache_key]
 
     def write(self, vals):
         res = super().write(vals)
         commercial_fields = {'price_unit', 'discount', 'product_uom_qty', 'product_id'}
         if commercial_fields.intersection(vals.keys()):
-            for line in self:
-                if line.order_id and line.order_id.al2c_approved:
-                    line.order_id.sudo().write({'al2c_approved': False})
+            approved_orders = self.mapped('order_id').filtered(lambda o: o.al2c_approved)
+            if approved_orders:
+                approved_orders.sudo().write({'al2c_approved': False})
         return res
 
     @api.model_create_multi
     def create(self, vals_list):
         lines = super().create(vals_list)
-        for line in lines:
-            if line.order_id and line.order_id.al2c_approved:
-                line.order_id.sudo().write({'al2c_approved': False})
+        approved_orders = lines.mapped('order_id').filtered(lambda o: o.al2c_approved)
+        if approved_orders:
+            approved_orders.sudo().write({'al2c_approved': False})
         return lines
 
     def unlink(self):
         orders = self.mapped('order_id').filtered(lambda o: o.al2c_approved)
         res = super().unlink()
-        for order in orders:
-            order.sudo().write({'al2c_approved': False})
+        if orders:
+            orders.sudo().write({'al2c_approved': False})
         return res
 
 

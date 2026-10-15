@@ -5,13 +5,13 @@
              data-card="oee"
              role="region"
              aria-label="Smart Factory MES OEE Hub"
-             style="background-color: var(--insilos-bg-card, #ffffff); border-color: var(--insilos-border-subtle, #e2e8f0); color: var(--insilos-text-primary, #0f172a);">
+             style="background-color: var(--insilos-bg-card); border-color: var(--insilos-border-subtle); color: var(--insilos-text-primary);">
             <!-- Card Header: Title, Subtitle, and Benchmark Target Badge -->
             <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: var(--insilos-border-subtle) !important;">
                 <div class="d-flex align-items-center cursor-pointer" role="button" tabindex="0" t-on-click="openOeeDrilldown">
                     <i class="ph ph-gauge text-primary fs-4 me-2"></i>
                     <div>
-                        <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1" style="color: var(--insilos-text-primary, #0f172a);">Smart Factory MES OEE Hub</h4>
+                        <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1" style="color: var(--insilos-text-primary);">Smart Factory MES OEE Hub</h4>
                         <span class="text-muted small">Hiệu suất thiết bị tổng thể OEE &amp; Trạng thái trạm gia công CNC SS400</span>
                     </div>
                 </div>
@@ -49,7 +49,7 @@
                             <!-- Base Inactive Background Track -->
                             <circle cx="70" cy="70" r="54"
                                     fill="none"
-                                    stroke="var(--insilos-border-subtle, #223354)"
+                                    stroke="var(--insilos-border-subtle)"
                                     stroke-width="11"
                                     opacity="0.35"/>
 
@@ -78,7 +78,7 @@
                         <!-- Center Gauge Content -->
                         <div class="position-absolute top-50 start-50 translate-middle text-center" style="pointer-events: none;">
                             <span class="fs-4 fw-bold font-monospace d-block"
-                                  style="color: var(--insilos-text-primary, #0f172a); font-variant-numeric: tabular-nums; line-height: 1.1;"
+                                  style="color: var(--insilos-text-primary); font-variant-numeric: tabular-nums; line-height: 1.1;"
                                   t-esc="oeeComposite + '%'"/>
                             <span class="badge bg-primary text-white x-small text-uppercase px-2 py-0 my-1" style="font-size: 0.65rem;">
                                 OEE OVERALL
@@ -100,7 +100,7 @@
                              tabindex="0"
                              t-on-click="openOeeDrilldown">
                             <div class="d-flex justify-content-between align-items-center small mb-1">
-                                <span class="fw-semibold d-flex align-items-center" style="color: var(--insilos-text-primary, #0f172a);">
+                                <span class="fw-semibold d-flex align-items-center" style="color: var(--insilos-text-primary);">
                                     <i class="ph ph-clock-clockwise text-success me-1"></i>
                                     Availability (Tính sẵn sàng)
                                 </span>
@@ -114,7 +114,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="progress" style="height: 7px; background-color: var(--insilos-border-subtle, #e2e8f0);" title="Availability Progress">
+                            <div class="progress" style="height: 7px; background-color: var(--insilos-border-subtle);" title="Availability Progress">
                                 <div class="progress-bar bg-success"
                                      role="progressbar"
                                      t-att-style="'width: ' + pillars.availability.progressWidth + ';'"
@@ -132,7 +132,7 @@
                              tabindex="0"
                              t-on-click="openOeeDrilldown">
                             <div class="d-flex justify-content-between align-items-center small mb-1">
-                                <span class="fw-semibold d-flex align-items-center" style="color: var(--insilos-text-primary, #0f172a);">
+                                <span class="fw-semibold d-flex align-items-center" style="color: var(--insilos-text-primary);">
                                     <i class="ph ph-speedometer text-primary me-1"></i>
                                     Performance (Hiệu suất vận hành)
                                 </span>
@@ -146,7 +146,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="progress" style="height: 7px; background-color: var(--insilos-border-subtle, #e2e8f0);" title="Performance Progress">
+                            <div class="progress" style="height: 7px; background-color: var(--insilos-border-subtle);" title="Performance Progress">
                                 <div class="progress-bar bg-primary"
                                      role="progressbar"
                                      t-att-style="'width: ' + pillars.performance.progressWidth + ';'"
@@ -164,7 +164,7 @@
                              tabindex="0"
                              t-on-click="openOeeDrilldown">
                             <div class="d-flex justify-content-between align-items-center small mb-1">
-                                <span class="fw-semibold d-flex align-items-center" style="color: var(--insilos-text-primary, #0f172a);">
+                                <span class="fw-semibold d-flex align-items-center" style="color: var(--insilos-text-primary);">
                                     <i class="ph ph-seal-check text-info me-1"></i>
                                     Quality (Chất lượng sản phẩm)
                                 </span>
@@ -178,7 +178,7 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="progress" style="height: 7px; background-color: var(--insilos-border-subtle, #e2e8f0);" title="Quality Progress">
+                            <div class="progress" style="height: 7px; background-color: var(--insilos-border-subtle);" title="Quality Progress">
                                 <div class="progress-bar bg-info"
                                      role="progressbar"
                                      t-att-style="'width: ' + pillars.quality.progressWidth + ';'"
@@ -211,7 +211,7 @@
                              role="button"
                              tabindex="0"
                              t-on-click="() => this.openStation(wc)"
-                             style="background-color: var(--insilos-bg-subtle, rgba(15, 23, 42, 0.04)); border-color: var(--insilos-border-subtle) !important;"
+                             style="background-color: var(--insilos-bg-subtle); border-color: var(--insilos-border-subtle) !important;"
                              title="Nhấn để mở chi tiết trạm máy &amp; Lệnh sản xuất">
                             <!-- Left: Status dot, Name, Code -->
                             <div class="d-flex align-items-center">
@@ -221,7 +221,7 @@
                                       t-att-title="wc.status === 'running' ? 'Đang hoạt động' : 'Chờ nạp phôi'"/>
                                 <div>
                                     <div class="d-flex align-items-center gap-1">
-                                        <span class="fw-bold small" style="color: var(--insilos-text-primary, #0f172a);" t-esc="wc.name"/>
+                                        <span class="fw-bold small" style="color: var(--insilos-text-primary);" t-esc="wc.name"/>
                                         <span class="text-muted small font-monospace" t-esc="'(' + wc.code + ')'"/>
                                     </div>
                                     <span class="text-muted x-small d-block" t-esc="wc.active_workorder"/>

@@ -181,7 +181,7 @@ def _is_safe_origin_or_referer(url_str: str) -> bool:
 
 class RuntimeReportGateway(http.Controller):
 
-    @http.route(['/api/v1/runtime-report', '/api/v1/runtime-report/'], type='http', auth='none', methods=['POST', 'OPTIONS'], csrf=False, cors='*', website=False, multilang=False)
+    @http.route(['/api/v1/runtime-report', '/api/v1/runtime-report/'], type='http', auth='none', methods=['POST', 'OPTIONS'], csrf=False, cors='*', website=False, multilang=False, readonly=False)
     def ingress_runtime_report(self, **kwargs):
         """Public-facing Ingress Gateway endpoint for Insilos Runtime Error Reporting.
         Protected by Multi-Layer Anti-DoS, HMAC Signature Verification, and Fingerprint Deduplication.
@@ -540,7 +540,7 @@ class RuntimeReportGateway(http.Controller):
     @http.route(
         ['/insilos/runtime_error/relay', '/insilos/runtime_error/relay/'],
         type='http', auth='none', methods=['POST', 'OPTIONS'],
-        csrf=False, cors='*', website=False, multilang=False
+        csrf=False, cors='*', website=False, multilang=False, readonly=False
     )
     def local_runtime_error_relay(self, **post):
         """Local instance relay endpoint called by OWL ErrorDialog in the browser.

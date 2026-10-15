@@ -61,6 +61,10 @@ body.o_dark_mode,
     --insilos-gauge-val: #00f2fe;
 }
 
+body.o_dark_mode,
+.o_dark_mode,
+[data-bs-theme="dark"],
+[data-theme="dark"] {
 // Dark Mode Card Hover & Highlights
 .o_control_tower_card,
 .o_fiori_kpi_card,
@@ -258,4 +262,32 @@ button:focus-visible {
     outline: 2px solid #00f2fe !important;
     outline-color: #00f2fe !important;
     outline-offset: 2px !important;
+}
+}
+
+html[data-theme="light"] body:not(.o_dark_mode) {
+    --insilos-bg-canvas: #f4f6f8;
+    --insilos-bg-surface: #ffffff;
+    --insilos-bg-card: #ffffff;
+    --insilos-bg-header: #ffffff;
+    --insilos-bg-hover: #f1f5f9;
+    --insilos-bg-active: #e2e8f0;
+    --insilos-bg-subtle: #f8fafc;
+    --insilos-bg-selected: rgba(15, 98, 254, 0.08);
+    --insilos-border-subtle: #e2e8f0;
+    --insilos-border-medium: #cbd5e1;
+    --insilos-border-strong: #94a3b8;
+    --insilos-border-focus: #0f62fe;
+    --insilos-text-primary: #0f172a;
+    --insilos-text-secondary: #475569;
+    --insilos-text-tertiary: #64748b;
+    --insilos-text-muted: #64748b;
+    --insilos-text-on-primary: #ffffff;
+    --insilos-primary: #0b2e64;
+    --insilos-primary-hover: #082147;
+    --insilos-accent: #0f62fe;
+    --insilos-kpi-inner-bg: #f8fafc;
+    --insilos-kpi-inner-border: #e2e8f0;
+    --insilos-gauge-track: #e2e8f0;
+    --insilos-gauge-val: #0284c7;
 }

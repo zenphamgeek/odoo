@@ -77,6 +77,10 @@ body.o_dark_mode,
     --insilos-transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+body.o_dark_mode,
+.o_dark_mode,
+[data-bs-theme="dark"],
+[data-theme="dark"] {
 // =============================================================================
 // 1. High-Density Compact Data Tables (Fiori Grid Dark Mode)
 // =============================================================================
@@ -541,4 +545,32 @@ textarea.o_input,
     .modal-footer {
         border-color: rgba(255, 255, 255, 0.1) !important;
     }
+}
+}
+
+html[data-theme="light"] body:not(.o_dark_mode) {
+    --insilos-bg-canvas: #f4f6f8;
+    --insilos-bg-surface: #ffffff;
+    --insilos-bg-card: #ffffff;
+    --insilos-bg-header: #ffffff;
+    --insilos-bg-hover: #f1f5f9;
+    --insilos-bg-active: #e2e8f0;
+    --insilos-bg-subtle: #f8fafc;
+    --insilos-bg-selected: rgba(15, 98, 254, 0.08);
+    --insilos-border-subtle: #e2e8f0;
+    --insilos-border-medium: #cbd5e1;
+    --insilos-border-strong: #94a3b8;
+    --insilos-border-focus: #0f62fe;
+    --insilos-text-primary: #0f172a;
+    --insilos-text-secondary: #475569;
+    --insilos-text-tertiary: #64748b;
+    --insilos-text-muted: #64748b;
+    --insilos-text-on-primary: #ffffff;
+    --insilos-primary: #0b2e64;
+    --insilos-primary-hover: #082147;
+    --insilos-primary-subtle: rgba(11, 46, 100, 0.08);
+    --insilos-primary-border: rgba(11, 46, 100, 0.25);
+    --insilos-accent: #0f62fe;
+    --insilos-accent-hover: #0043ce;
+    --insilos-table-sticky-col-bg: #ffffff;
 }

@@ -177,3 +177,23 @@ body.o_dark_mode,
         color: #FB7185;
     }
 }
+
+html[data-theme="light"] body:not(.o_dark_mode) {
+    --al2c-concierge-bg-canvas: var(--insilos-bg-canvas);
+    --al2c-concierge-bg-surface: var(--insilos-bg-surface);
+    --al2c-concierge-bg-card: var(--insilos-bg-card);
+    --al2c-concierge-bg-header: var(--insilos-bg-header);
+    --al2c-concierge-bg-subtle: var(--insilos-bg-subtle);
+    --al2c-concierge-bg-hover: var(--insilos-bg-hover);
+    --al2c-concierge-bg-active: var(--insilos-bg-active);
+    --al2c-concierge-bg-bubble-user: var(--insilos-primary);
+    --al2c-concierge-bg-bubble-assistant: var(--insilos-bg-subtle);
+    --al2c-concierge-bg-chip: var(--insilos-bg-surface);
+    --al2c-concierge-border-subtle: var(--insilos-border-subtle);
+    --al2c-concierge-border-medium: var(--insilos-border-medium);
+    --al2c-concierge-border-focus: var(--insilos-primary);
+    --al2c-concierge-text-primary: var(--insilos-text-primary);
+    --al2c-concierge-text-secondary: var(--insilos-text-secondary);
+    --al2c-concierge-text-muted: var(--insilos-text-muted);
+    --al2c-concierge-text-on-primary: var(--insilos-text-on-primary);
+}

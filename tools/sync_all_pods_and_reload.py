@@ -344,11 +344,19 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         tar_path_web_ent = os.path.join(staging_dir, "web_enterprise_sync.tar.gz")
         WEB_ENT_MEMBERS = [
             "version.py",
+            "controllers/employee_dashboard.py",
             "views/webclient_templates.xml",
             "static/src/webclient/navbar/navbar.xml",
+            "static/src/webclient/home_menu/home_menu.js",
+            "static/src/webclient/home_menu/home_menu.xml",
             "static/src/webclient/home_menu/home_menu.scss",
             "static/src/webclient/home_menu/home_menu.dark.scss",
+            "static/src/webclient/home_menu/home_menu.variables.scss",
+            "static/src/webclient/home_menu/home_menu.variables.dark.scss",
+            "static/src/webclient/home_menu/home_menu_background.scss",
+            "static/src/webclient/home_menu/home_menu_background.dark.scss",
             "static/src/webclient/color_scheme/color_scheme_service.js",
+            "static/src/webclient/promote_studio/promote_studio_dialog.js",
             "static/src/webclient/settings_form_view/res_config_edition.xml",
         ]
         frozen_web_ent = os.path.join(staging_dir, "frozen_web_ent")
@@ -610,16 +618,30 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         # 4O. Documents ErrorDialog Patch, FileViewer, Renderer Mixin, Control Panel & Action Buttons Sync
         tar_path_docs = os.path.join(staging_dir, "documents_sync.tar.gz")
         DOCS_MEMBERS = [
+            "controllers/home.py",
             "static/src/web/error_dialog/error_dialog_patch.xml",
             "static/src/views/documents_renderer_mixin.js",
             "static/src/attachments/attachment_model_patch.js",
             "static/src/attachments/document_file_viewer.xml",
             "static/src/attachments/document_file_viewer.js",
+            "static/src/components/documents_manage_versions_panel/documents_manage_versions_panel.js",
+            "static/src/owl/components/pdf_group_name/pdf_group_name.js",
+            "static/src/owl/components/pdf_manager/pdf_manager.js",
+            "static/src/owl/components/pdf_page/pdf_page.js",
+            "static/src/scss/documents_kanban_view.scss",
+            "static/src/views/fields/documents_type_icon/documents_type_icon.js",
+            "static/src/views/fields/documents_user_folder_id_char/documents_search_panel_user_folder_id.js",
+            "static/src/views/helper/documents_draggable.js",
+            "static/src/views/hooks.js",
             "static/src/views/search/documents_control_panel.xml",
             "static/src/views/documents_controller_mixin.xml",
             "static/src/views/documents_controller_mixin.js",
             "static/src/views/action/documents_actions.xml",
             "static/src/views/kanban/documents_kanban_record.js",
+            "static/src/views/kanban/documents_kanban_record.xml",
+            "static/src/views/kanban/documents_kanban_renderer.js",
+            "static/src/views/list/documents_list_renderer.js",
+            "static/src/views/search/documents_search_panel.js",
             "static/src/views/search/documents_search_panel.xml",
             "static/src/views/view_dialogs/select_add_document_create_dialog.xml",
         ]
@@ -686,9 +708,20 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         tar_path_web_core = os.path.join(staging_dir, "web_core_sync.tar.gz")
         WEB_CORE_MEMBERS = [
             "models/ir_http.py",
+            "controllers/home.py",
             "controllers/webclient.py",
             "controllers/database.py",
+            "static/lib/owl/owl.js",
+            "static/src/owl2/owl3_compatibility_layer.js",
+            "static/src/core/checkbox/checkbox.scss",
             "static/src/core/errors/error_dialogs.js",
+            "static/src/core/ui/ui_utils.js",
+            "static/src/core/utils/hooks.js",
+            "static/src/views/kanban/kanban_controller.js",
+            "static/src/views/kanban/kanban_record.js",
+            "static/src/views/list/list_controller.js",
+            "static/src/views/list/list_renderer.js",
+            "static/src/webclient/navbar/navbar.variables.scss",
             "static/src/webclient/settings_form_view/widgets/res_config_edition.js",
             "static/src/webclient/settings_form_view/widgets/res_config_edition.xml",
         ]
@@ -759,7 +792,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_addons_sweep_cmd, check=True)
         print(f"[✓] Created {tar_path_addons_sweep}")
 
-        # 4V. Enterprise Sweep Fixes (pos_enterprise, website_helpdesk_livechat, account_followup, equity, documents_spreadsheet)
+        # 4V. Enterprise Sweep Fixes (pos_enterprise, website_helpdesk_livechat, account_followup, equity, documents_spreadsheet, insilos_*)
         tar_path_ent_sweep = os.path.join(staging_dir, "enterprise_sweep_sync.tar.gz")
         ENT_SWEEP_MEMBERS = [
             "pos_enterprise/models/pos_prep_display.py",
@@ -767,6 +800,14 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             "account_followup/models/res_partner.py",
             "equity/models/equity_cap_table.py",
             "documents_spreadsheet/static/src/spreadsheet_clone_xlsx_dialog/spreadsheet_clone_xlsx_dialog.xml",
+            "insilos_hs_sync/models/is_customs_ruling.py",
+            "insilos_hs_sync/models/is_hs_tariff.py",
+            "insilos_hs_sync/models/product_template.py",
+            "insilos_hse_compliance/models/project_task.py",
+            "insilos_industry_showcase/controllers/saas_provisioning.py",
+            "insilos_preferential_origin/models.py",
+            "insilos_pubsub_bridge/models/is_pubsub_channel.py",
+            "insilos_pubsub_bridge/views/is_pubsub_channel_views.xml",
         ]
         frozen_ent_sweep = os.path.join(staging_dir, "frozen_ent_sweep")
         freeze_and_audit_members("enterprise", ENT_SWEEP_MEMBERS, frozen_ent_sweep)
@@ -956,7 +997,7 @@ if [ -d "/app/insilos/addons" ]; then
     tar -xzf /tmp/odoo_addons_sweep_sync.tar.gz -C /app/insilos/addons/
 fi
 
-for ent_dir in /app/insilos/enterprise /app/insilos/apps; do
+for ent_dir in /app/insilos/enterprise /app/insilos/apps /var/lib/insilos/filestore/custom_addons; do
     if [ -d "$ent_dir" ] && [ ! -L "$ent_dir" ]; then
         tar -xzf /tmp/enterprise_sweep_sync.tar.gz -C "$ent_dir/"
     fi

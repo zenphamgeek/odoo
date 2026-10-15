@@ -150,6 +150,7 @@ class InsilosPerimeterGateway(http.Controller):
         methods=["POST", "OPTIONS"],
         csrf=False,
         cors="*",
+        readonly=False,
     )
     def api_authenticate(self, **kwargs):
         """Authenticate session and return session token with Insilos headers."""
@@ -177,7 +178,7 @@ class InsilosPerimeterGateway(http.Controller):
 
         try:
             with ExitStack() as stack:
-                if not request.db or request.db != db:
+                if not request.db or request.db != db or getattr(request.env.cr, "readonly", False):
                     cr = stack.enter_context(odoo.modules.registry.Registry(db).cursor())
                     env = odoo.api.Environment(cr, None, {})
                 else:
@@ -218,6 +219,7 @@ class InsilosPerimeterGateway(http.Controller):
         methods=["POST", "OPTIONS"],
         csrf=False,
         cors="*",
+        readonly=False,
     )
     def api_call(self, **kwargs):
         """
@@ -318,7 +320,7 @@ class InsilosPerimeterGateway(http.Controller):
 
         try:
             with ExitStack() as stack:
-                if not request.db or request.db != db:
+                if not request.db or request.db != db or getattr(request.env.cr, "readonly", False):
                     cr = stack.enter_context(odoo.modules.registry.Registry(db).cursor())
                     env = odoo.api.Environment(cr, uid, {})
                 else:

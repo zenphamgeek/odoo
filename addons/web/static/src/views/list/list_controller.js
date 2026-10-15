@@ -151,9 +151,11 @@ export class ListController extends Component {
                 } else {
                     const { rendererScrollPositions } = this.props.state || {};
                     if (rendererScrollPositions) {
-                        const renderer = this.rootRef().querySelector(".o_list_renderer");
-                        renderer.scrollLeft = rendererScrollPositions.left;
-                        renderer.scrollTop = rendererScrollPositions.top;
+                        const renderer = this.rootRef()?.querySelector(".o_list_renderer");
+                        if (renderer) {
+                            renderer.scrollLeft = rendererScrollPositions.left;
+                            renderer.scrollTop = rendererScrollPositions.top;
+                        }
                     }
                 }
             },
@@ -444,7 +446,10 @@ export class ListController extends Component {
             if (this.uiService.isSmall) {
                 this.rootRef().scrollTop = 0;
             } else {
-                this.rootRef().querySelector(".o_content .o_list_renderer").scrollTop = 0;
+                const rendererEl = this.rootRef().querySelector(".o_content .o_list_renderer");
+                if (rendererEl) {
+                    rendererEl.scrollTop = 0;
+                }
             }
         }
     }

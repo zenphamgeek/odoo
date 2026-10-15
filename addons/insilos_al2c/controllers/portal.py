@@ -8,7 +8,7 @@ from odoo.addons.portal.controllers.portal import CustomerPortal
 
 class Al2cPortalController(CustomerPortal):
 
-    @http.route(['/my/invoices/<int:invoice_id>/dispute'], type='http', auth='public', methods=['POST'], website=True, csrf=True)
+    @http.route(['/my/invoices/<int:invoice_id>/dispute'], type='http', auth='public', methods=['POST'], website=True, csrf=True, readonly=False)
     def portal_invoice_dispute(self, invoice_id, access_token=None, **kw):
         """
         Commercial Dispute Registration (AL2C-INV-103):
@@ -80,7 +80,7 @@ class Al2cPortalController(CustomerPortal):
             query += f'&access_token={access_token}'
         return request.redirect(invoice_sudo.get_portal_url(query_string=query))
 
-    @http.route(['/my/invoices/<int:invoice_id>/confirm_timesheet'], type='http', auth='public', methods=['POST', 'GET'], website=True, csrf=False)
+    @http.route(['/my/invoices/<int:invoice_id>/confirm_timesheet'], type='http', auth='public', methods=['POST', 'GET'], website=True, csrf=False, readonly=False)
     def portal_invoice_confirm_timesheet(self, invoice_id, access_token=None, confirm_token=None, **kw):
         """
         Client Timesheet Statement Confirmation (CWE-639 / IDOR Hardened):
@@ -129,7 +129,7 @@ class Al2cPortalController(CustomerPortal):
             query += f'&access_token={access_token}'
         return request.redirect(invoice_sudo.get_portal_url(query_string=query))
 
-    @http.route(['/my/invoices/<int:invoice_id>/ai_explain'], type='json', auth='public', methods=['POST'], website=True, csrf=False)
+    @http.route(['/my/invoices/<int:invoice_id>/ai_explain'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=False)
     def portal_invoice_ai_explain(self, invoice_id, access_token=None, query=None, **kw):
         """
         AI Statement & Timesheet Explainer (SOP-RAG-003 & SOP-AI-004):

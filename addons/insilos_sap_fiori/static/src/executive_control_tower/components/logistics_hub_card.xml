@@ -5,13 +5,13 @@
              data-card="logistics"
              role="region"
              aria-label="Logistics Drayage &amp; Port Depot Hub"
-             style="background-color: var(--insilos-bg-card, #ffffff); border-color: var(--insilos-border-subtle, #e2e8f0); color: var(--insilos-text-primary, #0f172a);">
+             style="background-color: var(--insilos-bg-card); border-color: var(--insilos-border-subtle); color: var(--insilos-text-primary);">
             <!-- Card Header: Title, Subtitle, and DET/DEM SLA Urgency Countdown Pill -->
             <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2" style="border-color: var(--insilos-border-subtle) !important;">
                 <div class="d-flex align-items-center cursor-pointer" role="button" tabindex="0" t-on-click="openFleetManagement">
                     <i class="ph ph-truck text-warning fs-4 me-2"></i>
                     <div>
-                        <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1" style="color: var(--insilos-text-primary, #0f172a);">Logistics Drayage &amp; Port Depot Hub</h4>
+                        <h4 class="h6 mb-0 fw-bold text-uppercase letter-spacing-1" style="color: var(--insilos-text-primary);">Logistics Drayage &amp; Port Depot Hub</h4>
                         <span class="text-muted small">Đội xe đầu kéo Hyundai Xcient &amp; Cảnh báo hạn chót phí phạt lưu bãi/vỏ Cát Lái - Cái Mép</span>
                     </div>
                 </div>
@@ -72,14 +72,14 @@
                              role="button"
                              tabindex="0"
                              t-on-click="() => this.openVehicle(truck)"
-                             style="background-color: var(--insilos-bg-subtle, rgba(15, 23, 42, 0.04)); border-color: var(--insilos-border-subtle) !important;"
+                             style="background-color: var(--insilos-bg-subtle); border-color: var(--insilos-border-subtle) !important;"
                              title="Nhấn để xem hồ sơ kỹ thuật &amp; Hành trình phương tiện">
                             <!-- Top: Plate, Model, Status Badge -->
                             <div class="d-flex align-items-start justify-content-between mb-1">
                                 <div>
                                     <div class="d-flex align-items-center gap-1">
                                         <i t-attf-class="ph #{truck.icon || 'ph-truck'} text-primary fs-6 me-1"></i>
-                                        <span class="fw-bold small font-monospace" style="color: var(--insilos-text-primary, #0f172a);" t-esc="truck.plate"/>
+                                        <span class="fw-bold small font-monospace" style="color: var(--insilos-text-primary);" t-esc="truck.plate"/>
                                     </div>
                                     <span class="text-muted x-small d-block text-truncate" style="max-width: 200px;" t-esc="truck.model"/>
                                 </div>
@@ -117,7 +117,7 @@
                     <div class="d-flex align-items-start">
                         <i class="ph ph-shield-warning text-warning fs-3 me-2 flex-shrink-0"></i>
                         <div>
-                            <span class="fw-bold text-dark d-block">Phòng ngừa 100% rủi ro phạt lưu bãi/lưu vỏ DET/DEM</span>
+                            <span class="fw-bold d-block" style="color: var(--insilos-text-primary);">Phòng ngừa 100% rủi ro phạt lưu bãi/lưu vỏ DET/DEM</span>
                             <span class="text-muted small">
                                 <t t-esc="containerMoves.trackedContainers"/> • <t t-esc="containerMoves.orderRef"/>
                             </span>
@@ -140,7 +140,7 @@
                 <!-- Free-Time SLA Countdown Progress Bar -->
                 <div class="mb-2">
                     <div class="d-flex justify-content-between align-items-center x-small font-monospace mb-1">
-                        <span class="text-dark fw-semibold">
+                        <span class="fw-semibold" style="color: var(--insilos-text-primary);">
                             <i class="ph ph-hourglass-high me-1 text-warning"></i>
                             Hạn Free-Time Còn Lại: <strong><t t-esc="containerMoves.countdownFormatted"/></strong> / 72.0h SLA
                         </span>

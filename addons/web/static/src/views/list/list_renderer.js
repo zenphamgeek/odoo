@@ -326,10 +326,10 @@ export class ListRenderer extends Component {
                     return;
                 }
 
-                const nextTh = this.tableRef().querySelector("thead th");
+                const nextTh = this.tableRef()?.querySelector("thead th");
                 const toFocus = getElementToFocus(nextTh);
                 this.focus(toFocus);
-                this.tableRef().querySelector("tbody").classList.add("o_keyboard_navigation");
+                this.tableRef()?.querySelector("tbody")?.classList.add("o_keyboard_navigation");
             });
         }
 
@@ -2423,13 +2423,13 @@ export class ListRenderer extends Component {
             return; // there's no row or group in edition
         }
 
-        this.tableRef().querySelector("tbody").classList.remove("o_keyboard_navigation");
+        this.tableRef()?.querySelector("tbody")?.classList.remove("o_keyboard_navigation");
 
         const target = ev.target;
         if (this.state.showGroupInput && this.groupInputRef() !== target) {
             this.state.showGroupInput = false;
         }
-        if (this.tableRef().contains(target) && target.closest(".o_data_row")) {
+        if (this.tableRef()?.contains(target) && target.closest(".o_data_row")) {
             // ignore clicks inside the table that are originating from a record row
             // as they are handled directly by the renderer.
             return;

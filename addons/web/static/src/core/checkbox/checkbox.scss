@@ -8,7 +8,7 @@
         min-height: 15px !important;
         border-radius: var(--insilos-radius-xs, 2px) !important;
         border: 1.5px solid var(--insilos-border-strong) !important;
-        background-color: var(--insilos-bg-surface, #ffffff);
+        background-color: var(--insilos-bg-surface);
         margin: 0 !important;
         cursor: pointer;
         transition: background-color var(--insilos-transition-fast, 0.12s ease), border-color var(--insilos-transition-fast, 0.12s ease), box-shadow var(--insilos-transition-fast, 0.12s ease);
@@ -33,7 +33,7 @@ body.o_dark_mode,
 [data-theme="dark"] {
     .o-checkbox .form-check-input {
         border-color: var(--insilos-border-strong, rgba(255, 255, 255, 0.32)) !important;
-        background-color: var(--insilos-bg-surface, #0f172a);
+        background-color: var(--insilos-bg-surface);
 
         &:checked,
         &:indeterminate {

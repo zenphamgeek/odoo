@@ -175,15 +175,21 @@ export class KanbanController extends Component {
                 if (isReady) {
                     if (this.uiService.isSmall && this.model.root.isGrouped) {
                         const { scrollPositions } = this.props.state || {};
-                        if (scrollPositions) {
+                        if (scrollPositions && this.rootRef()) {
                             const { scrollLeft, columnScrollTops } = scrollPositions;
-                            this.rootRef().querySelector(".o_renderer").scrollLeft = scrollLeft;
+                            const rendererEl = this.rootRef().querySelector(".o_renderer");
+                            if (rendererEl) {
+                                rendererEl.scrollLeft = scrollLeft;
+                            }
                             const groups = this.model.root.groups;
                             for (const [serverValue, scrollTop] of columnScrollTops) {
                                 const group = groups.find((g) => g.serverValue === serverValue);
                                 if (group) {
                                     const sel = `.o_kanban_group[data-id=${group.id}]`;
-                                    this.rootRef().querySelector(sel).scrollTop = scrollTop;
+                                    const groupEl = this.rootRef().querySelector(sel);
+                                    if (groupEl) {
+                                        groupEl.scrollTop = scrollTop;
+                                    }
                                 }
                             }
                         }
@@ -540,7 +546,10 @@ export class KanbanController extends Component {
             if (this.uiService.isSmall) {
                 this.rootRef().scrollTop = 0;
             } else {
-                this.rootRef().querySelector(".o_content").scrollTop = 0;
+                const contentEl = this.rootRef().querySelector(".o_content");
+                if (contentEl) {
+                    contentEl.scrollTop = 0;
+                }
             }
         }
     }
@@ -550,7 +559,7 @@ export class KanbanController extends Component {
     async afterExecuteActionButton(clickParams) {}
 
     scrollTop() {
-        this.rootRef().querySelector(".o_content").scrollTo({ top: 0 });
+        this.rootRef()?.querySelector(".o_content")?.scrollTo({ top: 0 });
     }
 
     isQuickCreateField(field) {

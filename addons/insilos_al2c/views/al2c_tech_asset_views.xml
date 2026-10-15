@@ -27,7 +27,7 @@
                 <field name="p0_improvement_count"/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div class="oe_kanban_global_click p-3 rounded shadow-sm border" style="background-color: var(--insilos-bg-card, #ffffff); border-color: var(--insilos-border-subtle, #e2e8f0);">
+                        <div class="oe_kanban_global_click p-3 rounded shadow-sm border" style="background-color: var(--insilos-bg-card); border-color: var(--insilos-border-subtle);">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <div>
                                     <span class="badge text-bg-primary fs-7 px-2 py-1"><t t-esc="record.code.value"/></span>
@@ -44,7 +44,7 @@
                                 </div>
                             </div>
                             
-                            <h4 class="fw-bold mb-1" style="color: var(--insilos-text-main, #0f172a); font-size: 1.05rem;">
+                            <h4 class="fw-bold mb-1" style="color: var(--insilos-text-primary); font-size: 1.05rem;">
                                 <t t-esc="record.name.value"/>
                             </h4>
 
@@ -52,7 +52,7 @@
                                 🌿 <t t-esc="record.git_branch.value or 'N/A'"/> • <code><t t-esc="record.git_commit.value or 'none'"/></code>
                             </div>
 
-                            <div class="row g-2 text-center my-2 p-2 rounded" style="background: var(--insilos-bg-subtle, #f8fafc); border: 1px solid var(--insilos-border-subtle, #e2e8f0);">
+                            <div class="row g-2 text-center my-2 p-2 rounded" style="background: var(--insilos-bg-subtle); border: 1px solid var(--insilos-border-subtle);">
                                 <div class="col-4">
                                     <div class="text-muted small">Code LOC</div>
                                     <div class="fw-bold"><t t-esc="record.loc_code.value"/></div>

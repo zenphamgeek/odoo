@@ -109,6 +109,8 @@ class AccountMove(models.Model):
 
     @api.depends('amount_total', 'currency_id', 'company_id.currency_id', 'al2c_exchange_rate_snapshot')
     def _compute_al2c_statement_company_currency(self):
+        Rate = self.env['res.currency.rate'].sudo()
+        has_rate_cache = {}
         for move in self:
             company_curr = move.company_id.currency_id
             if not company_curr:
@@ -122,12 +124,13 @@ class AccountMove(models.Model):
             else:
                 rate = move.al2c_exchange_rate_snapshot
                 if not rate or rate <= 0:
-                    # Check whether an actual exchange rate exists in res.currency.rate
-                    Rate = self.env['res.currency.rate'].sudo()
-                    has_rate = bool(Rate.search_count([
-                        ('currency_id', '=', move.currency_id.id),
-                        ('company_id', 'in', (False, move.company_id.id, move.company_id.root_id.id if hasattr(move.company_id, 'root_id') else False)),
-                    ], limit=1))
+                    cache_key = (move.currency_id.id, move.company_id.id if move.company_id else 0)
+                    if cache_key not in has_rate_cache:
+                        has_rate_cache[cache_key] = bool(Rate.search_count([
+                            ('currency_id', '=', move.currency_id.id),
+                            ('company_id', 'in', (False, move.company_id.id, move.company_id.root_id.id if hasattr(move.company_id, 'root_id') else False)),
+                        ], limit=1))
+                    has_rate = has_rate_cache[cache_key]
                     if not has_rate:
                         rate = 0.0
                     else:

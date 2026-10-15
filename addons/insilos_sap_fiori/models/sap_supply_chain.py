@@ -482,6 +482,16 @@ class SapMovementType(models.Model):
     sap_tcode = fields.Char(string="SAP Transaction Code", compute='_compute_all_fields', store=False)
     description = fields.Text(string="Business Description", compute='_compute_all_fields', store=False)
 
+    def init(self):
+        self.env.cr.execute("""
+            CREATE OR REPLACE VIEW sap_movement_type AS
+            SELECT 1 AS id, '101'::varchar AS code
+            UNION ALL SELECT 2, '311'
+            UNION ALL SELECT 3, '601'
+            UNION ALL SELECT 4, '701'
+            UNION ALL SELECT 5, '702'
+        """)
+
     def _compute_all_fields(self):
         for rec in self:
             item = SAP_MOVEMENT_TYPES_BY_ID.get(rec.id, {})

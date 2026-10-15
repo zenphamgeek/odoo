@@ -458,7 +458,7 @@
                             <div class="o_demurrage_alert p-3 rounded bg-warning-subtle border border-warning-subtle">
                                 <div class="d-flex align-items-center justify-content-between">
                                     <div>
-                                        <span class="fw-bold text-dark d-block">Phòng ngừa 100% rủi ro phạt lưu bãi/lưu vỏ DET/DEM</span>
+                                        <span class="fw-bold d-block" style="color: var(--insilos-text-primary);">Phòng ngừa 100% rủi ro phạt lưu bãi/lưu vỏ DET/DEM</span>
                                         <span class="text-muted small">Thời gian đệm an toàn còn 8.5 giờ • 18 container đã thông quan an toàn • Tiết kiệm 48,000,000 ₫</span>
                                     </div>
                                     <button type="button" class="btn btn-sm btn-warning text-dark fw-bold"

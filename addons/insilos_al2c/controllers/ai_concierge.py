@@ -58,7 +58,7 @@ class InnoriaAiConciergeController(http.Controller):
     def env(self, val):
         self._custom_env = val
 
-    @http.route(['/innoria/ai_concierge/query'], type='json', auth='public', methods=['POST'], website=True, csrf=False)
+    @http.route(['/innoria/ai_concierge/query'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=False)
     def ai_concierge_query(self, query=None, product_focus=None, lang='vi', **kw):
         """
         Grounded AI Concierge Query Endpoint.
@@ -191,7 +191,7 @@ class InnoriaAiConciergeController(http.Controller):
             ]
         }
 
-    @http.route(['/innoria/ai_concierge/book_lead'], type='json', auth='public', methods=['POST'], website=True, csrf=False)
+    @http.route(['/innoria/ai_concierge/book_lead'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=False)
     def ai_concierge_book_lead(self, name=None, email=None, phone=None, company_name=None, product_interest=None, employee_count=None, notes=None, tax_id=None, **kw):
         """
         B2B Lead Booking & Autonomous Fit Scoring Endpoint (SOP-AI-004 §2.2).
@@ -293,7 +293,7 @@ class InnoriaAiConciergeController(http.Controller):
             'message': _("Yêu cầu khảo sát của Quý khách đã được tiếp nhận thành công. Chuyên gia tư vấn Innoria sẽ liên hệ trong vòng 24 giờ làm việc.")
         }
 
-    @http.route(['/innoria/ai_concierge/status'], type='json', auth='public', methods=['POST', 'GET'], website=True, csrf=False)
+    @http.route(['/innoria/ai_concierge/status'], type='jsonrpc', auth='public', methods=['POST', 'GET'], website=True, csrf=False)
     def ai_concierge_status(self, **kw):
         """Health and Telemetry Check for AI Concierge Services."""
         env = _resolve_env(self, kw)

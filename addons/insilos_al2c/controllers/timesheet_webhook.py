@@ -20,7 +20,7 @@ class Al2cTimesheetWebhookController(http.Controller):
 
     @http.route(['/api/v1/timesheet/ingest', '/api/v1/timesheet/ingest/'],
                 type='http', auth='none', methods=['POST', 'OPTIONS'],
-                csrf=False, cors=False, website=False, multilang=False)
+                csrf=False, cors=False, website=False, multilang=False, readonly=False)
     def timesheet_ingest(self, **kwargs):
         """Inbound webhook receiving timesheet submissions with strict HMAC authentication."""
         if request.httprequest.method == 'OPTIONS':

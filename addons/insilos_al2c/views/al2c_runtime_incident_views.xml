@@ -39,21 +39,21 @@
                 <field name="last_seen_date"/>
                 <templates>
                     <t t-name="kanban-box">
-                        <div class="oe_kanban_global_click p-3 rounded shadow-sm border" style="background-color: var(--insilos-bg-card, #ffffff); border-color: var(--insilos-border-subtle, #e2e8f0);">
+                        <div class="oe_kanban_global_click p-3 rounded shadow-sm border" style="background-color: var(--insilos-bg-card); border-color: var(--insilos-border-subtle);">
                             <div class="d-flex justify-content-between align-items-center mb-1">
                                 <span class="badge text-bg-primary font-monospace"><t t-esc="record.incident_code.value"/></span>
                                 <span t-if="record.severity.raw_value == 'critical'" class="badge text-bg-danger">CRITICAL</span>
                                 <span t-elif="record.severity.raw_value == 'high'" class="badge text-bg-warning">HIGH</span>
                                 <span t-else="" class="badge text-bg-secondary"><t t-esc="record.severity.value"/></span>
                             </div>
-                            <h5 class="fw-bold my-1 text-truncate" style="color: var(--insilos-text-main, #0f172a);">
+                            <h5 class="fw-bold my-1 text-truncate" style="color: var(--insilos-text-primary);">
                                 <t t-esc="record.name.value"/>
                             </h5>
                             <div class="small text-muted mb-2">
                                 🏢 <t t-esc="record.asset_id.value or 'Unmapped'"/> • 🌐 <code><t t-esc="record.instance_id.value or 'N/A'"/></code>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
-                                <span class="badge rounded-pill text-bg-light border">
+                                <span class="badge rounded-pill border" style="background-color: var(--insilos-bg-subtle); color: var(--insilos-text-secondary); border-color: var(--insilos-border-subtle) !important;">
                                     🔥 <t t-esc="record.occurrence_count.value"/> Hits
                                 </span>
                                 <span class="small text-muted"><t t-esc="record.last_seen_date.value"/></span>
@@ -110,7 +110,7 @@
                             <separator string="Error Message"/>
                             <field name="error_message" readonly="1"/>
                             <separator string="Sanitized Traceback"/>
-                            <field name="traceback" readonly="1" class="font-monospace" style="background: var(--insilos-bg-subtle, #f8fafc); padding: 12px; border-radius: 6px;"/>
+                            <field name="traceback" readonly="1" class="font-monospace" style="background: var(--insilos-bg-subtle); color: var(--insilos-text-primary); padding: 12px; border-radius: 6px;"/>
                             <separator string="OWL Component Stack (if applicable)"/>
                             <field name="component_stack" readonly="1" class="font-monospace"/>
                         </page>

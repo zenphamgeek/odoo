@@ -228,7 +228,7 @@ export class KanbanRecord extends CardRenderer {
         if (this.props.getSelection().length > 0 || ev.altKey) {
             ev.stopPropagation();
             ev.preventDefault();
-            this.rootRef().focus();
+            this.rootRef()?.focus();
             this.props.toggleSelection(this.props.record, ev.shiftKey);
             return;
         }

@@ -423,7 +423,10 @@ class Registry(Mapping[str, type["BaseModel"]]):
         """ Ensure sovereign tables are physical base tables and legacy tables are updatable views.
         Guarantees zero-downtime, zero-regression execution across all tenant, cloned, and fresh databases.
         """
+        if getattr(cr, 'readonly', False):
+            return
         try:
+            cr.execute("SAVEPOINT insilos_sovereign_bridges_outer")
             all_tables = [t for pair in self.SOVEREIGN_TABLE_BRIDGES for t in pair]
             cr.execute("""
                 SELECT relname, relkind 
@@ -438,54 +441,87 @@ class Registry(Mapping[str, type["BaseModel"]]):
                 sov_kind = rel_kinds.get(sov)
                 leg_kind = rel_kinds.get(leg)
                 
-                # Case 1: Legacy exists as physical table ('r') while Sovereign is missing or a view.
-                # Sovereign MUST be the physical table because Python ORM models reference self._table = sov.
-                if leg_kind == 'r' and sov_kind != 'r':
-                    if sov_kind == 'v':
-                        cr.execute(f'DROP VIEW IF EXISTS "{sov}" CASCADE')
-                    cr.execute(f'ALTER TABLE "{leg}" RENAME TO "{sov}"')
-                    cr.execute(f"""
-                        DO $$
-                        BEGIN
-                            IF EXISTS (SELECT 1 FROM pg_class WHERE relkind = 'S' AND relname = '{leg}_id_seq' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())) THEN
-                                ALTER SEQUENCE "{leg}_id_seq" RENAME TO "{sov}_id_seq";
-                                ALTER TABLE "{sov}" ALTER COLUMN id SET DEFAULT nextval('"{sov}_id_seq"'::regclass);
-                            END IF;
-                        END $$;
-                    """)
-                    cr.execute(f'CREATE OR REPLACE VIEW "{leg}" AS SELECT * FROM "{sov}"')
-                    rel_kinds[sov] = 'r'
-                    rel_kinds[leg] = 'v'
-                    healed += 1
+                cr.execute("SAVEPOINT insilos_sovereign_bridge_item")
+                try:
+                    # Case 1: Legacy exists as physical table ('r') while Sovereign is missing or a view.
+                    # Sovereign MUST be the physical table because Python ORM models reference self._table = sov.
+                    if leg_kind == 'r' and sov_kind != 'r':
+                        if sov_kind == 'v':
+                            cr.execute(f'DROP VIEW IF EXISTS "{sov}" CASCADE')
+                        cr.execute(f'ALTER TABLE "{leg}" RENAME TO "{sov}"')
+                        cr.execute(f"""
+                            DO $$
+                            BEGIN
+                                IF EXISTS (SELECT 1 FROM pg_class WHERE relkind = 'S' AND relname = '{leg}_id_seq' AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())) THEN
+                                    ALTER SEQUENCE "{leg}_id_seq" RENAME TO "{sov}_id_seq";
+                                    ALTER TABLE "{sov}" ALTER COLUMN id SET DEFAULT nextval('"{sov}_id_seq"'::regclass);
+                                END IF;
+                            END $$;
+                        """)
+                        cr.execute(f'CREATE OR REPLACE VIEW "{leg}" AS SELECT * FROM "{sov}"')
+                        rel_kinds[sov] = 'r'
+                        rel_kinds[leg] = 'v'
+                        healed += 1
 
-                # Case 2: Sovereign is physical table ('r') and Legacy view is missing.
-                elif sov_kind == 'r' and leg_kind is None:
-                    cr.execute(f'CREATE OR REPLACE VIEW "{leg}" AS SELECT * FROM "{sov}"')
-                    rel_kinds[leg] = 'v'
-                    healed += 1
+                    # Case 2: Sovereign is physical table ('r') and Legacy view is missing.
+                    elif sov_kind == 'r' and leg_kind is None:
+                        cr.execute(f'CREATE OR REPLACE VIEW "{leg}" AS SELECT * FROM "{sov}"')
+                        rel_kinds[leg] = 'v'
+                        healed += 1
+
+                    # Case 3: Sovereign is physical table ('r') and Legacy view ('v') has stale column projection.
+                    elif sov_kind == 'r' and leg_kind == 'v':
+                        cr.execute("""
+                            SELECT
+                                (SELECT count(*) FROM pg_attribute WHERE attrelid = %s::regclass AND attnum > 0 AND NOT attisdropped),
+                                (SELECT count(*) FROM pg_attribute WHERE attrelid = %s::regclass AND attnum > 0 AND NOT attisdropped)
+                        """, [sov, leg])
+                        sov_cols, leg_cols = cr.fetchone()
+                        if sov_cols != leg_cols:
+                            cr.execute(f'CREATE OR REPLACE VIEW "{leg}" AS SELECT * FROM "{sov}"')
+                            healed += 1
+                    cr.execute("RELEASE SAVEPOINT insilos_sovereign_bridge_item")
+                except Exception:
+                    cr.execute("ROLLBACK TO SAVEPOINT insilos_sovereign_bridge_item")
+                    cr.execute("RELEASE SAVEPOINT insilos_sovereign_bridge_item")
 
             # Special check for M2M classification rel
-            cr.execute("""
-                SELECT relname, relkind 
-                FROM pg_class 
-                WHERE relname IN ('res_partner_res_partner_category_rel', 'party_classification_rel')
-                  AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
-            """)
-            m2m_kinds = {row[0]: row[1] for row in cr.fetchall()}
-            if 'res_partner_res_partner_category_rel' in m2m_kinds and 'party_classification_rel' not in m2m_kinds:
-                cr.execute('CREATE OR REPLACE VIEW "party_classification_rel" AS SELECT category_id, partner_id FROM "res_partner_res_partner_category_rel"')
-                healed += 1
-            elif 'party_classification_rel' in m2m_kinds and 'res_partner_res_partner_category_rel' not in m2m_kinds:
-                cr.execute('CREATE OR REPLACE VIEW "res_partner_res_partner_category_rel" AS SELECT category_id, partner_id FROM "party_classification_rel"')
-                healed += 1
+            cr.execute("SAVEPOINT insilos_sovereign_bridge_m2m")
+            try:
+                cr.execute("""
+                    SELECT relname, relkind 
+                    FROM pg_class 
+                    WHERE relname IN ('res_partner_res_partner_category_rel', 'party_classification_rel')
+                      AND relnamespace = (SELECT oid FROM pg_namespace WHERE nspname = current_schema())
+                """)
+                m2m_kinds = {row[0]: row[1] for row in cr.fetchall()}
+                if 'res_partner_res_partner_category_rel' in m2m_kinds and 'party_classification_rel' not in m2m_kinds:
+                    cr.execute('CREATE OR REPLACE VIEW "party_classification_rel" AS SELECT category_id, partner_id FROM "res_partner_res_partner_category_rel"')
+                    healed += 1
+                elif 'party_classification_rel' in m2m_kinds and 'res_partner_res_partner_category_rel' not in m2m_kinds:
+                    cr.execute('CREATE OR REPLACE VIEW "res_partner_res_partner_category_rel" AS SELECT category_id, partner_id FROM "party_classification_rel"')
+                    healed += 1
+                cr.execute("RELEASE SAVEPOINT insilos_sovereign_bridge_m2m")
+            except Exception:
+                cr.execute("ROLLBACK TO SAVEPOINT insilos_sovereign_bridge_m2m")
+                cr.execute("RELEASE SAVEPOINT insilos_sovereign_bridge_m2m")
 
             if healed > 0:
+                cr.execute("SAVEPOINT insilos_sovereign_bridge_grant")
                 try:
                     cr.execute("GRANT ALL ON ALL TABLES IN SCHEMA public TO CURRENT_USER")
+                    cr.execute("RELEASE SAVEPOINT insilos_sovereign_bridge_grant")
                 except Exception:
-                    pass
+                    cr.execute("ROLLBACK TO SAVEPOINT insilos_sovereign_bridge_grant")
+                    cr.execute("RELEASE SAVEPOINT insilos_sovereign_bridge_grant")
                 _logger.info("Auto-healed %d sovereign table/view bridges on database %s", healed, self.db_name)
+            cr.execute("RELEASE SAVEPOINT insilos_sovereign_bridges_outer")
         except Exception:
+            try:
+                cr.execute("ROLLBACK TO SAVEPOINT insilos_sovereign_bridges_outer")
+                cr.execute("RELEASE SAVEPOINT insilos_sovereign_bridges_outer")
+            except Exception:
+                pass
             _logger.debug("Failed to auto-heal sovereign view bridges on %s", self.db_name, exc_info=True)
 
     def __contains__(self, model_name: str) -> bool:
@@ -963,6 +999,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
         from .environments import Environment  # noqa: PLC0415
         env = Environment(cr, SUPERUSER_ID, context)
         models = [env[model_name] for model_name in model_names]
+        model_names = OrderedSet(model._name for model in models)
         env.transaction.will_change_registry()
 
         try:
@@ -991,6 +1028,7 @@ class Registry(Mapping[str, type["BaseModel"]]):
             self.check_foreign_keys(cr)
 
             env.flush_all()
+            self._ensure_sovereign_bridges(cr)
 
             # make sure all tables are present
             self.check_tables_exist(cr)
@@ -1252,6 +1290,8 @@ class Registry(Mapping[str, type["BaseModel"]]):
             # recreate missing tables
             for name in missing:
                 _logger.info("Recreate table of model %s.", name)
+                if env[name]._auto:
+                    env[name]._auto_init()
                 env[name].init()
             env.flush_all()
             # check again, and log errors if tables are still missing

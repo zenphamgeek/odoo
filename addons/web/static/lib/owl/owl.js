@@ -4784,9 +4784,37 @@ ${issueStrings}`);
       }
     }
     if (type) {
-      const keys = Array.isArray(type) ? type : Object.keys(type);
+      const baseKeys = Array.isArray(type) ? type : Object.keys(type);
+      const getAllKeys = (props2) => {
+        const keySet = new Set(baseKeys);
+        for (const k in props2) {
+          if (k.charCodeAt(0) !== 1 && k !== "*") {
+            keySet.add(k);
+          }
+        }
+        const ctorProps = node.component?.constructor?.props;
+        if (ctorProps) {
+          const extra = Array.isArray(ctorProps) ? ctorProps : Object.keys(ctorProps);
+          for (const rawKey of extra) {
+            if (typeof rawKey === "string" && rawKey !== "*") {
+              keySet.add(rawKey.endsWith("?") ? rawKey.slice(0, -1) : rawKey);
+            }
+          }
+        }
+        return [...keySet];
+      };
+      let keys = getAllKeys(node.props);
       defineProps(keys);
-      node.propsUpdated.push(() => updateSignals(keys));
+      node.propsUpdated.push(() => {
+        const nextKeys = getAllKeys(node.props);
+        for (const key of nextKeys) {
+          if (!(key in signals)) {
+            defineProp(key);
+          }
+        }
+        updateSignals(nextKeys);
+        keys = nextKeys;
+      });
       if (app.dev) {
         if (defaults) {
           const defaultedShape = {};
@@ -6519,7 +6547,14 @@ ${code}`;
         attrs[`block-handler-${idx}`] = ev;
       }
       if (ast.ref) {
-        const refExpr = compileExpr(ast.ref);
+        let refExpr;
+        if (ast.ref.includes("{{") || ast.ref.includes("#{")) {
+          refExpr = `ctx[${interpolate(ast.ref)}]`;
+        } else if (/^[a-zA-Z_$][a-zA-Z0-9_$]*-[a-zA-Z0-9_$-]+$/.test(ast.ref.trim())) {
+          refExpr = `ctx[${JSON.stringify(ast.ref.trim())}]`;
+        } else {
+          refExpr = compileExpr(ast.ref);
+        }
         this.helpers.add("createRef");
         const setRefStr = `createRef(${refExpr}, node)`;
         const idx = block.insertData(setRefStr, "ref");

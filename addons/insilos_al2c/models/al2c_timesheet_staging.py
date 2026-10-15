@@ -114,7 +114,15 @@ class Al2cTimesheetStaging(models.Model):
         # Buffering duplicates in staging is allowed, but a given fingerprint
         # may be COMMITTED/APPROVED to the analytic ledger at most once. Enforce that at the
         # DB level so the race-rescue in commit has a real IntegrityError to catch under concurrent ingestion.
-        self.env.cr.execute("""
+        from odoo.tools import sql
+        has_line_table = sql.table_exists(self.env.cr, 'al2c_timesheet_staging_line')
+        line_guard_sql = """
+              AND NOT EXISTS (
+                SELECT 1 FROM al2c_timesheet_staging_line l
+                WHERE l.staging_id = s.id AND l.analytic_line_id IS NOT NULL
+              )
+        """ if has_line_table else ""
+        self.env.cr.execute(f"""
             ALTER TABLE al2c_timesheet_staging 
             DROP CONSTRAINT IF EXISTS al2c_timesheet_staging_dedup_fingerprint_unique;
 
@@ -128,10 +136,7 @@ class Al2cTimesheetStaging(models.Model):
                 WHERE s2.dedup_fingerprint = s.dedup_fingerprint
                   AND s2.state = 'approved'
               )
-              AND NOT EXISTS (
-                SELECT 1 FROM al2c_timesheet_staging_line l
-                WHERE l.staging_id = s.id AND l.analytic_line_id IS NOT NULL
-              );
+              {line_guard_sql};
 
             CREATE UNIQUE INDEX IF NOT EXISTS
                 al2c_timesheet_staging_dedup_approved_uniq
