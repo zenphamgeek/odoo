@@ -270,5 +270,47 @@
         <field name="work_contact_id" ref="partner_emp_khoa"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_khoa')])]"/>
     </record>
+
+    <!-- AIfin Strategic B2B Customer & Dedicated Staff Augmentation Engineer (Trần Văn Huỳnh Phố - DGM-009) -->
+    <record id="partner_dgm_customer_aifin" model="res.partner">
+        <field name="name">CÔNG TY CỔ PHẦN AIFIN COMPANY GLOBAL</field>
+        <field name="is_company" eval="True"/>
+        <field name="vat">0319631994</field>
+        <field name="street">51-53 Võ Văn Tần, Phường Xuân Hòa, Thành Phố Hồ Chí Minh, Việt Nam</field>
+        <field name="country_id" ref="base.vn"/>
+        <field name="email">huy.nguyen@aifin.com.vn</field>
+        <field name="phone">0909888360</field>
+    </record>
+
+    <record id="partner_emp_pho" model="res.partner">
+        <field name="name">Trần Văn Huỳnh Phố</field>
+        <field name="email">pho.tran@inno.ai.vn</field>
+        <field name="phone">0903881009</field>
+        <field name="is_company" eval="False"/>
+    </record>
+
+    <record id="bank_emp_pho" model="res.partner.bank">
+        <field name="acc_number">1045289901</field>
+        <field name="partner_id" ref="partner_emp_pho"/>
+        <field name="bank_id" ref="bank_vcb"/>
+        <field name="acc_holder_name">TRAN VAN HUYNH PHO</field>
+    </record>
+
+    <record id="emp_dgm_009" model="hr.employee">
+        <field name="name">Trần Văn Huỳnh Phố</field>
+        <field name="legal_name">Trần Văn Huỳnh Phố</field>
+        <field name="registration_number">DGM-009</field>
+        <field name="id_card_name">079098014567</field>
+        <field name="identification_id">079098014567</field>
+        <field name="work_email">pho.tran@inno.ai.vn</field>
+        <field name="work_phone">0903881009</field>
+        <field name="department_id" ref="dept_dgm_b2b_onsite"/>
+        <field name="job_id" ref="job_dgm_senior_onsite"/>
+        <field name="job_title">Kỹ sư Phần mềm Senior (AIfin Onsite)</field>
+        <field name="wage">30000000</field>
+        <field name="contract_date_start">2024-04-01</field>
+        <field name="work_contact_id" ref="partner_emp_pho"/>
+        <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_pho')])]"/>
+    </record>
 </data>
 </odoo>

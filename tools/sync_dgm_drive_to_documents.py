@@ -165,9 +165,11 @@ def classify_tags_for_entry(entry, tags_map, core_tags):
         if "MBF" in rel.upper() or "MOBIAI" in name_up:
             if core_tags.get("line_ai"):
                 res_tags.append(core_tags["line_ai"].id)
-        elif "TÀI BÙI" in rel.upper() or "MTI" in name_up:
+        elif "TÀI BÙI" in rel.upper() or "MTI" in name_up or "AIFIN" in rel.upper() or "AIFIN" in name_up:
             if core_tags.get("line_svc"):
                 res_tags.append(core_tags["line_svc"].id)
+            if "360-SALES" in name_up and core_tags.get("line_erp"):
+                res_tags.append(core_tags["line_erp"].id)
         if core_tags.get("conf_confidential"):
             res_tags.append(core_tags["conf_confidential"].id)
     elif rel.startswith("DGM - NHÂN SỰ"):
@@ -754,6 +756,25 @@ def run_dgm_sync(env):
             att.write({"res_model": "documents.document", "res_id": new_sop.id})
             canonical_file_ids.add(new_sop.id)
             created_docs += 1
+
+    # Preserve SOP-DGM-06 Partner Onboarding folders and TPL-ONB companion documents
+    onb_folders = DocAll.search([
+        ("type", "=", "folder"),
+        "|", "|",
+        ("name", "ilike", "Hồ sơ On-boarding Đối tác%"),
+        ("name", "ilike", "PTN-DGM-%"),
+        ("name", "ilike", "TMP-DGM-%"),
+    ])
+    for of in onb_folders:
+        canonical_folder_ids.add(of.id)
+    onb_files = DocAll.search([
+        ("type", "!=", "folder"),
+        "|",
+        ("name", "ilike", "[TPL-ONB-%"),
+        ("create_activity_note", "ilike", "[DGM_ONB:%"),
+    ])
+    for ofile in onb_files:
+        canonical_file_ids.add(ofile.id)
 
     # 6. Archive ALL non-canonical files and non-canonical/empty folders via SQL
     non_canonical_files = Doc.search([

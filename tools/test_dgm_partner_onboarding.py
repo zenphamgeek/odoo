@@ -472,12 +472,76 @@ def verify_workflow_state_machine_and_gates():
     print("[✓] SOP-DGM-06 Partner Tiering, Sales-First Non-Blocking Confirm, Companion Docs (TPL-ONB-01..04), Anti-Conflict Dedup & Outbound Payment Gate verified")
 
 
+def verify_k8s_partner_onboarding():
+    import subprocess
+    k8s_script = """
+import os, psycopg2
+conn = psycopg2.connect(
+    dbname=os.environ.get('DB_NAME', 'innoria_prod'),
+    user=os.environ.get('DB_USER', 'odoo'),
+    password=os.environ.get('PGPASSWORD', ''),
+    host=os.environ.get('DB_HOST', 'pgbouncer-service'),
+    port=int(os.environ.get('DB_PORT', '6432')),
+)
+cur = conn.cursor()
+cur.execute("SELECT COUNT(*) FROM res_partner WHERE dgm_partner_code LIKE 'PTN-DGM-2026-000%' AND dgm_onboarding_state = 'approved' AND dgm_all_companion_docs_ready = TRUE;")
+p_cnt = cur.fetchone()[0]
+assert p_cnt == 6, f'Expected 6 canonical approved DGM partners on K8s, got {p_cnt}'
+
+cur.execute("SELECT COUNT(*) FROM dgm_partner_onboarding_doc_rel;")
+doc_cnt = cur.fetchone()[0]
+assert doc_cnt >= 24, f'Expected >=24 companion docs on K8s, got {doc_cnt}'
+
+cur.execute('''
+    SELECT COUNT(*) FROM documents_document f
+     WHERE f.type = 'folder' AND f.active = TRUE
+       AND NOT EXISTS (SELECT 1 FROM documents_document c WHERE c.folder_id = f.id AND c.active = TRUE);
+''')
+empty_cnt = cur.fetchone()[0]
+assert empty_cnt == 0, f'Expected 0 empty active folders on K8s, got {empty_cnt}'
+
+cur.execute("SELECT COUNT(*) FROM knowledge_article WHERE name ILIKE 'SOP-DGM-06%' AND active = TRUE;")
+kb_cnt = cur.fetchone()[0]
+assert kb_cnt >= 1, 'Missing SOP-DGM-06 Knowledge Article on K8s'
+conn.close()
+assert os.path.exists('/app/insilos/addons/insilos_al2c/models/res_partner_onboarding.py'), 'Missing res_partner_onboarding.py on K8s pod'
+print(f'K8S_SOP_DGM_06_OK partners={p_cnt} companion_docs={doc_cnt} empty_folders={empty_cnt} kb={kb_cnt}')
+"""
+    # Dynamically discover active innoria-prod pod
+    pod_name = "innoria-prod-app-7cdc9b8ddc-8st7m"
+    try:
+        discovered = subprocess.check_output(
+            ["kubectl", "get", "pods", "-n", "production", "-l", "app=innoria-prod", "--field-selector=status.phase=Running", "-o", "jsonpath={.items[0].metadata.name}"],
+            text=True,
+        ).strip()
+        if discovered:
+            pod_name = discovered
+    except Exception:
+        pass
+
+    proc = subprocess.run(
+        [
+            "kubectl", "exec", "-i", "-n", "production",
+            pod_name, "-c", "innoria",
+            "--", "python3", "-",
+        ],
+        input=k8s_script,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "K8S_SOP_DGM_06_OK" in proc.stdout, proc.stdout
+    print(f"[✓] K8s live production (`innoria_prod` SOP-DGM-06): {proc.stdout.strip()}")
+
+
 def main():
     for db in ("insilos20_dev", "innoria_prod"):
         verify_db_partner_onboarding(db)
     verify_workflow_state_machine_and_gates()
+    verify_k8s_partner_onboarding()
     print("[🎉] ALL SOP-DGM-06 PARTNER ONBOARDING & PAYMENT GATE CHECKS PASSED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
