@@ -460,6 +460,7 @@ export class AiConciergeWidget extends Component {
             currentQuery: "",
             selectedPillar: "sw_squad",
             pctToken: null,
+            pricingToken: null,
             capabilityBudgetRemaining: 3,
             servicesCatalog: initialCatalog,
             configurator: {
@@ -789,13 +790,16 @@ export class AiConciergeWidget extends Component {
         // 2. Live server calculation via /innoria/ai_concierge/estimate_service
         this.state.configurator.isEstimating = true;
         try {
-            const serverRes = await callJsonRpc("/innoria/ai_concierge/estimate_service", {
+            const result = await callJsonRpc("/innoria/ai_concierge/estimate_service", {
                 service_code: svc.code,
                 scale_tier: scale_tier,
                 units: units,
                 duration_months: duration_months,
             });
-            const payload = serverRes?.estimate || serverRes;
+            if (result) {
+                this.state.pricingToken = result.pricing_token || null;
+            }
+            const payload = result?.estimate || result;
             if (payload && (payload.formatted_total_vnd || payload.total_vnd)) {
                 const mergedPayment = Array.isArray(payload.payment_schedule)
                     ? payload.payment_schedule.join(" • ")
@@ -1231,6 +1235,7 @@ export class AiConciergeWidget extends Component {
                 duration_months: cfg.duration_months,
                 estimated_total_vnd: est.total_vnd || 0,
                 pct_token: this.state.pctToken,
+                pricing_token: this.state.pricingToken,
             });
 
             if (result && result.success) {

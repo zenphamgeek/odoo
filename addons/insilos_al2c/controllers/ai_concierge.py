@@ -221,18 +221,18 @@ def _format_vnd(amount):
 
 
 def _resolve_env(controller, kw):
-    if hasattr(controller, 'env') and controller.env:
+    if hasattr(controller, 'env') and controller.env is not None:
         return controller.env
     try:
         from odoo.http import request
         req = request._get_current_object()
-        if req and hasattr(req, 'env') and req.env:
+        if req and hasattr(req, 'env') and req.env is not None:
             controller.env = req.env
             return req.env
     except Exception:
         pass
     env = kw.get('env')
-    if env:
+    if env is not None:
         controller.env = env
     return env
 
@@ -283,7 +283,7 @@ class InnoriaAiConciergeController(http.Controller):
 
     @property
     def env(self):
-        if hasattr(self, '_custom_env') and self._custom_env:
+        if hasattr(self, '_custom_env') and self._custom_env is not None:
             return self._custom_env
         try:
             from odoo.http import request
@@ -364,6 +364,82 @@ class InnoriaAiConciergeController(http.Controller):
                 return False, 'pct_capability_budget_exhausted', 0
             entry['remaining'] -= cost
             return True, 'ok', entry['remaining']
+
+    def mint_pricing_token(self, service_code, scale_tier, units, duration_months, total_vnd, env=None, ttl=1800):
+        """
+        Mint a signed Ephemeral Sealed Intent Handshake (ESIH) pricing attestation token:
+        f"prc.{service_code}.{scale_tier}.{int(units)}.{int(duration_months)}.{int(round(float(total_vnd)))}.{exp_ts}.{sig}"
+        """
+        svc_code = str(service_code or 'sw_squad').strip().lower()
+        tier = str(scale_tier or 'growth').strip().lower()
+        u_int = int(units if units is not None else 1)
+        m_int = int(duration_months if duration_months is not None else 6)
+        vnd_int = int(round(float(total_vnd or 0.0)))
+        exp_ts = int(time.time()) + int(ttl)
+        payload = f"prc:{svc_code}:{tier}:{u_int}:{m_int}:{vnd_int}:{exp_ts}"
+        secret = self._get_pct_secret(env)
+        sig = hmac.new(secret.encode('utf-8'), payload.encode('utf-8'), hashlib.sha256).hexdigest()
+        return f"prc.{svc_code}.{tier}.{u_int}.{m_int}.{vnd_int}.{exp_ts}.{sig}"
+
+    def verify_pricing_token(self, pricing_token, env=None):
+        """
+        Verify an ESIH cryptographic pricing attestation token (`prc.*` 8-part format or `tier:users:vnd:sig` 4-part format).
+        Returns (ok: bool, verified_dict: dict | None, status_code: str).
+        """
+        if not pricing_token or not isinstance(pricing_token, str):
+            return False, None, 'invalid_pricing_token'
+        tok = pricing_token.strip()
+        secret = self._get_pct_secret(env)
+        if tok.startswith('prc.'):
+            parts = tok.split('.')
+            if len(parts) != 8:
+                return False, None, 'invalid_pricing_token'
+            _, svc_code, tier, u_str, m_str, vnd_str, exp_str, sig = parts
+            try:
+                u_int = int(u_str)
+                m_int = int(m_str)
+                vnd_int = int(vnd_str)
+                exp_ts = int(exp_str)
+            except ValueError:
+                return False, None, 'invalid_pricing_token'
+            if vnd_int < 0 or int(time.time()) > exp_ts:
+                return False, None, 'invalid_pricing_token'
+            payload = f"prc:{svc_code}:{tier}:{u_int}:{m_int}:{vnd_int}:{exp_ts}"
+            expected_sig = hmac.new(secret.encode('utf-8'), payload.encode('utf-8'), hashlib.sha256).hexdigest()
+            if not (hmac.compare_digest(sig, expected_sig) or hmac.compare_digest(sig, expected_sig[:24])):
+                return False, None, 'invalid_pricing_token'
+            return True, {
+                'service_code': svc_code,
+                'scale_tier': tier,
+                'units': u_int,
+                'duration_months': m_int,
+                'total_vnd': float(vnd_int),
+                'exp_ts': exp_ts,
+            }, 'ok'
+        elif ':' in tok:
+            parts = tok.split(':')
+            if len(parts) != 4:
+                return False, None, 'invalid_pricing_token'
+            tier, u_str, vnd_str, sig = parts
+            try:
+                u_int = int(u_str)
+                vnd_int = int(vnd_str)
+            except ValueError:
+                return False, None, 'invalid_pricing_token'
+            if vnd_int < 0:
+                return False, None, 'invalid_pricing_token'
+            payload = f"{tier}:{u_int}:{vnd_int}"
+            expected_sig = hmac.new(secret.encode('utf-8'), payload.encode('utf-8'), hashlib.sha256).hexdigest()
+            if not (hmac.compare_digest(sig, expected_sig) or hmac.compare_digest(sig, expected_sig[:24])):
+                return False, None, 'invalid_pricing_token'
+            return True, {
+                'service_code': 'erp',
+                'scale_tier': tier,
+                'units': u_int,
+                'duration_months': 12,
+                'total_vnd': float(vnd_int),
+            }, 'ok'
+        return False, None, 'invalid_pricing_token'
 
     @http.route(['/innoria/ai_concierge/services_catalog'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=True)
     def ai_concierge_services_catalog(self, **kw):
@@ -496,6 +572,15 @@ class InnoriaAiConciergeController(http.Controller):
             for sku_code in svc['skus']
         ]
 
+        pricing_token = self.mint_pricing_token(
+            service_code=code,
+            scale_tier=tier,
+            units=resolved_units,
+            duration_months=resolved_months,
+            total_vnd=estimated_total_vnd,
+            env=env,
+        )
+
         return {
             'status': 'ok',
             'success': True,
@@ -523,6 +608,7 @@ class InnoriaAiConciergeController(http.Controller):
                 'Hóa đơn điện tử chuẩn Nghị định 70/2025/NĐ-CP (1C26TAA)',
             ],
             'roi_summary': 'Tiết kiệm ~45% TCO so với phần mềm ngoại • Rút ngắn 60% thời gian Go-Live',
+            'pricing_token': pricing_token,
         }
 
     @http.route(['/innoria/ai_concierge/query'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=False)
@@ -708,6 +794,13 @@ class InnoriaAiConciergeController(http.Controller):
 
         primary_service_code = service_cards[0]['code'] if service_cards else 'sw_squad'
         pct_token = self.mint_capability_token(env=env)
+        adversarial_containment = bool(
+            re.search(
+                r'(?:system\s+override|ignore\s+prior|\.sudo\s*\(|cr\.execute|service\.provision\s*\()',
+                user_query,
+                re.IGNORECASE,
+            )
+        )
 
         return {
             'success': True,
@@ -720,6 +813,9 @@ class InnoriaAiConciergeController(http.Controller):
             'service_cards': service_cards,
             'pct_token': pct_token,
             'capability_budget_remaining': self.DEFAULT_PCT_BUDGET,
+            'direct_execution_permitted': False,
+            'intent_sandbox': 'read_only_grounded',
+            'adversarial_containment': adversarial_containment,
             'suggested_actions': [
                 {
                     'type': 'open_configurator',
@@ -764,12 +860,14 @@ class InnoriaAiConciergeController(http.Controller):
         estimated_total_vnd=None,
         campaign_source=None,
         pct_token=None,
+        pricing_token=None,
         **kw
     ):
         """
         B2B Lead Booking, Service Estimate Attachment & Marketing Campaign Enrollment Endpoint (SOP-AI-004 §2.2).
         Calculates qualification fit score, assigns CRM tags, populates expected_revenue, and enrolls in
-        the AL2C Marketing Automation Campaign. Enforces Proof-Carrying Token (AB-PCT) capability budget.
+        the AL2C Marketing Automation Campaign. Enforces Proof-Carrying Token (AB-PCT) capability budget
+        and Ephemeral Sealed Intent Handshake (ESIH) Server-Authoritative Pricing Attestation.
         """
         env = _resolve_env(self, kw)
         if not env:
@@ -790,6 +888,17 @@ class InnoriaAiConciergeController(http.Controller):
             pct_remaining = rem
             pct_status = 'ok'
 
+        resolved_pricing_token = pricing_token if pricing_token is not None else kw.get('pricing_token')
+        verified_prc = None
+        if isinstance(resolved_pricing_token, str) and resolved_pricing_token.strip():
+            ok_prc, verified_prc, _prc_status = self.verify_pricing_token(resolved_pricing_token.strip(), env=env)
+            if not ok_prc:
+                return {
+                    'success': False,
+                    'status': 'invalid_pricing_token',
+                    'error': _("Tampered or expired pricing attestation token rejected (ESIH Guard)."),
+                }
+
         contact_name = (name or '').strip()
         contact_email = (email or '').strip()
         contact_phone = (phone or '').strip()
@@ -803,15 +912,14 @@ class InnoriaAiConciergeController(http.Controller):
             }
 
         norm_service_code = str(service_code or '').strip().lower() or None
+        if not norm_service_code and verified_prc:
+            norm_service_code = verified_prc.get('service_code')
         svc_def = SERVICE_BY_CODE.get(norm_service_code) if norm_service_code else None
 
-        # If service_code is provided without explicit estimated_total_vnd, compute deterministic estimate
+        # Server-Authoritative Pricing Kernel (Zero Client Price Trust — CWE-602)
         resolved_estimate_vnd = None
-        if estimated_total_vnd is not None and estimated_total_vnd != '':
-            try:
-                resolved_estimate_vnd = float(estimated_total_vnd)
-            except (ValueError, TypeError):
-                resolved_estimate_vnd = None
+        if verified_prc:
+            resolved_estimate_vnd = float(verified_prc['total_vnd'])
         elif svc_def:
             est_res = self.ai_concierge_estimate_service(
                 service_code=norm_service_code,
@@ -820,7 +928,15 @@ class InnoriaAiConciergeController(http.Controller):
                 duration_months=duration_months,
                 env=env,
             )
-            resolved_estimate_vnd = est_res.get('estimated_total_vnd', 0.0)
+            resolved_estimate_vnd = float(est_res.get('estimated_total_vnd', 0.0))
+        elif estimated_total_vnd is not None and estimated_total_vnd != '':
+            try:
+                raw_val = float(estimated_total_vnd)
+            except (ValueError, TypeError):
+                raw_val = 0.0
+            if raw_val < 0.0 or raw_val > 50_000_000_000.0:
+                raw_val = 0.0
+            resolved_estimate_vnd = raw_val
 
         # 1. B2B Fit Score Calculation (0 to 100) per SOP-12 §2.2
         fit_score = 40.0  # Base inbound score
