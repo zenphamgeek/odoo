@@ -607,9 +607,21 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_mail_tools_cmd, check=True)
         print(f"[✓] Created {tar_path_mail_tools}")
 
-        # 4O. Documents ErrorDialog Patch Sync (Purge redundant Share button)
+        # 4O. Documents ErrorDialog Patch, FileViewer, Renderer Mixin, Control Panel & Action Buttons Sync
         tar_path_docs = os.path.join(staging_dir, "documents_sync.tar.gz")
-        DOCS_MEMBERS = ["static/src/web/error_dialog/error_dialog_patch.xml"]
+        DOCS_MEMBERS = [
+            "static/src/web/error_dialog/error_dialog_patch.xml",
+            "static/src/views/documents_renderer_mixin.js",
+            "static/src/attachments/document_file_viewer.xml",
+            "static/src/attachments/document_file_viewer.js",
+            "static/src/views/search/documents_control_panel.xml",
+            "static/src/views/documents_controller_mixin.xml",
+            "static/src/views/documents_controller_mixin.js",
+            "static/src/views/action/documents_actions.xml",
+            "static/src/views/kanban/documents_kanban_record.js",
+            "static/src/views/search/documents_search_panel.xml",
+            "static/src/views/view_dialogs/select_add_document_create_dialog.xml",
+        ]
         frozen_docs = os.path.join(staging_dir, "frozen_docs")
         freeze_and_audit_members("enterprise/documents", DOCS_MEMBERS, frozen_docs)
         tar_docs_cmd = [
@@ -746,13 +758,14 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_addons_sweep_cmd, check=True)
         print(f"[✓] Created {tar_path_addons_sweep}")
 
-        # 4V. Enterprise Sweep Fixes (pos_enterprise, website_helpdesk_livechat, account_followup, equity)
+        # 4V. Enterprise Sweep Fixes (pos_enterprise, website_helpdesk_livechat, account_followup, equity, documents_spreadsheet)
         tar_path_ent_sweep = os.path.join(staging_dir, "enterprise_sweep_sync.tar.gz")
         ENT_SWEEP_MEMBERS = [
             "pos_enterprise/models/pos_prep_display.py",
             "website_helpdesk_livechat/models/chatbot_script.py",
             "account_followup/models/res_partner.py",
             "equity/models/equity_cap_table.py",
+            "documents_spreadsheet/static/src/spreadsheet_clone_xlsx_dialog/spreadsheet_clone_xlsx_dialog.xml",
         ]
         frozen_ent_sweep = os.path.join(staging_dir, "frozen_ent_sweep")
         freeze_and_audit_members("enterprise", ENT_SWEEP_MEMBERS, frozen_ent_sweep)
