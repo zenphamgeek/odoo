@@ -431,6 +431,26 @@ def verify_workflow_and_security_guards(dbname="insilos20_dev"):
             ), f"Invalid 64-char SHA-256 customer_signature_hash: {test_sheet.customer_signature_hash}"
             assert test_sheet.acceptance_doc_id, "Expected acceptance_doc_id to be generated"
 
+            # Guardrail 1C (SOP08-REV2 CWE-863 Post-Acceptance Seal):
+            # Mutating or unlinking a timesheet line immediately after customer_approved MUST raise UserError
+            raised_in_customer_approved_write = False
+            try:
+                test_sheet.line_ids[0].write({"actual_worked_days": 15.0})
+            except UserError:
+                raised_in_customer_approved_write = True
+            assert raised_in_customer_approved_write, (
+                "Post-Acceptance Seal violation: line.write({'actual_worked_days': 15.0}) did not raise UserError in 'customer_approved'!"
+            )
+
+            raised_in_customer_approved_unlink = False
+            try:
+                test_sheet.line_ids[0].unlink()
+            except UserError:
+                raised_in_customer_approved_unlink = True
+            assert raised_in_customer_approved_unlink, (
+                "Post-Acceptance Seal violation: line.unlink() did not raise UserError in 'customer_approved'!"
+            )
+
             # Draft-to-Official Invoice Flow
             test_sheet.action_generate_mti_draft_invoice()
             assert test_sheet.state == "draft_invoiced", (
@@ -458,6 +478,19 @@ def verify_workflow_and_security_guards(dbname="insilos20_dev"):
             assert test_sheet.official_invoice_doc_id, "Expected official_invoice_doc_id to be generated"
             first_einv_num = test_sheet.draft_invoice_id.dgm_einvoice_number
             first_inv_id = test_sheet.draft_invoice_id.id
+
+            # Verify Canonical C14N / NFC 1C26TAA XML generation
+            xml_c14n = test_sheet._build_canonical_1c26taa_xml()
+            for req_xml_frag in (
+                'Kieu="1C26TAA"',
+                "<MST>0317958465</MST>",
+                "<TenNM>",
+                "<MSTNM>",
+                "<TongTien>",
+                "<DigestManifest>",
+                "<SignatureHMAC>",
+            ):
+                assert req_xml_frag in xml_c14n, f"Missing {req_xml_frag} in C14N 1C26TAA XML: {xml_c14n}"
 
             # Guardrail 2: Calling action_confirm_draft_and_issue_official_invoice() a second time MUST be idempotent
             second_inv = test_sheet.action_confirm_draft_and_issue_official_invoice(

@@ -2989,8 +2989,8 @@ def test_patch_28_sop_dgm_08_fiscal_barrier_advisory_lock_and_hmac():
         billing_src = f.read()
 
     # 1. PostgreSQL Transaction Advisory Lock
-    assert "SELECT pg_advisory_xact_lock(%s)" in billing_src, (
-        "Missing SELECT pg_advisory_xact_lock(%s) in dgm_project_timesheet_billing.py"
+    assert "SELECT pg_advisory_xact_lock(%s" in billing_src, (
+        "Missing SELECT pg_advisory_xact_lock(%s in dgm_project_timesheet_billing.py"
     )
     assert "260000000" in billing_src and "261000000" in billing_src, (
         "Missing 260000000 / 261000000 advisory lock namespace offsets in dgm_project_timesheet_billing.py"
@@ -3052,6 +3052,75 @@ def test_patch_28_sop_dgm_08_fiscal_barrier_advisory_lock_and_hmac():
     print("[✓] Patch 28 / Zero-Reversal Cryptographic Fiscal Barrier, Advisory Lock & HMAC-SHA256 on SOP-DGM-08 verified")
 
 
+def test_patch_29_sop08_rev2_namespaced_lock_post_approval_seal_and_c14n_xml():
+    """
+    Patch 29 Verification Suite (SOP08-REV2: Two-Key Namespaced Advisory Lock, Post-Acceptance Timesheet Seal & C14N/NFC Canonical 1C26TAA XML):
+    1. ADVISORY_LOCK_SOP08_NS = 1397706800 and 2-key SELECT pg_advisory_xact_lock(%s, %s) in dgm_project_timesheet_billing.py.
+    2. SEALED_FISCAL_STATES = ('customer_approved', 'draft_invoiced', 'official_invoiced') and _compute_timesheet_manifest_digest() /
+       _verify_customer_signature_integrity() enforcing post-approval immutability (CWE-863).
+    3. unicodedata.normalize('NFC', ...) and lxml.etree C14N serialization in _build_canonical_1c26taa_xml().
+    """
+    import ast
+    from lxml import etree
+
+    billing_py = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/dgm_project_timesheet_billing.py")
+    assert os.path.exists(billing_py), f"Missing {billing_py}"
+    with open(billing_py, "r", encoding="utf-8") as f:
+        billing_src = f.read()
+
+    # 1. Two-key namespaced advisory lock
+    assert "ADVISORY_LOCK_SOP08_NS = 1397706800" in billing_src, (
+        "Missing ADVISORY_LOCK_SOP08_NS = 1397706800 in dgm_project_timesheet_billing.py"
+    )
+    assert 'SELECT pg_advisory_xact_lock(%s, %s)' in billing_src, (
+        "Missing 2-key SELECT pg_advisory_xact_lock(%s, %s) in dgm_project_timesheet_billing.py"
+    )
+    assert "ADVISORY_LOCK_SOP08_NS + 1" in billing_src, (
+        "Missing ADVISORY_LOCK_SOP08_NS + 1 in AccountMoveDgmBilling.action_dgm_issue_official_einvoice"
+    )
+
+    # 2. Post-Acceptance Timesheet Seal & Manifest Digest
+    assert "SEALED_FISCAL_STATES = ('customer_approved', 'draft_invoiced', 'official_invoiced')" in billing_src, (
+        "Missing SEALED_FISCAL_STATES = ('customer_approved', 'draft_invoiced', 'official_invoiced')"
+    )
+    assert "def _compute_timesheet_manifest_digest(self):" in billing_src, (
+        "Missing _compute_timesheet_manifest_digest(self) in dgm_project_timesheet_billing.py"
+    )
+    assert "def _verify_customer_signature_integrity(self):" in billing_src, (
+        "Missing _verify_customer_signature_integrity(self) in dgm_project_timesheet_billing.py"
+    )
+
+    # 3. Unicode NFC & W3C C14N XML builder
+    assert "import unicodedata" in billing_src and "from lxml import etree" in billing_src, (
+        "Missing unicodedata or lxml.etree imports in dgm_project_timesheet_billing.py"
+    )
+    assert "unicodedata.normalize('NFC'" in billing_src, (
+        "Missing unicodedata.normalize('NFC', ...) in dgm_project_timesheet_billing.py"
+    )
+    assert "def _build_canonical_1c26taa_xml(self):" in billing_src, (
+        "Missing _build_canonical_1c26taa_xml(self) in dgm_project_timesheet_billing.py"
+    )
+    assert 'method="c14n"' in billing_src, (
+        "Missing method=\"c14n\" in _build_canonical_1c26taa_xml"
+    )
+    for xml_tag in ("HDon", "TTChung", "KHMSHDon", "KHHDon", "SHDon", "NDHDon", "NBan", "NMua", "DSHHDVu", "TToan", "DSCKS"):
+        assert f'"{xml_tag}"' in billing_src, f"Missing XML element {xml_tag} in _build_canonical_1c26taa_xml"
+
+    tree = ast.parse(billing_src, filename=billing_py)
+    classes = {n.name: n for n in ast.walk(tree) if isinstance(n, ast.ClassDef)}
+    sheet_methods = {
+        n.name for n in classes["DgmProjectTimesheetSheet"].body if isinstance(n, ast.FunctionDef)
+    }
+    for req_fn in (
+        "_compute_timesheet_manifest_digest",
+        "_verify_customer_signature_integrity",
+        "_build_canonical_1c26taa_xml",
+    ):
+        assert req_fn in sheet_methods, f"Missing {req_fn} on DgmProjectTimesheetSheet"
+
+    print("[✓] Patch 29 / SOP08-REV2 Two-Key Namespaced Advisory Lock, Post-Approval Seal & C14N/NFC 1C26TAA XML verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -3095,8 +3164,9 @@ def main():
     test_patch_26_shallow_partner_loader_hmac_share_and_lockfree_index()
     test_patch_27_theme_switch_dark_to_light_control_sections()
     test_patch_28_sop_dgm_08_fiscal_barrier_advisory_lock_and_hmac()
-    print("[✓] ALL 28 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 28 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_29_sop08_rev2_namespaced_lock_post_approval_seal_and_c14n_xml()
+    print("[✓] ALL 29 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 29 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":

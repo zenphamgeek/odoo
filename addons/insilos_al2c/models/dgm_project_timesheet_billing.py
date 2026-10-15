@@ -5,12 +5,19 @@ import hmac
 import html
 import logging
 import secrets
+import unicodedata
 from xml.sax.saxutils import escape as xml_escape
+
+from lxml import etree
 
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
+
+ADVISORY_LOCK_SOP08_NS = 1397706800  # ASCII 'SOP0' 32-bit namespace key
+ADVISORY_LOCK_SHEET_OFFSET = 260000000
+ADVISORY_LOCK_MOVE_OFFSET = 261000000
 
 NOTIFICATION_TYPE_SELECTION = [
     (
@@ -610,6 +617,8 @@ class DgmProjectTimesheetSheet(models.Model):
                 rec.sudo().write(updates)
         return records
 
+    SEALED_FISCAL_STATES = ('customer_approved', 'draft_invoiced', 'official_invoiced')
+
     IMMUTABLE_FISCAL_SHEET_FIELDS = {
         'partner_id',
         'vat_rate',
@@ -619,26 +628,144 @@ class DgmProjectTimesheetSheet(models.Model):
     }
 
     def write(self, vals):
-        if vals.get('state') != 'draft' and self.IMMUTABLE_FISCAL_SHEET_FIELDS.intersection(vals.keys()):
+        if vals.get('state') not in ('draft', 'revision_requested') and self.IMMUTABLE_FISCAL_SHEET_FIELDS.intersection(vals.keys()):
             for sheet in self:
-                if sheet.state == 'official_invoiced':
+                if sheet.state in self.SEALED_FISCAL_STATES:
                     raise UserError(_(
                         "⛔ [SOP-DGM-08 Fiscal Barrier — Decree 70/2025/ND-CP] "
                         "Không được phép chỉnh sửa thông tin pháp nhân, kỳ đối soát, thuế suất "
-                        "hoặc dòng chấm công trên Bảng chấm công (%s) đã phát hành Hóa đơn GTGT Chính thức (1C26TAA)!",
+                        "hoặc dòng chấm công trên Bảng chấm công (%s) đã được Khách hàng nghiệm thu hoặc đã xuất Hóa đơn (Trạng thái: %s)!",
                         sheet.name,
+                        sheet.state,
                     ))
         return super().write(vals)
 
     def unlink(self):
         for sheet in self:
-            if sheet.state == 'official_invoiced':
+            if sheet.state in self.SEALED_FISCAL_STATES:
                 raise UserError(_(
                     "⛔ [SOP-DGM-08 Fiscal Barrier — Decree 70/2025/ND-CP] "
-                    "Không được phép xóa Bảng chấm công (%s) đã phát hành Hóa đơn GTGT Chính thức (1C26TAA)!",
+                    "Không được phép xóa Bảng chấm công (%s) đã được Khách hàng nghiệm thu hoặc đã xuất Hóa đơn (Trạng thái: %s)!",
                     sheet.name,
+                    sheet.state,
                 ))
         return super().unlink()
+
+    def _compute_timesheet_manifest_digest(self):
+        self.ensure_one()
+        sorted_lines = sorted(
+            self.line_ids,
+            key=lambda l: (
+                l.sequence or 0,
+                l.id if isinstance(l.id, int) and l.id > 0 else 0,
+                l.employee_id.id if l.employee_id else 0,
+            ),
+        )
+        tokens = []
+        for line in sorted_lines:
+            lid = line.id if isinstance(line.id, int) and line.id > 0 else 0
+            eid = line.employee_id.id if line.employee_id else 0
+            emp_name_nfc = unicodedata.normalize('NFC', str(line.employee_id.name or ''))
+            role_nfc = unicodedata.normalize('NFC', str(line.role_title or ''))
+            tokens.append(
+                f"{lid}:{eid}:{emp_name_nfc}:{role_nfc}:"
+                f"{line.actual_worked_days or 0.0:.2f}:{line.billable_days or 0.0:.2f}:{line.subtotal_vnd or 0.0:.0f}"
+            )
+        canonical_str = unicodedata.normalize('NFC', "|".join(tokens))
+        return hashlib.sha256(canonical_str.encode('utf-8')).hexdigest()
+
+    def _verify_customer_signature_integrity(self):
+        self.ensure_one()
+        manifest_digest = self._compute_timesheet_manifest_digest()
+        if not manifest_digest or len(manifest_digest) != 64:
+            raise UserError(_(
+                "⛔ [SOP-DGM-08 Cryptographic Seal] Không thể xác thực mã băm Manifest cho Bảng chấm công (%s).",
+                self.name,
+            ))
+        if self.customer_approved_at and self.customer_signature_hash:
+            secret_key = (
+                self.env['ir.config_parameter'].sudo().get_param('database.secret')
+                or 'insilos-dgm-fiscal-secret-2026'
+            )
+            partner_id_val = self.partner_id.id if self.partner_id else 0
+            partner_vat_val = unicodedata.normalize(
+                'NFC', str((self.partner_id.vat or '') if self.partner_id else '')
+            )
+            resolved_name = unicodedata.normalize('NFC', str(self.customer_approver_name or ''))
+            resolved_email = unicodedata.normalize('NFC', str(self.customer_approver_email or ''))
+            approved_dt_str = fields.Datetime.to_string(self.customer_approved_at)
+            expected_payload = (
+                f"{self.id}|{self.name}|{partner_id_val}|{partner_vat_val}|"
+                f"{self.billing_period}|{self.total_billable_days:.2f}|{self.amount_total_vnd:.0f}|"
+                f"{manifest_digest}|{resolved_name}|{resolved_email}|{approved_dt_str}"
+            )
+            expected_hmac = hmac.new(
+                secret_key.encode('utf-8'),
+                expected_payload.encode('utf-8'),
+                hashlib.sha256,
+            ).hexdigest()
+            if not hmac.compare_digest(str(self.customer_signature_hash), expected_hmac):
+                raise UserError(_(
+                    "⛔ [SOP-DGM-08 Cryptographic Seal Violation — CWE-863] "
+                    "Dữ liệu Bảng chấm công (%s) đã bị thay đổi trái phép sau khi Khách hàng ký nghiệm thu!",
+                    self.name,
+                ))
+        return manifest_digest
+
+    def _build_canonical_1c26taa_xml(self):
+        self.ensure_one()
+        nfc = lambda val: unicodedata.normalize('NFC', str(val or ''))
+        inv = self.draft_invoice_id
+        sh_don = nfc(inv.dgm_einvoice_number if (inv and inv.dgm_einvoice_number) else 'DRAFT')
+        kh_hdon = nfc(inv.dgm_einvoice_symbol if (inv and inv.dgm_einvoice_symbol) else '1C26TAA')
+
+        root = etree.Element("HDon", Kieu="1C26TAA")
+        tt_chung = etree.SubElement(root, "TTChung")
+        etree.SubElement(tt_chung, "KHMSHDon").text = "1"
+        etree.SubElement(tt_chung, "KHHDon").text = kh_hdon
+        etree.SubElement(tt_chung, "SHDon").text = sh_don
+        etree.SubElement(tt_chung, "THDon").text = nfc("HÓA ĐƠN GIÁ TRỊ GIA TĂNG")
+        etree.SubElement(tt_chung, "DVTTe").text = "VND"
+
+        nd_hdon = etree.SubElement(root, "NDHDon")
+        n_ban = etree.SubElement(nd_hdon, "NBan")
+        etree.SubElement(n_ban, "Ten").text = nfc("CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ")
+        etree.SubElement(n_ban, "MST").text = "0317958465"
+
+        partner = self.partner_id
+        n_mua = etree.SubElement(nd_hdon, "NMua")
+        etree.SubElement(n_mua, "TenNM").text = nfc(partner.name if partner else '')
+        etree.SubElement(n_mua, "MSTNM").text = nfc((partner.vat or '') if partner else '')
+        etree.SubElement(n_mua, "MaKH").text = nfc(
+            (partner.dgm_partner_code or partner.dgm_provisional_code or 'PTN-DGM') if partner else 'PTN-DGM'
+        )
+
+        ds_hhdvu = etree.SubElement(nd_hdon, "DSHHDVu")
+        period_nfc = nfc(self.billing_period or '10/2026')
+        for idx, line in enumerate(self.line_ids, start=1):
+            hhdvu = etree.SubElement(ds_hhdvu, "HHDVu")
+            etree.SubElement(hhdvu, "STT").text = str(idx)
+            emp_name = nfc(line.employee_id.name if line.employee_id else 'Engineer')
+            role_title = nfc(line.role_title or 'Senior Engineer')
+            etree.SubElement(hhdvu, "THHDVu").text = nfc(
+                f"[{period_nfc}] Dịch vụ Kỹ thuật Phần mềm ({emp_name} - {role_title}): "
+                f"Nghiệm thu {line.billable_days or 0.0:.1f}/{line.standard_days or 22.0:.1f} ngày công"
+            )
+            etree.SubElement(hhdvu, "SLuong").text = f"{line.billable_days or 0.0:.2f}"
+            etree.SubElement(hhdvu, "DGia").text = f"{line.contract_monthly_rate_vnd or 0.0:.0f}"
+            etree.SubElement(hhdvu, "ThTien").text = f"{line.subtotal_vnd or 0.0:.0f}"
+
+        t_toan = etree.SubElement(nd_hdon, "TToan")
+        etree.SubElement(t_toan, "TgTCThue").text = f"{self.amount_untaxed_vnd or 0.0:.0f}"
+        etree.SubElement(t_toan, "TSuat").text = f"{nfc(self.vat_rate or '8')}%"
+        etree.SubElement(t_toan, "TgTThue").text = f"{self.amount_tax_vnd or 0.0:.0f}"
+        etree.SubElement(t_toan, "TongTien").text = f"{self.amount_total_vnd or 0.0:.0f}"
+
+        ds_cks = etree.SubElement(root, "DSCKS")
+        etree.SubElement(ds_cks, "DigestManifest").text = self._compute_timesheet_manifest_digest()
+        etree.SubElement(ds_cks, "SignatureHMAC").text = nfc(self.customer_signature_hash or '')
+
+        return etree.tostring(root, method="c14n", exclusive=False, with_comments=False).decode("utf-8")
 
     def _get_partner_target_folder(self):
         self.ensure_one()
@@ -1101,38 +1228,49 @@ class DgmProjectTimesheetSheet(models.Model):
     ):
         for sheet in self:
             if isinstance(sheet.id, int) and sheet.id > 0:
-                self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", [int(sheet.id) + 260000000])
+                self.env.cr.execute(
+                    "SELECT pg_advisory_xact_lock(%s, %s)",
+                    [ADVISORY_LOCK_SOP08_NS, int(sheet.id)],
+                )
             now_dt = fields.Datetime.now()
-            resolved_name = (
+            approved_dt_str = fields.Datetime.to_string(now_dt)
+            resolved_name = unicodedata.normalize(
+                'NFC',
                 (approver_name or '').strip()
                 or sheet.customer_approver_name
-                or (sheet.partner_id.name if sheet.partner_id else 'Đại diện Khách hàng')
+                or (sheet.partner_id.name if sheet.partner_id else 'Đại diện Khách hàng'),
             )
-            resolved_email = (
+            resolved_email = unicodedata.normalize(
+                'NFC',
                 (approver_email or '').strip()
                 or sheet.customer_approver_email
-                or (sheet.partner_id.email if sheet.partner_id else 'customer@partner.vn')
+                or (sheet.partner_id.email if sheet.partner_id else 'customer@partner.vn'),
             )
-            resolved_title = (
+            resolved_title = unicodedata.normalize(
+                'NFC',
                 (approver_title or '').strip()
                 or sheet.customer_approver_title
-                or 'Đại diện Có Thẩm quyền Khách hàng'
+                or 'Đại diện Có Thẩm quyền Khách hàng',
             )
-            resolved_note = (
+            resolved_note = unicodedata.normalize(
+                'NFC',
                 (note or '').strip()
                 or sheet.customer_approval_note
-                or 'Đồng ý nghiệm thu 100% khối lượng bảng chấm công.'
+                or 'Đồng ý nghiệm thu 100% khối lượng bảng chấm công.',
             )
             secret_key = (
                 self.env['ir.config_parameter'].sudo().get_param('database.secret')
                 or 'insilos-dgm-fiscal-secret-2026'
             )
             partner_id_val = sheet.partner_id.id if sheet.partner_id else 0
-            partner_vat_val = (sheet.partner_id.vat or '') if sheet.partner_id else ''
+            partner_vat_val = unicodedata.normalize(
+                'NFC', str((sheet.partner_id.vat or '') if sheet.partner_id else '')
+            )
+            manifest_digest = sheet._compute_timesheet_manifest_digest()
             payload = (
                 f"{sheet.id}|{sheet.name}|{partner_id_val}|{partner_vat_val}|"
                 f"{sheet.billing_period}|{sheet.total_billable_days:.2f}|{sheet.amount_total_vnd:.0f}|"
-                f"{resolved_name}|{resolved_email}|{now_dt}"
+                f"{manifest_digest}|{resolved_name}|{resolved_email}|{approved_dt_str}"
             )
             sig_hash = hmac.new(
                 secret_key.encode('utf-8'),
@@ -1239,11 +1377,11 @@ class DgmProjectTimesheetSheet(models.Model):
                 ('amount', '=', target_vat),
             ], order='id asc', limit=1)
 
-        safe_period = xml_escape(str(self.billing_period or '10/2026'))
+        safe_period = xml_escape(unicodedata.normalize('NFC', str(self.billing_period or '10/2026')))
         inv_lines_cmds = []
         for line in self.line_ids:
-            safe_emp_name = xml_escape(str(line.employee_id.name or 'Engineer'))
-            safe_role_title = xml_escape(str(line.role_title or 'Senior Engineer'))
+            safe_emp_name = xml_escape(unicodedata.normalize('NFC', str(line.employee_id.name or 'Engineer')))
+            safe_role_title = xml_escape(unicodedata.normalize('NFC', str(line.role_title or 'Senior Engineer')))
             line_vals = {
                 'name': (
                     f"[{safe_period}] Dịch vụ Kỹ thuật Phần mềm ({safe_emp_name} - "
@@ -1297,13 +1435,17 @@ class DgmProjectTimesheetSheet(models.Model):
         Notification = self.env['dgm.project.notification'].sudo()
         for sheet in self:
             if isinstance(sheet.id, int) and sheet.id > 0:
-                self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", [int(sheet.id) + 260000000])
+                self.env.cr.execute(
+                    "SELECT pg_advisory_xact_lock(%s, %s)",
+                    [ADVISORY_LOCK_SOP08_NS, int(sheet.id)],
+                )
             if sheet.state not in ('customer_approved', 'draft_invoiced', 'official_invoiced'):
                 raise UserError(_(
                     "⛔ [SOP-DGM-08 Guardrail] Không thể xuất Hóa đơn Nháp khi Khách hàng chưa phê duyệt Timesheet "
                     "(Trạng thái hiện tại: %s). Vui lòng hoàn tất bước KH Duyệt Timesheet trước!",
                     sheet.state,
                 ))
+            sheet._verify_customer_signature_integrity()
 
             # SOP-DGM-06 Partner Onboarding Gate Check: auto fast-track if not yet approved
             partner = sheet.partner_id
@@ -1349,7 +1491,10 @@ class DgmProjectTimesheetSheet(models.Model):
         Document = self.env['documents.document'].sudo()
         for sheet in self:
             if isinstance(sheet.id, int) and sheet.id > 0:
-                self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", [int(sheet.id) + 260000000])
+                self.env.cr.execute(
+                    "SELECT pg_advisory_xact_lock(%s, %s)",
+                    [ADVISORY_LOCK_SOP08_NS, int(sheet.id)],
+                )
             if (
                 sheet.state == 'official_invoiced'
                 and sheet.draft_invoice_id
@@ -1364,6 +1509,7 @@ class DgmProjectTimesheetSheet(models.Model):
                     "(Trạng thái hiện tại: %s).",
                     sheet.state,
                 ))
+            sheet._verify_customer_signature_integrity()
 
             confirmer = (
                 (confirmed_by or '').strip()
@@ -1498,6 +1644,8 @@ class DgmProjectTimesheetLine(models.Model):
         string='Bản ghi Timesheet Gốc',
     )
 
+    SEALED_FISCAL_STATES = ('customer_approved', 'draft_invoiced', 'official_invoiced')
+
     IMMUTABLE_FISCAL_LINE_FIELDS = {
         'actual_worked_days',
         'standard_days',
@@ -1511,23 +1659,25 @@ class DgmProjectTimesheetLine(models.Model):
     def write(self, vals):
         if self.IMMUTABLE_FISCAL_LINE_FIELDS.intersection(vals.keys()):
             for line in self:
-                if line.sheet_id and line.sheet_id.state == 'official_invoiced':
+                if line.sheet_id and line.sheet_id.state in self.SEALED_FISCAL_STATES:
                     raise UserError(_(
                         "⛔ [SOP-DGM-08 Fiscal Barrier — Decree 70/2025/ND-CP] "
                         "Không được phép chỉnh sửa dữ liệu ngày công / đơn giá trên Bảng chấm công (%s) "
-                        "đã phát hành Hóa đơn GTGT Chính thức (1C26TAA)!",
+                        "đã được Khách hàng nghiệm thu hoặc đã phát hành Hóa đơn (Trạng thái: %s)!",
                         line.sheet_id.name,
+                        line.sheet_id.state,
                     ))
         return super().write(vals)
 
     def unlink(self):
         for line in self:
-            if line.sheet_id and line.sheet_id.state == 'official_invoiced':
+            if line.sheet_id and line.sheet_id.state in self.SEALED_FISCAL_STATES:
                 raise UserError(_(
                     "⛔ [SOP-DGM-08 Fiscal Barrier — Decree 70/2025/ND-CP] "
                     "Không được phép xóa dòng chấm công thuộc Bảng chấm công (%s) "
-                    "đã phát hành Hóa đơn GTGT Chính thức (1C26TAA)!",
+                    "đã được Khách hàng nghiệm thu hoặc đã phát hành Hóa đơn (Trạng thái: %s)!",
                     line.sheet_id.name,
+                    line.sheet_id.state,
                 ))
         return super().unlink()
 
@@ -1603,10 +1753,41 @@ class AccountMoveDgmBilling(models.Model):
         copy=False,
     )
 
+    def _build_canonical_1c26taa_xml(self):
+        self.ensure_one()
+        if self.dgm_timesheet_sheet_id:
+            return self.dgm_timesheet_sheet_id._build_canonical_1c26taa_xml()
+        nfc = lambda val: unicodedata.normalize('NFC', str(val or ''))
+        root = etree.Element("HDon", Kieu="1C26TAA")
+        tt_chung = etree.SubElement(root, "TTChung")
+        etree.SubElement(tt_chung, "KHMSHDon").text = "1"
+        etree.SubElement(tt_chung, "KHHDon").text = nfc(self.dgm_einvoice_symbol or '1C26TAA')
+        etree.SubElement(tt_chung, "SHDon").text = nfc(self.dgm_einvoice_number or 'DRAFT')
+        etree.SubElement(tt_chung, "THDon").text = nfc("HÓA ĐƠN GIÁ TRỊ GIA TĂNG")
+        etree.SubElement(tt_chung, "DVTTe").text = "VND"
+        nd_hdon = etree.SubElement(root, "NDHDon")
+        n_ban = etree.SubElement(nd_hdon, "NBan")
+        etree.SubElement(n_ban, "Ten").text = nfc("CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ")
+        etree.SubElement(n_ban, "MST").text = "0317958465"
+        n_mua = etree.SubElement(nd_hdon, "NMua")
+        etree.SubElement(n_mua, "TenNM").text = nfc(self.partner_id.name if self.partner_id else '')
+        etree.SubElement(n_mua, "MSTNM").text = nfc((self.partner_id.vat or '') if self.partner_id else '')
+        etree.SubElement(n_mua, "MaKH").text = nfc(
+            (self.partner_id.dgm_partner_code or 'PTN-DGM') if self.partner_id else 'PTN-DGM'
+        )
+        t_toan = etree.SubElement(nd_hdon, "TToan")
+        etree.SubElement(t_toan, "TgTCThue").text = f"{self.amount_untaxed or 0.0:.0f}"
+        etree.SubElement(t_toan, "TgTThue").text = f"{self.amount_tax or 0.0:.0f}"
+        etree.SubElement(t_toan, "TongTien").text = f"{self.amount_total or 0.0:.0f}"
+        return etree.tostring(root, method="c14n", exclusive=False, with_comments=False).decode("utf-8")
+
     def action_dgm_issue_official_einvoice(self, confirmed_by=None):
         for move in self:
             if isinstance(move.id, int) and move.id > 0:
-                self.env.cr.execute("SELECT pg_advisory_xact_lock(%s)", [int(move.id) + 261000000])
+                self.env.cr.execute(
+                    "SELECT pg_advisory_xact_lock(%s, %s)",
+                    [ADVISORY_LOCK_SOP08_NS + 1, int(move.id)],
+                )
             if move.dgm_invoice_stage == 'official_issued' and move.dgm_einvoice_number:
                 continue
             now_dt = fields.Datetime.now()
@@ -1615,7 +1796,7 @@ class AccountMoveDgmBilling(models.Model):
                 or move.dgm_draft_confirmed_by
                 or (move.partner_id.name if move.partner_id else 'Đại diện Khách hàng')
             )
-            confirmer = xml_escape(raw_confirmer)
+            confirmer = xml_escape(unicodedata.normalize('NFC', raw_confirmer))
             with self.env.cr.savepoint():
                 if move.state == 'draft':
                     posted_ok = False
