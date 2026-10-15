@@ -101,6 +101,7 @@ class InsilosPerimeterGateway(http.Controller):
         methods=["GET", "POST", "OPTIONS"],
         csrf=False,
         cors="*",
+        readonly=True,
     )
     def api_ping(self, **kwargs):
         """Gateway liveness and connectivity probe."""
@@ -125,6 +126,7 @@ class InsilosPerimeterGateway(http.Controller):
         methods=["GET", "POST", "OPTIONS"],
         csrf=False,
         cors="*",
+        readonly=True,
     )
     def api_version(self, **kwargs):
         """Return Insilos platform and gateway version metadata."""
@@ -373,6 +375,7 @@ class InsilosPerimeterGateway(http.Controller):
         methods=["GET", "POST", "OPTIONS"],
         csrf=False,
         cors="*",
+        readonly=True,
     )
     def api_test_error(self, **kwargs):
         """Diagnostic route to verify that internal errors mask stack traces completely."""
@@ -400,6 +403,7 @@ class InsilosPerimeterGateway(http.Controller):
         methods=["GET", "POST", "OPTIONS", "PUT", "DELETE"],
         csrf=False,
         cors="*",
+        readonly=True,
     )
     def api_catchall(self, subpath="", **kwargs):
         """Fallback for undefined perimeter gateway endpoints and base index route."""

@@ -2,10 +2,10 @@
 # Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Insilos Sovereign Security Guard',
+    'name': 'Security Guard',
     'version': '20.0.1.0.0',
     'category': 'Technical/Security',
-    'summary': 'Two-key partitioned advisory locking and hermetic tenant boundaries',
+    'summary': 'Insilos Sovereign Security Guard: Two-Key Partitioned Advisory Locking & Hermetic Tenant Boundaries',
     'author': 'Insilos Core Team',
     'license': 'LGPL-3',
     'depends': ['base'],

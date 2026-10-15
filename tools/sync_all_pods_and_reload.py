@@ -326,7 +326,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
 
         # 4. Insilos Adapter Hook & Perimeter Gateway
         tar_path_adapter = os.path.join(staging_dir, "insilos_adapter_sync.tar.gz")
-        ADAPTER_MEMBERS = ["__init__.py", "__manifest__.py", "hook.py", "controllers"]
+        ADAPTER_MEMBERS = ["__init__.py", "__manifest__.py", "hook.py", "controllers", "security"]
         frozen_adapter = os.path.join(staging_dir, "frozen_adapter")
         freeze_and_audit_members("addons/insilos_adapter", ADAPTER_MEMBERS, frozen_adapter)
         tar_adapter_cmd = [
@@ -386,10 +386,11 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_fsm_cmd, check=True)
         print(f"[✓] Created {tar_path_fsm}")
 
-        # 4D. Logistics IDP (Dark Mode Dashboard)
+        # 4D. Logistics IDP (Dark Mode Dashboard & Standardized Menus)
         tar_path_idp = os.path.join(staging_dir, "insilos_logistics_idp_sync.tar.gz")
         IDP_MEMBERS = [
             "__manifest__.py",
+            "views",
             "static/src/dashboard/dashboard.scss",
             "static/src/dashboard/dashboard.dark.scss",
         ]
@@ -422,11 +423,13 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_pos_cmd, check=True)
         print(f"[✓] Created {tar_path_pos}")
 
-        # 4F. SAP Fiori Horizon (Models, Views, Dark Mode Assets & Manifest)
+        # 4F. SAP Fiori Horizon (Models, Controllers, Data, Views, Dark Mode Assets & Manifest)
         tar_path_fiori = os.path.join(staging_dir, "insilos_sap_fiori_sync.tar.gz")
         FIORI_MEMBERS = [
             "__manifest__.py",
             "models",
+            "controllers",
+            "data",
             "views",
             "static",
         ]
@@ -771,7 +774,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_account_cmd, check=True)
         print(f"[✓] Created {tar_path_account}")
 
-        # 4U. Core Addons Sweep Fixes (analytic, delivery, resource, hr_work_entry, hr wizard)
+        # 4U. Core Addons Sweep Fixes (analytic, delivery, resource, hr_work_entry, hr wizard, insilos companion manifests/ACLs)
         tar_path_addons_sweep = os.path.join(staging_dir, "odoo_addons_sweep_sync.tar.gz")
         ADDONS_SWEEP_MEMBERS = [
             "analytic/models/analytic_mixin.py",
@@ -779,6 +782,10 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             "resource/models/resource_calendar.py",
             "hr_work_entry/models/hr_version.py",
             "hr/wizard/hr_bank_account_wizard.py",
+            "insilos_currency_cron/__manifest__.py",
+            "insilos_currency_cron/security/ir.model.access.csv",
+            "insilos_pinned_conversion/__manifest__.py",
+            "insilos_security/__manifest__.py",
         ]
         frozen_addons_sweep = os.path.join(staging_dir, "frozen_addons_sweep")
         freeze_and_audit_members("addons", ADDONS_SWEEP_MEMBERS, frozen_addons_sweep)
@@ -801,14 +808,42 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             "account_followup/models/res_partner.py",
             "equity/models/equity_cap_table.py",
             "documents_spreadsheet/static/src/spreadsheet_clone_xlsx_dialog/spreadsheet_clone_xlsx_dialog.xml",
+            "insilos_capital_markets_decision_governance/__manifest__.py",
+            "insilos_capital_markets_decision_governance/security/ir.model.access.csv",
+            "insilos_chemical_trade_compliance/__manifest__.py",
+            "insilos_chemical_trade_compliance/views/menu_views.xml",
+            "insilos_esg_bridge/__manifest__.py",
+            "insilos_esg_bridge/views/is_esg_bridge_menus.xml",
+            "insilos_hs_sync/__manifest__.py",
+            "insilos_hs_sync/controllers/webhook.py",
             "insilos_hs_sync/models/is_customs_ruling.py",
             "insilos_hs_sync/models/is_hs_tariff.py",
             "insilos_hs_sync/models/product_template.py",
+            "insilos_hs_sync/views/menu_views.xml",
+            "insilos_hse_compliance/__manifest__.py",
+            "insilos_hse_compliance/controllers/webhook.py",
             "insilos_hse_compliance/models/project_task.py",
+            "insilos_hse_compliance/views/menu_views.xml",
+            "insilos_industry_showcase/__manifest__.py",
+            "insilos_industry_showcase/controllers/main.py",
             "insilos_industry_showcase/controllers/saas_provisioning.py",
+            "insilos_knowledge_graph/__manifest__.py",
+            "insilos_logistics_idp/__manifest__.py",
+            "insilos_logistics_idp/views/is_logistics_idp_onboarding_views.xml",
+            "insilos_logistics_idp/views/logistics_idp_views.xml",
+            "insilos_market_data/__manifest__.py",
+            "insilos_market_terminal/__manifest__.py",
+            "insilos_preferential_origin/__manifest__.py",
             "insilos_preferential_origin/models.py",
+            "insilos_preferential_origin/views.xml",
+            "insilos_pubsub_bridge/__manifest__.py",
+            "insilos_pubsub_bridge/controllers/pubsub_webhook.py",
             "insilos_pubsub_bridge/models/is_pubsub_channel.py",
             "insilos_pubsub_bridge/views/is_pubsub_channel_views.xml",
+            "insilos_pubsub_bridge/views/menu_views.xml",
+            "insilos_tenant_control/__manifest__.py",
+            "insilos_treasury_market_risk/__manifest__.py",
+            "insilos_treasury_market_risk/views/treasury_views.xml",
         ]
         frozen_ent_sweep = os.path.join(staging_dir, "frozen_ent_sweep")
         freeze_and_audit_members("enterprise", ENT_SWEEP_MEMBERS, frozen_ent_sweep)
@@ -1064,7 +1099,7 @@ for t in $CHOWN_TARGETS; do
     fi
 done
 
-for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py /app/insilos/tools/seed_dgm_timesheet_billing.py /app/insilos/tools/seed_dgm_standardized_templates.py; do
+for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py /app/insilos/tools/seed_dgm_timesheet_billing.py /app/insilos/tools/seed_dgm_standardized_templates.py /app/insilos/tools/audit_insilos_modules_maturity.py /app/insilos/tools/audit_insilos_naming_taxonomy.py; do
     if [ -e "$f" ]; then
         chmod 0755 "$f"
     fi
@@ -1114,6 +1149,8 @@ rm -f /tmp/insilos_website_sync.tar.gz /tmp/insilos_media_sync.tar.gz /tmp/insil
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/sweep_all_models_rpc_and_views.py", f"{pod}:/app/insilos/tools/sweep_all_models_rpc_and_views.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/seed_dgm_timesheet_billing.py", f"{pod}:/app/insilos/tools/seed_dgm_timesheet_billing.py"])
             run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/seed_dgm_standardized_templates.py", f"{pod}:/app/insilos/tools/seed_dgm_standardized_templates.py"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/audit_insilos_modules_maturity.py", f"{pod}:/app/insilos/tools/audit_insilos_modules_maturity.py"])
+            run_cmd(["kubectl", "cp", "-n", NAMESPACE, "-c", container, "tools/audit_insilos_naming_taxonomy.py", f"{pod}:/app/insilos/tools/audit_insilos_naming_taxonomy.py"])
 
             # Verify and extract on pod server-side
             run_cmd([
@@ -1224,6 +1261,15 @@ def main():
         print(res_assets.stdout)
         if res_assets.stderr:
             print("Stderr:", res_assets.stderr)
+
+        print(f"[*] Reconciling Part A & Part B module/menu naming, ir_asset, ir_access & views on {lead_pod}...")
+        res_tax = run_cmd([
+            "kubectl", "exec", "-n", NAMESPACE, lead_pod, "-c", "innoria", "--",
+            "python3", "/app/insilos/tools/audit_insilos_naming_taxonomy.py", "--sync-db", "--check", "--dbs", "innoria_prod"
+        ], check=False)
+        print(res_tax.stdout)
+        if res_tax.stderr:
+            print("Stderr:", res_tax.stderr)
 
         print("\n[*] Pre-warming SCSS assets for innoria_prod...")
         res_warmup = run_cmd([

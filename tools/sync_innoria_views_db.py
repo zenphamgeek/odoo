@@ -82,6 +82,7 @@ def sync_database(host, port, user, password, dbname):
         ("s_innoria_3d_architecture_deck", "insilos_website.s_innoria_3d_architecture_deck", xml_snippets),
         ("s_innoria_3d_solutions_erp", "insilos_website.s_innoria_3d_solutions_erp", xml_snippets),
         ("s_innoria_3d_erp_shift", "insilos_website.s_innoria_3d_erp_shift", xml_snippets),
+        ("s_innoria_anatomy_sovereign_rig", "insilos_website.s_innoria_anatomy_sovereign_rig", xml_snippets),
         ("s_insilos_3d_digital_twin", "insilos_website.s_insilos_3d_digital_twin", xml_snippets),
         ("s_insilos_3d_logistics_radar", "insilos_website.s_insilos_3d_logistics_radar", xml_snippets),
         ("s_insilos_3d_factory_roi", "insilos_website.s_insilos_3d_factory_roi", xml_snippets),

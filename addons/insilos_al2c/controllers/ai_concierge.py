@@ -293,7 +293,7 @@ class InnoriaAiConciergeController(http.Controller):
             'message': _("Yêu cầu khảo sát của Quý khách đã được tiếp nhận thành công. Chuyên gia tư vấn Innoria sẽ liên hệ trong vòng 24 giờ làm việc.")
         }
 
-    @http.route(['/innoria/ai_concierge/status'], type='jsonrpc', auth='public', methods=['POST', 'GET'], website=True, csrf=False)
+    @http.route(['/innoria/ai_concierge/status'], type='jsonrpc', auth='public', methods=['POST', 'GET'], website=True, csrf=False, readonly=True)
     def ai_concierge_status(self, **kw):
         """Health and Telemetry Check for AI Concierge Services."""
         env = _resolve_env(self, kw)

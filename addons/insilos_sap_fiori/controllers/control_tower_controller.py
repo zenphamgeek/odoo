@@ -31,6 +31,7 @@ class ControlTowerController(http.Controller):
         methods=["GET", "POST", "OPTIONS"],
         csrf=False,
         cors="*",
+        readonly=True,
     )
     def api_control_tower_kpis_http(self, timeframe=None, **kwargs):
         """
@@ -121,6 +122,7 @@ class ControlTowerController(http.Controller):
         auth="user",
         methods=["POST"],
         cors="*",
+        readonly=True,
     )
     def api_control_tower_kpis_rpc(self, timeframe="7d", filters=None, **kwargs):
         """

@@ -2,7 +2,7 @@
 # Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Insilos Currency Cron (DPAS-TSM)',
+    'name': 'FX Rate Scheduler',
     'version': '20.0.1.0.0',
     'category': 'Accounting/Accounting',
     'summary': 'DPAS-TSM Dual-Key Prefect-Airflow Slot-Sensing Transactional State Machine for Pinned Conversions',
@@ -22,6 +22,7 @@ Dual-Key Prefect-Airflow Slot-Sensing Transactional State Machine:
     'license': 'LGPL-3',
     'depends': ['base', 'account'],
     'data': [
+        'security/ir.model.access.csv',
         'data/ir_cron_data.xml',
     ],
     'installable': True,

@@ -2,10 +2,10 @@
 # Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Insilos Ports & Adapters Gateway',
+    'name': 'Hexagonal Gateway',
     'version': '20.0.1.0.0',
     'category': 'Technical',
-    'summary': 'Hexagonal Adapter and Perimeter Gateway for Insilos Platform',
+    'summary': 'IBM Integration Bus & Hexagonal Ports-and-Adapters Perimeter Gateway',
     'description': """
 Insilos Ports & Adapters (Hexagonal Architecture) Gateway
 ==========================================================
@@ -22,6 +22,7 @@ Provides:
     'license': 'LGPL-3',
     'depends': ['base'],
     'data': [
+        'security/ir.model.access.csv',
         'data/ir_cron_data.xml',
     ],
     'installable': True,

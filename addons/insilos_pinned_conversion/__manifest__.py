@@ -2,10 +2,10 @@
 # Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Insilos Pinned Conversion',
+    'name': 'Pinned FX Rates',
     'version': '20.0.1.0.0',
     'category': 'Accounting/Accounting',
-    'summary': 'DERS-ZLRR and Decree 70 Statutory Barrier for Pinned Conversions',
+    'summary': 'DERS-ZLRR and Decree 70 Statutory Barrier for Pinned FX Currency Conversions',
     'description': """
 Insilos DERS-ZLRR & Decree 70 Statutory Barrier for Pinned Conversions
 ======================================================================

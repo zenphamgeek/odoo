@@ -372,13 +372,13 @@
     <!-- Executive Control Tower (OVP) Menus & Actions                       -->
     <!-- =================================================================== -->
     <menuitem id="menu_insilos_executive_control_tower_root"
-              name="Executive Control Tower"
+              name="Control Tower"
               action="action_insilos_executive_control_tower"
               web_icon="insilos_sap_fiori,static/description/icon.png"
               sequence="2"/>
 
     <menuitem id="menu_insilos_executive_control_tower_sub"
-              name="Executive Control Tower"
+              name="Control Tower"
               parent="spreadsheet_dashboard.spreadsheet_dashboard_menu_root"
               action="action_insilos_executive_control_tower"
               sequence="0"/>

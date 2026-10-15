@@ -1,8 +1,8 @@
 {
-    'name': 'Insilos Autonomous Lead-to-Cash (Foundation)',
+    'name': 'Lead-to-Cash',
     'version': '20.0.1.0.0',
     'category': 'Sales/Sales',
-    'summary': 'AL2C Phase 0 & Phase 1: catalog as code, delivery templates, knowledge, guardrails, e-invoice, commissions, contract scanner',
+    'summary': 'IBM Autonomous Lead-to-Cash (AL2C): Catalog as Code, Delivery, E-Invoice, Commissions & Contracts',
     'description': """
 Autonomous Lead-to-Cash foundation for Innoria / Insilos.
 

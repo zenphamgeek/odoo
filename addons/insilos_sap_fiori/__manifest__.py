@@ -2,10 +2,10 @@
 # Part of Insilos. See LICENSE file for full copyright and licensing details.
 
 {
-    'name': 'Insilos SAP Fiori Horizon & Enterprise Lexicon',
+    'name': 'Fiori Horizon',
     'version': '20.0.1.0.0',
     'category': 'Customization',
-    'summary': 'SAP Enterprise Lexicon Terminology & Fiori 4 Horizon High-Density UI/UX Design System',
+    'summary': 'SAP S/4HANA Enterprise Lexicon Terminology & Fiori 4 Horizon High-Density UI/UX Design System',
     'description': """
 Insilos Enterprise SAP Lexicon & Fiori Horizon Design System
 =============================================================
@@ -67,6 +67,8 @@ Insilos Enterprise SAP Lexicon & Fiori Horizon Design System
         ],
         'web.assets_web_dark': [
             'insilos_sap_fiori/static/src/scss/fiori_horizon.dark.scss',
+            'insilos_sap_fiori/static/src/scss/fiori_status_badges.dark.scss',
+            'insilos_sap_fiori/static/src/scss/fiori_kpi_cards.dark.scss',
             'insilos_sap_fiori/static/src/scss/executive_control_tower.dark.scss',
         ],
     },

@@ -220,14 +220,14 @@ body.o_dark_mode,
 
     &:hover {
         background-color: var(--insilos-bg-hover) !important;
-        border-color: var(--insilos-brand-cyan, #00f2fe) !important;
+        border-color: var(--insilos-primary) !important;
     }
 }
 
 .o_stage_count {
-    background-color: var(--insilos-badge-bg, rgba(56, 189, 248, 0.15)) !important;
-    color: var(--insilos-badge-fg, #38bdf8) !important;
-    border-color: var(--insilos-badge-border, rgba(56, 189, 248, 0.4)) !important;
+    background-color: var(--insilos-bg-selected) !important;
+    color: var(--insilos-primary) !important;
+    border-color: var(--insilos-border-focus) !important;
 }
 
 // Dark Mode OEE Gauge Drop Shadow
