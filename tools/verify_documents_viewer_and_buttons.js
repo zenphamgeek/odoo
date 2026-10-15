@@ -200,6 +200,37 @@ const BRAIN_DIR = "/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-b
         throw new Error("FileViewer did not close cleanly.");
     }
 
+    // 3. Verify Markdown document preview (aifin_stress_test_capacity_report.md) has ZERO 404 Not Found
+    console.log("Testing Markdown document preview (aifin_stress_test_capacity_report.md)...");
+    const aifinLabel = page.locator(".o_search_panel_label_title", { hasText: /^AIFIN$/ }).first();
+    if ((await aifinLabel.count()) > 0) {
+        await aifinLabel.click();
+        await page.waitForTimeout(1500);
+    }
+    const mdCard = page.locator(".o_kanban_record", { hasText: "aifin_stress_test_capacity_report.md" }).first();
+    const mdCardCount = await mdCard.count();
+    if (mdCardCount === 0) {
+        throw new Error("Could not find aifin_stress_test_capacity_report.md card after selecting AIFIN folder.");
+    }
+    await mdCard.locator("div[name='document_preview']").first().click();
+    await page.waitForSelector(".o-FileViewer", { timeout: 15000 });
+    await page.waitForTimeout(1500);
+
+    const mdIframe = page.locator(".o-FileViewer-main iframe.o-isText").first();
+    const srcdoc = await mdIframe.getAttribute("srcdoc");
+    if (!srcdoc || srcdoc.includes("404 Not Found") || srcdoc.includes("Unable to load document preview")) {
+        throw new Error(`Markdown preview failed or returned 404! srcdoc snippet: ${(srcdoc || "").slice(0, 300)}`);
+    }
+    if (!srcdoc.includes("<h1>") || !srcdoc.includes("<table>")) {
+        throw new Error(`Markdown preview did not render HTML headings/tables! srcdoc snippet: ${srcdoc.slice(0, 300)}`);
+    }
+    console.log("Markdown preview srcdoc length:", srcdoc.length, "| Contains <h1> & <table> | Zero 404!");
+    const mdScreenshotPath = path.join(BRAIN_DIR, "documents_markdown_viewer_verified.png");
+    await page.screenshot({ path: mdScreenshotPath, fullPage: false });
+    console.log(`Saved Markdown FileViewer screenshot to ${mdScreenshotPath}`);
+    await page.keyboard.press("Escape");
+    await page.waitForTimeout(500);
+
     await browser.close();
     console.log("ALL DOCUMENTS VIEWER & ACTION BUTTON VERIFICATION CHECKS PASSED!");
 })().catch((err) => {

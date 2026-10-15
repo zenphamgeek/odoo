@@ -1,11 +1,11 @@
 {
   "major_version": "26.0",
   "version": "26.0+e",
-  "build_id": "20261015.1136.1ae7d7184",
-  "build_timestamp": "20261015.1136",
-  "build_datetime": "2026-10-15 11:36 UTC+7",
-  "git_commit": "1ae7d7184",
-  "enterprise_git_commit": "8b925c561",
-  "git_tag": "v26.0.20261015.1136",
-  "deploy_tag": "deploy-v26.0-20261015-1136"
+  "build_id": "20261015.1215.d0aed9879",
+  "build_timestamp": "20261015.1215",
+  "build_datetime": "2026-10-15 12:15 UTC+7",
+  "git_commit": "d0aed9879",
+  "enterprise_git_commit": "c0ec493ea",
+  "git_tag": "v26.0.20261015.1215",
+  "deploy_tag": "deploy-v26.0-20261015-1215"
 }

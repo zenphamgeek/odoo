@@ -612,6 +612,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         DOCS_MEMBERS = [
             "static/src/web/error_dialog/error_dialog_patch.xml",
             "static/src/views/documents_renderer_mixin.js",
+            "static/src/attachments/attachment_model_patch.js",
             "static/src/attachments/document_file_viewer.xml",
             "static/src/attachments/document_file_viewer.js",
             "static/src/views/search/documents_control_panel.xml",
