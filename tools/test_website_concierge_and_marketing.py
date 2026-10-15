@@ -372,7 +372,56 @@ def verify_database(dbname):
                 f"{dbname}: Expected adversarial_containment=True on RPC injection prompt, got {rpc_inj_res}"
             )
 
-            print(f"[✓] {dbname} [4/4]: /innoria/ai_concierge/book_lead + AB-PCT + ESIH Pricing Attestation + 50-Worker Concurrency verified (lead_id={lead_rec.id}, expected_revenue={lead_rec.expected_revenue:,.0f} VND, tags={sorted(tag_names)}, marketing_campaign_enrolled=True)")
+            # =========================================================================
+            # 6. Verify Patch 34 (DDK-CDLQ Shadow Verification, Fixed-Point Decimal,
+            #    Quarantine Seal & Savepoint Null-Byte Sanitization)
+            # =========================================================================
+            corrupt_est = controller.ai_concierge_estimate_service(
+                service_code="corrupt_svc",
+                scale_tier="corrupt_tier",
+                units=-1000,
+                duration_months=-5,
+                env=env,
+            )
+            assert corrupt_est.get("shadow_kernel_fallback") is True, (
+                f"{dbname}: Expected shadow_kernel_fallback=True on corrupt inputs, got {corrupt_est}"
+            )
+            assert len(corrupt_est.get("quarantine_seal") or "") == 64, (
+                f"{dbname}: Expected 64-hex quarantine_seal on corrupt estimate, got {corrupt_est.get('quarantine_seal')}"
+            )
+            assert corrupt_est.get("estimated_total_vnd", 0) >= 10_000_000, (
+                f"{dbname}: Expected estimated_total_vnd >= 10,000,000, got {corrupt_est.get('estimated_total_vnd')}"
+            )
+
+            nan_est = controller.ai_concierge_estimate_service(
+                service_code="erp",
+                scale_tier="growth",
+                units="NaN",
+                duration_months="inf",
+                env=env,
+            )
+            assert nan_est.get("shadow_kernel_fallback") is True and len(nan_est.get("quarantine_seal") or "") == 64
+
+            assert len(tampered_prc_res.get("quarantine_seal") or "") == 64, (
+                f"{dbname}: Expected 64-hex quarantine_seal on tampered pricing_token, got {tampered_prc_res}"
+            )
+
+            nul_lead_res = controller.ai_concierge_book_lead(
+                name="Nguyen\x00Van A",
+                email="nguyenvana\x00@fintech-vietnam.vn",
+                company_name="Cong Ty\x00Fintech",
+                notes="Ghi chu\x00kiem thu savepoint",
+                service_code="erp",
+                scale_tier="growth",
+                env=env,
+            )
+            assert nul_lead_res.get("success") is True, f"{dbname}: Null-byte sanitized lead failed: {nul_lead_res}"
+            nul_lead_rec = env["crm.lead"].sudo().browse(nul_lead_res["lead_id"])
+            assert "\x00" not in (nul_lead_rec.contact_name or "") and nul_lead_rec.contact_name == "NguyenVan A", (
+                f"{dbname}: Expected null byte stripped from contact_name, got {nul_lead_rec.contact_name!r}"
+            )
+
+            print(f"[✓] {dbname} [4/4]: /innoria/ai_concierge/book_lead + AB-PCT + ESIH + DDK-CDLQ + Savepoint Isolation verified (lead_id={lead_rec.id}, expected_revenue={lead_rec.expected_revenue:,.0f} VND, tags={sorted(tag_names)}, marketing_campaign_enrolled=True)")
         finally:
             # Rollback cursor so test records do not pollute dev or prod databases
             cr.rollback()

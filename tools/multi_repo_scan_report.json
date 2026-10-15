@@ -1,6 +1,6 @@
 {
   "audit_metadata": {
-    "timestamp": "2026-10-15T19:33:00.287519+00:00",
+    "timestamp": "2026-10-15T20:01:04.961787+00:00",
     "scanner_version": "2.0.0",
     "drift_threshold_days": 30.0,
     "scanned_repositories_count": 4,
@@ -11,13 +11,13 @@
     "total_modules": 127,
     "total_loc_code": 3463696,
     "total_loc_test": 2624224,
-    "total_velocity_30d": 1016,
+    "total_velocity_30d": 1017,
     "total_dirty_files": 115,
     "drift_stale_modules_count": 1,
     "missing_doc_modules_count": 103,
     "dependency_risks_count": 82,
     "total_replacement_man_days": 26168.4,
-    "total_active_sprint_workload_days": 6525.5,
+    "total_active_sprint_workload_days": 6526.7,
     "candidate_backlog_items_count": 178
   },
   "repositories": {
@@ -27,16 +27,16 @@
       "git": {
         "is_git": true,
         "branch": "insilos-genesis-fork",
-        "head": "f7588f12a",
-        "head_full": "f7588f12a975809b2f5f6997b0fba52687dc9967",
+        "head": "8fb7d00dc",
+        "head_full": "8fb7d00dc86a257a5ba9a91b62f22307afb1845c",
         "author": "Zen",
-        "commit_date": "2026-10-16T02:23:34+07:00",
-        "commit_timestamp": 1792092214,
-        "commit_subject": "feat(security): implement Patch 32 AB-PCT capability budget guard & fail-closed token verification",
+        "commit_date": "2026-10-16T03:01:00+07:00",
+        "commit_timestamp": 1792094460,
+        "commit_subject": "feat(security): implement Patch 33 ESIH pricing attestation, server-authoritative pricing kernel & 50-worker concurrency proof",
         "dirty_files_count": 105,
         "is_dirty": true,
-        "velocity_30d": 532,
-        "churn_30d": 426617,
+        "velocity_30d": 533,
+        "churn_30d": 426989,
         "git_health_warning": null
       },
       "topology": {
@@ -96,8 +96,8 @@
             "category": "odoo_addon",
             "has_localized_doc": false,
             "doc_rel_path": null,
-            "last_code_commit_ts": 1792092214,
-            "last_code_commit_date": "2026-10-15T19:23:34+00:00",
+            "last_code_commit_ts": 1792094460,
+            "last_code_commit_date": "2026-10-15T20:01:00+00:00",
             "last_doc_commit_ts": null,
             "last_doc_commit_date": null,
             "drift_days": null,
@@ -507,8 +507,8 @@
         "test_coverage_ratio": 0.736,
         "complexity_rating": 1.5,
         "replacement_man_days": 2395.9,
-        "active_sprint_workload_days": 567.6,
-        "effective_churn_30d": 62952
+        "active_sprint_workload_days": 568.8,
+        "effective_churn_30d": 63101
       },
       "candidate_backlog_items": [
         {

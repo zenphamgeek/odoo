@@ -1,11 +1,11 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-15T19:33:00.287519+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-15T20:01:04.961787+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `f7588f12a` | 532 | ⚠️ 105 | 287,512 | 2,395.9 d | 567.6 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
+| **`O20`** | `insilos-genesis-fork` | `8fb7d00dc` | 533 | ⚠️ 105 | 287,512 | 2,395.9 d | 568.8 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
 | **`VerticalRisk`** | `Development` | `868fbfc01` | 181 | ✅ 0 | 733,508 | 5,093.8 d | 2,814.6 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
 | **`insilos_mobile`** | `main` | `8feb39ace` | 191 | ✅ 0 | 1,207,390 | 8,384.7 d | 2,986.9 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
 | **`zencode-ent`** | `main` | `40f7dbf06` | 112 | ⚠️ 10 | 1,235,286 | 10,294.0 d | 156.4 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
@@ -17,7 +17,7 @@
 | Repository | Module / Package | Category | Drift (Days) | Status | Last Code Commit | Last Doc Commit |
 |:---|:---|:---|---:|:---:|:---|:---|
 | `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:51+00:00 | N/A |
-| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T19:23:34+00:00 | N/A |
+| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T20:01:00+00:00 | N/A |
 | `O20` | `addons/insilos_currency_cron` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:51+00:00 | N/A |
 | `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:15:14+00:00 | N/A |
 | `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:51+00:00 | N/A |

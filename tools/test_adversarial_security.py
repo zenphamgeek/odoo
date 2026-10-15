@@ -3736,6 +3736,183 @@ def test_patch_33_esih_pricing_attestation_and_concurrency():
     print("[✓] Patch 33 / ESIH Cryptographic Pricing Attestation, Server-Authoritative Price Kernel & 50-Worker Concurrency Proof verified")
 
 
+def test_patch_34_ddk_cdlq_decimal_and_savepoint_isolation():
+    """Patch 34 (`DDK-CDLQ`): Verifies Differential Attestation Dual-Kernel Shadow Verification
+    with Cryptographic Dead-Letter Quarantine (`quarantine_corrupted_payload`), Fixed-Point
+    `Decimal` (`ROUND_HALF_UP`) VND Pricing Kernel, and `with env.cr.savepoint():` Transactional
+    Isolation + null-byte sanitization in `addons/insilos_al2c/controllers/ai_concierge.py`.
+    """
+    from contextlib import contextmanager
+    import importlib.util
+    import types
+
+    ctrl_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/controllers/ai_concierge.py")
+    with open(ctrl_path, "r", encoding="utf-8") as f:
+        ctrl_src = f.read()
+
+    for sym in (
+        "ROUND_HALF_UP",
+        "_QUARANTINE_LOCK",
+        "_SECURITY_QUARANTINE_LEDGER",
+        "quarantine_corrupted_payload",
+        "shadow_kernel_fallback",
+        "quarantine_seal",
+        "with env.cr.savepoint():",
+    ):
+        assert sym in ctrl_src, f"ai_concierge.py missing Patch 34 DDK-CDLQ symbol: {sym}"
+
+    odoo_mod = types.ModuleType("odoo")
+    odoo_mod._ = lambda s, **kw: (s % kw if kw else s)
+    http_mod = types.ModuleType("odoo.http")
+    http_mod.Controller = object
+    http_mod.route = lambda *a, **kw: (lambda fn: fn)
+    http_mod.request = None
+    odoo_mod.http = http_mod
+
+    saved_odoo = sys.modules.get("odoo")
+    saved_http = sys.modules.get("odoo.http")
+    saved_ms = sys.modules.get("markupsafe")
+    try:
+        sys.modules["odoo"] = odoo_mod
+        sys.modules["odoo.http"] = http_mod
+        if "markupsafe" not in sys.modules:
+            import html as _html_mod
+            ms_mod = types.ModuleType("markupsafe")
+            ms_mod.escape = _html_mod.escape
+            ms_mod.Markup = str
+            sys.modules["markupsafe"] = ms_mod
+        spec = importlib.util.spec_from_file_location("insilos_al2c_ai_concierge_ddk_test", ctrl_path)
+        mod_ctrl = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod_ctrl)
+    finally:
+        if saved_odoo is None:
+            sys.modules.pop("odoo", None)
+        else:
+            sys.modules["odoo"] = saved_odoo
+        if saved_http is None:
+            sys.modules.pop("odoo.http", None)
+        else:
+            sys.modules["odoo.http"] = saved_http
+        if saved_ms is None:
+            sys.modules.pop("markupsafe", None)
+        else:
+            sys.modules["markupsafe"] = saved_ms
+
+    ctrl = mod_ctrl.InnoriaAiConciergeController()
+    savepoint_entered = []
+    created_leads = []
+
+    class _MockLeadRec:
+        def __init__(self, vals):
+            self.id = len(created_leads) + 1
+            self.name = vals.get("name", "")
+            self.contact_name = vals.get("contact_name", "")
+            self.expected_revenue = vals.get("expected_revenue", 0.0)
+
+        def message_post(self, **kw):
+            return True
+
+    class _MockModel:
+        _fields = {"expected_revenue": True, "tag_ids": True}
+
+        def sudo(self):
+            return self
+
+        def search(self, *a, **kw):
+            return []
+
+        def create(self, vals):
+            rec = _MockLeadRec(vals)
+            created_leads.append(rec)
+            return rec
+
+        def get_param(self, key, default=None):
+            return "test_ddk_cdlq_secret_key_v1"
+
+    class _MockCr:
+        @contextmanager
+        def savepoint(self):
+            savepoint_entered.append(True)
+            yield
+
+    class _MockEnv(dict):
+        company = types.SimpleNamespace(id=1)
+        cr = _MockCr()
+
+        def __bool__(self):
+            return True
+
+        def __contains__(self, key):
+            return key in ("crm.lead", "ir.config_parameter")
+
+        def __getitem__(self, key):
+            return _MockModel()
+
+    mock_env = _MockEnv()
+
+    # 1. 1% Silent Corruption / Fuzz Inputs (`units=-1000`, `units='NaN'`, `scale_tier='corrupt_tier'`)
+    res_corrupt = ctrl.ai_concierge_estimate_service(
+        service_code="corrupt_svc",
+        scale_tier="corrupt_tier",
+        units=-1000,
+        duration_months=-5,
+        env=mock_env,
+    )
+    assert res_corrupt.get("shadow_kernel_fallback") is True, (
+        f"Expected shadow_kernel_fallback=True on corrupt inputs, got {res_corrupt}"
+    )
+    assert len(res_corrupt.get("quarantine_seal") or "") == 64, (
+        f"Expected 64-hex quarantine_seal, got {res_corrupt.get('quarantine_seal')}"
+    )
+    assert res_corrupt.get("estimated_total_vnd", 0) >= 10_000_000, (
+        f"Expected estimated_total_vnd >= 10,000,000, got {res_corrupt.get('estimated_total_vnd')}"
+    )
+
+    res_nan = ctrl.ai_concierge_estimate_service(
+        service_code="erp",
+        scale_tier="growth",
+        units="NaN",
+        duration_months=12,
+        env=mock_env,
+    )
+    assert res_nan.get("shadow_kernel_fallback") is True and len(res_nan.get("quarantine_seal") or "") == 64
+
+    # 2. Quarantine Seal on Tampered Pricing Token
+    bad_prc = ctrl.ai_concierge_book_lead(
+        name="Adversarial User",
+        email="adv@example.com",
+        company_name="Adv Corp",
+        pricing_token="prc.erp.enterprise.500.12.100.9999999999.bad_signature",
+        env=mock_env,
+    )
+    assert bad_prc.get("status") == "invalid_pricing_token", f"Expected invalid_pricing_token, got {bad_prc}"
+    assert len(bad_prc.get("quarantine_seal") or "") == 64, (
+        f"Expected 64-hex quarantine_seal on tampered pricing_token, got {bad_prc}"
+    )
+
+    # 3. Savepoint Isolation & Null-Byte Sanitization
+    ok_lead = ctrl.ai_concierge_book_lead(
+        name="Nguyen\x00Van A",
+        email="nguyenvana@example.com",
+        company_name="Cong Ty\x00ABC",
+        service_code="sw_squad",
+        scale_tier="growth",
+        units=4,
+        duration_months=6,
+        env=mock_env,
+    )
+    assert ok_lead.get("success") is True, f"Expected lead creation success, got {ok_lead}"
+    assert len(savepoint_entered) >= 1, "Expected env.cr.savepoint() to be entered during lead creation"
+    assert len(created_leads) == 1 and created_leads[0].contact_name == "NguyenVan A", (
+        f"Expected null-byte stripped contact_name 'NguyenVan A', got {created_leads[0].contact_name!r}"
+    )
+    assert len(mod_ctrl._SECURITY_QUARANTINE_LEDGER) >= 3, (
+        f"Expected >= 3 entries in _SECURITY_QUARANTINE_LEDGER, got {len(mod_ctrl._SECURITY_QUARANTINE_LEDGER)}"
+    )
+
+    print("[✓] Patch 34 / DDK-CDLQ Dual-Kernel Shadow Verification, Fixed-Point Decimal VND Kernel & Savepoint Isolation verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -3784,12 +3961,14 @@ def main():
     test_patch_31_sop_dgm_09_mti_codev_and_ktt_turnkey_software_contracts()
     test_patch_32_ab_pct_capability_budget_guard()
     test_patch_33_esih_pricing_attestation_and_concurrency()
-    print("[✓] ALL 33 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 33 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_34_ddk_cdlq_decimal_and_savepoint_isolation()
+    print("[✓] ALL 34 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 34 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 

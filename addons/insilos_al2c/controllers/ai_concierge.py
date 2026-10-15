@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 # Part of Insilos AL2C Enterprise Architecture (SOP-12 & SOP-11)
 import copy
+from contextlib import nullcontext
+from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
 import hashlib
 import hmac
+import json
 import logging
 import re
 import secrets
@@ -19,6 +22,8 @@ _logger = logging.getLogger(__name__)
 
 _PCT_LOCK = threading.Lock()
 _PCT_BUDGET_LEDGER = {}
+_QUARANTINE_LOCK = threading.Lock()
+_SECURITY_QUARANTINE_LEDGER = []
 
 CANONICAL_CATALOG_SKUS = [
     'ERP-STARTER',
@@ -441,6 +446,26 @@ class InnoriaAiConciergeController(http.Controller):
             }, 'ok'
         return False, None, 'invalid_pricing_token'
 
+    def quarantine_corrupted_payload(self, reason, payload_dict, env=None):
+        """
+        Cryptographic Dead-Letter Quarantine (DDK-CDLQ):
+        Serializes corrupted or tampered payload safely, computes a 64-hex SHA-256 seal,
+        and appends to the bounded _SECURITY_QUARANTINE_LEDGER (max 1024 entries).
+        """
+        raw_json = json.dumps(payload_dict or {}, sort_keys=True, default=str)
+        now_ts = int(time.time())
+        seal = hashlib.sha256(f"{reason}:{raw_json}:{now_ts}".encode('utf-8')).hexdigest()
+        with _QUARANTINE_LOCK:
+            if len(_SECURITY_QUARANTINE_LEDGER) >= 1024:
+                _SECURITY_QUARANTINE_LEDGER.pop(0)
+            _SECURITY_QUARANTINE_LEDGER.append({
+                'seal': seal,
+                'reason': str(reason),
+                'payload': raw_json,
+                'timestamp': now_ts,
+            })
+        return seal
+
     @http.route(['/innoria/ai_concierge/services_catalog'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=True)
     def ai_concierge_services_catalog(self, **kw):
         """
@@ -486,72 +511,130 @@ class InnoriaAiConciergeController(http.Controller):
     @http.route(['/innoria/ai_concierge/estimate_service'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=True)
     def ai_concierge_estimate_service(self, service_code='sw_squad', scale_tier='growth', units=None, duration_months=None, **kw):
         """
-        Compute deterministic VND estimate, monthly breakdown, 30-40-30 milestone schedule,
-        and statutory compliance guarantees for a selected software service configuration.
+        Compute deterministic Fixed-Point Decimal (ROUND_HALF_UP) VND estimate, monthly breakdown,
+        30-40-30 milestone schedule, and statutory compliance guarantees with DDK-CDLQ shadow verification.
         """
         env = _resolve_env(self, kw)
         sku_map = _fetch_live_sku_map(env)
 
-        code = str(service_code or 'sw_squad').strip().lower()
-        if code not in SERVICE_BY_CODE:
+        corrupted = False
+        raw_code = str(service_code).strip().lower() if service_code is not None else 'sw_squad'
+        if not raw_code:
             code = 'sw_squad'
+        elif raw_code not in SERVICE_BY_CODE:
+            corrupted = True
+            code = 'erp'
+        else:
+            code = raw_code
         svc = SERVICE_BY_CODE[code]
 
-        tier = str(scale_tier or 'growth').strip().lower()
-        if tier not in ('starter', 'growth', 'enterprise'):
+        raw_tier = str(scale_tier).strip().lower() if scale_tier is not None else 'growth'
+        if not raw_tier:
             tier = 'growth'
+        elif raw_tier not in ('starter', 'growth', 'enterprise'):
+            corrupted = True
+            tier = 'growth'
+        else:
+            tier = raw_tier
 
-        try:
-            resolved_units = max(1, int(units if units is not None else svc['default_units']))
-        except (ValueError, TypeError):
-            resolved_units = svc['default_units']
+        if units is None:
+            resolved_units = int(svc['default_units'])
+        else:
+            try:
+                u_str = str(units).strip().lower()
+                if u_str in ('nan', 'inf', '-inf', '+inf') or isinstance(units, bool):
+                    raise ValueError("Non-finite units")
+                parsed_u = int(Decimal(str(units)))
+                if parsed_u < 1 or parsed_u > 10000:
+                    corrupted = True
+                    resolved_units = max(1, min(10000, parsed_u))
+                else:
+                    resolved_units = parsed_u
+            except (ValueError, TypeError, InvalidOperation):
+                corrupted = True
+                resolved_units = int(svc['default_units'])
 
-        try:
-            resolved_months = max(1, int(duration_months if duration_months is not None else svc['default_months']))
-        except (ValueError, TypeError):
-            resolved_months = svc['default_months']
+        if duration_months is None:
+            resolved_months = int(svc['default_months'])
+        else:
+            try:
+                m_str = str(duration_months).strip().lower()
+                if m_str in ('nan', 'inf', '-inf', '+inf') or isinstance(duration_months, bool):
+                    raise ValueError("Non-finite duration_months")
+                parsed_m = int(Decimal(str(duration_months)))
+                if parsed_m < 1 or parsed_m > 120:
+                    corrupted = True
+                    resolved_months = max(1, min(60, parsed_m))
+                else:
+                    resolved_months = parsed_m
+            except (ValueError, TypeError, InvalidOperation):
+                corrupted = True
+                resolved_months = int(svc['default_months'])
+
+        shadow_kernel_fallback = False
+        quarantine_seal = None
+        if corrupted:
+            shadow_kernel_fallback = True
+            quarantine_seal = self.quarantine_corrupted_payload(
+                'estimate_input_corruption',
+                {
+                    'service_code': service_code,
+                    'scale_tier': scale_tier,
+                    'units': units,
+                    'duration_months': duration_months,
+                },
+                env=env,
+            )
 
         if code == 'sw_squad':
             squad_rates = {
-                'starter': 45_000_000.0,
-                'growth': 50_000_000.0,
-                'enterprise': 60_000_000.0,
+                'starter': Decimal('45000000'),
+                'growth': Decimal('50000000'),
+                'enterprise': Decimal('60000000'),
             }
             rate_per_eng = squad_rates[tier]
-            raw_total = float(resolved_units * rate_per_eng * resolved_months)
+            raw_total_dec = Decimal(resolved_units) * rate_per_eng * Decimal(resolved_months)
             if resolved_months >= 12:
-                discount_factor = 0.90
+                discount_dec = Decimal('0.90')
             elif resolved_months >= 6:
-                discount_factor = 0.95
+                discount_dec = Decimal('0.95')
             else:
-                discount_factor = 1.0
-            estimated_total_vnd = float(round(raw_total * discount_factor, 0))
-            monthly_breakdown_vnd = float(round(estimated_total_vnd / max(resolved_months, 1), 0))
+                discount_dec = Decimal('1.00')
+            total_dec = (raw_total_dec * discount_dec).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
             payment_schedule = (
                 "Đối soát Timesheet điện tử cuối tháng (SOP-DGM-08) → Duyệt Portal 1-Click → "
                 "Xuất HĐĐT Nháp & Chính thức 1C26TAA (Thanh toán Net 30–40 ngày)"
             )
         else:
-            base_amount = float(svc['tiers'].get(tier, svc['tiers']['growth']))
+            base_dec = Decimal(str(svc['tiers'].get(tier, svc['tiers']['growth'])))
             unit_addon_map = {
-                'sw_turnkey': 45_000_000.0,
-                'erp': 2_500_000.0,
-                'grc': 4_000_000.0,
-                'ai': 18_000_000.0,
-                'zencode': 40_000_000.0,
+                'sw_turnkey': Decimal('45000000'),
+                'erp': Decimal('2500000'),
+                'grc': Decimal('4000000'),
+                'ai': Decimal('18000000'),
+                'zencode': Decimal('40000000'),
             }
             extra_units = max(0, resolved_units - svc['default_units'])
-            addon_per_unit = unit_addon_map.get(code, 5_000_000.0)
-            estimated_total_vnd = float(round(base_amount + (extra_units * addon_per_unit), 0))
-            monthly_breakdown_vnd = float(round(estimated_total_vnd / max(resolved_months, 1), 0))
+            addon_dec = unit_addon_map.get(code, Decimal('5000000'))
+            total_dec = (base_dec + (Decimal(extra_units) * addon_dec)).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
             payment_schedule = (
                 "Đợt 1 (30%): Ký HĐ & Khởi động • Đợt 2 (40%): Nghiệm thu UAT • "
                 "Đợt 3 (30%): Go-Live & Bàn giao 100% Mã nguồn (HĐĐT 1C26TAA)"
             )
 
-        m1_val = float(round(estimated_total_vnd * 0.30, 0))
-        m2_val = float(round(estimated_total_vnd * 0.40, 0))
-        m3_val = float(round(estimated_total_vnd - m1_val - m2_val, 0))
+        if total_dec < Decimal('10000000'):
+            total_dec = Decimal('10000000')
+
+        monthly_dec = (total_dec / Decimal(max(resolved_months, 1))).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+        m1_dec = (total_dec * Decimal('0.30')).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+        m2_dec = (total_dec * Decimal('0.40')).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+        m3_dec = (total_dec - m1_dec - m2_dec).quantize(Decimal('1'), rounding=ROUND_HALF_UP)
+
+        estimated_total_vnd = float(int(total_dec))
+        monthly_breakdown_vnd = float(int(monthly_dec))
+        m1_val = float(int(m1_dec))
+        m2_val = float(int(m2_dec))
+        m3_val = float(int(m3_dec))
 
         milestone_30_40_30 = {
             'm1_30_vnd': _format_vnd(m1_val),
@@ -577,7 +660,7 @@ class InnoriaAiConciergeController(http.Controller):
             scale_tier=tier,
             units=resolved_units,
             duration_months=resolved_months,
-            total_vnd=estimated_total_vnd,
+            total_vnd=int(total_dec),
             env=env,
         )
 
@@ -609,6 +692,8 @@ class InnoriaAiConciergeController(http.Controller):
             ],
             'roi_summary': 'Tiết kiệm ~45% TCO so với phần mềm ngoại • Rút ngắn 60% thời gian Go-Live',
             'pricing_token': pricing_token,
+            'shadow_kernel_fallback': shadow_kernel_fallback,
+            'quarantine_seal': quarantine_seal,
         }
 
     @http.route(['/innoria/ai_concierge/query'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=False)
@@ -879,11 +964,17 @@ class InnoriaAiConciergeController(http.Controller):
         if isinstance(resolved_pct_token, str) and resolved_pct_token.strip():
             ok, status_code, rem = self.verify_and_consume_pct(resolved_pct_token.strip(), env=env, cost=1)
             if not ok:
+                q_seal = self.quarantine_corrupted_payload(
+                    status_code,
+                    {'pct_token': resolved_pct_token, 'email': email, 'company_name': company_name},
+                    env=env,
+                )
                 return {
                     'success': False,
                     'status': status_code,
                     'error': _("Hạn mức tạo hồ sơ khảo sát tự động (Capability Budget) đã hết hoặc mã xác thực không hợp lệ."),
                     'capability_budget_remaining': 0,
+                    'quarantine_seal': q_seal,
                 }
             pct_remaining = rem
             pct_status = 'ok'
@@ -893,16 +984,26 @@ class InnoriaAiConciergeController(http.Controller):
         if isinstance(resolved_pricing_token, str) and resolved_pricing_token.strip():
             ok_prc, verified_prc, _prc_status = self.verify_pricing_token(resolved_pricing_token.strip(), env=env)
             if not ok_prc:
+                q_seal = self.quarantine_corrupted_payload(
+                    'invalid_pricing_token',
+                    {'pricing_token': resolved_pricing_token, 'email': email, 'company_name': company_name},
+                    env=env,
+                )
                 return {
                     'success': False,
                     'status': 'invalid_pricing_token',
                     'error': _("Tampered or expired pricing attestation token rejected (ESIH Guard)."),
+                    'quarantine_seal': q_seal,
                 }
 
-        contact_name = (name or '').strip()
-        contact_email = (email or '').strip()
-        contact_phone = (phone or '').strip()
-        company = (company_name or '').strip() or contact_name or _("Doanh Nghiệp Mới")
+        def _strip_nul(val):
+            return str(val or '').replace('\x00', '').strip()
+
+        contact_name = _strip_nul(name)
+        contact_email = _strip_nul(email)
+        contact_phone = _strip_nul(phone)
+        company = _strip_nul(company_name) or contact_name or _("Doanh Nghiệp Mới")
+        clean_notes = _strip_nul(notes)
 
         if not contact_email and not contact_phone:
             return {
@@ -970,24 +1071,14 @@ class InnoriaAiConciergeController(http.Controller):
         priority = '3' if fit_score >= 80 else ('2' if fit_score >= 60 else '1')
         qual_state = 'qualified' if fit_score >= 70 else 'in_progress'
 
-        # 3. Resolve or create CRM Tags
+        # 3. Resolve CRM Tag names & build structured Software Service Configuration description
         tag_names = ['Innoria Software Services', 'AI Concierge Interactive']
         if norm_service_code == 'sw_squad':
             tag_names.append('Co-Engineering Squad (TT 13/2020)')
         elif norm_service_code in ('sw_turnkey', 'erp', 'grc', 'ai', 'zencode'):
             tag_names.append('Turnkey Software (SAP Activate)')
 
-        tag_ids = []
-        if 'crm.tag' in env:
-            CrmTag = env['crm.tag'].sudo()
-            for t_name in tag_names:
-                tag_rec = CrmTag.search([('name', '=', t_name)], limit=1)
-                if not tag_rec:
-                    tag_rec = CrmTag.create({'name': t_name})
-                tag_ids.append(tag_rec.id)
-
-        # 4. Build description with structured Software Service Configuration & Estimate breakdown
-        base_notes = (notes or '').strip() or _("Đăng ký tư vấn giải pháp từ AI Concierge trên website innoria.com")
+        base_notes = clean_notes or _("Đăng ký tư vấn giải pháp từ AI Concierge trên website innoria.com")
         config_summary_lines = []
         if svc_def or resolved_estimate_vnd is not None:
             config_summary_lines.extend([
@@ -1001,127 +1092,137 @@ class InnoriaAiConciergeController(http.Controller):
                 f"• Nguồn chiến dịch: {campaign_source or 'innoria_ai_concierge_interactive'}",
             ])
         full_description = "\n".join([base_notes] + config_summary_lines)
+        resolved_interest = _strip_nul(product_interest) or (svc_def['title'] if svc_def else 'Hệ sinh thái Tứ Trụ & Dịch vụ Phần mềm')
 
-        resolved_interest = product_interest or (svc_def['title'] if svc_def else 'Hệ sinh thái Tứ Trụ & Dịch vụ Phần mềm')
+        if not hasattr(env, 'cr') or env.cr is None:
+            env.cr = type('_FallbackCr', (), {'savepoint': staticmethod(nullcontext)})()
 
-        # 5. Create Lead in crm.lead with sudo
-        CrmLead = env['crm.lead'].sudo()
-        lead_vals = {
-            'name': f"[AI Concierge] Khảo sát giải pháp: {company}",
-            'partner_name': company,
-            'contact_name': contact_name,
-            'email_from': contact_email,
-            'phone': contact_phone,
-            'description': full_description,
-            'priority': priority,
-            'al2c_qualification_state': qual_state,
-            'al2c_sentiment': 'positive',
-            'al2c_bant_need': f"Quan tâm giải pháp: {resolved_interest}. Quy mô: {employee_count or 'N/A'}",
-            'al2c_bant_timeline': '1_3_months',
-        }
-        if 'expected_revenue' in CrmLead._fields and resolved_estimate_vnd is not None:
-            lead_vals['expected_revenue'] = float(resolved_estimate_vnd)
-        if 'tag_ids' in CrmLead._fields and tag_ids:
-            lead_vals['tag_ids'] = [(6, 0, tag_ids)]
+        # 4. Transactional Savepoint Isolation for Tag, Campaign & CRM Lead Creation
+        with env.cr.savepoint():
+            tag_ids = []
+            if 'crm.tag' in env:
+                CrmTag = env['crm.tag'].sudo()
+                for t_name in tag_names:
+                    tag_rec = CrmTag.search([('name', '=', t_name)], limit=1)
+                    if not tag_rec:
+                        tag_rec = CrmTag.create({'name': t_name})
+                    tag_ids.append(tag_rec.id)
 
-        # 6. Ensure active marketing.campaign record exists and link UTM campaign
-        campaign_enrolled = False
-        campaign_name = 'Innoria Software Services — AL2C Concierge Automation'
-        campaign_id = None
-        if 'marketing.campaign' in env:
-            try:
-                MarketingCampaign = env['marketing.campaign'].sudo()
-                campaign = (
-                    env.ref('insilos_al2c.campaign_innoria_software_services_al2c', raise_if_not_found=False)
-                    or env.ref('insilos_website.campaign_innoria_software_services_al2c', raise_if_not_found=False)
+            CrmLead = env['crm.lead'].sudo()
+            lead_vals = {
+                'name': f"[AI Concierge] Khảo sát giải pháp: {company}",
+                'partner_name': company,
+                'contact_name': contact_name,
+                'email_from': contact_email,
+                'phone': contact_phone,
+                'description': full_description,
+                'priority': priority,
+                'al2c_qualification_state': qual_state,
+                'al2c_sentiment': 'positive',
+                'al2c_bant_need': f"Quan tâm giải pháp: {resolved_interest}. Quy mô: {employee_count or 'N/A'}",
+                'al2c_bant_timeline': '1_3_months',
+            }
+            if 'expected_revenue' in CrmLead._fields and resolved_estimate_vnd is not None:
+                lead_vals['expected_revenue'] = float(resolved_estimate_vnd)
+            if 'tag_ids' in CrmLead._fields and tag_ids:
+                lead_vals['tag_ids'] = [(6, 0, tag_ids)]
+
+            campaign_enrolled = False
+            campaign_name = 'Innoria Software Services — AL2C Concierge Automation'
+            campaign_id = None
+            if 'marketing.campaign' in env:
+                try:
+                    MarketingCampaign = env['marketing.campaign'].sudo()
+                    campaign = (
+                        env.ref('insilos_al2c.campaign_innoria_software_services_al2c', raise_if_not_found=False)
+                        or env.ref('insilos_website.campaign_innoria_software_services_al2c', raise_if_not_found=False)
+                    )
+                    if not campaign:
+                        campaign = MarketingCampaign.search([
+                            '|',
+                            ('name', '=', campaign_name),
+                            ('name', 'ilike', 'Innoria Software Services'),
+                        ], limit=1)
+                    if not campaign:
+                        lead_model = env['ir.model'].sudo().search([('model', '=', 'crm.lead')], limit=1)
+                        if lead_model:
+                            campaign = MarketingCampaign.create({
+                                'name': campaign_name,
+                                'model_id': lead_model.id,
+                                'state': 'running',
+                                'active': True,
+                            })
+                    if campaign and campaign.exists():
+                        campaign = campaign.sudo()
+                        IrModelData = env['ir.model.data'].sudo()
+                        existing_imd = IrModelData.search([
+                            ('module', '=', 'insilos_al2c'),
+                            ('name', '=', 'campaign_innoria_software_services_al2c'),
+                        ], limit=1)
+                        if not existing_imd:
+                            IrModelData.create({
+                                'module': 'insilos_al2c',
+                                'name': 'campaign_innoria_software_services_al2c',
+                                'model': 'marketing.campaign',
+                                'res_id': campaign.id,
+                                'noupdate': True,
+                            })
+                        campaign_enrolled = True
+                        campaign_id = campaign.id
+                        if hasattr(campaign, 'utm_campaign_id') and campaign.utm_campaign_id and 'campaign_id' in CrmLead._fields:
+                            lead_vals['campaign_id'] = campaign.utm_campaign_id.id
+                except Exception as exc:
+                    _logger.warning("Marketing campaign enrollment check warning: %s", exc)
+
+            lead = CrmLead.create(lead_vals)
+
+            estimate_html = ""
+            if svc_def or resolved_estimate_vnd is not None:
+                estimate_html = (
+                    "<br/><b>⚙️ Cấu Hình Dịch Vụ Phần Mềm &amp; Dự Toán Ngân Sách:</b><br/>"
+                    "• <b>Mã dịch vụ:</b> <code>%s</code> (%s)<br/>"
+                    "• <b>Phân khúc (Tier):</b> <code>%s</code> | <b>Quy mô:</b> %s (%s tháng)<br/>"
+                    "• <b>Dự toán ngân sách (Expected Revenue):</b> <b>%s</b><br/>"
+                    "• <b>Chiến dịch Marketing Automation:</b> <code>%s</code><br/>"
+                    "• <b>CRM Tags:</b> %s"
+                ) % (
+                    escape(str(norm_service_code or 'custom')),
+                    escape(str(svc_def['title'] if svc_def else resolved_interest)),
+                    escape(str((scale_tier or 'growth').upper())),
+                    escape(str(units or (svc_def['default_units'] if svc_def else 'N/A'))),
+                    escape(str(duration_months or (svc_def['default_months'] if svc_def else 'N/A'))),
+                    escape(_format_vnd(resolved_estimate_vnd or 0.0)),
+                    escape(campaign_name if campaign_enrolled else 'N/A'),
+                    escape(", ".join(tag_names)),
                 )
-                if not campaign:
-                    campaign = MarketingCampaign.search([
-                        '|',
-                        ('name', '=', campaign_name),
-                        ('name', 'ilike', 'Innoria Software Services'),
-                    ], limit=1)
-                if not campaign:
-                    lead_model = env['ir.model'].sudo().search([('model', '=', 'crm.lead')], limit=1)
-                    if lead_model:
-                        campaign = MarketingCampaign.create({
-                            'name': campaign_name,
-                            'model_id': lead_model.id,
-                            'state': 'running',
-                            'active': True,
-                        })
-                if campaign and campaign.exists():
-                    campaign = campaign.sudo()
-                    IrModelData = env['ir.model.data'].sudo()
-                    existing_imd = IrModelData.search([
-                        ('module', '=', 'insilos_al2c'),
-                        ('name', '=', 'campaign_innoria_software_services_al2c'),
-                    ], limit=1)
-                    if not existing_imd:
-                        IrModelData.create({
-                            'module': 'insilos_al2c',
-                            'name': 'campaign_innoria_software_services_al2c',
-                            'model': 'marketing.campaign',
-                            'res_id': campaign.id,
-                            'noupdate': True,
-                        })
-                    campaign_enrolled = True
-                    campaign_id = campaign.id
-                    if hasattr(campaign, 'utm_campaign_id') and campaign.utm_campaign_id and 'campaign_id' in CrmLead._fields:
-                        lead_vals['campaign_id'] = campaign.utm_campaign_id.id
-            except Exception as exc:
-                _logger.warning("Marketing campaign enrollment check warning: %s", exc)
 
-        lead = CrmLead.create(lead_vals)
-
-        # Post structured Lead Dossier to chatter
-        estimate_html = ""
-        if svc_def or resolved_estimate_vnd is not None:
-            estimate_html = (
-                "<br/><b>⚙️ Cấu Hình Dịch Vụ Phần Mềm &amp; Dự Toán Ngân Sách:</b><br/>"
-                "• <b>Mã dịch vụ:</b> <code>%s</code> (%s)<br/>"
-                "• <b>Phân khúc (Tier):</b> <code>%s</code> | <b>Quy mô:</b> %s (%s tháng)<br/>"
-                "• <b>Dự toán ngân sách (Expected Revenue):</b> <b>%s</b><br/>"
-                "• <b>Chiến dịch Marketing Automation:</b> <code>%s</code><br/>"
-                "• <b>CRM Tags:</b> %s"
-            ) % (
-                escape(str(norm_service_code or 'custom')),
-                escape(str(svc_def['title'] if svc_def else resolved_interest)),
-                escape(str((scale_tier or 'growth').upper())),
-                escape(str(units or (svc_def['default_units'] if svc_def else 'N/A'))),
-                escape(str(duration_months or (svc_def['default_months'] if svc_def else 'N/A'))),
-                escape(_format_vnd(resolved_estimate_vnd or 0.0)),
-                escape(campaign_name if campaign_enrolled else 'N/A'),
-                escape(", ".join(tag_names)),
+            lead.message_post(
+                body=_(
+                    "<b>📋 Hồ Sơ Cơ Hội B2B Từ Executive AI Concierge (innoria.com):</b><br/>"
+                    "• <b>Doanh nghiệp:</b> %s<br/>"
+                    "• <b>Người liên hệ:</b> %s<br/>"
+                    "• <b>Email:</b> %s | <b>Điện thoại:</b> %s<br/>"
+                    "• <b>Giải pháp quan tâm:</b> %s<br/>"
+                    "• <b>Quy mô nhân sự:</b> %s<br/>"
+                    "• <b>Điểm Đánh Giá Tiềm Năng (B2B Fit Score):</b> <b>%.0f / 100</b><br/>"
+                    "• <b>Trạng thái phân loại:</b> <code>%s</code> (Ưu tiên: %s sao)<br/>"
+                    "• <b>Ghi chú nhu cầu:</b> %s%s"
+                ) % (
+                    escape(company),
+                    escape(contact_name),
+                    escape(contact_email),
+                    escape(contact_phone),
+                    escape(str(resolved_interest)),
+                    escape(str(employee_count or 'Chưa xác định')),
+                    fit_score,
+                    escape(qual_state.upper()),
+                    priority,
+                    escape(str(clean_notes or '')),
+                    estimate_html,
+                ),
+                message_type='comment',
+                subtype_xmlid='mail.mt_comment',
             )
-
-        lead.message_post(
-            body=_(
-                "<b>📋 Hồ Sơ Cơ Hội B2B Từ Executive AI Concierge (innoria.com):</b><br/>"
-                "• <b>Doanh nghiệp:</b> %s<br/>"
-                "• <b>Người liên hệ:</b> %s<br/>"
-                "• <b>Email:</b> %s | <b>Điện thoại:</b> %s<br/>"
-                "• <b>Giải pháp quan tâm:</b> %s<br/>"
-                "• <b>Quy mô nhân sự:</b> %s<br/>"
-                "• <b>Điểm Đánh Giá Tiềm Năng (B2B Fit Score):</b> <b>%.0f / 100</b><br/>"
-                "• <b>Trạng thái phân loại:</b> <code>%s</code> (Ưu tiên: %s sao)<br/>"
-                "• <b>Ghi chú nhu cầu:</b> %s%s"
-            ) % (
-                escape(company),
-                escape(contact_name),
-                escape(contact_email),
-                escape(contact_phone),
-                escape(str(resolved_interest)),
-                escape(str(employee_count or 'Chưa xác định')),
-                fit_score,
-                escape(qual_state.upper()),
-                priority,
-                escape(str(notes or '')),
-                estimate_html,
-            ),
-            message_type='comment',
-            subtype_xmlid='mail.mt_comment',
-        )
 
         out = {
             'status': 'ok',
