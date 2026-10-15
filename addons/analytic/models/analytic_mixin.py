@@ -150,18 +150,24 @@ class AnalyticMixin(models.AbstractModel):
         return super()._read_group_select(table, aggregate_spec)
 
     def _get_count_id(self, query):
-        match query.table._alias:
+        table_alias = getattr(query.table, '_alias', None) or (query.table if isinstance(query.table, str) else self._table)
+        match table_alias:
             case 'account_move_line' | 'finance_journal_line':
-                return SQL('move_id')
+                col = 'move_id'
             case 'purchase_order_line' | 'procurement_order_line':
-                return SQL('order_id')
+                col = 'order_id'
             case 'account_asset' | 'finance_asset' | 'hr_expense' | 'workforce_expense':
-                return SQL('id')
-        if 'move_id' in self._fields and self._fields['move_id'].store:
-            return SQL('move_id')
-        if 'order_id' in self._fields and self._fields['order_id'].store:
-            return SQL('order_id')
-        return SQL('id')
+                col = 'id'
+            case _:
+                if 'move_id' in self._fields and self._fields['move_id'].store:
+                    col = 'move_id'
+                elif 'order_id' in self._fields and self._fields['order_id'].store:
+                    col = 'order_id'
+                else:
+                    col = 'id'
+        if table_alias:
+            return SQL("%s.%s", SQL.identifier(table_alias), SQL.identifier(col))
+        return SQL.identifier(col)
 
     def filtered_domain(self, domain):
         # Filter based on the accounts used (i.e. allowing a name_search) instead of the distribution

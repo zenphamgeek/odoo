@@ -7,9 +7,9 @@ class AnalyticMixin(models.AbstractModel):
     _inherit = 'analytic.mixin'
 
     def _get_count_id(self, query):
-        alias = query.table._alias
+        alias = getattr(query.table, '_alias', None) or (query.table if isinstance(query.table, str) else self._table)
         if alias in ('account_move_line', 'finance_journal_line'):
-            return SQL('move_id')
+            return SQL("%s.%s", SQL.identifier(alias), SQL.identifier('move_id'))
         if alias in ('purchase_order_line', 'procurement_order_line'):
-            return SQL('order_id')
+            return SQL("%s.%s", SQL.identifier(alias), SQL.identifier('order_id'))
         return super()._get_count_id(query)

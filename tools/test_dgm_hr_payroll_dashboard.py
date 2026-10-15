@@ -217,18 +217,24 @@ def verify_iso27701_privacy_and_maker_checker_workflow():
             )
 
     class _MockCr:
+        def __init__(self, fail_on_lock=False):
+            self.fail_on_lock = fail_on_lock
+
         def execute(self, query, params=None):
+            if self.fail_on_lock and "FOR UPDATE NOWAIT" in query:
+                raise RuntimeError("psycopg2.errors.LockNotAvailable: could not obtain lock on row in relation hr_employee")
             executed_queries.append((query, params))
 
     class _MockEnv:
-        def __init__(self, uid=2, user_name="Lê Xuân Hoàng (CEO)", groups=None):
+        def __init__(self, uid=2, user_name="Lê Xuân Hoàng (CEO)", groups=None, fail_on_lock=False):
             self.uid = uid
-            self.cr = _MockCr()
+            self.cr = _MockCr(fail_on_lock=fail_on_lock)
             self._groups = set(groups or [])
             self.user = types.SimpleNamespace(
                 id=uid,
                 name=user_name,
                 has_group=lambda g: g in self._groups,
+                _is_superuser=lambda: (uid in (1, 2)),
             )
 
         def __getitem__(self, model_name):
@@ -296,13 +302,32 @@ def verify_iso27701_privacy_and_maker_checker_workflow():
     assert created_ticket["employee_code"] == "DGM-004"
     assert created_ticket["new_value"] == "0903887777"
     assert created_ticket["new_value_masked"] == "090*****77"
+    assert created_ticket["requested_by_uid"] == 2
     assert step1_payload["privacy_audit_log"][0]["action"] == "STEP1_SUBMIT_CHANGE_REQUEST"
 
     # Ensure Step 1 did NOT mutate the underlying employee phone number yet
     pre_approve_reveal = ctrl.reveal_pii(employee_id=4)
     assert pre_approve_reveal["work_phone_full"] == "0903881004", pre_approve_reveal["work_phone_full"]
 
-    # Step 2: Approve the change request as HR_EXEC
+    # 2e. Verify TOCTOU Lock Contention Guard (`FOR UPDATE NOWAIT` failure)
+    ed.request.env = _MockEnv(
+        uid=2,
+        user_name="Lê Xuân Hoàng (CEO)",
+        groups={"base.group_system"},
+        fail_on_lock=True,
+    )
+    lock_fail_res = ctrl.decide_change_request(
+        request_id=created_ticket["request_id"],
+        decision="approve",
+        approver_note="Concurrent lock test",
+        employee_id=4,
+    )
+    assert lock_fail_res["ok"] is False
+    assert "TOCTOU lock" in lock_fail_res["error"], lock_fail_res
+
+    # Step 2: Approve the change request as Superuser HR_EXEC (CEO override records sod_self_approved=True)
+    ed.request.env = _MockEnv(uid=2, user_name="Lê Xuân Hoàng (CEO)", groups={"base.group_system"})
+    executed_queries.clear()
     step2_payload = ctrl.decide_change_request(
         request_id=created_ticket["request_id"],
         decision="approve",
@@ -313,17 +338,66 @@ def verify_iso27701_privacy_and_maker_checker_workflow():
         r for r in step2_payload["change_requests"] if r["request_id"] == created_ticket["request_id"]
     )
     assert approved_ticket["state"] == "approved"
+    assert approved_ticket["sod_self_approved"] is True
     assert "Lê Xuân Hoàng" in approved_ticket["approved_by_name"]
     assert step2_payload["privacy_audit_log"][0]["action"] == "STEP2_APPROVE_LEGAL_CHANGE"
+    assert step2_payload["privacy_audit_log"][0]["sod_self_approved"] is True
     assert step2_payload["current_employee"]["work_phone"] == "090*****77"
-    assert len(executed_queries) >= 1
+    assert any(
+        "SELECT id FROM hr_employee WHERE id = %s FOR UPDATE NOWAIT" in q for q, _ in executed_queries
+    ), f"Missing FOR UPDATE NOWAIT lock in {executed_queries}"
 
     # Ensure Step 2 mutated the underlying employee record
     post_approve_reveal = ctrl.reveal_pii(employee_id=4)
     assert post_approve_reveal["work_phone_full"] == "0903887777", post_approve_reveal["work_phone_full"]
 
+    # 2f. Verify Non-Superuser HR_EXEC Segregation of Duties (SoD) Block & Dual-Control Approval
+    ed.request.env = _MockEnv(
+        uid=15,
+        user_name="Mai Thị Hồng Thắm (HR Manager)",
+        groups={"hr.group_hr_manager"},
+    )
+    sod_step1 = ctrl.submit_change_request(
+        employee_id=3,
+        field_type="work_phone",
+        new_value="0903889999",
+        legal_reason="Kiểm thử Phân tách Nhiệm vụ Maker-Checker (SoD)",
+        evidence_doc_ref="SOD-TEST-001",
+    )
+    sod_ticket = sod_step1["change_requests"][0]
+    assert sod_ticket["requested_by_uid"] == 15
+
+    # Non-superuser Maker (uid=15) attempting to self-approve Step 2 MUST be blocked
+    sod_self_res = ctrl.decide_change_request(
+        request_id=sod_ticket["request_id"],
+        decision="approve",
+        approver_note="Self-approve attempt",
+        employee_id=3,
+    )
+    assert sod_self_res["ok"] is False
+    assert "Segregation of Duties (SoD) violation" in sod_self_res["error"], sod_self_res
+
+    # Second distinct HR_EXEC Checker (uid=16) approves Step 2 -> succeeds with sod_self_approved=False
+    ed.request.env = _MockEnv(
+        uid=16,
+        user_name="Trần Minh Quân (Checker)",
+        groups={"hr.group_hr_manager"},
+    )
+    sod_peer_res = ctrl.decide_change_request(
+        request_id=sod_ticket["request_id"],
+        decision="approve",
+        approver_note="Approved by distinct Checker",
+        employee_id=3,
+    )
+    sod_approved = next(
+        r for r in sod_peer_res["change_requests"] if r["request_id"] == sod_ticket["request_id"]
+    )
+    assert sod_approved["state"] == "approved"
+    assert sod_approved["sod_self_approved"] is False
+    assert sod_peer_res["privacy_audit_log"][0]["sod_self_approved"] is False
+
     print(
-        "[✓] ISO/IEC 27701 & Decree 13/2023/ND-CP Partial Masking, Need-to-Know RBAC, 30s Audited Reveal & 2-Step Maker->Checker Workflow verified"
+        "[✓] ISO/IEC 27701 & Decree 13/2023/ND-CP Partial Masking, Need-to-Know RBAC, 30s Audited Reveal, TOCTOU FOR UPDATE NOWAIT Lock & Dual-Control SoD Workflow verified"
     )
 
 

@@ -4,6 +4,8 @@
 try:
     from odoo.addons.insilos_adapter.controllers.runtime_report_gateway import (
         RuntimeReportGateway,
+        ALLOWED_ASSETS,
+        sanitize_telemetry_string,
         MAX_PAYLOAD_BYTES,
         MAX_INSTANCE_BURST_PER_MIN,
         MAX_IP_BURST_PER_MIN,

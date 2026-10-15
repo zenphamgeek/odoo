@@ -2483,6 +2483,106 @@ console.log("OK");
     print("[✓] Patch 22 / Offline-Resilient Telemetry, Standalone JWT Redaction & VCB DigiBiz Hardening verified")
 
 
+def test_patch_23_nahlaleah102_sql_telemetry_toctou_audit():
+    import importlib.util
+
+    # 1. Verify table-qualified SQL identifiers in analytic_mixin.py (core and insilos_al2c)
+    core_analytic_py = os.path.join(ROOT_DIR, "addons/analytic/models/analytic_mixin.py")
+    al2c_analytic_py = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/analytic_mixin.py")
+    with open(core_analytic_py, "r", encoding="utf-8") as f:
+        core_src = f.read()
+    with open(al2c_analytic_py, "r", encoding="utf-8") as f:
+        al2c_src = f.read()
+
+    assert 'SQL("%s.%s", SQL.identifier(table_alias), SQL.identifier(col))' in core_src, (
+        "Missing table-qualified SQL.identifier in addons/analytic/models/analytic_mixin.py"
+    )
+    assert 'SQL("%s.%s", SQL.identifier(alias), SQL.identifier(\'move_id\'))' in al2c_src, (
+        "Missing table-qualified SQL.identifier('move_id') in addons/insilos_al2c/models/analytic_mixin.py"
+    )
+    assert 'SQL("%s.%s", SQL.identifier(alias), SQL.identifier(\'order_id\'))' in al2c_src, (
+        "Missing table-qualified SQL.identifier('order_id') in addons/insilos_al2c/models/analytic_mixin.py"
+    )
+
+    # 2. Verify runtime_report_gateway.py ALLOWED_ASSETS & sanitize_telemetry_string
+    rrg_path = os.path.join(ROOT_DIR, "addons/insilos_adapter/controllers/runtime_report_gateway.py")
+    insilos_mod = MagicMock()
+    insilos_mod.http.Controller = object
+    insilos_mod.http.route = lambda *a, **kw: (lambda f: f)
+    saved_modules = {k: sys.modules.get(k) for k in ("insilos", "insilos.http", "insilos.modules", "insilos.modules.registry")}
+    try:
+        sys.modules["insilos"] = insilos_mod
+        sys.modules["insilos.http"] = insilos_mod.http
+        sys.modules["insilos.modules"] = MagicMock()
+        sys.modules["insilos.modules.registry"] = MagicMock()
+        spec = importlib.util.spec_from_file_location("rrg_patch23", rrg_path)
+        rrg = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(rrg)
+    finally:
+        for k, v in saved_modules.items():
+            if v is None:
+                sys.modules.pop(k, None)
+            else:
+                sys.modules[k] = v
+
+    assert rrg.ALLOWED_ASSETS == {
+        "O20",
+        "VerticalRisk",
+        "insilos_mobile",
+        "zencode-ent",
+        "innoria.com",
+        "insilos.com",
+    }
+    gw = rrg.RuntimeReportGateway()
+    assert gw._classify_tech_asset("", {"asset": "VerticalRisk"}) == "VERTICAL_RISK"
+    assert gw._classify_tech_asset("", {"asset": "insilos_mobile"}) == "INSILOS_MOBILE"
+    assert gw._classify_tech_asset("", {"asset": "zencode-ent"}) == "ZENCODE_ENT"
+    assert gw._classify_tech_asset("", {"asset": "innoria.com"}) == "O20"
+    assert gw._classify_tech_asset("", {"asset": "insilos.com"}) == "O20"
+    assert gw._classify_tech_asset("", {"asset": "ATTACKER_INJECTED_ASSET"}) == "O20"
+    assert gw._classify_tech_asset("flutter: peek_ crash", {"asset": "ATTACKER_INJECTED_ASSET"}) == "INSILOS_MOBILE"
+
+    # 64 KB clamping & PII/secret scrubbing
+    oversized = "A" * 70000 + "0912345678"
+    clamped = rrg.sanitize_telemetry_string(oversized)
+    assert len(clamped) == 65536
+
+    raw_telemetry = (
+        "DB=postgresql://admin:s3cr3t_pw@db.internal:5432/prod "
+        "JWT=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U "
+        "Auth=Bearer tok_secret_987654 "
+        "API=sk-ant-api03-abcdef0123456789abcdef "
+        'KV=password="my_secret_pw" '
+        "URL=https://innoria.com/api?token=secret_q_token&v=1 "
+        "Phone=0912345678 CCCD=089094016917 CMND=365931521"
+    )
+    scrubbed = rrg.sanitize_telemetry_string(raw_telemetry)
+    assert "postgresql://admin:[REDACTED]@db.internal:5432/prod" in scrubbed
+    assert "[REDACTED_JWT]" in scrubbed
+    assert "Bearer [REDACTED]" in scrubbed
+    assert "API=[REDACTED]" in scrubbed
+    assert 'password="[REDACTED]"' in scrubbed
+    assert "token=[REDACTED]&v=1" in scrubbed
+    assert "091*****78" in scrubbed
+    assert "089******917" in scrubbed
+    assert "365***521" in scrubbed
+    for leaked in ("s3cr3t_pw", "tok_secret_987654", "my_secret_pw", "secret_q_token", "0912345678", "089094016917", "365931521"):
+        assert leaked not in scrubbed, f"Secret/PII {leaked!r} leaked in: {scrubbed}"
+
+    # 3. Verify employee_dashboard.py TOCTOU FOR UPDATE NOWAIT & Dual-Control SoD check
+    emp_dash_py = os.path.join(ROOT_DIR, "enterprise/web_enterprise/controllers/employee_dashboard.py")
+    with open(emp_dash_py, "r", encoding="utf-8") as f:
+        emp_dash_src = f.read()
+    assert "SELECT id FROM hr_employee WHERE id = %s FOR UPDATE NOWAIT" in emp_dash_src, (
+        "Missing FOR UPDATE NOWAIT row lock in employee_dashboard.py"
+    )
+    assert "sod_self_approved" in emp_dash_src, (
+        "Missing sod_self_approved Dual-Control SoD guard in employee_dashboard.py"
+    )
+
+    print("[✓] Patch 23 / nahlaleah102 Table-Qualified Analytic SQL, Telemetry PII Scrubber & TOCTOU SoD Lock verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2520,12 +2620,14 @@ def main():
     test_patch_21_manifest_semver_and_release_compatibility()
     test_patch_22_owl_telemetry_payroll_gate()
     test_patch_22_telemetry_resilience_and_vcb_formula_hardening()
-    print("[✓] ALL 22 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 22 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_23_nahlaleah102_sql_telemetry_toctou_audit()
+    print("[✓] ALL 23 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 23 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 

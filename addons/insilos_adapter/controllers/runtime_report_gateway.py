@@ -39,6 +39,78 @@ def _sanitize_sovereign_text(text: str) -> str:
     return out
 
 
+ALLOWED_ASSETS = {
+    'O20',
+    'VerticalRisk',
+    'insilos_mobile',
+    'zencode-ent',
+    'innoria.com',
+    'insilos.com',
+}
+
+_CANONICAL_ASSET_MAP = {
+    'O20': 'O20',
+    'o20': 'O20',
+    'VerticalRisk': 'VERTICAL_RISK',
+    'VERTICAL_RISK': 'VERTICAL_RISK',
+    'verticalrisk': 'VERTICAL_RISK',
+    'vertical_risk': 'VERTICAL_RISK',
+    'insilos_mobile': 'INSILOS_MOBILE',
+    'INSILOS_MOBILE': 'INSILOS_MOBILE',
+    'zencode-ent': 'ZENCODE_ENT',
+    'ZENCODE_ENT': 'ZENCODE_ENT',
+    'zencode_ent': 'ZENCODE_ENT',
+    'innoria.com': 'O20',
+    'INNORIA.COM': 'O20',
+    'insilos.com': 'O20',
+    'INSILOS.COM': 'O20',
+}
+
+_RE_DSN_CREDS = re.compile(
+    r'(postgres(?:ql)?|mysql|redis|mongodb(?:\+srv)?|amqp(?:s)?)://([^:/@\s]+):([^@\s]+)@',
+    re.IGNORECASE,
+)
+_RE_STANDALONE_JWT = re.compile(
+    r'\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b'
+)
+_RE_AUTH_BEARER = re.compile(
+    r'\b(Bearer|Basic|Digest)\s+[A-Za-z0-9\-._~+/]+=*',
+    re.IGNORECASE,
+)
+_RE_API_KEYS = re.compile(
+    r'\b(sk-[A-Za-z0-9_-]{12,}|sk-ant-[A-Za-z0-9_-]{12,}|AIzaSy[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{12,}|gh[pousr]_[A-Za-z0-9_]{16,}|github_pat_[A-Za-z0-9_]{16,}|xox[baprs]-[A-Za-z0-9-]{10,})\b'
+)
+_RE_KV_SECRETS = re.compile(
+    r'(?i)\b(password|passwd|pwd|secret|api_key|apikey|access_token|refresh_token|client_secret|private_key)\b(\s*[:=]\s*)([\'"]?)[^\s\'",;}{)]+\3'
+)
+_RE_URL_QUERY_SECRETS = re.compile(
+    r'(?i)([?&](?:token|access_token|api_key|key|secret|password|sig|signature)=)[^&\s#]+'
+)
+_RE_VN_PHONE = re.compile(
+    r'(?<!\d)(0[35789]\d)[\s.\-)]*(\d{3})[\s.\-]*(\d{2})(\d{2})(?!\d)'
+)
+_RE_VN_CCCD = re.compile(r'(?<!\d)(\d{3})\d{6}(\d{3})(?!\d)')
+_RE_VN_CMND = re.compile(r'(?<!\d)(\d{3})\d{3}(\d{3})(?!\d)')
+
+
+def sanitize_telemetry_string(val: str) -> str:
+    """ISO/IEC 27701 & Decree 13/2023/ND-CP server-side telemetry PII & secret scrubber."""
+    if not val or not isinstance(val, str):
+        return ""
+    val = val[:65536]
+    out = _sanitize_sovereign_text(val)
+    out = _RE_DSN_CREDS.sub(r'\1://\2:[REDACTED]@', out)
+    out = _RE_STANDALONE_JWT.sub('[REDACTED_JWT]', out)
+    out = _RE_AUTH_BEARER.sub(r'\1 [REDACTED]', out)
+    out = _RE_API_KEYS.sub('[REDACTED]', out)
+    out = _RE_KV_SECRETS.sub(r'\1\2\3[REDACTED]\3', out)
+    out = _RE_URL_QUERY_SECRETS.sub(r'\1[REDACTED]', out)
+    out = _RE_VN_PHONE.sub(r'\1*****\4', out)
+    out = _RE_VN_CCCD.sub(r'\1******\2', out)
+    out = _RE_VN_CMND.sub(r'\1***\2', out)
+    return out
+
+
 # In-memory Anti-DoS sliding window rate limiters (ephemeral process memory)
 _INSTANCE_RATE_LIMIT = defaultdict(list)
 _IP_RATE_LIMIT = defaultdict(list)
@@ -177,12 +249,13 @@ class RuntimeReportGateway(http.Controller):
         if timestamp_str and abs(now_ts - req_ts) > TIMESTAMP_TOLERANCE_SECONDS:
             return Response(json.dumps({'error': 'Timestamp expired or clock drift too large'}), status=403, content_type='application/json')
 
-        error_name = payload.get('name') or payload.get('error_name') or 'RuntimeError'
-        error_message = payload.get('message') or payload.get('error_message') or ''
-        traceback_str = payload.get('traceback') or ''
-        component_stack = payload.get('component_stack') or ''
+        raw_error_name = str(payload.get('name') or payload.get('error_name') or 'RuntimeError')
+        error_message = sanitize_telemetry_string(str(payload.get('message') or payload.get('error_message') or ''))
+        traceback_str = sanitize_telemetry_string(str(payload.get('traceback') or ''))
+        component_stack = sanitize_telemetry_string(str(payload.get('component_stack') or ''))
+        sanitized_url = sanitize_telemetry_string(str(payload.get('url') or payload.get('server_host') or ''))
 
-        # Compute expected HMAC
+        # Compute expected HMAC using raw_error_name as signed by caller
         secret = DEFAULT_HMAC_SECRET
         try:
             if hasattr(request, 'env') and request.env:
@@ -193,7 +266,7 @@ class RuntimeReportGateway(http.Controller):
         except Exception:
             pass
 
-        hash_body = f"{instance_id}:{timestamp_str}:{error_name}".encode('utf-8')
+        hash_body = f"{instance_id}:{timestamp_str}:{raw_error_name}".encode('utf-8')
         expected_sig = hmac.new(secret.encode('utf-8'), hash_body, hashlib.sha256).hexdigest()
 
         # 5. Authenticate Runtime Origin (HMAC & Timestamp Freshness, or Trusted Origin)
@@ -213,6 +286,16 @@ class RuntimeReportGateway(http.Controller):
         elif not is_loopback and not is_trusted_origin:
             _logger.warning("Rejected unauthenticated runtime report from external origin (socket: %s, origin: %s, client: %s)", socket_ip, origin_header, client_ip)
             return Response(json.dumps({'error': 'Forbidden: Invalid or Missing Runtime Signature'}), status=403, content_type='application/json')
+
+        error_name = sanitize_telemetry_string(raw_error_name) or 'RuntimeError'
+        payload['name'] = error_name
+        payload['message'] = error_message
+        payload['traceback'] = traceback_str
+        payload['component_stack'] = component_stack
+        if 'url' in payload:
+            payload['url'] = sanitized_url
+        if 'server_host' in payload:
+            payload['server_host'] = sanitize_telemetry_string(str(payload.get('server_host') or ''))
 
         # 6. Asset Classification
         asset_code = self._classify_tech_asset(traceback_str, payload)
@@ -250,11 +333,11 @@ class RuntimeReportGateway(http.Controller):
         incident_code = f"INC-2026-{seq_num}"
 
         # Sanitize and bound untrusted input fields (SEC-04)
-        safe_error_name = _sanitize_sovereign_text(str(error_name or 'UnknownError'))[:128]
-        safe_error_message = _sanitize_sovereign_text(str(error_message or ''))[:MAX_STRING_LEN]
-        safe_traceback = _sanitize_sovereign_text(str(traceback_str or ''))[:MAX_TRACEBACK_LEN]
-        safe_component_stack = _sanitize_sovereign_text(str(component_stack or ''))[:MAX_STRING_LEN]
-        safe_instance_url = _sanitize_sovereign_text(str(payload.get('url') or payload.get('server_host') or ''))[:MAX_STRING_LEN]
+        safe_error_name = sanitize_telemetry_string(str(error_name or 'UnknownError'))[:128]
+        safe_error_message = error_message[:MAX_STRING_LEN]
+        safe_traceback = traceback_str[:MAX_TRACEBACK_LEN]
+        safe_component_stack = component_stack[:MAX_STRING_LEN]
+        safe_instance_url = sanitized_url[:MAX_STRING_LEN]
 
         # Attempt ORM persistence across strictly authorized support tenant database (SEC-01)
         target_db = self._resolve_target_db()
@@ -296,9 +379,9 @@ class RuntimeReportGateway(http.Controller):
 
     def _classify_tech_asset(self, traceback_str, payload):
         """Maps an error traceback or explicit asset tag to one of the 4 core repositories."""
-        explicit_asset = str(payload.get('asset') or '').strip().upper()
-        if explicit_asset in ('O20', 'INSILOS_MOBILE', 'VERTICAL_RISK', 'ZENCODE_ENT'):
-            return explicit_asset
+        raw_asset = str(payload.get('asset') or '').strip()
+        if raw_asset in ALLOWED_ASSETS or raw_asset.upper() in ('O20', 'INSILOS_MOBILE', 'VERTICAL_RISK', 'ZENCODE_ENT'):
+            return _CANONICAL_ASSET_MAP.get(raw_asset) or _CANONICAL_ASSET_MAP.get(raw_asset.upper(), 'O20')
 
         tb = ' '.join(
             str(x or '')
@@ -384,6 +467,12 @@ class RuntimeReportGateway(http.Controller):
         if not target_db:
             return False, incident_code
 
+        error_name = sanitize_telemetry_string(str(error_name or 'UnknownError'))[:128] or 'UnknownError'
+        error_message = sanitize_telemetry_string(str(error_message or ''))[:MAX_STRING_LEN]
+        traceback_str = sanitize_telemetry_string(str(traceback_str or ''))[:MAX_TRACEBACK_LEN]
+        component_stack = sanitize_telemetry_string(str(component_stack or ''))[:MAX_STRING_LEN]
+        instance_url = sanitize_telemetry_string(str(instance_url or payload.get('url') or payload.get('server_host') or ''))[:MAX_STRING_LEN]
+
         lock_key = zlib.crc32(fingerprint.encode('utf-8')) & 0x7FFFFFFF
         orm_persisted = False
         try:
@@ -428,7 +517,7 @@ class RuntimeReportGateway(http.Controller):
                         'traceback': str(traceback_str)[:MAX_TRACEBACK_LEN] if traceback_str else '',
                         'component_stack': str(component_stack)[:MAX_STRING_LEN] if component_stack else '',
                         'instance_id': str(instance_id)[:64],
-                        'instance_url': str(instance_url or payload.get('url') or payload.get('server_host') or '')[:MAX_STRING_LEN],
+                        'instance_url': str(instance_url)[:MAX_STRING_LEN],
                         'user_identifier': user_identifier,
                         'client_info': client_info,
                         'server_version': str(payload.get('server_version') or '')[:32],
@@ -484,16 +573,18 @@ class RuntimeReportGateway(http.Controller):
             pass
 
         timestamp_str = str(int(time.time()))
-        error_name = _sanitize_sovereign_text(str(payload.get('name') or 'ClientRuntimeError'))
+        error_name = sanitize_telemetry_string(str(payload.get('name') or 'ClientRuntimeError')) or 'ClientRuntimeError'
         payload['name'] = error_name
         if 'message' in payload and isinstance(payload['message'], str):
-            payload['message'] = _sanitize_sovereign_text(payload['message'])
+            payload['message'] = sanitize_telemetry_string(payload['message'])
         if 'traceback' in payload and isinstance(payload['traceback'], str):
-            payload['traceback'] = _sanitize_sovereign_text(payload['traceback'])
+            payload['traceback'] = sanitize_telemetry_string(payload['traceback'])
         if 'component_stack' in payload and isinstance(payload['component_stack'], str):
-            payload['component_stack'] = _sanitize_sovereign_text(payload['component_stack'])
+            payload['component_stack'] = sanitize_telemetry_string(payload['component_stack'])
         if 'url' in payload and isinstance(payload['url'], str):
-            payload['url'] = _sanitize_sovereign_text(payload['url'])
+            payload['url'] = sanitize_telemetry_string(payload['url'])
+        if 'server_host' in payload and isinstance(payload['server_host'], str):
+            payload['server_host'] = sanitize_telemetry_string(payload['server_host'])
 
         hash_body = f"{instance_id}:{timestamp_str}:{error_name}".encode('utf-8')
         signature = hmac.new(secret.encode('utf-8'), hash_body, hashlib.sha256).hexdigest()
@@ -542,7 +633,7 @@ class RuntimeReportGateway(http.Controller):
                 _logger.warning("Relay forward to %s failed (%s), falling back to in-process handling", central_url, e)
 
         # Fallback / In-Process handling
-        tb = payload.get('traceback') or ''
+        tb = sanitize_telemetry_string(str(payload.get('traceback') or ''))
         asset_code = self._classify_tech_asset(tb, payload)
         raw_fp = f"{error_name}:{asset_code}:{tb[:300]}"
         fingerprint = hashlib.sha256(raw_fp.encode('utf-8')).hexdigest()
@@ -566,11 +657,11 @@ class RuntimeReportGateway(http.Controller):
         incident_code = f"INC-2026-{seq_num}"
 
         # Sanitize and bound untrusted input fields (SEC-04)
-        safe_error_name = _sanitize_sovereign_text(str(error_name or 'UnknownError'))[:128]
-        safe_error_message = _sanitize_sovereign_text(str(payload.get('message') or ''))[:MAX_STRING_LEN]
-        safe_traceback = _sanitize_sovereign_text(str(tb or ''))[:MAX_TRACEBACK_LEN]
-        safe_component_stack = _sanitize_sovereign_text(str(payload.get('component_stack') or ''))[:MAX_STRING_LEN]
-        safe_instance_url = _sanitize_sovereign_text(str(payload.get('url') or payload.get('server_host') or ''))[:MAX_STRING_LEN]
+        safe_error_name = sanitize_telemetry_string(str(error_name or 'UnknownError'))[:128]
+        safe_error_message = sanitize_telemetry_string(str(payload.get('message') or ''))[:MAX_STRING_LEN]
+        safe_traceback = tb[:MAX_TRACEBACK_LEN]
+        safe_component_stack = sanitize_telemetry_string(str(payload.get('component_stack') or ''))[:MAX_STRING_LEN]
+        safe_instance_url = sanitize_telemetry_string(str(payload.get('url') or payload.get('server_host') or ''))[:MAX_STRING_LEN]
 
         target_db = self._resolve_target_db()
         client_ip = request.httprequest.remote_addr if hasattr(request, 'httprequest') and request.httprequest else ''
