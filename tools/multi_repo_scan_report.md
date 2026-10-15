@@ -1,14 +1,14 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-15T02:19:48.299106+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-15T03:32:40.854490+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `5ff81311c` | 509 | ⚠️ 106 | 287,512 | 2,395.9 d | 477.5 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
-| **`VerticalRisk`** | `Development` | `6f7daf03e` | 176 | ⚠️ 10 | 729,375 | 5,065.1 d | 2,733.4 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
-| **`insilos_mobile`** | `main` | `15a2b28dd` | 180 | ✅ 0 | 1,205,811 | 8,373.7 d | 2,965.6 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
-| **`zencode-ent`** | `main` | `40f7dbf06` | 112 | ⚠️ 6 | 1,234,135 | 10,284.5 d | 155.6 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
+| **`O20`** | `insilos-genesis-fork` | `37ea688a6` | 511 | ⚠️ 118 | 287,512 | 2,395.9 d | 479.9 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
+| **`VerticalRisk`** | `Development` | `6f7daf03e` | 176 | ⚠️ 12 | 729,375 | 5,065.1 d | 2,733.8 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
+| **`insilos_mobile`** | `main` | `2ae2aca1c` | 181 | ✅ 0 | 1,205,888 | 8,374.2 d | 2,966.6 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
+| **`zencode-ent`** | `main` | `40f7dbf06` | 112 | ⚠️ 6 | 1,234,137 | 10,284.5 d | 155.6 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
 
 ---
 
@@ -115,9 +115,9 @@
 | `insilos_mobile` | `mobo_vert_evidence` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_hse` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
 | `insilos_mobile` | `mobo_vert_risk` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_shell` | `flutter_package` | **39.8 d** | 🔴 STALE | 2026-10-15T01:36:15+00:00 | 2026-09-05T05:51:48+00:00 |
+| `insilos_mobile` | `mobo_vert_shell` | `flutter_package` | **39.9 d** | 🔴 STALE | 2026-10-15T03:19:20+00:00 | 2026-09-05T05:51:48+00:00 |
 | `insilos_mobile` | `mobo_vert_work` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-15T01:36:15+00:00 | N/A |
+| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-15T03:19:20+00:00 | N/A |
 | `insilos_mobile` | `packages/insilos_design_system` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-14T06:23:48+00:00 | N/A |
 | `zencode-ent` | `mobo_vert_core` | `flutter_package` | **N/A** | ⚠️ MISSING | N/A | N/A |
 
@@ -232,7 +232,7 @@
 - [ ] [DEP01-MOBO_TODO-FLUTTER_SVG][P1][security] Pin loose ': any' dependency for flutter_svg in mobo_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
 - [ ] [DEP01-MOBO_TODO-PATH_PROVIDER][P1][security] Pin loose ': any' dependency for path_provider in mobo_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
 - [ ] [DEP01-MOBO_VERT_SHELL-INTL][P1][security] Pin loose ': any' dependency for intl in mobo_vert_shell/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_vert_shell/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_vert_shell/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 39.8d) — DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify="test -f mobo_vert_shell/README.md" risk=R1 -->
+- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 39.9d) — DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify="test -f mobo_vert_shell/README.md" risk=R1 -->
 - [ ] [DOC02-INNOKAFE_WEBSITE][P1][docs] Author sovereign localized README for innokafe_website — DoD: Create enterprise/innokafe_website/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/innokafe_website/README.md verify="test -f enterprise/innokafe_website/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_ADAPTER][P1][docs] Author sovereign localized README for insilos_adapter — DoD: Create addons/insilos_adapter/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_adapter/README.md verify="test -f addons/insilos_adapter/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_AL2C][P1][docs] Author sovereign localized README for insilos_al2c — DoD: Create addons/insilos_al2c/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_al2c/README.md verify="test -f addons/insilos_al2c/README.md" risk=R0 -->
@@ -336,7 +336,7 @@
 - [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks — DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify="test -f extensions/verticalrisk-webhooks/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api — DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify="test -f extensions/verticalrisk-workflow-api/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel — DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify="test -f extensions/verticalrisk-workflow-kernel/README.md" risk=R0 -->
-- [ ] [WIP01-O20][P1][plan] Triage 106 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
+- [ ] [WIP01-O20][P1][plan] Triage 118 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml — DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MCP][P2][security] Pin upper bound on Python dependency mcp in router/pyproject.toml — DoD: Add explicit upper bound constraint to mcp in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MODAL][P2][security] Pin upper bound on Python dependency modal in router/pyproject.toml — DoD: Add explicit upper bound constraint to modal in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->

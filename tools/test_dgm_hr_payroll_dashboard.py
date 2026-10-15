@@ -527,10 +527,14 @@ def main():
     verify_iso27701_privacy_and_maker_checker_workflow()
     verify_frontend_sources()
     verify_k8s_and_live_bundles()
+    sys.path.insert(0, os.path.join(ROOT_DIR, "tools"))
+    import test_dgm_partner_onboarding
+    test_dgm_partner_onboarding.main()
     print("[🎉] ALL DGM HR, PAYROLL, ONBOARDING, LEAVING & VCB DIGIBIZ DASHBOARD CHECKS PASSED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 

@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<data noupdate="1">
+    <!-- ===================================================================
+         SOP-DGM-06: Partner Onboarding Sequences, Workspace Folder,
+         Canonical Partner Classification & Knowledge SOP Article
+         =================================================================== -->
+    <record id="seq_dgm_partner_provisional" model="ir.sequence">
+        <field name="name">DGM Provisional Partner Code (TMP-DGM)</field>
+        <field name="code">dgm.partner.provisional</field>
+        <field name="prefix">TMP-DGM-</field>
+        <field name="padding">4</field>
+        <field name="number_next">100</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="seq_dgm_partner_official" model="ir.sequence">
+        <field name="name">DGM Official Partner Code (PTN-DGM-2026)</field>
+        <field name="code">dgm.partner.official</field>
+        <field name="prefix">PTN-DGM-2026-</field>
+        <field name="padding">4</field>
+        <field name="number_next">7</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- Dedicated Onboarding Hub Folder under 03. Hợp đồng & Thương mại -->
+    <record id="folder_dgm_partner_onboarding" model="documents.document">
+        <field name="type">folder</field>
+        <field name="name">Hồ sơ On-boarding Đối tác (Partner KYC &amp; MSA)</field>
+        <field name="folder_id" ref="folder_dgm_contracts"/>
+        <field name="access_internal">edit</field>
+        <field name="access_via_link">view</field>
+        <field name="owner_id" eval="False"/>
+        <field name="sequence">5</field>
+    </record>
+
+    <!-- Canonical 6 DGM Partners Classification & Tiering -->
+    <!-- 1. MTI Technology (Strategic B2B • Tier S • PTN-DGM-2026-0001) -->
+    <record id="partner_dgm_mti" model="res.partner">
+        <field name="dgm_partner_group">strategic_b2b</field>
+        <field name="dgm_partner_tier">tier_s</field>
+        <field name="dgm_tier_score">100</field>
+        <field name="dgm_credit_limit_vnd">2000000000</field>
+        <field name="dgm_allowed_payment_rail">vcb_digibiz</field>
+        <field name="dgm_provisional_code">TMP-DGM-0001</field>
+        <field name="dgm_partner_code">PTN-DGM-2026-0001</field>
+        <field name="dgm_onboarding_state">approved</field>
+        <field name="dgm_sales_flex_mode" eval="True"/>
+    </record>
+
+    <!-- 2. Canva Pty Ltd (Global Platform • Tier S • PTN-DGM-2026-0002) -->
+    <record id="partner_dgm_canva" model="res.partner">
+        <field name="dgm_partner_group">global_platform</field>
+        <field name="dgm_partner_tier">tier_s</field>
+        <field name="dgm_tier_score">100</field>
+        <field name="dgm_credit_limit_vnd">2000000000</field>
+        <field name="dgm_allowed_payment_rail">swift_usd</field>
+        <field name="dgm_provisional_code">TMP-DGM-0002</field>
+        <field name="dgm_partner_code">PTN-DGM-2026-0002</field>
+        <field name="dgm_onboarding_state">approved</field>
+        <field name="dgm_sales_flex_mode" eval="True"/>
+    </record>
+
+    <!-- 3. Trung tâm Dịch vụ số MobiFone - MDS (Strategic B2B • Tier S • PTN-DGM-2026-0003) -->
+    <record id="partner_dgm_mobifone_mds" model="res.partner">
+        <field name="dgm_partner_group">strategic_b2b</field>
+        <field name="dgm_partner_tier">tier_s</field>
+        <field name="dgm_tier_score">100</field>
+        <field name="dgm_credit_limit_vnd">2000000000</field>
+        <field name="dgm_allowed_payment_rail">vcb_digibiz</field>
+        <field name="dgm_provisional_code">TMP-DGM-0003</field>
+        <field name="dgm_partner_code">PTN-DGM-2026-0003</field>
+        <field name="dgm_onboarding_state">approved</field>
+        <field name="dgm_sales_flex_mode" eval="True"/>
+    </record>
+
+    <!-- 4. Temecula Valley Unified School District (Gov / Edu • Tier S • PTN-DGM-2026-0004) -->
+    <record id="partner_dgm_temecula" model="res.partner">
+        <field name="dgm_partner_group">gov_edu</field>
+        <field name="dgm_partner_tier">tier_s</field>
+        <field name="dgm_tier_score">100</field>
+        <field name="dgm_credit_limit_vnd">2000000000</field>
+        <field name="dgm_allowed_payment_rail">swift_usd</field>
+        <field name="dgm_provisional_code">TMP-DGM-0004</field>
+        <field name="dgm_partner_code">PTN-DGM-2026-0004</field>
+        <field name="dgm_onboarding_state">approved</field>
+        <field name="dgm_sales_flex_mode" eval="True"/>
+    </record>
+
+    <!-- 5. VNPT TP.HCM (Infra / Tax / CA Vendor • Tier A • PTN-DGM-2026-0005) -->
+    <record id="partner_dgm_vnpt" model="res.partner">
+        <field name="dgm_partner_group">infra_vendor</field>
+        <field name="dgm_partner_tier">tier_a</field>
+        <field name="dgm_tier_score">90</field>
+        <field name="dgm_credit_limit_vnd">500000000</field>
+        <field name="dgm_allowed_payment_rail">vcb_digibiz</field>
+        <field name="dgm_provisional_code">TMP-DGM-0005</field>
+        <field name="dgm_partner_code">PTN-DGM-2026-0005</field>
+        <field name="dgm_onboarding_state">approved</field>
+        <field name="dgm_sales_flex_mode" eval="True"/>
+    </record>
+
+    <!-- 6. Viettel-CA & SInvoice (Infra / Tax / CA Vendor • Tier A • PTN-DGM-2026-0006) -->
+    <record id="partner_dgm_viettel_ca" model="res.partner">
+        <field name="dgm_partner_group">infra_vendor</field>
+        <field name="dgm_partner_tier">tier_a</field>
+        <field name="dgm_tier_score">90</field>
+        <field name="dgm_credit_limit_vnd">500000000</field>
+        <field name="dgm_allowed_payment_rail">vcb_digibiz</field>
+        <field name="dgm_provisional_code">TMP-DGM-0006</field>
+        <field name="dgm_partner_code">PTN-DGM-2026-0006</field>
+        <field name="dgm_onboarding_state">approved</field>
+        <field name="dgm_sales_flex_mode" eval="True"/>
+    </record>
+
+    <!-- Knowledge Article: SOP-DGM-06 -->
+    <record id="kb_dgm_sop_06_partner_onboarding" model="knowledge.article">
+        <field name="name">SOP-DGM-06: Quy trình On-boarding Đối tác, Xếp hạng Tier &amp; Cổng Kiểm soát Thanh toán Không Nghẽn Sales</field>
+        <field name="parent_id" ref="kb_dgm_sop_root"/>
+        <field name="icon">🤝</field>
+        <field name="internal_permission">write</field>
+        <field name="sequence">140</field>
+        <field name="body"><![CDATA[<div class="dgm-sop-container">
+<h1>SOP-DGM-06: Quy trình On-boarding Đối tác, Xếp hạng Tier &amp; Cổng Kiểm soát Thanh toán Không Nghẽn Sales</h1>
+<p><strong>Pháp nhân áp dụng:</strong> CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC) — MST: <strong>0317958465</strong> — Đ/c: Số 52 Đường B4, Phường Tây Thạnh (Số 11, Đường số 3, KDC CityLand, Phường Tân Mỹ), TP.HCM.</p>
+
+<h2>1. Nguyên tắc Dual-Track: Ưu tiên Linh hoạt Sales 100% (Zero Sales Bottleneck)</h2>
+<ul>
+    <li><strong>Track 1 — Provisional Sales Unblocked (<code>TMP-DGM-XXXX</code>):</strong> Ngay khi Sales tạo khách hàng/đối tác mới, hệ thống cấp tức thì mã tạm <code>TMP-DGM-XXXX</code> ở trạng thái <code>provisional</code>. Sales được phép tạo Lead, gửi Báo giá, xác nhận Đơn hàng (<code>sale.order.action_confirm</code>) và thu tiền cọc (Inbound Payment) mà <strong>không bị chặn bởi bất kỳ rào cản thủ tục nào</strong>.</li>
+    <li><strong>Track 2 — Companion Docs &amp; Official Partner Code Gate (<code>PTN-DGM-2026-XXXX</code>):</strong> Khi đơn hàng được xác nhận hoặc trước kỳ thanh toán/giải ngân, hệ thống tự động sinh bộ 4 chứng từ On-boarding đi kèm (<code>TPL-ONB-01..04</code>) trong phân hệ <code>Documents</code> và kiểm soát chặt chẽ tại cổng chi thanh toán (Outbound Payment Gate).</li>
+</ul>
+
+<h2>2. Phân nhóm Đối tác (<code>dgm_partner_group</code>) &amp; Xếp hạng Tín nhiệm (<code>dgm_partner_tier</code>)</h2>
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Hạng Đối tác (Tier)</th>
+            <th>Tiêu chí &amp; Điểm Tín nhiệm</th>
+            <th>Hạn mức Công nợ (VND)</th>
+            <th>Đối tác Điển hình tại DGM</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>Hạng S (<code>tier_s</code>)</strong></td>
+            <td>Đối tác Chiến lược / Global Platform / Gov-Edu (Score ≥ 85)</td>
+            <td>2,000,000,000 VND (Net 30-45 ngày)</td>
+            <td>MTI Technology, Canva Pty Ltd, MobiFone MDS, Temecula Valley USD</td>
+        </tr>
+        <tr>
+            <td><strong>Hạng A (<code>tier_a</code>)</strong></td>
+            <td>Đối tác Trọng điểm B2B / Hạ tầng Pháp lý (Score 65-84)</td>
+            <td>500,000,000 VND (Milestone 15-30 ngày)</td>
+            <td>VNPT TP.HCM, Viettel-CA (SInvoice)</td>
+        </tr>
+        <tr>
+            <td><strong>Hạng B (<code>tier_b</code>)</strong></td>
+            <td>Khách hàng Doanh nghiệp SME Chuẩn / Fast-Track (Score 35-64)</td>
+            <td>100,000,000 VND (Fast-Track 1-Click)</td>
+            <td>Khách hàng SME có MST hợp lệ</td>
+        </tr>
+        <tr>
+            <td><strong>Hạng C (<code>tier_c</code>)</strong></td>
+            <td>Đối tác Mới / Thử nghiệm (Provisional)</td>
+            <td>0 VND (Trả trước 100%)</td>
+            <td>Khách hàng mới chưa định danh MST</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>3. Bộ 4 Biểu mẫu Hồ sơ Đi kèm Tự động (<code>TPL-ONB-01</code> .. <code>TPL-ONB-04</code>)</h2>
+<ol>
+    <li><strong><code>TPL-ONB-01</code> (<code>01_KYC_Tiering_Dossier_&lt;Code&gt;.html</code>):</strong> Phiếu Khai báo KYC, Đánh giá Tín nhiệm &amp; Xếp hạng Đối tác.</li>
+    <li><strong><code>TPL-ONB-02</code> (<code>02_Mutual_NDA_ISO27001_&lt;Code&gt;.html</code>):</strong> Thỏa thuận Bảo mật Thông tin Song ngữ theo chuẩn ISO/IEC 27001, ISO/IEC 27701 &amp; Nghị định 13/2023/NĐ-CP.</li>
+    <li><strong><code>TPL-ONB-03</code> (<code>03_Master_Commercial_Frame_&lt;Code&gt;.html</code>):</strong> Hợp đồng Nguyên tắc / Khung Thương mại &amp; Cam kết SLA theo từng nhóm đối tác.</li>
+    <li><strong><code>TPL-ONB-04</code> (<code>04_Payment_Gate_Approval_Cert_&lt;Code&gt;.html</code>):</strong> Chứng nhận Phê duyệt Mã Đối tác Chính thức (<code>PTN-DGM-2026-XXXX</code>) &amp; Quy tắc Cổng Thanh toán.</li>
+</ol>
+</div>]]></field>
+    </record>
+</data>
+</odoo>

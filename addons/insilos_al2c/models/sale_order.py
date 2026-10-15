@@ -315,6 +315,28 @@ class SaleOrder(models.Model):
         for order in self:
             if order.value_case_id and order.project_ids:
                 order.project_ids.write({'value_case_id': order.value_case_id.id})
+            partner = order.partner_id
+            if partner and (
+                getattr(partner, 'dgm_onboarding_state', 'provisional') == 'provisional'
+                or not getattr(partner, 'dgm_all_companion_docs_ready', False)
+            ):
+                try:
+                    partner_sudo = partner.sudo()
+                    if not partner_sudo.dgm_provisional_code:
+                        partner_sudo.write({'dgm_provisional_code': f"TMP-DGM-{partner_sudo.id:04d}"})
+                    prov_code = partner_sudo.dgm_provisional_code
+                    partner_sudo.action_generate_onboarding_documents()
+                    order.message_post(
+                        body=(
+                            f"⚡ [Sales-First Flex] Đơn hàng đã được xác nhận ngay với Mã Đối tác Tạm thời ({prov_code}). "
+                            "Bộ 4 chứng từ On-boarding đi kèm (KYC, NDA, MSA, Payment Gate) đã được khởi tạo tự động "
+                            "trong Documents để phê duyệt Mã Partner chính thức trước kỳ thanh toán/đối soát công nợ."
+                        ),
+                        message_type='comment',
+                        subtype_xmlid='mail.mt_note',
+                    )
+                except Exception as exc:
+                    _logger.warning("Non-blocking partner onboarding doc generation on SO %s skipped: %s", order.name, exc)
         return res
 
     def action_approve_deal_desk(self):

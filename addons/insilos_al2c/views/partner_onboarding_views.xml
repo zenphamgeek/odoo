@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Partner Form Extension: SOP-DGM-06 Onboarding, Tiering & Companion Documents -->
+    <record id="view_partner_form_dgm_onboarding" model="ir.ui.view">
+        <field name="name">res.partner.form.dgm.onboarding</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <field name="dgm_all_companion_docs_ready" invisible="1"/>
+                <field name="dgm_conflict_warning" invisible="1"/>
+                <div class="alert alert-info mb-0 d-flex justify-content-between align-items-center"
+                     role="alert"
+                     invisible="not dgm_conflict_warning">
+                    <span>
+                        <strong>⚡ Anti-Conflict Dedup (Sales Unblocked):</strong>
+                        <field name="dgm_conflict_warning" readonly="1" class="ms-1"/>
+                    </span>
+                </div>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="DGM On-boarding &amp; Tiering (SOP-DGM-06)" name="dgm_partner_onboarding">
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <button name="action_generate_onboarding_documents"
+                                type="object"
+                                string="Khởi tạo 4 Chứng từ Đi kèm (TPL-ONB-01..04)"
+                                class="btn btn-secondary"/>
+                        <button name="action_fast_track_onboard"
+                                type="object"
+                                string="⚡ Fast-Track Onboard (1-Click)"
+                                class="btn btn-primary"
+                                invisible="dgm_onboarding_state == 'approved'"/>
+                        <button name="action_approve_partner_onboarding"
+                                type="object"
+                                string="Phê duyệt Mã Partner Chính thức"
+                                class="btn btn-success"
+                                invisible="dgm_onboarding_state == 'approved'"/>
+                        <button name="action_check_partner_conflict"
+                                type="object"
+                                string="Kiểm tra Trùng MST / Domain"
+                                class="btn btn-outline-secondary"/>
+                    </div>
+                    <group>
+                        <group string="Định danh Mã Đối tác &amp; Trạng thái (Dual-Track)">
+                            <field name="dgm_onboarding_state" widget="badge"
+                                   decoration-info="dgm_onboarding_state in ('provisional', 'docs_ready')"
+                                   decoration-warning="dgm_onboarding_state == 'under_review'"
+                                   decoration-success="dgm_onboarding_state == 'approved'"
+                                   decoration-danger="dgm_onboarding_state == 'suspended'"/>
+                            <field name="dgm_provisional_code" readonly="1"/>
+                            <field name="dgm_partner_code" readonly="1"/>
+                            <field name="dgm_sales_flex_mode"/>
+                            <field name="dgm_canonical_partner_id" invisible="not dgm_canonical_partner_id"/>
+                        </group>
+                        <group string="Xếp hạng Nhóm Đối tác &amp; Hạn mức Tín dụng">
+                            <field name="dgm_partner_group"/>
+                            <field name="dgm_partner_tier" widget="badge"
+                                   decoration-success="dgm_partner_tier == 'tier_s'"
+                                   decoration-info="dgm_partner_tier == 'tier_a'"
+                                   decoration-primary="dgm_partner_tier == 'tier_b'"
+                                   decoration-muted="dgm_partner_tier == 'tier_c'"/>
+                            <field name="dgm_tier_score"/>
+                            <field name="dgm_credit_limit_vnd"/>
+                            <field name="dgm_allowed_payment_rail"/>
+                        </group>
+                    </group>
+                    <group string="Bộ 4 Chứng từ On-boarding Đi kèm (TPL-ONB-01..04) &amp; Cổng Kiểm soát Thanh toán">
+                        <group>
+                            <field name="dgm_onboarding_folder_id" readonly="1"/>
+                            <field name="dgm_onboarding_doc_count"/>
+                            <field name="dgm_all_companion_docs_ready"/>
+                        </group>
+                        <group>
+                            <field name="dgm_approved_by" readonly="1"/>
+                            <field name="dgm_approved_date" readonly="1"/>
+                            <field name="dgm_payment_gate_override" groups="account.group_account_manager"/>
+                        </group>
+                    </group>
+                    <field name="dgm_onboarding_doc_ids" nolabel="1">
+                        <list>
+                            <field name="name"/>
+                            <field name="folder_id"/>
+                            <field name="create_date"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- QWeb Report Action & Template for Partner Onboarding Dossier (SOP-DGM-06) -->
+    <record id="action_report_dgm_partner_onboarding_dossier" model="ir.actions.report">
+        <field name="name">Hồ sơ On-boarding &amp; Phê duyệt Mã Đối tác (SOP-DGM-06)</field>
+        <field name="model">res.partner</field>
+        <field name="report_type">qweb-html</field>
+        <field name="report_name">insilos_al2c.report_dgm_partner_onboarding_dossier</field>
+        <field name="report_file">insilos_al2c.report_dgm_partner_onboarding_dossier</field>
+        <field name="print_report_name">'SOP_DGM_06_Partner_Onboarding_%s' % (object.dgm_partner_code or object.dgm_provisional_code or object.name)</field>
+        <field name="binding_model_id" ref="base.model_res_partner"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <template id="report_dgm_partner_onboarding_dossier">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>HỒ SƠ ON-BOARDING, XẾP HẠNG TIER &amp; PHÊ DUYỆT MÃ ĐỐI TÁC (SOP-DGM-06)</h2>
+                        <p class="text-muted">
+                            Pháp nhân quản trị: <strong>CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC)</strong> — MST: <strong>0317958465</strong>
+                        </p>
+                        <table class="table table-sm table-bordered mt-3">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 32%;">Mã Đối tác Chính thức</th>
+                                    <td><strong t-out="o.dgm_partner_code or 'Chưa cấp (Provisional)'"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Mã Tạm thời (Sales Flex)</th>
+                                    <td><code t-out="o.dgm_provisional_code or ''"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Tên Pháp nhân Đối tác</th>
+                                    <td><strong t-field="o.name"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Mã số thuế (VAT)</th>
+                                    <td><span t-out="o.vat or 'Cross-Border / N/A'"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Nhóm Đối tác (Partner Group)</th>
+                                    <td><span t-field="o.dgm_partner_group"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Xếp hạng Đối tác (Partner Tier)</th>
+                                    <td><strong t-field="o.dgm_partner_tier"/> (<span t-field="o.dgm_tier_score"/>/100 điểm)</td>
+                                </tr>
+                                <tr>
+                                    <th>Hạn mức Công nợ (VND)</th>
+                                    <td><span t-field="o.dgm_credit_limit_vnd"/> VND</td>
+                                </tr>
+                                <tr>
+                                    <th>Kênh Thanh toán Được phép</th>
+                                    <td><span t-field="o.dgm_allowed_payment_rail"/></td>
+                                </tr>
+                                <tr>
+                                    <th>Trạng thái On-boarding</th>
+                                    <td><strong t-field="o.dgm_onboarding_state"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <h4 class="mt-4">Danh mục 4 Chứng từ Đi kèm (TPL-ONB-01..04)</h4>
+                        <ul>
+                            <t t-foreach="o.dgm_onboarding_doc_ids" t-as="doc">
+                                <li><span t-field="doc.name"/></li>
+                            </t>
+                        </ul>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

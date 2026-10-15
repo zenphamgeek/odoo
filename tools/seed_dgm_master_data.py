@@ -248,18 +248,18 @@ def seed_master_data():
     for p in CANONICAL_PARTNERS:
         country_id = countries.get(p["country_code"])
         pid = None
-        if p["match_id"]:
-            cur.execute("SELECT id FROM party_master WHERE id = %s;", (p["match_id"],))
-            r = cur.fetchone()
-            if r:
-                pid = r[0]
-        if not pid and p["vat"]:
+        if p["vat"]:
             cur.execute("SELECT id FROM party_master WHERE vat = %s ORDER BY id LIMIT 1;", (p["vat"],))
             r = cur.fetchone()
             if r:
                 pid = r[0]
         if not pid:
             cur.execute("SELECT id FROM party_master WHERE LOWER(TRIM(name)) = LOWER(%s) ORDER BY id LIMIT 1;", (p["name"],))
+            r = cur.fetchone()
+            if r:
+                pid = r[0]
+        if not pid and p["match_id"]:
+            cur.execute("SELECT id FROM party_master WHERE id = %s;", (p["match_id"],))
             r = cur.fetchone()
             if r:
                 pid = r[0]
@@ -345,26 +345,25 @@ def seed_master_data():
     emp_ids = []
     for e in CANONICAL_EMPLOYEES:
         emp_id = None
-        if e["match_id"]:
+        cur.execute(
+            """
+            SELECT id, work_contact_id, resource_id, current_version_id
+              FROM hr_employee
+             WHERE registration_number = %s
+                OR barcode = %s
+                OR TRIM(name) = ANY(%s)
+             ORDER BY active DESC, id ASC
+             LIMIT 1;
+            """,
+            (e["reg"], e["reg"], e["aliases"]),
+        )
+        r = cur.fetchone()
+        if r:
+            emp_id, work_contact_id, resource_id, current_version_id = r
+        elif e["match_id"]:
             cur.execute(
                 "SELECT id, work_contact_id, resource_id, current_version_id FROM hr_employee WHERE id = %s;",
                 (e["match_id"],),
-            )
-            r = cur.fetchone()
-            if r:
-                emp_id, work_contact_id, resource_id, current_version_id = r
-
-        if not emp_id:
-            cur.execute(
-                """
-                SELECT id, work_contact_id, resource_id, current_version_id
-                  FROM hr_employee
-                 WHERE registration_number = %s
-                    OR TRIM(name) = ANY(%s)
-                 ORDER BY id
-                 LIMIT 1;
-                """,
-                (e["reg"], e["aliases"]),
             )
             r = cur.fetchone()
             if r:
@@ -373,6 +372,10 @@ def seed_master_data():
                 work_contact_id = None
                 resource_id = None
                 current_version_id = None
+        else:
+            work_contact_id = None
+            resource_id = None
+            current_version_id = None
 
         # Ensure work_contact_id exists in party_master
         if work_contact_id:
@@ -772,6 +775,13 @@ def seed_master_data():
     cur.close()
     conn.close()
 
+    try:
+        from seed_dgm_partner_onboarding import seed_partner_onboarding
+        seed_partner_onboarding(os.environ.get("DB_NAME", "innoria_prod"))
+    except Exception as exc:
+        print(f"[WARN] seed_partner_onboarding hook skipped: {exc}")
+
 
 if __name__ == "__main__":
     seed_master_data()
+
