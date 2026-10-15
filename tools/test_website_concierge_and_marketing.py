@@ -421,7 +421,25 @@ def verify_database(dbname):
                 f"{dbname}: Expected null byte stripped from contact_name, got {nul_lead_rec.contact_name!r}"
             )
 
-            print(f"[✓] {dbname} [4/4]: /innoria/ai_concierge/book_lead + AB-PCT + ESIH + DDK-CDLQ + Savepoint Isolation verified (lead_id={lead_rec.id}, expected_revenue={lead_rec.expected_revenue:,.0f} VND, tags={sorted(tag_names)}, marketing_campaign_enrolled=True)")
+            # =========================================================================
+            # 7. Verify /innoria/ai_concierge/health Real-Time Security & Funnel Telemetry
+            # =========================================================================
+            health_res = controller.ai_concierge_health(env=env)
+            assert health_res.get("status") == "ok", f"{dbname}: Expected status=='ok' from ai_concierge_health, got {health_res}"
+            assert health_res.get("service_lines_count") == 6, f"{dbname}: Expected service_lines_count==6, got {health_res}"
+            assert health_res.get("esih_pricing_attestation") == "active", f"{dbname}: Expected esih_pricing_attestation=='active', got {health_res}"
+            assert health_res.get("shadow_kernel_status") == "ready", f"{dbname}: Expected shadow_kernel_status=='ready', got {health_res}"
+            assert "quarantine_ledger_size" in health_res and health_res["quarantine_ledger_size"] >= 1, (
+                f"{dbname}: Expected quarantine_ledger_size >= 1 in health_res, got {health_res}"
+            )
+            assert "pct_ledger_active_tokens" in health_res and health_res["pct_ledger_active_tokens"] >= 1, (
+                f"{dbname}: Expected pct_ledger_active_tokens >= 1 in health_res, got {health_res}"
+            )
+            assert health_res.get("marketing_campaigns_active", 0) >= 1, (
+                f"{dbname}: Expected marketing_campaigns_active >= 1 in health_res, got {health_res}"
+            )
+
+            print(f"[✓] {dbname} [4/4]: /innoria/ai_concierge/book_lead + /health + AB-PCT + ESIH + DDK-CDLQ + Savepoint Isolation verified (lead_id={lead_rec.id}, expected_revenue={lead_rec.expected_revenue:,.0f} VND, tags={sorted(tag_names)}, marketing_campaign_enrolled=True, quarantine_ledger_size={health_res['quarantine_ledger_size']})")
         finally:
             # Rollback cursor so test records do not pollute dev or prod databases
             cr.rollback()

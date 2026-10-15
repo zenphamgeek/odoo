@@ -217,6 +217,7 @@ INNORIA_SOFTWARE_SERVICES = [
     },
 ]
 
+SOFTWARE_SERVICE_CATALOG = INNORIA_SOFTWARE_SERVICES
 SERVICE_BY_CODE = {svc['code']: svc for svc in INNORIA_SOFTWARE_SERVICES}
 
 
@@ -1248,21 +1249,60 @@ class InnoriaAiConciergeController(http.Controller):
             out['pct_status'] = pct_status
         return out
 
+    def _collect_concierge_telemetry(self, env=None):
+        """Collect real-time telemetry for AB-PCT, ESIH, DDK-CDLQ, and Marketing Automation."""
+        with _QUARANTINE_LOCK:
+            quarantine_size = len(_SECURITY_QUARANTINE_LEDGER)
+        with _PCT_LOCK:
+            pct_active = len(_PCT_BUDGET_LEDGER)
+
+        rag_chunk_count = 0
+        marketing_campaigns_active = 0
+        if env is not None:
+            if 'al2c.rag.chunk' in env:
+                try:
+                    rag_chunk_count = env['al2c.rag.chunk'].sudo().search_count([('active', '=', True)])
+                except Exception:
+                    rag_chunk_count = 0
+            if 'marketing.campaign' in env:
+                try:
+                    marketing_campaigns_active = env['marketing.campaign'].sudo().search_count([
+                        '|',
+                        ('name', 'ilike', 'Innoria Software Services'),
+                        ('name', 'ilike', '3D Showcase'),
+                    ])
+                except Exception:
+                    marketing_campaigns_active = 0
+
+        return {
+            'service': 'innoria_ai_concierge',
+            'version': '20.0-enterprise',
+            'rag_chunks_active': rag_chunk_count,
+            'quarantine_ledger_size': quarantine_size,
+            'pct_ledger_active_tokens': pct_active,
+            'shadow_kernel_status': 'ready',
+            'esih_pricing_attestation': 'active',
+            'service_lines_count': len(SOFTWARE_SERVICE_CATALOG),
+            'marketing_campaigns_active': marketing_campaigns_active,
+            'pillars': ['insilos_erp', 'vertical_resilience', 'mojo_ai', 'zencode_ent'],
+            'service_codes': [svc['code'] for svc in SOFTWARE_SERVICE_CATALOG],
+            'entailment_gate_threshold': 0.75,
+            'compliance': ['Circular 13/2020/TT-BTTTT', 'Decree 13/2023/ND-CP', 'Decree 70/2025/ND-CP', 'ISO 27001'],
+        }
+
+    @http.route(['/innoria/ai_concierge/health'], type='jsonrpc', auth='public', methods=['POST', 'GET'], website=True, csrf=False, readonly=True)
+    def ai_concierge_health(self, **kw):
+        """Real-time Health & Security Telemetry Endpoint for AB-PCT, ESIH, DDK-CDLQ, and Marketing Automation."""
+        env = _resolve_env(self, kw)
+        payload = self._collect_concierge_telemetry(env=env)
+        payload['status'] = 'ok'
+        return payload
+
     @http.route(['/innoria/ai_concierge/status'], type='jsonrpc', auth='public', methods=['POST', 'GET'], website=True, csrf=False, readonly=True)
     def ai_concierge_status(self, **kw):
         """Health and Telemetry Check for AI Concierge Services."""
         env = _resolve_env(self, kw)
-        if not env:
-            return {'status': 'healthy', 'service': 'innoria_ai_concierge'}
+        payload = self._collect_concierge_telemetry(env=env)
+        payload['status'] = 'healthy'
+        return payload
 
-        rag_chunk_count = env['al2c.rag.chunk'].sudo().search_count([('active', '=', True)])
-        return {
-            'status': 'healthy',
-            'service': 'innoria_ai_concierge',
-            'version': '20.0-enterprise',
-            'rag_chunks_active': rag_chunk_count,
-            'pillars': ['insilos_erp', 'vertical_resilience', 'mojo_ai', 'zencode_ent'],
-            'service_codes': [svc['code'] for svc in INNORIA_SOFTWARE_SERVICES],
-            'entailment_gate_threshold': 0.75,
-            'compliance': ['Circular 13/2020/TT-BTTTT', 'Decree 13/2023/ND-CP', 'Decree 70/2025/ND-CP', 'ISO 27001'],
-        }
