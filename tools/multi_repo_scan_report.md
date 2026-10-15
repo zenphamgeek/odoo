@@ -1,14 +1,14 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-15T15:25:40.971640+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-15T16:21:03.215057+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `83a4827ac` | 527 | ⚠️ 106 | 287,512 | 2,395.9 d | 541.6 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
+| **`O20`** | `insilos-genesis-fork` | `af376965b` | 529 | ⚠️ 106 | 287,512 | 2,395.9 d | 544.8 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
 | **`VerticalRisk`** | `Development` | `868fbfc01` | 181 | ✅ 0 | 733,508 | 5,093.8 d | 2,814.6 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
 | **`insilos_mobile`** | `main` | `206fc1892` | 189 | ✅ 0 | 1,206,981 | 8,381.8 d | 2,982.7 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
-| **`zencode-ent`** | `main` | `40f7dbf06` | 112 | ⚠️ 8 | 1,234,174 | 10,284.8 d | 156.0 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
+| **`zencode-ent`** | `main` | `40f7dbf06` | 112 | ⚠️ 10 | 1,234,178 | 10,284.8 d | 156.4 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
 
 ---
 
@@ -16,28 +16,28 @@
 
 | Repository | Module / Package | Category | Drift (Days) | Status | Last Code Commit | Last Doc Commit |
 |:---|:---|:---|---:|:---:|:---|:---|
-| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T09:14:02+00:00 | N/A |
-| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T15:25:28+00:00 | N/A |
-| `O20` | `addons/insilos_currency_cron` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:51:00+00:00 | N/A |
-| `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T01:01:24+00:00 | N/A |
-| `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T09:14:02+00:00 | N/A |
-| `O20` | `addons/insilos_security` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-14T21:51:00+00:00 | N/A |
+| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:51+00:00 | N/A |
+| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:15:14+00:00 | N/A |
+| `O20` | `addons/insilos_currency_cron` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:51+00:00 | N/A |
+| `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:15:14+00:00 | N/A |
+| `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:51+00:00 | N/A |
+| `O20` | `addons/insilos_security` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:15:14+00:00 | N/A |
 | `O20` | `enterprise/innokafe_website` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_capital_markets_decision_governance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_chemical_trade_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_esg_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
+| `O20` | `enterprise/insilos_capital_markets_decision_governance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_chemical_trade_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_esg_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
 | `O20` | `enterprise/insilos_finance_agent_os` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_hs_sync` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T09:12:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_hse_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T09:12:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_industry_showcase` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T09:12:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_knowledge_graph` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_logistics_idp` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T09:12:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_market_data` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_market_terminal` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T09:12:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_preferential_origin` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T09:12:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_pubsub_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T09:12:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_tenant_control` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_treasury_market_risk` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
+| `O20` | `enterprise/insilos_hs_sync` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_hse_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_industry_showcase` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_knowledge_graph` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_logistics_idp` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_market_data` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_market_terminal` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_preferential_origin` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_pubsub_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_tenant_control` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `enterprise/insilos_treasury_market_risk` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-advance-awareness-campaigns` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-ai-copilot` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-analytics-engine` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-14T02:18:38+00:00 | N/A |
