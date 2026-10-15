@@ -2699,6 +2699,173 @@ def test_patch_25_partner_load_indexes_and_share_idor_guard():
     print("[✓] Patch 25 / Partner Load Covering Indexes, N+1 Elimination & Documents Share IDOR Guard verified")
 
 
+def test_patch_26_shallow_partner_loader_hmac_share_and_lockfree_index():
+    import importlib.util
+    import psycopg2
+    import types
+
+    # 1. Verify pg_indexes pre-check & idx_res_partner_parent_lookup in res_partner_onboarding.py and live in local DBs
+    onb_py = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/res_partner_onboarding.py")
+    with open(onb_py, "r", encoding="utf-8") as f:
+        onb_src = f.read()
+    assert "FROM pg_indexes" in onb_src, "Missing pg_indexes pre-check in res_partner_onboarding.py"
+    assert "idx_res_partner_parent_lookup" in onb_src, "Missing idx_res_partner_parent_lookup in res_partner_onboarding.py"
+    assert "def load_partners_stream_optimized(" in onb_src, (
+        "Missing load_partners_stream_optimized in res_partner_onboarding.py"
+    )
+
+    for db_name in ("insilos20_dev", "innoria_prod"):
+        conn = psycopg2.connect(
+            host=os.environ.get("PGHOST", "127.0.0.1"),
+            port=int(os.environ.get("PGPORT", 5434)),
+            user=os.environ.get("PGUSER", "odoo"),
+            password=os.environ.get("PGPASSWORD", "1NN0R1@2026"),
+            dbname=db_name,
+        )
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT indexname FROM pg_indexes WHERE indexname = 'idx_res_partner_parent_lookup'"
+            )
+            assert cur.fetchone() is not None, f"Missing idx_res_partner_parent_lookup in {db_name}"
+        finally:
+            conn.close()
+
+    # 2. Functional test of load_partners_stream_optimized & check_access_token_secure
+    class DummyAccessError(Exception):
+        pass
+
+    class DummyUserError(Exception):
+        pass
+
+    odoo_mod = types.ModuleType("odoo")
+    odoo_mod.SUPERUSER_ID = 1
+    odoo_mod._ = lambda s, **kw: s
+    odoo_mod.api = types.SimpleNamespace(
+        depends=lambda *a: (lambda fn: fn),
+        model=lambda fn: fn,
+        model_create_multi=lambda fn: fn,
+    )
+    odoo_mod.Command = types.SimpleNamespace(link=lambda x: (4, x))
+    class _DummyDatetime:
+        def __init__(self, *a, **kw):
+            pass
+
+        @staticmethod
+        def now():
+            return "2026-10-15 00:00:00"
+
+    odoo_mod.fields = types.SimpleNamespace(
+        Selection=lambda *a, **kw: None,
+        Integer=lambda *a, **kw: None,
+        Float=lambda *a, **kw: None,
+        Char=lambda *a, **kw: None,
+        Boolean=lambda *a, **kw: None,
+        Many2one=lambda *a, **kw: None,
+        Many2many=lambda *a, **kw: None,
+        Datetime=_DummyDatetime,
+        Text=lambda *a, **kw: None,
+    )
+    odoo_mod.models = types.SimpleNamespace(Model=object)
+    odoo_mod.modules = types.SimpleNamespace(module=types.SimpleNamespace(current_test=False))
+    exc_mod = types.ModuleType("odoo.exceptions")
+    exc_mod.AccessError = DummyAccessError
+    exc_mod.UserError = DummyUserError
+    tools_mod = types.ModuleType("odoo.tools")
+    pdf_mod = types.ModuleType("odoo.tools.pdf")
+    pdf_mod.PdfFileReader = object
+
+    saved = {k: sys.modules.get(k) for k in ("odoo", "odoo.exceptions", "odoo.tools", "odoo.tools.pdf")}
+    try:
+        sys.modules["odoo"] = odoo_mod
+        sys.modules["odoo.exceptions"] = exc_mod
+        sys.modules["odoo.tools"] = tools_mod
+        sys.modules["odoo.tools.pdf"] = pdf_mod
+
+        spec_onb = importlib.util.spec_from_file_location("onb_patch26", onb_py)
+        mod_onb = importlib.util.module_from_spec(spec_onb)
+        spec_onb.loader.exec_module(mod_onb)
+
+        doc_py = os.path.join(ROOT_DIR, "addons/insilos_al2c/models/documents_document.py")
+        with open(doc_py, "r", encoding="utf-8") as f:
+            doc_src = f.read()
+        assert "def check_access_token_secure(" in doc_src, "Missing check_access_token_secure in documents_document.py"
+        assert "hmac.compare_digest(" in doc_src, "Missing hmac.compare_digest in documents_document.py"
+
+        spec_doc = importlib.util.spec_from_file_location("doc_patch26", doc_py)
+        mod_doc = importlib.util.module_from_spec(spec_doc)
+        spec_doc.loader.exec_module(mod_doc)
+    finally:
+        for k, v in saved.items():
+            if v is None:
+                sys.modules.pop(k, None)
+            else:
+                sys.modules[k] = v
+
+    # Test load_partners_stream_optimized bounded pagination & essential fields
+    captured_calls = []
+
+    class MockPartnerStreamModel(mod_onb.ResPartnerOnboarding):
+        def search_count(self, domain):
+            captured_calls.append(("search_count", domain))
+            return 42
+
+        def search_read(self, domain, fields=None, offset=0, limit=80, order=None):
+            captured_calls.append(("search_read", domain, fields, offset, limit, order))
+            return [{"id": 1, "name": "Digimate JSC"}]
+
+    stream_model = MockPartnerStreamModel()
+    res_stream = stream_model.load_partners_stream_optimized(domain=None, offset=-50, limit=9999)
+    assert res_stream["offset"] == 0, f"Expected clamped offset 0, got {res_stream['offset']}"
+    assert res_stream["limit"] == 200, f"Expected clamped limit 200, got {res_stream['limit']}"
+    assert res_stream["length"] == 42
+    assert len(res_stream["records"]) == 1
+    _, sr_dom, sr_fields, sr_off, sr_lim, sr_ord = captured_calls[-1]
+    assert sr_dom == [("active", "=", True)]
+    assert sr_off == 0 and sr_lim == 200 and sr_ord == "id DESC"
+    assert "dgm_partner_code" in sr_fields and "dgm_onboarding_state" in sr_fields
+    assert "image_1920" not in sr_fields and "message_ids" not in sr_fields
+
+    # Test check_access_token_secure constant-time HMAC & cross-company guard
+    DocCls = mod_doc.DocumentsDocument
+
+    def make_doc(active=True, token="tok_secret_123456", company_id=1):
+        return types.SimpleNamespace(
+            active=active,
+            access_token=token,
+            company_id=types.SimpleNamespace(id=company_id) if company_id else False,
+            ensure_one=lambda: True,
+        )
+
+    valid_doc = make_doc(active=True, token="tok_secret_123456", company_id=1)
+    assert DocCls.check_access_token_secure(valid_doc, "tok_secret_123456", target_company_id=1) is True
+
+    # Invalid token rejected
+    for bad_tok in ("wrong_token", "", None, "   "):
+        try:
+            DocCls.check_access_token_secure(valid_doc, bad_tok, target_company_id=1)
+            raise AssertionError(f"Expected AccessError for invalid token {bad_tok!r}")
+        except DummyAccessError:
+            pass
+
+    # Inactive doc rejected
+    inactive_doc = make_doc(active=False, token="tok_secret_123456", company_id=1)
+    try:
+        DocCls.check_access_token_secure(inactive_doc, "tok_secret_123456", target_company_id=1)
+        raise AssertionError("Expected AccessError for inactive document")
+    except DummyAccessError:
+        pass
+
+    # Cross-company access rejected
+    try:
+        DocCls.check_access_token_secure(valid_doc, "tok_secret_123456", target_company_id=2)
+        raise AssertionError("Expected AccessError for cross-company token access")
+    except DummyAccessError as e:
+        assert "Cross-company" in str(e)
+
+    print("[✓] Patch 26 / Lock-Free Index Check, Shallow Partner Stream Loader & Constant-Time HMAC Share Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -2739,8 +2906,9 @@ def main():
     test_patch_23_nahlaleah102_sql_telemetry_toctou_audit()
     test_patch_24_documents_kanban_owl3_ref_searchpanel_ghost_scss()
     test_patch_25_partner_load_indexes_and_share_idor_guard()
-    print("[✓] ALL 25 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 25 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_26_shallow_partner_loader_hmac_share_and_lockfree_index()
+    print("[✓] ALL 26 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 26 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":

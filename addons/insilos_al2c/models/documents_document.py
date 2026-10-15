@@ -1,4 +1,5 @@
 import base64
+import hmac
 import io
 import logging
 
@@ -12,6 +13,25 @@ _logger = logging.getLogger(__name__)
 
 class DocumentsDocument(models.Model):
     _inherit = 'documents.document'
+
+    def check_access_token_secure(self, candidate_token, target_company_id=None):
+        """Cryptographic constant-time HMAC token verification and multi-tenant boundary guard."""
+        self.ensure_one()
+        if (
+            not self.active
+            or not self.access_token
+            or not candidate_token
+            or not isinstance(self.access_token, str)
+            or not isinstance(candidate_token, str)
+            or not self.access_token.strip()
+            or not candidate_token.strip()
+        ):
+            raise AccessError("Invalid or inactive document access token.")
+        if not hmac.compare_digest(str(self.access_token), str(candidate_token)):
+            raise AccessError("Invalid document access token.")
+        if target_company_id and self.company_id and self.company_id.id != int(target_company_id):
+            raise AccessError("Cross-company document access strictly prohibited.")
+        return True
 
     def _sanitize_text_vectors(self):
         """Sanitizes text vectors and metadata before RAG pipeline ingestion."""

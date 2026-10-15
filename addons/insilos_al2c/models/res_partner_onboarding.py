@@ -218,6 +218,29 @@ class ResPartnerOnboarding(models.Model):
             super().init()
         self.env.cr.execute(
             """
+            SELECT indexname
+              FROM pg_indexes
+             WHERE schemaname = 'public'
+               AND indexname IN (
+                   'idx_res_partner_dgm_onboarding_cover',
+                   'idx_res_partner_dgm_partner_code',
+                   'idx_res_partner_parent_lookup',
+                   'idx_documents_partner_folder_rel'
+               )
+            """
+        )
+        existing_indexes = {row[0] for row in (self.env.cr.fetchall() or [])}
+        required_indexes = {
+            "idx_res_partner_dgm_onboarding_cover",
+            "idx_res_partner_dgm_partner_code",
+            "idx_res_partner_parent_lookup",
+            "idx_documents_partner_folder_rel",
+        }
+        if required_indexes.issubset(existing_indexes):
+            return
+
+        self.env.cr.execute(
+            """
             SELECT relname, relkind
               FROM pg_class
              WHERE relname IN ('res_partner', 'party_master', 'documents_document')
@@ -230,16 +253,72 @@ class ResPartnerOnboarding(models.Model):
             if rels.get("res_partner") == "v" and rels.get("party_master") == "r"
             else "res_partner"
         )
-        for raw_sql in (
-            "CREATE INDEX IF NOT EXISTS idx_res_partner_dgm_onboarding_cover ON res_partner (is_company, customer_rank DESC, active, dgm_onboarding_state, dgm_partner_tier) WHERE active = TRUE",
-            "CREATE INDEX IF NOT EXISTS idx_res_partner_dgm_partner_code ON res_partner (dgm_partner_code) WHERE dgm_partner_code IS NOT NULL",
-        ):
-            if rels.get(partner_tbl) == "r":
+        partner_index_defs = (
+            (
+                "idx_res_partner_dgm_onboarding_cover",
+                "CREATE INDEX IF NOT EXISTS idx_res_partner_dgm_onboarding_cover ON res_partner (is_company, customer_rank DESC, active, dgm_onboarding_state, dgm_partner_tier) WHERE active = TRUE",
+            ),
+            (
+                "idx_res_partner_dgm_partner_code",
+                "CREATE INDEX IF NOT EXISTS idx_res_partner_dgm_partner_code ON res_partner (dgm_partner_code) WHERE dgm_partner_code IS NOT NULL",
+            ),
+            (
+                "idx_res_partner_parent_lookup",
+                "CREATE INDEX IF NOT EXISTS idx_res_partner_parent_lookup ON res_partner (parent_id) WHERE parent_id IS NOT NULL AND active = TRUE",
+            ),
+        )
+        for idx_name, raw_sql in partner_index_defs:
+            if idx_name not in existing_indexes and rels.get(partner_tbl) == "r":
                 self.env.cr.execute(raw_sql.replace(" ON res_partner ", f" ON {partner_tbl} "))
-        if rels.get("documents_document") == "r":
+        if "idx_documents_partner_folder_rel" not in existing_indexes and rels.get("documents_document") == "r":
             self.env.cr.execute(
                 "CREATE INDEX IF NOT EXISTS idx_documents_partner_folder_rel ON documents_document (partner_id, folder_id) WHERE active = TRUE AND partner_id IS NOT NULL"
             )
+
+    @api.model
+    def load_partners_stream_optimized(self, domain=None, offset=0, limit=80):
+        """Shallow, bounded-pagination partner loader for fast Kanban/List rendering without N+1 relational storms."""
+        try:
+            bounded_limit = min(max(int(limit if limit is not None else 80), 1), 200)
+        except (TypeError, ValueError):
+            bounded_limit = 80
+        try:
+            bounded_offset = max(int(offset if offset is not None else 0), 0)
+        except (TypeError, ValueError):
+            bounded_offset = 0
+
+        search_domain = [('active', '=', True)] if domain is None else list(domain)
+        essential_fields = [
+            'id',
+            'name',
+            'display_name',
+            'is_company',
+            'parent_id',
+            'commercial_partner_id',
+            'email',
+            'phone',
+            'vat',
+            'dgm_partner_code',
+            'dgm_provisional_code',
+            'dgm_partner_group',
+            'dgm_partner_tier',
+            'dgm_onboarding_state',
+            'dgm_credit_limit_vnd',
+        ]
+        total = self.search_count(search_domain)
+        records = self.search_read(
+            search_domain,
+            fields=essential_fields,
+            offset=bounded_offset,
+            limit=bounded_limit,
+            order='id DESC',
+        )
+        return {
+            'records': records,
+            'length': total,
+            'offset': bounded_offset,
+            'limit': bounded_limit,
+        }
 
     # -------------------------------------------------------------------------
     # Computed Methods
