@@ -13,7 +13,7 @@ import os
 import re
 import sys
 
-sys.path.insert(0, "/home/zen/O20")
+sys.path.insert(0, "/app/insilos" if os.path.exists("/app/insilos") else "/home/zen/O20")
 import odoo
 from odoo import api, SUPERUSER_ID
 
@@ -25,10 +25,20 @@ def normalize_folder_segment(seg):
 def normalize_folder_path(fpath):
     if not fpath:
         return ""
-    return "/".join(normalize_folder_segment(p) for p in fpath.split("/") if p)
+    cleaned = "/".join(normalize_folder_segment(p) for p in fpath.split("/") if p)
+    if cleaned == "DGM":
+        return ""
+    if cleaned.startswith("DGM/"):
+        cleaned = cleaned[4:]
+    return cleaned
 
 
-MANIFEST_PATH = "/tmp/dgm_drive_sync/dgm_manifest.json"
+FULL_TREE_PATH = "/tmp/dgm_drive_sync/full_inno_dgm_tree.json"
+MANIFEST_PATH = (
+    FULL_TREE_PATH
+    if os.path.exists(FULL_TREE_PATH)
+    else "/tmp/dgm_drive_sync/dgm_manifest.json"
+)
 SOPS_DIR = "/tmp/dgm_drive_sync/sops"
 DB_NAME = os.environ.get("DGM_TARGET_DB", "insilos20_dev")
 
@@ -68,6 +78,36 @@ TOP_FOLDER_MAP = {
         "06. Thương hiệu & Hình ảnh (Brand & Media)",
         "edit",
         6,
+    ),
+    "INNORIA": (
+        "folder_inno_root",
+        "INNORIA",
+        "edit",
+        8,
+    ),
+    "MTI - CONTRACT": (
+        "folder_inno_mti_contract",
+        "MTI - CONTRACT",
+        "edit",
+        9,
+    ),
+    "MTI - TIMESHEET": (
+        "folder_inno_mti_timesheet",
+        "MTI - TIMESHEET",
+        "edit",
+        10,
+    ),
+    "TÀI LIỆU BÁN HÀNG": (
+        "folder_inno_sales_docs",
+        "TÀI LIỆU BÁN HÀNG",
+        "edit",
+        11,
+    ),
+    "DIGITAL TRANSFORMATION": (
+        "folder_inno_digital_transformation",
+        "DIGITAL TRANSFORMATION",
+        "edit",
+        12,
     ),
 }
 
@@ -131,17 +171,17 @@ def get_or_create_tag(env, key):
 
 
 def classify_tags_for_entry(entry, tags_map, core_tags):
-    rel = entry["rel_path"]
+    rel = normalize_folder_path(entry["rel_path"])
     name_up = entry["name"].upper()
     res_tags = []
 
-    if rel.startswith("DGM - ĐKTL"):
+    if rel.startswith("DGM - ĐKTL") or rel.startswith("INNORIA/INNO - THÔNG TIN CHUNG"):
         res_tags.append(tags_map["legal"].id)
         if core_tags.get("compliance"):
             res_tags.append(core_tags["compliance"].id)
         if core_tags.get("conf_confidential"):
             res_tags.append(core_tags["conf_confidential"].id)
-    elif rel.startswith("DGM - TÀI CHÍNH"):
+    elif rel.startswith("DGM - TÀI CHÍNH") or rel.startswith("MTI - TIMESHEET"):
         res_tags.append(tags_map["finance_tax"].id)
         if "HOÁ ĐƠN ĐẦU RA" in rel.upper() or "CANVA" in name_up:
             res_tags.append(tags_map["invoice_out"].id)
@@ -159,7 +199,11 @@ def classify_tags_for_entry(entry, tags_map, core_tags):
                 res_tags.append(core_tags["line_ai"].id)
         if core_tags.get("conf_confidential"):
             res_tags.append(core_tags["conf_confidential"].id)
-    elif rel.startswith("DGM - HỢP ĐỒNG"):
+    elif (
+        rel.startswith("DGM - HỢP ĐỒNG")
+        or rel.startswith("INNORIA/INNO - HỢP ĐỒNG")
+        or rel.startswith("MTI - CONTRACT")
+    ):
         res_tags.append(tags_map["contract_comm"].id)
         if core_tags.get("contract"):
             res_tags.append(core_tags["contract"].id)
@@ -173,17 +217,21 @@ def classify_tags_for_entry(entry, tags_map, core_tags):
                 res_tags.append(core_tags["line_erp"].id)
         if core_tags.get("conf_confidential"):
             res_tags.append(core_tags["conf_confidential"].id)
-    elif rel.startswith("DGM - NHÂN SỰ"):
+    elif rel.startswith("DGM - NHÂN SỰ") or rel.startswith("INNORIA/INNO - NHÂN SỰ"):
         res_tags.append(tags_map["hr_records"].id)
         if core_tags.get("conf_confidential"):
             res_tags.append(core_tags["conf_confidential"].id)
-    elif rel.startswith("DGM - SỞ HỮU TRÍ TUỆ"):
+    elif rel.startswith("DGM - SỞ HỮU TRÍ TUỆ") or rel.startswith("DIGITAL TRANSFORMATION"):
         res_tags.append(tags_map["ip_copyright"].id)
         if core_tags.get("line_mojo"):
             res_tags.append(core_tags["line_mojo"].id)
         if core_tags.get("conf_internal"):
             res_tags.append(core_tags["conf_internal"].id)
-    elif rel.startswith("DGM- HÌNH ẢNH 2025"):
+    elif (
+        rel.startswith("DGM- HÌNH ẢNH 2025")
+        or rel.startswith("INNORIA/INNO- HÌNH ẢNH")
+        or rel.startswith("TÀI LIỆU BÁN HÀNG")
+    ):
         res_tags.append(tags_map["brand_media"].id)
         if core_tags.get("marketing"):
             res_tags.append(core_tags["marketing"].id)
@@ -416,6 +464,20 @@ def run_dgm_sync(env):
     canonical_folder_ids = set()
     canonical_file_ids = set()
 
+    def safe_write_doc(rec, vals):
+        need_inv = False
+        if not rec.active:
+            env.cr.execute("UPDATE documents_document SET active = TRUE WHERE id = %s", (rec.id,))
+            need_inv = True
+        if rec.folder_id and not rec.folder_id.active:
+            env.cr.execute("UPDATE documents_document SET active = TRUE WHERE id = %s", (rec.folder_id.id,))
+            rec.folder_id.invalidate_recordset(["active"])
+            need_inv = True
+        if need_inv:
+            rec.invalidate_recordset(["active", "folder_id"])
+        write_vals = {k: v for k, v in vals.items() if k != "active"}
+        rec.write(write_vals)
+
     # 1. Ensure Root Folder: DGM · Công ty Cổ phần Người Bạn Số (Digimate JSC)
     imd_root = env["ir.model.data"].sudo().search(
         [("module", "=", "insilos_al2c"), ("name", "=", "folder_dgm_root")], limit=1
@@ -439,7 +501,7 @@ def run_dgm_sync(env):
         "active": True,
     }
     if root_folder:
-        root_folder.write(root_vals)
+        safe_write_doc(root_folder, root_vals)
     else:
         root_folder = DocAll.create(root_vals)
     ensure_xmlid(env, "insilos_al2c", "folder_dgm_root", "documents.document", root_folder.id)
@@ -470,7 +532,7 @@ def run_dgm_sync(env):
             "active": True,
         }
         if f_rec:
-            f_rec.write(vals)
+            safe_write_doc(f_rec, vals)
         else:
             f_rec = DocAll.create(vals)
         ensure_xmlid(env, "insilos_al2c", xmlid_name, "documents.document", f_rec.id)
@@ -501,14 +563,14 @@ def run_dgm_sync(env):
         "active": True,
     }
     if sop_folder:
-        sop_folder.write(sop_vals)
+        safe_write_doc(sop_folder, sop_vals)
     else:
         sop_folder = DocAll.create(sop_vals)
     ensure_xmlid(env, "insilos_al2c", sop_xmlid, "documents.document", sop_folder.id)
     canonical_folder_ids.add(sop_folder.id)
 
     # Ensure all nested subfolders from manifest (normalizing away '(Root Shared)' suffixes)
-    all_folder_paths = sorted(
+    raw_folder_paths = (
         {
             normalize_folder_path(m["rel_path"])
             for m in manifest
@@ -517,17 +579,33 @@ def run_dgm_sync(env):
         | {normalize_folder_path(m["folder_path"]) for m in manifest if m.get("folder_path")}
         | {"DGM- HÌNH ẢNH 2025/Logo"}
     )
-    for seq_idx, fpath in enumerate(all_folder_paths, start=10):
+    expanded_folder_paths = set()
+    for p in raw_folder_paths:
+        if not p:
+            continue
+        segs = p.split("/")
+        for i in range(1, len(segs) + 1):
+            expanded_folder_paths.add("/".join(segs[:i]))
+    all_folder_paths = sorted(expanded_folder_paths, key=lambda p: (p.count("/"), p))
+
+    existing_folders_map = {}
+    for ef in DocAll.search([("type", "=", "folder")], order="active asc, id asc"):
+        existing_folders_map[(ef.folder_id.id if ef.folder_id else False, ef.name)] = ef
+
+    for seq_idx, fpath in enumerate(all_folder_paths, start=20):
         if not fpath or fpath in folder_path_to_rec:
             continue
         parts = fpath.split("/")
         parent_path = "/".join(parts[:-1])
         leaf_name = parts[-1]
         parent_rec = folder_path_to_rec.get(parent_path, root_folder)
-        sub_rec = DocAll.search(
-            [("type", "=", "folder"), ("name", "=", leaf_name), ("folder_id", "=", parent_rec.id)],
-            limit=1,
-        )
+        sub_rec = existing_folders_map.get((parent_rec.id, leaf_name))
+        if not sub_rec:
+            sub_rec = DocAll.search(
+                [("type", "=", "folder"), ("name", "=", leaf_name), ("folder_id", "=", parent_rec.id)],
+                order="active desc, id asc",
+                limit=1,
+            )
         sub_vals = {
             "type": "folder",
             "name": leaf_name,
@@ -541,9 +619,10 @@ def run_dgm_sync(env):
             "active": True,
         }
         if sub_rec:
-            sub_rec.write(sub_vals)
+            safe_write_doc(sub_rec, sub_vals)
         else:
             sub_rec = DocAll.create(sub_vals)
+            existing_folders_map[(parent_rec.id, leaf_name)] = sub_rec
         folder_path_to_rec[fpath] = sub_rec
         canonical_folder_ids.add(sub_rec.id)
 
@@ -564,29 +643,53 @@ def run_dgm_sync(env):
     ]:
         core_tags[k] = env.ref(xid, raise_if_not_found=False)
 
+    # Pre-index existing non-folder documents for O(1) lookup (active=True overwrites active=False)
+    existing_by_fid_folder = {}
+    existing_by_fid_only = {}
+    existing_by_folder_name = {}
+    gdrive_id_re = re.compile(r"\[GDRIVE_ID:([^\]]+)\]")
+    for edoc in DocAll.search([("type", "!=", "folder")], order="active asc, id asc"):
+        note = edoc.create_activity_note or ""
+        m_id = gdrive_id_re.search(note)
+        f_id = edoc.folder_id.id if edoc.folder_id else False
+        if m_id:
+            gid = m_id.group(1)
+            existing_by_fid_folder[(gid, f_id)] = edoc
+            existing_by_fid_only[gid] = edoc
+        else:
+            existing_by_folder_name[(f_id, edoc.name)] = edoc
+
     # 4. Ingest All Google Drive Files Idempotently (prioritizing canonical paths over '(Root Shared)' duplicates)
     file_entries = sorted(
-        [m for m in manifest if m["mimeType"] != "application/vnd.google-apps.folder"],
+        [
+            m
+            for m in manifest
+            if m["mimeType"] != "application/vnd.google-apps.folder"
+            and m.get("name") not in (".DS_Store", "Thumbs.db")
+        ],
         key=lambda e: (1 if "(root shared)" in (e.get("folder_path") or "").lower() else 0),
     )
     created_docs = 0
     updated_docs = 0
     seen_folder_files = set()
+    new_url_vals_batch = []
 
     for entry in file_entries:
         fid = entry["id"]
         fname = entry["name"]
-        fpath = normalize_folder_path(entry.get("folder_path", ""))
+        raw_fp = (entry.get("folder_path") or "").strip()
+        if raw_fp == "DGM":
+            fpath = "DGM - TÀI CHÍNH" if "QUYẾT TOÁN THUẾ" in fname.upper() else "DGM - ĐKTL"
+        else:
+            fpath = normalize_folder_path(raw_fp)
+
         if fpath == "DGM- HÌNH ẢNH 2025" and "logo" in fname.lower():
             target_folder = folder_path_to_rec["DGM- HÌNH ẢNH 2025/Logo"]
         else:
             target_folder = folder_path_to_rec.get(fpath, root_folder)
         local_path = entry.get("local_path")
-        eff_name = (
-            os.path.basename(local_path)
-            if (local_path and os.path.exists(local_path) and os.path.getsize(local_path) > 0)
-            else fname
-        )
+        has_local = bool(local_path and os.path.exists(local_path) and os.path.getsize(local_path) > 0)
+        eff_name = os.path.basename(local_path) if has_local else fname
         dedup_key = (target_folder.id, (eff_name or "").strip().lower())
         if dedup_key in seen_folder_files:
             continue
@@ -596,38 +699,35 @@ def run_dgm_sync(env):
         gdrive_url = entry.get("webViewLink") or f"https://drive.google.com/file/d/{fid}/view"
         note_marker = f"[GDRIVE_ID:{fid}] {entry['rel_path']}"
 
-        existing_doc = DocAll.search(
-            [("create_activity_note", "ilike", f"[GDRIVE_ID:{fid}]")],
-            limit=1,
+        existing_doc = (
+            existing_by_fid_folder.get((fid, target_folder.id))
+            or existing_by_fid_only.get(fid)
+            or existing_by_folder_name.get((target_folder.id, fname))
         )
-        if not existing_doc:
-            existing_doc = DocAll.search(
-                [
-                    ("folder_id", "=", target_folder.id),
-                    ("name", "=", fname),
-                    "|",
-                    ("create_activity_note", "=", False),
-                    "!", ("create_activity_note", "ilike", "[GDRIVE_ID:"),
-                ],
-                limit=1,
-            )
+        # Do not hijack an existing_doc already claimed in this run by another folder copy (e.g. shortcut)
+        if existing_doc and existing_doc.id in canonical_file_ids:
+            existing_doc = False
 
-        if local_path and os.path.exists(local_path) and os.path.getsize(local_path) > 0:
+        if has_local:
             actual_filename = os.path.basename(local_path)
             guessed_mime, _ = mimetypes.guess_type(actual_filename)
             if not guessed_mime:
                 guessed_mime = entry.get("mimeType") or "application/octet-stream"
-            with open(local_path, "rb") as bf:
-                raw_bytes = bf.read()
+            file_sz = os.path.getsize(local_path)
 
             if existing_doc:
                 if existing_doc.attachment_id:
-                    existing_doc.attachment_id.write({
-                        "name": actual_filename,
-                        "raw": raw_bytes,
-                        "mimetype": guessed_mime,
-                    })
+                    if existing_doc.attachment_id.file_size != file_sz:
+                        with open(local_path, "rb") as bf:
+                            raw_bytes = bf.read()
+                        existing_doc.attachment_id.write({
+                            "name": actual_filename,
+                            "raw": raw_bytes,
+                            "mimetype": guessed_mime,
+                        })
                 else:
+                    with open(local_path, "rb") as bf:
+                        raw_bytes = bf.read()
                     att = Att.create({
                         "name": actual_filename,
                         "raw": raw_bytes,
@@ -635,8 +735,8 @@ def run_dgm_sync(env):
                         "res_model": "documents.document",
                         "res_id": existing_doc.id,
                     })
-                    existing_doc.write({"attachment_id": att.id, "type": "binary"})
-                existing_doc.write({
+                    safe_write_doc(existing_doc, {"attachment_id": att.id, "type": "binary"})
+                safe_write_doc(existing_doc, {
                     "name": actual_filename,
                     "type": "binary",
                     "folder_id": target_folder.id,
@@ -652,6 +752,8 @@ def run_dgm_sync(env):
                 canonical_file_ids.add(existing_doc.id)
                 updated_docs += 1
             else:
+                with open(local_path, "rb") as bf:
+                    raw_bytes = bf.read()
                 att = Att.create({
                     "name": actual_filename,
                     "raw": raw_bytes,
@@ -690,13 +792,25 @@ def run_dgm_sync(env):
                 "active": True,
             }
             if existing_doc:
-                existing_doc.write(vals)
+                if existing_doc.type == "binary" and existing_doc.attachment_id:
+                    vals.pop("type", None)
+                    vals.pop("url", None)
+                safe_write_doc(existing_doc, vals)
                 canonical_file_ids.add(existing_doc.id)
                 updated_docs += 1
             else:
-                new_doc = DocAll.create(vals)
-                canonical_file_ids.add(new_doc.id)
-                created_docs += 1
+                new_url_vals_batch.append(vals)
+                if len(new_url_vals_batch) >= 500:
+                    created_recs = DocAll.create(new_url_vals_batch)
+                    canonical_file_ids.update(created_recs.ids)
+                    created_docs += len(created_recs)
+                    new_url_vals_batch.clear()
+
+    if new_url_vals_batch:
+        created_recs = DocAll.create(new_url_vals_batch)
+        canonical_file_ids.update(created_recs.ids)
+        created_docs += len(created_recs)
+        new_url_vals_batch.clear()
 
     # 5. Ingest 4 SOP Markdown Blueprints into Folder 07
     sop_tag_ids = [tags_map["sop_blueprint"].id]
@@ -746,8 +860,8 @@ def run_dgm_sync(env):
                     "res_model": "documents.document",
                     "res_id": existing_sop.id,
                 })
-                existing_sop.write({"attachment_id": att.id, "type": "binary"})
-            existing_sop.write({
+                safe_write_doc(existing_sop, {"attachment_id": att.id, "type": "binary"})
+            safe_write_doc(existing_sop, {
                 "name": sop_fname,
                 "type": "binary",
                 "folder_id": sop_folder.id,
@@ -786,10 +900,11 @@ def run_dgm_sync(env):
             canonical_file_ids.add(new_sop.id)
             created_docs += 1
 
-    # Preserve SOP-DGM-06 Partner Onboarding folders and TPL-ONB companion documents
+    # Preserve SOP-DGM-06 Partner Onboarding folders, Master Template Library, and SOP-DGM-08 documents
     onb_folders = DocAll.search([
         ("type", "=", "folder"),
-        "|", "|",
+        "|", "|", "|",
+        ("name", "ilike", "Bộ Mẫu Biểu Chuẩn Digimate%"),
         ("name", "ilike", "Hồ sơ On-boarding Đối tác%"),
         ("name", "ilike", "PTN-DGM-%"),
         ("name", "ilike", "TMP-DGM-%"),
@@ -798,9 +913,16 @@ def run_dgm_sync(env):
         canonical_folder_ids.add(of.id)
     onb_files = DocAll.search([
         ("type", "!=", "folder"),
-        "|",
-        ("name", "ilike", "[TPL-ONB-%"),
-        ("create_activity_note", "ilike", "[DGM_ONB:%"),
+        "|", "|", "|", "|", "|", "|", "|", "|",
+        ("folder_id", "in", onb_folders.ids),
+        ("name", "ilike", "[TPL-%"),
+        ("name", "ilike", "[SOP-DGM-%"),
+        ("name", "ilike", "01_Bang_Cham_Cong_Timesheet_%"),
+        ("name", "ilike", "02_Bien_Ban_Nghiem_Thu_Timesheet_%"),
+        ("name", "ilike", "03_Hoa_Don_Nhap_Doi_Soat_%"),
+        ("name", "ilike", "04_Hoa_Don_Chinh_Thuc_VAT_%"),
+        ("name", "ilike", "PRJ-NTF-%"),
+        ("create_activity_note", "ilike", "[DGM_%"),
     ])
     for ofile in onb_files:
         canonical_file_ids.add(ofile.id)
@@ -875,7 +997,16 @@ def main():
     parser.add_argument("-c", "--conf", default="/home/zen/O20/insilos.conf", help="Odoo config file")
     args, _ = parser.parse_known_args()
 
-    odoo.tools.config.parse_config(["-c", args.conf, "-d", args.db])
+    if os.path.exists(args.conf):
+        odoo.tools.config.parse_config(["-c", args.conf, "-d", args.db])
+    else:
+        odoo.tools.config.parse_config([
+            "--db_host=pgbouncer-service",
+            "--db_port=6432",
+            "--db_user=insilos",
+            "-d",
+            args.db,
+        ])
     registry = odoo.modules.registry.Registry.new(args.db)
 
     with registry.cursor() as cr:
