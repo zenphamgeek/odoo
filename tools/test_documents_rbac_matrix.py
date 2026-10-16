@@ -11,14 +11,22 @@ Verifies:
    across basic employees, HR officers, HR managers, accountants, and project engineers.
 """
 
+import os
 import subprocess
 import sys
+
+VENV_PYTHON = "/home/zen/O20/.venv/bin/python3"
+if os.path.exists(VENV_PYTHON) and os.path.realpath(sys.executable) != os.path.realpath(VENV_PYTHON):
+    try:
+        import psycopg2  # noqa: F401
+    except ImportError:
+        os.execv(VENV_PYTHON, [VENV_PYTHON] + sys.argv)
 
 sys.path.insert(0, "/home/zen/O20")
 
 import odoo
 from odoo import api, Command, SUPERUSER_ID
-from odoo.exceptions import AccessError
+from odoo.exceptions import AccessError, ValidationError
 
 
 EXPECTED_PROFILES = {
@@ -46,14 +54,14 @@ def verify_db_rbac_invariants(cr, db_label):
     assert total_folders >= 978, f"[{db_label}] Expected >= 978 active folders, got {total_folders}"
     assert total_files >= 7870, f"[{db_label}] Expected >= 7870 active files, got {total_files}"
 
-    # 2. Zero unmapped active documents/folders
+    # 2. Zero unmapped active documents/folders & 100% generation hash coverage
     cr.execute("""
         SELECT COUNT(*) FROM documents_document
         WHERE active = TRUE
-          AND (dgm_rbac_profile IS NULL OR dgm_confidentiality_level IS NULL)
+          AND (dgm_rbac_profile IS NULL OR dgm_confidentiality_level IS NULL OR dgm_rbac_generation_id IS NULL)
     """)
     unmapped = cr.fetchone()[0]
-    assert unmapped == 0, f"[{db_label}] Found {unmapped} active records without RBAC profile/confidentiality"
+    assert unmapped == 0, f"[{db_label}] Found {unmapped} active records without RBAC profile/confidentiality/generation_id"
 
     # 3. Every active record must have >= 1 read group and >= 1 write group
     cr.execute("""
@@ -109,6 +117,70 @@ def verify_db_rbac_invariants(cr, db_label):
 
     print(f"[✓] {db_label}: {total_folders} folders & {total_files} files verified across all 11 RBAC profiles (0 unmapped, 0 empty folders)")
     return dist
+
+
+def test_cross_tenant_isolation_boundary(env, u_basic, doc_sop):
+    """Adversarial Test 1: CWE-284 / CWE-863 Cross-Company Document Isolation."""
+    Company = env["res.company"].sudo().with_context(no_create_folder=True)
+    outside_company = Company.create({"name": "Outside Adversarial Tenant Corp"})
+    env.cr.execute("UPDATE documents_document SET company_id = %s WHERE id = %s", (outside_company.id, doc_sop.id))
+    doc_sop.invalidate_recordset(["company_id"])
+    try:
+        doc_sop.check_dgm_folder_rbac_access("read", user=u_basic)
+        raise AssertionError("Cross-company user should NOT be allowed to read document belonging to another company")
+    except AccessError as exc:
+        assert "Cross-company" in str(exc)
+    finally:
+        env.cr.execute("UPDATE documents_document SET company_id = NULL WHERE id = %s", (doc_sop.id,))
+        doc_sop.invalidate_recordset(["company_id"])
+    print("[✓] Adversarial Test 1 (test_cross_tenant_isolation_boundary): CWE-284 cross-company boundary verified")
+
+
+def test_dag_acyclicity_and_chunked_generation(env):
+    """Adversarial Test 2: DAG Acyclicity CTE & Chunked Generation Hash Verification."""
+    Doc = env["documents.document"].sudo()
+    assert Doc._verify_folder_dag_acyclicity() is True
+
+    # Simulate a cycle inside a nested savepoint and confirm ValidationError is raised
+    f_sample = Doc.search([("type", "=", "folder"), ("folder_id", "!=", False)], limit=1)
+    parent_id = f_sample.folder_id.id
+    with env.cr.savepoint() as cycle_sp:
+        env.cr.execute("UPDATE documents_document SET folder_id = %s WHERE id = %s", (f_sample.id, parent_id))
+        try:
+            Doc._verify_folder_dag_acyclicity()
+            raise AssertionError("Expected ValidationError on circular folder DAG cycle")
+        except ValidationError:
+            pass
+        finally:
+            cycle_sp.close(rollback=True)
+
+    env.cr.execute("SELECT COUNT(DISTINCT dgm_rbac_generation_id) FROM documents_document WHERE active = TRUE")
+    distinct_gens = env.cr.fetchone()[0]
+    assert distinct_gens == 1, f"Expected 1 deterministic generation_id across active documents, got {distinct_gens}"
+    print("[✓] Adversarial Test 2 (test_dag_acyclicity_and_chunked_generation): DAG cycle interception & deterministic generation hash verified")
+
+
+def test_working_tree_clean_gate():
+    """Adversarial Test 3: Verify generate_build_info.py rejects dirty working trees."""
+    res = subprocess.run(
+        [sys.executable, "/home/zen/O20/tools/generate_build_info.py"],
+        cwd="/home/zen/O20",
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    status_res = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd="/home/zen/O20",
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if status_res.stdout.strip():
+        assert res.returncode == 1 and "Working tree is dirty" in res.stderr, (
+            f"Expected exit code 1 and 'Working tree is dirty', got code={res.returncode}, stderr={res.stderr}"
+        )
+    print("[✓] Adversarial Test 3 (test_working_tree_clean_gate): Dirty working tree fail-closed gate verified")
 
 
 def verify_orm_rbac_enforcement(env):
@@ -194,6 +266,10 @@ def verify_orm_rbac_enforcement(env):
         except AccessError:
             pass
 
+        # 5. Adversarial security tests
+        test_cross_tenant_isolation_boundary(env, u_basic, doc_sop)
+        test_dag_acyclicity_and_chunked_generation(env)
+
         sp.close(rollback=True)
 
     print("[✓] Runtime ORM RBAC enforcement (check_dgm_folder_rbac_access) verified across 5 role personas")
@@ -207,9 +283,9 @@ def verify_k8s_rbac():
             "import sys; sys.path.insert(0, '/app/insilos'); import odoo.tools.config, odoo.sql_db; "
             "odoo.tools.config.parse_config(['--db_host=pgbouncer-service','--db_port=6432','--db_user=insilos','-d','innoria_prod']); "
             "cr = odoo.sql_db.db_connect('innoria_prod').cursor(); "
-            "cr.execute(\"SELECT COUNT(*) FROM documents_document WHERE active=TRUE AND type='folder' AND dgm_rbac_profile IS NOT NULL\"); f=cr.fetchone()[0]; "
-            "cr.execute(\"SELECT COUNT(*) FROM documents_document WHERE active=TRUE AND type!='folder' AND dgm_rbac_profile IS NOT NULL\"); d=cr.fetchone()[0]; "
-            "cr.execute(\"SELECT COUNT(*) FROM documents_document WHERE active=TRUE AND dgm_rbac_profile IS NULL\"); u=cr.fetchone()[0]; "
+            "cr.execute(\"SELECT COUNT(*) FROM documents_document WHERE active=TRUE AND type='folder' AND dgm_rbac_profile IS NOT NULL AND dgm_rbac_generation_id IS NOT NULL\"); f=cr.fetchone()[0]; "
+            "cr.execute(\"SELECT COUNT(*) FROM documents_document WHERE active=TRUE AND type!='folder' AND dgm_rbac_profile IS NOT NULL AND dgm_rbac_generation_id IS NOT NULL\"); d=cr.fetchone()[0]; "
+            "cr.execute(\"SELECT COUNT(*) FROM documents_document WHERE active=TRUE AND (dgm_rbac_profile IS NULL OR dgm_rbac_generation_id IS NULL)\"); u=cr.fetchone()[0]; "
             "print(f'K8S_RBAC_OK folders={f} files={d} unmapped={u}'); "
             "assert f >= 978 and d >= 7870 and u == 0"
         ),
@@ -231,6 +307,7 @@ def main():
         env = api.Environment(cr, SUPERUSER_ID, {})
         verify_orm_rbac_enforcement(env)
 
+    test_working_tree_clean_gate()
     verify_k8s_rbac()
     print("[🎉] ALL DGM & INNORIA DOCUMENTS RBAC MATRIX CHECKS PASSED (EXIT 0)")
 

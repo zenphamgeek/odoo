@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import hmac
 import io
 import logging
@@ -6,6 +7,11 @@ import logging
 from psycopg2 import IntegrityError, errors as pg_errors
 from odoo import api, Command, fields, models, modules, _
 from odoo.exceptions import AccessError
+try:
+    from odoo.exceptions import ValidationError
+except ImportError:
+    class ValidationError(Exception):
+        pass
 from odoo.tools.pdf import PdfFileReader
 
 _logger = logging.getLogger(__name__)
@@ -313,20 +319,64 @@ class DocumentsDocument(models.Model):
         'group_id',
         string='Allowed Edit Roles (RBAC)',
     )
+    dgm_rbac_generation_id = fields.Char(
+        string='RBAC Generation Hash',
+        index=True,
+    )
+
+    @api.model
+    def _verify_folder_dag_acyclicity(self):
+        """Verifies via recursive CTE that no circular folder parentage cycle exists in documents_document."""
+        self.env.cr.execute("""
+            WITH RECURSIVE folder_dag AS (
+                SELECT id, folder_id, ARRAY[id] AS path, FALSE AS is_cycle
+                FROM documents_document
+                WHERE active = TRUE AND type = 'folder'
+                UNION ALL
+                SELECT d.id, d.folder_id, fd.path || d.id, d.id = ANY(fd.path)
+                FROM documents_document d
+                JOIN folder_dag fd ON d.id = fd.folder_id
+                WHERE d.active = TRUE AND d.type = 'folder' AND NOT fd.is_cycle AND array_length(fd.path, 1) < 32
+            )
+            SELECT id, path FROM folder_dag WHERE is_cycle = TRUE LIMIT 1;
+        """)
+        cycle_row = self.env.cr.fetchone()
+        if cycle_row:
+            raise ValidationError(_(
+                "DAG Acyclicity Violation: Circular folder hierarchy detected at folder ID %s (path: %s).",
+                cycle_row[0],
+                cycle_row[1],
+            ))
+        return True
 
     def check_dgm_folder_rbac_access(self, operation='read', user=None):
-        """Enforces granular DGM & INNORIA Role-Based Access Control (RBAC) across folders and files."""
+        """Enforces granular DGM & INNORIA Role-Based Access Control (RBAC) and Multi-Company Tenancy."""
         target_user = user or self.env.user
         if not target_user:
             raise AccessError(_("Authentication required for document RBAC verification."))
+
+        user_su = target_user.sudo()
+        is_super = target_user._is_superuser()
+        allowed_company_ids = set(user_su.company_ids.ids) if hasattr(user_su, 'company_ids') else set()
+
+        # CWE-284 / CWE-863 Multi-Company Tenancy Boundary Guard (enforced before role checks)
+        if not is_super:
+            for doc in self.sudo():
+                doc_comp = doc.company_id or (doc.folder_id.company_id if doc.folder_id else False)
+                if doc_comp and doc_comp.id not in allowed_company_ids:
+                    raise AccessError(_(
+                        "Cross-company document access violation: User '%s' does not belong to company '%s'.",
+                        target_user.name,
+                        doc_comp.name,
+                    ))
+
         if (
-            target_user._is_superuser()
-            or target_user.sudo()._has_group('base.group_system')
-            or target_user.sudo()._has_group('documents.group_documents_manager')
+            is_super
+            or user_su._has_group('base.group_system')
+            or user_su._has_group('documents.group_documents_manager')
         ):
             return True
 
-        user_su = target_user.sudo()
         if hasattr(user_su, 'all_group_ids'):
             user_group_ids = set(user_su.all_group_ids.ids)
         elif hasattr(user_su, 'groups_id'):
@@ -434,31 +484,50 @@ class DocumentsDocument(models.Model):
         return 'project_delivery'
 
     @api.model
-    def apply_dgm_inno_rbac_matrix(self):
+    def reconcile_matrix_chunked(self, folder_ids=None, target_company_id=None, chunk_size=250):
+        """Chunked savepoint-isolated RBAC reconciliation with 5s lock timeout and DAG acyclicity check."""
+        return self.apply_dgm_inno_rbac_matrix(target_company_id=target_company_id, chunk_size=chunk_size)
+
+    @api.model
+    def apply_dgm_inno_rbac_matrix(self, target_company_id=None, chunk_size=250):
         """Applies the 11-profile Role-Based Access Control (RBAC) Matrix across 100% of active
         folders and files in `documents.document` while preserving hierarchical `user_folder_id`.
+        Uses 5s lock_timeout, DAG acyclicity verification, and 250-record savepoint chunking.
         """
+        if target_company_id is not None and not self.env.user._is_superuser():
+            allowed_cids = set(self.env.user.sudo().company_ids.ids)
+            if int(target_company_id) not in allowed_cids:
+                raise AccessError(_("Cross-company RBAC reconciliation prohibited for target_company_id=%s.", target_company_id))
+
         cr = self.env.cr
-        # Ensure physical columns and M2M tables exist even if called prior to full module upgrade
-        cr.execute("""
-            ALTER TABLE documents_document
-                ADD COLUMN IF NOT EXISTS dgm_rbac_profile VARCHAR,
-                ADD COLUMN IF NOT EXISTS dgm_confidentiality_level VARCHAR DEFAULT 'confidential';
-            CREATE INDEX IF NOT EXISTS documents_document_dgm_rbac_profile_index
-                ON documents_document (dgm_rbac_profile);
-            CREATE INDEX IF NOT EXISTS documents_document_dgm_confidentiality_level_index
-                ON documents_document (dgm_confidentiality_level);
-            CREATE TABLE IF NOT EXISTS dgm_doc_read_group_rel (
-                document_id INTEGER NOT NULL REFERENCES documents_document(id) ON DELETE CASCADE,
-                group_id INTEGER NOT NULL REFERENCES res_groups(id) ON DELETE CASCADE,
-                PRIMARY KEY (document_id, group_id)
-            );
-            CREATE TABLE IF NOT EXISTS dgm_doc_write_group_rel (
-                document_id INTEGER NOT NULL REFERENCES documents_document(id) ON DELETE CASCADE,
-                group_id INTEGER NOT NULL REFERENCES res_groups(id) ON DELETE CASCADE,
-                PRIMARY KEY (document_id, group_id)
-            );
-        """)
+        with cr.savepoint():
+            cr.execute("SET LOCAL lock_timeout = '5s';")
+            # Ensure physical columns and M2M tables exist even if called prior to full module upgrade
+            cr.execute("""
+                ALTER TABLE documents_document
+                    ADD COLUMN IF NOT EXISTS dgm_rbac_profile VARCHAR,
+                    ADD COLUMN IF NOT EXISTS dgm_confidentiality_level VARCHAR DEFAULT 'confidential',
+                    ADD COLUMN IF NOT EXISTS dgm_rbac_generation_id VARCHAR;
+                CREATE INDEX IF NOT EXISTS documents_document_dgm_rbac_profile_index
+                    ON documents_document (dgm_rbac_profile);
+                CREATE INDEX IF NOT EXISTS documents_document_dgm_confidentiality_level_index
+                    ON documents_document (dgm_confidentiality_level);
+                CREATE INDEX IF NOT EXISTS documents_document_dgm_rbac_generation_id_index
+                    ON documents_document (dgm_rbac_generation_id);
+                CREATE TABLE IF NOT EXISTS dgm_doc_read_group_rel (
+                    document_id INTEGER NOT NULL REFERENCES documents_document(id) ON DELETE CASCADE,
+                    group_id INTEGER NOT NULL REFERENCES res_groups(id) ON DELETE CASCADE,
+                    PRIMARY KEY (document_id, group_id)
+                );
+                CREATE TABLE IF NOT EXISTS dgm_doc_write_group_rel (
+                    document_id INTEGER NOT NULL REFERENCES documents_document(id) ON DELETE CASCADE,
+                    group_id INTEGER NOT NULL REFERENCES res_groups(id) ON DELETE CASCADE,
+                    PRIMARY KEY (document_id, group_id)
+                );
+            """)
+
+        # Verify folder hierarchy is a strict DAG with zero cycles before propagating permissions
+        self._verify_folder_dag_acyclicity()
 
         # Resolve XML IDs for all referenced res.groups
         group_xmlids = set()
@@ -480,6 +549,9 @@ class DocumentsDocument(models.Model):
         """)
         rows = cr.fetchall()
         by_id = {r[0]: {'id': r[0], 'type': r[1], 'name': r[2] or '', 'folder_id': r[3]} for r in rows}
+
+        digest_seed = f"{len(by_id)}:{sorted(self.DGM_RBAC_MATRIX_SPEC.keys())}"
+        generation_id = "GEN-20261016-" + hashlib.sha256(digest_seed.encode("utf-8")).hexdigest()[:8].upper()
 
         path_cache = {}
 
@@ -510,17 +582,15 @@ class DocumentsDocument(models.Model):
             else:
                 profile_to_file_ids[profile].append(doc_id)
 
-        # Clear old RBAC M2M links for active documents and bulk insert per profile
-        all_active_ids = list(by_id.keys())
-        if all_active_ids:
-            cr.execute("DELETE FROM dgm_doc_read_group_rel WHERE document_id = ANY(%s)", (all_active_ids,))
-            cr.execute("DELETE FROM dgm_doc_write_group_rel WHERE document_id = ANY(%s)", (all_active_ids,))
-
         summary = {
+            'generation_id': generation_id,
+            'chunk_size': int(chunk_size or 250),
             'total_folders': sum(len(v) for v in profile_to_folder_ids.values()),
             'total_files': sum(len(v) for v in profile_to_file_ids.values()),
             'profiles': {},
         }
+
+        step = max(1, int(chunk_size or 250))
 
         for profile, spec in self.DGM_RBAC_MATRIX_SPEC.items():
             f_ids = profile_to_folder_ids[profile]
@@ -536,68 +606,89 @@ class DocumentsDocument(models.Model):
             if not combined_ids:
                 continue
 
-            # Update folders (preserving owner_id = NULL and access_internal in ('view','edit') so _compute_user_folder_id() resolves 'COMPANY' / str(folder_id.id))
-            if f_ids:
-                cr.execute("""
-                    UPDATE documents_document
-                    SET dgm_rbac_profile = %s,
-                        dgm_confidentiality_level = %s,
-                        access_internal = %s,
-                        access_via_link = %s,
-                        is_access_via_link_hidden = %s,
-                        owner_id = NULL
-                    WHERE id = ANY(%s)
-                """, (
-                    profile,
-                    spec['confidentiality'],
-                    spec['access_internal'],
-                    spec['access_via_link'],
-                    spec['is_access_via_link_hidden'],
-                    f_ids,
-                ))
-
-            # Update files
-            if d_ids:
-                cr.execute("""
-                    UPDATE documents_document
-                    SET dgm_rbac_profile = %s,
-                        dgm_confidentiality_level = %s,
-                        access_internal = %s,
-                        access_via_link = %s,
-                        is_access_via_link_hidden = %s
-                    WHERE id = ANY(%s)
-                """, (
-                    profile,
-                    spec['confidentiality'],
-                    spec['access_internal'],
-                    spec['access_via_link'],
-                    spec['is_access_via_link_hidden'],
-                    d_ids,
-                ))
-
             read_gids = [xmlid_to_gid[gx] for gx in spec['read_groups'] if gx in xmlid_to_gid]
             write_gids = [xmlid_to_gid[gx] for gx in spec['write_groups'] if gx in xmlid_to_gid]
 
-            if read_gids:
-                cr.execute("""
-                    INSERT INTO dgm_doc_read_group_rel (document_id, group_id)
-                    SELECT d_id, g_id
-                    FROM unnest(%s::int[]) AS d_id
-                    CROSS JOIN unnest(%s::int[]) AS g_id
-                    ON CONFLICT DO NOTHING
-                """, (combined_ids, read_gids))
+            # Chunked savepoint updates for folders
+            for i in range(0, len(f_ids), step):
+                chunk = f_ids[i:i + step]
+                with cr.savepoint():
+                    cr.execute("SET LOCAL lock_timeout = '5s';")
+                    cr.execute("""
+                        UPDATE documents_document
+                        SET dgm_rbac_profile = %s,
+                            dgm_confidentiality_level = %s,
+                            dgm_rbac_generation_id = %s,
+                            access_internal = %s,
+                            access_via_link = %s,
+                            is_access_via_link_hidden = %s,
+                            owner_id = NULL
+                        WHERE id = ANY(%s)
+                    """, (
+                        profile,
+                        spec['confidentiality'],
+                        generation_id,
+                        spec['access_internal'],
+                        spec['access_via_link'],
+                        spec['is_access_via_link_hidden'],
+                        chunk,
+                    ))
 
-            if write_gids:
-                cr.execute("""
-                    INSERT INTO dgm_doc_write_group_rel (document_id, group_id)
-                    SELECT d_id, g_id
-                    FROM unnest(%s::int[]) AS d_id
-                    CROSS JOIN unnest(%s::int[]) AS g_id
-                    ON CONFLICT DO NOTHING
-                """, (combined_ids, write_gids))
+            # Chunked savepoint updates for files
+            for i in range(0, len(d_ids), step):
+                chunk = d_ids[i:i + step]
+                with cr.savepoint():
+                    cr.execute("SET LOCAL lock_timeout = '5s';")
+                    cr.execute("""
+                        UPDATE documents_document
+                        SET dgm_rbac_profile = %s,
+                            dgm_confidentiality_level = %s,
+                            dgm_rbac_generation_id = %s,
+                            access_internal = %s,
+                            access_via_link = %s,
+                            is_access_via_link_hidden = %s
+                        WHERE id = ANY(%s)
+                    """, (
+                        profile,
+                        spec['confidentiality'],
+                        generation_id,
+                        spec['access_internal'],
+                        spec['access_via_link'],
+                        spec['is_access_via_link_hidden'],
+                        chunk,
+                    ))
+
+            # Chunked savepoint M2M synchronization
+            for i in range(0, len(combined_ids), step):
+                chunk = combined_ids[i:i + step]
+                with cr.savepoint():
+                    cr.execute("SET LOCAL lock_timeout = '5s';")
+                    cr.execute("DELETE FROM dgm_doc_read_group_rel WHERE document_id = ANY(%s)", (chunk,))
+                    cr.execute("DELETE FROM dgm_doc_write_group_rel WHERE document_id = ANY(%s)", (chunk,))
+                    if read_gids:
+                        cr.execute("""
+                            INSERT INTO dgm_doc_read_group_rel (document_id, group_id)
+                            SELECT d_id, g_id
+                            FROM unnest(%s::int[]) AS d_id
+                            CROSS JOIN unnest(%s::int[]) AS g_id
+                            ON CONFLICT DO NOTHING
+                        """, (chunk, read_gids))
+                    if write_gids:
+                        cr.execute("""
+                            INSERT INTO dgm_doc_write_group_rel (document_id, group_id)
+                            SELECT d_id, g_id
+                            FROM unnest(%s::int[]) AS d_id
+                            CROSS JOIN unnest(%s::int[]) AS g_id
+                            ON CONFLICT DO NOTHING
+                        """, (chunk, write_gids))
 
         self.env.invalidate_all()
-        _logger.info("Applied DGM & INNORIA RBAC Matrix across %d folders and %d files.", summary['total_folders'], summary['total_files'])
+        _logger.info(
+            "Applied DGM & INNORIA RBAC Matrix [%s] across %d folders and %d files.",
+            generation_id,
+            summary['total_folders'],
+            summary['total_files'],
+        )
         return summary
 
     def action_scan_single_entity_compliance(self):

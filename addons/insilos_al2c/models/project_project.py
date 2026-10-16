@@ -36,7 +36,11 @@ class ProjectProject(models.Model):
         # Project templates do not hold documents: the delivery project created from
         # the template gets its own workspace folder. Skipping templates also avoids
         # duplicating a folder tree on every "create from template".
-        return super(ProjectProject, self.filtered(lambda p: not p.is_template))._create_missing_folders()
+        valid_projects = self.filtered(
+            lambda p: not p.is_template
+            and (not p.company_id.documents_project_folder or p.company_id.documents_project_folder.active)
+        )
+        return super(ProjectProject, valid_projects)._create_missing_folders()
 
     @api.model
     def _al2c_detach_template_folders(self):
