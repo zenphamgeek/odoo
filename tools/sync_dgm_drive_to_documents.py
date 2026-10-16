@@ -83,6 +83,7 @@ SOP_FILES = [
     "COUNCIL_SYNTHESIS_MASTER_REFERENCE.md",
     "DGM_AUTONOMOUS_COMPLIANCE_AUDIT_REPORT.md",
     "SRS_AL2C_Innoria_Insilos.md",
+    "09_INSILOS_SCREEN_RECORDING_FOOTAGE_SOP.md",
 ]
 
 TAG_DEFS = {
@@ -374,6 +375,32 @@ def build_dgm_knowledge_articles(env):
             <li><strong>Chủ sở hữu quyền tác giả:</strong> <code>CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ</code> (ĐKKD số <code>0317958465</code>). Cơ sở phát sinh quyền: Theo quyết định giao việc / Hợp đồng lao động.</li>
             <li><strong>Ý nghĩa Chiến lược &amp; Thuế:</strong> Giấy chứng nhận đăng ký quyền tác giả là chứng từ pháp lý bắt buộc để: (a) Đấu thầu/Hợp tác CSP với MobiFone MobiAI, (b) Chứng minh hoạt động <strong>Sản xuất phần mềm</strong> hưởng ưu đãi thuế TNDN và thuế suất GTGT 0% khi xuất khẩu phần mềm.</li>
         </ul>""",
+    )
+
+    upsert_article(
+        "kb_dgm_sop_media_009_screen_recording",
+        "SOP-MEDIA-009 · Quy Trình Vận Hành Chuẩn & Hướng Dẫn Sử Dụng Động Cơ Ghi Hình Màn Hình Tự Động (/insilos-screen-recording-footage)",
+        "🎬",
+        root_art.id,
+        9,
+        """<h1>SOP-MEDIA-009 · Quy Trình Vận Hành Chuẩn &amp; Hướng Dẫn Sử Dụng Động Cơ Ghi Hình Màn Hình Tự Động (<code>/insilos-screen-recording-footage</code>)</h1>
+        <p><strong>Mã quy trình:</strong> <code>SOP-MEDIA-009</code> | <strong>Phiên bản:</strong> 2.0 (10/2026) | <strong>Pháp nhân:</strong> CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC — MST: <code>0317958465</code> • Mã ĐV BHXH: <code>TZ0857G</code> • Ký hiệu HĐĐT: <code>1C26TAA</code>) &amp; Innoria Enterprise (<code>innoria.com</code> / <code>insilos.com</code>).</p>
+        <h2>1. Năm Quy Chuẩn Kỹ Thuật Bất Biến (5 Core Invariants)</h2>
+        <ul>
+            <li><strong>1. Zero Browser Chrome &amp; Pure Viewport Isolation:</strong> Ghi hình trực tiếp khung nhìn DOM nội bộ (<code>1920x1080</code> FHD hoặc <code>2560x1440</code> 2K QHD, H.264 <code>CRF 18</code>, <code>yuv420p</code>) qua Playwright Headless Chromium — 0% thanh địa chỉ URL, 0% tab, 0% thông tin cá nhân.</li>
+            <li><strong>2. Interactive DOM VFX Injection:</strong> Tự động tiêm <code>#insilos-virtual-cursor</code> (<code>24px</code> Cyan <code>#00f0ff</code>), sóng xung kích <code>__insilos_trigger_ripple(x, y)</code> (<code>0.6s</code>), và hào quang tiêu điểm <code>__insilos_highlight_element(selector, glowColor)</code> (<code>35px</code> neon spotlight).</li>
+            <li><strong>3. Tactile 48kHz Stereo SFX &amp; EBU R128 Mastering:</strong> Tổng hợp toán học 6 tệp âm thanh 48kHz Stereo PCM 16-bit (<code>sfx_click.wav</code> 35ms, <code>sfx_type.wav</code> 45ms, <code>sfx_scanner_beep.wav</code> 85ms 1760Hz, <code>sfx_whoosh.wav</code> 350ms, <code>sfx_chime.wav</code> 1.2s, <code>sfx_cash.wav</code> 1.0s) và chuẩn hóa âm lượng truyền hình <strong>EBU R128</strong> (<code>loudnorm=I=-16.0:TP=-1.5:LRA=7.0</code>, AAC 256kbps).</li>
+            <li><strong>4. 60 FPS Computer Vision Fidelity:</strong> Nội suy liên tục 60 FPS qua <code>requestAnimationFrame</code>, khử 100% Bounding Box CSS tĩnh, đảm bảo nhãn nhận diện đúng thực tế thị giác (<code>[VIOLATION: NO HELMET]</code> vs <code>[HELMET // 99.x%]</code>).</li>
+            <li><strong>5. Anti-Lazy-Code Interaction Density Standard:</strong> Kiểm định tự động qua <code>audit_screen_recording_density.py</code> đảm bảo tổng số sự kiện &ge; 8, khoảng nghỉ tối đa <code>Max Gap &le; 4.0s</code>, 3 tầng chiều sâu giao diện (<code>List/Kanban -&gt; Form Detail -&gt; Smart Button/Tab</code>), và điểm mật độ tương tác <code>IDS &ge; 2.0</code>.</li>
+        </ul>
+        <h2>2. Quy Trình Thực Thi 4 Bước Chuẩn Hóa (4-Step CLI Execution Workflow)</h2>
+        <ol>
+            <li><strong>Bước 0 (Tạo thư viện SFX 48kHz):</strong> <code>python3 /home/zen/.gemini/config/skills/insilos-screen-recording-footage/scripts/generate_sfx_library.py</code></li>
+            <li><strong>Bước 1A (Ghi hình 3D Showcase):</strong> <code>/home/zen/hermes-agent/.venv/bin/python .../scripts/recorder.py --url "http://localhost:28069" --scenario "showcase_3d" --output "insilos_footage_showcase_3d" --width 1920 --height 1080</code></li>
+            <li><strong>Bước 1B (Ghi hình 12 Kịch bản Nghiệp vụ B2B):</strong> <code>/home/zen/hermes-agent/.venv/bin/python .../scripts/recorder_business_scenarios.py --scenario "VID_01_CRM"</code> (hỗ trợ <code>VID_01_CRM</code> .. <code>VID_12_MKT</code>).</li>
+            <li><strong>Bước 2 (Hòa âm SFX &amp; Mastering EBU R128):</strong> <code>/home/zen/hermes-agent/.venv/bin/python .../scripts/vfx_sfx_composer.py --events "..._events.json" --output "..._mastered.mp4"</code></li>
+            <li><strong>Bước 3 (Kiểm toán Mật độ Chống Lazy Code):</strong> <code>python3 .../scripts/audit_screen_recording_density.py --dir "/home/zen/hermes-agent/output/insilos_footage"</code></li>
+        </ol>""",
     )
     return root_art
 
@@ -681,12 +708,14 @@ def run_dgm_sync(env):
     for sop_fname in SOP_FILES:
         sop_path = os.path.join(SOPS_DIR, sop_fname)
         if not os.path.exists(sop_path):
-            fallback_path = os.path.join(
+            for fb_dir in (
+                "/home/zen/O20/docs/organization_and_processes",
                 "/home/zen/.gemini/antigravity/brain/790b1743-1724-4f27-a6fd-6d949bee50cf",
-                sop_fname,
-            )
-            if os.path.exists(fallback_path):
-                sop_path = fallback_path
+            ):
+                fallback_path = os.path.join(fb_dir, sop_fname)
+                if os.path.exists(fallback_path):
+                    sop_path = fallback_path
+                    break
         if not os.path.exists(sop_path):
             continue
         with open(sop_path, "rb") as sf:
