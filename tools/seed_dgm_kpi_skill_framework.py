@@ -24,7 +24,7 @@ import site
 import sys
 import types
 
-ROOT_DIR = "/home/zen/O20"
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VENV_SITE = os.path.join(ROOT_DIR, ".venv/lib/python3.12/site-packages")
 if os.path.isdir(VENV_SITE):
     site.addsitedir(VENV_SITE)
@@ -40,7 +40,24 @@ from odoo import api, SUPERUSER_ID
 from odoo.modules.registry import Registry
 from odoo.tools import convert_file
 
-odoo.tools.config.parse_config(["-c", os.path.join(ROOT_DIR, "odoo.conf")])
+_local_conf = os.path.join(ROOT_DIR, "odoo.conf")
+if os.path.isfile("/etc/insilos/insilos.conf"):
+    odoo.tools.config.parse_config(["-c", "/etc/insilos/insilos.conf"])
+elif os.path.isfile(_local_conf):
+    odoo.tools.config.parse_config(["-c", _local_conf])
+else:
+    odoo.tools.config.parse_config([])
+if os.path.isdir("/var/lib/insilos/filestore"):
+    odoo.tools.config["data_dir"] = "/var/lib/insilos/filestore"
+    odoo.tools.config["addons_path"] = f"{ROOT_DIR}/odoo/addons,{ROOT_DIR}/addons,{ROOT_DIR}/enterprise"
+if os.environ.get("DB_HOST"):
+    odoo.tools.config["db_host"] = os.environ["DB_HOST"]
+if os.environ.get("DB_PORT"):
+    odoo.tools.config["db_port"] = int(os.environ["DB_PORT"])
+if os.environ.get("DB_USER"):
+    odoo.tools.config["db_user"] = os.environ["DB_USER"]
+if os.environ.get("PGPASSWORD"):
+    odoo.tools.config["db_password"] = os.environ["PGPASSWORD"]
 
 from odoo.addons.insilos_al2c.models.dgm_brand_footer import (  # noqa: E402
     wrap_dgm_branded_html_document,
@@ -51,13 +68,19 @@ TPL_HR_06_FILENAME = "TPL-HR-06_Phieu_Danh_Gia_KPI_Va_Lo_Trinh_Nang_Cap_Ky_Nang_
 SOP_10_DOC_FILENAME = "SOP-DGM-10_KPI_Danh_Gia_Nhan_Su_Va_Khung_Nang_Luc_Ky_Su_Phan_Mem_2026.html"
 
 
+def _ensure_doc_active(env, rec):
+    if rec and not rec.active:
+        env.cr.execute("UPDATE documents_document SET active = TRUE WHERE id IN %s", [tuple(rec.ids)])
+        rec.invalidate_recordset(["active"])
+
+
 def _resolve_folder(env, preferred_id, name_patterns, parent_id=False):
     Document = env["documents.document"].sudo()
     if preferred_id:
-        folder = Document.browse(preferred_id).exists()
+        folder = Document.with_context(active_test=False).browse(preferred_id).exists()
         if folder and folder.type == "folder":
+            _ensure_doc_active(env, folder)
             folder.write({
-                "active": True,
                 "owner_id": False,
                 "access_internal": "edit",
             })
@@ -68,8 +91,8 @@ def _resolve_folder(env, preferred_id, name_patterns, parent_id=False):
             domain.append(("folder_id", "=", parent_id))
         folder = Document.with_context(active_test=False).search(domain, order="id asc", limit=1)
         if folder:
+            _ensure_doc_active(env, folder)
             folder.write({
-                "active": True,
                 "owner_id": False,
                 "access_internal": "edit",
             })
@@ -97,6 +120,7 @@ def _upsert_html_doc(env, folder_id, doc_name, filename, html_str, code_marker=N
         ], order="id asc", limit=1)
 
     if existing:
+        _ensure_doc_active(env, existing)
         if existing.attachment_id:
             existing.attachment_id.with_context(no_document=True).write({
                 "name": filename,
@@ -119,7 +143,6 @@ def _upsert_html_doc(env, folder_id, doc_name, filename, html_str, code_marker=N
             "owner_id": False,
             "access_internal": "edit",
             "access_via_link": "view",
-            "active": True,
         })
         return existing
 
@@ -392,7 +415,8 @@ def seed_database(dbname):
                         "datas": base64.b64encode(branded_ev.encode("utf-8")),
                         "mimetype": "text/html",
                     })
-                ev.document_id.write({"owner_id": False, "access_internal": "edit", "active": True})
+                _ensure_doc_active(env, ev.document_id)
+                ev.document_id.write({"owner_id": False, "access_internal": "edit"})
 
         # 5. Enforce Zero Empty Folders Invariant (Rule 6)
         Document = env["documents.document"].sudo()
