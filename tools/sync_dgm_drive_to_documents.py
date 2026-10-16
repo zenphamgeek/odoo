@@ -977,6 +977,11 @@ def run_dgm_sync(env):
         root_art = build_dgm_knowledge_articles(env)
         rag_stats = env["al2c.rag.service"].sudo().cron_reindex_knowledge_articles(batch_limit=100)
 
+    # 8. Apply Automated Role-Based Access Control (RBAC) Matrix across all folders & files
+    rbac_summary = {}
+    if hasattr(Doc, "apply_dgm_inno_rbac_matrix"):
+        rbac_summary = Doc.apply_dgm_inno_rbac_matrix()
+
     env.cr.commit()
     total_active_folders = Doc.search_count([("type", "=", "folder")])
     total_active_files = Doc.search_count([("type", "!=", "folder")])
@@ -984,6 +989,8 @@ def run_dgm_sync(env):
     print(f"Root Folder ID: {root_folder.id} ({root_folder.name})")
     print(f"Total Active Folders: {total_active_folders} (Archived Empty/Legacy Folders: {archived_folders_count})")
     print(f"Total Active Files: {total_active_files} (Created: {created_docs}, Updated: {updated_docs}, Archived Dummy Files: {archived_files_count})")
+    if rbac_summary:
+        print(f"RBAC Matrix Applied: {rbac_summary.get('total_folders')} folders, {rbac_summary.get('total_files')} files across {len(rbac_summary.get('profiles', {}))} profiles")
     if root_art:
         print(f"DGM Knowledge Root Article ID: {root_art.id} ({root_art.name})")
         print(f"RAG Reindex Summary: {rag_stats}")

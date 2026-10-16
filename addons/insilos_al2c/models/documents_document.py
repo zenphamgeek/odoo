@@ -90,6 +90,516 @@ class DocumentsDocument(models.Model):
     ], string='Compliance Status', default='compliant', tracking=True)
     al2c_compliance_summary = fields.Text(string='Compliance Audit Summary')
 
+    # --- Sovereign DGM & INNORIA Role-Based Access Control (RBAC) Fields ---
+    DGM_RBAC_PROFILE_SELECTION = [
+        ('exec_legal', '01 · Corporate & Executive Legal (BGĐ / Pháp chế)'),
+        ('company_sop', '02 · Company SOPs & Governance (Toàn Công ty - View)'),
+        ('hr_cb', '03 · HR, Contracts & C&B (Nhân sự & Tiền lương - Strictly Restricted)'),
+        ('finance_tax', '04 · Finance, Tax & Banking (Kế toán, Thuế & Ngân hàng)'),
+        ('commercial_contract', '05 · Commercial Contracts & Legal (Hợp đồng Kinh tế & Pháp lý)'),
+        ('project_delivery', '06 · Projects & Client Delivery (Dự án & Khách hàng)'),
+        ('brand_sales', '07 · Brand & Marketing Assets (Thương hiệu & Truyền thông)'),
+        ('mti_contract', '09 · MTI Dedicated Contracts & Legal (Hợp đồng MTI)'),
+        ('mti_timesheet', '10 · MTI Timesheet & Reconciliation (Chấm công & Đối soát MTI)'),
+        ('sales_kit', '11 · Sales Kit & Credentials (Tài liệu Bán hàng & HSNL)'),
+        ('digital_solution', '12 · Digital Transformation & Solutions (Chuyển đổi số & Giải pháp)'),
+    ]
+
+    DGM_RBAC_MATRIX_SPEC = {
+        'exec_legal': {
+            'confidentiality': 'strictly_restricted',
+            'access_internal': 'view',
+            'access_via_link': 'none',
+            'is_access_via_link_hidden': True,
+            'read_groups': [
+                'base.group_system',
+                'sales_team.group_sale_manager',
+                'account.group_account_manager',
+                'hr.group_hr_manager',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'account.group_account_manager',
+            ],
+        },
+        'company_sop': {
+            'confidentiality': 'internal',
+            'access_internal': 'view',
+            'access_via_link': 'view',
+            'is_access_via_link_hidden': False,
+            'read_groups': [
+                'base.group_user',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'documents.group_documents_manager',
+                'hr.group_hr_manager',
+            ],
+        },
+        'hr_cb': {
+            'confidentiality': 'strictly_restricted',
+            'access_internal': 'view',
+            'access_via_link': 'none',
+            'is_access_via_link_hidden': True,
+            'read_groups': [
+                'base.group_system',
+                'hr.group_hr_manager',
+                'hr.group_hr_user',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'hr.group_hr_manager',
+            ],
+        },
+        'finance_tax': {
+            'confidentiality': 'strictly_restricted',
+            'access_internal': 'view',
+            'access_via_link': 'none',
+            'is_access_via_link_hidden': True,
+            'read_groups': [
+                'base.group_system',
+                'account.group_account_manager',
+                'account.group_account_user',
+                'account.group_account_readonly',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'account.group_account_manager',
+                'account.group_account_user',
+            ],
+        },
+        'commercial_contract': {
+            'confidentiality': 'confidential',
+            'access_internal': 'view',
+            'access_via_link': 'none',
+            'is_access_via_link_hidden': False,
+            'read_groups': [
+                'base.group_system',
+                'sales_team.group_sale_manager',
+                'sales_team.group_sale_salesman_all_leads',
+                'account.group_account_manager',
+                'account.group_account_user',
+                'project.group_project_manager',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'sales_team.group_sale_manager',
+                'account.group_account_manager',
+            ],
+        },
+        'project_delivery': {
+            'confidentiality': 'confidential',
+            'access_internal': 'edit',
+            'access_via_link': 'none',
+            'is_access_via_link_hidden': False,
+            'read_groups': [
+                'base.group_system',
+                'project.group_project_manager',
+                'project.group_project_user',
+                'sales_team.group_sale_manager',
+                'sales_team.group_sale_salesman',
+                'account.group_account_user',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'project.group_project_manager',
+                'project.group_project_user',
+                'sales_team.group_sale_manager',
+            ],
+        },
+        'brand_sales': {
+            'confidentiality': 'internal',
+            'access_internal': 'view',
+            'access_via_link': 'view',
+            'is_access_via_link_hidden': False,
+            'read_groups': [
+                'base.group_user',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'sales_team.group_sale_manager',
+                'documents.group_documents_manager',
+            ],
+        },
+        'mti_contract': {
+            'confidentiality': 'strictly_restricted',
+            'access_internal': 'view',
+            'access_via_link': 'none',
+            'is_access_via_link_hidden': True,
+            'read_groups': [
+                'base.group_system',
+                'sales_team.group_sale_manager',
+                'account.group_account_manager',
+                'hr.group_hr_manager',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'sales_team.group_sale_manager',
+                'account.group_account_manager',
+            ],
+        },
+        'mti_timesheet': {
+            'confidentiality': 'confidential',
+            'access_internal': 'edit',
+            'access_via_link': 'none',
+            'is_access_via_link_hidden': False,
+            'read_groups': [
+                'base.group_system',
+                'project.group_project_manager',
+                'project.group_project_user',
+                'account.group_account_manager',
+                'account.group_account_user',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'project.group_project_manager',
+                'account.group_account_user',
+            ],
+        },
+        'sales_kit': {
+            'confidentiality': 'internal',
+            'access_internal': 'view',
+            'access_via_link': 'view',
+            'is_access_via_link_hidden': False,
+            'read_groups': [
+                'base.group_user',
+                'sales_team.group_sale_salesman',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'sales_team.group_sale_manager',
+            ],
+        },
+        'digital_solution': {
+            'confidentiality': 'internal',
+            'access_internal': 'edit',
+            'access_via_link': 'view',
+            'is_access_via_link_hidden': False,
+            'read_groups': [
+                'base.group_user',
+                'project.group_project_user',
+                'sales_team.group_sale_salesman',
+            ],
+            'write_groups': [
+                'base.group_system',
+                'project.group_project_manager',
+                'sales_team.group_sale_manager',
+            ],
+        },
+    }
+
+    dgm_rbac_profile = fields.Selection(
+        selection=DGM_RBAC_PROFILE_SELECTION,
+        string='RBAC Access Profile',
+        index=True,
+    )
+    dgm_confidentiality_level = fields.Selection([
+        ('public', 'Public / External Ready'),
+        ('internal', 'Internal Company-Wide (Read)'),
+        ('confidential', 'Departmental / Role-Restricted'),
+        ('strictly_restricted', 'Strictly Restricted (HR PII / Payroll / Legal / Tax)'),
+    ], string='Confidentiality Level', default='confidential', index=True)
+    dgm_read_group_ids = fields.Many2many(
+        'res.groups',
+        'dgm_doc_read_group_rel',
+        'document_id',
+        'group_id',
+        string='Allowed Read Roles (RBAC)',
+    )
+    dgm_write_group_ids = fields.Many2many(
+        'res.groups',
+        'dgm_doc_write_group_rel',
+        'document_id',
+        'group_id',
+        string='Allowed Edit Roles (RBAC)',
+    )
+
+    def check_dgm_folder_rbac_access(self, operation='read', user=None):
+        """Enforces granular DGM & INNORIA Role-Based Access Control (RBAC) across folders and files."""
+        target_user = user or self.env.user
+        if not target_user:
+            raise AccessError(_("Authentication required for document RBAC verification."))
+        if (
+            target_user._is_superuser()
+            or target_user.sudo()._has_group('base.group_system')
+            or target_user.sudo()._has_group('documents.group_documents_manager')
+        ):
+            return True
+
+        user_su = target_user.sudo()
+        if hasattr(user_su, 'all_group_ids'):
+            user_group_ids = set(user_su.all_group_ids.ids)
+        elif hasattr(user_su, 'groups_id'):
+            user_group_ids = set(user_su.groups_id.ids)
+        else:
+            user_group_ids = set()
+
+        write_ops = ('write', 'unlink', 'create')
+        for doc in self.sudo():
+            if operation in write_ops:
+                req_groups = doc.dgm_write_group_ids or (doc.folder_id.dgm_write_group_ids if doc.folder_id else self.env['res.groups'])
+                if req_groups and not (user_group_ids & set(req_groups.ids)):
+                    raise AccessError(_(
+                        "RBAC Access Denied: User '%s' lacks write/edit permission for document/folder '%s' (Profile: %s).",
+                        target_user.name,
+                        doc.name,
+                        doc.dgm_rbac_profile or (doc.folder_id.dgm_rbac_profile if doc.folder_id else 'restricted'),
+                    ))
+            else:
+                req_groups = doc.dgm_read_group_ids or (doc.folder_id.dgm_read_group_ids if doc.folder_id else self.env['res.groups'])
+                if req_groups and not (user_group_ids & set(req_groups.ids)):
+                    raise AccessError(_(
+                        "RBAC Access Denied: User '%s' lacks read permission for document/folder '%s' (Profile: %s).",
+                        target_user.name,
+                        doc.name,
+                        doc.dgm_rbac_profile or (doc.folder_id.dgm_rbac_profile if doc.folder_id else 'restricted'),
+                    ))
+        return True
+
+    @staticmethod
+    def _classify_dgm_inno_path_profile(path_parts, is_root=False):
+        """Classifies a document/folder ancestor path list into one of the 11 canonical RBAC profiles."""
+        if is_root or len(path_parts) <= 1:
+            return 'company_sop'
+
+        top_branch = (path_parts[1] or '').upper()
+        sub_branch = (path_parts[2] if len(path_parts) > 2 else '').upper()
+        full_upper = " / ".join(p.upper() for p in path_parts)
+
+        # 1. DGM 01. Pháp lý & 05. Sở hữu Trí tuệ
+        if top_branch.startswith('01.') or 'PHÁP LÝ' in top_branch or top_branch.startswith('05.') or 'SỞ HỮU TRÍ TUỆ' in top_branch:
+            return 'exec_legal'
+
+        # 2. DGM 07. Quy trình Chuẩn & SOPs
+        if top_branch.startswith('07.') or 'QUY TRÌNH CHUẨN' in top_branch:
+            return 'company_sop'
+
+        # 3. DGM 04. Nhân sự & Tiền lương
+        if top_branch.startswith('04.') or 'NHÂN SỰ' in top_branch:
+            return 'hr_cb'
+
+        # 4. DGM 02. Tài chính - Kế toán - Thuế (with HR C&B override for Lương / BHXH)
+        if top_branch.startswith('02.') or 'TÀI CHÍNH' in top_branch:
+            if any(k in sub_branch or k in full_upper for k in ('BHXH', 'LƯƠNG', 'LUONG', 'DIGIBIZ', 'PAYSLIP')):
+                return 'hr_cb'
+            return 'finance_tax'
+
+        # 5. DGM 03. Hợp đồng & Thương mại (with MTI Timesheet override for TÀI BÙI)
+        if top_branch.startswith('03.') or ('HỢP ĐỒNG' in top_branch and 'MTI' not in top_branch and 'INNORIA' not in top_branch):
+            if 'TÀI BÙI' in sub_branch or 'TAI BUI' in sub_branch or 'TIMESHEET' in full_upper:
+                return 'mti_timesheet'
+            return 'commercial_contract'
+
+        # 6. DGM 06. Thương hiệu & Hình ảnh
+        if top_branch.startswith('06.') or 'THƯƠNG HIỆU' in top_branch:
+            return 'brand_sales'
+
+        # 7. 08. INNORIA multi-branch commercial & corporate subtree
+        if 'INNORIA' in top_branch or top_branch.startswith('08.'):
+            if not sub_branch:
+                return 'project_delivery'
+            if 'THÔNG TIN CHUNG' in sub_branch:
+                return 'exec_legal'
+            if 'NHÂN SỰ' in sub_branch:
+                return 'hr_cb'
+            if 'HÌNH ẢNH' in sub_branch:
+                return 'brand_sales'
+            if 'HỢP ĐỒNG SCAN' in sub_branch:
+                if 'LAO ĐỘNG' in full_upper or 'NHÂN SỰ' in full_upper:
+                    return 'hr_cb'
+                return 'commercial_contract'
+            if 'HỢP ĐỒNG, DỰ ÁN, KH' in sub_branch:
+                tail_upper = " / ".join(p.upper() for p in path_parts[3:])
+                if any(k in tail_upper for k in ('HỢP ĐỒNG', 'HĐ CHÍNH', 'PHỤ LỤC', 'CONTRACT', 'MSA')):
+                    return 'commercial_contract'
+                return 'project_delivery'
+            return 'project_delivery'
+
+        # 8. 09. MTI - CONTRACT
+        if 'MTI - CONTRACT' in top_branch or top_branch.startswith('09.'):
+            return 'mti_contract'
+
+        # 9. 10. MTI - TIMESHEET
+        if 'MTI - TIMESHEET' in top_branch or top_branch.startswith('10.'):
+            return 'mti_timesheet'
+
+        # 10. 11. TÀI LIỆU BÁN HÀNG
+        if 'TÀI LIỆU BÁN HÀNG' in top_branch or top_branch.startswith('11.'):
+            return 'sales_kit'
+
+        # 11. 12. DIGITAL TRANSFORMATION
+        if 'DIGITAL TRANSFORMATION' in top_branch or 'CHUYỂN ĐỔI SỐ' in top_branch or top_branch.startswith('12.'):
+            return 'digital_solution'
+
+        return 'project_delivery'
+
+    @api.model
+    def apply_dgm_inno_rbac_matrix(self):
+        """Applies the 11-profile Role-Based Access Control (RBAC) Matrix across 100% of active
+        folders and files in `documents.document` while preserving hierarchical `user_folder_id`.
+        """
+        cr = self.env.cr
+        # Ensure physical columns and M2M tables exist even if called prior to full module upgrade
+        cr.execute("""
+            ALTER TABLE documents_document
+                ADD COLUMN IF NOT EXISTS dgm_rbac_profile VARCHAR,
+                ADD COLUMN IF NOT EXISTS dgm_confidentiality_level VARCHAR DEFAULT 'confidential';
+            CREATE INDEX IF NOT EXISTS documents_document_dgm_rbac_profile_index
+                ON documents_document (dgm_rbac_profile);
+            CREATE INDEX IF NOT EXISTS documents_document_dgm_confidentiality_level_index
+                ON documents_document (dgm_confidentiality_level);
+            CREATE TABLE IF NOT EXISTS dgm_doc_read_group_rel (
+                document_id INTEGER NOT NULL REFERENCES documents_document(id) ON DELETE CASCADE,
+                group_id INTEGER NOT NULL REFERENCES res_groups(id) ON DELETE CASCADE,
+                PRIMARY KEY (document_id, group_id)
+            );
+            CREATE TABLE IF NOT EXISTS dgm_doc_write_group_rel (
+                document_id INTEGER NOT NULL REFERENCES documents_document(id) ON DELETE CASCADE,
+                group_id INTEGER NOT NULL REFERENCES res_groups(id) ON DELETE CASCADE,
+                PRIMARY KEY (document_id, group_id)
+            );
+        """)
+
+        # Resolve XML IDs for all referenced res.groups
+        group_xmlids = set()
+        for spec in self.DGM_RBAC_MATRIX_SPEC.values():
+            group_xmlids.update(spec['read_groups'])
+            group_xmlids.update(spec['write_groups'])
+
+        xmlid_to_gid = {}
+        for gx in group_xmlids:
+            grp = self.env.ref(gx, raise_if_not_found=False)
+            if grp:
+                xmlid_to_gid[gx] = grp.id
+
+        # Fetch all active documents and folders
+        cr.execute("""
+            SELECT id, type, COALESCE(name->>'vi_VN', name->>'en_US', name::text) AS name, folder_id
+            FROM documents_document
+            WHERE active = TRUE
+        """)
+        rows = cr.fetchall()
+        by_id = {r[0]: {'id': r[0], 'type': r[1], 'name': r[2] or '', 'folder_id': r[3]} for r in rows}
+
+        path_cache = {}
+
+        def get_path_parts(doc_id):
+            if doc_id in path_cache:
+                return path_cache[doc_id]
+            visited = set()
+            chain = []
+            curr = doc_id
+            while curr and curr in by_id and curr not in visited:
+                visited.add(curr)
+                node = by_id[curr]
+                chain.append(node['name'])
+                curr = node['folder_id']
+            chain.reverse()
+            path_cache[doc_id] = chain
+            return chain
+
+        profile_to_folder_ids = {k: [] for k in self.DGM_RBAC_MATRIX_SPEC}
+        profile_to_file_ids = {k: [] for k in self.DGM_RBAC_MATRIX_SPEC}
+
+        for doc_id, info in by_id.items():
+            parts = get_path_parts(doc_id)
+            is_root = info['folder_id'] is None and info['type'] == 'folder'
+            profile = self._classify_dgm_inno_path_profile(parts, is_root=is_root)
+            if info['type'] == 'folder':
+                profile_to_folder_ids[profile].append(doc_id)
+            else:
+                profile_to_file_ids[profile].append(doc_id)
+
+        # Clear old RBAC M2M links for active documents and bulk insert per profile
+        all_active_ids = list(by_id.keys())
+        if all_active_ids:
+            cr.execute("DELETE FROM dgm_doc_read_group_rel WHERE document_id = ANY(%s)", (all_active_ids,))
+            cr.execute("DELETE FROM dgm_doc_write_group_rel WHERE document_id = ANY(%s)", (all_active_ids,))
+
+        summary = {
+            'total_folders': sum(len(v) for v in profile_to_folder_ids.values()),
+            'total_files': sum(len(v) for v in profile_to_file_ids.values()),
+            'profiles': {},
+        }
+
+        for profile, spec in self.DGM_RBAC_MATRIX_SPEC.items():
+            f_ids = profile_to_folder_ids[profile]
+            d_ids = profile_to_file_ids[profile]
+            combined_ids = f_ids + d_ids
+            summary['profiles'][profile] = {
+                'folders': len(f_ids),
+                'files': len(d_ids),
+                'total': len(combined_ids),
+                'confidentiality': spec['confidentiality'],
+                'access_internal': spec['access_internal'],
+            }
+            if not combined_ids:
+                continue
+
+            # Update folders (preserving owner_id = NULL and access_internal in ('view','edit') so _compute_user_folder_id() resolves 'COMPANY' / str(folder_id.id))
+            if f_ids:
+                cr.execute("""
+                    UPDATE documents_document
+                    SET dgm_rbac_profile = %s,
+                        dgm_confidentiality_level = %s,
+                        access_internal = %s,
+                        access_via_link = %s,
+                        is_access_via_link_hidden = %s,
+                        owner_id = NULL
+                    WHERE id = ANY(%s)
+                """, (
+                    profile,
+                    spec['confidentiality'],
+                    spec['access_internal'],
+                    spec['access_via_link'],
+                    spec['is_access_via_link_hidden'],
+                    f_ids,
+                ))
+
+            # Update files
+            if d_ids:
+                cr.execute("""
+                    UPDATE documents_document
+                    SET dgm_rbac_profile = %s,
+                        dgm_confidentiality_level = %s,
+                        access_internal = %s,
+                        access_via_link = %s,
+                        is_access_via_link_hidden = %s
+                    WHERE id = ANY(%s)
+                """, (
+                    profile,
+                    spec['confidentiality'],
+                    spec['access_internal'],
+                    spec['access_via_link'],
+                    spec['is_access_via_link_hidden'],
+                    d_ids,
+                ))
+
+            read_gids = [xmlid_to_gid[gx] for gx in spec['read_groups'] if gx in xmlid_to_gid]
+            write_gids = [xmlid_to_gid[gx] for gx in spec['write_groups'] if gx in xmlid_to_gid]
+
+            if read_gids:
+                cr.execute("""
+                    INSERT INTO dgm_doc_read_group_rel (document_id, group_id)
+                    SELECT d_id, g_id
+                    FROM unnest(%s::int[]) AS d_id
+                    CROSS JOIN unnest(%s::int[]) AS g_id
+                    ON CONFLICT DO NOTHING
+                """, (combined_ids, read_gids))
+
+            if write_gids:
+                cr.execute("""
+                    INSERT INTO dgm_doc_write_group_rel (document_id, group_id)
+                    SELECT d_id, g_id
+                    FROM unnest(%s::int[]) AS d_id
+                    CROSS JOIN unnest(%s::int[]) AS g_id
+                    ON CONFLICT DO NOTHING
+                """, (combined_ids, write_gids))
+
+        self.env.invalidate_all()
+        _logger.info("Applied DGM & INNORIA RBAC Matrix across %d folders and %d files.", summary['total_folders'], summary['total_files'])
+        return summary
+
     def action_scan_single_entity_compliance(self):
         """Scans document text/metadata for single legal entity and address compliance."""
         scanner = self.env['al2c.compliance.scanner']
