@@ -65,6 +65,7 @@ const BRAIN_DIR = "/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-b
     console.log(`Found ${folderCount} search panel category entries.`);
 
     let foundViewableCard = false;
+    const previewableCardSelector = ".o_kanban_record:not(.o_folder_record):has(div[name='document_preview'] img), .o_kanban_record:not(.o_folder_record):has(.o_image[data-mimetype*='pdf']), .o_kanban_record:not(.o_folder_record):has(.o_image[data-mimetype*='text']), .o_kanban_record:not(.o_folder_record):has(.o_image[data-mimetype*='image'])";
     for (let i = 0; i < folderCount; i++) {
         const item = folderItems.nth(i);
         const label = await item.locator(".o_search_panel_label_title").first().innerText().catch(() => "");
@@ -73,7 +74,7 @@ const BRAIN_DIR = "/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-b
         }
         await item.locator(".o_search_panel_label .w-100").first().click();
         await page.waitForTimeout(1000);
-        const fileCards = page.locator(".o_kanban_record:not(.o_folder_record) div[name='document_preview']");
+        const fileCards = page.locator(previewableCardSelector);
         const fCount = await fileCards.count();
         if (fCount > 0) {
             console.log(`Selected folder "${label.trim()}" with ${fCount} previewable file card(s).`);
@@ -113,7 +114,7 @@ const BRAIN_DIR = "/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-b
     }
 
     // Select a card body (outside preview) first to verify selected state & capture screenshot 1
-    const firstFileCard = page.locator(".o_kanban_record:has(div[name='document_preview'])").first();
+    const firstFileCard = page.locator(previewableCardSelector).first();
     const cardTitle = await firstFileCard.innerText();
     console.log("Selecting first file card:", cardTitle.split("\n")[0]);
     await firstFileCard.locator(".fw-bolder, .o_kanban_record_body").first().click();
@@ -203,9 +204,21 @@ const BRAIN_DIR = "/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-b
     // 3. Verify Markdown document preview (aifin_stress_test_capacity_report.md) has ZERO 404 Not Found
     console.log("Testing Markdown document preview (aifin_stress_test_capacity_report.md)...");
     const aifinLabel = page.locator(".o_search_panel_label_title", { hasText: /^AIFIN$/ }).first();
-    if ((await aifinLabel.count()) > 0) {
+    if ((await aifinLabel.count()) > 0 && (await aifinLabel.isVisible().catch(() => false))) {
         await aifinLabel.click();
         await page.waitForTimeout(1500);
+    } else {
+        const allLabel = page.locator(".o_search_panel_label_title", { hasText: /^All$/ }).first();
+        if ((await allLabel.count()) > 0) {
+            await allLabel.click();
+            await page.waitForTimeout(1200);
+        }
+        const searchInput = page.locator(".o_searchview_input").first();
+        if (await searchInput.isVisible().catch(() => false)) {
+            await searchInput.fill("aifin_stress_test_capacity_report.md");
+            await page.keyboard.press("Enter");
+            await page.waitForTimeout(1500);
+        }
     }
     const mdCard = page.locator(".o_kanban_record", { hasText: "aifin_stress_test_capacity_report.md" }).first();
     const mdCardCount = await mdCard.count();

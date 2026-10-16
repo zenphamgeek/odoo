@@ -500,6 +500,16 @@ assert '_loadEmployeeDashboard' in js_content, '_loadEmployeeDashboard missing i
 conn.close()
 print(f'K8S_BUNDLE_AND_DB_OK emps={emp_cnt} depts={dept_cnt} slips={slip_cnt} asset_js_bytes={file_size}')
 """
+    pod_name = "innoria-prod-app-7cdc9b8ddc-4hdbs"
+    try:
+        discovered = subprocess.check_output(
+            ["kubectl", "get", "pods", "-n", "production", "-l", "app=innoria-prod", "--field-selector=status.phase=Running", "-o", "jsonpath={.items[0].metadata.name}"],
+            text=True,
+        ).strip()
+        if discovered:
+            pod_name = discovered
+    except Exception:
+        pass
     proc = subprocess.run(
         [
             "kubectl",
@@ -507,7 +517,7 @@ print(f'K8S_BUNDLE_AND_DB_OK emps={emp_cnt} depts={dept_cnt} slips={slip_cnt} as
             "-i",
             "-n",
             "production",
-            "innoria-prod-app-7cdc9b8ddc-8st7m",
+            pod_name,
             "-c",
             "innoria",
             "--",
