@@ -270,6 +270,41 @@ def verify_orm_rbac_enforcement(env):
         test_cross_tenant_isolation_boundary(env, u_basic, doc_sop)
         test_dag_acyclicity_and_chunked_generation(env)
 
+        # 6. Verify cron_dgm_document_triage_split RBAC auto-reconciliation & INNO customer folder -> project linkage
+        with env.cr.savepoint():
+            env.cr.execute("UPDATE documents_document SET dgm_rbac_profile = NULL WHERE id = %s", (doc_sop.id,))
+            doc_sop.invalidate_recordset(["dgm_rbac_profile"])
+            assert not doc_sop.dgm_rbac_profile
+            triage_res = Doc.cron_dgm_document_triage_split()
+            assert isinstance(triage_res, dict) and "rbac_reconciled" in triage_res, (
+                f"Expected 'rbac_reconciled' in cron_dgm_document_triage_split summary, got {triage_res}"
+            )
+            assert triage_res["rbac_reconciled"] >= 1, (
+                f"Expected rbac_reconciled >= 1 when a document was unmapped, got {triage_res}"
+            )
+            doc_sop.invalidate_recordset(["dgm_rbac_profile"])
+            assert doc_sop.dgm_rbac_profile == "company_sop", (
+                f"Expected doc_sop.dgm_rbac_profile restored to 'company_sop', got {doc_sop.dgm_rbac_profile}"
+            )
+
+            link_res = env["project.project"].sudo().link_inno_customer_folders_to_projects()
+            assert link_res.get("status") == "success" and link_res.get("customer_folders_verified", 0) >= 22, (
+                f"Expected >= 22 customer folders verified by link_inno_customer_folders_to_projects, got {link_res}"
+            )
+            assert link_res.get("projects_linked", 0) >= 1, (
+                f"Expected >= 1 active projects linked by link_inno_customer_folders_to_projects, got {link_res}"
+            )
+            env.cr.execute("""
+                SELECT COUNT(*) FROM documents_document f
+                WHERE f.active = TRUE AND f.type = 'folder'
+                  AND NOT EXISTS (
+                      SELECT 1 FROM documents_document c
+                      WHERE c.active = TRUE AND c.folder_id = f.id
+                  )
+            """)
+            assert env.cr.fetchone()[0] == 0, "Expected 0 empty active folders after link_inno_customer_folders_to_projects()"
+        print("[✓] Autonomous Triage Cron RBAC Reconciliation ('rbac_reconciled') & INNO Customer Folder -> Project Linkage verified")
+
         sp.close(rollback=True)
 
     print("[✓] Runtime ORM RBAC enforcement (check_dgm_folder_rbac_access) verified across 5 role personas")

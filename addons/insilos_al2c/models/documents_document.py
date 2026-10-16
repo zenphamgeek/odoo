@@ -957,9 +957,30 @@ class DocumentsDocument(models.Model):
             """
             self.env.cr.execute(query, params)
             locked_ids = [row[0] for row in self.env.cr.fetchall()]
+            def _reconcile_unmapped_rbac():
+                self.env.cr.execute("""
+                    SELECT COUNT(*) FROM documents_document
+                    WHERE active = TRUE AND (dgm_rbac_profile IS NULL OR dgm_rbac_generation_id IS NULL)
+                """)
+                unmapped_rbac_count = self.env.cr.fetchone()[0] or 0
+                if unmapped_rbac_count > 0:
+                    with self.env.cr.savepoint():
+                        self.sudo().apply_dgm_inno_rbac_matrix()
+                return unmapped_rbac_count
+
             if not locked_ids:
-                _logger.info("DGM Document Triage Watchdog: Zero unrouted documents to triage.")
-                return {'status': 'success', 'scanned': 0, 'routed': 0, 'multipage_split': 0}
+                rbac_reconciled = _reconcile_unmapped_rbac()
+                _logger.info(
+                    "DGM Document Triage Watchdog: Zero unrouted documents to triage (rbac_reconciled=%d).",
+                    rbac_reconciled,
+                )
+                return {
+                    'status': 'success',
+                    'scanned': 0,
+                    'routed': 0,
+                    'multipage_split': 0,
+                    'rbac_reconciled': rbac_reconciled,
+                }
 
             unrouted_docs = self.browse(locked_ids)
             scanned_count = len(unrouted_docs)
@@ -978,11 +999,13 @@ class DocumentsDocument(models.Model):
                 except Exception as doc_err:
                     _logger.warning("Error triaging document %s: %s", doc.id, doc_err)
 
+            rbac_reconciled = _reconcile_unmapped_rbac()
             summary = {
                 'status': 'success',
                 'scanned': scanned_count,
                 'routed': routed_count,
                 'multipage_split': multipage_count,
+                'rbac_reconciled': rbac_reconciled,
             }
             _logger.info("DGM Document Triage Watchdog completed: %s", summary)
             return summary

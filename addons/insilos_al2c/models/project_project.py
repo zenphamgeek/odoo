@@ -148,3 +148,127 @@ class ProjectProject(models.Model):
                     )
 
         return True
+
+    @api.model
+    def link_inno_customer_folders_to_projects(self):
+        """Scans the customer folders under 'INNORIA / INNO - HỢP ĐỒNG, DỰ ÁN, KH' in
+        documents.document (ADOBE, AIFIN, KTT, MBF, MOJO, SWAROVSKI, etc.), ensures every
+        customer folder has dgm_rbac_profile = 'project_delivery', and links matching active
+        project.project records (documents_folder_id) to their canonical customer folder
+        without creating duplicate empty folders.
+        """
+        Doc = self.env['documents.document'].sudo()
+        cr = self.env.cr
+
+        parent_folder = Doc.search([
+            ('type', '=', 'folder'),
+            ('active', '=', True),
+            ('name', 'ilike', 'HỢP ĐỒNG, DỰ ÁN, KH'),
+        ], limit=1)
+
+        if not parent_folder:
+            return {
+                'status': 'skipped',
+                'reason': 'inno_customer_parent_folder_not_found',
+                'customer_folders_verified': 0,
+                'projects_linked': 0,
+            }
+
+        customer_folders = Doc.search([
+            ('type', '=', 'folder'),
+            ('active', '=', True),
+            ('folder_id', '=', parent_folder.id),
+        ])
+
+        needs_rbac_reconcile = any(
+            f.dgm_rbac_profile != 'project_delivery'
+            or not f.dgm_rbac_generation_id
+            or f.owner_id
+            or f.access_internal != 'edit'
+            for f in customer_folders
+        )
+        if customer_folders:
+            cr.execute("""
+                UPDATE documents_document
+                SET dgm_rbac_profile = 'project_delivery',
+                    dgm_confidentiality_level = 'confidential',
+                    access_internal = 'edit',
+                    owner_id = NULL
+                WHERE id = ANY(%s)
+                  AND (dgm_rbac_profile IS DISTINCT FROM 'project_delivery'
+                       OR owner_id IS NOT NULL
+                       OR access_internal IS DISTINCT FROM 'edit')
+            """, (customer_folders.ids,))
+            if needs_rbac_reconcile:
+                Doc.apply_dgm_inno_rbac_matrix()
+
+        folder_by_key = {}
+        for cf in customer_folders:
+            cname = (cf.name or '').strip().upper()
+            if cname:
+                folder_by_key[cname] = cf
+
+        mti_folder = Doc.search([
+            ('type', '=', 'folder'),
+            ('active', '=', True),
+            '|',
+            ('name', 'ilike', 'PTN-DGM-2026-0001'),
+            ('name', 'ilike', 'MTI - TIMESHEET'),
+        ], order='id asc', limit=1)
+
+        active_projects = self.sudo().with_context(no_create_folder=True).search([
+            ('active', '=', True),
+            ('is_template', '=', False),
+        ])
+
+        linked_project_ids = []
+        for proj in active_projects:
+            proj_upper = f"{proj.name or ''} {proj.partner_id.name if proj.partner_id else ''}".upper()
+            target_folder = False
+
+            for key, cf in folder_by_key.items():
+                if len(key) >= 2 and key not in ('SS', 'LP', 'CƠ HỘI', 'BẢNG GIÁ THEO YÊU CẦU') and key in proj_upper:
+                    target_folder = cf
+                    break
+
+            if not target_folder and 'MTI' in proj_upper and mti_folder:
+                target_folder = mti_folder
+
+            if not target_folder and (not proj.documents_folder_id or not proj.documents_folder_id.active):
+                target_folder = folder_by_key.get('MOJO') or parent_folder
+
+            if target_folder and (not proj.documents_folder_id or not proj.documents_folder_id.active or proj.documents_folder_id.id != target_folder.id):
+                # Keep existing valid active non-empty partner onboarding folder if already bound (e.g. PTN-DGM-2026-0007),
+                # unless it's inactive or unlinked or we're linking to INNO customer folder
+                old_folder = proj.documents_folder_id
+                if not old_folder or not old_folder.active or 'PTN-DGM-2026-' not in (old_folder.name or ''):
+                    proj.with_context(no_create_folder=True).write({'documents_folder_id': target_folder.id})
+                    if old_folder and old_folder.exists() and old_folder.active and old_folder.id != target_folder.id:
+                        has_children = Doc.search_count([('active', '=', True), ('folder_id', '=', old_folder.id)])
+                        has_projects = self.sudo().search_count([('active', '=', True), ('documents_folder_id', '=', old_folder.id)])
+                        if not has_children and not has_projects:
+                            old_folder.write({'active': False})
+                linked_project_ids.append(proj.id)
+            elif proj.documents_folder_id and proj.documents_folder_id.active:
+                linked_project_ids.append(proj.id)
+
+        # Enforce Zero Empty Folders Invariant (AGENTS.md §6)
+        cr.execute("""
+            UPDATE documents_document f
+            SET active = FALSE
+            WHERE f.active = TRUE AND f.type = 'folder'
+              AND NOT EXISTS (
+                  SELECT 1 FROM documents_document c
+                  WHERE c.active = TRUE AND c.folder_id = f.id
+              )
+        """)
+        self.env.invalidate_all()
+
+        return {
+            'status': 'success',
+            'parent_folder_id': parent_folder.id,
+            'customer_folders_verified': len(customer_folders),
+            'projects_linked': len(linked_project_ids),
+            'linked_project_ids': linked_project_ids,
+        }
+
