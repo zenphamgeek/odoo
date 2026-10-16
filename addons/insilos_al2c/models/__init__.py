@@ -37,3 +37,5 @@ from . import staff_augmentation_sop
 from . import dgm_project_timesheet_billing
 from . import dgm_hr_document_templates
 from . import dgm_software_contract_templates
+from . import dgm_hr_kpi_skill
+from . import dgm_hr_kpi_skill_framework

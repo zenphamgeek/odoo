@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =================================================================== -->
+    <!-- 1. DGM Software Engineer Skill Track Views (dgm.hr.skill.track)     -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_hr_skill_track_list" model="ir.ui.view">
+        <field name="name">dgm.hr.skill.track.list</field>
+        <field name="model">dgm.hr.skill.track</field>
+        <field name="arch" type="xml">
+            <list string="Khung Năng lực &amp; Chuyên đề Kỹ năng Kỹ sư Phần mềm (SOP-DGM-10)">
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="category" widget="badge"/>
+                <field name="target_engineer_level" widget="badge"/>
+                <field name="is_mandatory"/>
+                <field name="required_hours"/>
+                <field name="passing_score"/>
+                <field name="verification_cmd" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_hr_skill_track_form" model="ir.ui.view">
+        <field name="name">dgm.hr.skill.track.form</field>
+        <field name="model">dgm.hr.skill.track</field>
+        <field name="arch" type="xml">
+            <form string="Chuyên đề Nâng cấp Kỹ năng Kỹ sư Phần mềm (SOP-DGM-10)">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="Mã Chuyên đề Kỹ năng (SOP-DGM-10)"/>
+                        <h1>
+                            <field name="code" placeholder="SKL-ERP-OWL3"/>
+                        </h1>
+                        <h2>
+                            <field name="name" placeholder="Tên chuyên đề nâng cấp kỹ năng..."/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group string="Phân loại &amp; Cấp bậc Áp dụng">
+                            <field name="sequence"/>
+                            <field name="category"/>
+                            <field name="target_engineer_level"/>
+                            <field name="is_mandatory"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Định mức Đào tạo &amp; Ngưỡng Đạt Chuẩn">
+                            <field name="required_hours"/>
+                            <field name="passing_score"/>
+                            <field name="verification_cmd"/>
+                        </group>
+                    </group>
+                    <group string="Nội dung Chương trình &amp; Tiêu chuẩn Đầu ra (Definition of Done)">
+                        <field name="curriculum_summary" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_hr_skill_track" model="ir.actions.act_window">
+        <field name="name">Khung Kỹ năng Kỹ sư Phần mềm (SOP-DGM-10)</field>
+        <field name="res_model">dgm.hr.skill.track</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 2. DGM Employee Skill Gate Views (dgm.hr.employee.skill.gate)       -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_hr_employee_skill_gate_list" model="ir.ui.view">
+        <field name="name">dgm.hr.employee.skill.gate.list</field>
+        <field name="model">dgm.hr.employee.skill.gate</field>
+        <field name="arch" type="xml">
+            <list string="Cổng Nâng cấp Kỹ năng Bắt buộc (SOP-DGM-10)"
+                  decoration-info="state in ('assigned', 'in_progress')"
+                  decoration-primary="state == 'submitted'"
+                  decoration-success="state == 'certified'"
+                  decoration-danger="state == 'overdue'">
+                <field name="employee_id"/>
+                <field name="track_code"/>
+                <field name="track_name"/>
+                <field name="category" optional="show"/>
+                <field name="is_mandatory"/>
+                <field name="completed_hours"/>
+                <field name="required_hours"/>
+                <field name="assessment_score"/>
+                <field name="passing_score"/>
+                <field name="progress_pct" widget="progressbar"/>
+                <field name="deadline_date"/>
+                <field name="evidence_artifact" optional="show"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('assigned', 'in_progress')"
+                       decoration-primary="state == 'submitted'"
+                       decoration-success="state == 'certified'"
+                       decoration-danger="state == 'overdue'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_hr_employee_skill_gate_form" model="ir.ui.view">
+        <field name="name">dgm.hr.employee.skill.gate.form</field>
+        <field name="model">dgm.hr.employee.skill.gate</field>
+        <field name="arch" type="xml">
+            <form string="Hồ sơ Cổng Nâng cấp Kỹ năng Nhân sự (SOP-DGM-10)">
+                <header>
+                    <button name="action_submit_skill_evidence"
+                            string="📤 Nộp Minh chứng &amp; Bài Lab Thực chiến"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state == 'certified'"/>
+                    <button name="action_certify_skill_upgrade"
+                            string="✅ Nghiệm thu &amp; Cấp Chứng nhận Kỹ năng (Gate Passed)"
+                            type="object"
+                            class="btn-success"
+                            invisible="state == 'certified'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="assigned,in_progress,submitted,certified"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group string="Nhân sự &amp; Chuyên đề Kỹ năng">
+                            <field name="employee_id"/>
+                            <field name="skill_track_id"/>
+                            <field name="track_code"/>
+                            <field name="category"/>
+                            <field name="is_mandatory"/>
+                        </group>
+                        <group string="Kết quả Thực hành &amp; Kiểm định Thực chiến">
+                            <field name="current_level"/>
+                            <field name="target_level"/>
+                            <field name="completed_hours"/>
+                            <field name="required_hours"/>
+                            <field name="assessment_score"/>
+                            <field name="passing_score"/>
+                            <field name="progress_pct" widget="progressbar"/>
+                            <field name="deadline_date"/>
+                            <field name="completed_date"/>
+                            <field name="evidence_artifact"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_hr_employee_skill_gate" model="ir.actions.act_window">
+        <field name="name">Cổng Nâng cấp Kỹ năng Nhân sự (SOP-DGM-10)</field>
+        <field name="res_model">dgm.hr.employee.skill.gate</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 3. DGM Work Performance Review Views (dgm.hr.work.review)           -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_hr_work_review_list" model="ir.ui.view">
+        <field name="name">dgm.hr.work.review.list</field>
+        <field name="model">dgm.hr.work.review</field>
+        <field name="arch" type="xml">
+            <list string="Đánh giá Công việc &amp; Giao phẩm Dự án (SOP-DGM-10)">
+                <field name="name"/>
+                <field name="employee_id"/>
+                <field name="project_name"/>
+                <field name="sprint_or_milestone"/>
+                <field name="task_completion_rate"/>
+                <field name="code_quality_score"/>
+                <field name="reviewer_name"/>
+                <field name="review_date"/>
+                <field name="state" widget="badge" decoration-success="state == 'verified'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_dgm_hr_work_review" model="ir.actions.act_window">
+        <field name="name">Nghiệm thu Công việc &amp; Dự án (SOP-DGM-10)</field>
+        <field name="res_model">dgm.hr.work.review</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 4. DGM KPI & Performance Evaluation Views (dgm.hr.kpi.evaluation)   -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_hr_kpi_evaluation_list" model="ir.ui.view">
+        <field name="name">dgm.hr.kpi.evaluation.list</field>
+        <field name="model">dgm.hr.kpi.evaluation</field>
+        <field name="arch" type="xml">
+            <list string="Bảng Đánh giá KPI Nhân sự &amp; Cổng Kỹ năng Kỹ sư (SOP-DGM-10)"
+                  decoration-success="rank_grade in ('tier_s', 'tier_a')"
+                  decoration-info="rank_grade == 'tier_b'"
+                  decoration-warning="rank_grade == 'tier_c'"
+                  decoration-danger="rank_grade == 'tier_d'">
+                <field name="name"/>
+                <field name="period_code"/>
+                <field name="employee_id"/>
+                <field name="engineer_level" widget="badge"/>
+                <field name="score_delivery"/>
+                <field name="score_quality"/>
+                <field name="score_work_eval"/>
+                <field name="score_skill_upgrade"/>
+                <field name="mandatory_skill_completion_pct" widget="progressbar"/>
+                <field name="all_mandatory_skills_completed"/>
+                <field name="raw_weighted_score"/>
+                <field name="final_kpi_score"/>
+                <field name="skill_gate_capped"/>
+                <field name="rank_grade" widget="badge"
+                       decoration-success="rank_grade in ('tier_s', 'tier_a')"
+                       decoration-info="rank_grade == 'tier_b'"
+                       decoration-warning="rank_grade == 'tier_c'"
+                       decoration-danger="rank_grade == 'tier_d'"/>
+                <field name="promotion_eligible"/>
+                <field name="bonus_multiplier_pct"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_hr_kpi_evaluation_form" model="ir.ui.view">
+        <field name="name">dgm.hr.kpi.evaluation.form</field>
+        <field name="model">dgm.hr.kpi.evaluation</field>
+        <field name="arch" type="xml">
+            <form string="Phiếu Đánh giá KPI Nhân sự &amp; Cổng Nâng cấp Kỹ năng Kỹ sư (SOP-DGM-10)">
+                <header>
+                    <button name="action_generate_kpi_evaluation_document"
+                            string="📄 Xuất Hồ sơ Đánh giá KPI Chuẩn Digimate (TPL-KPI-01)"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button name="action_approve_kpi_evaluation"
+                            string="✅ Phê duyệt Chính thức KPI Kỳ này"
+                            type="object"
+                            class="btn-success"
+                            invisible="state == 'approved'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,self_submitted,manager_reviewed,approved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Mã Kỳ Đánh giá KPI &amp; Hiệu suất (SOP-DGM-10)"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Thông tin Nhân sự &amp; Cấp bậc Kỹ sư">
+                            <field name="employee_id"/>
+                            <field name="period_code"/>
+                            <field name="engineer_level"/>
+                            <field name="document_id" readonly="1"/>
+                        </group>
+                        <group string="Kết quả Tổng hợp &amp; Cổng Kỹ năng Bắt buộc">
+                            <field name="raw_weighted_score"/>
+                            <field name="final_kpi_score"/>
+                            <field name="skill_gate_capped"/>
+                            <field name="rank_grade" widget="badge"/>
+                            <field name="promotion_eligible"/>
+                            <field name="bonus_multiplier_pct"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="4 Trụ cột KPI Trọng số (4-Pillar Appraisal)" name="kpi_pillars">
+                            <group>
+                                <group string="1. Giao phẩm &amp; Tiến độ Dự án (35%)">
+                                    <field name="kpi_sprint_completion_pct"/>
+                                    <field name="kpi_billable_hours_actual"/>
+                                    <field name="kpi_billable_hours_target"/>
+                                    <field name="score_delivery"/>
+                                </group>
+                                <group string="2. Chất lượng Code &amp; Kiến trúc (25%)">
+                                    <field name="kpi_code_review_pass_rate"/>
+                                    <field name="kpi_zero_regression_score"/>
+                                    <field name="kpi_production_defect_count"/>
+                                    <field name="score_quality"/>
+                                </group>
+                                <group string="3. Nghiệm thu Công việc B2B &amp; SOP (20%)">
+                                    <field name="kpi_client_csat_score"/>
+                                    <field name="kpi_sop_compliance_score"/>
+                                    <field name="score_work_eval"/>
+                                </group>
+                                <group string="4. Cổng Nâng cấp Kỹ năng Bắt buộc (20%)">
+                                    <field name="mandatory_skill_total"/>
+                                    <field name="mandatory_skill_certified"/>
+                                    <field name="mandatory_skill_completion_pct" widget="progressbar"/>
+                                    <field name="all_mandatory_skills_completed"/>
+                                    <field name="score_skill_upgrade"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Chi tiết Nghiệm thu Công việc &amp; Dự án" name="work_reviews">
+                            <field name="work_review_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="project_name"/>
+                                    <field name="sprint_or_milestone"/>
+                                    <field name="deliverables_completed"/>
+                                    <field name="task_completion_rate"/>
+                                    <field name="code_quality_score"/>
+                                    <field name="reviewer_name"/>
+                                    <field name="review_date"/>
+                                    <field name="state" widget="badge"/>
+                                </list>
+                            </field>
+                        </page>
+
+                        <page string="Nhận xét &amp; Lộ trình Đào tạo" name="notes_roadmap">
+                            <group>
+                                <field name="work_evaluation_summary"/>
+                                <field name="training_roadmap_note"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_hr_kpi_evaluation" model="ir.actions.act_window">
+        <field name="name">Đánh giá KPI &amp; Cổng Kỹ năng Kỹ sư (SOP-DGM-10)</field>
+        <field name="res_model">dgm.hr.kpi.evaluation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

@@ -397,8 +397,54 @@ def verify_iso27701_privacy_and_maker_checker_workflow():
     assert sod_approved["sod_self_approved"] is False
     assert sod_peer_res["privacy_audit_log"][0]["sod_self_approved"] is False
 
+    # 2g. Verify 4-Pillar KPI Evaluation, Work Appraisal & Mandatory SWE Skill Upgrade Gate
+    ed.request.env = _MockEnv(uid=2, user_name="Lê Xuân Hoàng (CEO)", groups={"base.group_system"})
+    emp5_data = ctrl.get_employee_dashboard_data(employee_id=5)
+    kh5 = emp5_data["kpi_skill_hub"]
+    assert kh5["employee_code"] == "DGM-005"
+    assert kh5["mandatory_skill_total"] == 5
+    assert kh5["mandatory_skill_certified"] == 4
+    assert kh5["mandatory_skill_pending"] == 1
+    assert kh5["skill_gate_capped"] is True, "DGM-005 must be capped at tier_b while SKL-AI-MOJO is pending"
+    assert kh5["rank_grade"] == "tier_b", f"Expected tier_b cap, got {kh5['rank_grade']}"
+    assert kh5["promotion_eligible"] is False
+    assert len(kh5["pillars"]) == 4
+
+    # Complete mandatory skill upgrade SKL-AI-MOJO for DGM-005 -> unlocks Tier S & promotion_eligible=True
+    unlocked_res = ctrl.complete_skill_upgrade(
+        employee_id=5,
+        skill_code="SKL-AI-MOJO",
+        exam_score=96.0,
+        certificate_ref="CERT-AIFLEET-DGM005-PASS",
+    )
+    kh5_after = unlocked_res["kpi_skill_hub"]
+    assert kh5_after["mandatory_skill_pending"] == 0
+    assert kh5_after["mandatory_skill_certified"] == 5
+    assert kh5_after["skill_completion_pct"] == 100
+    assert kh5_after["skill_gate_capped"] is False, "Skill gate cap should be lifted after 100% certification"
+    assert kh5_after["rank_grade"] == "tier_s", f"Expected tier_s after skill gate unlock, got {kh5_after['rank_grade']}"
+    assert kh5_after["promotion_eligible"] is True
+    assert kh5_after["total_kpi_score"] >= 90.0
+    assert unlocked_res["privacy_audit_log"][0]["action"] == "COMPLETE_MANDATORY_SKILL_UPGRADE"
+
+    # Submit Work KPI Review for DGM-006 (who still has 1 pending mandatory skill SKL-K8S-PG)
+    rev6_res = ctrl.submit_work_kpi_review(
+        employee_id=6,
+        kpi_delivery_score=95.0,
+        kpi_quality_score=94.0,
+        kpi_work_eval_score=95.0,
+        next_training_roadmap="Hoàn tất chứng chỉ K8s & PostgreSQL HA trước 30/11/2026.",
+        manager_review_note="Điểm công việc xuất sắc, chờ hoàn tất chứng chỉ K8s để mở khóa Hạng S.",
+        approve_evaluation=True,
+    )
+    kh6 = rev6_res["kpi_skill_hub"]
+    assert kh6["kpi_delivery_score"] == 95.0
+    assert kh6["skill_gate_capped"] is True, "DGM-006 must remain capped at tier_b until SKL-K8S-PG is certified"
+    assert kh6["rank_grade"] == "tier_b"
+    assert rev6_res["privacy_audit_log"][0]["action"] == "SUBMIT_WORK_KPI_EVALUATION"
+
     print(
-        "[✓] ISO/IEC 27701 & Decree 13/2023/ND-CP Partial Masking, Need-to-Know RBAC, 30s Audited Reveal, TOCTOU FOR UPDATE NOWAIT Lock & Dual-Control SoD Workflow verified"
+        "[✓] ISO/IEC 27701 & Decree 13/2023/ND-CP Partial Masking, Need-to-Know RBAC, 30s Audited Reveal, TOCTOU FOR UPDATE NOWAIT Lock, Dual-Control SoD & Mandatory SWE Skill Upgrade Gate KPI Workflow verified"
     )
 
 
@@ -416,13 +462,21 @@ def verify_frontend_sources():
             assert "_loadEmployeeDashboard" in c
             assert "/insilos/employee_dashboard/data" in c
             assert "/insilos/employee_dashboard/toggle_step" in c
+            assert "/insilos/employee_dashboard/complete_skill_upgrade" in c
+            assert "/insilos/employee_dashboard/submit_work_kpi_review" in c
+            assert "onCompleteSkillUpgrade" in c
+            assert "onSubmitWorkKpiReview" in c
         elif rel.endswith(".xml"):
             assert "o_insilos_emp_dashboard" in c
             assert "SOP-DGM-04" in c
             assert "VCB DigiBiz" in c
+            assert "kpi_skills" in c
+            assert "onCompleteSkillUpgrade" in c
+            assert "onSubmitWorkKpiReview" in c
         elif rel.endswith("home_menu.scss"):
             assert ".o_insilos_emp_dashboard" in c
             assert "var(--insilos-bg-card)" in c
+            assert ".o_emp_skill_gate_banner" in c
             # Ensure no bare #ffffff inside .o_insilos_emp_dashboard block
             idx = c.find(".o_insilos_emp_dashboard")
             dash_scss = c[idx:]

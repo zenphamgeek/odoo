@@ -1,6 +1,6 @@
 {
   "audit_metadata": {
-    "timestamp": "2026-10-15T20:01:04.961787+00:00",
+    "timestamp": "2026-10-16T07:20:10.222031+00:00",
     "scanner_version": "2.0.0",
     "drift_threshold_days": 30.0,
     "scanned_repositories_count": 4,
@@ -9,15 +9,15 @@
   "summary": {
     "total_repositories": 4,
     "total_modules": 127,
-    "total_loc_code": 3463696,
-    "total_loc_test": 2624224,
-    "total_velocity_30d": 1017,
-    "total_dirty_files": 115,
+    "total_loc_code": 3467320,
+    "total_loc_test": 2625824,
+    "total_velocity_30d": 1032,
+    "total_dirty_files": 134,
     "drift_stale_modules_count": 1,
     "missing_doc_modules_count": 103,
     "dependency_risks_count": 82,
-    "total_replacement_man_days": 26168.4,
-    "total_active_sprint_workload_days": 6526.7,
+    "total_replacement_man_days": 26195.4,
+    "total_active_sprint_workload_days": 6385.8,
     "candidate_backlog_items_count": 178
   },
   "repositories": {
@@ -27,16 +27,16 @@
       "git": {
         "is_git": true,
         "branch": "insilos-genesis-fork",
-        "head": "8fb7d00dc",
-        "head_full": "8fb7d00dc86a257a5ba9a91b62f22307afb1845c",
+        "head": "9c5e599e1",
+        "head_full": "9c5e599e140e5d8ae3b085dabdc2312e4deafda5",
         "author": "Zen",
-        "commit_date": "2026-10-16T03:01:00+07:00",
-        "commit_timestamp": 1792094460,
-        "commit_subject": "feat(security): implement Patch 33 ESIH pricing attestation, server-authoritative pricing kernel & 50-worker concurrency proof",
-        "dirty_files_count": 105,
+        "commit_date": "2026-10-16T14:11:01+07:00",
+        "commit_timestamp": 1792134661,
+        "commit_subject": "feat(hr): advance enterprise pointer to 0632c6eb7 and harden k8s pod discovery",
+        "dirty_files_count": 118,
         "is_dirty": true,
-        "velocity_30d": 533,
-        "churn_30d": 426989,
+        "velocity_30d": 541,
+        "churn_30d": 428883,
         "git_health_warning": null
       },
       "topology": {
@@ -50,16 +50,16 @@
             "git": {
               "is_git": true,
               "branch": "main",
-              "head": "0f460718a",
-              "head_full": "0f460718a418ac69323d07d2a2537b6b5485c383",
+              "head": "0632c6eb7",
+              "head_full": "0632c6eb7790257067ba18ec07b3fb28be94c26e",
               "author": "Zen",
-              "commit_date": "2026-10-16T00:18:08+07:00",
-              "commit_timestamp": 1792084688,
-              "commit_subject": "feat(insilos_website): wire interactive Software Services Concierge bridges, Marketing Automation campaigns, and Decree 70/2025 references",
-              "dirty_files_count": 0,
-              "is_dirty": false,
-              "velocity_30d": 163,
-              "churn_30d": 321705,
+              "commit_date": "2026-10-16T14:10:48+07:00",
+              "commit_timestamp": 1792134648,
+              "commit_subject": "feat(hr): integrate SOP-DGM-10 KPI evaluation and mandatory SWE skill upgrade framework",
+              "dirty_files_count": 4,
+              "is_dirty": true,
+              "velocity_30d": 164,
+              "churn_30d": 322378,
               "git_health_warning": null
             }
           }
@@ -96,8 +96,8 @@
             "category": "odoo_addon",
             "has_localized_doc": false,
             "doc_rel_path": null,
-            "last_code_commit_ts": 1792094460,
-            "last_code_commit_date": "2026-10-15T20:01:00+00:00",
+            "last_code_commit_ts": 1792127912,
+            "last_code_commit_date": "2026-10-16T05:18:32+00:00",
             "last_doc_commit_ts": null,
             "last_doc_commit_date": null,
             "drift_days": null,
@@ -500,15 +500,15 @@
         }
       ],
       "sizing": {
-        "total_files": 90077,
+        "total_files": 90080,
         "loc_code": 287512,
         "loc_test": 211740,
-        "loc_docs": 2095,
+        "loc_docs": 2063,
         "test_coverage_ratio": 0.736,
         "complexity_rating": 1.5,
         "replacement_man_days": 2395.9,
-        "active_sprint_workload_days": 568.8,
-        "effective_churn_30d": 63101
+        "active_sprint_workload_days": 582.2,
+        "effective_churn_30d": 64389
       },
       "candidate_backlog_items": [
         {
@@ -839,13 +839,13 @@
           "item_code": "WIP01-O20",
           "priority": "P1",
           "track": "plan",
-          "title": "Triage 105 uncommitted dirty files in O20",
+          "title": "Triage 118 uncommitted dirty files in O20",
           "dod": "Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree",
           "repo": "O20",
           "path": ".",
           "verify": "git -C O20 status --porcelain",
           "risk": "R1",
-          "formatted_line": "- [ ] [WIP01-O20][P1][plan] Triage 105 uncommitted dirty files in O20 \u2014 DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify=\"git -C O20 status --porcelain\" risk=R1 -->"
+          "formatted_line": "- [ ] [WIP01-O20][P1][plan] Triage 118 uncommitted dirty files in O20 \u2014 DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify=\"git -C O20 status --porcelain\" risk=R1 -->"
         },
         {
           "item_code": "DEP03-ROOT-PLAYWRIGHT",
@@ -867,16 +867,16 @@
       "git": {
         "is_git": true,
         "branch": "Development",
-        "head": "868fbfc01",
-        "head_full": "868fbfc013f652badc8b241010ea37c8e4b20004",
+        "head": "99415c910",
+        "head_full": "99415c910ec08771705dd6534d75d015a3e25016",
         "author": "Antigravity Agent",
-        "commit_date": "2026-10-15T21:05:54+07:00",
-        "commit_timestamp": 1792073154,
-        "commit_subject": "chore(k8s): deploy qa-sdlc-insights-20261015f and retain smoke evidence",
-        "dirty_files_count": 0,
-        "is_dirty": false,
-        "velocity_30d": 181,
-        "churn_30d": 329472,
+        "commit_date": "2026-10-16T09:01:22+07:00",
+        "commit_timestamp": 1792116082,
+        "commit_subject": "fix(insights): sanitize GraphQL wildcard fields, isolate REST panel queries, and resolve non-system vertical_* in GraphQL (qa-sdlc-insights-20261016a)",
+        "dirty_files_count": 6,
+        "is_dirty": true,
+        "velocity_30d": 182,
+        "churn_30d": 309244,
         "git_health_warning": null
       },
       "topology": {
@@ -921,7 +921,7 @@
               "commit_subject": "feat(templates): add edge_ai_needle sovereign profiles across all 6 L3 industry templates (DPM, AES, NCSP, TKV, HPG, DHG)",
               "dirty_files_count": 0,
               "is_dirty": false,
-              "velocity_30d": 18,
+              "velocity_30d": 17,
               "churn_30d": 11785,
               "git_health_warning": null
             }
@@ -2037,15 +2037,15 @@
         }
       ],
       "sizing": {
-        "total_files": 12128,
-        "loc_code": 733508,
-        "loc_test": 1044700,
-        "loc_docs": 113386,
-        "test_coverage_ratio": 1.424,
+        "total_files": 12131,
+        "loc_code": 734620,
+        "loc_test": 1043921,
+        "loc_docs": 114020,
+        "test_coverage_ratio": 1.421,
         "complexity_rating": 1.25,
-        "replacement_man_days": 5093.8,
-        "active_sprint_workload_days": 2814.6,
-        "effective_churn_30d": 329472
+        "replacement_man_days": 5101.5,
+        "active_sprint_workload_days": 2647.2,
+        "effective_churn_30d": 309244
       },
       "candidate_backlog_items": [
         {
@@ -2956,16 +2956,16 @@
       "git": {
         "is_git": true,
         "branch": "main",
-        "head": "8feb39ace",
-        "head_full": "8feb39ace528471e9f96b5ab412f59c87ee4b7f9",
+        "head": "9f7830975",
+        "head_full": "9f7830975f12488621f551f846004d3a454cc45c",
         "author": "zenphamgeek",
-        "commit_date": "2026-10-16T02:19:14+07:00",
-        "commit_timestamp": 1792091954,
-        "commit_subject": "feat(donor-sync): sync O20 32ce5c9b2 AI Concierge VND estimator, AB-PCT capability token verifier & al2c_rag_chunk resource",
+        "commit_date": "2026-10-16T14:20:06+07:00",
+        "commit_timestamp": 1792135206,
+        "commit_subject": "feat(donor-sync): sync O20 b203c187c DAG acyclicity/savepoint reconciler & 9c5e599e1/0632c6eb7 SOP-DGM-10 KPI skill gate",
         "dirty_files_count": 0,
         "is_dirty": false,
-        "velocity_30d": 191,
-        "churn_30d": 356988,
+        "velocity_30d": 197,
+        "churn_30d": 358564,
         "git_health_warning": null
       },
       "topology": {
@@ -3334,11 +3334,11 @@
             "category": "flutter_package",
             "has_localized_doc": true,
             "doc_rel_path": "README.md",
-            "last_code_commit_ts": 1792091954,
-            "last_code_commit_date": "2026-10-15T19:19:14+00:00",
+            "last_code_commit_ts": 1792135206,
+            "last_code_commit_date": "2026-10-16T07:20:06+00:00",
             "last_doc_commit_ts": 1788587508,
             "last_doc_commit_date": "2026-09-05T05:51:48+00:00",
-            "drift_days": 40.56,
+            "drift_days": 41.06,
             "status": "DRIFT_STALE",
             "is_drift_stale": true,
             "is_missing_doc": false
@@ -3364,8 +3364,8 @@
             "category": "flutter_core",
             "has_localized_doc": false,
             "doc_rel_path": null,
-            "last_code_commit_ts": 1792091954,
-            "last_code_commit_date": "2026-10-15T19:19:14+00:00",
+            "last_code_commit_ts": 1792135206,
+            "last_code_commit_date": "2026-10-16T07:20:06+00:00",
             "last_doc_commit_ts": null,
             "last_doc_commit_date": null,
             "drift_days": null,
@@ -3554,27 +3554,27 @@
       ],
       "sizing": {
         "total_files": 6520,
-        "loc_code": 1207390,
-        "loc_test": 839273,
+        "loc_code": 1208602,
+        "loc_test": 839637,
         "loc_docs": 34427,
         "test_coverage_ratio": 0.695,
         "complexity_rating": 1.25,
-        "replacement_man_days": 8384.7,
-        "active_sprint_workload_days": 2986.9,
-        "effective_churn_30d": 356988
+        "replacement_man_days": 8393.1,
+        "active_sprint_workload_days": 3000.0,
+        "effective_churn_30d": 358564
       },
       "candidate_backlog_items": [
         {
           "item_code": "DOC01-MOBO_VERT_SHELL",
           "priority": "P1",
           "track": "docs",
-          "title": "Reconcile documentation drift in mobo_vert_shell (drift: 40.6d)",
+          "title": "Reconcile documentation drift in mobo_vert_shell (drift: 41.1d)",
           "dod": "Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions",
           "repo": "insilos_mobile",
           "path": "mobo_vert_shell",
           "verify": "test -f mobo_vert_shell/README.md",
           "risk": "R1",
-          "formatted_line": "- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 40.6d) \u2014 DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify=\"test -f mobo_vert_shell/README.md\" risk=R1 -->"
+          "formatted_line": "- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 41.1d) \u2014 DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify=\"test -f mobo_vert_shell/README.md\" risk=R1 -->"
         },
         {
           "item_code": "DOC02-MOBO_VERT_AUDIT",
@@ -3941,8 +3941,8 @@
               "commit_subject": "feat(runtime,server): dual-host auto-bootstrap (:6768/:6767) and /api/fleet/handoff reverse proxy",
               "dirty_files_count": 1,
               "is_dirty": true,
-              "velocity_30d": 331,
-              "churn_30d": 195474,
+              "velocity_30d": 326,
+              "churn_30d": 193429,
               "git_health_warning": null
             }
           },
@@ -3981,7 +3981,7 @@
               "commit_date": "2026-10-12T09:07:48+07:00",
               "commit_timestamp": 1791770868,
               "commit_subject": "fix(legal_sync): dynamic knex import in live mode only",
-              "dirty_files_count": 16,
+              "dirty_files_count": 28,
               "is_dirty": true,
               "velocity_30d": 2,
               "churn_30d": 0,
@@ -4038,15 +4038,15 @@
             "git": {
               "is_git": true,
               "branch": "main",
-              "head": "b9865f581",
-              "head_full": "b9865f58164a43ac3abee87ad2afec768e03a76d",
+              "head": "6855abc7d",
+              "head_full": "6855abc7ddc99d022c9b25ac51742493203643fe",
               "author": "Zen",
-              "commit_date": "2026-10-16T02:27:31+07:00",
-              "commit_timestamp": 1792092451,
-              "commit_subject": "feat(srea-api): expose 6 /api/fleet/srea/* FastAPI endpoints and verify Pro-first timeout breaker auto-recovery",
-              "dirty_files_count": 243,
+              "commit_date": "2026-10-16T12:36:42+07:00",
+              "commit_timestamp": 1792129002,
+              "commit_subject": "fix(router-7777): enforce strict pro-first zero-ultra spillover in run-sync, get_best_node, and clef_bridge",
+              "dirty_files_count": 260,
               "is_dirty": true,
-              "velocity_30d": 129,
+              "velocity_30d": 134,
               "churn_30d": 0,
               "git_health_warning": null
             }
@@ -4088,11 +4088,11 @@
             "category": "swarm_submodule",
             "has_localized_doc": true,
             "doc_rel_path": "README.md",
-            "last_code_commit_ts": 1792092451,
-            "last_code_commit_date": "2026-10-15T19:27:31+00:00",
+            "last_code_commit_ts": 1792129002,
+            "last_code_commit_date": "2026-10-16T05:36:42+00:00",
             "last_doc_commit_ts": 1792029413,
             "last_doc_commit_date": "2026-10-15T01:56:53+00:00",
-            "drift_days": 0.73,
+            "drift_days": 1.15,
             "status": "IN_SYNC",
             "is_drift_stale": false,
             "is_missing_doc": false
@@ -4717,13 +4717,13 @@
         }
       ],
       "sizing": {
-        "total_files": 13631,
-        "loc_code": 1235286,
-        "loc_test": 528511,
+        "total_files": 13636,
+        "loc_code": 1236586,
+        "loc_test": 530526,
         "loc_docs": 59558,
-        "test_coverage_ratio": 0.428,
+        "test_coverage_ratio": 0.429,
         "complexity_rating": 1.5,
-        "replacement_man_days": 10294.0,
+        "replacement_man_days": 10304.9,
         "active_sprint_workload_days": 156.4,
         "effective_churn_30d": 18410
       },
@@ -5301,7 +5301,7 @@
     "- [ ] [DEP01-MOBO_TODO-FLUTTER_SVG][P1][security] Pin loose ': any' dependency for flutter_svg in mobo_todo/pubspec.yaml \u2014 DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify=\"flutter pub get\" risk=R2 -->",
     "- [ ] [DEP01-MOBO_TODO-PATH_PROVIDER][P1][security] Pin loose ': any' dependency for path_provider in mobo_todo/pubspec.yaml \u2014 DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify=\"flutter pub get\" risk=R2 -->",
     "- [ ] [DEP01-MOBO_VERT_SHELL-INTL][P1][security] Pin loose ': any' dependency for intl in mobo_vert_shell/pubspec.yaml \u2014 DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_vert_shell/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_vert_shell/pubspec.yaml verify=\"flutter pub get\" risk=R2 -->",
-    "- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 40.6d) \u2014 DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify=\"test -f mobo_vert_shell/README.md\" risk=R1 -->",
+    "- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 41.1d) \u2014 DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify=\"test -f mobo_vert_shell/README.md\" risk=R1 -->",
     "- [ ] [DOC02-INNOKAFE_WEBSITE][P1][docs] Author sovereign localized README for innokafe_website \u2014 DoD: Create enterprise/innokafe_website/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/innokafe_website/README.md verify=\"test -f enterprise/innokafe_website/README.md\" risk=R0 -->",
     "- [ ] [DOC02-INSILOS_ADAPTER][P1][docs] Author sovereign localized README for insilos_adapter \u2014 DoD: Create addons/insilos_adapter/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_adapter/README.md verify=\"test -f addons/insilos_adapter/README.md\" risk=R0 -->",
     "- [ ] [DOC02-INSILOS_AL2C][P1][docs] Author sovereign localized README for insilos_al2c \u2014 DoD: Create addons/insilos_al2c/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_al2c/README.md verify=\"test -f addons/insilos_al2c/README.md\" risk=R0 -->",
@@ -5405,7 +5405,7 @@
     "- [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks \u2014 DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify=\"test -f extensions/verticalrisk-webhooks/README.md\" risk=R0 -->",
     "- [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api \u2014 DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify=\"test -f extensions/verticalrisk-workflow-api/README.md\" risk=R0 -->",
     "- [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel \u2014 DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify=\"test -f extensions/verticalrisk-workflow-kernel/README.md\" risk=R0 -->",
-    "- [ ] [WIP01-O20][P1][plan] Triage 105 uncommitted dirty files in O20 \u2014 DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify=\"git -C O20 status --porcelain\" risk=R1 -->",
+    "- [ ] [WIP01-O20][P1][plan] Triage 118 uncommitted dirty files in O20 \u2014 DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify=\"git -C O20 status --porcelain\" risk=R1 -->",
     "- [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml \u2014 DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify=\"pip check\" risk=R1 -->",
     "- [ ] [DEP02-PYPROJECT-MCP][P2][security] Pin upper bound on Python dependency mcp in router/pyproject.toml \u2014 DoD: Add explicit upper bound constraint to mcp in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify=\"pip check\" risk=R1 -->",
     "- [ ] [DEP02-PYPROJECT-MODAL][P2][security] Pin upper bound on Python dependency modal in router/pyproject.toml \u2014 DoD: Add explicit upper bound constraint to modal in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify=\"pip check\" risk=R1 -->",
