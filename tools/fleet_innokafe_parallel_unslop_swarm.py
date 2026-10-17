@@ -121,25 +121,25 @@ TASKS = [
     {
         "id": "TASK_SCSS",
         "node": "fast",
-        "model": "gemini-3.8-flash-high",
+        "model": "gemini-4-argon-high",
         "prompt": PROMPT_SCSS
     },
     {
         "id": "TASK_HOME",
         "node": "node-4",
-        "model": "gemini-3.8-flash-high",
+        "model": "gemini-4-argon-high",
         "prompt": PROMPT_HOME
     },
     {
         "id": "TASK_STORY",
         "node": "gaopham",
-        "model": "gemini-3.8-flash-high",
+        "model": "gemini-4-argon-high",
         "prompt": PROMPT_STORY
     },
     {
         "id": "TASK_B2B_PRODUCTS",
         "node": "ai-digimate",
-        "model": "gemini-3.8-flash-high",
+        "model": "gemini-4-argon-high",
         "prompt": PROMPT_B2B_AND_PRODUCTS
     }
 ]
