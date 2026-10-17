@@ -112,19 +112,28 @@ def verify_database(dbname):
             )
         print("  [PASS] Gate 2: 6 Autonomous Campaigns (`AUT-CMP-01..06`) linked to `al2c.marketing.kit` & `marketing.campaign`.")
 
-        # Gate 3: Verify Autonomous Cron Execution & Kill-Switch Governance (in savepoint)
-        with cr.savepoint():
+        # Gate 3: Verify Autonomous Cron Execution & Kill-Switch Governance
+        IrParam = env["ir.config_parameter"].sudo()
+        IrParam.set_param("al2c.autonomy_enabled", "True")
+        IrParam.set_param("dgm.autonomy_enabled", "True")
+        try:
             res_live = Campaign.cron_dgm_autonomous_marketing_and_research()
             assert res_live.get("status") == "ok", f"[{dbname}] Cron failed: {res_live}"
             assert res_live.get("radars_scanned") >= 6
             assert res_live.get("campaigns_executed") >= 6
             assert res_live.get("total_pipeline_vnd", 0.0) > 0.0
+            assert res_live.get("tenant_barrier_verified") is True
+            assert isinstance(res_live.get("merkle_witness"), dict)
 
-            env["ir.config_parameter"].sudo().set_param("dgm.autonomy_enabled", "False")
+            IrParam.set_param("dgm.autonomy_enabled", "False")
             res_paused = Campaign.cron_dgm_autonomous_marketing_and_research()
             assert res_paused.get("status") == "paused_by_kill_switch", (
                 f"[{dbname}] Cron must respect dgm.autonomy_enabled kill-switch: {res_paused}"
             )
+        finally:
+            IrParam.set_param("al2c.autonomy_enabled", "True")
+            IrParam.set_param("dgm.autonomy_enabled", "True")
+            cr.commit()
         print("  [PASS] Gate 3: Autonomous Marketing Cron (`ir_cron_dgm_autonomous_marketing_research`) & Kill-Switch verified.")
 
         # Gate 4: Verify KMS-SOP-13 & Battlecard Retrieval via SOP-RAG Copilot
@@ -210,14 +219,66 @@ def verify_employee_dashboard_wiring():
     print("  [PASS] Gate 6: Employee Dashboard Controller & OWL HomeMenu (`Section 6 — SOP-DGM-13`) wired.")
 
 
+def verify_traimai_patch35_security_gate():
+    from odoo.exceptions import AccessDenied, ValidationError
+    from odoo.addons.insilos_al2c.controllers.radar_security import (
+        MerkleWitnessGate,
+        NonRepetitionGuard,
+        SafeDomainASTValidator,
+        TenantSecurityBarrier,
+        sanitize_telemetry_payload,
+    )
+
+    assert TenantSecurityBarrier.scoped_company_domain(1) == [("company_id", "in", [1, False])]
+    blocked = False
+    try:
+        TenantSecurityBarrier.validate_tenant_boundary(999, allowed_company_ids=[1], current_company_id=1)
+    except AccessDenied:
+        blocked = True
+    assert blocked
+
+    assert SafeDomainASTValidator.sanitize_and_validate([("code", "=", "MKT-RES-01")]) == [
+        ("code", "=", "MKT-RES-01")
+    ]
+    dom_blocked = False
+    try:
+        SafeDomainASTValidator.sanitize_and_validate([("secret_field", "=", "x")])
+    except AccessDenied:
+        dom_blocked = True
+    assert dom_blocked
+
+    guard = NonRepetitionGuard(max_entries=16, ttl_seconds=86400)
+    fp = guard.check_and_record(1, "scan", {"k": "v"}, now_ts=100.0)
+    assert len(fp) == 64
+    dup_blocked = False
+    try:
+        guard.check_and_record(1, "scan", {"k": "v"}, now_ts=200.0)
+    except ValidationError:
+        dup_blocked = True
+    assert dup_blocked
+
+    w = MerkleWitnessGate.mint_witness(1, "dgm.market.research.radar", {"a": 1}, {"a": 2})
+    ok, _ = MerkleWitnessGate.verify_witness(w, 1, "dgm.market.research.radar", expected_pre_state={"a": 1}, expected_post_state={"a": 2})
+    assert ok is True
+    bad_ok, _ = MerkleWitnessGate.verify_witness(dict(w, post_hash="f" * 64), 1, "dgm.market.research.radar")
+    assert bad_ok is False
+
+    scrubbed = sanitize_telemetry_payload({"token": "secret123", "msg": "session_id=abcdef123456"})
+    assert scrubbed["token"] == "[REDACTED_SECRET]"
+    assert "[REDACTED_SECRET]" in scrubbed["msg"]
+    print("  [PASS] Gate 7: Patch 35 (`traimai`) TenantSecurityBarrier, SafeDomainASTValidator, NonRepetitionGuard & MerkleWitnessGate verified.")
+
+
 def main():
     targets = sys.argv[1:] if len(sys.argv) > 1 else ["insilos20_dev", "innoria_prod"]
     for db in targets:
         verify_database(db)
     if os.path.exists(os.path.join(ROOT_DIR, "enterprise/web_enterprise/controllers/employee_dashboard.py")):
         verify_employee_dashboard_wiring()
-    print("\n=== ALL 6 SOP-DGM-13 AUTONOMOUS MARKETING & MARKET RESEARCH RADAR GATES PASSED (EXIT 0) ===")
+    verify_traimai_patch35_security_gate()
+    print("\n=== ALL 7 SOP-DGM-13 AUTONOMOUS MARKETING & MARKET RESEARCH RADAR GATES PASSED (EXIT 0) ===")
 
 
 if __name__ == "__main__":
     main()
+

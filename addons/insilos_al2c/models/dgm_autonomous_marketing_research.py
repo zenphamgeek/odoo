@@ -517,22 +517,45 @@ class DgmMarketingAutomationCampaign(models.Model):
                 "claim_grounding_pct": 100.0,
             }
 
-        Radar = self.env["dgm.market.research.radar"].sudo()
-        Campaign = self.sudo()
-        Lead = self.env["crm.lead"].sudo()
+        from odoo.addons.insilos_al2c.controllers.radar_security import (
+            MerkleWitnessGate,
+            TenantSecurityBarrier,
+        )
 
-        radars = Radar.search([("active", "=", True)])
+        company = self.env.company or self.env["res.company"].sudo().search([], limit=1)
+        company_id = company.id if company else 1
+        company_domain = TenantSecurityBarrier.scoped_company_domain(company_id)
+
+        Radar = self.env["dgm.market.research.radar"].sudo().with_company(company)
+        Campaign = self.sudo().with_company(company)
+        Lead = self.env["crm.lead"].sudo().with_company(company)
+
+        radars = Radar.search([("active", "=", True)] + company_domain)
+        pre_state = {
+            "company_id": company_id,
+            "radar_codes": [r.code for r in radars],
+            "radar_hashes": [r.content_sha256 or "" for r in radars],
+        }
         if radars:
             radars.action_synthesize_and_verify_radar()
 
-        campaigns = Campaign.search([("active", "=", True)])
-        all_leads = Lead.search([("active", "=", True)], order="expected_revenue desc, id desc", limit=200)
+        campaigns = Campaign.search([("active", "=", True)] + company_domain)
+        all_leads = Lead.search(
+            [("active", "=", True)] + company_domain,
+            order="expected_revenue desc, id desc",
+            limit=200,
+        )
         now_dt = fields.Datetime.now()
 
         leads_routed_total = 0
         total_pipeline = 0.0
 
         for idx, camp in enumerate(campaigns):
+            TenantSecurityBarrier.validate_tenant_boundary(
+                camp.company_id.id if camp.company_id else False,
+                allowed_company_ids=[company_id],
+                current_company_id=company_id,
+            )
             if camp.state != "running_autonomous" and camp.autonomy_mode == "autonomous_on":
                 camp.action_activate_autonomous_campaign()
             elif camp.research_radar_id and camp.research_radar_id.state != "published_campaign":
@@ -574,6 +597,21 @@ class DgmMarketingAutomationCampaign(models.Model):
             leads_routed_total += lead_count
             total_pipeline += pipeline_vnd
 
+        post_state = {
+            "company_id": company_id,
+            "radars_scanned": len(radars),
+            "campaigns_executed": len(campaigns),
+            "leads_routed": leads_routed_total,
+            "total_pipeline_vnd": round(total_pipeline, 2),
+            "claim_grounding_pct": 100.0,
+        }
+        witness = MerkleWitnessGate.mint_witness(
+            tenant_id=company_id,
+            model_name=self._name,
+            pre_state_dict=pre_state,
+            post_state_dict=post_state,
+        )
+
         return {
             "status": "ok",
             "radars_scanned": len(radars),
@@ -581,4 +619,7 @@ class DgmMarketingAutomationCampaign(models.Model):
             "leads_routed": leads_routed_total,
             "total_pipeline_vnd": round(total_pipeline, 2),
             "claim_grounding_pct": 100.0,
+            "tenant_barrier_verified": True,
+            "merkle_witness": witness,
         }
+

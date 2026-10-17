@@ -3917,6 +3917,135 @@ def test_patch_34_ddk_cdlq_decimal_and_savepoint_isolation():
     print("[✓] Patch 34 / DDK-CDLQ Dual-Kernel Shadow Verification, Fixed-Point Decimal VND Kernel & Savepoint Isolation verified")
 
 
+def test_patch_35_sop13_traimai_radar_security_and_merkle_witness():
+    """Patch 35 (`traimai` Adversarial Audit of SOP-DGM-13):
+    1. `TenantSecurityBarrier`: blocks cross-tenant access (`AccessDenied`) and generates strict `company_id` domains (`CWE-284`).
+    2. `SafeDomainASTValidator`: allows valid radar domains and blocks forbidden fields (`AccessDenied`), invalid operators, strings > 256 chars, and UTF-16 surrogates (`ValidationError`) (`CWE-20/89`).
+    3. `NonRepetitionGuard`: allows first execution and blocks duplicate replay within 24h TTL (`CWE-400`).
+    4. `MerkleWitnessGate`: generates and verifies Merkle state transition proofs in < 18ms and rejects tampered `post_hash` or wrong `tenant_id` (`100%` rejection).
+    5. `sanitize_telemetry_payload`: scrubs hardcoded/reflected bearer tokens, API keys, and `session_id=` strings (`CWE-259`).
+    """
+    import importlib.util
+    from odoo.exceptions import AccessDenied, ValidationError
+
+    radar_sec_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/controllers/radar_security.py")
+    assert os.path.exists(radar_sec_path), f"Missing {radar_sec_path}"
+    spec = importlib.util.spec_from_file_location("insilos_radar_security_p35", radar_sec_path)
+    mod_sec = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod_sec)
+
+    TenantSecurityBarrier = mod_sec.TenantSecurityBarrier
+    SafeDomainASTValidator = mod_sec.SafeDomainASTValidator
+    NonRepetitionGuard = mod_sec.NonRepetitionGuard
+    MerkleWitnessGate = mod_sec.MerkleWitnessGate
+    sanitize_telemetry_payload = mod_sec.sanitize_telemetry_payload
+
+    # 1. TenantSecurityBarrier (CWE-284)
+    assert TenantSecurityBarrier.validate_tenant_boundary(1, allowed_company_ids=[1, 2], current_company_id=1) is True
+    assert TenantSecurityBarrier.validate_tenant_boundary(False, allowed_company_ids=[1], current_company_id=1) is True
+    cross_tenant_blocked = False
+    try:
+        TenantSecurityBarrier.validate_tenant_boundary(99, allowed_company_ids=[1, 2], current_company_id=1)
+    except AccessDenied:
+        cross_tenant_blocked = True
+    assert cross_tenant_blocked, "Expected AccessDenied on cross-tenant company_id=99"
+    scoped_dom = TenantSecurityBarrier.scoped_company_domain(7)
+    assert scoped_dom == [("company_id", "in", [7, False])], f"Unexpected scoped_dom: {scoped_dom}"
+
+    # 2. SafeDomainASTValidator (CWE-20 / CWE-89)
+    valid_dom = SafeDomainASTValidator.sanitize_and_validate(
+        [("service_pillar", "=", "erp"), ("active", "=", True)]
+    )
+    assert len(valid_dom) == 2
+
+    forbidden_field_blocked = False
+    try:
+        SafeDomainASTValidator.sanitize_and_validate([("create_uid.password", "!=", "")])
+    except AccessDenied:
+        forbidden_field_blocked = True
+    assert forbidden_field_blocked, "Expected AccessDenied on forbidden field create_uid.password"
+
+    for bad_dom in (
+        [("name", "like_raw_sql", "abc")],
+        [("name", "=", "A" * 257)],
+        [("name", "=", "surrogate_\ud800_test")],
+        [("name", "=", "test'; DROP TABLE res_users; --")],
+    ):
+        caught = False
+        try:
+            SafeDomainASTValidator.sanitize_and_validate(bad_dom)
+        except ValidationError:
+            caught = True
+        assert caught, f"Expected ValidationError for adversarial domain {bad_dom!r}"
+
+    # 3. NonRepetitionGuard (CWE-400)
+    guard = NonRepetitionGuard(max_entries=32, ttl_seconds=86400)
+    fp1 = guard.check_and_record(1, "run_scan", {"pillar": "erp"}, now_ts=1000.0)
+    assert len(fp1) == 64
+    replay_blocked = False
+    try:
+        guard.check_and_record(1, "run_scan", {"pillar": "erp"}, now_ts=1500.0)
+    except ValidationError:
+        replay_blocked = True
+    assert replay_blocked, "Expected duplicate replay within 24h TTL to raise ValidationError"
+    fp_after_ttl = guard.check_and_record(1, "run_scan", {"pillar": "erp"}, now_ts=1000.0 + 86401.0)
+    assert fp_after_ttl == fp1
+
+    # 4. MerkleWitnessGate (PCP-UI < 18ms & 100% tamper rejection)
+    pre_s = {"company_id": 1, "radars": 6, "state": "verified_grounded"}
+    post_s = {"company_id": 1, "radars": 6, "campaigns": 6, "pipeline_vnd": 12335000000.0}
+    witness = MerkleWitnessGate.mint_witness(
+        tenant_id=1,
+        model_name="dgm.marketing.automation.campaign",
+        pre_state_dict=pre_s,
+        post_state_dict=post_s,
+    )
+    assert witness["latency_ms"] < 18.0, f"Expected Merkle witness latency < 18ms, got {witness['latency_ms']}ms"
+    ok_v, reason_v = MerkleWitnessGate.verify_witness(
+        witness,
+        expected_tenant_id=1,
+        expected_model_name="dgm.marketing.automation.campaign",
+        expected_pre_state=pre_s,
+        expected_post_state=post_s,
+    )
+    assert ok_v is True and reason_v == "VERIFIED", f"Expected valid witness, got {(ok_v, reason_v)}"
+
+    tampered_w = dict(witness, post_hash="0" * 64)
+    ok_t, _ = MerkleWitnessGate.verify_witness(
+        tampered_w,
+        expected_tenant_id=1,
+        expected_model_name="dgm.marketing.automation.campaign",
+    )
+    assert ok_t is False, "Expected tampered post_hash witness to be rejected"
+
+    ok_cross, _ = MerkleWitnessGate.verify_witness(
+        witness,
+        expected_tenant_id=2,
+        expected_model_name="dgm.marketing.automation.campaign",
+    )
+    assert ok_cross is False, "Expected cross-tenant witness verification to be rejected"
+
+    # 5. sanitize_telemetry_payload (CWE-259)
+    dirty_telemetry = {
+        "status": "ok",
+        "api_key": "sk-proj-1234567890abcdefghijklmnop",
+        "nested": {
+            "auth_header": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.secret",
+            "cookie_dump": "session_id=9f8e7d6c5b4a3210; Path=/",
+            "claim_count": 6,
+        },
+    }
+    scrubbed = sanitize_telemetry_payload(dirty_telemetry)
+    assert scrubbed["api_key"] == "[REDACTED_SECRET]"
+    assert "[REDACTED_SECRET]" in scrubbed["nested"]["auth_header"]
+    assert "eyJhbGci" not in scrubbed["nested"]["auth_header"]
+    assert "[REDACTED_SECRET]" in scrubbed["nested"]["cookie_dump"]
+    assert "9f8e7d6c5b4a3210" not in scrubbed["nested"]["cookie_dump"]
+    assert scrubbed["nested"]["claim_count"] == 6
+
+    print("[✓] Patch 35 / traimai SOP-DGM-13 TenantSecurityBarrier, SafeDomainASTValidator, NonRepetitionGuard & PCP-UI MerkleWitnessGate verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -3966,12 +4095,14 @@ def main():
     test_patch_32_ab_pct_capability_budget_guard()
     test_patch_33_esih_pricing_attestation_and_concurrency()
     test_patch_34_ddk_cdlq_decimal_and_savepoint_isolation()
-    print("[✓] ALL 34 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 34 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_35_sop13_traimai_radar_security_and_merkle_witness()
+    print("[✓] ALL 35 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 35 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 
