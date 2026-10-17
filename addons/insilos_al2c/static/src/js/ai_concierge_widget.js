@@ -52,15 +52,15 @@ const DEFAULT_SERVICES_CATALOG = [
         code: "sw_turnkey",
         name: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software)",
         short_label: "🏗️ Phần Mềm Trọn Gói",
-        badge: "SAP Activate • Fixed-Scope SLA",
+        badge: "5-Gate Enterprise • Fixed-Scope SLA",
         summary:
-            "Thiết kế kiến trúc, phát triển trọn gói hệ thống phần mềm doanh nghiệp, cổng giao dịch B2B/B2C, Web/Mobile App đặc thù theo phương pháp luận SAP Activate (Prepare → Explore → Realize → Deploy → Run).",
+            "Thiết kế kiến trúc, phát triển trọn gói hệ thống phần mềm doanh nghiệp, cổng giao dịch B2B/B2C, Web/Mobile App đặc thù theo phương pháp luận 5-Gate Enterprise (Prepare → Explore → Realize → Deploy → Run).",
         unit_label: "Phân hệ nghiệp vụ (Modules)",
         unit_options: [2, 3, 5, 8, 12],
         default_units: 3,
         base_unit_monthly_vnd: 48000000,
         starting_price: "Từ 144.000.000 ₫ / giai đoạn",
-        lead_option: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - SAP Activate)",
+        lead_option: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - 5-Gate Enterprise)",
         deliverables: [
             "Hồ sơ kiến trúc BRD/SRS, UI/UX Prototype & Database Blueprint",
             "Mã nguồn Clean-Room chuẩn hóa, bộ kiểm thử tự động E2E Playwright",
@@ -95,7 +95,7 @@ const DEFAULT_SERVICES_CATALOG = [
         lead_option: "Insilos ERP (VAS & Hóa đơn ĐT Nghị định 70/2025)",
         deliverables: [
             "Hệ thống Kế toán VAS/IFRS, Mua hàng, Bán hàng AL2C, Kho WMS & HRM",
-            "Tích hợp trực tiếp Hóa đơn điện tử Nghị định 70/2025 & Ngân hàng số VCB DigiBiz",
+            "Tích hợp trực tiếp Hóa đơn điện tử Nghị định 70/2025 & Ngân hàng số Doanh nghiệp",
             "Báo cáo quản trị thời gian thực CFO/CEO Dashboard & phân quyền đa công ty",
         ],
         payment_schedule:
@@ -484,7 +484,7 @@ export class AiConciergeWidget extends Component {
                 {
                     id: "welcome-01",
                     sender: "assistant",
-                    text: "Kính chào Quý khách! Tôi là **Executive AI Concierge & Kiến trúc sư Dự toán** của Innoria.\n\nTôi hỗ trợ tư vấn kiến trúc, cấu hình đội ngũ kỹ sư phần mềm (Dedicated Co-Dev Squad theo **Thông tư 13/2020/TT-BTTTT**), phát triển phần mềm trọn gói (**SAP Activate**) và báo giá dự toán tức thì cho:\n• **Squad Kỹ Sư Đồng Phát Triển & Turnkey Software:** Xây dựng hệ thống may đo, Web/Mobile App & tích hợp AI/ERP.\n• **Insilos ERP:** Quản trị tài chính kế toán VAS (TT 200/133), WMS & Hóa đơn điện tử **1C26TAA** (Nghị định 70/2025/NĐ-CP).\n• **Vertical Resilience:** Quản trị rủi ro GRC, bảo vệ dữ liệu **ISO 27701 / Nghị định 13/2023** & truy xuất e-CO.\n• **Mojo AI & Zencode Ent:** Tác tử AL2C Swarm, Grounded RAG triệt tiêu ảo giác & Hiện đại hóa mã nguồn kế thừa.\n\nQuý khách có thể chọn trực tiếp gói dịch vụ bên dưới để **Cấu hình & Xem dự toán tự động** hoặc đặt câu hỏi cho AI!",
+                    text: "Kính chào Quý khách! Tôi là **Executive AI Concierge & Kiến trúc sư Dự toán** của Innoria.\n\nTôi hỗ trợ tư vấn kiến trúc, cấu hình đội ngũ kỹ sư phần mềm (Dedicated Co-Dev Squad theo **Thông tư 13/2020/TT-BTTTT**), phát triển phần mềm trọn gói (**5-Gate Enterprise**) và báo giá dự toán tức thì cho:\n• **Squad Kỹ Sư Đồng Phát Triển & Turnkey Software:** Xây dựng hệ thống may đo, Web/Mobile App & tích hợp AI/ERP.\n• **Insilos ERP:** Quản trị tài chính kế toán VAS (TT 200/133), WMS & Hóa đơn điện tử **1C26TAA** (Nghị định 70/2025/NĐ-CP).\n• **Vertical Resilience:** Quản trị rủi ro GRC, bảo vệ dữ liệu **ISO 27701 / Nghị định 13/2023** & truy xuất e-CO.\n• **Mojo AI & Zencode Ent:** Tác tử AL2C Swarm, Grounded RAG triệt tiêu ảo giác & Hiện đại hóa mã nguồn kế thừa.\n\nQuý khách có thể chọn trực tiếp gói dịch vụ bên dưới để **Cấu hình & Xem dự toán tự động** hoặc đặt câu hỏi cho AI!",
                     formattedText: null,
                     service_cards: initialCatalog.slice(0, 4),
                     citations: [
@@ -512,7 +512,7 @@ export class AiConciergeWidget extends Component {
                             label: "🏗️ Quy trình Phần mềm Trọn gói (Turnkey)",
                             type: "prompt",
                             action: "prompt",
-                            prompt: "Quy trình phát triển phần mềm trọn gói (Turnkey) theo chuẩn SAP Activate và cam kết bàn giao mã nguồn?",
+                            prompt: "Quy trình phát triển phần mềm trọn gói (Turnkey) theo chuẩn 5-Gate Enterprise và cam kết bàn giao mã nguồn?",
                         },
                         {
                             label: "📅 Nhận Báo Giá & Hồ Sơ Năng Lực",
@@ -923,7 +923,7 @@ export class AiConciergeWidget extends Component {
         if (pillar && pillar !== "all") {
             const pillarMap = {
                 sw_squad: "Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad - TT 13/2020)",
-                sw_turnkey: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - SAP Activate)",
+                sw_turnkey: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - 5-Gate Enterprise)",
                 erp: "Insilos ERP (VAS & Hóa đơn ĐT Nghị định 70/2025)",
                 grc: "Vertical Resilience (GRC, ISO 27001 & PDPD 13/2023)",
                 ai: "Mojo AI (Tác tử AL2C & Bóc tách thông minh)",

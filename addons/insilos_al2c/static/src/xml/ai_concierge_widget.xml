@@ -3,7 +3,7 @@
     <!-- =====================================================================
          INNORIA PUBLIC AI CONCIERGE & SOFTWARE SERVICES CONFIGURATOR (OWL 2)
          Platform: Innoria Enterprise / Insilos AL2C
-         Design: IBM Carbon Typography & SAP Fiori Horizon Standards
+         Design: Enterprise Design System & Sovereign Horizon Standards
          Architecture: OWL 2 Reactive Component, Grounded KMS, Zero Bare White
          ===================================================================== -->
     <t t-name="innoria.ai_concierge_widget">
@@ -63,7 +63,7 @@
                 aria-labelledby="al2c-concierge-title"
                 aria-modal="true"
             >
-                <!-- SAP Horizon 3px Gradient Stripe -->
+                <!-- Sovereign Horizon 3px Gradient Stripe -->
                 <div class="al2c-horizon-stripe" aria-hidden="true"/>
 
                 <!-- Drawer Header -->
@@ -313,7 +313,7 @@
                                         t-on-change="(ev) => this.updateLeadField('product_interest', ev)"
                                     >
                                         <option value="Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad - TT 13/2020)">Squad Kỹ Sư Đồng Phát Triển (Co-Dev Squad - TT 13/2020)</option>
-                                        <option value="Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - SAP Activate)">Phát Triển Phần Mềm Trọn Gói (Turnkey Software - SAP Activate)</option>
+                                        <option value="Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - 5-Gate Enterprise)">Phát Triển Phần Mềm Trọn Gói (Turnkey Software - 5-Gate Enterprise)</option>
                                         <option value="Insilos ERP (VAS &amp; Hóa đơn ĐT Nghị định 70/2025)">Insilos ERP (VAS &amp; Hóa đơn ĐT 70/2025)</option>
                                         <option value="Vertical Resilience (GRC, ISO 27001 &amp; PDPD 13/2023)">Vertical Resilience (GRC, ISO 27701 &amp; PDPD 13/2023)</option>
                                         <option value="Mojo AI (Tác tử AL2C &amp; Bóc tách thông minh)">Mojo AI (Tác tử AL2C &amp; Bóc tách thông minh)</option>
@@ -525,7 +525,7 @@
                                     <div class="al2c-estimate-detail-group">
                                         <div class="al2c-estimate-detail-title">
                                             <i class="fa fa-sitemap me-1" aria-hidden="true"/>
-                                            <span>Quy trình Chuẩn (SAP Activate / TT 13/2020):</span>
+                                            <span>Quy trình Chuẩn (5-Gate Enterprise / TT 13/2020):</span>
                                         </div>
                                         <ul class="al2c-estimate-list">
                                             <t t-foreach="est.lifecycle_steps" t-as="step" t-key="step_index">

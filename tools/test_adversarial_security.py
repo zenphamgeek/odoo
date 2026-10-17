@@ -3275,14 +3275,21 @@ def test_patch_30_dgm_drive_logo_brand_footer_standardization():
         assert 'data-logo-source="google-drive-logo-folder"' in hr_html, f"{hr_code} missing Drive Logo source attr"
         assert "0317958465" in hr_html and "TZ0857G" in hr_html
 
-    # 3. Verify portal_templates.xml and report_templates.xml include dgm-brand-footer and digimate_drive_logo.png
-    for xml_rel in ("views/portal_templates.xml", "views/report_templates.xml"):
-        xml_path = os.path.join(ROOT_DIR, "addons/insilos_al2c", xml_rel)
-        assert os.path.isfile(xml_path), f"Missing {xml_path}"
-        with open(xml_path, "r", encoding="utf-8") as f:
-            xml_src = f.read()
-        assert "dgm-brand-footer" in xml_src, f"{xml_rel} missing dgm-brand-footer"
-        assert "digimate_drive_logo.png" in xml_src, f"{xml_rel} missing digimate_drive_logo.png"
+    # 3. Verify report_templates.xml (Operation ERP) includes dgm-brand-footer and digimate_drive_logo.png,
+    #    while portal_templates.xml (Website/Portal) enforces logo_innoria_header.svg and zero digimate_drive_logo.png
+    report_xml_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/views/report_templates.xml")
+    assert os.path.isfile(report_xml_path), f"Missing {report_xml_path}"
+    with open(report_xml_path, "r", encoding="utf-8") as f:
+        report_xml_src = f.read()
+    assert "dgm-brand-footer" in report_xml_src, "views/report_templates.xml missing dgm-brand-footer"
+    assert "digimate_drive_logo.png" in report_xml_src, "views/report_templates.xml missing digimate_drive_logo.png"
+
+    portal_xml_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/views/portal_templates.xml")
+    assert os.path.isfile(portal_xml_path), f"Missing {portal_xml_path}"
+    with open(portal_xml_path, "r", encoding="utf-8") as f:
+        portal_xml_src = f.read()
+    assert "logo_innoria_header.svg" in portal_xml_src, "views/portal_templates.xml missing logo_innoria_header.svg"
+    assert "digimate_drive_logo.png" not in portal_xml_src, "views/portal_templates.xml must not expose digimate_drive_logo.png on Website/Portal"
 
     # 4. Verify database state across insilos20_dev and innoria_prod
     for db_name in ("insilos20_dev", "innoria_prod"):
@@ -4359,6 +4366,24 @@ def test_patch_38_prefect_lease_odoo_savepoint_and_smt_bounded_ast():
     print("[✓] Patch 38 / zenonmind PrefectLease-OdooSavepoint Barrier, SMTBoundedDomainASTValidator & RFC 8785 Witness Proof verified")
 
 
+def test_patch_39_innoria_website_primary_brand_and_deexplicitized_content():
+    """Patch 39:
+    1. Public Website & Portal primary brand is exclusively `INNORIA` (`logo_innoria_header.svg`, `INNORIA GROUP`),
+       with zero `Digimate` / `digimate_drive_logo.png` / `0317958465` / `UNG DUNG SANG TAO` / `0313683499` on public views.
+    2. Internal ERP retains `Digimate` (`digimate_drive_logo.png`) in `dgm_brand_footer.py` and `report_templates.xml`.
+    3. Zero explicit client, partner, vendor, bank, or port names across `enterprise/insilos_website/views/*.xml`,
+       `addons/insilos_al2c/views/portal_templates.xml`, and Public AI Concierge (`ai_concierge.py`, `ai_concierge_widget.js`, `ai_concierge_widget.xml`).
+    """
+    import importlib.util
+    audit_path = os.path.join(ROOT_DIR, "tools/test_innoria_website_brand_and_content_audit.py")
+    assert os.path.exists(audit_path), f"Missing {audit_path}"
+    spec = importlib.util.spec_from_file_location("test_innoria_website_brand_and_content_audit", audit_path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    mod.verify_source_files()
+    print("[✓] Patch 39 / INNORIA Primary Website Brand & De-Explicitized Public Website/Concierge Content verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -4412,8 +4437,9 @@ def main():
     test_patch_36_zenonmind_plsh_adg_lockstep_and_ast_domain_visitor()
     test_patch_37_zenonmind_smt_domain_ztpp_and_rfc8785_merkle()
     test_patch_38_prefect_lease_odoo_savepoint_and_smt_bounded_ast()
-    print("[✓] ALL 38 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 38 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_39_innoria_website_primary_brand_and_deexplicitized_content()
+    print("[✓] ALL 39 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 39 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":

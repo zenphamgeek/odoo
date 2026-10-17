@@ -201,6 +201,17 @@ CANONICAL_O20_ADRS: List[Dict[str, str]] = [
             "grounding (al2c.claim.atom -> al2c.marketing.kit), SOP-RAG Battlecard indexing, and 6-hour scheduled execution."
         ),
     },
+    {
+        "adr_id": "ADR-20261017-014",
+        "title": "SOP-DGM-14 / Patch 39: Innoria Group Public Brand Isolation (INNORIA Exclusive on Website vs Digimate JSC Internal ERP Entity) & Public Content De-Explicitization",
+        "valid_from": "2026-10-17T10:25:00+00:00",
+        "rationale": (
+            "Enforces strict brand boundary between Public Website/Portal (exclusively INNORIA / INNORIA GROUP with logo_innoria_header.svg) "
+            "and Internal Operation ERP (Digimate JSC / 0317958465 / digimate_drive_logo.png restricted to HomeMenu, dgm_brand_footer.py, "
+            "report_templates.xml, and internal documents.document). Generalizes all explicit client, vendor, bank, port, and competitor names "
+            "across all 17 insilos_website XML views, portal_templates.xml, and Public AI Concierge (ai_concierge.py, KMS-CAT-01..04)."
+        ),
+    },
 ]
 
 

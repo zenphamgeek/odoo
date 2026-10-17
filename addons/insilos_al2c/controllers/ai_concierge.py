@@ -78,7 +78,7 @@ INNORIA_SOFTWARE_SERVICES = [
         'code': 'sw_turnkey',
         'short_title': 'Phần Mềm Trọn Gói (Turnkey)',
         'title': 'Giải Pháp Phần Mềm Trọn Gói (Turnkey Custom Software)',
-        'badge': 'SAP ACTIVATE 5-GATE • 100% CHỦ QUYỀN MÃ NGUỒN',
+        'badge': '5-GATE ENTERPRISE • 100% CHỦ QUYỀN MÃ NGUỒN',
         'delivery_model': 'Phát triển & chuyển giao hệ thống phần mềm chìa khóa trao tay theo cột mốc cố định',
         'lifecycle_steps': [
             'Gate 1: Prepare & Khảo sát',
@@ -112,7 +112,7 @@ INNORIA_SOFTWARE_SERVICES = [
         'lifecycle_steps': [
             '1. Chuẩn hóa Danh mục Master Data',
             '2. Cấu hình Quy trình Lead-to-Cash & Procure-to-Pay',
-            '3. Tích hợp HĐĐT Nghị định 70/2025 & VCB DigiBiz',
+            '3. Tích hợp HĐĐT Nghị định 70/2025 & Ngân hàng số Doanh nghiệp',
             '4. Đào tạo & Go-Live',
         ],
         'billing_rail': '30% Khởi động — 40% UAT — 30% Go-Live',
@@ -126,7 +126,7 @@ INNORIA_SOFTWARE_SERVICES = [
         'highlights': [
             'Kế toán chuẩn Thông tư 200/2014/TT-BTC',
             'Tự động hóa Báo giá -> Đơn hàng -> Xuất kho -> HĐĐT 1C26TAA',
-            'Bảng lương BHXH/BHYT/BHTN & Xuất Excel VCB DigiBiz',
+            'Bảng lương BHXH/BHYT/BHTN & Xuất Excel Ngân hàng 11 cột',
         ],
         'cta_configurator_label': '⚙️ Dự toán chi phí & Cấu hình',
         'cta_quote_label': '📅 Nhận báo giá chính thức',
@@ -739,14 +739,14 @@ class InnoriaAiConciergeController(http.Controller):
             'sw_squad': (
                 sum(1 for t in [
                     'thuê nhân sự', 'đồng phát triển', 'cùng phát triển', 'squad',
-                    'odc', 'outsource', 'kỹ sư', 'thông tư 13', 'mti', 'aifin',
+                    'odc', 'outsource', 'kỹ sư', 'thông tư 13', 'onsite', 'dedicated',
                     'staff augmentation', 'phái cử', 'cử biệt đội'
                 ] if t in query_lower)
                 + (1 if ('timesheet' in query_lower and 'ai' not in words and 'mojo' not in query_lower) else 0)
             ),
             'sw_turnkey': sum(1 for t in [
                 'trọn gói', 'turnkey', 'chìa khóa trao tay', 'phát triển phần mềm',
-                'custom software', 'ktt', 'khang trường thịnh', 'microservices',
+                'custom software', 'bàn giao mã nguồn', 'chuyển giao mã nguồn', 'microservices',
                 'kubernetes', 'phần mềm theo yêu cầu', 'dịch vụ phần mềm'
             ] if t in query_lower),
             'erp': sum(1 for t in ['erp', 'kế toán', 'vas', 'wms', 'kho', 'activate', 'napas'] if t in query_lower),
@@ -776,9 +776,9 @@ class InnoriaAiConciergeController(http.Controller):
             )
         if scores['sw_turnkey'] > 0 or matched_pillar == 'sw_turnkey':
             synthesis_points.append(
-                "• **Giải Pháp Phần Mềm Trọn Gói (Turnkey Custom Software — SAP Activate 5-Gate):** "
+                "• **Giải Pháp Phần Mềm Trọn Gói (Turnkey Custom Software — 5-Gate Enterprise Delivery):** "
                 "Phát triển và bàn giao hệ thống phần mềm chìa khóa trao tay với 100% chủ quyền Mã nguồn (Source Code, "
-                "Database Schema & Tài liệu SRS). Triển khai qua 5 cổng chất lượng SAP Activate (Prepare, Explore, Realize, "
+                "Database Schema & Tài liệu SRS). Triển khai qua 5 cổng chất lượng Enterprise 5-Gate (Prepare, Explore, Realize, "
                 "Deploy, Run), lộ trình thanh toán 30% Khởi động — 40% UAT — 30% Go-Live, cơ chế Nghiệm thu mặc nhiên "
                 "(Deemed Acceptance) sau 05 ngày làm việc và Bảo hành lỗi kỹ thuật (Bug-Fix Warranty) 90 ngày – 12 tháng."
             )
@@ -823,7 +823,7 @@ class InnoriaAiConciergeController(http.Controller):
             "\n\n".join(synthesis_points),
             "",
             "**Phương pháp luận triển khai & Cam kết dịch vụ:**",
-            "- Tuân thủ quy trình 7 bước sản xuất phần mềm (Thông tư 13/2020/TT-BTTTT) và phương pháp luận SAP Activate chuẩn (Prepare, Explore, Realize, Deploy, Run).",
+            "- Tuân thủ quy trình 7 bước sản xuất phần mềm (Thông tư 13/2020/TT-BTTTT) và phương pháp luận 5-Gate Enterprise chuẩn (Prepare, Explore, Realize, Deploy, Run).",
             "- Kiểm soát giờ công tư vấn minh bạch qua đường ống info@inno.ai.vn, nghiệm thu mặc nhiên 05 ngày làm việc, bảo hành kỹ thuật 90 ngày và hóa đơn điện tử Nghị định 70/2025/NĐ-CP.",
             "- Cam kết bảo vệ dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP và tiêu chuẩn an toàn ISO 27001.",
             "",
@@ -1077,7 +1077,7 @@ class InnoriaAiConciergeController(http.Controller):
         if norm_service_code == 'sw_squad':
             tag_names.append('Co-Engineering Squad (TT 13/2020)')
         elif norm_service_code in ('sw_turnkey', 'erp', 'grc', 'ai', 'zencode'):
-            tag_names.append('Turnkey Software (SAP Activate)')
+            tag_names.append('Turnkey Software (5-Gate Delivery)')
 
         base_notes = clean_notes or _("Đăng ký tư vấn giải pháp từ AI Concierge trên website innoria.com")
         config_summary_lines = []

@@ -266,13 +266,13 @@ CANONICAL_KMS_WORKFLOWS = [
     {
         "code": "KMS-CAT-01",
         "sop_code": "CAT-B2B-01",
-        "name": "CAT-B2B-01: Dịch vụ Phái cử Kỹ sư Phần mềm Onsite B2B (Dedicated Software Engineering Squad — MTI & AIFin Standard)",
+        "name": "CAT-B2B-01: Dịch vụ Phái cử Kỹ sư Phần mềm Onsite B2B (Dedicated Software Engineering Squad — Enterprise Standard)",
         "category": "commercial_catalog",
         "rbac_profile": "public_brand",
         "confidentiality_level": "public",
         "visibility_channel": "both_public_internal",
         "summary_markdown": (
-            "Danh mục dịch vụ Phái cử Kỹ sư Phần mềm B2B Onsite (Staff Augmentation) của Digimate (Innoria.com): "
+            "Danh mục dịch vụ Phái cử Kỹ sư Phần mềm B2B Onsite (Staff Augmentation) của Innoria (Innoria.com): "
             "Cung cấp Senior Full-Stack, AI/ML, Odoo/ERP và Mobile Engineers theo chuẩn SLA 22 ngày công/tháng (140–180 giờ công), "
             "đơn giá tham chiếu từ 35,000,000 VNĐ đến 75,000,000 VNĐ/man-month (chưa gồm thuế GTGT 8% theo Nghị định 174/2025/NĐ-CP), "
             "kèm cam kết bảo mật NDA và kỹ sư dự phòng miễn phí."
@@ -281,15 +281,15 @@ CANONICAL_KMS_WORKFLOWS = [
     {
         "code": "KMS-CAT-02",
         "sop_code": "CAT-B2B-02",
-        "name": "CAT-B2B-02: Giải pháp Triển khai Hệ thống Quản trị Doanh nghiệp Insilos ERP (Odoo 20 Enterprise & SAP Activate)",
+        "name": "CAT-B2B-02: Giải pháp Triển khai Hệ thống Quản trị Doanh nghiệp Insilos ERP (Odoo 20 Enterprise & 5-Gate Delivery)",
         "category": "commercial_catalog",
         "rbac_profile": "public_brand",
         "confidentiality_level": "public",
         "visibility_channel": "both_public_internal",
         "summary_markdown": (
             "Giải pháp tư vấn và triển khai trọn gói hệ thống Insilos ERP trên nền tảng Odoo 20 Enterprise theo phương pháp luận "
-            "SAP Activate 5 giai đoạn kết hợp vòng lặp PDCA: tích hợp Kế toán - Thuế Việt Nam (Thông tư 99/2025/TT-BTC), "
-            "Hóa đơn điện tử 1C26TAA, Nhân sự - Lương BHXH Quận 7 và Quản trị Kho Tài liệu Số đa tầng."
+            "5-Gate Enterprise kết hợp vòng lặp PDCA: tích hợp Kế toán - Thuế Việt Nam (Thông tư 99/2025/TT-BTC), "
+            "Hóa đơn điện tử 1C26TAA, Nhân sự - Lương BHXH và Quản trị Kho Tài liệu Số đa tầng."
         ),
     },
     {
@@ -315,7 +315,7 @@ CANONICAL_KMS_WORKFLOWS = [
         "confidentiality_level": "public",
         "visibility_channel": "both_public_internal",
         "summary_markdown": (
-            "Năng lực R&D lõi của Innoria / Digimate: Tối ưu hóa các tác vụ tính toán vector, đối soát tài chính quy mô lớn "
+            "Năng lực R&D lõi của Innoria: Tối ưu hóa các tác vụ tính toán vector, đối soát tài chính quy mô lớn "
             "và chấm điểm AI RAG bằng Mojo SIMD Kernel kết hợp Python runtime với độ trễ truy vấn dưới 45ms và thông lượng cao gấp 15 lần."
         ),
     },

@@ -684,6 +684,11 @@ class Al2cRagServiceSopCopilotExtension(models.AbstractModel):
         # 1. Check hard prompt injection / SQLi / ORM exploit patterns
         for pat in ADVERSARIAL_INJECTION_PATTERNS:
             if re.search(pat, q_low, flags=re.IGNORECASE):
+                brand_label = (
+                    "Innoria"
+                    if channel_mode == "public_website_concierge"
+                    else "Digimate (MST: 0317958465)"
+                )
                 return (
                     True,
                     "PROMPT_INJECTION_OR_EXPLOIT",
@@ -691,7 +696,7 @@ class Al2cRagServiceSopCopilotExtension(models.AbstractModel):
                         "⛔ [CỔNG BẢO MẬT AI — SOP-DGM-10 & SOP-DGM-12] Yêu cầu bị từ chối do phát hiện "
                         "dấu hiệu can thiệp chỉ thị hệ thống (Prompt Injection / ORM / SQL Guardrail) hoặc "
                         "trích xuất dữ liệu định danh hàng loạt trái phép. Mọi truy vấn vào Kho Tri thức "
-                        "Digimate (MST: 0317958465) đều được kiểm soát nghiêm ngặt theo tiêu chuẩn "
+                        f"{brand_label} đều được kiểm soát nghiêm ngặt theo tiêu chuẩn "
                         "ISO/IEC 27701 và Nghị định 13/2023/NĐ-CP."
                     ),
                 )
@@ -959,10 +964,11 @@ class Al2cRagServiceSopCopilotExtension(models.AbstractModel):
             entailment_score = max(0.88, float(raw_score or 0.92))
             is_grounded = bool(entailment_score >= 0.85)
         else:
+            fallback_brand = "Innoria" if channel_mode == "public_website_concierge" else "Digimate"
             raw_answer = (
                 "Hệ thống chưa tìm thấy đoạn tri thức chuẩn (SOP-RAG) khớp với yêu cầu trong phạm vi "
                 f"phân quyền RBAC hiện tại ({', '.join(authorized_profiles)}). Vui lòng thử lại với mã SOP "
-                "(SOP-DGM-01..SOP-DGM-12) hoặc liên hệ Ban Pháp chế & Kỹ thuật Digimate."
+                f"(SOP-DGM-01..SOP-DGM-12) hoặc liên hệ Ban Pháp chế & Kỹ thuật {fallback_brand}."
             )
             entailment_score = 0.0
             is_grounded = False
@@ -979,9 +985,9 @@ class Al2cRagServiceSopCopilotExtension(models.AbstractModel):
         ]
         if channel_mode == "public_website_concierge":
             suggested_actions = [
-                "Báo giá Thuê Kỹ sư Phần mềm Onsite B2B (MTI / AIFin Dedicated Squad)",
+                "Báo giá Thuê Kỹ sư Phần mềm Onsite B2B (Enterprise Dedicated Squad)",
                 "Giải pháp Triển khai Insilos ERP & AI SOP-RAG Doanh nghiệp",
-                "Đặt lịch Tư vấn Kiến trúc cùng CTO Digimate (Innoria.com)",
+                "Đặt lịch Tư vấn Kiến trúc cùng CTO Innoria (Innoria.com)",
             ]
 
         assistant_msg = MessageModel.create(
