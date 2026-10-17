@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =================================================================== -->
+    <!-- 1. Software Enterprise OKR Objective Views (dgm.okr.objective)      -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_okr_objective_list" model="ir.ui.view">
+        <field name="name">dgm.okr.objective.list</field>
+        <field name="model">dgm.okr.objective</field>
+        <field name="arch" type="xml">
+            <list string="Mục tiêu Chiến lược OKRs Doanh nghiệp Phần mềm (SOP-DGM-11)"
+                  decoration-success="confidence_level == 'on_track'"
+                  decoration-warning="confidence_level == 'at_risk'"
+                  decoration-danger="confidence_level == 'off_track'">
+                <field name="code"/>
+                <field name="period_code"/>
+                <field name="okr_tier" widget="badge"/>
+                <field name="name"/>
+                <field name="owner_employee_id"/>
+                <field name="department_name" optional="show"/>
+                <field name="project_template_code" optional="show"/>
+                <field name="pdca_stage" widget="badge"/>
+                <field name="progress_pct" widget="progressbar"/>
+                <field name="okr_score"/>
+                <field name="confidence_level" widget="badge"
+                       decoration-success="confidence_level == 'on_track'"
+                       decoration-warning="confidence_level == 'at_risk'"
+                       decoration-danger="confidence_level == 'off_track'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_okr_objective_form" model="ir.ui.view">
+        <field name="name">dgm.okr.objective.form</field>
+        <field name="model">dgm.okr.objective</field>
+        <field name="arch" type="xml">
+            <form string="Mục tiêu OKR &amp; Vòng lặp PDCA Doanh nghiệp Phần mềm (SOP-DGM-11)">
+                <header>
+                    <field name="pdca_stage" widget="statusbar"
+                           statusbar_visible="plan,do,check,act"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="Mã Mục tiêu OKR (SOP-DGM-11)"/>
+                        <h1>
+                            <field name="code" placeholder="OKR-2026-Q4-C01"/>
+                        </h1>
+                        <h2>
+                            <field name="name" placeholder="Mục tiêu chiến lược..."/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group string="Phân cấp OKR &amp; Chủ sở hữu">
+                            <field name="period_code"/>
+                            <field name="okr_tier"/>
+                            <field name="parent_objective_id"/>
+                            <field name="owner_employee_id"/>
+                            <field name="department_name"/>
+                            <field name="project_template_code"/>
+                        </group>
+                        <group string="Chỉ số Đo lường &amp; Độ Tự tin (Google/Intel OKR Scoring)">
+                            <field name="progress_pct" widget="progressbar"/>
+                            <field name="okr_score"/>
+                            <field name="confidence_level" widget="badge"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Kết quả Then chốt (Key Results — KRs)" name="krs">
+                            <field name="key_result_ids">
+                                <list editable="bottom">
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="owner_employee_id"/>
+                                    <field name="metric_unit"/>
+                                    <field name="start_value"/>
+                                    <field name="current_value"/>
+                                    <field name="target_value"/>
+                                    <field name="weight"/>
+                                    <field name="progress_pct" widget="progressbar"/>
+                                    <field name="kr_score"/>
+                                    <field name="linked_skill_track_id" optional="show"/>
+                                    <field name="evidence_ref"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="OKR Cấp dưới Liên kết (Child Alignment)" name="child_okrs">
+                            <field name="child_objective_ids" readonly="1"/>
+                        </page>
+                        <page string="Nhật ký Cải tiến Liên tục (PDCA Check &amp; Act)" name="pdca_notes">
+                            <field name="pdca_retrospective" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_okr_objective" model="ir.actions.act_window">
+        <field name="name">Mục tiêu Chiến lược OKRs (SOP-DGM-11)</field>
+        <field name="res_model">dgm.okr.objective</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 2. Key Result Views (dgm.okr.key.result)                            -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_okr_key_result_list" model="ir.ui.view">
+        <field name="name">dgm.okr.key.result.list</field>
+        <field name="model">dgm.okr.key.result</field>
+        <field name="arch" type="xml">
+            <list string="Kết quả Then chốt Đo lường được (Key Results — SOP-DGM-11)">
+                <field name="code"/>
+                <field name="objective_id"/>
+                <field name="name"/>
+                <field name="owner_employee_id"/>
+                <field name="metric_unit"/>
+                <field name="start_value"/>
+                <field name="current_value"/>
+                <field name="target_value"/>
+                <field name="weight"/>
+                <field name="progress_pct" widget="progressbar"/>
+                <field name="kr_score"/>
+                <field name="linked_skill_track_id" optional="show"/>
+                <field name="evidence_ref"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_dgm_okr_key_result" model="ir.actions.act_window">
+        <field name="name">Kết quả Then chốt KRs (SOP-DGM-11)</field>
+        <field name="res_model">dgm.okr.key.result</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 3. 360-Degree HR Appraisal & 9-Box Views (dgm.hr.appraisal.sheet)   -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_hr_appraisal_sheet_list" model="ir.ui.view">
+        <field name="name">dgm.hr.appraisal.sheet.list</field>
+        <field name="model">dgm.hr.appraisal.sheet</field>
+        <field name="arch" type="xml">
+            <list string="Đánh giá Nhân sự 360° &amp; Hiệu chuẩn Nhân tài 9-Box (SOP-DGM-11)"
+                  decoration-success="calibration_box in ('box_9_star', 'box_8_high_perf')"
+                  decoration-info="calibration_box == 'box_6_emerging'"
+                  decoration-warning="calibration_box == 'box_5_core'"
+                  decoration-danger="calibration_box == 'box_2_pip'">
+                <field name="code"/>
+                <field name="period_code"/>
+                <field name="employee_id"/>
+                <field name="okr_achievement_pct" widget="progressbar"/>
+                <field name="okr_achievement_score"/>
+                <field name="self_assessment_score"/>
+                <field name="peer_client_360_score"/>
+                <field name="manager_technical_score"/>
+                <field name="skill_gate_passed"/>
+                <field name="calibrated_total_score"/>
+                <field name="calibration_box" widget="badge"
+                       decoration-success="calibration_box in ('box_9_star', 'box_8_high_perf')"
+                       decoration-info="calibration_box == 'box_6_emerging'"
+                       decoration-warning="calibration_box == 'box_5_core'"
+                       decoration-danger="calibration_box == 'box_2_pip'"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_hr_appraisal_sheet_form" model="ir.ui.view">
+        <field name="name">dgm.hr.appraisal.sheet.form</field>
+        <field name="model">dgm.hr.appraisal.sheet</field>
+        <field name="arch" type="xml">
+            <form string="Phiếu Đánh giá Nhân sự 360° &amp; Ma trận 9-Box (SOP-DGM-11)">
+                <header>
+                    <button name="action_sign_off_appraisal"
+                            string="✅ Phê duyệt &amp; Chốt Hiệu chuẩn 9-Box"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state == 'signed_off'"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="self_review,360_feedback,manager_calibration,signed_off"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="Mã Phiếu Appraisal 360° (SOP-DGM-11)"/>
+                        <h1>
+                            <field name="code"/>
+                        </h1>
+                        <h2>
+                            <field name="name"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group string="Nhân sự &amp; Liên kết KPI">
+                            <field name="employee_id"/>
+                            <field name="period_code"/>
+                            <field name="kpi_evaluation_id"/>
+                            <field name="skill_gate_passed"/>
+                        </group>
+                        <group string="Điểm Đánh giá Đa chiều &amp; Hiệu chuẩn 9-Box">
+                            <field name="okr_achievement_pct" widget="progressbar"/>
+                            <field name="okr_achievement_score"/>
+                            <field name="self_assessment_score"/>
+                            <field name="peer_client_360_score"/>
+                            <field name="manager_technical_score"/>
+                            <field name="calibrated_total_score"/>
+                            <field name="calibration_box" widget="badge"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="OKRs Cam kết trong Kỳ" name="okrs">
+                            <field name="okr_objective_ids"/>
+                        </page>
+                        <page string="Nhận xét 360° &amp; Kế hoạch PDCA Quý tới" name="feedback">
+                            <group>
+                                <field name="self_reflection_text"/>
+                                <field name="peer_client_feedback_text"/>
+                                <field name="manager_appraisal_text"/>
+                                <field name="pdca_next_quarter_plan"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_hr_appraisal_sheet" model="ir.actions.act_window">
+        <field name="name">Đánh giá Nhân sự 360° &amp; 9-Box (SOP-DGM-11)</field>
+        <field name="res_model">dgm.hr.appraisal.sheet</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 4. Project PDCA Template Views (dgm.project.pdca.template)          -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_project_pdca_template_list" model="ir.ui.view">
+        <field name="name">dgm.project.pdca.template.list</field>
+        <field name="model">dgm.project.pdca.template</field>
+        <field name="arch" type="xml">
+            <list string="Khung Mẫu Quản trị Dự án Phần mềm PDCA (SOP-DGM-11)">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="delivery_methodology" widget="badge"/>
+                <field name="linked_project_id"/>
+                <field name="mandatory_deliverable_codes"/>
+                <field name="target_margin_pct"/>
+                <field name="target_sla_uptime_pct"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_project_pdca_template_form" model="ir.ui.view">
+        <field name="name">dgm.project.pdca.template.form</field>
+        <field name="model">dgm.project.pdca.template</field>
+        <field name="arch" type="xml">
+            <form string="Khung Mẫu Dự án Phần mềm PDCA (SOP-DGM-11)">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="Mã Khung Mẫu Dự án PDCA"/>
+                        <h1>
+                            <field name="code"/>
+                        </h1>
+                        <h2>
+                            <field name="name"/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group string="Phương pháp Luận &amp; Dự án Liên kết">
+                            <field name="delivery_methodology"/>
+                            <field name="linked_project_id"/>
+                            <field name="mandatory_deliverable_codes"/>
+                        </group>
+                        <group string="Chỉ tiêu Tài chính &amp; Cam kết SLA">
+                            <field name="target_margin_pct"/>
+                            <field name="target_sla_uptime_pct"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Cổng Kiểm soát 4 Giai đoạn Vòng lặp PDCA (Plan - Do - Check - Act)">
+                        <field name="plan_phase_gate"/>
+                        <field name="do_phase_gate"/>
+                        <field name="check_phase_gate"/>
+                        <field name="act_phase_gate"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_project_pdca_template" model="ir.actions.act_window">
+        <field name="name">Mẫu Dự án Phần mềm PDCA (SOP-DGM-11)</field>
+        <field name="res_model">dgm.project.pdca.template</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

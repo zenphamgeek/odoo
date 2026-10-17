@@ -410,7 +410,37 @@ def verify_iso27701_privacy_and_maker_checker_workflow():
     assert kh5["promotion_eligible"] is False
     assert len(kh5["pillars"]) == 4
 
-    # Complete mandatory skill upgrade SKL-AI-MOJO for DGM-005 -> unlocks Tier S & promotion_eligible=True
+    # Verify SOP-DGM-11 OKR Hub, 360° HR Appraisal (capped at 84.90 / 9-Box [6] while skill gate pending) & Project PDCA Templates
+    okr5 = emp5_data["okr_hub"]
+    assert len(okr5["company_okrs"]) == 3
+    assert [c["code"] for c in okr5["company_okrs"]] == [
+        "OKR-2026-Q4-C01",
+        "OKR-2026-Q4-C02",
+        "OKR-2026-Q4-C03",
+    ]
+    assert len(okr5["employee_okrs"]) >= 1
+    assert len(okr5["key_results"]) == 3
+    assert 0.0 <= okr5["okr_score"] <= 1.0
+
+    apr5_before = emp5_data["appraisal_hub"]
+    assert apr5_before["code"] == "APR-2026-Q4-DGM005"
+    assert apr5_before["period_code"] == "2026-Q4"
+    assert apr5_before["skill_gate_capped"] is True
+    assert apr5_before["calibrated_total_score"] == 84.90, apr5_before
+    assert "9-Box [6]" in apr5_before["calibration_box"]
+
+    pdca_tpls = emp5_data["project_pdca_templates"]
+    assert len(pdca_tpls) == 4
+    assert [t["code"] for t in pdca_tpls] == [
+        "PRJ-TPL-PDCA-01",
+        "PRJ-TPL-PDCA-02",
+        "PRJ-TPL-PDCA-03",
+        "PRJ-TPL-PDCA-04",
+    ]
+    for tpl in pdca_tpls:
+        assert len(tpl["pdca_gates"]) == 4
+
+    # Complete mandatory skill upgrade SKL-AI-MOJO for DGM-005 -> unlocks Tier S, promotion_eligible=True & 9-Box [9]
     unlocked_res = ctrl.complete_skill_upgrade(
         employee_id=5,
         skill_code="SKL-AI-MOJO",
@@ -427,7 +457,28 @@ def verify_iso27701_privacy_and_maker_checker_workflow():
     assert kh5_after["total_kpi_score"] >= 90.0
     assert unlocked_res["privacy_audit_log"][0]["action"] == "COMPLETE_MANDATORY_SKILL_UPGRADE"
 
-    # Submit Work KPI Review for DGM-006 (who still has 1 pending mandatory skill SKL-K8S-PG)
+    apr5_after = unlocked_res["appraisal_hub"]
+    assert apr5_after["skill_gate_capped"] is False
+    assert apr5_after["calibrated_total_score"] >= 90.0, apr5_after
+    assert "9-Box [9]" in apr5_after["calibration_box"]
+
+    # 2h. Verify Interactive OKR KR Check-in (`checkin_okr_kr`) & 360° HR Appraisal (`submit_hr_appraisal`)
+    checkin_res = ctrl.checkin_okr_kr(
+        employee_id=5,
+        kr_code="KR-DGM-005-01",
+        current_value=160.0,
+        pdca_stage="act",
+        evidence_ref="SLA-ONSITE-DGM005-160H-VERIFIED",
+    )
+    kr1_after = next(
+        kr for kr in checkin_res["okr_hub"]["key_results"] if kr["code"] == "KR-DGM-005-01"
+    )
+    assert kr1_after["current_value"] == 160.0
+    assert kr1_after["kr_score"] == 1.0
+    assert kr1_after["pdca_stage"] == "act"
+    assert checkin_res["privacy_audit_log"][0]["action"] == "OKR_PDCA_CHECKIN"
+
+    # Submit Work KPI Review & 360° HR Appraisal for DGM-006 (who still has 1 pending mandatory skill SKL-K8S-PG)
     rev6_res = ctrl.submit_work_kpi_review(
         employee_id=6,
         kpi_delivery_score=95.0,
@@ -443,8 +494,24 @@ def verify_iso27701_privacy_and_maker_checker_workflow():
     assert kh6["rank_grade"] == "tier_b"
     assert rev6_res["privacy_audit_log"][0]["action"] == "SUBMIT_WORK_KPI_EVALUATION"
 
+    apr6_res = ctrl.submit_hr_appraisal(
+        employee_id=6,
+        self_assessment_score=95.0,
+        peer_client_360_score=96.0,
+        manager_technical_score=95.0,
+        pdca_next_quarter_plan="Plan: Ôn tập K8s HA → Do: Lab Patroni → Check: Thi CERT-K8SPG-2026 → Act: Mở khóa 9-Box [9].",
+        sign_off=True,
+    )
+    apr6 = apr6_res["appraisal_hub"]
+    assert apr6["code"] == "APR-2026-Q4-DGM006"
+    assert apr6["skill_gate_capped"] is True
+    assert apr6["calibrated_total_score"] == 84.90
+    assert apr6["calibration_box_code"] == "box_6_emerging"
+    assert "9-Box [6]" in apr6["calibration_box"]
+    assert apr6_res["privacy_audit_log"][0]["action"] == "SUBMIT_360_HR_APPRAISAL"
+
     print(
-        "[✓] ISO/IEC 27701 & Decree 13/2023/ND-CP Partial Masking, Need-to-Know RBAC, 30s Audited Reveal, TOCTOU FOR UPDATE NOWAIT Lock, Dual-Control SoD & Mandatory SWE Skill Upgrade Gate KPI Workflow verified"
+        "[✓] ISO/IEC 27701 & Decree 13/2023/ND-CP Partial Masking, Need-to-Know RBAC, 30s Audited Reveal, TOCTOU FOR UPDATE NOWAIT Lock, Dual-Control SoD, OKR PDCA Loop, 360° HR Appraisal 9-Box & Mandatory SWE Skill Gate verified"
     )
 
 
@@ -464,8 +531,12 @@ def verify_frontend_sources():
             assert "/insilos/employee_dashboard/toggle_step" in c
             assert "/insilos/employee_dashboard/complete_skill_upgrade" in c
             assert "/insilos/employee_dashboard/submit_work_kpi_review" in c
+            assert "/insilos/employee_dashboard/checkin_okr_kr" in c
+            assert "/insilos/employee_dashboard/submit_hr_appraisal" in c
             assert "onCompleteSkillUpgrade" in c
             assert "onSubmitWorkKpiReview" in c
+            assert "onCheckinOkrKr" in c
+            assert "onSubmitHrAppraisal" in c
         elif rel.endswith(".xml"):
             assert "o_insilos_emp_dashboard" in c
             assert "SOP-DGM-04" in c
@@ -473,10 +544,16 @@ def verify_frontend_sources():
             assert "kpi_skills" in c
             assert "onCompleteSkillUpgrade" in c
             assert "onSubmitWorkKpiReview" in c
+            assert "onCheckinOkrKr" in c
+            assert "onSubmitHrAppraisal" in c
+            assert "okr_hub" in c
+            assert "appraisal_hub" in c
+            assert "project_pdca_templates" in c
         elif rel.endswith("home_menu.scss"):
             assert ".o_insilos_emp_dashboard" in c
             assert "var(--insilos-bg-card)" in c
             assert ".o_emp_skill_gate_banner" in c
+            assert ".o_emp_pdca_gate_box" in c
             # Ensure no bare #ffffff inside .o_insilos_emp_dashboard block
             idx = c.find(".o_insilos_emp_dashboard")
             dash_scss = c[idx:]
@@ -542,6 +619,18 @@ cur.execute("SELECT COUNT(*) FROM hr_payslip;")
 slip_cnt = cur.fetchone()[0]
 assert slip_cnt >= 18, f'Expected >=18 payslips on K8s, got {slip_cnt}'
 
+cur.execute("SELECT COUNT(*) FROM dgm_okr_objective WHERE active = TRUE;")
+okr_cnt = cur.fetchone()[0]
+assert okr_cnt >= 12, f'Expected >=12 OKR objectives on K8s, got {okr_cnt}'
+
+cur.execute("SELECT COUNT(*) FROM dgm_hr_appraisal_sheet WHERE active = TRUE;")
+apr_cnt = cur.fetchone()[0]
+assert apr_cnt >= 9, f'Expected >=9 Appraisal sheets on K8s, got {apr_cnt}'
+
+cur.execute("SELECT COUNT(*) FROM dgm_project_pdca_template WHERE active = TRUE;")
+pdca_cnt = cur.fetchone()[0]
+assert pdca_cnt >= 4, f'Expected >=4 PDCA templates on K8s, got {pdca_cnt}'
+
 cur.execute("SELECT store_fname, file_size FROM ir_attachment WHERE name LIKE '%web.assets_web.min.js%' AND store_fname IS NOT NULL ORDER BY id DESC LIMIT 1;")
 row = cur.fetchone()
 assert row, 'Missing warmed web.assets_web.min.js attachment on K8s!'
@@ -551,8 +640,10 @@ with open(fpath, 'r', encoding='utf-8', errors='ignore') as f:
     js_content = f.read()
 assert 'o_insilos_emp_dashboard' in js_content, 'o_insilos_emp_dashboard missing in K8s web.assets_web.min.js!'
 assert '_loadEmployeeDashboard' in js_content, '_loadEmployeeDashboard missing in K8s web.assets_web.min.js!'
+assert 'onCheckinOkrKr' in js_content, 'onCheckinOkrKr missing in K8s web.assets_web.min.js!'
+assert 'onSubmitHrAppraisal' in js_content, 'onSubmitHrAppraisal missing in K8s web.assets_web.min.js!'
 conn.close()
-print(f'K8S_BUNDLE_AND_DB_OK emps={emp_cnt} depts={dept_cnt} slips={slip_cnt} asset_js_bytes={file_size}')
+print(f'K8S_BUNDLE_AND_DB_OK emps={emp_cnt} depts={dept_cnt} slips={slip_cnt} okrs={okr_cnt} aprs={apr_cnt} pdca_tpls={pdca_cnt} asset_js_bytes={file_size}')
 """
     pod_name = "innoria-prod-app-7cdc9b8ddc-4hdbs"
     try:

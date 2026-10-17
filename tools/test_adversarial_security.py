@@ -14,6 +14,10 @@ import subprocess
 import sys
 from unittest.mock import MagicMock
 
+PYENV_PYTHON = "/home/zen/.pyenv/versions/3.12.13/bin/python3"
+if os.path.exists(PYENV_PYTHON) and os.path.realpath(sys.executable) != os.path.realpath(PYENV_PYTHON):
+    os.execv(PYENV_PYTHON, [PYENV_PYTHON] + sys.argv)
+
 ROOT_DIR = "/home/zen/O20"
 HOOKS_JS = os.path.join(ROOT_DIR, "enterprise/documents/static/src/views/hooks.js")
 BASE_AUTOMATION_PY = os.path.join(ROOT_DIR, "enterprise/ai_documents/models/base_automation.py")

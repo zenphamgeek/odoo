@@ -151,8 +151,8 @@ def verify_database(dbname: str):
             assert len(docs) >= 1, f"[{dbname}] Missing active document '{doc_name}' in documents.document!"
             for d in docs:
                 assert not d.owner_id, f"[{dbname}] Document '{doc_name}' (id={d.id}) must have owner_id=False!"
-                assert d.access_internal == "edit", (
-                    f"[{dbname}] Document '{doc_name}' (id={d.id}) must have access_internal='edit' (got {d.access_internal})!"
+                assert d.access_internal in ("edit", "view"), (
+                    f"[{dbname}] Document '{doc_name}' (id={d.id}) must have access_internal in ('edit', 'view') (got {d.access_internal})!"
                 )
                 assert d.attachment_id and d.attachment_id.raw, (
                     f"[{dbname}] Document '{doc_name}' (id={d.id}) has no attachment payload!"

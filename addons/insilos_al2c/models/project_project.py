@@ -37,8 +37,11 @@ class ProjectProject(models.Model):
         # the template gets its own workspace folder. Skipping templates also avoids
         # duplicating a folder tree on every "create from template".
         valid_projects = self.filtered(
-            lambda p: not p.is_template
-            and (not p.company_id.documents_project_folder or p.company_id.documents_project_folder.active)
+            lambda p: not getattr(p, 'is_template', False)
+            and (
+                not getattr(p.company_id, 'documents_project_folder', False)
+                or getattr(p.company_id, 'documents_project_folder').active
+            )
         )
         return super(ProjectProject, valid_projects)._create_missing_folders()
 

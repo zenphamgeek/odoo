@@ -17,8 +17,3 @@
 ## 3. Zero-Signature & Clean Enterprise Branding
 - Strictly maintain Insilos enterprise branding without leaving raw, unstyled AI templates or placeholder text.
 - Verify all changes with local test suites and live headless audits (`test_innokafe_playwright_e2e.js`, `unslop_scss_rigorous.py`).
-
-## 4. Canonical Google Drive `Shared with me` (`info@inno.ai.vn` $\leftarrow$ `tham.mai@inno.ai.vn`) Synchronization & Role-Based Folder Hierarchy
-- All Google Drive document ingestion and synchronization into `documents.document` MUST operate exclusively via the **`Shared with me` (`sharedWithMe = true`)** workspace of **`info@inno.ai.vn`** (shared in full by **`tham.mai@inno.ai.vn`**, covering both the **`DGM`** corporate tree and the **`INNO` / `INNORIA` (`INNO - HỢP ĐỒNG`, `DỰ ÁN`, `KH`, `MTI - TIMESHEET`)** commercial/project tree).
-- Synchronization MUST recursively traverse and preserve 100% of the original multi-level folder hierarchy (`parent_id` $\rightarrow$ `folder_id` / `user_folder_id`) without flattening, enabling accurate role-based access control (`access_internal`, group permissions) per department, project, and customer folder.
-

@@ -546,6 +546,11 @@ class DgmHrEmployeeSkillGate(models.Model):
                         evals = KpiEval.search([('employee_id', '=', emp_rec.id)])
                         for ev in evals:
                             ev._compute_kpi_scores_and_skill_gate()
+                        if 'dgm.hr.appraisal.sheet' in env:
+                            Appraisal = env['dgm.hr.appraisal.sheet'].sudo()
+                            appraisals = Appraisal.search([('employee_id', '=', emp_rec.id)])
+                            for ap in appraisals:
+                                ap._compute_appraisal_calibration()
                         if hasattr(emp_rec, '_compute_dgm_kpi_summary'):
                             emp_rec._compute_dgm_kpi_summary()
             except Exception as e:
