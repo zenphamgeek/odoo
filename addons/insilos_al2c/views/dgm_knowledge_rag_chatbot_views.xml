@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =================================================================== -->
+    <!-- 1. Knowledge Lifecycle & SOP-RAG Registry (dgm.knowledge.sop.workflow) -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_knowledge_sop_workflow_list" model="ir.ui.view">
+        <field name="name">dgm.knowledge.sop.workflow.list</field>
+        <field name="model">dgm.knowledge.sop.workflow</field>
+        <field name="arch" type="xml">
+            <list string="Danh mục Quản trị Vòng đời Tri thức &amp; Chỉ mục SOP-RAG (SOP-DGM-12)"
+                  decoration-success="lifecycle_stage == 'indexed_rag'"
+                  decoration-info="lifecycle_stage == 'compliance_approved'"
+                  decoration-warning="lifecycle_stage in ('draft', 'tech_review')"
+                  decoration-muted="lifecycle_stage == 'superseded'">
+                <field name="code"/>
+                <field name="sop_code"/>
+                <field name="name"/>
+                <field name="category" widget="badge"/>
+                <field name="rbac_profile" widget="badge"/>
+                <field name="confidentiality_level" widget="badge"
+                       decoration-success="confidentiality_level == 'public'"
+                       decoration-info="confidentiality_level == 'internal'"
+                       decoration-warning="confidentiality_level == 'confidential'"
+                       decoration-danger="confidentiality_level == 'strictly_restricted'"/>
+                <field name="visibility_channel" widget="badge"/>
+                <field name="chunk_count"/>
+                <field name="total_tokens"/>
+                <field name="min_entailment_threshold"/>
+                <field name="lifecycle_stage" widget="badge"
+                       decoration-success="lifecycle_stage == 'indexed_rag'"
+                       decoration-info="lifecycle_stage == 'compliance_approved'"
+                       decoration-warning="lifecycle_stage in ('draft', 'tech_review')"/>
+                <field name="last_indexed_at" optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_knowledge_sop_workflow_form" model="ir.ui.view">
+        <field name="name">dgm.knowledge.sop.workflow.form</field>
+        <field name="model">dgm.knowledge.sop.workflow</field>
+        <field name="arch" type="xml">
+            <form string="Quy trình Vòng đời Tri thức &amp; Grounded SOP-RAG (SOP-DGM-12)">
+                <header>
+                    <button name="action_submit_tech_review"
+                            string="1. Gửi Thẩm định Kỹ thuật (CTO Review)"
+                            type="object"
+                            invisible="lifecycle_stage != 'draft'"/>
+                    <button name="action_approve_compliance"
+                            string="2. Phê duyệt Pháp chế &amp; Bảo mật ISO 27701"
+                            type="object"
+                            invisible="lifecycle_stage not in ('draft', 'tech_review')"/>
+                    <button name="action_index_to_sop_rag"
+                            string="⚡ 3. Vector hóa &amp; Đồng bộ Chỉ mục SOP-RAG"
+                            type="object"
+                            class="btn-primary"/>
+                    <field name="lifecycle_stage" widget="statusbar"
+                           statusbar_visible="draft,tech_review,compliance_approved,indexed_rag"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="Mã Quy trình Tri thức KMS (SOP-DGM-12)"/>
+                        <h1>
+                            <field name="code" placeholder="KMS-SOP-12"/>
+                        </h1>
+                        <h2>
+                            <field name="name" placeholder="Tên quy trình / danh mục tri thức..."/>
+                        </h2>
+                    </div>
+                    <group>
+                        <group string="Định danh Nguồn Tri thức &amp; Liên kết">
+                            <field name="sop_code"/>
+                            <field name="category"/>
+                            <field name="knowledge_article_id"/>
+                            <field name="document_id"/>
+                            <field name="reviewer_employee_id"/>
+                            <field name="approver_employee_id"/>
+                        </group>
+                        <group string="Phân quyền RBAC, Cấp Bảo mật &amp; Chỉ số Grounding">
+                            <field name="rbac_profile"/>
+                            <field name="confidentiality_level"/>
+                            <field name="visibility_channel"/>
+                            <field name="min_entailment_threshold"/>
+                            <field name="chunk_count"/>
+                            <field name="total_tokens"/>
+                            <field name="content_sha256"/>
+                            <field name="last_indexed_at"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Tóm tắt Chuẩn hóa Cho AI Grounding (Canonical Summary)" name="summary">
+                            <field name="summary_markdown" nolabel="1"/>
+                        </page>
+                        <page string="Các Phân đoạn Vector SOP-RAG (al2c.rag.chunk)" name="chunks">
+                            <field name="chunk_ids" readonly="1">
+                                <list>
+                                    <field name="chunk_seq"/>
+                                    <field name="sop_code"/>
+                                    <field name="section_header"/>
+                                    <field name="dgm_rbac_profile" widget="badge"/>
+                                    <field name="dgm_confidentiality_level" widget="badge"/>
+                                    <field name="dgm_visibility_channel" widget="badge"/>
+                                    <field name="token_count"/>
+                                    <field name="chunk_hash"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_knowledge_sop_workflow" model="ir.actions.act_window">
+        <field name="name">Quản trị Tri thức &amp; Chỉ mục SOP-RAG (SOP-DGM-12)</field>
+        <field name="res_model">dgm.knowledge.sop.workflow</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 2. Omnichannel AI Chat Sessions (dgm.ai.chat.session)               -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_ai_chat_session_list" model="ir.ui.view">
+        <field name="name">dgm.ai.chat.session.list</field>
+        <field name="model">dgm.ai.chat.session</field>
+        <field name="arch" type="xml">
+            <list string="Nhật ký Phiên Hội thoại AI Chat Box &amp; SOP Copilot (SOP-DGM-12)"
+                  decoration-success="state == 'converted_lead'"
+                  decoration-info="state == 'active'"
+                  decoration-danger="state == 'quarantined_security'">
+                <field name="name"/>
+                <field name="channel_mode" widget="badge"/>
+                <field name="employee_id"/>
+                <field name="partner_id" optional="show"/>
+                <field name="authorized_rbac_profiles"/>
+                <field name="message_count"/>
+                <field name="avg_entailment_score"/>
+                <field name="state" widget="badge"
+                       decoration-success="state == 'converted_lead'"
+                       decoration-info="state == 'active'"
+                       decoration-danger="state == 'quarantined_security'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_ai_chat_session_form" model="ir.ui.view">
+        <field name="name">dgm.ai.chat.session.form</field>
+        <field name="model">dgm.ai.chat.session</field>
+        <field name="arch" type="xml">
+            <form string="Phiên Hội thoại AI Chat Box &amp; SOP Copilot (SOP-DGM-12)">
+                <header>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="active,converted_lead,escalated_human,quarantined_security,closed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" string="Mã Phiên Hội thoại AI (SOP-DGM-12)"/>
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Định danh Kênh &amp; Người dùng">
+                            <field name="channel_mode"/>
+                            <field name="employee_id"/>
+                            <field name="partner_id"/>
+                            <field name="visitor_token"/>
+                            <field name="lead_id"/>
+                        </group>
+                        <group string="Phân quyền RBAC &amp; Chỉ số Chống Ảo giác">
+                            <field name="authorized_rbac_profiles"/>
+                            <field name="message_count"/>
+                            <field name="avg_entailment_score"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lịch sử Thông điệp &amp; Trích dẫn SOP-RAG" name="messages">
+                            <field name="message_ids" readonly="1">
+                                <list decoration-danger="adversarial_blocked"
+                                      decoration-success="is_grounded and sender_role == 'assistant'">
+                                    <field name="sender_role" widget="badge"/>
+                                    <field name="intent_category" widget="badge"/>
+                                    <field name="query_text"/>
+                                    <field name="response_text"/>
+                                    <field name="matched_sop_codes"/>
+                                    <field name="entailment_score"/>
+                                    <field name="is_grounded"/>
+                                    <field name="pii_redacted"/>
+                                    <field name="adversarial_blocked"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_ai_chat_session" model="ir.actions.act_window">
+        <field name="name">Nhật ký Hội thoại AI Chat Box &amp; SOP Copilot (SOP-DGM-12)</field>
+        <field name="res_model">dgm.ai.chat.session</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- =================================================================== -->
+    <!-- 3. AI Chat Message Audit Log (dgm.ai.chat.message)                  -->
+    <!-- =================================================================== -->
+    <record id="view_dgm_ai_chat_message_list" model="ir.ui.view">
+        <field name="name">dgm.ai.chat.message.list</field>
+        <field name="model">dgm.ai.chat.message</field>
+        <field name="arch" type="xml">
+            <list string="Kiểm toán Truy vấn AI, Trích dẫn SOP-RAG &amp; Chống Ảo giác (SOP-DGM-12)"
+                  decoration-danger="adversarial_blocked"
+                  decoration-success="is_grounded and sender_role == 'assistant'">
+                <field name="session_id"/>
+                <field name="sender_role" widget="badge"/>
+                <field name="intent_category" widget="badge"/>
+                <field name="query_text"/>
+                <field name="matched_sop_codes"/>
+                <field name="entailment_score"/>
+                <field name="is_grounded"/>
+                <field name="pii_redacted"/>
+                <field name="adversarial_blocked"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_dgm_ai_chat_message" model="ir.actions.act_window">
+        <field name="name">Kiểm toán Truy vấn AI &amp; Trích dẫn SOP-RAG (SOP-DGM-12)</field>
+        <field name="res_model">dgm.ai.chat.message</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

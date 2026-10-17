@@ -40,4 +40,5 @@ from . import dgm_software_contract_templates
 from . import dgm_hr_kpi_skill
 from . import dgm_hr_kpi_skill_framework
 from . import dgm_okr_appraisal_project_pdca
+from . import dgm_knowledge_rag_chatbot
 

@@ -179,6 +179,18 @@ CANONICAL_O20_ADRS: List[Dict[str, str]] = [
             "engineers at box_6_emerging / 84.90 until certified)."
         ),
     },
+    {
+        "adr_id": "ADR-20261017-012",
+        "title": "SOP-DGM-12: Knowledge Management (knowledge.article), Omnichannel AI Chat Box & Role-Aware Grounded SOP-RAG Architecture",
+        "valid_from": "2026-10-17T05:30:00+00:00",
+        "rationale": (
+            "Implements dgm.knowledge.sop.workflow (18 canonical KMS workflows KMS-SOP-01..12 & KMS-CAT-01..06), "
+            "al2c.rag.chunk RBAC & confidentiality extensions, dgm.ai.chat.session & dgm.ai.chat.message audit models, "
+            "and al2c.rag.service.query_sop_rag_copilot with 4-layer defense-in-depth: Adversarial Prompt Injection Guard, "
+            "RBAC Pre-Filter + Hybrid RRF (k=60), Entailment Gate >= 0.85 with [Doc | Section | ID | SHA256_8] citations, "
+            "and ISO/IEC 27701 & Decree 13/2023 PII Scrubber."
+        ),
+    },
 ]
 
 
@@ -513,6 +525,7 @@ session_id: "{SESSION_ID}"
 | **`SOP-DGM-09`** | Bộ Hợp đồng Mẫu Dịch vụ Phần mềm Tối ưu Ưu đãi Thuế TNDN & GTGT (MTI & KTT) | `dgm.software.contract.template` | `tools/test_dgm_software_tax_contracts.py` |
 | **`SOP-DGM-10`** | Quy trình Đánh giá KPI 4 Trụ cột & Cổng Nâng cấp Kỹ năng Kỹ sư Phần mềm Bắt buộc | `dgm.hr.skill.track`, `dgm.hr.employee.skill.gate`, `dgm.hr.kpi.evaluation`, `dgm.hr.work.review` | `tools/test_dgm_kpi_skill_framework.py` |
 | **`SOP-DGM-11`** | Quy trình PDCA Quản trị Dự án Phần mềm, Đánh giá 360° (`9-Box`) & OKRs Doanh nghiệp | `dgm.project.pdca.template`, `dgm.okr.objective`, `dgm.okr.key.result`, `dgm.hr.appraisal.sheet` | `tools/test_dgm_okr_appraisal_project_pdca.py` |
+| **`SOP-DGM-12`** | Quy trình Quản trị Tri thức (`knowledge.article`), Chat Box & Chatbot AI Đa Kênh & Grounded SOP-RAG | `dgm.knowledge.sop.workflow`, `al2c.rag.chunk`, `dgm.ai.chat.session`, `dgm.ai.chat.message` | `tools/test_dgm_knowledge_rag_chatbot.py` |
 
 ---
 
