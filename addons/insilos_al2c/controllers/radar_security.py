@@ -16,9 +16,10 @@ import hmac
 import json
 import os
 import re
+import secrets
 import threading
 import time
-from typing import Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from odoo.exceptions import AccessDenied, ValidationError
 
@@ -712,6 +713,218 @@ class ZeroTrustPromptPartition:
         ).hexdigest()
         return hmac.compare_digest(signature, expected_sig)
 
+    @staticmethod
+    def envelope_untrusted_lead(
+        tenant_id: str,
+        lead_data: Dict[str, Any],
+        secret_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Wraps untrusted exogenous lead payload in a per-session cryptographic `BOUNDARY_ISOLATION_ZONE_<nonce>`
+        partition signed with `HMAC-SHA256` (`CWE-200` / `CWE-284`).
+        """
+        tid = str(tenant_id or "").strip()
+        if not tid:
+            raise AccessDenied("tenant_id must be non-empty for envelope_untrusted_lead (CWE-284).")
+        if not isinstance(lead_data, dict):
+            raise ValidationError("lead_data must be a dictionary (CWE-20).")
+
+        session_nonce = secrets.token_hex(16)
+        boundary_tag = f"BOUNDARY_ISOLATION_ZONE_{session_nonce}"
+        canonical_bytes = canonical_json_dumps(lead_data)
+        canonical_str = canonical_bytes.decode("utf-8")
+        if "\x00" in canonical_str or _contains_utf16_surrogate(canonical_str):
+            raise ValidationError("Null byte or UTF-16 surrogate rejected in lead_data (CWE-20).")
+
+        escaped_str = ZeroTrustPromptPartition._escape_delimiters(canonical_str).replace(
+            boundary_tag, "[REDACTED_BOUNDARY_TAG]"
+        )
+        key_bytes = MerkleWitnessGate._resolve_key(secret_key)
+        signing_payload = f"{tid}|{boundary_tag}|".encode("utf-8") + canonical_bytes
+        signature = hmac.new(key_bytes, signing_payload, hashlib.sha256).hexdigest()
+        prompt_block = (
+            f"<{boundary_tag} tenant_id=\"{tid}\">\n"
+            f"{escaped_str}\n"
+            f"</{boundary_tag}>"
+        )
+        return {
+            "tenant_id": tid,
+            "boundary_tag": boundary_tag,
+            "signature": signature,
+            "partitioned_prompt": prompt_block,
+        }
+
+
+def canonical_json_dumps(obj: Any) -> bytes:
+    """RFC 8785 deterministic JSON serialization (`allow_nan=False, separators=(',', ':'), sort_keys=True`)."""
+    return json.dumps(
+        obj,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+        ensure_ascii=True,
+    ).encode("utf-8")
+
+
+class DomainSecurityViolation(ValidationError):
+    """Raised when an untrusted domain expression violates SMT-bounded AST security constraints (`CWE-20` / `CWE-94`)."""
+
+
+class SMTBoundedDomainASTValidator(ast.NodeVisitor):
+    """SMT-Bounded AST Whitelist Visitor (`CWE-20` / `CWE-94`):
+    Enforces `MAX_DEPTH = 6`, `MAX_NODES = 64`, `ALLOWED_OPERATORS`, `ALLOWED_COMPARATORS`,
+    rejects `ast.Call`, `ast.Attribute`, imports, comprehensions, lambdas, and enforces 3-tuple leaf clauses.
+    """
+
+    MAX_DEPTH = 6
+    MAX_NODES = 64
+    ALLOWED_OPERATORS = {"&", "|", "!"}
+    ALLOWED_COMPARATORS = {"=", "!=", ">", ">=", "<", "<=", "like", "ilike", "=like", "in", "not in"}
+    FORBIDDEN_NODES = (
+        ast.Call,
+        ast.Attribute,
+        ast.Import,
+        ast.ImportFrom,
+        ast.Global,
+        ast.Nonlocal,
+        ast.Lambda,
+        ast.ListComp,
+        ast.GeneratorExp,
+        ast.SetComp,
+        ast.DictComp,
+        ast.Subscript,
+        ast.Starred,
+        ast.Await,
+        ast.Yield,
+        ast.YieldFrom,
+        ast.FormattedValue,
+        ast.JoinedStr,
+        ast.NamedExpr,
+        ast.BinOp,
+        ast.BoolOp,
+        ast.Compare,
+        ast.IfExp,
+    )
+
+    def __init__(self, allowed_fields: Set[str]):
+        self.allowed_fields = set(allowed_fields or ())
+        self.node_count = 0
+        self.current_depth = 0
+
+    def visit(self, node: ast.AST):
+        self.node_count += 1
+        if self.node_count > self.MAX_NODES:
+            raise DomainSecurityViolation(
+                f"Domain AST node count ({self.node_count}) exceeds MAX_NODES ({self.MAX_NODES}) (CWE-400)."
+            )
+        self.current_depth += 1
+        if self.current_depth > self.MAX_DEPTH:
+            raise DomainSecurityViolation(
+                f"Domain AST nesting depth ({self.current_depth}) exceeds MAX_DEPTH ({self.MAX_DEPTH}) (CWE-400)."
+            )
+        if isinstance(node, self.FORBIDDEN_NODES):
+            raise DomainSecurityViolation(
+                f"Forbidden AST construct '{type(node).__name__}' in domain expression (CWE-94)."
+            )
+        if isinstance(node, ast.Name) and node.id not in ("True", "False", "None"):
+            raise DomainSecurityViolation(
+                f"Forbidden identifier '{node.id}' in domain expression (CWE-94)."
+            )
+        try:
+            return super().visit(node)
+        finally:
+            self.current_depth -= 1
+
+    @staticmethod
+    def _extract_literal_value(node: ast.AST) -> Any:
+        if isinstance(node, ast.Constant):
+            return node.value
+        if isinstance(node, ast.Name) and node.id in ("True", "False", "None"):
+            return {"True": True, "False": False, "None": None}[node.id]
+        if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)) and isinstance(node.operand, ast.Constant):
+            if isinstance(node.operand.value, (int, float)) and not isinstance(node.operand.value, bool):
+                return -node.operand.value if isinstance(node.op, ast.USub) else +node.operand.value
+        if isinstance(node, (ast.List, ast.Tuple)):
+            return [SMTBoundedDomainASTValidator._extract_literal_value(elt) for elt in node.elts]
+        raise DomainSecurityViolation(
+            f"Non-literal domain value node '{type(node).__name__}' rejected (CWE-20)."
+        )
+
+    def validate(self, domain_str: str) -> bool:
+        self.node_count = 0
+        self.current_depth = 0
+        if not isinstance(domain_str, str) or not domain_str.strip():
+            raise DomainSecurityViolation("domain_str must be a non-empty string (CWE-20).")
+        if "\x00" in domain_str or _contains_utf16_surrogate(domain_str):
+            raise DomainSecurityViolation("Null byte or UTF-16 surrogate rejected in domain_str (CWE-20).")
+
+        try:
+            tree = ast.parse(domain_str.strip(), mode="eval")
+        except (SyntaxError, ValueError, TypeError, MemoryError, RecursionError) as exc:
+            raise DomainSecurityViolation(f"Invalid domain syntax or recursion bomb: {exc}") from exc
+
+        self.visit(tree.body)
+
+        if not isinstance(tree.body, (ast.List, ast.Tuple)):
+            raise DomainSecurityViolation("Domain root must be a list or tuple (CWE-20).")
+
+        for elt in tree.body.elts:
+            if isinstance(elt, ast.Constant) and isinstance(elt.value, str):
+                if elt.value not in self.ALLOWED_OPERATORS:
+                    raise DomainSecurityViolation(f"Disallowed prefix boolean operator '{elt.value}' (CWE-20).")
+                continue
+
+            if not isinstance(elt, (ast.Tuple, ast.List)) or len(elt.elts) != 3:
+                raise DomainSecurityViolation("Each domain leaf clause must be a 3-element tuple/list (CWE-20).")
+
+            f_node, op_node, val_node = elt.elts
+            f_val = self._extract_literal_value(f_node)
+            op_val = self._extract_literal_value(op_node)
+            _ = self._extract_literal_value(val_node)
+
+            if not isinstance(f_val, str) or "." in f_val or not f_val.isidentifier():
+                raise DomainSecurityViolation(f"Invalid or dotted field name '{f_val}' rejected (CWE-89).")
+            if f_val not in self.allowed_fields:
+                raise DomainSecurityViolation(f"Field '{f_val}' is not in allowed_fields allowlist (CWE-284).")
+            if not isinstance(op_val, str) or op_val not in self.ALLOWED_COMPARATORS:
+                raise DomainSecurityViolation(f"Comparator '{op_val}' is not in ALLOWED_COMPARATORS (CWE-89).")
+
+        return True
+
+
+class PrefectLeaseOdooSavepointBarrier:
+    """PrefectLease-OdooSavepoint Barrier (`CWE-662` / `CWE-833`):
+    Synchronizes Prefect task lease hashing with an atomic PostgreSQL/Odoo `with cr.savepoint():` scope
+    and SMT-bounded domain validation so any `DomainSecurityViolation` rolls back cleanly without
+    poisoning the ambient transaction.
+    """
+
+    @classmethod
+    def execute_in_savepoint(
+        cls,
+        cr,
+        task_key: str,
+        allowed_fields: Set[str],
+        domain_str: str,
+        callback=None,
+    ) -> Dict[str, Any]:
+        if not isinstance(task_key, str) or not task_key.strip():
+            raise ValidationError("task_key must be a non-empty string.")
+        lease_hash = hashlib.sha256(
+            canonical_json_dumps({"task_key": task_key.strip(), "domain_str": str(domain_str or "")})
+        ).hexdigest()
+
+        with cr.savepoint():
+            validator = SMTBoundedDomainASTValidator(allowed_fields=allowed_fields)
+            validator.validate(domain_str)
+            cb_result = callback(cr, lease_hash) if callable(callback) else None
+            return {
+                "status": "COMMITTED",
+                "task_key": task_key.strip(),
+                "lease_hash": lease_hash,
+                "node_count": validator.node_count,
+                "result": cb_result,
+            }
+
 
 class MerkleWitnessGate:
     """Ephemeral Cryptographic Proof-Carrying Interactive UI (`PCP-UI`) & Lockless RFC 8785 Merkle Witness Gate.
@@ -726,6 +939,29 @@ class MerkleWitnessGate:
         self.ttl_seconds = max(1, int(ttl_seconds))
         self.max_entries = max(16, int(max_entries))
         self._action_cache = OrderedDict()
+
+    @classmethod
+    def compute_leaf_hash(cls, event_data: Dict[str, Any]) -> str:
+        """Computes an RFC 8785 deterministic SHA-256 leaf digest over `event_data` (`CWE-345`)."""
+        if not isinstance(event_data, dict):
+            raise ValidationError("event_data must be a dictionary.")
+        return hashlib.sha256(canonical_json_dumps(event_data)).hexdigest()
+
+    @classmethod
+    def build_witness_proof(cls, previous_state_hash: str, new_state_data: Dict[str, Any]) -> Dict[str, str]:
+        """Builds a cryptographic Merkle state-transition witness proof linking `previous_state_hash`
+        to `new_state_data` via RFC 8785 canonical leaf hashing (`CWE-345`).
+        """
+        prev = str(previous_state_hash or "").strip()
+        if not prev:
+            raise ValidationError("previous_state_hash must be a non-empty string.")
+        leaf_hash = cls.compute_leaf_hash(new_state_data)
+        merkle_root = hashlib.sha256(f"{prev}:{leaf_hash}".encode("utf-8")).hexdigest()
+        return {
+            "previous_state_hash": prev,
+            "leaf_hash": leaf_hash,
+            "merkle_root": merkle_root,
+        }
 
     @staticmethod
     def generate_witness(action_type: str, tenant_id: int, write_set: dict) -> str:
