@@ -37,6 +37,8 @@ def validate_qweb_xml_safety(xml_string: str) -> None:
             val = elem.attrib[attr]
             if attr.startswith(("href", "src", "t-att-href", "t-att-src")) and "javascript:" in val.lower():
                 raise ValueError(f"Security Policy Violation: javascript: URI detected in {attr}.")
+            if attr.startswith("t-") and ("__" in val or "eval(" in val or "exec(" in val or "importlib" in val):
+                raise ValueError(f"Security Policy Violation: unsafe expression in QWeb attribute {attr}.")
 
 SYSTEM_PROMPT = """You are an elite Lead UI/UX Designer and Specialty Coffee Storyteller for InnoKafe (innokafe.insilos.com).
 Your task is to un-slop QWeb XML views, replacing generic AI template clichés with authentic Vietnamese coffee craftsmanship.
