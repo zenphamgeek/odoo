@@ -221,7 +221,6 @@ class DgmMarketResearchRadar(models.Model):
             sha_hex = hashlib.sha256(payload_text.encode("utf-8")).hexdigest()
             citation = f"[{rec.code} | {rec.name[:48]} | #{rec.id} | {sha_hex[:8]}]"
 
-            art_id = fallback_article.id if fallback_article else 1
             chunk_vals = {
                 "name": f"{rec.code} — {rec.name}",
                 "sop_code": rec.code,
@@ -229,8 +228,9 @@ class DgmMarketResearchRadar(models.Model):
                 "content": payload_text,
                 "chunk_hash": sha_hex,
                 "citation_tag": citation,
-                "source_model": "knowledge.article",
-                "source_id": art_id,
+                "source_model": "dgm.market.research.radar",
+                "source_id": rec.id,
+                "source_ref": rec.code,
                 "dgm_rbac_profile": "crm_sales",
                 "dgm_confidentiality_level": "C1_INTERNAL",
                 "dgm_visibility_channel": "internal_only",

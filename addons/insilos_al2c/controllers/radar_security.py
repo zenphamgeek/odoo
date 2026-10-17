@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-SOP-DGM-13 Adversarial Security Hardening (Patch 35 — `traimai` Audit):
+SOP-DGM-13 Adversarial Security Hardening (Patch 35 `traimai` & Patch 36 `zenonmind` PLSH-ADG):
 - `TenantSecurityBarrier`: Multi-tenant company isolation & scoped domain enforcement (`CWE-284`).
-- `SafeDomainASTValidator`: Strict field/operator allowlist, 256-char ceiling, UTF-16 surrogate & SQLi rejection (`CWE-20`, `CWE-89`).
-- `NonRepetitionGuard`: Thread-safe bounded LRU/TTL SHA-256 replay & pool-exhaustion guard (`CWE-400`).
+- `SafeDomainASTValidator`: Strict AST-whitelisted domain expression visitor (`validate_domain_expression`, `CWE-94`) + field/operator allowlist, 256-char ceiling, UTF-16 surrogate & SQLi rejection (`CWE-20`, `CWE-89`).
+- `NonRepetitionGuard`: Thread-safe bounded LRU/TTL SHA-256 replay & multi-tenant partitioned prompt hash guard (`compute_prompt_hash`, `register_or_reject`, `CWE-285`, `CWE-400`).
 - `MerkleWitnessGate`: Ephemeral Proof-Carrying Interactive UI (`PCP-UI`) Merkle state-transition witness (`< 5ms` mint/verify, `100%` tamper rejection).
+- `DeterministicLockstepEngine`: Game-engine deterministic lockstep tick state hash ($H_{t+1}$) with 8-decimal `Decimal('0.00000001')` quantization and Decree 70/2025/ND-CP anti-1.0 FX fallback guard.
 - `sanitize_telemetry_payload`: Recursive secret/token/session scrubber (`CWE-259`).
 """
+import ast
 from collections import OrderedDict
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 import hashlib
 import hmac
 import json
@@ -15,6 +18,7 @@ import os
 import re
 import threading
 import time
+from typing import Any, List, Optional, Tuple
 
 from odoo.exceptions import AccessDenied, ValidationError
 
@@ -160,7 +164,84 @@ class TenantSecurityBarrier:
 
 
 class SafeDomainASTValidator:
-    """Strict AST validator for user/RPC-supplied Odoo search domains (CWE-20, CWE-89, CWE-284)."""
+    """Strict AST validator for user/RPC-supplied Odoo search domains (CWE-20, CWE-89, CWE-94, CWE-284)."""
+
+    ALLOWED_AST_NODES = (
+        ast.Expression,
+        ast.List,
+        ast.Tuple,
+        ast.Constant,
+        ast.UnaryOp,
+        ast.USub,
+        ast.UAdd,
+        ast.Compare,
+        ast.Eq,
+        ast.NotEq,
+        ast.Lt,
+        ast.LtE,
+        ast.Gt,
+        ast.GtE,
+        ast.In,
+        ast.NotIn,
+        ast.Load,
+    )
+
+    FORBIDDEN_NAME_PREFIXES = (
+        "__",
+        "eval",
+        "exec",
+        "compile",
+        "open",
+        "getattr",
+        "setattr",
+        "import",
+        "subclasses",
+        "globals",
+        "builtins",
+    )
+
+    @classmethod
+    def validate_domain_expression(cls, domain_str: str, allowed_fields=None) -> List[Tuple[str, str, Any]]:
+        """Parses a string domain expression via `ast.parse(..., mode='eval')`, enforces strict AST node
+        whitelisting (`ALLOWED_AST_NODES`) and forbidden name/dunder token blocking (`CWE-94`), and delegates
+        to `sanitize_and_validate`.
+        """
+        if domain_str is None:
+            return []
+        if not isinstance(domain_str, str):
+            raise ValidationError("Domain expression must be a string (CWE-20).")
+        stripped = domain_str.strip()
+        if not stripped or stripped == "[]":
+            return []
+        if len(stripped) > 4096:
+            raise ValidationError("Domain expression exceeds 4096-character limit (CWE-400).")
+        if "\x00" in stripped or _contains_utf16_surrogate(stripped):
+            raise ValidationError("Malformed null byte or UTF-16 surrogate in domain expression (CWE-20).")
+
+        try:
+            tree = ast.parse(stripped, mode="eval")
+        except (SyntaxError, ValueError, TypeError, MemoryError, RecursionError) as exc:
+            raise ValidationError(f"Malformed domain expression syntax (CWE-20): {exc}") from exc
+
+        for node in ast.walk(tree):
+            if not isinstance(node, cls.ALLOWED_AST_NODES):
+                raise AccessDenied(
+                    f"Forbidden AST node '{type(node).__name__}' rejected in domain expression (CWE-94)."
+                )
+            if isinstance(node, ast.Constant) and isinstance(node.value, str):
+                low_s = node.value.strip().lower()
+                for bad_tok in cls.FORBIDDEN_NAME_PREFIXES:
+                    if bad_tok in low_s:
+                        raise AccessDenied(
+                            f"Forbidden dunder/builtin token '{bad_tok}' rejected in domain constant (CWE-94)."
+                        )
+
+        try:
+            evaluated = ast.literal_eval(tree)
+        except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as exc:
+            raise ValidationError(f"Failed to literal_eval domain expression (CWE-20): {exc}") from exc
+
+        return cls.sanitize_and_validate(evaluated, allowed_fields=allowed_fields)
 
     @classmethod
     def _validate_scalar_value(cls, value):
@@ -177,6 +258,12 @@ class SafeDomainASTValidator:
                 raise ValidationError("Unpaired UTF-16 surrogate character rejected in domain value (CWE-20).")
             if _SQLI_PATTERN.search(value):
                 raise ValidationError("Potential SQL injection pattern rejected in domain value (CWE-89).")
+            low_v = value.strip().lower()
+            for bad_tok in cls.FORBIDDEN_NAME_PREFIXES:
+                if bad_tok in low_v:
+                    raise AccessDenied(
+                        f"Forbidden dunder/builtin token '{bad_tok}' rejected in domain value (CWE-94)."
+                    )
             return value
         raise ValidationError(f"Unsupported domain value type: {type(value).__name__} (CWE-20).")
 
@@ -243,7 +330,9 @@ class SafeDomainASTValidator:
 
 
 class NonRepetitionGuard:
-    """Thread-safe bounded LRU/TTL SHA-256 idempotency guard against replay amplification (CWE-400)."""
+    """Thread-safe bounded LRU/TTL SHA-256 idempotency guard against replay amplification
+    and cross-tenant prompt cache poisoning (CWE-285, CWE-400).
+    """
 
     def __init__(self, max_entries: int = 4096, ttl_seconds: int = 86400):
         self.max_entries = max(16, int(max_entries))
@@ -255,9 +344,39 @@ class NonRepetitionGuard:
     def compute_fingerprint(tenant_id, action_key: str, payload) -> str:
         canonical = _canonical_json(
             {
-                "tenant_id": int(tenant_id) if tenant_id is not None else 0,
+                "tenant_id": int(tenant_id) if isinstance(tenant_id, int) or (isinstance(tenant_id, str) and tenant_id.isdigit()) else str(tenant_id or ""),
                 "action_key": str(action_key or ""),
                 "payload": payload,
+            }
+        )
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def compute_prompt_hash(prompt: str, tenant_id: str = "default", company_id: int = 1) -> str:
+        """Computes a tenant- and company-partitioned SHA-256 hash (`CWE-285`) so Tenant A cannot
+        poison or DoS Tenant B's non-repetition window.
+        """
+        if not isinstance(prompt, str) or not prompt.strip():
+            raise ValidationError("Prompt must be a non-empty string (CWE-20).")
+        if "\x00" in prompt or _contains_utf16_surrogate(prompt):
+            raise ValidationError("Malformed null byte or UTF-16 surrogate in prompt (CWE-20).")
+        if not isinstance(tenant_id, str) or not tenant_id.strip():
+            raise ValidationError("tenant_id must be a non-empty string (CWE-285).")
+        if "\x00" in tenant_id or _contains_utf16_surrogate(tenant_id):
+            raise ValidationError("Malformed characters in tenant_id (CWE-20).")
+        try:
+            cid = int(company_id)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("company_id must be a valid positive integer (CWE-284).") from exc
+        if cid <= 0:
+            raise ValidationError("company_id must be > 0 (CWE-284).")
+
+        canonical = _canonical_json(
+            {
+                "ns": "PLSH-ADG-v1",
+                "tenant_id": tenant_id.strip(),
+                "company_id": cid,
+                "prompt": prompt.strip(),
             }
         )
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
@@ -272,6 +391,31 @@ class NonRepetitionGuard:
                 break
         for fp in expired_keys:
             self._entries.pop(fp, None)
+
+    def register_or_reject(
+        self,
+        prompt: str,
+        tenant_id: str = "default",
+        company_id: int = 1,
+        now_ts: Optional[float] = None,
+    ) -> str:
+        ts = float(now_ts) if now_ts is not None else time.time()
+        fp = self.compute_prompt_hash(prompt=prompt, tenant_id=tenant_id, company_id=company_id)
+
+        with self._lock:
+            self._evict_expired_unlocked(ts)
+            if fp in self._entries:
+                prev_ts = self._entries[fp]
+                if ts - prev_ts < self.ttl_seconds:
+                    raise ValidationError(
+                        f"Duplicate prompt replay rejected for tenant='{tenant_id}' company_id={company_id} within {self.ttl_seconds}s TTL (CWE-285/CWE-400)."
+                    )
+            self._entries[fp] = ts
+            self._entries.move_to_end(fp)
+            while len(self._entries) > self.max_entries:
+                self._entries.popitem(last=False)
+
+        return fp
 
     def check_and_record(
         self,
@@ -306,6 +450,111 @@ class NonRepetitionGuard:
     def clear(self):
         with self._lock:
             self._entries.clear()
+
+
+class DeterministicLockstepEngine:
+    """PLSH-ADG Game-Engine Deterministic Lockstep State Hash Barrier:
+    $$H_{t+1} = \\text{SHA256}(H_t \\parallel (t+1) \\parallel \\text{canonical}(I_t) \\parallel \\text{canonical}(S_{t+1}))$$
+    Enforces 8-decimal `Decimal('0.00000001')` quantization and forbids silent `1.0` FX rate fallbacks
+    when `source_currency != target_currency` per Decree 70/2025/ND-CP.
+    """
+
+    QUANTIZE_8DEC = Decimal("0.00000001")
+    GENESIS_HASH = hashlib.sha256(b"INSILOS_PLSH_ADG_GENESIS_TICK_0").hexdigest()
+
+    @classmethod
+    def quantize_rate(
+        cls,
+        rate_val: Any,
+        source_currency: str = "VND",
+        target_currency: str = "VND",
+    ) -> Decimal:
+        if rate_val is None or isinstance(rate_val, bool):
+            raise ValidationError("Statutory FX rate cannot be None or boolean (Decree 70/2025/ND-CP).")
+        try:
+            dec = Decimal(str(rate_val))
+        except (InvalidOperation, ValueError, TypeError) as exc:
+            raise ValidationError(f"Invalid statutory FX rate '{rate_val}' (Decree 70/2025/ND-CP).") from exc
+
+        if not dec.is_finite() or dec <= Decimal("0"):
+            raise ValidationError(f"Statutory FX rate must be finite and > 0, got {rate_val} (Decree 70/2025/ND-CP).")
+
+        q_rate = dec.quantize(cls.QUANTIZE_8DEC, rounding=ROUND_HALF_UP)
+        src_c = str(source_currency or "").strip().upper()
+        tgt_c = str(target_currency or "").strip().upper()
+        if not src_c or not tgt_c:
+            raise ValidationError("source_currency and target_currency must be non-empty ISO codes.")
+
+        if src_c != tgt_c and q_rate == Decimal("1.00000000"):
+            raise ValidationError(
+                f"Decree 70/2025/ND-CP Violation: silent 1.0 FX rate fallback prohibited for cross-currency pair {src_c}->{tgt_c}."
+            )
+        return q_rate
+
+    @classmethod
+    def convert_statutory_amount(
+        cls,
+        amount: Any,
+        rate_val: Any,
+        source_currency: str = "USD",
+        target_currency: str = "VND",
+    ) -> Decimal:
+        if amount is None or isinstance(amount, bool):
+            raise ValidationError("Statutory amount cannot be None or boolean.")
+        try:
+            amt_dec = Decimal(str(amount))
+        except (InvalidOperation, ValueError, TypeError) as exc:
+            raise ValidationError(f"Invalid statutory amount '{amount}'.") from exc
+        if not amt_dec.is_finite() or amt_dec < Decimal("0"):
+            raise ValidationError("Statutory amount must be finite and non-negative.")
+
+        q_rate = cls.quantize_rate(rate_val, source_currency=source_currency, target_currency=target_currency)
+        return (amt_dec * q_rate).quantize(cls.QUANTIZE_8DEC, rounding=ROUND_HALF_UP)
+
+    @classmethod
+    def step_tick(
+        cls,
+        prev_hash: str,
+        tick: int,
+        inputs_dict: dict,
+        next_state_dict: dict,
+    ) -> str:
+        if not isinstance(prev_hash, str) or len(prev_hash.strip()) != 64:
+            raise ValidationError("prev_hash must be a 64-character hex SHA-256 string.")
+        try:
+            next_tick = int(tick)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError("tick must be an integer.") from exc
+        if next_tick < 0:
+            raise ValidationError("tick must be non-negative.")
+
+        canonical_in = _canonical_json(inputs_dict or {})
+        canonical_st = _canonical_json(next_state_dict or {})
+        frame = f"{prev_hash.strip()}|{next_tick}|{canonical_in}|{canonical_st}".encode("utf-8")
+        return hashlib.sha256(frame).hexdigest()
+
+    @classmethod
+    def verify_multi_node_consensus(cls, node_hashes) -> bool:
+        if isinstance(node_hashes, dict):
+            values = [str(v or "") for v in node_hashes.values()]
+        elif isinstance(node_hashes, (list, tuple)):
+            values = [str(v or "") for v in node_hashes]
+        else:
+            raise ValidationError("node_hashes must be a dict or sequence of state hashes.")
+
+        if len(values) < 2:
+            raise ValidationError("Consensus check requires at least 2 node hashes.")
+
+        ref = values[0]
+        if len(ref) != 64:
+            raise ValidationError("Invalid reference lockstep state hash length.")
+
+        for idx, candidate in enumerate(values[1:], start=1):
+            if not hmac.compare_digest(ref, candidate):
+                raise ValidationError(
+                    f"Lockstep state hash desynchronization detected at node index {idx}: {candidate[:12]} != {ref[:12]} (PLSH-ADG)."
+                )
+        return True
 
 
 class MerkleWitnessGate:

@@ -4046,6 +4046,104 @@ def test_patch_35_sop13_traimai_radar_security_and_merkle_witness():
     print("[✓] Patch 35 / traimai SOP-DGM-13 TenantSecurityBarrier, SafeDomainASTValidator, NonRepetitionGuard & PCP-UI MerkleWitnessGate verified")
 
 
+def test_patch_36_zenonmind_plsh_adg_lockstep_and_ast_domain_visitor():
+    """Patch 36 (`zenonmind` PLSH-ADG — Multi-Tenant Partitioned Lockstep State Hash Barrier
+    & AST-Whitelisted Domain Expression Visitor):
+    1. `SafeDomainASTValidator.validate_domain_expression`: blocks `[x for x in ().__class__.__bases__[0].__subclasses__()]`
+       and `__import__('os')` (`CWE-94`) while allowing valid string domains.
+    2. `NonRepetitionGuard.register_or_reject`: blocks same-tenant replay while allowing Tenant B (`company_id=2`)
+       to execute the same prompt without cross-tenant DoS (`CWE-285`).
+    3. `DeterministicLockstepEngine`: verifies 3-node lockstep hash consensus, 8-decimal `Decimal` quantization,
+       and fail-closed rejection of silent `1.0` FX fallback (`Decree 70/2025/ND-CP`).
+    """
+    from decimal import Decimal
+    import importlib.util
+    from odoo.exceptions import AccessDenied, ValidationError
+
+    radar_sec_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/controllers/radar_security.py")
+    spec = importlib.util.spec_from_file_location("insilos_radar_security_p36", radar_sec_path)
+    mod_sec = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod_sec)
+
+    SafeDomainASTValidator = mod_sec.SafeDomainASTValidator
+    NonRepetitionGuard = mod_sec.NonRepetitionGuard
+    DeterministicLockstepEngine = mod_sec.DeterministicLockstepEngine
+
+    # 1. AST-Whitelisted Domain Expression Visitor (CWE-94)
+    clean_parsed = SafeDomainASTValidator.validate_domain_expression(
+        "[('service_pillar', '=', 'erp'), ('active', '=', True)]"
+    )
+    assert clean_parsed == [("service_pillar", "=", "erp"), ("active", "=", True)]
+
+    for rce_expr in (
+        "[x for x in ().__class__.__bases__[0].__subclasses__()]",
+        "[('name', '=', __import__('os').popen('id').read())]",
+        "[('name', '=', '__subclasses__')]",
+        "lambda x: x",
+    ):
+        rce_blocked = False
+        try:
+            SafeDomainASTValidator.validate_domain_expression(rce_expr)
+        except (AccessDenied, ValidationError):
+            rce_blocked = True
+        assert rce_blocked, f"Expected AST visitor to block RCE payload: {rce_expr!r}"
+
+    # 2. Multi-Tenant Partitioned Prompt Hash Guard (CWE-285)
+    guard = NonRepetitionGuard(max_entries=64, ttl_seconds=86400)
+    shared_prompt = "Synthesize Q4/2026 Enterprise ERP Battlecard vs SAP S/4HANA"
+    h_tenant_a = guard.register_or_reject(shared_prompt, tenant_id="tenant-alpha", company_id=1, now_ts=5000.0)
+    assert len(h_tenant_a) == 64
+
+    same_tenant_blocked = False
+    try:
+        guard.register_or_reject(shared_prompt, tenant_id="tenant-alpha", company_id=1, now_ts=5010.0)
+    except ValidationError:
+        same_tenant_blocked = True
+    assert same_tenant_blocked, "Expected same-tenant duplicate prompt replay to be blocked"
+
+    # Tenant B (company_id=2) must NOT be DoS'd by Tenant A's prompt registration
+    h_tenant_b = guard.register_or_reject(shared_prompt, tenant_id="tenant-beta", company_id=2, now_ts=5010.0)
+    assert len(h_tenant_b) == 64 and h_tenant_b != h_tenant_a, (
+        "Expected Tenant B (company_id=2) to succeed with distinct partitioned hash"
+    )
+
+    # 3. DeterministicLockstepEngine (3-node consensus, 8-decimal quantization & Decree 70 FX barrier)
+    q_rate = DeterministicLockstepEngine.quantize_rate("25430.123456789", source_currency="USD", target_currency="VND")
+    assert q_rate == Decimal("25430.12345679"), f"Expected 8-decimal quantized rate, got {q_rate}"
+
+    fx_fallback_blocked = False
+    try:
+        DeterministicLockstepEngine.quantize_rate("1.0", source_currency="USD", target_currency="VND")
+    except ValidationError:
+        fx_fallback_blocked = True
+    assert fx_fallback_blocked, "Expected Decree 70/2025/ND-CP guard to reject silent 1.0 USD->VND fallback"
+
+    conv_vnd = DeterministicLockstepEngine.convert_statutory_amount("1000", "25450.5", "USD", "VND")
+    assert conv_vnd == Decimal("25450500.00000000")
+
+    genesis = DeterministicLockstepEngine.GENESIS_HASH
+    tick_inputs = {"campaign": "AUT-CMP-01", "fx_rate": str(q_rate)}
+    tick_state = {"mql": 32, "sql": 14, "pipeline_vnd": str(conv_vnd)}
+    node_4_h1 = DeterministicLockstepEngine.step_tick(genesis, 1, tick_inputs, tick_state)
+    node_5_h1 = DeterministicLockstepEngine.step_tick(genesis, 1, tick_inputs, tick_state)
+    node_6_h1 = DeterministicLockstepEngine.step_tick(genesis, 1, tick_inputs, tick_state)
+    assert DeterministicLockstepEngine.verify_multi_node_consensus(
+        {"node-4": node_4_h1, "node-5": node_5_h1, "node-6": node_6_h1}
+    ) is True
+
+    desync_caught = False
+    try:
+        bad_h1 = DeterministicLockstepEngine.step_tick(genesis, 1, tick_inputs, {"mql": 33, "sql": 14})
+        DeterministicLockstepEngine.verify_multi_node_consensus(
+            {"node-4": node_4_h1, "node-5": node_5_h1, "node-6": bad_h1}
+        )
+    except ValidationError:
+        desync_caught = True
+    assert desync_caught, "Expected multi-node desynchronization to raise ValidationError"
+
+    print("[✓] Patch 36 / zenonmind PLSH-ADG Lockstep State Hash Barrier, AST Domain Visitor & Multi-Tenant Prompt Partitioning verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -4096,12 +4194,14 @@ def main():
     test_patch_33_esih_pricing_attestation_and_concurrency()
     test_patch_34_ddk_cdlq_decimal_and_savepoint_isolation()
     test_patch_35_sop13_traimai_radar_security_and_merkle_witness()
-    print("[✓] ALL 35 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 35 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_36_zenonmind_plsh_adg_lockstep_and_ast_domain_visitor()
+    print("[✓] ALL 36 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 36 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 
