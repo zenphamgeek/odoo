@@ -4540,6 +4540,18 @@ def test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter():
         caught_traw = True
     assert caught_traw, "Expected validate_qweb_xml_safety to reject t-raw attribute"
 
+    # 6. AGENTS.md <-> .agents/rules/01_insilos_enterprise_odoo_standards.md Parity & Section 11 (SOP-DGM-14)
+    agents_md_path = os.path.join(ROOT_DIR, "AGENTS.md")
+    rule_01_path = os.path.join(ROOT_DIR, ".agents/rules/01_insilos_enterprise_odoo_standards.md")
+    with open(agents_md_path, "r", encoding="utf-8") as f_ag:
+        agents_md_text = f_ag.read().strip()
+    with open(rule_01_path, "r", encoding="utf-8") as f_r1:
+        rule_01_text = f_r1.read().strip()
+    assert agents_md_text == rule_01_text, "AGENTS.md and .agents/rules/01_insilos_enterprise_odoo_standards.md must be 100% identical"
+    assert "Core ErrorDialog Telemetry & Zero-Leak PII/Secret Sanitization" in rule_01_text
+    assert "Reactive Props Setter & Frozen Props Guard" in rule_01_text
+    assert "SOP-DGM-14" in rule_01_text
+
     print("[✓] Patch 40 / MFL-CLW MonotonicLeaseSavepointBarrier, Fleet Model Resolver & Brand Isolation Linter verified")
 
 
