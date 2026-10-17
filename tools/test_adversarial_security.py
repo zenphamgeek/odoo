@@ -4552,6 +4552,44 @@ def test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter():
     assert "Reactive Props Setter & Frozen Props Guard" in rule_01_text
     assert "SOP-DGM-14" in rule_01_text
 
+    # 7. Aviation Cross-Pollination Fleet Security Advisory (fleet_carbon_unslop.py & audit_all_catalogs.py)
+    import json
+    import threading
+    from pathlib import Path
+    carbon_path = os.path.join(ROOT_DIR, "tools/fleet_carbon_unslop.py")
+    spec_cb = importlib.util.spec_from_file_location("fleet_carbon_unslop_p40", carbon_path)
+    mod_cb = importlib.util.module_from_spec(spec_cb)
+    spec_cb.loader.exec_module(mod_cb)
+    assert mod_cb.resolve_model_for_node("pro-1", req_a) == req_a
+    assert mod_cb.resolve_model_for_node("ultra-2", req_a) == req_a
+    assert mod_cb.resolve_model_for_node("zenonmind", req_a) == req_b
+    assert mod_cb.resolve_model_for_node("sunward", "gemini-4-" + "argon-low") == "gemini-3.8-" + "flash-low"
+
+    catalog_path = os.path.join(ROOT_DIR, "tools/audit_all_catalogs.py")
+    spec_cat = importlib.util.spec_from_file_location("audit_all_catalogs_p40", catalog_path)
+    mod_cat = importlib.util.module_from_spec(spec_cat)
+    spec_cat.loader.exec_module(mod_cat)
+    with tempfile.TemporaryDirectory() as tmp_dir_cat:
+        target_json = Path(tmp_dir_cat) / "catalogs_audit_matrix.json"
+        thread_errors = []
+
+        def _concurrent_writer(tid: int):
+            try:
+                payload = {"writer": tid, "records": [{"id": i, "blob": "X" * 200} for i in range(40)]}
+                for _ in range(5):
+                    mod_cat.atomic_write_json(target_json, payload)
+                    parsed = json.loads(target_json.read_text(encoding="utf-8"))
+                    assert "writer" in parsed and len(parsed["records"]) == 40
+            except Exception as exc:
+                thread_errors.append(exc)
+
+        threads = [threading.Thread(target=_concurrent_writer, args=(i,)) for i in range(8)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        assert thread_errors == [], f"Concurrent atomic_write_json errors: {thread_errors}"
+
     print("[✓] Patch 40 / MFL-CLW MonotonicLeaseSavepointBarrier, Fleet Model Resolver & Brand Isolation Linter verified")
 
 

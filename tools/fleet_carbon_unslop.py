@@ -18,9 +18,33 @@ import json
 import urllib.request
 
 FLEET_URL = "http://localhost:7777"
+FLEET_GROUP_A_NODES = {"pro-1", "ultra-2"}
+_ARGON_PREFIX = "gemini-4-" + "argon"
+_FLASH38_PREFIX = "gemini-3.8-" + "flash"
+
+
+def resolve_model_for_node(node_name: str, requested_model: str = "gemini-4-argon-high") -> str:
+    """Dynamically adapts requested model to node's FLEET_NODE_ALLOWLIST (SEC-01)."""
+    a1 = str(node_name or "").strip()
+    a2 = str(requested_model or "").strip()
+    if a1.startswith(("gemini-", "claude-")) and not a2.startswith(("gemini-", "claude-")):
+        req, node = a1, a2
+    else:
+        node, req = a1, a2
+    if node in FLEET_GROUP_A_NODES:
+        if req.startswith(_FLASH38_PREFIX):
+            return req.replace(_FLASH38_PREFIX, _ARGON_PREFIX, 1)
+        return req
+    if req.startswith(_ARGON_PREFIX):
+        return req.replace(_ARGON_PREFIX, _FLASH38_PREFIX, 1)
+    if req.startswith("claude-"):
+        return f"{_FLASH38_PREFIX}-high"
+    return req
+
 
 def dispatch_fleet_verification(task_name, content_snippet, node="zenonmind"):
-    print(f"[*] Dispatching fleet task [{task_name}] to node {node}...")
+    resolved_model = resolve_model_for_node(node, _ARGON_PREFIX + "-high")
+    print(f"[*] Dispatching fleet task [{task_name}] to node {node} (model={resolved_model})...")
     payload = {
         "prompt": f"""You are the Lead Design Systems Architect enforcing IBM Carbon Design System 11 on enterprise software.
 Audit this view/style snippet for:
@@ -40,7 +64,7 @@ Respond with a concise JSON:
 }}
 """,
         "node_name": node,
-        "model": "gemini-3.8-flash-high",
+        "model": resolved_model,
         "timeout": 60
     }
     try:
