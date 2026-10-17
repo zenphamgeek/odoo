@@ -164,7 +164,10 @@ class TenantSecurityBarrier:
 
 
 class SafeDomainASTValidator:
-    """Strict AST validator for user/RPC-supplied Odoo search domains (CWE-20, CWE-89, CWE-94, CWE-284)."""
+    """Strict AST validator for user/RPC-supplied Odoo search domains (CWE-20, CWE-89, CWE-94, CWE-200, CWE-284, CWE-400)."""
+
+    MAX_PREFIX_DEPTH = 3
+    MAX_DOMAIN_TERMS = 15
 
     ALLOWED_AST_NODES = (
         ast.Expression,
@@ -201,18 +204,23 @@ class SafeDomainASTValidator:
     )
 
     @classmethod
-    def validate_domain_expression(cls, domain_str: str, allowed_fields=None) -> List[Tuple[str, str, Any]]:
+    def validate_domain_expression(
+        cls,
+        domain_str: str,
+        allowed_fields=None,
+        enforce_company_id=None,
+    ) -> List[Tuple[str, str, Any]]:
         """Parses a string domain expression via `ast.parse(..., mode='eval')`, enforces strict AST node
         whitelisting (`ALLOWED_AST_NODES`) and forbidden name/dunder token blocking (`CWE-94`), and delegates
         to `sanitize_and_validate`.
         """
         if domain_str is None:
-            return []
+            return cls.sanitize_and_validate([], allowed_fields=allowed_fields, enforce_company_id=enforce_company_id)
         if not isinstance(domain_str, str):
             raise ValidationError("Domain expression must be a string (CWE-20).")
         stripped = domain_str.strip()
         if not stripped or stripped == "[]":
-            return []
+            return cls.sanitize_and_validate([], allowed_fields=allowed_fields, enforce_company_id=enforce_company_id)
         if len(stripped) > 4096:
             raise ValidationError("Domain expression exceeds 4096-character limit (CWE-400).")
         if "\x00" in stripped or _contains_utf16_surrogate(stripped):
@@ -241,7 +249,25 @@ class SafeDomainASTValidator:
         except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError) as exc:
             raise ValidationError(f"Failed to literal_eval domain expression (CWE-20): {exc}") from exc
 
-        return cls.sanitize_and_validate(evaluated, allowed_fields=allowed_fields)
+        return cls.sanitize_and_validate(
+            evaluated,
+            allowed_fields=allowed_fields,
+            enforce_company_id=enforce_company_id,
+        )
+
+    @classmethod
+    def validate_domain(cls, domain, allowed_fields=None, enforce_company_id=None) -> list:
+        if isinstance(domain, str):
+            return cls.validate_domain_expression(
+                domain,
+                allowed_fields=allowed_fields,
+                enforce_company_id=enforce_company_id,
+            )
+        return cls.sanitize_and_validate(
+            domain,
+            allowed_fields=allowed_fields,
+            enforce_company_id=enforce_company_id,
+        )
 
     @classmethod
     def _validate_scalar_value(cls, value):
@@ -268,26 +294,45 @@ class SafeDomainASTValidator:
         raise ValidationError(f"Unsupported domain value type: {type(value).__name__} (CWE-20).")
 
     @classmethod
-    def sanitize_and_validate(cls, raw_domain, allowed_fields=None) -> list:
+    def sanitize_and_validate(cls, raw_domain, allowed_fields=None, enforce_company_id=None) -> list:
+        enforced_cid = None
+        if enforce_company_id is not None:
+            try:
+                enforced_cid = int(enforce_company_id)
+            except (TypeError, ValueError) as exc:
+                raise AccessDenied("Invalid enforce_company_id (CWE-284).") from exc
+            if enforced_cid <= 0:
+                raise AccessDenied("enforce_company_id must be > 0 (CWE-284).")
+
         if raw_domain is None or raw_domain == []:
+            if enforced_cid is not None:
+                return [("company_id", "in", [enforced_cid, False])]
             return []
         if not isinstance(raw_domain, (list, tuple)):
             raise ValidationError("Search domain must be a list or tuple of expressions (CWE-20).")
-        if len(raw_domain) > MAX_DOMAIN_CLAUSES:
+        if len(raw_domain) > cls.MAX_DOMAIN_TERMS:
             raise ValidationError(
-                f"Search domain exceeds maximum clause count ({MAX_DOMAIN_CLAUSES}) (CWE-400)."
+                f"Search domain exceeds maximum term count ({cls.MAX_DOMAIN_TERMS}) (CWE-400)."
             )
 
         permitted_fields = frozenset(allowed_fields) if allowed_fields is not None else ALLOWED_RADAR_FIELDS
         normalized = []
+        prefix_depth = 0
+        has_company_guard = False
 
         for token in raw_domain:
             if isinstance(token, str):
                 if token in ("&", "|", "!"):
+                    prefix_depth += 1
+                    if prefix_depth > cls.MAX_PREFIX_DEPTH:
+                        raise ValidationError(
+                            f"Search domain prefix combinator depth exceeds {cls.MAX_PREFIX_DEPTH} (CWE-400)."
+                        )
                     normalized.append(token)
                     continue
                 raise ValidationError(f"Invalid logical token in search domain: {token!r} (CWE-20).")
 
+            prefix_depth = max(0, prefix_depth - 1)
             if not isinstance(token, (list, tuple)) or len(token) != 3:
                 raise ValidationError("Each search domain leaf must be a 3-element (field, operator, value) tuple (CWE-20).")
 
@@ -296,6 +341,10 @@ class SafeDomainASTValidator:
                 raise ValidationError("Domain field name must be a non-empty string (CWE-20).")
             if "\x00" in field_name or _contains_utf16_surrogate(field_name):
                 raise ValidationError("Malformed characters in domain field name (CWE-20).")
+            if "." in field_name or not field_name.isidentifier():
+                raise AccessDenied(
+                    f"Relational traversal or non-identifier field '{field_name}' rejected by SafeDomainASTValidator (CWE-89)."
+                )
             if field_name not in permitted_fields:
                 raise AccessDenied(
                     f"Forbidden domain field '{field_name}' rejected by SafeDomainASTValidator (CWE-284)."
@@ -324,9 +373,34 @@ class SafeDomainASTValidator:
                     )
                 clean_val = cls._validate_scalar_value(raw_val)
 
+            if field_name == "company_id" and enforced_cid is not None:
+                allowed_co_vals = {enforced_cid, False, None}
+                if op_clean == "=":
+                    if clean_val not in allowed_co_vals:
+                        raise AccessDenied(
+                            f"Cross-tenant company_id={clean_val} rejected for enforced company_id={enforced_cid} (CWE-200)."
+                        )
+                elif op_clean == "in":
+                    if any(v not in allowed_co_vals for v in clean_val):
+                        raise AccessDenied(
+                            f"Cross-tenant company_id list {clean_val} rejected for enforced company_id={enforced_cid} (CWE-200)."
+                        )
+                else:
+                    raise AccessDenied(
+                        f"Disallowed operator '{op_clean}' on company_id when tenant enforcement is active (CWE-200)."
+                    )
+                has_company_guard = True
+
             normalized.append((field_name, op_clean, clean_val))
 
+        if enforced_cid is not None and not has_company_guard:
+            if normalized:
+                normalized = ["&", ("company_id", "in", [enforced_cid, False])] + normalized
+            else:
+                normalized = [("company_id", "in", [enforced_cid, False])]
+
         return normalized
+
 
 
 class NonRepetitionGuard:
@@ -557,13 +631,161 @@ class DeterministicLockstepEngine:
         return True
 
 
+class ZeroTrustPromptPartition:
+    """Zero-Trust Prompt Partitioning Envelope (`ZTPP`, `CWE-20` / `CWE-74` / `CWE-285`):
+    Escapes exogenous untrusted input against `<tenant_envelope>`, `</company_context>`, and `###`
+    delimiter breakouts, serializes an RFC 8785 canonical JSON envelope, and signs it with per-tenant
+    `HMAC-SHA256` (`envelope_signature`).
+    """
+
+    @staticmethod
+    def _escape_delimiters(text: str) -> str:
+        raw = str(text or "")
+        if "\x00" in raw or _contains_utf16_surrogate(raw):
+            raise ValidationError("Null byte or UTF-16 surrogate rejected in untrusted prompt data (CWE-20).")
+        escaped = (
+            raw.replace("<tenant_envelope", "&lt;tenant_envelope")
+            .replace("</tenant_envelope>", "&lt;/tenant_envelope&gt;")
+            .replace("<company_context", "&lt;company_context")
+            .replace("</company_context>", "&lt;/company_context&gt;")
+            .replace("###", "&#35;&#35;&#35;")
+        )
+        return escaped
+
+    @classmethod
+    def construct_secure_prompt(
+        cls,
+        system_manifest: str,
+        tenant_id: int,
+        tenant_secret: str,
+        exogenous_untrusted_data: str,
+    ) -> dict:
+        if not isinstance(system_manifest, str) or not system_manifest.strip():
+            raise ValidationError("system_manifest must be a non-empty string (CWE-20).")
+        try:
+            tid = int(tenant_id)
+        except (TypeError, ValueError) as exc:
+            raise AccessDenied("Invalid tenant_id for ZeroTrustPromptPartition (CWE-284).") from exc
+        if tid <= 0:
+            raise AccessDenied("tenant_id must be > 0 (CWE-284).")
+        if not isinstance(tenant_secret, str) or len(tenant_secret.strip()) < 8:
+            raise ValidationError("tenant_secret must be at least 8 characters (CWE-326).")
+
+        sanitized_data = cls._escape_delimiters(exogenous_untrusted_data)
+        envelope_obj = {
+            "system_manifest": system_manifest.strip(),
+            "tenant_id": tid,
+            "untrusted_data": f'<tenant_envelope id="{tid}">{sanitized_data}</tenant_envelope>',
+            "version": "ZTPP-v1",
+        }
+        payload_envelope = json.dumps(envelope_obj, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+        signature = hmac.new(
+            tenant_secret.encode("utf-8"),
+            payload_envelope.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+
+        return {
+            "tenant_id": tid,
+            "payload_envelope": payload_envelope,
+            "envelope_signature": signature,
+            "sanitized_untrusted_data": sanitized_data,
+        }
+
+    @classmethod
+    def verify_envelope(cls, payload_envelope: str, signature: str, tenant_secret: str) -> bool:
+        if not isinstance(payload_envelope, str) or not payload_envelope:
+            return False
+        if not isinstance(signature, str) or not signature:
+            return False
+        if not isinstance(tenant_secret, str) or len(tenant_secret.strip()) < 8:
+            return False
+
+        # Ensure no unescaped breakout tag appears more than the single canonical wrapper
+        if payload_envelope.count("</tenant_envelope>") > 1:
+            return False
+
+        expected_sig = hmac.new(
+            tenant_secret.encode("utf-8"),
+            payload_envelope.encode("utf-8"),
+            hashlib.sha256,
+        ).hexdigest()
+        return hmac.compare_digest(signature, expected_sig)
+
+
 class MerkleWitnessGate:
-    """Ephemeral Cryptographic Proof-Carrying Interactive UI (`PCP-UI`) Merkle Witness Gate.
-    Mints and verifies state-transition Merkle witnesses (`pre_hash`, `post_hash`, `merkle_root`, `signature`)
-    with constant-time HMAC-SHA256 verification in < 5ms.
+    """Ephemeral Cryptographic Proof-Carrying Interactive UI (`PCP-UI`) & Lockless RFC 8785 Merkle Witness Gate.
+    Supports both:
+    - Class-level state-transition witness minting/verification (`mint_witness`, `verify_witness` in < 5ms).
+    - Instance-level bounded OrderedDict action replay cache (`generate_witness`, `record_and_verify`, `CWE-294`).
     """
 
     DEFAULT_SECRET = "insilos-pcp-ui-merkle-witness-sovereign-key-v1"
+
+    def __init__(self, ttl_seconds: int = 3600, max_entries: int = 4096):
+        self.ttl_seconds = max(1, int(ttl_seconds))
+        self.max_entries = max(16, int(max_entries))
+        self._action_cache = OrderedDict()
+
+    @staticmethod
+    def generate_witness(action_type: str, tenant_id: int, write_set: dict) -> str:
+        """Generates an RFC 8785 canonical JSON SHA-256 witness digest for `(action_type, tenant_id, write_set)`."""
+        if not isinstance(action_type, str) or not action_type.strip():
+            raise ValidationError("action_type must be a non-empty string.")
+        try:
+            tid = int(tenant_id)
+        except (TypeError, ValueError) as exc:
+            raise AccessDenied("Invalid tenant_id for generate_witness (CWE-284).") from exc
+        if tid <= 0:
+            raise AccessDenied("tenant_id must be > 0 (CWE-284).")
+
+        canonical = json.dumps(
+            {
+                "action_type": action_type.strip(),
+                "tenant_id": tid,
+                "write_set": write_set if isinstance(write_set, dict) else {},
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+            ensure_ascii=True,
+            default=str,
+        )
+        return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+    def record_and_verify(
+        self,
+        action_id: str,
+        witness: str,
+        now_ts: Optional[float] = None,
+    ) -> bool:
+        """Admits a witness on first presentation and rejects any replay within `ttl_seconds` (`CWE-294`)."""
+        if not isinstance(action_id, str) or not action_id.strip():
+            return False
+        if not isinstance(witness, str) or len(witness.strip()) != 64:
+            return False
+
+        now = float(now_ts) if now_ts is not None else time.time()
+        cutoff = now - self.ttl_seconds
+        expired = []
+        for k, ts in self._action_cache.items():
+            if ts <= cutoff:
+                expired.append(k)
+            else:
+                break
+        for k in expired:
+            self._action_cache.pop(k, None)
+
+        composite_key = f"{action_id.strip()}:{witness.strip()}"
+        w_key = f"w:{witness.strip()}"
+        if composite_key in self._action_cache or action_id.strip() in self._action_cache or w_key in self._action_cache:
+            return False
+
+        self._action_cache[composite_key] = now
+        self._action_cache[action_id.strip()] = now
+        self._action_cache[w_key] = now
+        while len(self._action_cache) > self.max_entries:
+            self._action_cache.popitem(last=False)
+        return True
 
     @classmethod
     def _resolve_key(cls, secret_key=None) -> bytes:
@@ -671,6 +893,7 @@ class MerkleWitnessGate:
             return False, "HMAC signature verification failed."
 
         return True, "VERIFIED"
+
 
 
 def _is_sensitive_key(key_name: str) -> bool:
