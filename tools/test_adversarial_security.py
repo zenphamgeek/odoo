@@ -4479,6 +4479,40 @@ def test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter():
         v_list = scan_file_for_brand_leaks(xml_p)
         assert v_list == [], f"Unexpected brand leak in {xml_p}: {v_list}"
 
+    # 4. Standalone Fleet Utility Scripts Hardening (fleet_redesign_innoria_pages.py & fleet_pos_react_autonomous.py)
+    redesign_path = os.path.join(ROOT_DIR, "tools/fleet_redesign_innoria_pages.py")
+    spec_rd = importlib.util.spec_from_file_location("fleet_redesign_innoria_pages_p40", redesign_path)
+    mod_rd = importlib.util.module_from_spec(spec_rd)
+    spec_rd.loader.exec_module(mod_rd)
+
+    assert mod_rd.resolve_model_for_fleet_node("pro-1", req_a) == req_a
+    assert mod_rd.resolve_model_for_fleet_node("insilos", req_a) == req_b
+    scrubbed_html = mod_rd.sanitize_website_brand_content(
+        "<p>Built by " + "Digimate" + " Technology for Công ty TNHH ABC and Ngân hàng XYZ</p>"
+    )
+    assert "Digimate" not in scrubbed_html
+    assert "Innoria Group" in scrubbed_html
+    assert "Doanh nghiệp Đối tác" in scrubbed_html
+    assert "Đối tác Tài chính Ngân hàng" in scrubbed_html
+
+    pos_fleet_path = os.path.join(ROOT_DIR, "tools/fleet_pos_react_autonomous.py")
+    spec_pf = importlib.util.spec_from_file_location("fleet_pos_react_autonomous_p40", pos_fleet_path)
+    mod_pf = importlib.util.module_from_spec(spec_pf)
+    spec_pf.loader.exec_module(mod_pf)
+
+    assert mod_pf.validate_pos_component_safety("function Comp() { return React.createElement('div', null, 'OK'); }", "numpad.js") is True
+    for bad_js in (
+        "function Bad() { eval('alert(1)'); }",
+        "function Bad() { el.innerHTML = userInput; }",
+        "function Bad() { return { unclosed: 1; }",
+    ):
+        caught_bad_js = False
+        try:
+            mod_pf.validate_pos_component_safety(bad_js, "numpad.js")
+        except ValueError:
+            caught_bad_js = True
+        assert caught_bad_js, f"Expected validate_pos_component_safety to reject {bad_js}"
+
     print("[✓] Patch 40 / MFL-CLW MonotonicLeaseSavepointBarrier, Fleet Model Resolver & Brand Isolation Linter verified")
 
 

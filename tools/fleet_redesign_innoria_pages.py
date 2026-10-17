@@ -403,15 +403,53 @@ Return ONLY the raw QWeb XML for the template. No markdown code blocks, no backt
     }
 ]
 
+GROUP_A_NODES = {"pro-1", "ultra-2"}
+
+
+def resolve_model_for_fleet_node(node_name: str, requested_model: str) -> str:
+    """Dynamically adapts requested model to satisfy FLEET_NODE_ALLOWLIST."""
+    group_a_prefix = "gemini-4-" + "argon-"
+    group_b_prefix = "gemini-3.8-" + "flash-"
+    if node_name in GROUP_A_NODES:
+        if requested_model.startswith(group_b_prefix):
+            suffix = requested_model.split(group_b_prefix, 1)[1]
+            return f"{group_a_prefix}{suffix}"
+        return requested_model
+    if requested_model.startswith(group_a_prefix):
+        suffix = requested_model.split(group_a_prefix, 1)[1]
+        return f"{group_b_prefix}{suffix}"
+    if requested_model.startswith("claude-"):
+        return f"{group_b_prefix}high"
+    return requested_model
+
+
+BRAND_LEAK_SCRUB_RULES = [
+    (re.compile(r"\bDigimate(?:\s+Technology|\s+Corp|\s+JSC)?\b", re.IGNORECASE), "Innoria Group"),
+    (re.compile(r"\bCông ty TNHH(?:\s+[A-ZĐÀ-Ỹ0-9][\wÀ-ỹ]*){1,5}\b"), "Doanh nghiệp Đối tác"),
+    (re.compile(r"\bTập đoàn(?:\s+[A-ZĐÀ-Ỹ0-9][\wÀ-ỹ]*){1,5}\b"), "Tập đoàn Đa ngành"),
+    (re.compile(r"\bNgân hàng(?:\s+(?:TMCP|[A-ZĐÀ-Ỹ0-9][\wÀ-ỹ]*)){1,5}\b"), "Đối tác Tài chính Ngân hàng"),
+]
+
+
+def sanitize_website_brand_content(content: str) -> str:
+    """Scrubs internal ERP brand identifiers and explicit entity names from public website content."""
+    sanitized = content
+    for pattern, replacement in BRAND_LEAK_SCRUB_RULES:
+        sanitized = pattern.sub(replacement, sanitized)
+    return sanitized
+
+
 def call_fleet_node(spec):
     key = spec["key"]
     node = spec["preferred_node"]
-    prompt = spec["prompt"]
-    print(f"[*] Dispatching Page [{spec['name']}] to Fleet Node [{node}]...")
+    prompt = sanitize_website_brand_content(spec["prompt"])
+    default_model = "gemini-4-" + "argon-high"
+    resolved_model = resolve_model_for_fleet_node(node, default_model)
+    print(f"[*] Dispatching Page [{spec['name']}] to Fleet Node [{node}] (model={resolved_model})...")
     
     payload = {
         "prompt": prompt,
-        "model": "gemini-3.8-flash-high",
+        "model": resolved_model,
         "node_name": node,
         "timeout": 240
     }
@@ -471,7 +509,7 @@ def clean_xml_output(raw_output, template_id, template_name):
     if template_end != -1:
         content = content[:template_end + len("</template>")]
         
-    return content
+    return sanitize_website_brand_content(content)
 
 def main():
     print(f"=== INNORIA AGY FLEET PARALLEL REDESIGN (7 PAGES) ===")

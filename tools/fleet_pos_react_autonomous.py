@@ -27,7 +27,7 @@ TASKS = [
     {
         "id": "TASK_CSS",
         "file": "enterprise/pos_react/static/src/app.css",
-        "model": "gemini-3.8-flash-high",
+        "model": "gemini-4-argon-high",
         "prompt": """You are an expert design systems engineer specializing in IBM Carbon 11, SAP Fiori Horizon, and Touch POS ergonomics.
 TASK: Write the complete, production-grade stylesheet `enterprise/pos_react/static/src/app.css` for the React POS application.
 
@@ -60,7 +60,7 @@ Return ONLY the complete CSS code block inside ```css ... ```. Do not include ex
     {
         "id": "TASK_NUMPAD",
         "file": "enterprise/pos_react/static/src/components/numpad.js",
-        "model": "gemini-3.8-flash-high",
+        "model": "gemini-4-argon-high",
         "prompt": """You are a senior React frontend engineer specializing in Point of Sale hardware/touch interactions.
 TASK: Write the complete, production-grade component module `enterprise/pos_react/static/src/components/numpad.js`.
 
@@ -102,7 +102,7 @@ Return ONLY the complete JavaScript code block inside ```javascript ... ```. Do 
     {
         "id": "TASK_PAYMENT",
         "file": "enterprise/pos_react/static/src/components/payment_screen.js",
-        "model": "gemini-3.8-flash-high",
+        "model": "gemini-4-argon-high",
         "prompt": """You are a senior React frontend engineer specializing in Insilos POS payment workflows.
 TASK: Write the complete, production-grade component module `enterprise/pos_react/static/src/components/payment_screen.js`.
 
@@ -150,7 +150,7 @@ Return ONLY the complete JavaScript code block inside ```javascript ... ```."""
     {
         "id": "TASK_RECEIPT",
         "file": "enterprise/pos_react/static/src/components/receipt_screen.js",
-        "model": "gemini-3.8-flash-high",
+        "model": "gemini-4-argon-high",
         "prompt": """You are a senior React frontend engineer specializing in POS Thermal Printing & Receipt Presentation.
 TASK: Write the complete, production-grade component module `enterprise/pos_react/static/src/components/receipt_screen.js`.
 
@@ -187,7 +187,7 @@ Return ONLY the complete JavaScript code block inside ```javascript ... ```."""
     {
         "id": "TASK_MODALS",
         "file": "enterprise/pos_react/static/src/components/modals.js",
-        "model": "gemini-3.8-flash-high",
+        "model": "gemini-4-argon-high",
         "prompt": """You are a senior React frontend engineer specializing in POS Popups and Modals.
 TASK: Write the complete, production-grade component module `enterprise/pos_react/static/src/components/modals.js`.
 
@@ -217,6 +217,28 @@ OUTPUT FORMAT:
 Return ONLY the complete JavaScript code block inside ```javascript ... ```."""
     }
 ]
+
+FORBIDDEN_JS_PATTERNS = [
+    r"\beval\s*\(",
+    r"dangerouslySetInnerHTML",
+    r"document\.write\s*\(",
+    r"window\.location\s*=",
+    r"\.innerHTML\s*=",
+]
+
+
+def validate_pos_component_safety(code: str, file_path: str) -> bool:
+    """Static security gate for AI-generated POS assets."""
+    if file_path.endswith(".js"):
+        for pat in FORBIDDEN_JS_PATTERNS:
+            if re.search(pat, code):
+                raise ValueError(f"Security violation in {file_path}: matched forbidden pattern '{pat}'")
+    if code.count("{") != code.count("}"):
+        raise ValueError(f"Syntax error in {file_path}: unbalanced curly braces")
+    if file_path.endswith(".js") and code.count("(") != code.count(")"):
+        raise ValueError(f"Syntax error in {file_path}: unbalanced parentheses")
+    return True
+
 
 def clean_code_block(raw_text):
     text = raw_text.strip()
@@ -258,6 +280,7 @@ def execute_task(task):
             code = clean_code_block(output)
             if not code or len(code) < 50:
                 raise ValueError(f"Task {task_id} returned empty or invalid code!")
+            validate_pos_component_safety(code, file_rel)
                 
             os.makedirs(os.path.dirname(file_abs), exist_ok=True)
             with open(file_abs, "w", encoding="utf-8") as f:
