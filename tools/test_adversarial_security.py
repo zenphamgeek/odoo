@@ -4513,6 +4513,33 @@ def test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter():
             caught_bad_js = True
         assert caught_bad_js, f"Expected validate_pos_component_safety to reject {bad_js}"
 
+    # 5. Bidirectional resolve_model_for_node, validate_brand_isolation_and_anonymity & validate_qweb_xml_safety
+    assert resolve_model_for_node("fast", req_a) == req_b
+    assert resolve_model_for_node("pro-1", req_a) == req_a
+    anon_out = mod_sw.validate_brand_isolation_and_anonymity(
+        "Triển khai cho Tập đoàn Vingroup và Ngân hàng VCB", is_public_website=True
+    )
+    assert "Tập đoàn Đa quốc gia" in anon_out
+    assert "Tổ chức Tài chính Ngân hàng" in anon_out
+    caught_digimate = False
+    try:
+        mod_sw.validate_brand_isolation_and_anonymity("Powered by " + "Digimate", is_public_website=True)
+    except ValueError:
+        caught_digimate = True
+    assert caught_digimate, "Expected validate_brand_isolation_and_anonymity to reject Digimate on public website"
+
+    unslop_par_path = os.path.join(ROOT_DIR, "tools/fleet_unslop_parallel.py")
+    spec_up = importlib.util.spec_from_file_location("fleet_unslop_parallel_p40", unslop_par_path)
+    mod_up = importlib.util.module_from_spec(spec_up)
+    spec_up.loader.exec_module(mod_up)
+    mod_up.validate_qweb_xml_safety('<template id="ok"><span t-out="val"/></template>')
+    caught_traw = False
+    try:
+        mod_up.validate_qweb_xml_safety('<template id="bad"><div t-raw="unsafe_html"/></template>')
+    except ValueError:
+        caught_traw = True
+    assert caught_traw, "Expected validate_qweb_xml_safety to reject t-raw attribute"
+
     print("[✓] Patch 40 / MFL-CLW MonotonicLeaseSavepointBarrier, Fleet Model Resolver & Brand Isolation Linter verified")
 
 

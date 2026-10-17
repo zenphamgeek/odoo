@@ -10,6 +10,7 @@ copywriting rewrite across InnoKafe routes.
 
 import json
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -105,16 +106,39 @@ _FLASH38_PREFIX = "gemini-3.8-" + "flash"
 
 
 def resolve_model_for_node(requested_model: str, node_name: str) -> str:
-    """Dynamically adapts requested model to node's FLEET_NODE_ALLOWLIST (SEC-01)."""
-    req = str(requested_model or "").strip()
-    node = str(node_name or "").strip()
+    """Dynamically adapts requested model to node's FLEET_NODE_ALLOWLIST (SEC-01).
+    Supports both `(requested_model, node_name)` and `(node_name, requested_model)`.
+    """
+    a1 = str(requested_model or "").strip()
+    a2 = str(node_name or "").strip()
+    if a2.startswith(("gemini-", "claude-")) and not a1.startswith(("gemini-", "claude-")):
+        node, req = a1, a2
+    else:
+        req, node = a1, a2
     if node in GROUP_A_NODES:
         if req.startswith(_FLASH38_PREFIX):
             return req.replace(_FLASH38_PREFIX, _ARGON_PREFIX, 1)
         return req
     if req.startswith(_ARGON_PREFIX):
         return req.replace(_ARGON_PREFIX, _FLASH38_PREFIX, 1)
+    if req.startswith("claude-"):
+        return f"{_FLASH38_PREFIX}-high"
     return req
+
+
+def validate_brand_isolation_and_anonymity(content: str, is_public_website: bool = True) -> str:
+    """Enforces strict brand isolation (Innoria vs Digimate) and generalizes explicit entity names."""
+    if is_public_website:
+        if re.search(r"\bDigimate\b", content, re.IGNORECASE):
+            raise ValueError("Brand Isolation Violation: 'Digimate' detected in public website content.")
+    sanitized = content
+    sanitized = re.sub(
+        r"Tập đoàn\s+[A-ZÀ-Ỹ][a-zà-ỹ]+(?:\s+[A-ZÀ-Ỹ][a-zà-ỹ]+)*",
+        "Tập đoàn Đa quốc gia",
+        sanitized,
+    )
+    sanitized = re.sub(r"Ngân hàng\s+[A-Z0-9]+", "Tổ chức Tài chính Ngân hàng", sanitized)
+    return sanitized
 
 
 TASKS = [

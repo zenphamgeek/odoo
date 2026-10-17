@@ -12,12 +12,31 @@ import time
 import json
 import urllib.request
 import urllib.error
+import xml.etree.ElementTree as ET
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 FLEET_URL = "http://localhost:7777"
 
 # Reliable nodes from fleet status
 FLEET_NODES = ["pro-1", "team-3", "node-5", "binhthuong", "zenonmind"]
+
+
+def validate_qweb_xml_safety(xml_string: str) -> None:
+    """Parses generated QWeb XML and blocks unescaped t-raw XSS sinks."""
+    try:
+        root = ET.fromstring(xml_string)
+    except ET.ParseError as exc:
+        raise ValueError(f"Generated output is not well-formed XML: {exc}") from exc
+
+    for elem in root.iter():
+        for attr in elem.attrib:
+            if attr == "t-raw" or attr.endswith("}t-raw"):
+                raise ValueError(
+                    f"Security Policy Violation: Disallowed QWeb attribute '{attr}' in <{elem.tag}>. Use 't-out' instead."
+                )
+            val = elem.attrib[attr]
+            if attr.startswith(("href", "src", "t-att-href", "t-att-src")) and "javascript:" in val.lower():
+                raise ValueError(f"Security Policy Violation: javascript: URI detected in {attr}.")
 
 SYSTEM_PROMPT = """You are an elite Lead UI/UX Designer and Specialty Coffee Storyteller for InnoKafe (innokafe.insilos.com).
 Your task is to un-slop QWeb XML views, replacing generic AI template clichés with authentic Vietnamese coffee craftsmanship.
@@ -48,7 +67,7 @@ MANDATORY RULES:
    Return valid, well-formatted XML templates starting with <template id="..." and ending with </template>.
 """
 
-def dispatch_fleet_job(task_name, prompt, node_name="pro-1", model="gemini-3.8-flash-high", timeout=180):
+def dispatch_fleet_job(task_name, prompt, node_name="pro-1", model="gemini-4-argon-high", timeout=180):
     payload = {
         "prompt": f"{SYSTEM_PROMPT}\n\nTASK [{task_name}]:\n{prompt}",
         "node_name": node_name,
