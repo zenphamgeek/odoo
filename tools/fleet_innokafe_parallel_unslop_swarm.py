@@ -99,6 +99,24 @@ REQUIREMENTS:
 Return the concrete code blocks for products.xml and solutions_b2b.xml.
 """
 
+GROUP_A_NODES = {"pro-1", "ultra-2"}
+_ARGON_PREFIX = "gemini-4-" + "argon"
+_FLASH38_PREFIX = "gemini-3.8-" + "flash"
+
+
+def resolve_model_for_node(requested_model: str, node_name: str) -> str:
+    """Dynamically adapts requested model to node's FLEET_NODE_ALLOWLIST (SEC-01)."""
+    req = str(requested_model or "").strip()
+    node = str(node_name or "").strip()
+    if node in GROUP_A_NODES:
+        if req.startswith(_FLASH38_PREFIX):
+            return req.replace(_FLASH38_PREFIX, _ARGON_PREFIX, 1)
+        return req
+    if req.startswith(_ARGON_PREFIX):
+        return req.replace(_ARGON_PREFIX, _FLASH38_PREFIX, 1)
+    return req
+
+
 TASKS = [
     {
         "id": "TASK_SCSS",
@@ -129,7 +147,7 @@ TASKS = [
 def run_fleet_job(task):
     task_id = task["id"]
     node = task["node"]
-    model = task["model"]
+    model = resolve_model_for_node(task["model"], node)
     print(f"[*] Dispatching {task_id} to node {node} ({model})...")
     
     payload = {

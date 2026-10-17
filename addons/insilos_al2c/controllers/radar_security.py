@@ -891,12 +891,78 @@ class SMTBoundedDomainASTValidator(ast.NodeVisitor):
         return True
 
 
+class MonotonicFencingTokenError(RuntimeError):
+    """Raised when a stale or expired fencing token attempts to mutate state or commit a savepoint (`CWE-367` / `CWE-662`)."""
+
+
+class MonotonicLeaseSavepointBarrier:
+    """Monotonic Fencing Leases with Cryptographic Lamport Witness (`MFL-CLW`, `SEC-02`):
+    Enforces lease validity using `time.monotonic()` and strictly increasing fencing tokens
+    to prevent split-brain savepoint corruption under NTP clock skew.
+    """
+
+    def __init__(self, lease_duration_sec: float = 30.0):
+        self.lease_duration_sec = float(lease_duration_sec)
+        self._lock = threading.Lock()
+        self._current_fencing_token: int = 0
+        self._lease_expiry_monotonic: float = 0.0
+        self._active_owner = None
+        self._lamport_witness_chain: str = hashlib.sha256(b"INSILOS_MFL_CLW_GENESIS").hexdigest()
+
+    def acquire_lease(self, owner_id: str):
+        owner = str(owner_id or "").strip()
+        if not owner:
+            raise MonotonicFencingTokenError("owner_id must be a non-empty string.")
+        with self._lock:
+            now_mono = time.monotonic()
+            if self._active_owner is not None and now_mono < self._lease_expiry_monotonic:
+                if self._active_owner != owner:
+                    raise MonotonicFencingTokenError(
+                        f"Lease currently held by {self._active_owner} until {self._lease_expiry_monotonic:.3f}"
+                    )
+            self._current_fencing_token += 1
+            self._active_owner = owner
+            self._lease_expiry_monotonic = now_mono + self.lease_duration_sec
+            frame = f"{self._lamport_witness_chain}|{self._current_fencing_token}|{owner}".encode("utf-8")
+            self._lamport_witness_chain = hashlib.sha256(frame).hexdigest()
+            return self._current_fencing_token, self._lease_expiry_monotonic
+
+    def validate_action(self, owner_id: str, fencing_token: int) -> bool:
+        with self._lock:
+            now_mono = time.monotonic()
+            if int(fencing_token) != self._current_fencing_token:
+                raise MonotonicFencingTokenError(
+                    f"Stale fencing token {fencing_token} < current {self._current_fencing_token}. Split-brain prevented."
+                )
+            if self._active_owner != str(owner_id or "").strip():
+                raise MonotonicFencingTokenError(
+                    f"Invalid lease owner {owner_id} (expected {self._active_owner})."
+                )
+            if now_mono >= self._lease_expiry_monotonic:
+                raise MonotonicFencingTokenError(
+                    f"Lease expired at monotonic {self._lease_expiry_monotonic:.3f} (now: {now_mono:.3f})."
+                )
+            return True
+
+    def release_lease(self, owner_id: str, fencing_token: int) -> None:
+        with self._lock:
+            if self._active_owner == str(owner_id or "").strip() and int(fencing_token) == self._current_fencing_token:
+                self._active_owner = None
+                self._lease_expiry_monotonic = 0.0
+
+    @property
+    def lamport_witness_hash(self) -> str:
+        return self._lamport_witness_chain
+
+
 class PrefectLeaseOdooSavepointBarrier:
     """PrefectLease-OdooSavepoint Barrier (`CWE-662` / `CWE-833`):
-    Synchronizes Prefect task lease hashing with an atomic PostgreSQL/Odoo `with cr.savepoint():` scope
-    and SMT-bounded domain validation so any `DomainSecurityViolation` rolls back cleanly without
-    poisoning the ambient transaction.
+    Synchronizes Prefect task lease hashing and monotonic fencing tokens (`MFL-CLW`) with an atomic
+    PostgreSQL/Odoo `with cr.savepoint():` scope and SMT-bounded domain validation so any
+    `DomainSecurityViolation` rolls back cleanly without poisoning the ambient transaction.
     """
+
+    _MONOTONIC_BARRIER = MonotonicLeaseSavepointBarrier(lease_duration_sec=30.0)
 
     @classmethod
     def execute_in_savepoint(
@@ -909,21 +975,37 @@ class PrefectLeaseOdooSavepointBarrier:
     ) -> Dict[str, Any]:
         if not isinstance(task_key, str) or not task_key.strip():
             raise ValidationError("task_key must be a non-empty string.")
+        clean_key = task_key.strip()
+        fencing_token, expiry_mono = cls._MONOTONIC_BARRIER.acquire_lease(clean_key)
         lease_hash = hashlib.sha256(
-            canonical_json_dumps({"task_key": task_key.strip(), "domain_str": str(domain_str or "")})
+            canonical_json_dumps(
+                {
+                    "task_key": clean_key,
+                    "domain_str": str(domain_str or ""),
+                    "fencing_token": fencing_token,
+                }
+            )
         ).hexdigest()
 
-        with cr.savepoint():
-            validator = SMTBoundedDomainASTValidator(allowed_fields=allowed_fields)
-            validator.validate(domain_str)
-            cb_result = callback(cr, lease_hash) if callable(callback) else None
-            return {
-                "status": "COMMITTED",
-                "task_key": task_key.strip(),
-                "lease_hash": lease_hash,
-                "node_count": validator.node_count,
-                "result": cb_result,
-            }
+        try:
+            with cr.savepoint():
+                cls._MONOTONIC_BARRIER.validate_action(clean_key, fencing_token)
+                validator = SMTBoundedDomainASTValidator(allowed_fields=allowed_fields)
+                validator.validate(domain_str)
+                cb_result = callback(cr, lease_hash) if callable(callback) else None
+                cls._MONOTONIC_BARRIER.validate_action(clean_key, fencing_token)
+                return {
+                    "status": "COMMITTED",
+                    "task_key": clean_key,
+                    "lease_hash": lease_hash,
+                    "fencing_token": fencing_token,
+                    "expiry_monotonic": expiry_mono,
+                    "lamport_witness_hash": cls._MONOTONIC_BARRIER.lamport_witness_hash,
+                    "node_count": validator.node_count,
+                    "result": cb_result,
+                }
+        finally:
+            cls._MONOTONIC_BARRIER.release_lease(clean_key, fencing_token)
 
 
 class MerkleWitnessGate:

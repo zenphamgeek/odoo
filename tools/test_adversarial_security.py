@@ -4384,6 +4384,104 @@ def test_patch_39_innoria_website_primary_brand_and_deexplicitized_content():
     print("[✓] Patch 39 / INNORIA Primary Website Brand & De-Explicitized Public Website/Concierge Content verified")
 
 
+def test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter():
+    """Patch 40 (`SEC-01`, `SEC-02`, `SEC-03` — Monotonic Fencing Leases `MFL-CLW`, Fleet Node Model
+    Adaptation & Public Brand Isolation Linter):
+    1. `SEC-01`: `resolve_model_for_node` in `tools/fleet_innokafe_parallel_unslop_swarm.py` dynamically adapts
+       models between Group A (`pro-1`, `ultra-2`) and Group B (`node-4`, `gaopham`, `fast`) nodes.
+    2. `SEC-02`: `MonotonicLeaseSavepointBarrier` (`tools/lease_barrier_monotonic.py` & `radar_security.py`)
+       enforces monotonic clock (`time.monotonic()`) immunity against 5-minute wall-clock skew (`time.time()`)
+       and rejects stale fencing tokens (`MonotonicFencingTokenError`, `CWE-367` / `CWE-662`).
+    3. `SEC-03`: `scan_file_for_brand_leaks` (`tools/lint_brand_isolation.py`) detects leaked internal ERP
+       `Digimate` / `Người Bạn Số` / `0317958465` identifiers in synthetic fixtures and verifies `0` leaks
+       across all public Website and Portal XML views (`CWE-200` / `CWE-359`).
+    """
+    import glob
+    import importlib.util
+    import tempfile
+    from unittest.mock import patch
+
+    # 1. SEC-01: Fleet Node Allowlist Model Adaptation
+    swarm_path = os.path.join(ROOT_DIR, "tools/fleet_innokafe_parallel_unslop_swarm.py")
+    spec_sw = importlib.util.spec_from_file_location("fleet_innokafe_parallel_unslop_swarm_p40", swarm_path)
+    mod_sw = importlib.util.module_from_spec(spec_sw)
+    spec_sw.loader.exec_module(mod_sw)
+    resolve_model_for_node = mod_sw.resolve_model_for_node
+
+    req_a = "gemini-4-" + "argon-high"
+    req_b = "gemini-3.8-" + "flash-high"
+    assert resolve_model_for_node(req_a, "node-4") == req_b
+    assert resolve_model_for_node(req_a, "gaopham") == req_b
+    assert resolve_model_for_node(req_a, "pro-1") == req_a
+    assert resolve_model_for_node(req_b, "ultra-2") == req_a
+
+    # 2. SEC-02: MonotonicLeaseSavepointBarrier Clock-Skew Immunity & Stale Fencing Rejection
+    lease_path = os.path.join(ROOT_DIR, "tools/lease_barrier_monotonic.py")
+    spec_lb = importlib.util.spec_from_file_location("lease_barrier_monotonic_p40", lease_path)
+    mod_lb = importlib.util.module_from_spec(spec_lb)
+    spec_lb.loader.exec_module(mod_lb)
+
+    radar_sec_path = os.path.join(ROOT_DIR, "addons/insilos_al2c/controllers/radar_security.py")
+    spec_rs = importlib.util.spec_from_file_location("insilos_radar_security_p40", radar_sec_path)
+    mod_rs = importlib.util.module_from_spec(spec_rs)
+    spec_rs.loader.exec_module(mod_rs)
+
+    for BarrierCls, ErrCls in (
+        (mod_lb.MonotonicLeaseSavepointBarrier, mod_lb.MonotonicFencingTokenError),
+        (mod_rs.MonotonicLeaseSavepointBarrier, mod_rs.MonotonicFencingTokenError),
+    ):
+        barrier = BarrierCls(lease_duration_sec=10.0)
+        with patch("time.monotonic", return_value=1000.0):
+            token1, expiry1 = barrier.acquire_lease("worker-A")
+            assert token1 == 1
+            assert expiry1 == 1010.0
+
+        # Simulate NTP backward wall-clock jump of 300s while monotonic advances +2s
+        with patch("time.time", return_value=500.0), patch("time.monotonic", return_value=1002.0):
+            assert barrier.validate_action("worker-A", token1) is True
+            contended = False
+            try:
+                barrier.acquire_lease("worker-B")
+            except ErrCls:
+                contended = True
+            assert contended, "Expected active monotonic lease to reject competing worker-B"
+
+        # Advance monotonic past expiry (1015.0 > 1010.0); worker-B acquires token 2, worker-A fails closed
+        with patch("time.monotonic", return_value=1015.0):
+            token2, _ = barrier.acquire_lease("worker-B")
+            assert token2 == 2
+            stale_rejected = False
+            try:
+                barrier.validate_action("worker-A", token1)
+            except ErrCls as exc:
+                stale_rejected = "Stale fencing token" in str(exc)
+            assert stale_rejected, "Expected stale fencing token from worker-A to raise MonotonicFencingTokenError"
+
+    # 3. SEC-03: Brand Isolation Linter
+    lint_path = os.path.join(ROOT_DIR, "tools/lint_brand_isolation.py")
+    spec_ln = importlib.util.spec_from_file_location("lint_brand_isolation_p40", lint_path)
+    mod_ln = importlib.util.module_from_spec(spec_ln)
+    spec_ln.loader.exec_module(mod_ln)
+    scan_file_for_brand_leaks = mod_ln.scan_file_for_brand_leaks
+
+    with tempfile.NamedTemporaryFile("w", suffix=".xml", delete=False, encoding="utf-8") as tmp_bad:
+        tmp_bad.write('<template id="bad_footer"><p>Powered by ' + 'Digimate' + ' Tax ID ' + '0317958465' + '</p></template>\n')
+        bad_path = tmp_bad.name
+    try:
+        bad_violations = scan_file_for_brand_leaks(bad_path)
+        assert len(bad_violations) >= 2, f"Expected >= 2 violations on synthetic leak XML, got {bad_violations}"
+    finally:
+        os.unlink(bad_path)
+
+    public_xml_targets = sorted(glob.glob(os.path.join(ROOT_DIR, "enterprise/insilos_website/views/*.xml")))
+    public_xml_targets.append(os.path.join(ROOT_DIR, "addons/insilos_al2c/views/portal_templates.xml"))
+    for xml_p in public_xml_targets:
+        v_list = scan_file_for_brand_leaks(xml_p)
+        assert v_list == [], f"Unexpected brand leak in {xml_p}: {v_list}"
+
+    print("[✓] Patch 40 / MFL-CLW MonotonicLeaseSavepointBarrier, Fleet Model Resolver & Brand Isolation Linter verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -4438,8 +4536,9 @@ def main():
     test_patch_37_zenonmind_smt_domain_ztpp_and_rfc8785_merkle()
     test_patch_38_prefect_lease_odoo_savepoint_and_smt_bounded_ast()
     test_patch_39_innoria_website_primary_brand_and_deexplicitized_content()
-    print("[✓] ALL 39 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 39 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter()
+    print("[✓] ALL 40 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 40 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
