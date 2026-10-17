@@ -191,6 +191,16 @@ CANONICAL_O20_ADRS: List[Dict[str, str]] = [
             "and ISO/IEC 27701 & Decree 13/2023 PII Scrubber."
         ),
     },
+    {
+        "adr_id": "ADR-20261017-013",
+        "title": "SOP-DGM-13: Autonomous Marketing Automation, Continuous B2B Market Research, Competitor Battlecards & GEO Content Supply Chain",
+        "valid_from": "2026-10-17T07:35:00+00:00",
+        "rationale": (
+            "Implements dgm.market.research.radar (MKT-RES-01..06 covering 87,500B VND TAM / 960B VND SOM across 6 pillars) "
+            "and dgm.marketing.automation.campaign (AUT-CMP-01..06 24/7 autonomous 4-Touch ABM & GEO funnels) with 100% Claim Atom "
+            "grounding (al2c.claim.atom -> al2c.marketing.kit), SOP-RAG Battlecard indexing, and 6-hour scheduled execution."
+        ),
+    },
 ]
 
 

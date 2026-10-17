@@ -35,6 +35,7 @@ Autonomous Lead-to-Cash foundation for Innoria / Insilos.
         'helpdesk',
         'portal',
         'auth_signup',
+        'marketing_automation',
     ],
     'data': [
         'security/al2c_security.xml',
@@ -76,6 +77,7 @@ Autonomous Lead-to-Cash foundation for Innoria / Insilos.
         'views/dgm_hr_kpi_skill_views.xml',
         'views/dgm_okr_appraisal_project_views.xml',
         'views/dgm_knowledge_rag_chatbot_views.xml',
+        'views/dgm_autonomous_marketing_research_views.xml',
     ],
     'assets': {
         'web.assets_frontend': [

@@ -50,4 +50,14 @@
         <field name="interval_type">days</field>
         <field name="active" eval="True"/>
     </record>
+
+    <record id="ir_cron_dgm_autonomous_marketing_research" model="ir.cron">
+        <field name="name">DGM Autonomous B2B Market Research, Battlecard Sync &amp; 4-Touch ABM Lead Nurture (SOP-DGM-13)</field>
+        <field name="model_id" ref="model_dgm_marketing_automation_campaign"/>
+        <field name="state">code</field>
+        <field name="code">model.cron_dgm_autonomous_marketing_and_research()</field>
+        <field name="interval_number">6</field>
+        <field name="interval_type">hours</field>
+        <field name="active" eval="True"/>
+    </record>
 </odoo>

@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ===================================================================== -->
+    <!-- 1. DGM B2B MARKET RESEARCH RADAR & BATTLECARD VIEWS (SOP-DGM-13)      -->
+    <!-- ===================================================================== -->
+    <record id="view_dgm_market_research_radar_list" model="ir.ui.view">
+        <field name="name">dgm.market.research.radar.list</field>
+        <field name="model">dgm.market.research.radar</field>
+        <field name="arch" type="xml">
+            <list string="Radar Nghiên cứu Thị trường B2B &amp; Battlecard Đối thủ (SOP-DGM-13)">
+                <field name="code" decoration-bf="1"/>
+                <field name="name"/>
+                <field name="service_pillar"/>
+                <field name="target_icp_segment"/>
+                <field name="tam_vnd_billion"/>
+                <field name="sam_vnd_billion"/>
+                <field name="som_target_vnd_billion" decoration-bf="1"/>
+                <field name="cagr_pct"/>
+                <field name="win_rate_benchmark_pct"/>
+                <field name="claim_count"/>
+                <field name="grounding_verified" widget="boolean_toggle"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('scanning', 'synthesized')"
+                       decoration-primary="state == 'verified_grounded'"
+                       decoration-success="state == 'published_campaign'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_market_research_radar_form" model="ir.ui.view">
+        <field name="name">dgm.market.research.radar.form</field>
+        <field name="model">dgm.market.research.radar</field>
+        <field name="arch" type="xml">
+            <form string="Hồ sơ Nghiên cứu Thị trường B2B &amp; Battlecard Đối thủ (SOP-DGM-13)">
+                <header>
+                    <button name="action_synthesize_and_verify_radar"
+                            type="object"
+                            string="⚡ Kiểm chứng Claim Atom &amp; Đồng bộ Chỉ mục SOP-RAG"
+                            class="btn-primary"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="scanning,synthesized,verified_grounded,published_campaign"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="Mã Hồ sơ Nghiên cứu (MKT-RES)"/>
+                        <h1>
+                            <field name="code" class="me-2"/>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Định vị Phân khúc &amp; Quy mô Thị trường (TAM / SAM / SOM)">
+                            <field name="service_pillar"/>
+                            <field name="target_icp_segment"/>
+                            <field name="tam_vnd_billion"/>
+                            <field name="sam_vnd_billion"/>
+                            <field name="som_target_vnd_billion"/>
+                            <field name="cagr_pct"/>
+                        </group>
+                        <group string="Chỉ số Cạnh tranh &amp; Xác thực Claim Atom">
+                            <field name="primary_competitors"/>
+                            <field name="win_rate_benchmark_pct"/>
+                            <field name="recommended_pricing_anchor_vnd"/>
+                            <field name="claim_count"/>
+                            <field name="grounding_verified"/>
+                            <field name="rag_chunk_id"/>
+                            <field name="last_scan_at"/>
+                            <field name="content_sha256"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="1. Phân tích Điểm yếu Đối thủ &amp; Lợi thế Độc tôn Innoria" name="moat_matrix">
+                            <group>
+                                <field name="competitor_weakness_matrix" placeholder="Điểm yếu cốt lõi của nhóm đối thủ truyền thống..."/>
+                                <field name="innoria_moat_proposition" placeholder="Lợi thế độc tôn Innoria (Clean-Core, NĐ 70, 0% GTGT Xuất khẩu, AI Native)..."/>
+                                <field name="geo_keywords" placeholder="Từ khóa tối ưu công cụ tìm kiếm AI (ChatGPT, Gemini, Perplexity, Google AI Overviews)..."/>
+                            </group>
+                        </page>
+                        <page string="2. Battlecard Thắng Thầu &amp; Claim Atoms (SHA-256)" name="battlecard">
+                            <group>
+                                <field name="battlecard_markdown"/>
+                                <field name="claim_atom_ids" widget="many2many_tags"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_market_research_radar" model="ir.actions.act_window">
+        <field name="name">Radar Nghiên cứu Thị trường B2B &amp; Battlecard (SOP-DGM-13)</field>
+        <field name="res_model">dgm.market.research.radar</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ===================================================================== -->
+    <!-- 2. DGM AUTONOMOUS MARKETING CAMPAIGN & 4-TOUCH ABM VIEWS (SOP-DGM-13) -->
+    <!-- ===================================================================== -->
+    <record id="view_dgm_marketing_automation_campaign_list" model="ir.ui.view">
+        <field name="name">dgm.marketing.automation.campaign.list</field>
+        <field name="model">dgm.marketing.automation.campaign</field>
+        <field name="arch" type="xml">
+            <list string="Chiến dịch Marketing Tự hành 24/7 &amp; Phễu 4-Touch ABM (SOP-DGM-13)">
+                <field name="code" decoration-bf="1"/>
+                <field name="name"/>
+                <field name="research_radar_id"/>
+                <field name="service_pillar"/>
+                <field name="channel_mix"/>
+                <field name="actual_mql_count"/>
+                <field name="actual_sql_count" decoration-bf="1"/>
+                <field name="conversion_rate_pct"/>
+                <field name="pipeline_revenue_vnd" decoration-bf="1"/>
+                <field name="roi_multiple" decoration-bf="1"/>
+                <field name="claim_grounding_rate"/>
+                <field name="autonomy_mode" widget="badge"
+                       decoration-success="autonomy_mode == 'autonomous_on'"
+                       decoration-warning="autonomy_mode == 'human_gate'"
+                       decoration-muted="autonomy_mode == 'paused'"/>
+                <field name="state" widget="badge"
+                       decoration-info="state in ('draft', 'grounded_ready')"
+                       decoration-success="state == 'running_autonomous'"
+                       decoration-primary="state == 'completed'"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_dgm_marketing_automation_campaign_form" model="ir.ui.view">
+        <field name="name">dgm.marketing.automation.campaign.form</field>
+        <field name="model">dgm.marketing.automation.campaign</field>
+        <field name="arch" type="xml">
+            <form string="Chiến dịch Marketing Tự hành 24/7 &amp; Phễu 4-Touch ABM (SOP-DGM-13)">
+                <header>
+                    <button name="action_activate_autonomous_campaign"
+                            type="object"
+                            string="🚀 Kích hoạt Chiến dịch Tự hành 24/7 (100% Claim Grounded)"
+                            class="btn-primary"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,grounded_ready,running_autonomous,completed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="code" string="Mã Chiến dịch Tự hành (AUT-CMP)"/>
+                        <h1>
+                            <field name="code" class="me-2"/>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="Cấu hình Chiến dịch &amp; Liên kết Nghiên cứu Thị trường">
+                            <field name="research_radar_id"/>
+                            <field name="service_pillar"/>
+                            <field name="channel_mix"/>
+                            <field name="owner_employee_id"/>
+                            <field name="marketing_kit_id"/>
+                            <field name="native_campaign_id"/>
+                            <field name="autonomy_mode"/>
+                            <field name="last_autonomous_run"/>
+                        </group>
+                        <group string="Hiệu quả Phễu MQL -> SQL, Doanh thu Pipeline &amp; ROI">
+                            <field name="target_mql_count"/>
+                            <field name="actual_mql_count"/>
+                            <field name="target_sql_count"/>
+                            <field name="actual_sql_count"/>
+                            <field name="conversion_rate_pct"/>
+                            <field name="pipeline_revenue_vnd"/>
+                            <field name="campaign_budget_vnd"/>
+                            <field name="roi_multiple"/>
+                            <field name="claim_grounding_rate"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="1. Kịch bản Nuôi dưỡng 4-Touch ABM (Ngày 1 -> Ngày 14)" name="nurture_4touch">
+                            <group>
+                                <field name="nurture_touch_1_day1"/>
+                                <field name="nurture_touch_2_day4"/>
+                                <field name="nurture_touch_3_day8"/>
+                                <field name="nurture_touch_4_day14"/>
+                            </group>
+                        </page>
+                        <page string="2. Cơ hội B2B Đã Thu hút &amp; Nuôi dưỡng (CRM Leads)" name="leads">
+                            <field name="lead_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_dgm_marketing_automation_campaign" model="ir.actions.act_window">
+        <field name="name">Chiến dịch Marketing Tự hành 24/7 &amp; Phễu 4-Touch ABM (SOP-DGM-13)</field>
+        <field name="res_model">dgm.marketing.automation.campaign</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

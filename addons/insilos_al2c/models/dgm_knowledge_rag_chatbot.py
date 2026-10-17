@@ -48,6 +48,7 @@ SOP_RBAC_PROFILE_SELECTION = [
     ("mti_timesheet", "Bảng Chấm công & Đối soát Timesheet MTI (Compat)"),
     ("sales_kit", "Tài liệu Bán hàng & Giải pháp Thương mại (Compat)"),
     ("digital_solution", "Giải pháp Chuyển đổi Số & Kiến trúc Kỹ thuật (Compat)"),
+    ("crm_sales", "CRM, Sales & Autonomous Marketing (SOP-DGM-13)"),
 ]
 
 # Bidirectional alias map between SOP-DGM-12 RBAC profiles and documents.document RBAC profiles
@@ -61,7 +62,8 @@ RBAC_PROFILE_COMPAT_ALIASES = {
     "commercial_contracts": ["commercial_contracts", "commercial_contract", "mti_contract"],
     "mti_timesheet_delivery": ["mti_timesheet_delivery", "mti_timesheet"],
     "project_delivery": ["project_delivery", "digital_solution"],
-    "marketing_growth": ["marketing_growth", "brand_sales", "sales_kit"],
+    "marketing_growth": ["marketing_growth", "brand_sales", "sales_kit", "crm_sales"],
+    "crm_sales": ["crm_sales", "marketing_growth", "brand_sales", "sales_kit"],
     "personal_workspace": ["personal_workspace"],
 }
 
@@ -155,6 +157,7 @@ class Al2cRagChunkSopExtension(models.Model):
             ("internal", "Internal"),
             ("confidential", "Confidential"),
             ("strictly_restricted", "Strictly Restricted"),
+            ("C1_INTERNAL", "Internal (C1)"),
         ],
         string="Mức độ Bảo mật (ISO 27701)",
         default="public",

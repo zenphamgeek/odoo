@@ -129,3 +129,10 @@ class Al2cMarketingKit(models.Model):
                 })
 
         return True
+
+    def action_publish_kit(self):
+        for kit in self:
+            if not kit.grounding_verified:
+                kit.action_generate_asset_kit()
+            kit.write({'state': 'published'})
+        return True
