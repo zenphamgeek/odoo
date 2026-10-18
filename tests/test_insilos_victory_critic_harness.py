@@ -1906,3 +1906,71 @@ def test_sales_quote_crdt_transparency_tree_and_pubgrub_cpq_validator_e2e():
 
     valid, errors = solver.validate_cart({"SKU-ENTERPRISE-CLOUD", "SKU-CORE-DB"})
     assert valid and len(errors) == 0
+
+
+def test_sales_quote_crdt_harness_state_trellis_e2e():
+    """Verify ProVerif-Verified State-Trellis SalesQuoteCRDTHarness & JSONCRDTOperation."""
+    JSONCRDTOperation = _lock_mod.JSONCRDTOperation
+    SalesQuoteCRDTHarness = _lock_mod.SalesQuoteCRDTHarness
+
+    harness = SalesQuoteCRDTHarness(quote_id="SO-2026-T13", tenant_id="TENANT-INNORIA-VN")
+    assert harness.verify_invariant() is True
+    assert harness.apply_odoo_odoo_pattern() is True
+
+    op1 = JSONCRDTOperation(
+        op_id="op-001",
+        actor="rep_vn",
+        path=["lines", "line_1"],
+        op_type="set",
+        value={"sku": "ERP-GROWTH", "qty": 1, "discount": 5.0},
+    )
+    op2 = JSONCRDTOperation(
+        op_id="op-002",
+        actor="deal_desk",
+        path=["lines", "line_2"],
+        op_type="set",
+        value={"sku": "AI-PILOT", "qty": 1, "discount": 10.0},
+    )
+    op3 = JSONCRDTOperation(
+        op_id="op-003",
+        actor="deal_desk",
+        path=["status"],
+        op_type="set",
+        value="approved",
+    )
+
+    h1 = harness.apply_operation(op1)
+    h2 = harness.apply_operation(op2)
+    h3 = harness.apply_operation(op3)
+
+    assert len(h1) == 64 and h1 != h2 and h2 != h3
+    assert harness.verify_invariant() is True
+    assert harness.apply_odoo_odoo_pattern() is True
+    assert harness.apply_astral_sh_uv_pattern() is True
+
+    # Duplicate SKU violates astral_sh_uv uniqueness pattern
+    op_dup = JSONCRDTOperation(
+        op_id="op-004",
+        actor="rep_vn",
+        path=["lines", "line_3"],
+        op_type="set",
+        value={"sku": "ERP-GROWTH", "qty": 2},
+    )
+    harness.apply_operation(op_dup)
+    assert harness.apply_astral_sh_uv_pattern() is False
+
+    # Delete duplicate line restores validity
+    op_del = JSONCRDTOperation(
+        op_id="op-005",
+        actor="rep_vn",
+        path=["lines", "line_3"],
+        op_type="delete",
+        value=None,
+    )
+    harness.apply_operation(op_del)
+    assert harness.apply_astral_sh_uv_pattern() is True
+    assert harness.verify_invariant() is True
+
+    # Tamper Merkle history -> fails invariant
+    harness.merkle_history[2] = "0" * 64
+    assert harness.verify_invariant() is False
