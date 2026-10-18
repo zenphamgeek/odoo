@@ -1152,3 +1152,97 @@ def test_sales_quote_crdt_e2e_concurrent_merge_and_tombstones() -> None:
     assert node_b.verify_invariant() is True
 
 
+GateSalesStage = _lock_mod.GateSalesStage
+GateSalesEvent = _lock_mod.GateSalesEvent
+StateAuditBlock = _lock_mod.StateAuditBlock
+BantGateSalesStateMachine = _lock_mod.BantGateSalesStateMachine
+
+
+def test_bant_gate_sales_state_machine_e2e_lifecycle_and_gate_validation() -> None:
+    """Verifies BANT-to-Closed-Won semantic gates, RLS tenant guard, and StateAuditBlock chain."""
+    fsm = BantGateSalesStateMachine(tenant_id="tenant_acme_01", opportunity_id="opp_99412")
+    assert fsm.current_stage == GateSalesStage.LEAD_DISCOVERY
+    assert len(fsm.audit_chain) == 1
+    assert fsm.verify_invariant() is True
+
+    # Cross-tenant isolation check
+    with pytest.raises(PermissionError, match="Access Denied: Tenant mismatch"):
+        fsm.transition(
+            GateSalesEvent(
+                event_id="evt_leak",
+                tenant_id="tenant_competitor_99",
+                target_stage=GateSalesStage.QUALIFICATION_BANT,
+                payload={"budget": 50000, "authority": "VP", "need": "CRM", "timeline": "Q1"},
+                timestamp_utc="2026-04-19T12:05:00Z",
+                actor_id="malicious_agent",
+            )
+        )
+
+    # Illegal stage jump and incomplete BANT payload check
+    with pytest.raises(ValueError, match="Invalid transition"):
+        fsm.transition(
+            GateSalesEvent(
+                event_id="evt_skip",
+                tenant_id="tenant_acme_01",
+                target_stage=GateSalesStage.CLOSED_WON,
+                payload={"contract_signature_ref": "sig_fake"},
+                timestamp_utc="2026-04-19T12:10:00Z",
+                actor_id="agent_sales_02",
+            )
+        )
+    with pytest.raises(ValueError, match="BANT qualification failed"):
+        fsm.transition(
+            GateSalesEvent(
+                event_id="evt_bad_bant",
+                tenant_id="tenant_acme_01",
+                target_stage=GateSalesStage.QUALIFICATION_BANT,
+                payload={"budget": -100, "authority": "CTO"},
+                timestamp_utc="2026-04-19T12:11:00Z",
+                actor_id="agent_sales_02",
+            )
+        )
+
+    # Full 5-stage progression to CLOSED_WON
+    steps = [
+        (
+            "evt_01",
+            GateSalesStage.QUALIFICATION_BANT,
+            {"budget": 150000, "authority": "CTO", "need": "ERP Consolidation", "timeline": "Q3"},
+        ),
+        ("evt_02", GateSalesStage.TECHNICAL_VALIDATION, {"architecture_approved": True}),
+        ("evt_03", GateSalesStage.COMMERCIAL_PROPOSAL, {"pricing_schedule_id": "PRC-2026-88B"}),
+        ("evt_04", GateSalesStage.LEGAL_SECURITY_REVIEW, {"dpa_signed": True}),
+        ("evt_05", GateSalesStage.CLOSED_WON, {"contract_signature_ref": "DOCUSIGN-ENV-7741"}),
+    ]
+    for idx, (evt_id, target, payload) in enumerate(steps, start=1):
+        block = fsm.transition(
+            GateSalesEvent(
+                event_id=evt_id,
+                tenant_id="tenant_acme_01",
+                target_stage=target,
+                payload=payload,
+                timestamp_utc=f"2026-04-19T12:0{idx}:00Z",
+                actor_id="agent_sales_01",
+            )
+        )
+        assert block.index == idx
+        assert fsm.current_stage == target
+        assert fsm.verify_invariant() is True
+
+    assert len(fsm.audit_chain) == 6
+    assert fsm.metadata["contract_signature_ref"] == "DOCUSIGN-ENV-7741"
+
+    # Tamper detection on StateAuditBlock chain
+    original = fsm.audit_chain[1]
+    fsm.audit_chain[1] = StateAuditBlock(
+        index=original.index,
+        prev_hash=original.prev_hash,
+        state_digest="f" * 64,
+        event_id=original.event_id,
+        timestamp_utc=original.timestamp_utc,
+        block_hash=original.block_hash,
+    )
+    assert fsm.verify_invariant() is False
+
+
+
