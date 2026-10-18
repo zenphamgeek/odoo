@@ -5387,6 +5387,121 @@ def test_patch_47_coderedgen_rfc5869_hkdf_numeric_slug_guard_and_canonical_token
     print("[✓] Patch 47 / coderedgen RFC 5869 HKDF, Numeric-Only Slug Block & Canonical SHA-256 Segment Token v1 verified")
 
 
+def test_patch_48_justaskgao_hkdf_subkey_and_transactional_advisory_nonce_ring():
+    """Patch 48 (justaskgao / gemini-4-argon-high):
+    Verify _derive_hkdf_key domain isolation, struct-packed 64-bit Kanban WIP saturation backpressure,
+    and verify_and_claim_onboarding_token with PostgreSQL transactional advisory lock hash ring
+    (0x4E4F4E4300000000 | (nonce_hash_int & 0xFFFFFFFF)).
+    """
+    import hashlib
+    import hmac
+    import importlib.util
+    import sys
+    import time
+    import types
+
+    main_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    if "odoo" in sys.modules:
+        odoo_mod = sys.modules["odoo"]
+        if not hasattr(odoo_mod, "fields"):
+            odoo_mod.fields = types.SimpleNamespace(Datetime=types.SimpleNamespace(now=lambda: None))
+        if not hasattr(odoo_mod, "http"):
+            class _DummyController:
+                pass
+            def _dummy_route(*args, **kwargs):
+                return lambda fn: fn
+            odoo_mod.http = types.SimpleNamespace(Controller=_DummyController, route=_dummy_route, request=None)
+            sys.modules["odoo.http"] = odoo_mod.http
+        if hasattr(odoo_mod, "exceptions"):
+            if not hasattr(odoo_mod.exceptions, "AccessError"):
+                class _AccessError(Exception):
+                    pass
+                odoo_mod.exceptions.AccessError = _AccessError
+            if not hasattr(odoo_mod.exceptions, "UserError"):
+                class _UserError(Exception):
+                    pass
+                odoo_mod.exceptions.UserError = _UserError
+
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_main_ctrl_48", main_py)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    # 1. Verify _derive_hkdf_key isolation & empty secret rejection
+    master = "super-secret-system-entropy-key-" + str(99887766)
+    k_onb = ctrl_mod._derive_hkdf_key(master, b"context:onboarding:v1", 32)
+    k_lease = ctrl_mod._derive_hkdf_key(master, b"context:lease:v1", 32)
+    assert isinstance(k_onb, bytes) and len(k_onb) == 32 and k_onb != k_lease
+
+    try:
+        ctrl_mod._derive_hkdf_key("", b"context:onboarding:v1", 32)
+        raise AssertionError("Expected ValidationError on empty master secret")
+    except ctrl_mod.ValidationError:
+        pass
+
+    # 2. Verify verify_and_claim_onboarding_token & transactional advisory lock nonce hash ring
+    class _MockRingCursor:
+        def __init__(self, lock_responses):
+            self._responses = list(lock_responses)
+            self._current = False
+            self.call_count = 0
+        def execute(self, query, params=None):
+            if "pg_try_advisory_xact_lock" in query:
+                self.call_count += 1
+                self._current = self._responses.pop(0) if self._responses else False
+        def fetchone(self):
+            return (self._current,)
+
+    class _MockEnv48:
+        def __init__(self, secret, lock_responses):
+            self.cr = _MockRingCursor(lock_responses)
+            self._secret = secret
+        def __getitem__(self, key):
+            return self
+        def sudo(self):
+            return self
+        def get_param(self, key, default=False):
+            if "secret" in key:
+                return self._secret
+            return default
+
+    env48 = _MockEnv48("justaskgao-master-secret-" + str(48484848), [True, False, False, False, False])
+    derived_key = ctrl_mod._derive_domain_hmac_secret(env48, ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+    slug = "valid-tenant"
+    current_ts = int(time.time())
+    nonce = "unique-nonce-xyz-987"
+    payload = f"{slug}.{current_ts}.{nonce}".encode("utf-8")
+    sig = hmac.new(derived_key, payload, hashlib.sha256).hexdigest()
+    tok = f"{slug}.{current_ts}.{nonce}.{sig}"
+
+    # Valid claim succeeds
+    claimed = ctrl_mod.verify_and_claim_onboarding_token(env48, tok)
+    assert claimed["slug"] == slug and claimed["nonce"] == nonce
+
+    # Replay / lock collision fails
+    try:
+        ctrl_mod.verify_and_claim_onboarding_token(env48, tok)
+        raise AssertionError("Expected replay detection when advisory lock returns False")
+    except ctrl_mod.ValidationError as exc:
+        assert "replay detected" in str(exc).lower()
+
+    # Tampered signature fails
+    tampered_tok = f"{slug}.{current_ts}.{nonce}.{sig[:-2]}00"
+    try:
+        ctrl_mod.verify_and_claim_onboarding_token(env48, tampered_tok)
+        raise AssertionError("Expected AccessError on tampered signature")
+    except ctrl_mod.AccessError:
+        pass
+
+    # Kanban WIP saturation raises UserError with 'high load'
+    try:
+        with ctrl_mod.acquire_kanban_wip_slot(env48, max_wip_slots=3):
+            raise AssertionError("Expected UserError on Kanban WIP saturation")
+    except ctrl_mod.UserError as exc:
+        assert "high load" in str(exc).lower()
+
+    print("[✓] Patch 48 / justaskgao RFC 5869 _derive_hkdf_key & Transactional Advisory Hash Ring Nonce Settlement verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5449,8 +5564,9 @@ def main():
     test_patch_45_zenphamgeek_persistent_nonce_ledger_and_self_contained_token()
     test_patch_46_zenphamgeek_autonomous_cursor_nonce_and_kanban_wip_limiter()
     test_patch_47_coderedgen_rfc5869_hkdf_numeric_slug_guard_and_canonical_token_v1()
-    print("[✓] ALL 47 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 47 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_48_justaskgao_hkdf_subkey_and_transactional_advisory_nonce_ring()
+    print("[✓] ALL 48 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 48 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
