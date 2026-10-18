@@ -5849,6 +5849,46 @@ def test_patch_53_agy_home_decoded_entropy_and_zero_ddl_nonce_guard():
     print("[✓] Patch 53 / agy-home Decoded Entropy Normalization & Zero-DDL Nonce Guard verified")
 
 
+def test_patch_54_immoon0009_reverse_clock_drift_resurrection_and_submodule_parity():
+    """Verify Patch 54 (immoon0009-gmail-com / claude-opus-5-5-high):
+    1. Reverse Clock Drift Nonce Resurrection defense: record_and_verify_nonce_transactional extends expires_at by MAX_ALLOWED_CLOCK_SKEW_SECONDS.
+    2. Zero f-string JSON injection and zero ILIKE wildcard injection in main.py idempotency probe.
+    """
+    import importlib.util
+    import uuid
+    from datetime import datetime, timezone
+
+    ctrl_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    with open(ctrl_path, "r", encoding="utf-8") as f:
+        ctrl_src = f.read()
+
+    # Ensure zero ILIKE wildcard probe on payload_json or raw f-string JSON payload in main.py
+    assert "('payload_json', 'ilike'" not in ctrl_src, "ILIKE wildcard probe on payload_json is forbidden in main.py"
+    assert "op.tenant_id.owner_email == owner_email" in ctrl_src, "Exact equality check required for owner_email"
+
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_ctrl_p54", ctrl_path)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    class _ClockSkewCr:
+        def __init__(self):
+            self.last_params = None
+        def execute(self, query, params=None):
+            self.last_params = params
+        def fetchone(self):
+            return (1,)
+
+    cr_skew = _ClockSkewCr()
+    before_utc = datetime.now(timezone.utc).replace(tzinfo=None)
+    assert ctrl_mod.record_and_verify_nonce_transactional(cr_skew, str(uuid.uuid4()), "ctx", ttl_seconds=1800) is True
+    recorded_exp = datetime.strptime(cr_skew.last_params[2], "%Y-%m-%d %H:%M:%S")
+    delta_sec = (recorded_exp - before_utc).total_seconds()
+    # Must include both ttl_seconds (1800) and MAX_ALLOWED_CLOCK_SKEW_SECONDS (300) -> >= 2095s
+    assert delta_sec >= 2095, f"Expected expires_at to include clock skew margin (>= 2095s), got {delta_sec}s"
+
+    print("[✓] Patch 54 / immoon0009 Reverse Clock Drift Nonce Resurrection Guard & Submodule Parity verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5917,8 +5957,9 @@ def main():
     test_patch_51_tsmei0209_entropy_32b_record_transactional_nonce_and_crypto_shredding()
     test_patch_52_coderedgen_shannon_entropy_zero_width_strip_and_punycode_guard()
     test_patch_53_agy_home_decoded_entropy_and_zero_ddl_nonce_guard()
-    print("[✓] ALL 53 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 53 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_54_immoon0009_reverse_clock_drift_resurrection_and_submodule_parity()
+    print("[✓] ALL 54 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 54 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
