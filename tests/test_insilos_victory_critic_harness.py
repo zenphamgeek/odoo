@@ -550,3 +550,112 @@ def test_a2a_clearing_e2e_deal_lifecycle_and_double_entry() -> None:
         )
 
 
+import asyncio
+
+PipelineStage = _lock_mod.PipelineStage
+KanbanCapacityExceededError = _lock_mod.KanbanCapacityExceededError
+TokenLeaseTimeoutError = _lock_mod.TokenLeaseTimeoutError
+PipelineEvent = _lock_mod.PipelineEvent
+SalesLeadState = _lock_mod.SalesLeadState
+KanbanPullController = _lock_mod.KanbanPullController
+EnterpriseSalesPipeline = _lock_mod.EnterpriseSalesPipeline
+
+
+def test_kanban_sales_pipeline_e2e_lifecycle_and_wip_bounds() -> None:
+    """Verifies end-to-end CRM Lead-to-Deal Kanban Pull lifecycle, WIP limits, and SHA-256 chain integrity."""
+    async def _run_scenario() -> None:
+        limits = {
+            PipelineStage.LEAD_TRIAGE: 3,
+            PipelineStage.DEAL_QUALIFICATION: 2,
+            PipelineStage.PROPOSAL_SYNTHESIS: 1,
+            PipelineStage.EXECUTIVE_CLOSING: 2,
+        }
+        controller = KanbanPullController(limits)
+        pipeline = EnterpriseSalesPipeline(controller)
+
+        lead = EnterpriseSalesPipeline.initialize_lead(
+            lead_id="LEAD-ENT-900",
+            tenant_id="TENANT-ACME",
+            initial_metrics={"arr_estimate": 120000, "source": "inbound_enterprise"},
+        )
+        assert lead.current_stage == PipelineStage.LEAD_TRIAGE
+        assert len(lead.event_log) == 1
+        assert lead.verify_audit_chain() is True
+
+        async def qualify_agent(state: SalesLeadState) -> Dict[str, Any]:
+            assert controller.get_active_wip(PipelineStage.DEAL_QUALIFICATION) == 1
+            return {"meddic_score": 92, "qualified": True}
+
+        lead = await pipeline.execute_stage_pull(
+            lead, PipelineStage.DEAL_QUALIFICATION, qualify_agent
+        )
+        assert lead.current_stage == PipelineStage.DEAL_QUALIFICATION
+        assert lead.deal_metrics["meddic_score"] == 92
+        assert controller.get_active_wip(PipelineStage.DEAL_QUALIFICATION) == 0
+
+        async def proposal_agent(state: SalesLeadState) -> Dict[str, Any]:
+            assert controller.get_active_wip(PipelineStage.PROPOSAL_SYNTHESIS) == 1
+            return {"discount_pct": 8.5, "proposal_doc": "SOW-900-V1"}
+
+        lead = await pipeline.execute_stage_pull(
+            lead, PipelineStage.PROPOSAL_SYNTHESIS, proposal_agent
+        )
+        assert lead.current_stage == PipelineStage.PROPOSAL_SYNTHESIS
+
+        async def closing_agent(state: SalesLeadState) -> Dict[str, Any]:
+            return {"countersigned": True, "po_number": "PO-ACME-2026"}
+
+        lead = await pipeline.execute_stage_pull(
+            lead, PipelineStage.EXECUTIVE_CLOSING, closing_agent
+        )
+        assert lead.current_stage == PipelineStage.EXECUTIVE_CLOSING
+
+        async def finalize_agent(state: SalesLeadState) -> Dict[str, Any]:
+            return {"closed_won": True}
+
+        lead = await pipeline.execute_stage_pull(
+            lead, PipelineStage.COMPLETED, finalize_agent
+        )
+        assert lead.current_stage == PipelineStage.COMPLETED
+        assert len(lead.event_log) == 5
+        assert lead.verify_audit_chain() is True
+
+        # Verify strict non-blocking WIP capacity enforcement on PROPOSAL_SYNTHESIS (limit=1)
+        lead_a = EnterpriseSalesPipeline.initialize_lead("L-A", "T-1", {})
+        lead_b = EnterpriseSalesPipeline.initialize_lead("L-B", "T-1", {})
+
+        async def noop(s: SalesLeadState) -> Dict[str, Any]:
+            return {"ok": True}
+
+        lead_a = await pipeline.execute_stage_pull(lead_a, PipelineStage.DEAL_QUALIFICATION, noop)
+        lead_b = await pipeline.execute_stage_pull(lead_b, PipelineStage.DEAL_QUALIFICATION, noop)
+
+        stage_entered = asyncio.Event()
+        release_stage = asyncio.Event()
+
+        async def slow_synthesis(s: SalesLeadState) -> Dict[str, Any]:
+            stage_entered.set()
+            await release_stage.wait()
+            return {"synthesized": True}
+
+        task_a = asyncio.create_task(
+            pipeline.execute_stage_pull(lead_a, PipelineStage.PROPOSAL_SYNTHESIS, slow_synthesis)
+        )
+        await stage_entered.wait()
+        assert controller.get_active_wip(PipelineStage.PROPOSAL_SYNTHESIS) == 1
+
+        with pytest.raises(KanbanCapacityExceededError, match="CONWIP capacity exhausted"):
+            await pipeline.execute_stage_pull(
+                lead_b,
+                PipelineStage.PROPOSAL_SYNTHESIS,
+                noop,
+                block=False,
+            )
+
+        release_stage.set()
+        await task_a
+        assert controller.get_active_wip(PipelineStage.PROPOSAL_SYNTHESIS) == 0
+
+    asyncio.run(_run_scenario())
+
+
