@@ -6838,6 +6838,91 @@ def test_patch_67_immoon0009_hardened_formula_guard_canonical_lock_acquire_all_a
     print("[✓] Patch 67 / immoon0009 HardenedEnterpriseFormulaGuard, Canonical Lock acquire_all & ScopedTenantEnvironmentGuard.activate verified")
 
 
+def test_patch_68_traimai_dual_int4_lock_pair_3arg_activate_and_max_nodes_ast_guard():
+    """
+    Patch 68 Verification Suite (traimai / gemini-4-argon-high):
+    1. HardenedEnterpriseFormulaGuard & SecurityFormulaEvaluationError: MAX_NODES=40 AST complexity
+       limit, comparator evaluation (ast.Compare), and comprehension/generator rejection.
+    2. HeterogeneousLockKey canonical_tuple (32-bit signed int4 pair via struct.unpack('>ii', sha256[:8]))
+       and HeterogeneousLockKey.acquire_all(cursor, keys) executing pg_advisory_xact_lock(%s, %s) in
+       canonical order.
+    3. ScopedTenantEnvironmentGuard.activate(tenant_id, user_id, company_id) classmethod returning
+       TenantSecurityContext and get_current_context() raising PermissionError when inactive.
+    """
+    import importlib.util
+
+    lock_py = os.path.join(
+        ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py"
+    )
+    spec_lock = importlib.util.spec_from_file_location("adv_lock_patch68", lock_py)
+    lock_mod = importlib.util.module_from_spec(spec_lock)
+    sys.modules["adv_lock_patch68"] = lock_mod
+    spec_lock.loader.exec_module(lock_mod)
+
+    # 1. HardenedEnterpriseFormulaGuard MAX_NODES & comparator evaluation
+    hfg = lock_mod.HardenedEnterpriseFormulaGuard
+    assert hfg.evaluate("unit_price * qty > min_cap", {"unit_price": 60.0, "qty": 2.0, "min_cap": 100.0}) is True
+    assert hfg.evaluate("unit_price * qty <= min_cap", {"unit_price": 40.0, "qty": 2.0, "min_cap": 100.0}) is True
+
+    # Expression with > 40 AST nodes must raise SecurityFormulaEvaluationError
+    too_many_nodes_expr = " + ".join(["qty"] * 25)
+    try:
+        hfg.evaluate(too_many_nodes_expr, {"qty": 1.0})
+        raise AssertionError("Expected SecurityFormulaEvaluationError for >40 AST nodes")
+    except lock_mod.SecurityFormulaEvaluationError as exc:
+        assert "complexity limit exceeded" in str(exc)
+
+    # List comprehension payload must be rejected
+    try:
+        hfg.evaluate("[c for c in (1, 2, 3)]", {})
+        raise AssertionError("Expected SecurityFormulaEvaluationError for ListComp")
+    except lock_mod.SecurityFormulaEvaluationError:
+        pass
+
+    # 2. HeterogeneousLockKey canonical_tuple (signed 32-bit int4 pair) & cursor acquire_all
+    lk_a = lock_mod.HeterogeneousLockKey("sale.order", "100")
+    lk_b = lock_mod.HeterogeneousLockKey("account.move", "50")
+    for k1_int, k2_int in (lk_a.canonical_tuple, lk_b.canonical_tuple):
+        assert -2147483648 <= k1_int <= 2147483647
+        assert -2147483648 <= k2_int <= 2147483647
+
+    class _MockAdvisoryCursor:
+        def __init__(self):
+            self.calls = []
+
+        def execute(self, sql, params=None):
+            self.calls.append((sql, params))
+
+    cr_a = _MockAdvisoryCursor()
+    cr_b = _MockAdvisoryCursor()
+    with lock_mod.HeterogeneousLockKey.acquire_all(cr_a, [lk_a, lk_b]) as acq_a:
+        pass
+    with lock_mod.HeterogeneousLockKey.acquire_all(cr_b, [lk_b, lk_a]) as acq_b:
+        pass
+    assert acq_a == acq_b
+    assert cr_a.calls == cr_b.calls
+    assert len(cr_a.calls) == 2
+    assert "pg_advisory_xact_lock(%s, %s)" in cr_a.calls[0][0]
+
+    # 3. 3-arg classmethod ScopedTenantEnvironmentGuard.activate(tenant_id, user_id, company_id)
+    with lock_mod.ScopedTenantEnvironmentGuard.activate("tenant_01", "user_42", "comp_09") as ctx:
+        assert isinstance(ctx, lock_mod.TenantSecurityContext)
+        assert ctx.tenant_id == "tenant_01"
+        assert ctx.user_id == "user_42"
+        assert ctx.company_id == "comp_09"
+        assert ctx.is_active is True
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_current_context() == ctx
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant_id() == "tenant_01"
+
+    try:
+        lock_mod.ScopedTenantEnvironmentGuard.get_current_context()
+        raise AssertionError("Expected PermissionError outside active context")
+    except PermissionError:
+        pass
+
+    print("[✓] Patch 68 / traimai Dual-Int4 Advisory Lock Pair, 3-Arg Class Activate & MAX_NODES AST Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6920,8 +7005,9 @@ def main():
     test_patch_65_immoon0009_ast_formula_evaluator_thread_lock_rollback_and_scoped_tenant_guard()
     test_patch_66_ai_digimate_dl_masoe_formula_sandbox_lock_acquire_all_and_token_guard()
     test_patch_67_immoon0009_hardened_formula_guard_canonical_lock_acquire_all_and_activate_guard()
-    print("[✓] ALL 67 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 67 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_68_traimai_dual_int4_lock_pair_3arg_activate_and_max_nodes_ast_guard()
+    print("[✓] ALL 68 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 68 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
