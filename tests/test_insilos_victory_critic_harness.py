@@ -742,3 +742,79 @@ def test_resilient_sales_engine_e2e_circuit_breaker_and_bulkhead() -> None:
     asyncio.run(_run_resilience_e2e())
 
 
+SalesProcessStage = _lock_mod.SalesProcessStage
+EnterpriseEvent = _lock_mod.EnterpriseEvent
+PubGrubDealConstraintSolver = _lock_mod.PubGrubDealConstraintSolver
+EnterpriseSalesState = _lock_mod.EnterpriseSalesState
+
+
+def test_s_curve_pubgrub_deal_constraint_solver_and_merkle_state_e2e() -> None:
+    """Verifies S-Curve PubGrub deal term constraint solver, mandatory rider enforcement, and Merkle state transitions."""
+    state = EnterpriseSalesState(
+        tenant_id="tenant-alpha",
+        opportunity_id="opp-1001",
+        current_stage=SalesProcessStage.LEAD_INCEPTION,
+        active_terms={"pricing_tier": "enterprise_base"},
+        max_memory_slots=2,
+    )
+    assert state.verify_invariant() is True
+
+    policy = {
+        "max_authorized_discount": 0.25,
+        "mandatory_riders": ["data_residency_vn", "iso_27001_audit"],
+    }
+
+    evt1 = EnterpriseEvent(
+        event_id="evt-001",
+        tenant_id="tenant-alpha",
+        timestamp=1776510000.0,
+        action="QUALIFY_AND_NEGOTIATE",
+        payload={
+            "terms": {
+                "discount_rate": 0.20,
+                "attached_riders": ["data_residency_vn", "iso_27001_audit", "sla_99_9"],
+            }
+        },
+        actor_agent_id="agent-scout-01",
+    )
+    h1 = state.transition_state(
+        event=evt1,
+        next_stage=SalesProcessStage.COMMERCIAL_NEGOTIATION,
+        tenant_policy=policy,
+    )
+    assert len(h1) == 64
+    assert state.last_block_hash == h1
+    assert state.current_stage == SalesProcessStage.COMMERCIAL_NEGOTIATION
+    assert len(state.state_history_hashes) == 1
+    assert state.active_memory_slots == 0
+
+    # Cross-tenant isolation check
+    with pytest.raises(PermissionError, match="MultiTenantIsolationViolation"):
+        state.apply_odoo_odoo_pattern("tenant-malicious")
+
+    # Excessive discount must fail closed
+    is_valid, reason = PubGrubDealConstraintSolver.resolve_deal_terms(
+        {"discount_rate": 0.35, "attached_riders": ["data_residency_vn", "iso_27001_audit"]},
+        policy,
+    )
+    assert is_valid is False
+    assert "ConstraintViolation: requested discount 0.35 exceeds limit 0.25" in str(reason)
+
+    # Missing mandatory rider must fail closed
+    is_valid2, reason2 = PubGrubDealConstraintSolver.resolve_deal_terms(
+        {"discount_rate": 0.15, "attached_riders": ["sla_99_9"]},
+        policy,
+    )
+    assert is_valid2 is False
+    assert "missing mandatory riders" in str(reason2)
+
+    # Memory slot saturation check
+    state.active_memory_slots = 2
+    with pytest.raises(BufferError, match="MemoryInvariantBreached"):
+        state.transition_state(
+            event=evt1,
+            next_stage=SalesProcessStage.COMPLIANCE_SIGN_OFF,
+            tenant_policy=policy,
+        )
+
+
