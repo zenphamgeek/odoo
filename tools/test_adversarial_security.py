@@ -6385,6 +6385,48 @@ def test_patch_62_traimai_cyclic_dict_sanitizer_heterogeneous_lock_order_and_ten
     print("[✓] Patch 62 / traimai Cyclic Dict Sanitizer, Heterogeneous Lock Order & Integer Tenant Guard verified")
 
 
+def test_patch_63_traimai_nfkd_strong_ref_sanitizer_heterogeneous_lock_manager_and_dom_selector_guard():
+    """
+    Patch 63 (traimai / gemini-4-argon-high):
+    1. FullwidthFormulaSanitizer.sanitize_string & sanitize_payload with NFKD decomposition,
+       control-char stripping, strong-reference retention (ref_retention), and CyclicStructureDetected.
+    2. DeterministicHeterogeneousLockManager.order_lock_requests & get_canonical_sort_key.
+    3. AtomicMultiTenantGuard.validate_tenant_access with strict positive int & allowed scope validation.
+    4. tools/verify_documents_viewer_and_buttons.js sanitizeSelectorIdentifier & buildSafeButtonSelector.
+    """
+    import subprocess
+    import sys
+
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", "tests/test_insilos_victory_critic_harness.py", "-q"],
+        cwd=ROOT_DIR,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert "passed" in proc.stdout, f"pytest failed: {proc.stdout} {proc.stderr}"
+
+    js_path = os.path.join(ROOT_DIR, "tools/verify_documents_viewer_and_buttons.js")
+    node_code = f"""
+const {{ sanitizeSelectorIdentifier, buildSafeButtonSelector }} = require({js_path!r});
+if (sanitizeSelectorIdentifier("download_doc-1") !== "download_doc-1") throw new Error("Safe identifier altered");
+if (buildSafeButtonSelector("open_preview", 42) !== 'button[data-action="open_preview"][data-record-id="42"]') {{
+    throw new Error("Unexpected selector output");
+}}
+let threw = false;
+try {{ buildSafeButtonSelector("!!!", 10); }} catch (e) {{ threw = true; }}
+if (!threw) throw new Error("Expected error on empty sanitized identifier");
+threw = false;
+try {{ buildSafeButtonSelector("open", 0); }} catch (e) {{ threw = true; }}
+if (!threw) throw new Error("Expected RangeError on non-positive recordId");
+console.log("DOM_SELECTOR_OK");
+"""
+    node_proc = subprocess.run(["node", "-e", node_code], capture_output=True, text=True, check=True)
+    assert "DOM_SELECTOR_OK" in node_proc.stdout
+
+    print("[✓] Patch 63 / traimai NFKD Strong-Ref Sanitizer, Heterogeneous Lock Manager & DOM Selector Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6462,12 +6504,14 @@ def main():
     test_patch_60_nahlaleah102_env_cache_guard_db_lock_tiers_and_fullwidth_formula_sanitizer()
     test_patch_61_coderedgen_fullwidth_cell_sanitizer_lock_tiers_and_isolate_tenant()
     test_patch_62_traimai_cyclic_dict_sanitizer_heterogeneous_lock_order_and_tenant_id_guard()
-    print("[✓] ALL 62 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 62 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_63_traimai_nfkd_strong_ref_sanitizer_heterogeneous_lock_manager_and_dom_selector_guard()
+    print("[✓] ALL 63 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 63 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 

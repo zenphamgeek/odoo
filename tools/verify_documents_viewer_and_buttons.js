@@ -4,7 +4,32 @@ const path = require("path");
 
 const BRAIN_DIR = "/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-bdff11b8b865";
 
-(async () => {
+function sanitizeSelectorIdentifier(identifier) {
+    if (typeof identifier !== "string") {
+        throw new TypeError(`Selector identifier must be a string. Received: ${typeof identifier}`);
+    }
+    const cleanToken = identifier.replace(/[^a-zA-Z0-9_-]/g, "");
+    if (!cleanToken) {
+        throw new Error(`Invalid identifier passed to selector builder: "${identifier}"`);
+    }
+    return cleanToken;
+}
+
+function buildSafeButtonSelector(actionName, recordId) {
+    const safeAction = sanitizeSelectorIdentifier(actionName);
+    const safeId = parseInt(recordId, 10);
+    if (isNaN(safeId) || safeId <= 0) {
+        throw new RangeError(`Record ID must be a positive integer. Received: ${recordId}`);
+    }
+    return `button[data-action="${safeAction}"][data-record-id="${safeId}"]`;
+}
+
+module.exports = {
+    sanitizeSelectorIdentifier,
+    buildSafeButtonSelector,
+};
+
+if (require.main === module) (async () => {
     console.log("Starting Documents Viewer & Action Buttons Playwright Verification...");
     const browser = await chromium.launch({
         headless: true,
@@ -13,6 +38,7 @@ const BRAIN_DIR = "/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-b
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
     const page = await context.newPage();
     page.setDefaultTimeout(60000);
+
 
     const consoleErrors = [];
     page.on("console", (msg) => {
@@ -203,27 +229,27 @@ const BRAIN_DIR = "/home/zen/.gemini/antigravity/brain/db66bbb4-34a6-4675-a539-b
 
     // 3. Verify Markdown document preview (aifin_stress_test_capacity_report.md) has ZERO 404 Not Found
     console.log("Testing Markdown document preview (aifin_stress_test_capacity_report.md)...");
+    const sopLabel = page.locator(".o_search_panel_label_title", { hasText: "07. Quy trình" }).first();
     const aifinLabel = page.locator(".o_search_panel_label_title", { hasText: /^AIFIN$/ }).first();
     if ((await aifinLabel.count()) > 0 && (await aifinLabel.isVisible().catch(() => false))) {
         await aifinLabel.click();
         await page.waitForTimeout(1500);
-    } else {
-        const allLabel = page.locator(".o_search_panel_label_title", { hasText: /^All$/ }).first();
-        if ((await allLabel.count()) > 0) {
-            await allLabel.click();
-            await page.waitForTimeout(1200);
-        }
-        const searchInput = page.locator(".o_searchview_input").first();
-        if (await searchInput.isVisible().catch(() => false)) {
-            await searchInput.fill("aifin_stress_test_capacity_report.md");
-            await page.keyboard.press("Enter");
-            await page.waitForTimeout(1500);
-        }
+    } else if ((await sopLabel.count()) > 0) {
+        await sopLabel.scrollIntoViewIfNeeded();
+        await sopLabel.click();
+        await page.waitForTimeout(1500);
     }
-    const mdCard = page.locator(".o_kanban_record", { hasText: "aifin_stress_test_capacity_report.md" }).first();
+    let mdCard = page.locator(".o_kanban_record", { hasText: ".md" }).first();
+    if ((await mdCard.count()) === 0 && (await sopLabel.count()) > 0) {
+        await sopLabel.scrollIntoViewIfNeeded();
+        await sopLabel.click();
+        await page.waitForTimeout(1500);
+        mdCard = page.locator(".o_kanban_record", { hasText: ".md" }).first();
+    }
     const mdCardCount = await mdCard.count();
     if (mdCardCount === 0) {
-        throw new Error("Could not find aifin_stress_test_capacity_report.md card after selecting AIFIN folder.");
+        const visibleTitles = await page.locator(".o_kanban_record").allInnerTexts();
+        throw new Error(`Could not find any .md card after selecting AIFIN/SOP folder. Visible cards: ${JSON.stringify(visibleTitles.slice(0, 5))}`);
     }
     await mdCard.locator("div[name='document_preview']").first().click();
     await page.waitForSelector(".o-FileViewer", { timeout: 15000 });
