@@ -1391,6 +1391,85 @@ def test_aviation_preflight_checklist_gate_and_two_challenge_circuit_breaker_e2e
         )
 
 
+JSONCRDTSalesDoc = _lock_mod.JSONCRDTSalesDoc
+MerkleTransparencyTree = _lock_mod.MerkleTransparencyTree
+OdooContext = _lock_mod.OdooContext
+OdooModelRegistry = _lock_mod.OdooModelRegistry
+TaskState = _lock_mod.TaskState
+PrefectSalesFlowRunner = _lock_mod.PrefectSalesFlowRunner
+
+
+def test_scpoe_json_crdt_merkle_tree_odoo_registry_and_prefect_flow_e2e() -> None:
+    """Verifies SCPOE JSONCRDTSalesDoc convergence, MerkleTransparencyTree audit proofs, OdooModelRegistry RLS, and PrefectSalesFlowRunner retries/memoization."""
+    doc_a = JSONCRDTSalesDoc(doc_id="SO-2026-001")
+    doc_b = JSONCRDTSalesDoc(doc_id="SO-2026-001")
+
+    doc_a.set_item("L1", "SERVER-RACK", 5000.0, 2, 0.0, actor_id="rep_a", timestamp=100.0)
+    doc_a.set_item("L2", "INSTALL-SERVICE", 1500.0, 1, 0.0, actor_id="rep_a", timestamp=101.0)
+    doc_b.set_item("L1", "SERVER-RACK", 5000.0, 2, 15.0, actor_id="mgr_b", timestamp=105.0)
+    doc_b.remove_item("L2", actor_id="mgr_b", timestamp=106.0)
+
+    merged_a = doc_a.merge(doc_b)
+    merged_b = doc_b.merge(doc_a)
+    assert merged_a.compute_total() == 8500.0
+    assert merged_b.compute_total() == 8500.0
+    assert len(merged_a._items) == 1
+    assert "L2" not in merged_a._items
+
+    tree = MerkleTransparencyTree()
+    leaf1 = tree.append_entry({"event": "CREATE_QUOTE", "so_id": "SO-101", "amount": 10000})
+    leaf2 = tree.append_entry({"event": "APPLY_DISCOUNT", "so_id": "SO-101", "pct": 20})
+    tree.append_entry({"event": "APPROVE_MARGIN", "so_id": "SO-101", "mgr": "alice"})
+    root = tree.get_root()
+    proof_leaf2 = tree.get_audit_proof(1)
+    assert MerkleTransparencyTree.verify_proof(leaf2, proof_leaf2, root) is True
+    assert MerkleTransparencyTree.verify_proof(leaf2[:-4] + "ffff", proof_leaf2, root) is False
+    assert MerkleTransparencyTree.verify_proof(leaf1, proof_leaf2, root) is False
+
+    registry = OdooModelRegistry()
+    registry.register_record(
+        "crm.lead",
+        {"id": 1, "name": "Cloud Migration", "company_id": 1, "expected_revenue": 50000},
+    )
+    registry.register_record(
+        "crm.lead",
+        {"id": 2, "name": "AI ERP Suite", "company_id": 2, "expected_revenue": 120000},
+    )
+    registry.register_record(
+        "crm.lead",
+        {"id": 3, "name": "Global Support", "company_id": 1, "expected_revenue": 30000},
+    )
+    ctx1 = OdooContext(active_company_id=1, allowed_company_ids=[1], user_id=10)
+    results1 = registry.search_records("crm.lead", [("expected_revenue", ">", 20000)], ctx1)
+    assert {r["id"] for r in results1} == {1, 3}
+    ctx2 = OdooContext(active_company_id=1, allowed_company_ids=[1, 2], user_id=1)
+    results2 = registry.search_records("crm.lead", [("expected_revenue", ">", 40000)], ctx2)
+    assert {r["id"] for r in results2} == {1, 2}
+
+    runner = PrefectSalesFlowRunner()
+    call_count = 0
+
+    def unreliable_ai_scoring(deal_size: float) -> float:
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise ConnectionError("Transient timeout reaching AI model inference gateway")
+        return deal_size * 0.85
+
+    res1 = runner.execute_task("ai_win_scoring", unreliable_ai_scoring, (100000.0,), max_retries=2)
+    assert res1.state == TaskState.COMPLETED
+    assert res1.return_value == 85000.0
+    assert res1.retry_count == 1
+    assert call_count == 2
+
+    res2 = runner.execute_task("ai_win_scoring", unreliable_ai_scoring, (100000.0,), max_retries=2)
+    assert res2.state == TaskState.COMPLETED
+    assert res2.return_value == 85000.0
+    assert res2.retry_count == 0
+    assert call_count == 2
+
+
+
 
 
 
