@@ -5502,6 +5502,94 @@ def test_patch_48_justaskgao_hkdf_subkey_and_transactional_advisory_nonce_ring()
     print("[✓] Patch 48 / justaskgao RFC 5869 _derive_hkdf_key & Transactional Advisory Hash Ring Nonce Settlement verified")
 
 
+def test_patch_49_coderedgen_tasr_p_nonce_journal_and_webhook_reserved_slugs():
+    """Verify Patch 49 (coderedgen / gemini-4-argon-high):
+    1. Cloud metadata, webhook & crawler endpoints in RESERVED_SLUGS ('callback', 'favicon', 'metadata', 'robots', 'sitemap', 'stripe', 'webhook').
+    2. Explicit RFC 5869 HKDF helpers: hkdf_extract, hkdf_expand, derive_hkdf_subkey.
+    3. Transactional nonce journal: consume_onboarding_nonce_transactional, compute_onboarding_signature, verify_onboarding_request.
+    4. Signed 64-bit Kanban lock cursor support: acquire_kanban_wip_slot(cr, max_slots=3).
+    """
+    import importlib.util
+    import time
+
+    ctrl_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_ctrl_p49", ctrl_path)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    # 1. Reserved slugs include webhook, stripe, robots, metadata, callback, favicon, sitemap
+    for reserved in ("callback", "favicon", "metadata", "robots", "sitemap", "stripe", "webhook"):
+        assert reserved in ctrl_mod.RESERVED_SLUGS, f"Missing reserved slug: {reserved}"
+        try:
+            ctrl_mod.sanitize_and_validate_slug(reserved)
+            raise AssertionError(f"Expected ValidationError for reserved slug: {reserved}")
+        except ctrl_mod.ValidationError as exc:
+            assert "is reserved" in str(exc)
+
+    # 2. HKDF extract, expand, derive_hkdf_subkey
+    master_sec = "master_secret_enterprise_2026_" + str(999999)
+    key_a = ctrl_mod.derive_hkdf_subkey(master_sec, ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+    key_b = ctrl_mod.derive_hkdf_subkey(master_sec, ctrl_mod.HMAC_LEASE_CONTEXT)
+    assert len(key_a) == 32 and len(key_b) == 32 and key_a != key_b
+    assert key_a == ctrl_mod.derive_hkdf_subkey(master_sec, ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+
+    # 3. Transactional nonce journal & verify_onboarding_request
+    class _MockJournalCr:
+        def __init__(self, rows):
+            self._rows = list(rows)
+            self._last = None
+            self.last_args = None
+        def execute(self, sql, params=None):
+            self.last_args = (sql, params)
+            if "INSERT INTO insilos_onboarding_nonce_journal" in sql or "pg_try_advisory_xact_lock" in sql:
+                self._last = self._rows.pop(0) if self._rows else None
+        def fetchone(self):
+            return self._last
+
+    class _MockEnv49:
+        def __init__(self, secret, rows):
+            self.cr = _MockJournalCr(rows)
+            self._secret = secret
+        def __getitem__(self, key):
+            return self
+        def sudo(self):
+            return self
+        def get_param(self, key, default=False):
+            if "secret" in key:
+                return self._secret
+            return default
+
+    nonce = "secure_nonce_token_abcdef123456"
+    slug = "valid-tenant"
+    now = int(time.time())
+    env49 = _MockEnv49(master_sec, [(nonce,), None, (True,), (False,), (False,), (False,)])
+    valid_sig = ctrl_mod.compute_onboarding_signature(key_a, slug, nonce, now)
+
+    assert ctrl_mod.verify_onboarding_request(env49, slug, nonce, str(now), valid_sig) == slug
+
+    # Replay fails
+    try:
+        ctrl_mod.verify_onboarding_request(env49, slug, nonce, str(now), valid_sig)
+        raise AssertionError("Expected ValidationError on replayed nonce in journal")
+    except ctrl_mod.ValidationError as exc:
+        assert "already been consumed" in str(exc)
+
+    # Forged signature fails
+    try:
+        ctrl_mod.verify_onboarding_request(env49, slug, nonce, str(now), valid_sig[:-4] + "ffff")
+        raise AssertionError("Expected AccessError on forged signature")
+    except ctrl_mod.AccessError as exc:
+        assert "Invalid or forged" in str(exc)
+
+    # Raw cursor support in acquire_kanban_wip_slot
+    with ctrl_mod.acquire_kanban_wip_slot(env49.cr, max_slots=3) as slot:
+        assert slot == 0
+        executed_key = env49.cr.last_args[1][0]
+        assert 0 <= executed_key <= 0x7FFFFFFFFFFFFFFF
+
+    print("[✓] Patch 49 / coderedgen TASR-P Transactional Nonce Journal, Webhook Reserved Slugs & HKDF Subkey verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5565,8 +5653,9 @@ def main():
     test_patch_46_zenphamgeek_autonomous_cursor_nonce_and_kanban_wip_limiter()
     test_patch_47_coderedgen_rfc5869_hkdf_numeric_slug_guard_and_canonical_token_v1()
     test_patch_48_justaskgao_hkdf_subkey_and_transactional_advisory_nonce_ring()
-    print("[✓] ALL 48 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 48 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_49_coderedgen_tasr_p_nonce_journal_and_webhook_reserved_slugs()
+    print("[✓] ALL 49 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 49 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
