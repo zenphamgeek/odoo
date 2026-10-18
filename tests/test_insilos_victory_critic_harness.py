@@ -818,3 +818,97 @@ def test_s_curve_pubgrub_deal_constraint_solver_and_merkle_state_e2e() -> None:
         )
 
 
+OrchestratorSalesStage = _lock_mod.OrchestratorSalesStage
+OrchestratorTenantContext = _lock_mod.OrchestratorTenantContext
+OrchestratorSalesEvent = _lock_mod.OrchestratorSalesEvent
+BoundedResourcePool = _lock_mod.BoundedResourcePool
+EnterpriseSalesOrchestrator = _lock_mod.EnterpriseSalesOrchestrator
+InvariantViolationError = _lock_mod.InvariantViolationError
+TenantSecurityViolationError = _lock_mod.TenantSecurityViolationError
+ConcurrencyResourceExhaustedError = _lock_mod.ConcurrencyResourceExhaustedError
+
+
+def test_enterprise_sales_orchestrator_double_entry_and_bounded_pool_e2e() -> None:
+    """Verifies EnterpriseSalesOrchestrator weighted pipeline delta ledger, multi-company RLS, and bounded slot pool."""
+    orchestrator = EnterpriseSalesOrchestrator(max_concurrent_slots=4)
+    primary_tenant = OrchestratorTenantContext(company_id=1, allowed_company_ids=(1, 2), user_id=101, is_system_admin=False)
+    foreign_tenant = OrchestratorTenantContext(company_id=99, allowed_company_ids=(99,), user_id=999, is_system_admin=False)
+
+    orchestrator.register_opportunity(
+        tenant_context=primary_tenant,
+        opportunity_id="OPP-001",
+        company_id=1,
+        initial_value=10000.0,
+    )
+
+    ev1 = OrchestratorSalesEvent(
+        event_id="EVT-01",
+        opportunity_id="OPP-001",
+        company_id=1,
+        source_stage=OrchestratorSalesStage.LEAD,
+        target_stage=OrchestratorSalesStage.QUALIFICATION,
+        deal_value=12000.0,
+        probability=0.25,
+        payload={"qualified_by": "agent_alpha", "bant_score": 85},
+    )
+    entry1 = orchestrator.execute_transition_flow(primary_tenant, ev1)
+
+    assert entry1.index == 0
+    assert entry1.prev_hash == "0" * 64
+    assert len(entry1.current_hash) == 64
+    assert entry1.delta_weighted_value == (12000.0 * 0.25) - (10000.0 * 0.10)
+    assert orchestrator.verify_invariant() is True
+
+    # Illegal stage skip must fail closed
+    orchestrator.register_opportunity(primary_tenant, "OPP-002", 1, 50000.0)
+    illegal_ev = OrchestratorSalesEvent(
+        event_id="EVT-ILLEGAL",
+        opportunity_id="OPP-002",
+        company_id=1,
+        source_stage=OrchestratorSalesStage.LEAD,
+        target_stage=OrchestratorSalesStage.CLOSED_WON,
+        deal_value=50000.0,
+        probability=1.0,
+        payload={"exploit": "skip_stages"},
+    )
+    with pytest.raises(InvariantViolationError, match="Illegal stage transition from LEAD to CLOSED_WON"):
+        orchestrator.execute_transition_flow(primary_tenant, illegal_ev)
+
+    # Cross-company tamper attempt must fail closed
+    tamper_ev = OrchestratorSalesEvent(
+        event_id="EVT-INTRUDER",
+        opportunity_id="OPP-001",
+        company_id=1,
+        source_stage=OrchestratorSalesStage.QUALIFICATION,
+        target_stage=OrchestratorSalesStage.PROPOSAL,
+        deal_value=12000.0,
+        probability=0.50,
+        payload={"actor": "unauthorized"},
+    )
+    with pytest.raises(TenantSecurityViolationError, match="Tenant Security Violation"):
+        orchestrator.execute_transition_flow(foreign_tenant, tamper_ev)
+
+    # Bounded slot pool exhaustion & release
+    for idx in range(1, 5):
+        orchestrator.resource_pool.acquire(f"hold_slot_{idx}")
+
+    with pytest.raises(ConcurrencyResourceExhaustedError, match="Resource quota exhausted"):
+        orchestrator.execute_transition_flow(
+            primary_tenant,
+            OrchestratorSalesEvent(
+                event_id="EVT-BURST",
+                opportunity_id="OPP-001",
+                company_id=1,
+                source_stage=OrchestratorSalesStage.QUALIFICATION,
+                target_stage=OrchestratorSalesStage.PROPOSAL,
+                deal_value=12000.0,
+                probability=0.50,
+                payload={},
+            ),
+        )
+
+    orchestrator.resource_pool.release("hold_slot_1")
+    assert orchestrator.resource_pool.current_utilization == 3
+    assert orchestrator.apply_astral_sh_uv_pattern() is True
+
+
