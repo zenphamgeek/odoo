@@ -1469,6 +1469,53 @@ def test_scpoe_json_crdt_merkle_tree_odoo_registry_and_prefect_flow_e2e() -> Non
     assert call_count == 2
 
 
+AxiomaticDiscretionEnclave = _lock_mod.AxiomaticDiscretionEnclave
+
+
+def test_axiomatic_discretion_enclave_delta_merge_and_merkle_proof_e2e() -> None:
+    """Verifies AxiomaticDiscretionEnclave commutative JSON delta merge, Merkle proof enclave, and multi-company approval rules."""
+    initial_state = {
+        "order_id": "SO-2026-0042",
+        "lines": {"item_1": {"qty": 5, "price": 100.0}},
+        "discount_pct": 0.0,
+        "version": 1,
+        "actor": "system",
+    }
+    delta_rep = {"lines": {"item_1": {"qty": 10}}, "version": 2, "actor": "human"}
+    delta_ai = {"discount_pct": 5.0, "version": 2, "actor": "ai_agent"}
+
+    state_ab = AxiomaticDiscretionEnclave.apply_commutative_delta(
+        AxiomaticDiscretionEnclave.apply_commutative_delta(initial_state, delta_rep),
+        delta_ai,
+    )
+    state_ba = AxiomaticDiscretionEnclave.apply_commutative_delta(
+        AxiomaticDiscretionEnclave.apply_commutative_delta(initial_state, delta_ai),
+        delta_rep,
+    )
+    assert state_ab["lines"]["item_1"]["qty"] == 10
+    assert state_ab["discount_pct"] == 5.0
+    assert state_ab == state_ba
+
+    enclave = AxiomaticDiscretionEnclave(company_id=1)
+    leaf_1 = enclave.record_discretionary_concession("AGENT_ACTION:LEAD_QUALIFIED:SCORE_88")
+    leaf_2 = enclave.record_discretionary_concession("AGENT_ACTION:DISCOUNT_PROPOSED:3.5_PCT")
+    assert leaf_1 != leaf_2
+    merkle_root = enclave.compute_merkle_root()
+    assert len(merkle_root) == 64
+    assert merkle_root == AxiomaticDiscretionEnclave.hash_node(leaf_1, leaf_2)
+
+    approved_rec = enclave.evaluate_quote_approval(
+        {"id": 101, "company_id": 1, "quote_amount": 54000.0, "approved": False}
+    )
+    assert approved_rec["approved"] is True
+
+    with pytest.raises(PermissionError, match="Multi-company isolation breach"):
+        enclave.evaluate_quote_approval(
+            {"id": 102, "company_id": 2, "quote_amount": 25000.0, "approved": False}
+        )
+
+
+
 
 
 
