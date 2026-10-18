@@ -7182,6 +7182,112 @@ def test_patch_71_agy_home_lexicographical_bounded_lock_and_callable_env_guard()
     print("[✓] Patch 71 / agy-home Lexicographical BoundedAdvisoryLockGuard & Callable ScopedTenantEnvironmentGuard verified")
 
 
+def test_patch_72_binhthuong_64bit_advisory_lock_and_reentrant_callable_tenant_guard():
+    """
+    Patch 72 Verification Suite (binhthuong / gemini-4-argon-high):
+    1. canonical_advisory_key_64(domain_tag, tenant_id, resource_id) deriving signed 64-bit integers
+       (-2^63 to 2^63-1) via BLAKE2b 8-byte digest and rejecting negative tenant/resource IDs.
+    2. BoundedAdvisoryLockGuard 64-bit bigint mode (`lock_keys=[k64, ...]`, `timeout_sec=3.0`):
+       sorting 64-bit keys in ascending order, setting SET LOCAL lock_timeout, acquiring
+       pg_advisory_xact_lock(%s) per key, and resetting SET LOCAL lock_timeout = DEFAULT on exit.
+    3. ScopedTenantEnvironmentGuard reentrant depth tracking (_ACTIVE_TENANT_DEPTH), strict_acl
+       company membership enforcement, and direct callable execution (`guard(fn, *args, **kwargs)`).
+    """
+    import importlib.util
+
+    lock_py = os.path.join(
+        ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py"
+    )
+    spec_lock = importlib.util.spec_from_file_location("adv_lock_patch72", lock_py)
+    lock_mod = importlib.util.module_from_spec(spec_lock)
+    sys.modules["adv_lock_patch72"] = lock_mod
+    spec_lock.loader.exec_module(lock_mod)
+
+    # 1. canonical_advisory_key_64 signed 64-bit range & negative ID rejection
+    k64_a = lock_mod.canonical_advisory_key_64("account.move", 1, 1001)
+    k64_b = lock_mod.canonical_advisory_key_64("account.move", 2, 1001)
+    assert isinstance(k64_a, int) and isinstance(k64_b, int)
+    assert -(2**63) <= k64_a <= 2**63 - 1
+    assert -(2**63) <= k64_b <= 2**63 - 1
+    assert k64_a != k64_b
+    assert k64_a == lock_mod.canonical_advisory_key_64("account.move", 1, 1001)
+
+    try:
+        lock_mod.canonical_advisory_key_64("account.move", -1, 100)
+        raise AssertionError("Expected ValueError on negative tenant_id")
+    except ValueError as exc:
+        assert "non-negative" in str(exc)
+
+    # 2. BoundedAdvisoryLockGuard 64-bit mode sorting & timeout reset
+    class _Mock64Cursor:
+        def __init__(self):
+            self.queries = []
+
+        def execute(self, sql, params=None):
+            self.queries.append((sql, params))
+
+    cr64 = _Mock64Cursor()
+    raw_64_keys = [k64_b, k64_a, k64_b]
+    with lock_mod.BoundedAdvisoryLockGuard(cr64, lock_keys=raw_64_keys, timeout_sec=3.0) as g64:
+        assert g64._acquired is True
+        assert g64.lock_keys == sorted({k64_a, k64_b})
+    assert g64._acquired is False
+    assert cr64.queries[0] == ("SET LOCAL lock_timeout = %s;", ("3000ms",))
+    assert cr64.queries[1] == ("SELECT pg_advisory_xact_lock(%s);", (min(k64_a, k64_b),))
+    assert cr64.queries[2] == ("SELECT pg_advisory_xact_lock(%s);", (max(k64_a, k64_b),))
+    assert cr64.queries[3] == ("SET LOCAL lock_timeout = DEFAULT;", None)
+
+    # 3. ScopedTenantEnvironmentGuard reentrant depth watermark, strict_acl, and __call__
+    class _MockCompanySet:
+        def __init__(self, ids):
+            self.ids = list(ids)
+
+    class _MockUser:
+        def __init__(self, company_ids):
+            self.company_ids = _MockCompanySet(company_ids)
+
+    class _MockAclEnv:
+        def __init__(self, uid, company_ids, context):
+            self.uid = uid
+            self.user = _MockUser(company_ids)
+            self.context = dict(context)
+
+    env_acl = _MockAclEnv(uid=7, company_ids=[1, 5, 10], context={"company_id": 1, "allowed_company_ids": [1]})
+    assert lock_mod.ScopedTenantEnvironmentGuard.get_active_depth() == 0
+
+    guard_outer = lock_mod.ScopedTenantEnvironmentGuard(env_acl, 5, strict_acl=True)
+    guard_inner = lock_mod.ScopedTenantEnvironmentGuard(env_acl, 10, strict_acl=True)
+
+    def _compute_in_inner_tenant(multiplier):
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_active_depth() == 2
+        assert env_acl.context["company_id"] == 10
+        assert env_acl.context["current_company_id"] == 10
+        return env_acl.context["company_id"] * multiplier
+
+    with guard_outer:
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_active_depth() == 1
+        assert env_acl.context["company_id"] == 5
+        result = guard_inner(_compute_in_inner_tenant, 3)
+        assert result == 30
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_active_depth() == 1
+        assert env_acl.context["company_id"] == 5
+
+    assert lock_mod.ScopedTenantEnvironmentGuard.get_active_depth() == 0
+    assert env_acl.context["company_id"] == 1
+
+    # Unauthorized company under strict_acl=True must raise TenantSecurityException and keep depth=0
+    guard_unauth = lock_mod.ScopedTenantEnvironmentGuard(env_acl, 999, strict_acl=True)
+    try:
+        with guard_unauth:
+            raise AssertionError("Expected TenantSecurityException on unauthorized company 999")
+    except lock_mod.TenantSecurityException as exc:
+        assert "rejected for UID 7" in str(exc)
+    assert lock_mod.ScopedTenantEnvironmentGuard.get_active_depth() == 0
+    assert env_acl.context["company_id"] == 1
+
+    print("[✓] Patch 72 / binhthuong 64-Bit BLAKE2b Advisory Lock & Reentrant Callable ScopedTenantEnvironmentGuard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -7268,8 +7374,9 @@ def main():
     test_patch_69_codegeekvn_signed_int4_canonical_tuple_and_ast_recursion_bomb_guard()
     test_patch_70_ai_digimate_canonical_advisory_key_bounded_lock_guard_and_env_restore()
     test_patch_71_agy_home_lexicographical_bounded_lock_and_callable_env_guard()
-    print("[✓] ALL 71 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 71 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_72_binhthuong_64bit_advisory_lock_and_reentrant_callable_tenant_guard()
+    print("[✓] ALL 72 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 72 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
