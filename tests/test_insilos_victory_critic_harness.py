@@ -1104,3 +1104,51 @@ def test_pubgrub_policy_state_machine_e2e_sat_and_lease_bounds() -> None:
     assert engine.apply_astral_sh_uv_pattern() is True
 
 
+SalesQuoteCRDT = _lock_mod.SalesQuoteCRDT
+
+
+def test_sales_quote_crdt_e2e_concurrent_merge_and_tombstones() -> None:
+    """Verifies OR-Set SalesQuoteCRDT offline-first concurrent proposal convergence and tombstone propagation."""
+    rep_replica = SalesQuoteCRDT(quote_id="Q-1001", client_id="rep_mobile_client")
+    ai_replica = SalesQuoteCRDT(quote_id="Q-1001", client_id="ai_margin_agent")
+
+    rep_replica.add_line_item(
+        product_sku="SKU-ENTERPRISE-CORE",
+        quantity=50,
+        unit_price_cents=12000,
+        discount_pct=10.0,
+    )
+    ai_replica.add_line_item(
+        product_sku="SKU-24-7-PREMIUM-SUPPORT",
+        quantity=1,
+        unit_price_cents=50000,
+        discount_pct=5.0,
+    )
+
+    rep_replica.merge(ai_replica)
+    ai_replica.merge(rep_replica)
+
+    rep_skus = {item.product_sku for item in rep_replica.active_items()}
+    ai_skus = {item.product_sku for item in ai_replica.active_items()}
+
+    assert rep_skus == {"SKU-ENTERPRISE-CORE", "SKU-24-7-PREMIUM-SUPPORT"}
+    assert rep_skus == ai_skus
+    assert rep_replica.calculate_total_cents() == ai_replica.calculate_total_cents()
+    assert rep_replica.verify_invariant() is True
+    assert ai_replica.verify_invariant() is True
+
+    # Tombstone propagation across replicas
+    node_a = SalesQuoteCRDT(quote_id="Q-2002", client_id="node_a")
+    node_b = SalesQuoteCRDT(quote_id="Q-2002", client_id="node_b")
+    tag = node_a.add_line_item("SKU-HARDWARE-TOKEN", 10, 2500, 0.0)
+    node_b.merge(node_a)
+    assert len(node_b.active_items()) == 1
+
+    node_a.remove_line_item(tag)
+    assert len(node_a.active_items()) == 0
+    node_b.merge(node_a)
+    assert len(node_b.active_items()) == 0
+    assert node_b.calculate_total_cents() == 0
+    assert node_b.verify_invariant() is True
+
+

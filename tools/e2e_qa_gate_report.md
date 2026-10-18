@@ -1,12 +1,12 @@
 # Insilos O20 & Innoria Master E2E QA Gate Report
 
-- **Generated At (UTC)**: `2026-10-18T16:15:36.988180+00:00`
+- **Generated At (UTC)**: `2026-10-18T16:22:52.947662+00:00`
 - **Mode**: `gates=E2E-QA-11`
 - **Total Gates Executed**: `1`
 - **Passed Gates**: `1`
 - **Failed Gates**: `0`
 - **Total Assertions (`[✓]`)**: `0`
-- **Wall-Clock Duration**: `0.851s`
+- **Wall-Clock Duration**: `0.854s`
 - **Overall Verdict**: **PASS**
 
 ## Gate Summary Matrix
