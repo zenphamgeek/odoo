@@ -6725,6 +6725,119 @@ def test_patch_66_ai_digimate_dl_masoe_formula_sandbox_lock_acquire_all_and_toke
     print("[✓] Patch 66 / ai-digimate DL-MASOE Formula Sandbox, Lock acquire_all & Token Guard verified")
 
 
+def test_patch_67_immoon0009_hardened_formula_guard_canonical_lock_acquire_all_and_activate_guard():
+    """
+    Patch 67 Verification Suite (immoon0009-gmail-com / gemini-4-argon-high):
+    1. HardenedEnterpriseFormulaGuard & FormulaSecurityViolation: NFKD->NFC normalization,
+       zero-eval AST walker, MAX_EXPONENT=100 cap, ALLOWED_VARIABLES whitelist.
+    2. 2-string HeterogeneousLockKey(resource_type, resource_id) with canonical_key &
+       HeterogeneousLockKey.acquire_all([k1, k2], timeout_seconds=...) raising LockTimeoutOrConflict.
+    3. 3-arg ScopedTenantEnvironmentGuard(tenant_id, secret_token, expected_token_hash).activate()
+       and 0-arg get_current_tenant_id() raising TenantSecurityException.
+    """
+    import importlib.util
+    import math
+    import threading
+
+    lock_py = os.path.join(
+        ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py"
+    )
+    spec_lock = importlib.util.spec_from_file_location("adv_lock_patch67", lock_py)
+    lock_mod = importlib.util.module_from_spec(spec_lock)
+    sys.modules["adv_lock_patch67"] = lock_mod
+    spec_lock.loader.exec_module(lock_mod)
+
+    # 1. HardenedEnterpriseFormulaGuard & FormulaSecurityViolation
+    hfg = lock_mod.HardenedEnterpriseFormulaGuard
+    res = hfg.evaluate(
+        "(unit_price * qty) * (1 - discount) * (1 + tax_rate)",
+        {"unit_price": 150.0, "qty": 3, "discount": 0.1, "tax_rate": 0.08},
+    )
+    assert math.isclose(res, 437.4, rel_tol=1e-6)
+
+    for bad_expr, bad_ctx in (
+        ("().__class__.__base__.__subclasses__()", {}),
+        ("＝cmd|'/c calc'!A0", {}),
+        ("base_price ** 1000000", {"base_price": 9}),
+        ("secret_admin_flag + 1", {"secret_admin_flag": 1}),
+        ("eval('1+1')", {}),
+    ):
+        try:
+            hfg.evaluate(bad_expr, bad_ctx)
+            raise AssertionError(f"Expected FormulaSecurityViolation for {bad_expr!r}")
+        except lock_mod.FormulaSecurityViolation:
+            pass
+
+    # 2. 2-string HeterogeneousLockKey & HeterogeneousLockKey.acquire_all
+    k1 = lock_mod.HeterogeneousLockKey("order_line", "999")
+    k2 = lock_mod.HeterogeneousLockKey("company", "01")
+    k3 = lock_mod.HeterogeneousLockKey("journal", "50")
+    assert sorted([k1, k2, k3]) == [k2, k3, k1]
+    assert k2.canonical_key == "company:01"
+
+    with lock_mod.HeterogeneousLockKey.acquire_all([k1, k2, k3], timeout_seconds=1.0) as locked:
+        assert locked == [k2.canonical_key, k3.canonical_key, k1.canonical_key]
+
+    contended_key = lock_mod.HeterogeneousLockKey("invoice", "inv_patch67_100")
+    raw_lock = lock_mod.HeterogeneousLockKey.get_or_create_lock(contended_key.canonical_key)
+    hold_evt = threading.Event()
+    release_evt = threading.Event()
+
+    def hold_in_other_thread():
+        raw_lock.acquire()
+        try:
+            hold_evt.set()
+            release_evt.wait(timeout=2.0)
+        finally:
+            raw_lock.release()
+
+    th = threading.Thread(target=hold_in_other_thread)
+    th.start()
+    try:
+        assert hold_evt.wait(timeout=1.5)
+        free_key = lock_mod.HeterogeneousLockKey("company", "comp_patch67_01")
+        try:
+            with lock_mod.HeterogeneousLockKey.acquire_all([contended_key, free_key], timeout_seconds=0.05):
+                raise AssertionError("Expected LockTimeoutOrConflict on contended lock")
+        except lock_mod.LockTimeoutOrConflict:
+            pass
+        # Verify free_key was cleanly rolled back and can be acquired immediately
+        free_lock = lock_mod.HeterogeneousLockKey.get_or_create_lock(free_key.canonical_key)
+        assert free_lock.acquire(blocking=False) is True
+        free_lock.release()
+    finally:
+        release_evt.set()
+        th.join(timeout=2.0)
+
+    # 3. 3-arg ScopedTenantEnvironmentGuard(...).activate() & 0-arg get_current_tenant_id()
+    tok_a = os.urandom(24).hex()
+    tok_b = os.urandom(24).hex()
+    guard_a = lock_mod.ScopedTenantEnvironmentGuard("tenant_alpha", tok_a, tok_a)
+    guard_b = lock_mod.ScopedTenantEnvironmentGuard("tenant_beta", tok_b, tok_b)
+
+    with guard_a.activate():
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant_id() == "tenant_alpha"
+        with guard_b.activate():
+            assert lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant_id() == "tenant_beta"
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant_id() == "tenant_alpha"
+
+    try:
+        lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant_id()
+        raise AssertionError("Expected TenantSecurityException outside active context")
+    except lock_mod.TenantSecurityException:
+        pass
+
+    bad_guard = lock_mod.ScopedTenantEnvironmentGuard("tenant_gamma", tok_a, tok_b)
+    try:
+        with bad_guard.activate():
+            pass
+        raise AssertionError("Expected TenantSecurityException on mismatched token")
+    except lock_mod.TenantSecurityException:
+        pass
+
+    print("[✓] Patch 67 / immoon0009 HardenedEnterpriseFormulaGuard, Canonical Lock acquire_all & ScopedTenantEnvironmentGuard.activate verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6806,8 +6919,9 @@ def main():
     test_patch_64_nahlaleah102_heterogeneous_cross_tier_lock_nfkd_formula_graph_and_partitioned_revaluation()
     test_patch_65_immoon0009_ast_formula_evaluator_thread_lock_rollback_and_scoped_tenant_guard()
     test_patch_66_ai_digimate_dl_masoe_formula_sandbox_lock_acquire_all_and_token_guard()
-    print("[✓] ALL 66 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 66 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_67_immoon0009_hardened_formula_guard_canonical_lock_acquire_all_and_activate_guard()
+    print("[✓] ALL 67 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 67 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
