@@ -4976,11 +4976,14 @@ def test_patch_45_zenphamgeek_persistent_nonce_ledger_and_self_contained_token()
     automatic TTL pruning of expired nonces, expanded cloud/orchestrator RESERVED_SLUGS (prefect, vault, argocd, grafana),
     and 5-part self-contained signup token envelope (validate_and_consume_signup_token).
     """
+    import hashlib
+    import hmac
     import importlib.util
     import sys
+    import time
     import types
 
-    main_py = os.path.join(REPO_ROOT, "enterprise/insilos_industry_showcase/controllers/main.py")
+    main_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
     if "odoo" in sys.modules:
         odoo_mod = sys.modules["odoo"]
         if not hasattr(odoo_mod, "fields"):
@@ -5103,11 +5106,14 @@ def test_patch_46_zenphamgeek_autonomous_cursor_nonce_and_kanban_wip_limiter():
     verify_and_consume_onboarding_token (v1 6-part envelope), core Odoo route RESERVED_SLUGS,
     and acquire_onboarding_wip_slot (Manufacturing Kanban WIP advisory lock limiter).
     """
+    import hashlib
+    import hmac
     import importlib.util
     import sys
+    import time
     import types
 
-    main_py = os.path.join(REPO_ROOT, "enterprise/insilos_industry_showcase/controllers/main.py")
+    main_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
     if "odoo" in sys.modules:
         odoo_mod = sys.modules["odoo"]
         if not hasattr(odoo_mod, "fields"):
@@ -5245,11 +5251,14 @@ def test_patch_47_coderedgen_rfc5869_hkdf_numeric_slug_guard_and_canonical_token
     sanitized secret resolution error (CWE-209), signed 64-bit Kanban lock boundary,
     and verify_onboarding_token_v1 with canonical SHA-256 segment hashing (anti-delimiter bleed CWE-328).
     """
+    import hashlib
+    import hmac
     import importlib.util
     import sys
+    import time
     import types
 
-    main_py = os.path.join(REPO_ROOT, "enterprise/insilos_industry_showcase/controllers/main.py")
+    main_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
     if "odoo" in sys.modules:
         odoo_mod = sys.modules["odoo"]
         if not hasattr(odoo_mod, "fields"):
