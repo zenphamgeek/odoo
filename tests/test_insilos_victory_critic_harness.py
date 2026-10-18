@@ -912,3 +912,116 @@ def test_enterprise_sales_orchestrator_double_entry_and_bounded_pool_e2e() -> No
     assert orchestrator.apply_astral_sh_uv_pattern() is True
 
 
+import hashlib
+
+SalesOrderState = _lock_mod.SalesOrderState
+DomainSecurityError = _lock_mod.DomainSecurityError
+TenantSecurityContext = _lock_mod.TenantSecurityContext
+QuotationLineItem = _lock_mod.QuotationLineItem
+SalesTransitionEvent = _lock_mod.SalesTransitionEvent
+EnterpriseSalesStateMachine = _lock_mod.EnterpriseSalesStateMachine
+
+
+def test_cdk_cssm_margin_floor_and_counter_signature_e2e() -> None:
+    """Verifies CDK-CSSM full sales order counter-signature lifecycle and gross margin floor enforcement."""
+    tenant = TenantSecurityContext(
+        tenant_id="TENANT_APAC_HQ",
+        company_id=101,
+        minimum_margin_floor=Decimal("0.2500"),
+        allowed_agent_roles=("LEAD_SCORER", "QUOTATION_AGENT", "COMPLIANCE_OFFICER"),
+    )
+    sm = EnterpriseSalesStateMachine(order_id="SO-2026-9041", tenant_context=tenant)
+    assert sm.current_state == SalesOrderState.DRAFT_LEAD
+    assert sm.verify_chain_integrity() is True
+
+    evt1 = SalesTransitionEvent(
+        event_id="EVT-001",
+        order_id=sm.order_id,
+        from_state=SalesOrderState.DRAFT_LEAD,
+        to_state=SalesOrderState.QUALIFIED,
+        agent_id="AGENT-SCORE-01",
+        agent_role="LEAD_SCORER",
+        agent_signature_digest=hashlib.sha256(b"sig1").hexdigest(),
+        line_items=(),
+        timestamp_utc="2026-10-18T15:00:00Z",
+    )
+    e1 = sm.transition(evt1, requesting_company_id=101)
+    assert sm.current_state == SalesOrderState.QUALIFIED
+    assert e1.sequence == 1
+
+    # Sub-floor margin (10% < 25%) must be rejected fail-closed
+    sub_floor_items = (
+        QuotationLineItem(
+            product_sku="SKU-ENTERPRISE-CORE",
+            quantity=5,
+            unit_cost=Decimal("90.00"),
+            offered_price=Decimal("100.00"),
+        ),
+    )
+    evt_breach = SalesTransitionEvent(
+        event_id="EVT-BREACH",
+        order_id=sm.order_id,
+        from_state=SalesOrderState.QUALIFIED,
+        to_state=SalesOrderState.QUOTATION_PROPOSED,
+        agent_id="AGENT-QUOTE-02",
+        agent_role="QUOTATION_AGENT",
+        agent_signature_digest="sig_breach",
+        line_items=sub_floor_items,
+        timestamp_utc="2026-10-18T15:05:00Z",
+    )
+    with pytest.raises(DomainSecurityError, match="Financial Invariant Breach"):
+        sm.transition(evt_breach, requesting_company_id=101)
+    assert sm.current_state == SalesOrderState.QUALIFIED
+
+    # Valid margin (40% >= 25%) advances through QUOTATION_PROPOSED -> COUNTER_SIGNED_AUDITED -> CONFIRMED_SALES_ORDER
+    valid_items = (
+        QuotationLineItem(
+            product_sku="SKU-ENTERPRISE-CORE",
+            quantity=10,
+            unit_cost=Decimal("60.00"),
+            offered_price=Decimal("100.00"),
+        ),
+    )
+    evt2 = SalesTransitionEvent(
+        event_id="EVT-002",
+        order_id=sm.order_id,
+        from_state=SalesOrderState.QUALIFIED,
+        to_state=SalesOrderState.QUOTATION_PROPOSED,
+        agent_id="AGENT-QUOTE-02",
+        agent_role="QUOTATION_AGENT",
+        agent_signature_digest=hashlib.sha256(b"sig2").hexdigest(),
+        line_items=valid_items,
+        timestamp_utc="2026-10-18T15:10:00Z",
+    )
+    sm.transition(evt2, requesting_company_id=101)
+
+    evt3 = SalesTransitionEvent(
+        event_id="EVT-003",
+        order_id=sm.order_id,
+        from_state=SalesOrderState.QUOTATION_PROPOSED,
+        to_state=SalesOrderState.COUNTER_SIGNED_AUDITED,
+        agent_id="AGENT-AUDIT-03",
+        agent_role="COMPLIANCE_OFFICER",
+        agent_signature_digest=hashlib.sha256(b"sig3").hexdigest(),
+        line_items=valid_items,
+        timestamp_utc="2026-10-18T15:20:00Z",
+    )
+    sm.transition(evt3, requesting_company_id=101)
+
+    evt4 = SalesTransitionEvent(
+        event_id="EVT-004",
+        order_id=sm.order_id,
+        from_state=SalesOrderState.COUNTER_SIGNED_AUDITED,
+        to_state=SalesOrderState.CONFIRMED_SALES_ORDER,
+        agent_id="AGENT-AUDIT-03",
+        agent_role="COMPLIANCE_OFFICER",
+        agent_signature_digest=hashlib.sha256(b"sig4").hexdigest(),
+        line_items=valid_items,
+        timestamp_utc="2026-10-18T15:30:00Z",
+    )
+    sm.transition(evt4, requesting_company_id=101)
+    assert sm.current_state == SalesOrderState.CONFIRMED_SALES_ORDER
+    assert len(sm.ledger) == 5
+    assert sm.verify_chain_integrity() is True
+
+

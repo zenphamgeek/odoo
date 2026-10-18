@@ -1,12 +1,12 @@
 {
-  "generated_at_utc": "2026-10-18T15:27:35.496710+00:00",
+  "generated_at_utc": "2026-10-18T15:43:45.898884+00:00",
   "mode": "gates=E2E-QA-11",
   "summary": {
     "total_gates": 1,
     "passed_gates": 1,
     "failed_gates": 0,
     "total_evidence_assertions": 0,
-    "total_duration_sec": 1.456,
+    "total_duration_sec": 1.551,
     "overall_passed": true
   },
   "gates": [
@@ -16,7 +16,7 @@
       "category": "domain",
       "fast": true,
       "passed": true,
-      "duration_sec": 1.456,
+      "duration_sec": 1.551,
       "evidence_count": 0,
       "commands": [
         {
@@ -28,10 +28,10 @@
           "command_str": "pytest tests/test_insilos_victory_critic_harness.py -q",
           "returncode": 0,
           "passed": true,
-          "duration_sec": 1.456,
+          "duration_sec": 1.551,
           "evidence_count": 0,
           "evidence": [],
-          "stdout_tail": "........................                                                 [100%]\n24 passed in 0.53s\n",
+          "stdout_tail": ".........................                                                [100%]\n25 passed in 0.56s\n",
           "stderr_tail": ""
         }
       ]
