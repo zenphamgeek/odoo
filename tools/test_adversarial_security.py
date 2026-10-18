@@ -4885,6 +4885,91 @@ def test_patch_43_zenphamgeek_nfkc_slug_hmac_token_and_offline_lease():
     print("[✓] Patch 43 / zenphamgeek NFKC Unicode Slug Normalization, HMAC-SHA256 Onboarding Token & 168h Offline Lease verified")
 
 
+def test_patch_44_zenphamgeek_hkdf_domain_separation_and_nonce_replay_guard():
+    """Patch 44: zenphamgeek DS-INC HKDF Domain Separation, 128-Bit Nonce Replay Guard & Monotonic Epoch Lease Revocation."""
+    import hashlib
+    import hmac
+    import importlib.util
+    import time
+    import types
+
+    main_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    odoo_mod = sys.modules.get("odoo")
+    if odoo_mod is not None:
+        if not hasattr(odoo_mod, "fields"):
+            odoo_mod.fields = types.SimpleNamespace(Datetime=types.SimpleNamespace(now=lambda: None))
+        if not hasattr(odoo_mod, "http"):
+            class _DummyController:
+                pass
+            def _dummy_route(*args, **kwargs):
+                return lambda fn: fn
+            odoo_mod.http = types.SimpleNamespace(Controller=_DummyController, route=_dummy_route, request=None)
+            sys.modules["odoo.http"] = odoo_mod.http
+        if hasattr(odoo_mod, "exceptions") and not hasattr(odoo_mod.exceptions, "AccessError"):
+            class _AccessError(Exception):
+                pass
+            odoo_mod.exceptions.AccessError = _AccessError
+
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_main_ctrl_44", main_py)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    class _MockConfigParameter:
+        def __init__(self, root_secret):
+            self.params = {"database.secret": root_secret}
+        def get_param(self, key, default=False):
+            return self.params.get(key, default)
+        def set_param(self, key, value):
+            self.params[key] = str(value)
+        def sudo(self):
+            return self
+
+    class _MockEnv:
+        def __init__(self, cp):
+            self._cp = cp
+        def __getitem__(self, key):
+            if key == "ir.config_parameter":
+                return self._cp
+            raise KeyError(key)
+
+    dyn_root = "mocked-production-grade-secret-" + str(32323232)
+    mock_env = _MockEnv(_MockConfigParameter(dyn_root))
+
+    # 1. Verify HKDF domain separation produces distinct 32-byte subkeys
+    k_onb = ctrl_mod._derive_domain_hmac_secret(mock_env, ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+    k_lease = ctrl_mod._derive_domain_hmac_secret(mock_env, ctrl_mod.HMAC_LEASE_CONTEXT)
+    assert len(k_onb) == 32 and len(k_lease) == 32 and k_onb != k_lease
+
+    # 2. Verify 3-part <expiry>.<nonce>.<signature> & single-use consume=True replay prevention
+    tid = 888
+    slug = "atomic-tenant"
+    tok = ctrl_mod.generate_signup_token(mock_env, tid, slug)
+    parts = tok.split(".")
+    assert len(parts) == 3 and len(parts[1]) == 32 and len(parts[2]) == 64
+    assert ctrl_mod.verify_signup_token(mock_env, tid, slug, tok, consume=True) is True
+    assert ctrl_mod.verify_signup_token(mock_env, tid, slug, tok, consume=True) is False
+
+    # 3. Verify future-dated token beyond TTL + clock skew is rejected
+    over_future_ts = int(time.time()) + ctrl_mod.SIGNUP_TOKEN_TTL_SECONDS + ctrl_mod.MAX_ALLOWED_CLOCK_SKEW_SECONDS + 100
+    nonce_f = "b" * 32
+    msg_f = f"{tid}:{slug}:{over_future_ts}:{nonce_f}".encode("utf-8")
+    sig_f = hmac.new(k_onb, msg_f, hashlib.sha256).hexdigest()
+    assert ctrl_mod.verify_signup_token(mock_env, tid, slug, f"{over_future_ts}.{nonce_f}.{sig_f}") is False
+
+    # 4. Verify OfflineLeaseToken.issue, monotonic epoch revocation, and serialize/deserialize roundtrip
+    lease = ctrl_mod.OfflineLeaseToken.issue(mock_env, tenant_id=42, lease_epoch=3)
+    assert lease.tenant_id == 42 and lease.lease_epoch == 3
+    assert (lease.expires_at - lease.issued_at) == 168 * 3600
+    assert lease.verify(mock_env, minimum_admissible_epoch=3) is True
+    assert lease.verify(mock_env, minimum_admissible_epoch=4) is False
+
+    raw_env = lease.serialize()
+    restored = ctrl_mod.OfflineLeaseToken.deserialize(raw_env)
+    assert restored.tenant_id == 42 and restored.lease_epoch == 3 and restored.serialize() == raw_env
+
+    print("[✓] Patch 44 / zenphamgeek DS-INC HKDF Domain Separation, 128-Bit Nonce Replay Guard & Monotonic Lease Epoch verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -4943,8 +5028,9 @@ def main():
     test_patch_41_ibm_carbon_design_and_poppins_typography_overhaul()
     test_patch_42_immoon0009_saas_slug_and_tls_workspace_guard()
     test_patch_43_zenphamgeek_nfkc_slug_hmac_token_and_offline_lease()
-    print("[✓] ALL 43 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 43 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_44_zenphamgeek_hkdf_domain_separation_and_nonce_replay_guard()
+    print("[✓] ALL 44 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 44 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
