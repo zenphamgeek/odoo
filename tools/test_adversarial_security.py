@@ -4791,6 +4791,100 @@ def test_patch_42_immoon0009_saas_slug_and_tls_workspace_guard():
     print("[✓] Patch 42 / immoon0009 SaaS RFC 1123 Slug Guard, Canonical HTTPS Workspace URL & Carbon Hairline Templates verified")
 
 
+def test_patch_43_zenphamgeek_nfkc_slug_hmac_token_and_offline_lease():
+    """Patch 43: zenphamgeek NFKC Unicode Slug Normalization, HMAC-SHA256 Onboarding Token & 168h Offline Lease Envelope."""
+    import importlib.util
+    import time
+    import types
+
+    main_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    odoo_mod = sys.modules.get("odoo")
+    if odoo_mod is not None:
+        if not hasattr(odoo_mod, "fields"):
+            odoo_mod.fields = types.SimpleNamespace(Datetime=types.SimpleNamespace(now=lambda: None))
+        if not hasattr(odoo_mod, "http"):
+            class _DummyController:
+                pass
+            def _dummy_route(*args, **kwargs):
+                return lambda fn: fn
+            odoo_mod.http = types.SimpleNamespace(Controller=_DummyController, route=_dummy_route, request=None)
+            sys.modules["odoo.http"] = odoo_mod.http
+        if hasattr(odoo_mod, "exceptions") and not hasattr(odoo_mod.exceptions, "AccessError"):
+            class _AccessError(Exception):
+                pass
+            odoo_mod.exceptions.AccessError = _AccessError
+
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_main_ctrl_43", main_py)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    ValidationError = ctrl_mod.ValidationError
+
+    # 1. Verify NFKC Unicode full-width normalization & expanded RESERVED_SLUGS
+    assert ctrl_mod.sanitize_and_validate_slug("ａｃｍｅ") == "acme", "NFKC full-width normalization failed"
+    assert ctrl_mod.sanitize_and_validate_slug("  Tenant-99  ") == "tenant-99"
+    for r_slug in ("admin", "api", "web", "login", "jsonrpc", "xmlrpc", "metrics", "healthz"):
+        assert r_slug in ctrl_mod.RESERVED_SLUGS, f"Missing reserved slug: {r_slug}"
+        raised = False
+        try:
+            ctrl_mod.sanitize_and_validate_slug(r_slug)
+        except ValidationError as exc:
+            raised = "reserved by the platform" in str(exc)
+        assert raised, f"Reserved slug {r_slug} was not rejected"
+
+    # 2. Verify HMAC-SHA256 onboarding token tamper resistance
+    class _MockConfigParam:
+        def __init__(self, vals):
+            self._vals = vals
+        def get_param(self, key, default=None):
+            return self._vals.get(key, default)
+
+    class _MockEnv:
+        def __init__(self, vals):
+            self._vals = vals
+        def __getitem__(self, item):
+            if item == "ir.config_parameter":
+                return self
+            raise KeyError(item)
+        def sudo(self):
+            return _MockConfigParam(self._vals)
+
+    dyn_secret = "test-secret-salt-" + str(1234567890123456)
+    mock_env = _MockEnv({"database.secret": dyn_secret})
+    tid = 42
+    slug = "tenant-secure"
+    tok = ctrl_mod.generate_signup_token(mock_env, tid, slug)
+    assert "." in tok
+    assert ctrl_mod.verify_signup_token(mock_env, tid, slug, tok) is True
+    assert ctrl_mod.verify_signup_token(mock_env, 999, slug, tok) is False
+    assert ctrl_mod.verify_signup_token(mock_env, tid, "other-tenant", tok) is False
+    exp_s, sig = tok.split(".", 1)
+    tampered_sig = ("0" if sig[0] != "0" else "1") + sig[1:]
+    assert ctrl_mod.verify_signup_token(mock_env, tid, slug, f"{exp_s}.{tampered_sig}") is False
+    past_exp = int(time.time()) - 100
+    assert ctrl_mod.verify_signup_token(mock_env, tid, slug, f"{past_exp}.{sig}") is False
+
+    # 3. Verify 168-hour OfflineLeaseToken & VectorClockJournalSequence zero-collision partitioning
+    lease_secret = "sovereign-offline-signing-" + str(40964096)
+    t0 = 1776500000
+    one_week = 7 * 24 * 3600
+    lease = ctrl_mod.OfflineLeaseToken("insilos-sovereign-01", t0, one_week, lease_secret)
+    assert lease.is_valid_at(t0, lease_secret) is True
+    assert lease.is_valid_at(t0 + (one_week // 2), lease_secret) is True
+    assert lease.is_valid_at(t0 + one_week, lease_secret) is True
+    assert lease.is_valid_at(t0 + one_week + 1, lease_secret) is False
+    assert lease.is_valid_at(t0 - 100, lease_secret) is False
+    assert lease.is_valid_at(t0 + 100, "corrupted-" + str(9999999999)) is False
+
+    node_a = ctrl_mod.VectorClockJournalSequence("NODE-ALPHA")
+    node_b = ctrl_mod.VectorClockJournalSequence("NODE-BETA")
+    seq_a = {node_a.next_sequence(2026) for _ in range(500)}
+    seq_b = {node_b.next_sequence(2026) for _ in range(500)}
+    assert len(seq_a) == 500 and len(seq_b) == 500 and seq_a.isdisjoint(seq_b)
+
+    print("[✓] Patch 43 / zenphamgeek NFKC Unicode Slug Normalization, HMAC-SHA256 Onboarding Token & 168h Offline Lease verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -4848,8 +4942,9 @@ def main():
     test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter()
     test_patch_41_ibm_carbon_design_and_poppins_typography_overhaul()
     test_patch_42_immoon0009_saas_slug_and_tls_workspace_guard()
-    print("[✓] ALL 42 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 42 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_43_zenphamgeek_nfkc_slug_hmac_token_and_offline_lease()
+    print("[✓] ALL 43 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 43 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
