@@ -5796,6 +5796,59 @@ def test_patch_52_coderedgen_shannon_entropy_zero_width_strip_and_punycode_guard
     print("[✓] Patch 52 / coderedgen Shannon Entropy Density Gate, Zero-Width Strip & Punycode Guard verified")
 
 
+def test_patch_53_agy_home_decoded_entropy_and_zero_ddl_nonce_guard():
+    """Verify Patch 53 (agy-home / gemini-4-argon-high):
+    1. normalize_and_decode_entropy_bytes decodes ASCII hex keys into raw binary bytes to prevent Shannon entropy false rejection.
+    2. record_and_verify_nonce_transactional executes zero DDL in the HTTP hot path (no CREATE TABLE/INDEX) and fails closed with AccessError on DB errors.
+    """
+    import importlib.util
+    import uuid
+
+    ctrl_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_ctrl_p53", ctrl_path)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    # 1. Hex-encoded key where ASCII hex digits cluster (only 8 distinct hex digits '0'..'7', so ASCII entropy = 3.0 < 3.2),
+    #    but decoded binary bytes have 16 distinct byte values (entropy = 4.0 >= 3.2).
+    clustered_hex_bytes = bytes([ord(f"{i:x}") for i in range(8)] * 8)  # 64 hex chars, 8 distinct ASCII chars -> 3.0 bits/byte
+    # Construct 32 distinct byte values using only hex digits '0'..'7' (8*8 = 64 possible pairs!)
+    pairs = [f"{a}{b}".encode("ascii") for a in range(8) for b in range(8)][:32]
+    clustered_valid_hex = b"".join(pairs)  # 64 ASCII chars using only '0'..'7' (ASCII entropy = 3.0 < 3.2), decodes to 32 unique bytes (entropy = 5.0 >= 3.2)
+    assert ctrl_mod.calculate_shannon_entropy(clustered_valid_hex, decode_hex=False) < 3.2
+    assert ctrl_mod.calculate_shannon_entropy(clustered_valid_hex, decode_hex=True) >= 4.9
+    subkey = ctrl_mod.derive_hkdf_subkey(clustered_valid_hex.decode("ascii"), ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+    assert len(subkey) == 32
+
+    # 2. Zero-DDL check in record_and_verify_nonce_transactional & fail-closed AccessError
+    class _ZeroDdlCr:
+        def __init__(self, should_fail=False):
+            self.queries = []
+            self.should_fail = should_fail
+        def execute(self, query, params=None):
+            if "CREATE TABLE" in query or "CREATE INDEX" in query:
+                raise AssertionError("Runtime DDL is forbidden in record_and_verify_nonce_transactional")
+            if self.should_fail:
+                raise RuntimeError("Simulated DB connection loss")
+            self.queries.append(query)
+        def fetchone(self):
+            return (1,)
+
+    cr_ok = _ZeroDdlCr()
+    assert ctrl_mod.record_and_verify_nonce_transactional(cr_ok, "", "ctx") is False
+    assert ctrl_mod.record_and_verify_nonce_transactional(cr_ok, str(uuid.uuid4()), "ctx") is True
+    assert len(cr_ok.queries) == 1
+
+    cr_err = _ZeroDdlCr(should_fail=True)
+    try:
+        ctrl_mod.record_and_verify_nonce_transactional(cr_err, str(uuid.uuid4()), "ctx")
+        raise AssertionError("Expected AccessError on database failure")
+    except ctrl_mod.AccessError as exc:
+        assert "Security validation failed" in str(exc)
+
+    print("[✓] Patch 53 / agy-home Decoded Entropy Normalization & Zero-DDL Nonce Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5863,8 +5916,9 @@ def main():
     test_patch_50_coderedgen_hkdf_salt_entropy_and_context_nonce_journal()
     test_patch_51_tsmei0209_entropy_32b_record_transactional_nonce_and_crypto_shredding()
     test_patch_52_coderedgen_shannon_entropy_zero_width_strip_and_punycode_guard()
-    print("[✓] ALL 52 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 52 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_53_agy_home_decoded_entropy_and_zero_ddl_nonce_guard()
+    print("[✓] ALL 53 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 53 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
