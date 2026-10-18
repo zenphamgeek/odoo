@@ -7000,6 +7000,94 @@ def test_patch_69_codegeekvn_signed_int4_canonical_tuple_and_ast_recursion_bomb_
     print("[✓] Patch 69 / codegeekvn Signed-Int4 Canonical Tuple, Pre-Parse Recursion Bomb Guard & 3G Lock Budget verified")
 
 
+def test_patch_70_ai_digimate_canonical_advisory_key_bounded_lock_guard_and_env_restore():
+    """
+    Patch 70 Verification Suite (ai-digimate / gemini-4-argon-high):
+    1. Module-level to_signed_int4 & canonical_advisory_key(namespace, record_id) producing
+       signed 32-bit int4 pairs within [-2147483648, 2147483647].
+    2. BoundedAdvisoryLockGuard.acquire(cursor, company_id, journal_id, model_name, timeout_ms)
+       executing SET LOCAL lock_timeout, canonical ordering, reversible diagnostic_registry,
+       and raising LockTimeoutSecurityException on PostgreSQL lock_timeout.
+    3. 3-arg ScopedTenantEnvironmentGuard(env, target_company_id, target_user_id) mutating
+       env.context & env.uid on __enter__ and restoring both + calling env.invalidate_all()
+       in __exit__'s finally block even when an exception occurs inside the block.
+    """
+    import importlib.util
+
+    lock_py = os.path.join(
+        ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py"
+    )
+    spec_lock = importlib.util.spec_from_file_location("adv_lock_patch70", lock_py)
+    lock_mod = importlib.util.module_from_spec(spec_lock)
+    sys.modules["adv_lock_patch70"] = lock_mod
+    spec_lock.loader.exec_module(lock_mod)
+
+    # 1. canonical_advisory_key & to_signed_int4 boundary verification
+    assert lock_mod.to_signed_int4(0xFFFFFFFF) == -1
+    assert lock_mod.to_signed_int4(0x80000000) == -2147483648
+    assert lock_mod.to_signed_int4(0x7FFFFFFF) == 2147483647
+
+    for i in (1, 999999, 2**31 - 1, 2**31, 2**32 - 1, 2**48 + 777):
+        k1, k2 = lock_mod.canonical_advisory_key(f"company.model.{i}", i)
+        assert -2147483648 <= k1 <= 2147483647
+        assert -2147483648 <= k2 <= 2147483647
+
+    # 2. BoundedAdvisoryLockGuard canonical acquisition, diagnostic registry & LockTimeoutSecurityException
+    class _MockBoundedCursor:
+        def __init__(self, fail_on_lock=False):
+            self.queries = []
+            self.fail_on_lock = fail_on_lock
+
+        def execute(self, sql, params=None):
+            if self.fail_on_lock and "pg_advisory_xact_lock" in sql:
+                raise RuntimeError("canceling statement due to lock timeout")
+            self.queries.append((sql.strip(), params))
+
+    cr_ok = _MockBoundedCursor()
+    with lock_mod.BoundedAdvisoryLockGuard.acquire(cr_ok, company_id=10, journal_id=55, timeout_ms=2500) as locked_pair:
+        assert len(locked_pair) == 2
+        assert len(lock_mod.BoundedAdvisoryLockGuard.diagnostic_registry) == 1
+        assert lock_mod.BoundedAdvisoryLockGuard.diagnostic_registry[locked_pair]["company_id"] == 10
+        assert lock_mod.BoundedAdvisoryLockGuard.diagnostic_registry[locked_pair]["target_id"] == 55
+    assert len(lock_mod.BoundedAdvisoryLockGuard.diagnostic_registry) == 0
+    assert cr_ok.queries[0][0] == "SET LOCAL lock_timeout = '2500ms';"
+
+    cr_timeout = _MockBoundedCursor(fail_on_lock=True)
+    try:
+        with lock_mod.BoundedAdvisoryLockGuard.acquire(cr_timeout, company_id=10, journal_id=55, timeout_ms=1200):
+            raise AssertionError("Expected LockTimeoutSecurityException")
+    except lock_mod.LockTimeoutSecurityException as exc:
+        assert "1200ms" in str(exc)
+    assert len(lock_mod.BoundedAdvisoryLockGuard.diagnostic_registry) == 0
+
+    # 3. 3-arg ScopedTenantEnvironmentGuard(env, target_company_id, target_user_id) exception-safe restore
+    class _MockOdooEnv:
+        def __init__(self, uid, context):
+            self.uid = uid
+            self.context = dict(context)
+            self.invalidated_count = 0
+
+        def invalidate_all(self):
+            self.invalidated_count += 1
+
+    env = _MockOdooEnv(uid=2, context={"lang": "en_US", "allowed_company_ids": [1], "company_id": 1})
+    try:
+        with lock_mod.ScopedTenantEnvironmentGuard(env, target_company_id=42, target_user_id=99):
+            assert env.uid == 99
+            assert env.context["company_id"] == 42
+            assert env.context["allowed_company_ids"] == [42]
+            raise ValueError("Simulated mid-transaction failure")
+    except ValueError:
+        pass
+
+    assert env.uid == 2
+    assert env.context["company_id"] == 1
+    assert env.context["allowed_company_ids"] == [1]
+    assert env.invalidated_count == 1
+
+    print("[✓] Patch 70 / ai-digimate Canonical Advisory Key, BoundedAdvisoryLockGuard & Env Restore verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -7084,8 +7172,9 @@ def main():
     test_patch_67_immoon0009_hardened_formula_guard_canonical_lock_acquire_all_and_activate_guard()
     test_patch_68_traimai_dual_int4_lock_pair_3arg_activate_and_max_nodes_ast_guard()
     test_patch_69_codegeekvn_signed_int4_canonical_tuple_and_ast_recursion_bomb_guard()
-    print("[✓] ALL 69 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 69 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_70_ai_digimate_canonical_advisory_key_bounded_lock_guard_and_env_restore()
+    print("[✓] ALL 70 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 70 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
