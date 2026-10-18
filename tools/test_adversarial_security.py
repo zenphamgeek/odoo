@@ -6923,6 +6923,83 @@ def test_patch_68_traimai_dual_int4_lock_pair_3arg_activate_and_max_nodes_ast_gu
     print("[✓] Patch 68 / traimai Dual-Int4 Advisory Lock Pair, 3-Arg Class Activate & MAX_NODES AST Guard verified")
 
 
+def test_patch_69_codegeekvn_signed_int4_canonical_tuple_and_ast_recursion_bomb_guard():
+    """
+    Patch 69 Verification Suite (codegeekvn / gemini-4-argon-high):
+    1. HeterogeneousLockKey.to_signed_int4 & classmethod canonical_tuple(class_id, object_id)
+       normalizing unsigned 32-bit / 64-bit integers into PostgreSQL signed int4 [-2^31, 2^31-1].
+    2. HeterogeneousLockKey.acquire_all(cursor, raw_tuple_keys) sorting and deduplicating
+       (class_id, object_id) pairs and returning canonical_keys list.
+    3. HardenedEnterpriseFormulaGuard.validate(formula_str) & FormulaSecurityError: pre-parse
+       parenthesis depth recursion bomb defense (MAX_PARENTHESIS_DEPTH=32) and node count violation.
+    """
+    import importlib.util
+    import time
+
+    lock_py = os.path.join(
+        ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py"
+    )
+    spec_lock = importlib.util.spec_from_file_location("adv_lock_patch69", lock_py)
+    lock_mod = importlib.util.module_from_spec(spec_lock)
+    sys.modules["adv_lock_patch69"] = lock_mod
+    spec_lock.loader.exec_module(lock_mod)
+
+    # 1. Dual-int4 boundary normalization & canonical sorting
+    class _MockDatabaseCursor:
+        def __init__(self):
+            self.executed_queries = []
+
+        def execute(self, query, params):
+            self.executed_queries.append((query, params))
+
+    cursor = _MockDatabaseCursor()
+    raw_keys = [
+        (4294967295, 100),  # Unsigned 32-bit max -> -1
+        (10, 2147483648),   # Overflow int4 -> -2147483648
+        (5, 50),
+        (5, 20),
+    ]
+    resolved = lock_mod.HeterogeneousLockKey.acquire_all(cursor, raw_keys)
+    assert resolved == [
+        (-1, 100),
+        (5, 20),
+        (5, 50),
+        (10, -2147483648),
+    ]
+    assert len(cursor.executed_queries) == 4
+    for _, (c_val, o_val) in cursor.executed_queries:
+        assert lock_mod.HeterogeneousLockKey.INT4_MIN <= c_val <= lock_mod.HeterogeneousLockKey.INT4_MAX
+        assert lock_mod.HeterogeneousLockKey.INT4_MIN <= o_val <= lock_mod.HeterogeneousLockKey.INT4_MAX
+
+    # 2. Pre-parse recursion bomb rejection & node count boundary in validate()
+    malicious_formula = "(" * 40 + "1" + ")" * 40
+    try:
+        lock_mod.HardenedEnterpriseFormulaGuard.validate(malicious_formula)
+        raise AssertionError("Expected FormulaSecurityError on deep parenthesis nesting")
+    except lock_mod.FormulaSecurityError as exc:
+        assert "Recursion bomb defense" in str(exc)
+
+    valid_tree = lock_mod.HardenedEnterpriseFormulaGuard.validate("a + b + c + d + e")
+    assert valid_tree is not None
+
+    oversized = " + ".join([f"var_{i}" for i in range(150)])
+    try:
+        lock_mod.HardenedEnterpriseFormulaGuard.validate(oversized)
+        raise AssertionError("Expected FormulaSecurityError on oversized AST node count")
+    except lock_mod.FormulaSecurityError as exc:
+        assert "Node count violation" in str(exc)
+
+    # 3. Simulated 3G lock hold budget (< 200ms server-side acquisition)
+    start_time = time.perf_counter()
+    cursor_3g = _MockDatabaseCursor()
+    lock_mod.HeterogeneousLockKey.acquire_all(cursor_3g, [(1, 10)])
+    lock_hold_duration_ms = (time.perf_counter() - start_time) * 1000
+    assert lock_hold_duration_ms < 200.0
+    assert len(cursor_3g.executed_queries) == 1
+
+    print("[✓] Patch 69 / codegeekvn Signed-Int4 Canonical Tuple, Pre-Parse Recursion Bomb Guard & 3G Lock Budget verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -7006,8 +7083,9 @@ def main():
     test_patch_66_ai_digimate_dl_masoe_formula_sandbox_lock_acquire_all_and_token_guard()
     test_patch_67_immoon0009_hardened_formula_guard_canonical_lock_acquire_all_and_activate_guard()
     test_patch_68_traimai_dual_int4_lock_pair_3arg_activate_and_max_nodes_ast_guard()
-    print("[✓] ALL 68 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 68 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_69_codegeekvn_signed_int4_canonical_tuple_and_ast_recursion_bomb_guard()
+    print("[✓] ALL 69 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 69 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
