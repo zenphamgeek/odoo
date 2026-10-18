@@ -1974,3 +1974,125 @@ def test_sales_quote_crdt_harness_state_trellis_e2e():
     # Tamper Merkle history -> fails invariant
     harness.merkle_history[2] = "0" * 64
     assert harness.verify_invariant() is False
+
+
+def test_crdt_sales_doc_odoo_rls_guard_and_prefect_flow_orchestrator_e2e():
+    """Verify Turn 13 Q2 CRDTSalesDocument, OdooMultiTenantGuard, SalesRuleConstraintSolver & PrefectSalesFlowOrchestrator."""
+    import hashlib
+
+    CRDTSalesDocument = _lock_mod.CRDTSalesDocument
+    MerkleTransparencyLog = _lock_mod.MerkleTransparencyLog
+    OdooSalesOrder = _lock_mod.OdooSalesOrder
+    OdooMultiTenantGuard = _lock_mod.OdooMultiTenantGuard
+    SalesRuleConstraintSolver = _lock_mod.SalesRuleConstraintSolver
+    FlowState = _lock_mod.FlowState
+    PrefectSalesFlowOrchestrator = _lock_mod.PrefectSalesFlowOrchestrator
+
+    doc_a = CRDTSalesDocument(doc_id="deal-789", actor_id="agent_london")
+    doc_b = CRDTSalesDocument(doc_id="deal-789", actor_id="agent_singapore")
+
+    doc_a.set_field("payment_terms", "NET30", timestamp=100.0)
+    doc_a.set_line_item("item-1", "qty", 50, timestamp=100.0)
+    doc_a.set_line_item("item-1", "price", 120.0, timestamp=100.0)
+
+    doc_b.set_field("payment_terms", "NET60", timestamp=105.0)
+    doc_b.set_line_item("item-1", "discount", 0.15, timestamp=95.0)
+    doc_b.set_line_item("item-2", "qty", 10, timestamp=102.0)
+
+    merged_a = doc_a.merge(doc_b)
+    merged_b = doc_b.merge(doc_a)
+
+    dict_a = merged_a.to_dict()
+    dict_b = merged_b.to_dict()
+
+    assert dict_a == dict_b
+    assert dict_a["payment_terms"] == "NET60"
+    assert dict_a["items"]["item-1"]["qty"] == 50
+    assert dict_a["items"]["item-1"]["discount"] == 0.15
+    assert dict_a["items"]["item-2"]["qty"] == 10
+
+    transparency_log = MerkleTransparencyLog()
+    entries = [
+        {"event": "QUOTE_CREATED", "quote_id": "Q-001", "author": "sdr_agent"},
+        {"event": "DISCOUNT_REQUESTED", "quote_id": "Q-001", "requested_pct": 0.25},
+        {"event": "COMPLIANCE_APPROVED", "quote_id": "Q-001", "approver": "vp_sales"},
+        {"event": "CONTRACT_SIGNED", "quote_id": "Q-001", "counterparty": "Enterprise Corp"},
+        {"event": "INVOICE_GENERATED", "quote_id": "Q-001", "amount": 45000.00},
+    ]
+    leaf_hashes = []
+    for e in entries:
+        _, h = transparency_log.append_entry(e)
+        leaf_hashes.append(h)
+
+    root_hash = transparency_log.get_root_hash()
+    for i in range(len(entries)):
+        proof = transparency_log.get_inclusion_proof(i)
+        assert MerkleTransparencyLog.verify_inclusion_proof(leaf_hashes[i], proof, root_hash) is True
+
+    tampered_leaf = hashlib.sha256(b"MALICIOUS_UNAUTHORIZED_DISCOUNT_60_PCT").hexdigest()
+    proof_zero = transparency_log.get_inclusion_proof(0)
+    assert MerkleTransparencyLog.verify_inclusion_proof(tampered_leaf, proof_zero, root_hash) is False
+
+    guard = OdooMultiTenantGuard()
+    order_corp = OdooSalesOrder(order_id="SO-001", company_id=1, customer_id="CUST-A", total_amount=10000.0)
+    order_sub = OdooSalesOrder(order_id="SO-002", company_id=2, customer_id="CUST-B", total_amount=5000.0)
+
+    assert guard.record_order(order_corp, user_company_id=1) is True
+    assert guard.record_order(order_sub, user_company_id=2) is True
+
+    with pytest.raises(PermissionError):
+        guard.record_order(order_corp, user_company_id=2)
+
+    guard.post_double_entry_invoice("SO-001", debit_acc="AccountsReceivable", credit_acc="SalesRevenue", amount=10000.0)
+    assert guard.verify_ledger_equilibrium() is True
+
+    with pytest.raises(ValueError):
+        guard.post_double_entry_invoice("SO-001", debit_acc="AccountsReceivable", credit_acc="SalesRevenue", amount=10000.0)
+
+    solver = SalesRuleConstraintSolver(max_memory_slots=3)
+    pricing_rules = {
+        "ENTERPRISE_DISCOUNT_TIER": ["prod_core", "prod_support"],
+        "AI_SUITE_BUNDLE": ["prod_core", "prod_ai_addon"],
+        "GLOBAL_COMPLIANCE_PACK": ["prod_support", "prod_audit_vault"],
+    }
+    assert solver.resolve_bundle_eligibility(["prod_core", "prod_support"], pricing_rules) == {"ENTERPRISE_DISCOUNT_TIER"}
+    assert solver.resolve_bundle_eligibility(["prod_core", "prod_ai_addon"], pricing_rules) == {"AI_SUITE_BUNDLE"}
+    solver.resolve_bundle_eligibility(["prod_a"], pricing_rules)
+    solver.resolve_bundle_eligibility(["prod_b"], pricing_rules)
+    solver.resolve_bundle_eligibility(["prod_c"], pricing_rules)
+    assert len(solver.cache) <= 3
+
+    orchestrator = PrefectSalesFlowOrchestrator()
+    ctx1 = orchestrator.execute_flow(
+        flow_id="deal_approval_flow",
+        idempotency_key="req_uuid_001",
+        task_payload={"target_discount": 0.20},
+    )
+    assert ctx1.state == FlowState.COMPLETED
+    assert ctx1.result == {"approved_discount": 0.20, "status": "APPROVED"}
+
+    ctx1_replay = orchestrator.execute_flow(
+        flow_id="deal_approval_flow",
+        idempotency_key="req_uuid_001",
+        task_payload={"target_discount": 0.35},
+    )
+    assert ctx1_replay.state == FlowState.COMPLETED
+    assert ctx1_replay.result["approved_discount"] == 0.20
+
+    ctx_fail = orchestrator.execute_flow(
+        flow_id="deal_approval_flow",
+        idempotency_key="req_uuid_002",
+        task_payload={"target_discount": 0.65},
+    )
+    assert ctx_fail.state == FlowState.FAILED
+    assert "Executive Council approval" in str(ctx_fail.error_message)
+
+    ctx_retry = orchestrator.execute_flow(
+        flow_id="deal_approval_flow",
+        idempotency_key="req_uuid_003",
+        task_payload={"target_discount": 0.15},
+        simulate_failure_once=True,
+    )
+    assert ctx_retry.state == FlowState.COMPLETED
+    assert ctx_retry.retry_count == 1
+    assert ctx_retry.result["status"] == "APPROVED_ON_RETRY"
