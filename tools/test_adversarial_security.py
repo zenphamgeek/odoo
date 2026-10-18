@@ -5726,6 +5726,76 @@ def test_patch_51_tsmei0209_entropy_32b_record_transactional_nonce_and_crypto_sh
     print("[✓] Patch 51 / tsmei0209 32-Byte Master Entropy, record_transactional_nonce & Dual-Key Crypto-Shredding verified")
 
 
+def test_patch_52_coderedgen_shannon_entropy_zero_width_strip_and_punycode_guard():
+    """Verify Patch 52 (coderedgen / gemini-4-argon-high):
+    1. calculate_shannon_entropy mathematical bounds (0.0 for uniform, 1.0 for 2-symbol, 8.0 for 256-symbol) & MINIMUM_SHANNON_ENTROPY_BITS_PER_BYTE = 3.2 in derive_hkdf_subkey.
+    2. Pre-normalization ZERO_WIDTH_REGEX stripping ('my\\u200Bcompany' -> 'mycompany', 'adm\\u200Bin' -> reserved 'admin') & Punycode 'xn--' rejection.
+    3. record_and_verify_nonce_transactional atomic database journal reservation & replay rejection.
+    """
+    import importlib.util
+    import uuid
+
+    ctrl_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_ctrl_p52", ctrl_path)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    # 1. Shannon entropy bounds
+    assert ctrl_mod.calculate_shannon_entropy(b"A" * 64) == 0.0
+    assert abs(ctrl_mod.calculate_shannon_entropy(b"AB" * 32) - 1.0) < 0.001
+    assert abs(ctrl_mod.calculate_shannon_entropy(bytes([i % 256 for i in range(256)])) - 8.0) < 0.001
+
+    try:
+        ctrl_mod.derive_hkdf_subkey("A" * 36, ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+        raise AssertionError("Expected ValidationError for low Shannon entropy uniform secret")
+    except ctrl_mod.ValidationError as exc:
+        assert "Shannon entropy" in str(exc)
+
+    # 2. Zero-width stripping & Punycode rejection
+    assert ctrl_mod.sanitize_and_validate_slug("my\u200Bcompany") == "mycompany"
+    assert ctrl_mod.sanitize_and_validate_slug("\uff4e\uff4f\uff56\uff41") == "nova"
+
+    try:
+        ctrl_mod.sanitize_and_validate_slug("adm\u200Bin")
+        raise AssertionError("Expected reserved slug rejection after zero-width stripping")
+    except ctrl_mod.ValidationError as exc:
+        assert "is reserved" in str(exc)
+
+    try:
+        ctrl_mod.sanitize_and_validate_slug("xn--test-43d")
+        raise AssertionError("Expected Punycode rejection")
+    except ctrl_mod.ValidationError as exc:
+        assert "Punycode" in str(exc)
+
+    # 3. record_and_verify_nonce_transactional
+    class _MockNonceJournalCr:
+        def __init__(self):
+            self.journal = set()
+            self._last_result = None
+        def execute(self, query, params=None):
+            q = query.strip()
+            if "CREATE TABLE" in q or "CREATE INDEX" in q or "DELETE FROM" in q:
+                self._last_result = []
+                return
+            if "INSERT INTO insilos_nonce_journal" in q:
+                key = (params[0], params[1])
+                if key in self.journal:
+                    self._last_result = []
+                else:
+                    self.journal.add(key)
+                    self._last_result = [(1,)]
+        def fetchone(self):
+            return self._last_result[0] if self._last_result else None
+
+    cr52 = _MockNonceJournalCr()
+    n52 = str(uuid.uuid4())
+    assert ctrl_mod.record_and_verify_nonce_transactional(cr52, n52, "onboarding_test") is True
+    assert (n52, "onboarding_test") in cr52.journal
+    assert ctrl_mod.record_and_verify_nonce_transactional(cr52, n52, "onboarding_test") is False
+
+    print("[✓] Patch 52 / coderedgen Shannon Entropy Density Gate, Zero-Width Strip & Punycode Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5792,8 +5862,9 @@ def main():
     test_patch_49_coderedgen_tasr_p_nonce_journal_and_webhook_reserved_slugs()
     test_patch_50_coderedgen_hkdf_salt_entropy_and_context_nonce_journal()
     test_patch_51_tsmei0209_entropy_32b_record_transactional_nonce_and_crypto_shredding()
-    print("[✓] ALL 51 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 51 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_52_coderedgen_shannon_entropy_zero_width_strip_and_punycode_guard()
+    print("[✓] ALL 52 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 52 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
