@@ -1245,4 +1245,80 @@ def test_bant_gate_sales_state_machine_e2e_lifecycle_and_gate_validation() -> No
     assert fsm.verify_invariant() is False
 
 
+IntegrityViolationError = _lock_mod.IntegrityViolationError
+ConstraintResolutionError = _lock_mod.ConstraintResolutionError
+SalesQuotationCRDT = _lock_mod.SalesQuotationCRDT
+MerkleTransparencyLog = _lock_mod.MerkleTransparencyLog
+PubGrubQuotationSolver = _lock_mod.PubGrubQuotationSolver
+
+
+def test_json_crdt_merkle_transparency_and_pubgrub_quotation_solver_e2e() -> None:
+    """Verifies SalesQuotationCRDT convergence, MerkleTransparencyLog inclusion proofs, and PubGrubQuotationSolver CPQ bundle resolution."""
+    quote_agent_a = SalesQuotationCRDT(document_id="QUOTE-2026-001", actor_id="agent_alpha")
+    quote_agent_b = SalesQuotationCRDT(document_id="QUOTE-2026-001", actor_id="agent_beta")
+
+    quote_agent_a.set_header_field("customer", "Acme Corporation")
+    quote_agent_b.merge(quote_agent_a)
+
+    quote_agent_a.set_header_field("global_discount_percent", 10.0)
+    quote_agent_a.set_line_item("LINE-001", "sku", "CLOUD-ERP-ENTERPRISE")
+    quote_agent_a.set_line_item("LINE-001", "unit_price", 15000.0)
+
+    quote_agent_b.set_header_field("payment_terms", "NET-45")
+    quote_agent_b.set_line_item("LINE-002", "sku", "AI-AUTOMATION-ADDON")
+    quote_agent_b.set_line_item("LINE-002", "unit_price", 4500.0)
+
+    quote_agent_a.merge(quote_agent_b)
+    quote_agent_b.merge(quote_agent_a)
+
+    state_a = quote_agent_a.to_canonical_dict()
+    state_b = quote_agent_b.to_canonical_dict()
+    assert state_a["header"]["customer"] == "Acme Corporation"
+    assert state_a["header"]["global_discount_percent"] == 10.0
+    assert state_a["header"]["payment_terms"] == "NET-45"
+    assert state_a["line_items"] == state_b["line_items"]
+    assert state_a["tombstones"] == state_b["tombstones"]
+
+    # Tombstone fail-closed check
+    quote_agent_a.remove_line_item("LINE-002")
+    with pytest.raises(IntegrityViolationError, match="Cannot mutate tombstoned line item"):
+        quote_agent_a.set_line_item("LINE-002", "sku", "RESURRECTED-SKU")
+
+    # Merkle Transparency Log inclusion and tamper proofs
+    tree = MerkleTransparencyLog()
+    events = [
+        {"quote_id": "Q-01", "action": "CREATE", "amount": 10000.0, "approver": "system"},
+        {"quote_id": "Q-01", "action": "APPLY_DISCOUNT", "amount": 9000.0, "approver": "sales_rep_1"},
+        {"quote_id": "Q-01", "action": "ESCALATE_MARGIN", "amount": 9000.0, "approver": "sales_manager_4"},
+        {"quote_id": "Q-01", "action": "FINAL_SIGNATURE", "amount": 9000.0, "approver": "vp_sales"},
+    ]
+    leaf_records = [tree.record_approval_event(ev) for ev in events]
+    root_hash = tree.get_root_hash()
+    assert len(root_hash) == 64
+
+    for idx, leaf_h in leaf_records:
+        proof = tree.generate_inclusion_proof(idx)
+        assert MerkleTransparencyLog.verify_inclusion_proof(leaf_h, proof, root_hash) is True
+
+    assert (
+        MerkleTransparencyLog.verify_inclusion_proof(
+            "0" * 64, tree.generate_inclusion_proof(0), root_hash
+        )
+        is False
+    )
+
+    # PubGrub CPQ Bundle Solver
+    solver = PubGrubQuotationSolver()
+    solver.register_dependency("SKU-ENTERPRISE-BUNDLE", "SKU-CLOUD-STORAGE")
+    solver.register_dependency("SKU-ENTERPRISE-BUNDLE", "SKU-DB-CONNECTOR")
+    solver.register_incompatibility("SKU-LEGACY-ONPREM", "SKU-CLOUD-STORAGE")
+
+    resolved = solver.solve_bundle(["SKU-ENTERPRISE-BUNDLE"])
+    assert resolved == ["SKU-CLOUD-STORAGE", "SKU-DB-CONNECTOR", "SKU-ENTERPRISE-BUNDLE"]
+
+    with pytest.raises(ConstraintResolutionError, match="SKU conflict detected"):
+        solver.solve_bundle(["SKU-ENTERPRISE-BUNDLE", "SKU-LEGACY-ONPREM"])
+
+
+
 
