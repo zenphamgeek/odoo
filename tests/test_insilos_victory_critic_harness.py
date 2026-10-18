@@ -1672,10 +1672,82 @@ def test_delta_crdt_merkle_fabric_and_pubgrub_quote_engine_e2e() -> None:
     assert valid is True and err is None
 
 
+def test_zcese_sales_order_crdt_merkle_tree_and_uv_pubgrub_cache_e2e():
+    """Verify Zero-Copy Ephemeral Shadow Environments (ZCESE) SalesOrderCRDTDocument, SalesAuditMerkleTree & UvPubGrubCacheManager."""
+    import tempfile
 
+    CRDTConvergenceError = _lock_mod.CRDTConvergenceError
+    DependencyResolutionError = _lock_mod.DependencyResolutionError
+    SalesAuditMerkleTree = _lock_mod.SalesAuditMerkleTree
+    SalesOrderCRDTDocument = _lock_mod.SalesOrderCRDTDocument
+    TenantIsolationError = _lock_mod.TenantIsolationError
+    UvPubGrubCacheManager = _lock_mod.UvPubGrubCacheManager
 
+    doc_a = SalesOrderCRDTDocument(order_id="SO-2026-001", actor_id="agent_alpha", company_id=10)
+    doc_b = SalesOrderCRDTDocument(order_id="SO-2026-001", actor_id="rep_beta", company_id=10)
 
+    doc_a.set_line_item("line_1", "Enterprise CRM Seat", quantity=10, unit_price=100.0)
+    doc_a.set_discount(10.0)
 
+    doc_b.set_line_item("line_2", "AI Analytics Addon", quantity=1, unit_price=500.0)
+    doc_b.set_line_item("line_1", "Enterprise CRM Seat", quantity=12, unit_price=100.0)
+    doc_b.set_discount(15.0)
 
+    doc_a.merge(doc_b)
+    doc_b.merge(doc_a)
 
+    state_a = doc_a.export_canonical_state()
+    state_b = doc_b.export_canonical_state()
+    assert state_a == state_b
+    assert state_a["total"] == 1445.0
 
+    doc_foreign = SalesOrderCRDTDocument(order_id="SO-2026-001", actor_id="attacker", company_id=99)
+    with pytest.raises(TenantIsolationError):
+        doc_a.merge(doc_foreign)
+
+    doc_other = SalesOrderCRDTDocument(order_id="SO-2026-999", actor_id="rep_beta", company_id=10)
+    with pytest.raises(CRDTConvergenceError):
+        doc_a.merge(doc_other)
+
+    tree = SalesAuditMerkleTree()
+    events = [
+        {"seq": 1, "action": "lead_created", "lead_id": "L-900", "actor": "system"},
+        {"seq": 2, "action": "quote_drafted", "order_id": "SO-2026-001", "total": 1000.0},
+        {"seq": 3, "action": "discount_applied", "order_id": "SO-2026-001", "discount": 15.0},
+        {"seq": 4, "action": "order_confirmed", "order_id": "SO-2026-001", "total": 1445.0},
+        {"seq": 5, "action": "invoice_posted", "invoice_id": "INV-2026-001", "paid": True},
+    ]
+    for ev in events:
+        tree.append_event(ev)
+
+    root_hash = tree.get_root_hash()
+    for idx, ev in enumerate(events):
+        proof = tree.generate_inclusion_proof(idx)
+        assert SalesAuditMerkleTree.verify_inclusion_proof(ev, proof, root_hash) is True
+
+    tampered_event = dict(events[2])
+    tampered_event["discount"] = 50.0
+    proof_2 = tree.generate_inclusion_proof(2)
+    assert SalesAuditMerkleTree.verify_inclusion_proof(tampered_event, proof_2, root_hash) is False
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        cache_mgr = UvPubGrubCacheManager(Path(tmp_dir))
+        cache_mgr.register_package("sales-harness-core", 1, {"crdt-sync": {1, 2}, "merkle-audit": {1}})
+        cache_mgr.register_package("sales-harness-core", 2, {"crdt-sync": {2}, "merkle-audit": {2}})
+        cache_mgr.register_package("crdt-sync", 1, {"crypto-primitives": {1}})
+        cache_mgr.register_package("crdt-sync", 2, {"crypto-primitives": {2}})
+        cache_mgr.register_package("merkle-audit", 1, {"crypto-primitives": {1, 2}})
+        cache_mgr.register_package("merkle-audit", 2, {"crypto-primitives": {1}})
+        cache_mgr.register_package("crypto-primitives", 1, {})
+        cache_mgr.register_package("crypto-primitives", 2, {})
+
+        resolved = cache_mgr.resolve_dependencies({"sales-harness-core": {1, 2}})
+        assert resolved["sales-harness-core"] == 1
+
+        env_path = cache_mgr.materialize_ephemeral_env("e2e-worker-01", resolved)
+        for pkg, ver in resolved.items():
+            whl_file = env_path / f"{pkg}-{ver}.whl"
+            assert whl_file.exists() and whl_file.stat().st_nlink >= 2
+
+        with pytest.raises(DependencyResolutionError):
+            cache_mgr.resolve_dependencies({"sales-harness-core": {2}})
