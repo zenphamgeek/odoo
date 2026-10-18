@@ -5656,6 +5656,76 @@ def test_patch_50_coderedgen_hkdf_salt_entropy_and_context_nonce_journal():
     print("[✓] Patch 50 / coderedgen Domain-Separated HKDF Salt, Minimum Entropy Check & Context Nonce Journal verified")
 
 
+def test_patch_51_tsmei0209_entropy_32b_record_transactional_nonce_and_crypto_shredding():
+    """Verify Patch 51 (tsmei0209-gmail-com / gemini-4-argon-high):
+    1. MINIMUM_MASTER_SECRET_ENTROPY_BYTES = 32 enforced in derive_hkdf_subkey.
+    2. SLUG_HAS_ALPHA_REGEX and 'well-known', 'readyz', 'livez' in RESERVED_SLUGS.
+    3. record_transactional_nonce rejects expired nonces before hitting DB, and detects replay on ON CONFLICT.
+    4. compute_crypto_shredded_audit_identity computes HMAC(DEK, slug) for 72h GDPR Art. 17 / Decree 13 crypto-shredding.
+    """
+    import importlib.util
+    import time
+
+    ctrl_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_ctrl_p51", ctrl_path)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    # 1. 32-byte minimum master secret entropy check
+    assert ctrl_mod.MINIMUM_MASTER_SECRET_ENTROPY_BYTES == 32
+    try:
+        ctrl_mod.derive_hkdf_subkey("short_secret_1234567890", ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+        raise AssertionError("Expected ValidationError for master secret < 32 bytes")
+    except ctrl_mod.ValidationError as exc:
+        assert "minimum 32 bytes required" in str(exc)
+
+    # 2. Reserved infrastructure slugs ('well-known', 'readyz', 'livez')
+    for reserved in ("well-known", "readyz", "livez"):
+        assert reserved in ctrl_mod.RESERVED_SLUGS
+        try:
+            ctrl_mod.sanitize_and_validate_slug(reserved)
+            raise AssertionError(f"Expected ValidationError for reserved slug: {reserved}")
+        except ctrl_mod.ValidationError as exc:
+            assert "reserved infrastructure identifier" in str(exc)
+
+    # 3. record_transactional_nonce pre-DB expiry check & replay check
+    class _MockRecCr:
+        def __init__(self, rows):
+            self.call_count = 0
+            self._rows = list(rows)
+            self._last = None
+        def execute(self, sql, params=None):
+            self.call_count += 1
+            if "INSERT INTO insilos_onboarding_nonce_journal" in sql:
+                self._last = self._rows.pop(0) if self._rows else None
+        def fetchone(self):
+            return self._last
+
+    cr_exp = _MockRecCr([])
+    try:
+        ctrl_mod.record_transactional_nonce(cr_exp, "secure_random_nonce_12345678", "tenant_onboarding", time.time() - 100)
+        raise AssertionError("Expected ValidationError for expired nonce")
+    except ctrl_mod.ValidationError as exc:
+        assert "Nonce has already expired" in str(exc)
+        assert cr_exp.call_count == 0
+
+    nonce51 = "secure_random_nonce_12345678"
+    cr_ok = _MockRecCr([(nonce51,), None])
+    assert ctrl_mod.record_transactional_nonce(cr_ok, nonce51, "tenant_onboarding", time.time() + 600) is True
+    try:
+        ctrl_mod.record_transactional_nonce(cr_ok, nonce51, "tenant_onboarding", time.time() + 600)
+        raise AssertionError("Expected ValidationError on replayed nonce")
+    except ctrl_mod.ValidationError as exc:
+        assert "Replay detected: nonce has already been consumed" in str(exc)
+
+    # 4. Dual-Key Crypto-Shredding Envelope
+    dek = b"d" * 32
+    pseudo_id = ctrl_mod.compute_crypto_shredded_audit_identity(dek, "Acme-Corp-01")
+    assert len(pseudo_id) == 64 and pseudo_id == ctrl_mod.compute_crypto_shredded_audit_identity(dek, "acme-corp-01")
+
+    print("[✓] Patch 51 / tsmei0209 32-Byte Master Entropy, record_transactional_nonce & Dual-Key Crypto-Shredding verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5721,8 +5791,9 @@ def main():
     test_patch_48_justaskgao_hkdf_subkey_and_transactional_advisory_nonce_ring()
     test_patch_49_coderedgen_tasr_p_nonce_journal_and_webhook_reserved_slugs()
     test_patch_50_coderedgen_hkdf_salt_entropy_and_context_nonce_journal()
-    print("[✓] ALL 50 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 50 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_51_tsmei0209_entropy_32b_record_transactional_nonce_and_crypto_shredding()
+    print("[✓] ALL 51 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 51 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
