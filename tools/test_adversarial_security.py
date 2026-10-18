@@ -6503,6 +6503,118 @@ def test_patch_64_nahlaleah102_heterogeneous_cross_tier_lock_nfkd_formula_graph_
     print("[✓] Patch 64 / nahlaleah102 Cross-Tier Lock Manager, NFKD Formula Graph & Partitioned Revaluation verified")
 
 
+def test_patch_65_immoon0009_ast_formula_evaluator_thread_lock_rollback_and_scoped_tenant_guard():
+    """
+    Patch 65 Verification Suite (immoon0009-gmail-com / gemini-4-argon-high):
+    1. NFKDStrongRefFormulaSanitizer AST-verified mathematical formula evaluator (normalize_input, validate_ast, evaluate),
+       blocking Unicode control chars, dunder attributes, unauthorized functions, AST depth bombs, and division by zero.
+    2. Dual-Mode HeterogeneousLockKey (2-arg LockTier & 4-arg LockSystemTier) and DeterministicHeterogeneousLockManager
+       thread-held lock stack, out-of-order batch canonicalization, hierarchical escalation guard, and timeout rollback.
+    3. ScopedTenantEnvironmentGuard ContextVar isolation (scope_tenant, get_current_tenant, assert_record_tenant).
+    """
+    import importlib.util
+    from decimal import Decimal
+
+    lock_py = os.path.join(
+        ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py"
+    )
+    spec_lock = importlib.util.spec_from_file_location("adv_lock_patch65", lock_py)
+    lock_mod = importlib.util.module_from_spec(spec_lock)
+    sys.modules["adv_lock_patch65"] = lock_mod
+    spec_lock.loader.exec_module(lock_mod)
+
+    # 1. NFKDStrongRefFormulaSanitizer AST evaluation & homoglyph/RCE rejection
+    sanitizer = lock_mod.NFKDStrongRefFormulaSanitizer(
+        allowed_variables={"amount", "rate", "fee", "discount"}
+    )
+    ctx = {
+        "amount": Decimal("1000.00"),
+        "rate": Decimal("1.25"),
+        "fee": Decimal("15.50"),
+        "discount": Decimal("5.00"),
+    }
+    res_eval = sanitizer.evaluate("round((amount * rate) + fee - abs(-discount), 2)", ctx)
+    assert res_eval == Decimal("1260.50")
+
+    # Mathematical bold homoglyphs canonicalized via NFKD
+    homoglyph_expr = "\U0001d41a\U0001d426\U0001d428\U0001d42e\U0001d427\U0001d42d \uff0b \U0001d7cf\U0001d7ce\U0001d7ce"
+    assert sanitizer.normalize_input(homoglyph_expr) == "amount + 100"
+    assert sanitizer.evaluate(homoglyph_expr, ctx) == Decimal("1100.00")
+
+    for bad_formula in (
+        "amount\u200b + 10",
+        "amount\x00 + 10",
+        "__import__('os').system('id')",
+        "amount.__class__.__mro__[1].__subclasses__()",
+        "eval('1+1')",
+        "amount ** 1000000",
+        "amount / (rate - rate)",
+        "(" * 20 + "amount" + ")" * 20,
+    ):
+        try:
+            sanitizer.evaluate(bad_formula, ctx)
+            raise AssertionError(f"Expected FormulaSanitizationError for {bad_formula!r}")
+        except lock_mod.FormulaSanitizationError:
+            pass
+
+    # 2. Dual-mode HeterogeneousLockKey & DeterministicHeterogeneousLockManager thread-held stack + rollback
+    mgr = lock_mod.DeterministicHeterogeneousLockManager(default_timeout_seconds=0.2)
+    k_tenant = lock_mod.HeterogeneousLockKey(lock_mod.LockTier.TENANT_COMPANY, "company_01")
+    k_journal = lock_mod.HeterogeneousLockKey(lock_mod.LockTier.ACCOUNT_JOURNAL, "journal_bank_01")
+    k_line_a = lock_mod.HeterogeneousLockKey(lock_mod.LockTier.ACCOUNT_MOVE_LINE, "line_0001")
+    k_line_b = lock_mod.HeterogeneousLockKey(lock_mod.LockTier.ACCOUNT_MOVE_LINE, "line_0002")
+
+    assert mgr.acquire_heterogeneous_locks([]) == []
+    acq_batch = mgr.acquire_heterogeneous_locks([k_line_b, k_journal, k_line_a, k_tenant])
+    assert acq_batch == [k_tenant, k_journal, k_line_a, k_line_b]
+    mgr.release_heterogeneous_locks(acq_batch)
+
+    # Hierarchical escalation check (holding lower-tier ACCOUNT_MOVE_LINE and requesting higher-tier TENANT_COMPANY)
+    held_low = mgr.acquire_heterogeneous_locks([k_line_a])
+    try:
+        try:
+            mgr.acquire_heterogeneous_locks([k_tenant])
+            raise AssertionError("Expected DeadlockPreventionError on reverse lock order escalation")
+        except lock_mod.DeadlockPreventionError:
+            pass
+    finally:
+        mgr.release_heterogeneous_locks(held_low)
+
+    # Timeout atomic rollback check
+    orig_acquire = mgr._acquire_single_lock
+
+    def fail_on_journal(key, timeout):
+        if key == k_journal:
+            return False
+        return orig_acquire(key, timeout)
+
+    mgr._acquire_single_lock = fail_on_journal
+    try:
+        try:
+            mgr.acquire_heterogeneous_locks([k_tenant, k_journal])
+            raise AssertionError("Expected LockAcquisitionTimeoutError")
+        except lock_mod.LockAcquisitionTimeoutError:
+            pass
+    finally:
+        mgr._acquire_single_lock = orig_acquire
+    assert mgr._thread_held_locks.get() == ()
+
+    # 3. ScopedTenantEnvironmentGuard ContextVar isolation
+    assert lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant() is None
+    with lock_mod.ScopedTenantEnvironmentGuard.scope_tenant(10, {10, 20}):
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant() == 10
+        lock_mod.ScopedTenantEnvironmentGuard.assert_record_tenant(10)
+        lock_mod.ScopedTenantEnvironmentGuard.assert_record_tenant(20)
+        try:
+            lock_mod.ScopedTenantEnvironmentGuard.assert_record_tenant(99)
+            raise AssertionError("Expected TenantSecurityError for unauthorized company 99")
+        except lock_mod.TenantSecurityError:
+            pass
+    assert lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant() is None
+
+    print("[✓] Patch 65 / immoon0009 AST Formula Evaluator, Thread Lock Rollback & ScopedTenantEnvironmentGuard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6582,8 +6694,9 @@ def main():
     test_patch_62_traimai_cyclic_dict_sanitizer_heterogeneous_lock_order_and_tenant_id_guard()
     test_patch_63_traimai_nfkd_strong_ref_sanitizer_heterogeneous_lock_manager_and_dom_selector_guard()
     test_patch_64_nahlaleah102_heterogeneous_cross_tier_lock_nfkd_formula_graph_and_partitioned_revaluation()
-    print("[✓] ALL 64 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 64 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_65_immoon0009_ast_formula_evaluator_thread_lock_rollback_and_scoped_tenant_guard()
+    print("[✓] ALL 65 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 65 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
