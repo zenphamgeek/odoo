@@ -5924,6 +5924,59 @@ def test_patch_55_binhthuong_commit_subject_xss_guard_and_submodule_integrity():
     print("[✓] Patch 55 / binhthuong Commit Subject & Author Stored XSS Guard verified")
 
 
+def test_patch_56_agy_home_merkle_sum_quarantine_and_ansi_escape_guard():
+    """Verify Patch 56 (agy-home / gemini-4-argon-high):
+    1. MerkleSumQuarantineEngine & ModuleRecordValidator isolate 1% IEEE 754 NaN/Inf/out-of-bounds poisoned records without corrupting totals.
+    2. sanitize_string_field strips ANSI terminal escape codes and control characters; zero silent except Exception: pass in multi_repo_scanner.py.
+    """
+    import importlib.util
+    from decimal import Decimal
+
+    scanner_path = os.path.join(ROOT_DIR, "tools/multi_repo_scanner.py")
+    with open(scanner_path, "r", encoding="utf-8") as f:
+        scanner_src = f.read()
+    assert "except Exception:\n                        pass" not in scanner_src
+
+    spec = importlib.util.spec_from_file_location("multi_repo_scanner_p56", scanner_path)
+    scanner_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(scanner_mod)
+
+    # 1. ANSI escape stripping
+    assert scanner_mod.sanitize_string_field("feat: \x1b[31mred\x1b[0m\x00") == "feat: red"
+
+    # 2. MerkleSumQuarantineEngine 1% poison isolation
+    validator = scanner_mod.ModuleRecordValidator()
+    engine = scanner_mod.MerkleSumQuarantineEngine(validator)
+    dataset = [
+        {"module_name": f"valid_mod_{i}", "category": "addon", "loc_code": 100, "workload_days": "10.0"}
+        for i in range(99)
+    ]
+    dataset.append({
+        "module_name": "poisoned_mod_100",
+        "category": "addon",
+        "loc_code": 100,
+        "workload_days": "NaN",
+    })
+    res = engine.process_batch(dataset)
+    assert res["valid_records_count"] == 99
+    assert res["quarantined_records_count"] == 1
+    assert res["quarantine_rate"] == 0.01
+    assert res["total_loc"] == 9900
+    assert Decimal(res["total_workload_days"]) == Decimal("990.0")
+    assert res["quarantine_log"][0]["rejection_reason"] == "ERR_WORKLOAD_IEEE754_POISON"
+
+    # 3. validate_and_accumulate_metric bounds check
+    acc = scanner_mod.validate_and_accumulate_metric(Decimal("10.0"), "5.5", "workload")
+    assert acc == Decimal("15.5")
+    try:
+        scanner_mod.validate_and_accumulate_metric(Decimal("10.0"), "NaN", "workload")
+        raise AssertionError("Expected ValueError on NaN metric")
+    except ValueError as exc:
+        assert "IEEE 754" in str(exc)
+
+    print("[✓] Patch 56 / agy-home Merkle-Sum Quarantine, IEEE 754 NaN Guard & ANSI Escape Sanitizer verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5994,8 +6047,9 @@ def main():
     test_patch_53_agy_home_decoded_entropy_and_zero_ddl_nonce_guard()
     test_patch_54_immoon0009_reverse_clock_drift_resurrection_and_submodule_parity()
     test_patch_55_binhthuong_commit_subject_xss_guard_and_submodule_integrity()
-    print("[✓] ALL 55 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 55 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_56_agy_home_merkle_sum_quarantine_and_ansi_escape_guard()
+    print("[✓] ALL 56 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 56 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":

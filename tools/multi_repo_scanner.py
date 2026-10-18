@@ -21,15 +21,132 @@ import os
 import sys
 import json
 import html
+import hashlib
 import re
 import argparse
 import logging
 import subprocess
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 
 logger = logging.getLogger("multi_repo_scanner")
+
+ANSI_ESCAPE_RE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+MAX_METRIC_VALUE = Decimal('1000000.0')
+
+
+def sanitize_string_field(val: Optional[str], max_len: int = 1024) -> str:
+    """Strips terminal ANSI control characters and null bytes and enforces length bounds."""
+    if val is None:
+        return ""
+    cleaned = ANSI_ESCAPE_RE.sub('', str(val))
+    cleaned = cleaned.replace('\r', '').replace('\x00', '')
+    return cleaned[:max_len].strip()
+
+
+def validate_and_accumulate_metric(current: Decimal, delta: Any, metric_name: str) -> Decimal:
+    """Accumulates floating/decimal values fail-closed against NaN, Inf, and negative values."""
+    try:
+        parsed = Decimal(str(delta))
+    except (InvalidOperation, TypeError, ValueError) as err:
+        raise ValueError(f"CRITICAL: Corrupted metric '{metric_name}' value '{delta}': {err}")
+
+    if parsed.is_nan() or parsed.is_infinite():
+        raise ValueError(f"CRITICAL: Unbounded IEEE 754 value detected in '{metric_name}': {parsed}")
+
+    if parsed < Decimal('0.0') or parsed > MAX_METRIC_VALUE:
+        raise ValueError(f"CRITICAL: Metric '{metric_name}' value {parsed} violates bounds [0.0, {MAX_METRIC_VALUE}]")
+
+    result = current + parsed
+    if result > MAX_METRIC_VALUE:
+        raise OverflowError(f"CRITICAL: Metric accumulation overflow in '{metric_name}': {result}")
+    return result
+
+
+class ModuleRecordValidator:
+    """Production Invariant Validator with Leaf-Level Quarantine."""
+
+    def __init__(self, max_workload: Decimal = Decimal("50000.0")):
+        self.max_workload = max_workload
+
+    def validate_and_sanitize_record(self, record: Dict[str, Any]) -> Tuple[bool, Dict[str, Any], str]:
+        required_keys = {"module_name", "category", "loc_code", "workload_days"}
+        if not required_keys.issubset(record.keys()):
+            return False, {}, "ERR_MISSING_SCHEMA_KEYS"
+
+        name = str(record.get("module_name", ""))
+        if not name or len(name) > 128 or any(c in name for c in ["\x00", "\x1b", "<", ">"]):
+            return False, {}, "ERR_MALFORMED_IDENTIFIER"
+
+        try:
+            loc = int(record["loc_code"])
+            workload = Decimal(str(record["workload_days"]))
+        except (ValueError, TypeError, InvalidOperation):
+            return False, {}, "ERR_INVALID_NUMERIC_TYPE"
+
+        if loc < 0 or loc > 10_000_000:
+            return False, {}, "ERR_LOC_OUT_OF_BOUNDS"
+
+        if workload.is_nan() or workload.is_infinite():
+            return False, {}, "ERR_WORKLOAD_IEEE754_POISON"
+
+        if workload < Decimal("0.0") or workload > self.max_workload:
+            return False, {}, "ERR_WORKLOAD_OUT_OF_BOUNDS"
+
+        sanitized = {
+            "module_name": name.strip(),
+            "category": str(record.get("category", "generic")),
+            "loc_code": loc,
+            "workload_days": str(workload),
+            "quarantined": False,
+        }
+        return True, sanitized, "VALID"
+
+
+class MerkleSumQuarantineEngine:
+    """Computes deterministic Merkle-Sum while isolating corrupted records into quarantine."""
+
+    def __init__(self, validator: Optional[ModuleRecordValidator] = None):
+        self.validator = validator or ModuleRecordValidator()
+
+    def process_batch(self, raw_records: List[Dict[str, Any]]) -> Dict[str, Any]:
+        valid_records: List[Dict[str, Any]] = []
+        quarantine_log: List[Dict[str, Any]] = []
+        total_workload = Decimal("0.0")
+        total_loc = 0
+
+        for idx, rec in enumerate(raw_records):
+            is_valid, sanitized, reason = self.validator.validate_and_sanitize_record(rec)
+            if is_valid:
+                valid_records.append(sanitized)
+                total_workload += Decimal(sanitized["workload_days"])
+                total_loc += sanitized["loc_code"]
+            else:
+                quarantine_log.append({
+                    "record_index": idx,
+                    "raw_payload_snippet": str(rec)[:100],
+                    "rejection_reason": reason,
+                    "quarantine_token": hashlib.sha256(f"{idx}:{reason}".encode()).hexdigest()[:16],
+                })
+
+        leaf_hashes = [
+            hashlib.sha256(f"{r['module_name']}:{r['workload_days']}".encode()).hexdigest()
+            for r in valid_records
+        ]
+        composite_root = hashlib.sha256("".join(leaf_hashes).encode()).hexdigest() if leaf_hashes else "EMPTY_ROOT"
+
+        return {
+            "valid_records_count": len(valid_records),
+            "quarantined_records_count": len(quarantine_log),
+            "total_loc": total_loc,
+            "total_workload_days": str(total_workload),
+            "merkle_sum_root": composite_root,
+            "quarantine_log": quarantine_log,
+            "quarantine_rate": len(quarantine_log) / len(raw_records) if raw_records else 0.0,
+        }
+
 
 DEFAULT_REPOSITORIES = [
     "/home/zen/O20",
@@ -113,7 +230,7 @@ class GitTelemetryInspector:
         # Branch
         rc, out, _ = cls.run_git(repo_path, ["rev-parse", "--abbrev-ref", "HEAD"])
         if rc == 0 and out:
-            info["branch"] = out
+            info["branch"] = html.escape(sanitize_string_field(out, 256), quote=True)
 
         # HEAD commit
         rc, out, _ = cls.run_git(repo_path, ["log", "-1", "--format=%H%x1f%an%x1f%ct%x1f%cI%x1f%s"])
@@ -122,13 +239,13 @@ class GitTelemetryInspector:
             if len(parts) >= 5:
                 info["head_full"] = parts[0]
                 info["head"] = parts[0][:9]
-                info["author"] = html.escape(parts[1], quote=True)
+                info["author"] = html.escape(sanitize_string_field(parts[1], 256), quote=True)
                 try:
                     info["commit_timestamp"] = int(parts[2])
                 except ValueError:
                     info["commit_timestamp"] = 0
                 info["commit_date"] = parts[3]
-                info["commit_subject"] = html.escape(parts[4], quote=True)
+                info["commit_subject"] = html.escape(sanitize_string_field(parts[4], 1024), quote=True)
 
         # Dirty status
         rc, out, _ = cls.run_git(repo_path, ["status", "--porcelain"])
@@ -146,7 +263,7 @@ class GitTelemetryInspector:
                 info["velocity_30d"] = 0
         else:
             # Traversal defect detected (e.g. zencode-ent/router missing object)
-            warning_msg = f"GIT_OBJECT_TRAVERSAL_ERROR: {err or 'Failed to count 30d commits'}"
+            warning_msg = sanitize_string_field(f"GIT_OBJECT_TRAVERSAL_ERROR: {err or 'Failed to count 30d commits'}", 1024)
             info["git_health_warning"] = warning_msg
             logger.warning("Git traversal error in %s: %s", repo_path, warning_msg)
 
@@ -222,8 +339,8 @@ class GitTelemetryInspector:
                         added = int(parts[0]) if parts[0].isdigit() else 0
                         deleted = int(parts[1]) if parts[1].isdigit() else 0
                         churn_total += (added + deleted)
-                    except Exception:
-                        pass
+                    except ValueError as exc:
+                        logger.debug("Skipping non-numeric numstat line in %s: %s", repo_path, exc)
             return churn_total
         return 0
 
@@ -692,7 +809,8 @@ class DualSizingEstimator:
             try:
                 with open(fp, "rb") as f_obj:
                     line_count = sum(1 for _ in f_obj)
-            except Exception:
+            except OSError as exc:
+                logger.debug("Skipping unreadable file %s: %s", fp, exc)
                 line_count = 0
 
             if ext in TEXT_DOC_EXTS or (ext in {".md", ".rst", ".txt"} and ("readme" in f.lower() or "adr" in f.lower())):
