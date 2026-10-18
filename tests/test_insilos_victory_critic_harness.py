@@ -1025,3 +1025,82 @@ def test_cdk_cssm_margin_floor_and_counter_signature_e2e() -> None:
     assert sm.verify_chain_integrity() is True
 
 
+PolicySalesStage = _lock_mod.PolicySalesStage
+PolicyConstraintUnsatError = _lock_mod.PolicyConstraintUnsatError
+ResourceExhaustionError = _lock_mod.ResourceExhaustionError
+DealPolicyRequirement = _lock_mod.DealPolicyRequirement
+PubGrubPolicyStateMachine = _lock_mod.PubGrubPolicyStateMachine
+
+
+def test_pubgrub_policy_state_machine_e2e_sat_and_lease_bounds() -> None:
+    """Verifies PG-CASPR sales stage policy SAT solver, executive signoff rules, and bounded lease pool."""
+    policy = DealPolicyRequirement(
+        max_discount_pct=20.0,
+        min_contract_value=50000.0,
+        requires_executive_signoff=True,
+        requires_security_review=True,
+    )
+    engine = PubGrubPolicyStateMachine(tenant_id="tenant_insilos_corp", max_concurrent_leases=2)
+    assert engine.verify_invariant() is True
+
+    evt1 = engine.transition_stage(
+        request_tenant_id="tenant_insilos_corp",
+        deal_id="DEAL-001",
+        target_stage=PolicySalesStage.QUALIFIED,
+        payload={"contract_value": 75000.0, "discount_pct": 10.0},
+        policy=policy,
+    )
+    assert evt1.from_stage == PolicySalesStage.LEAD
+    assert evt1.to_stage == PolicySalesStage.QUALIFIED
+    assert evt1.prev_hash == "0" * 64
+    assert len(evt1.current_hash) == 64
+
+    evt2 = engine.transition_stage(
+        request_tenant_id="tenant_insilos_corp",
+        deal_id="DEAL-001",
+        target_stage=PolicySalesStage.PROPOSAL,
+        payload={"contract_value": 75000.0, "discount_pct": 15.0},
+        policy=policy,
+    )
+    assert evt2.prev_hash == evt1.current_hash
+    assert engine.verify_invariant() is True
+
+    # Illegal stage skip must fail closed
+    with pytest.raises(InvalidStateTransitionError, match="Illegal transition from LEAD to CLOSED_WON"):
+        engine.transition_stage(
+            request_tenant_id="tenant_insilos_corp",
+            deal_id="DEAL-SKIP",
+            target_stage=PolicySalesStage.CLOSED_WON,
+            payload={
+                "contract_value": 100000.0,
+                "discount_pct": 0.0,
+                "executive_signoff": True,
+                "security_review_completed": True,
+            },
+            policy=policy,
+        )
+
+    # Cross-tenant access must fail closed
+    with pytest.raises(TenantSecurityViolationError, match="Cross-tenant access rejected"):
+        engine.apply_odoo_odoo_pattern("tenant_competitor_corp")
+
+    # Excessive discount without executive signoff must fail closed
+    with pytest.raises(PolicyConstraintUnsatError, match="exceeds limit 20.0% without executive signoff"):
+        engine.transition_stage(
+            request_tenant_id="tenant_insilos_corp",
+            deal_id="DEAL-DISCOUNT",
+            target_stage=PolicySalesStage.QUALIFIED,
+            payload={"contract_value": 100000.0, "discount_pct": 35.0, "executive_signoff": False},
+            policy=policy,
+        )
+
+    # Lease pool capacity bounds
+    assert engine.acquire_lease() == 1
+    assert engine.acquire_lease() == 2
+    with pytest.raises(ResourceExhaustionError):
+        engine.acquire_lease()
+    assert engine.release_lease() == 1
+    assert engine.release_lease() == 0
+    assert engine.apply_astral_sh_uv_pattern() is True
+
+
