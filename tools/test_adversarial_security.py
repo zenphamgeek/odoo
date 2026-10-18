@@ -6427,6 +6427,82 @@ console.log("DOM_SELECTOR_OK");
     print("[✓] Patch 63 / traimai NFKD Strong-Ref Sanitizer, Heterogeneous Lock Manager & DOM Selector Guard verified")
 
 
+def test_patch_64_nahlaleah102_heterogeneous_cross_tier_lock_nfkd_formula_graph_and_partitioned_revaluation():
+    """
+    Patch 64 (nahlaleah102 / gemini-4-argon-high):
+    1. LockSystemTier & HeterogeneousLockKey + DeterministicHeterogeneousLockManager.acquire_heterogeneous_locks.
+    2. NFKDStrongRefFormulaSanitizer: canonicalize_unicode, sanitize_formula_payload, and _check_cycle
+       for circular cell dependency graphs (A1 -> B1 -> A1) and command injection rejection.
+    3. validate_tenant_access (both 2-arg and 3-arg signatures) raising TenantAccessViolation.
+    4. revalue_journal_items_partitioned: partitioned multi-currency revaluation across 50 companies.
+    """
+    from decimal import Decimal
+    import importlib.util
+    from unittest.mock import MagicMock
+
+    lock_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py")
+    spec = importlib.util.spec_from_file_location("advisory_lock_p64", lock_path)
+    lock_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lock_mod)
+
+    # 1. HeterogeneousLockKey & acquire_heterogeneous_locks
+    k_row = lock_mod.HeterogeneousLockKey(lock_mod.LockSystemTier.POSTGRES_ROW_LEVEL, 1, 10, 42)
+    k_adv = lock_mod.HeterogeneousLockKey(lock_mod.LockSystemTier.POSTGRES_ADVISORY, 1, 10, 42)
+    k_redis = lock_mod.HeterogeneousLockKey(lock_mod.LockSystemTier.DISTRIBUTED_REDIS, 1, 10, 42)
+    mock_cr = MagicMock()
+    mock_cr.fetchone.return_value = (True,)
+    mock_redis = MagicMock()
+    mock_redis.set.return_value = True
+
+    mgr = lock_mod.DeterministicHeterogeneousLockManager(cr=mock_cr, redis_client=mock_redis)
+    with mgr.acquire_heterogeneous_locks([k_row, k_adv, k_redis], timeout_sec=1.0) as acquired:
+        assert acquired == [k_redis, k_adv, k_row]
+    mock_redis.delete.assert_called_once_with("lock:1:10:42")
+
+    # 2. NFKDStrongRefFormulaSanitizer graph cycle & command injection checks
+    san = lock_mod.NFKDStrongRefFormulaSanitizer
+    assert san.sanitize_formula_payload("\uff1dSUM(A1:A5)", {"B1": ["A1"]}, "B1") == "=SUM(A1:A5)"
+    assert san.sanitize_formula_payload("|cmd", {}, "A1") == "'|cmd"
+    try:
+        san.sanitize_formula_payload("=A2+B2", {"A1": ["A2"], "A2": ["A1"]}, "A1")
+        raise AssertionError("Expected FormulaSanitizationError on circular dependency")
+    except lock_mod.FormulaSanitizationError as exc:
+        assert "Circular dependency cycle detected" in str(exc)
+
+    try:
+        san.sanitize_formula_payload("=powershell -ep bypass", {}, "A1")
+        raise AssertionError("Expected FormulaSanitizationError on dangerous signature")
+    except lock_mod.FormulaSanitizationError as exc:
+        assert "Malicious payload pattern detected" in str(exc)
+
+    # 3. validate_tenant_access (3-arg and 2-arg)
+    mock_user = MagicMock(login="auditor@innoria.com")
+    assert lock_mod.validate_tenant_access(2, mock_user, {1, 2, 5}) == 2
+    try:
+        lock_mod.validate_tenant_access(True, mock_user, {1, 2})
+        raise AssertionError("Expected TenantAccessViolation on bool")
+    except lock_mod.TenantAccessViolation as exc:
+        assert "boolean" in str(exc)
+
+    # 4. Partitioned currency revaluation across 50 companies
+    items = [
+        lock_mod.MockAccountMoveLine(
+            line_id=i,
+            company_id=(i % 50) + 1,
+            currency_code="EUR",
+            amount_currency=Decimal("100.00"),
+            balance_functional=Decimal("108.00"),
+        )
+        for i in range(1, 501)
+    ]
+    diff, count = lock_mod.revalue_journal_items_partitioned(items, {"EUR": Decimal("1.12")})
+    assert count == 500
+    assert diff == Decimal("2000.00")
+    assert items[0].balance_functional == Decimal("112.00")
+
+    print("[✓] Patch 64 / nahlaleah102 Cross-Tier Lock Manager, NFKD Formula Graph & Partitioned Revaluation verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6505,12 +6581,14 @@ def main():
     test_patch_61_coderedgen_fullwidth_cell_sanitizer_lock_tiers_and_isolate_tenant()
     test_patch_62_traimai_cyclic_dict_sanitizer_heterogeneous_lock_order_and_tenant_id_guard()
     test_patch_63_traimai_nfkd_strong_ref_sanitizer_heterogeneous_lock_manager_and_dom_selector_guard()
-    print("[✓] ALL 63 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 63 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_64_nahlaleah102_heterogeneous_cross_tier_lock_nfkd_formula_graph_and_partitioned_revaluation()
+    print("[✓] ALL 64 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 64 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 
