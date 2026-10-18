@@ -5889,6 +5889,41 @@ def test_patch_54_immoon0009_reverse_clock_drift_resurrection_and_submodule_pari
     print("[✓] Patch 54 / immoon0009 Reverse Clock Drift Nonce Resurrection Guard & Submodule Parity verified")
 
 
+def test_patch_55_binhthuong_commit_subject_xss_guard_and_submodule_integrity():
+    """Verify Patch 55 (binhthuong / claude-opus-5-5-high):
+    1. GitTelemetryInspector.get_git_info HTML-escapes commit_subject and author at generation time (CWE-79 Stored XSS defense).
+    """
+    import importlib.util
+    from unittest.mock import patch
+
+    scanner_path = os.path.join(ROOT_DIR, "tools/multi_repo_scanner.py")
+    spec = importlib.util.spec_from_file_location("multi_repo_scanner_p55", scanner_path)
+    scanner_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(scanner_mod)
+
+    def _fake_run_git(repo_path, args, timeout=20):
+        if args == ["rev-parse", "--is-inside-work-tree"]:
+            return 0, "true", ""
+        if args == ["rev-parse", "--abbrev-ref", "HEAD"]:
+            return 0, "main", ""
+        if args[0] == "log" and "--format=%H%x1f%an%x1f%ct%x1f%cI%x1f%s" in args:
+            return (
+                0,
+                'abcdef1234567890\x1fAttacker <img src=x onerror=alert(1)>\x1f1792300000\x1f2026-10-18T12:00:00Z\x1ffeat: <script>alert("xss")</script>',
+                "",
+            )
+        return 0, "0", ""
+
+    with patch.object(scanner_mod.GitTelemetryInspector, "run_git", side_effect=_fake_run_git):
+        info = scanner_mod.GitTelemetryInspector.get_git_info("/tmp/fake")
+        assert "<script>" not in info["commit_subject"]
+        assert "&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;" in info["commit_subject"]
+        assert "<img" not in info["author"]
+        assert "&lt;img src=x onerror=alert(1)&gt;" in info["author"]
+
+    print("[✓] Patch 55 / binhthuong Commit Subject & Author Stored XSS Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5958,8 +5993,9 @@ def main():
     test_patch_52_coderedgen_shannon_entropy_zero_width_strip_and_punycode_guard()
     test_patch_53_agy_home_decoded_entropy_and_zero_ddl_nonce_guard()
     test_patch_54_immoon0009_reverse_clock_drift_resurrection_and_submodule_parity()
-    print("[✓] ALL 54 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 54 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_55_binhthuong_commit_subject_xss_guard_and_submodule_integrity()
+    print("[✓] ALL 55 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 55 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
