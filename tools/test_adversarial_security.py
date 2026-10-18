@@ -5097,6 +5097,148 @@ def test_patch_45_zenphamgeek_persistent_nonce_ledger_and_self_contained_token()
     print("[✓] Patch 45 / zenphamgeek Persistent PostgreSQL Nonce Ledger, Orchestrator Slugs & 5-Part Token Envelope verified")
 
 
+def test_patch_46_zenphamgeek_autonomous_cursor_nonce_and_kanban_wip_limiter():
+    """Patch 46 (zenphamgeek / gemini-4-argon-high):
+    Verify consume_nonce_atomic with isolated autonomous cursor commit (anti-rollback resurrection CWE-367),
+    verify_and_consume_onboarding_token (v1 6-part envelope), core Odoo route RESERVED_SLUGS,
+    and acquire_onboarding_wip_slot (Manufacturing Kanban WIP advisory lock limiter).
+    """
+    import importlib.util
+    import sys
+    import types
+
+    main_py = os.path.join(REPO_ROOT, "enterprise/insilos_industry_showcase/controllers/main.py")
+    if "odoo" in sys.modules:
+        odoo_mod = sys.modules["odoo"]
+        if not hasattr(odoo_mod, "fields"):
+            odoo_mod.fields = types.SimpleNamespace(Datetime=types.SimpleNamespace(now=lambda: None))
+        if not hasattr(odoo_mod, "http"):
+            class _DummyController:
+                pass
+            def _dummy_route(*args, **kwargs):
+                return lambda fn: fn
+            odoo_mod.http = types.SimpleNamespace(Controller=_DummyController, route=_dummy_route, request=None)
+            sys.modules["odoo.http"] = odoo_mod.http
+        if hasattr(odoo_mod, "exceptions"):
+            if not hasattr(odoo_mod.exceptions, "AccessError"):
+                class _AccessError(Exception):
+                    pass
+                odoo_mod.exceptions.AccessError = _AccessError
+            if not hasattr(odoo_mod.exceptions, "UserError"):
+                class _UserError(Exception):
+                    pass
+                odoo_mod.exceptions.UserError = _UserError
+
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_main_ctrl_46", main_py)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    # 1. Verify core Odoo routing RESERVED_SLUGS added in Patch 46
+    for reserved in ("my", "payment", "report", "webclient", "installer", "setup", "healthcheck"):
+        try:
+            ctrl_mod.sanitize_and_validate_slug(reserved)
+            raise AssertionError(f"Reserved core slug {reserved!r} was not blocked")
+        except ctrl_mod.ValidationError as exc:
+            assert "reserved" in str(exc).lower()
+
+    # 2. Verify consume_nonce_atomic commits on an isolated autonomous cursor
+    class _AutonomousCursor:
+        def __init__(self, ledger):
+            self._ledger = ledger
+            self._last_result = None
+            self.committed = 0
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return False
+
+        def execute(self, query, params=None):
+            nonce, tenant_id, slug, expiry_ts = params
+            if nonce in self._ledger:
+                self._last_result = None
+            else:
+                self._ledger[nonce] = (tenant_id, slug, expiry_ts)
+                self._last_result = (nonce,)
+
+        def fetchone(self):
+            return self._last_result
+
+        def commit(self):
+            self.committed += 1
+
+        def rollback(self):
+            pass
+
+    class _MockRegistry:
+        def __init__(self):
+            self.ledger = {}
+            self.last_cursor = None
+        def cursor(self):
+            self.last_cursor = _AutonomousCursor(self.ledger)
+            return self.last_cursor
+
+    reg = _MockRegistry()
+    nonce_val = "550e8400e29b41d4a716446655440000"
+    exp_val = int(time.time()) + 1200
+    assert ctrl_mod.consume_nonce_atomic(reg, "insilos20_dev", nonce_val, 1042, "zen-logistics", exp_val) is True
+    assert reg.last_cursor.committed == 1
+    assert ctrl_mod.consume_nonce_atomic(reg, "insilos20_dev", nonce_val, 1042, "zen-logistics", exp_val) is False
+
+    # 3. Verify 6-part v1.<tenant_id>.<slug>.<expiry_ts>.<nonce>.<signature> verify_and_consume_onboarding_token
+    class _MockWipCursor:
+        def __init__(self, slot_results):
+            self.dbname = "insilos20_dev"
+            self._slot_results = list(slot_results)
+            self._current = False
+        def execute(self, query, params=None):
+            if "pg_try_advisory_xact_lock" in query:
+                self._current = self._slot_results.pop(0) if self._slot_results else False
+        def fetchone(self):
+            return (self._current,)
+
+    class _MockEnv46:
+        def __init__(self, secret, slot_results):
+            self.registry = reg
+            self.cr = _MockWipCursor(slot_results)
+            self._params = {
+                "insilos.onboarding.secret": secret,
+                "insilos.onboarding.wip_limiter_enabled": "True",
+            }
+        def __getitem__(self, key):
+            if key == "ir.config_parameter":
+                return self
+            raise KeyError(key)
+        def sudo(self):
+            return self
+        def get_param(self, key, default=False):
+            return self._params.get(key, default)
+
+    dyn_sec = "sovereign-onboarding-isolated-key-" + str(46464646)
+    env46 = _MockEnv46(dyn_sec, [False, True, False, False, False])
+    derived_key = ctrl_mod._derive_domain_hmac_secret(env46, ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+    nonce_v1 = "d3b07384d113edec49eaa6238ad5ff00"
+    payload = f"v1.2099.sovereign-node.{exp_val}.{nonce_v1}".encode("utf-8")
+    sig_v1 = hmac.new(derived_key, payload, hashlib.sha256).hexdigest()
+    tok_v1 = f"v1.2099.sovereign-node.{exp_val}.{nonce_v1}.{sig_v1}"
+
+    assert ctrl_mod.verify_and_consume_onboarding_token(env46, tok_v1, "sovereign-node", 2099) is True
+    assert ctrl_mod.verify_and_consume_onboarding_token(env46, tok_v1, "sovereign-node", 2099) is False
+
+    # 4. Verify Kanban WIP Slot Limiter acquires slot 2 when slot 1 is busy, and raises UserError when all 3 are busy
+    with ctrl_mod.acquire_onboarding_wip_slot(env46, max_wip_slots=3) as slot:
+        assert slot == 2
+
+    try:
+        with ctrl_mod.acquire_onboarding_wip_slot(env46, max_wip_slots=3):
+            raise AssertionError("Expected WIP_BACKPRESSURE_ACTIVE UserError when all slots are busy")
+    except ctrl_mod.UserError as exc:
+        assert "WIP_BACKPRESSURE_ACTIVE" in str(exc)
+
+    print("[✓] Patch 46 / zenphamgeek Autonomous Cursor Nonce Commit, v1 6-Part Token & Kanban WIP Slot Limiter verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5157,8 +5299,9 @@ def main():
     test_patch_43_zenphamgeek_nfkc_slug_hmac_token_and_offline_lease()
     test_patch_44_zenphamgeek_hkdf_domain_separation_and_nonce_replay_guard()
     test_patch_45_zenphamgeek_persistent_nonce_ledger_and_self_contained_token()
-    print("[✓] ALL 45 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 45 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_46_zenphamgeek_autonomous_cursor_nonce_and_kanban_wip_limiter()
+    print("[✓] ALL 46 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 46 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
