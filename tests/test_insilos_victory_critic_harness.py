@@ -1751,3 +1751,158 @@ def test_zcese_sales_order_crdt_merkle_tree_and_uv_pubgrub_cache_e2e():
 
         with pytest.raises(DependencyResolutionError):
             cache_mgr.resolve_dependencies({"sales-harness-core": {2}})
+
+
+def test_zk_macdf_crdt_map_merkle_deal_rule_solver_and_tenant_rules_e2e():
+    """Verify Zero-Knowledge Merkle-Audit CRDT Deal Fabric (ZK-MACDF) CRDTMap, PubGrubDealRuleSolver & MultiTenantRecordRuleEngine."""
+    import hashlib
+
+    CRDTMap = _lock_mod.CRDTMap
+    MerkleTransparencyLog = _lock_mod.MerkleTransparencyLog
+    MultiTenantRecordRuleEngine = _lock_mod.MultiTenantRecordRuleEngine
+    PubGrubDealRuleSolver = _lock_mod.PubGrubDealRuleSolver
+    MemoryLimitExceededError = _lock_mod.MemoryLimitExceededError
+
+    quote_replica_a = CRDTMap("quote_001")
+    quote_replica_b = CRDTMap("quote_001")
+
+    quote_replica_a.set_field("total_amount", 100000.0, timestamp=100, replica_id="node_us_east")
+    quote_replica_a.set_field("discount_pct", 10.0, timestamp=102, replica_id="node_us_east")
+
+    quote_replica_b.set_field("total_amount", 98000.0, timestamp=105, replica_id="node_eu_west")
+    quote_replica_b.set_field("discount_pct", 15.0, timestamp=101, replica_id="node_eu_west")
+
+    merged_ab = quote_replica_a.merge(quote_replica_b)
+    merged_ba = quote_replica_b.merge(quote_replica_a)
+
+    assert merged_ab.get_field("total_amount") == 98000.0
+    assert merged_ba.get_field("total_amount") == 98000.0
+    assert merged_ab.get_field("discount_pct") == 10.0
+    assert merged_ba.get_field("discount_pct") == 10.0
+
+    hash_ab = merged_ab.compute_state_hash()
+    hash_ba = merged_ba.compute_state_hash()
+    assert hash_ab == hash_ba and len(hash_ab) == 64
+
+    log = MerkleTransparencyLog()
+    state_hashes = [
+        hashlib.sha256(f"state_event_{i}".encode("utf-8")).hexdigest() for i in range(5)
+    ]
+    for sh in state_hashes:
+        log.append_event(sh)
+
+    root = log.get_root()
+    assert len(root) == 64
+
+    target_idx = 2
+    target_leaf_hash = hashlib.sha256(state_hashes[target_idx].encode("utf-8")).hexdigest()
+    proof = log.get_inclusion_proof(target_idx)
+    assert MerkleTransparencyLog.verify_inclusion(target_leaf_hash, proof, root) is True
+
+    tampered_leaf_hash = hashlib.sha256(b"tampered_state").hexdigest()
+    assert MerkleTransparencyLog.verify_inclusion(tampered_leaf_hash, proof, root) is False
+
+    engine = MultiTenantRecordRuleEngine()
+    engine.register_company(2, parent_id=1)
+    engine.register_company(3, parent_id=1)
+    engine.register_company(4, parent_id=None)
+
+    engine.add_record("deal_101", company_id=2, data={"amount": 50000})
+    engine.add_record("deal_102", company_id=3, data={"amount": 75000})
+    engine.add_record("deal_103", company_id=4, data={"amount": 120000})
+
+    holding_view = engine.filter_records(allowed_company_ids=[1])
+    assert {r["id"] for r in holding_view} == {"deal_101", "deal_102"}
+
+    sub_b_view = engine.filter_records(allowed_company_ids=[3])
+    assert {r["id"] for r in sub_b_view} == {"deal_102"}
+
+    solver = PubGrubDealRuleSolver(max_memory_slots=4)
+    solver.register_incompatibility(
+        "promo_startup_90_off",
+        "tier_enterprise_custom_sla",
+        "Startup promo cannot be combined with Enterprise SLA",
+    )
+
+    valid, reason = solver.solve_feasibility(["item_base_crm", "promo_startup_90_off"])
+    assert valid is True and reason is None
+
+    invalid, conflict_reason = solver.solve_feasibility(
+        ["item_base_crm", "promo_startup_90_off", "tier_enterprise_custom_sla"]
+    )
+    assert invalid is False and conflict_reason is not None and "Conflict between" in conflict_reason
+
+    solver.allocate_slot("slot_1", {"data": "A"})
+    solver.allocate_slot("slot_2", {"data": "B"})
+    solver.allocate_slot("slot_3", {"data": "C"})
+    solver.allocate_slot("slot_4", {"data": "D"})
+
+    with pytest.raises(MemoryLimitExceededError):
+        solver.allocate_slot("slot_5_overflow", {"data": "E"})
+
+    solver.release_slot("slot_1")
+    solver.allocate_slot("slot_5_recovered", {"data": "E"})
+    assert "slot_5_recovered" in solver.active_slots
+
+
+def test_sales_quote_crdt_transparency_tree_and_pubgrub_cpq_validator_e2e():
+    """Verify Deal-Desk CRDT Mesh (DealDeskSalesQuoteCRDT, TransparencyTreeVerifier & PubGrubCPQValidator)."""
+    SalesQuoteCRDT = _lock_mod.DealDeskSalesQuoteCRDT
+    TransparencyTreeVerifier = _lock_mod.TransparencyTreeVerifier
+    PubGrubCPQValidator = _lock_mod.PubGrubCPQValidator
+
+    replica_a = SalesQuoteCRDT(quote_id="Q-2026-001")
+    replica_b = SalesQuoteCRDT(quote_id="Q-2026-001")
+
+    replica_a.update_field("discount_pct", 15.0, timestamp=101, actor_id="sales_rep_1")
+    replica_b.update_field("discount_pct", 18.0, timestamp=102, actor_id="deal_desk_lead")
+
+    replica_a.update_item("SKU-AI-SEAT", "quantity", 50, timestamp=200, actor_id="sales_rep_1")
+    replica_a.update_item("SKU-AI-SEAT", "unit_price", 120.0, timestamp=200, actor_id="sales_rep_1")
+
+    replica_b.update_item("SKU-AI-SEAT", "unit_price", 110.0, timestamp=205, actor_id="deal_desk_lead")
+    replica_b.update_item("SKU-ANALYTICS-ADDON", "quantity", 1, timestamp=202, actor_id="deal_desk_lead")
+
+    merged_a = replica_a.merge_remote(replica_b)
+    merged_b = replica_b.merge_remote(replica_a)
+
+    state_a = merged_a.to_canonical_dict()
+    state_b = merged_b.to_canonical_dict()
+
+    assert state_a == state_b
+    assert state_a["fields"]["discount_pct"] == 18.0
+    assert state_a["items"]["SKU-AI-SEAT"]["quantity"] == 50
+    assert state_a["items"]["SKU-AI-SEAT"]["unit_price"] == 110.0
+    assert state_a["items"]["SKU-ANALYTICS-ADDON"]["quantity"] == 1
+
+    verifier = TransparencyTreeVerifier()
+    events = [
+        {"deal_id": "DEAL-091", "action": "quote_created", "val": 100000},
+        {"deal_id": "DEAL-091", "action": "discount_requested", "val": 15},
+        {"deal_id": "DEAL-091", "action": "vp_approval", "actor": "vp_sales_01"},
+    ]
+    root_original = verifier.build_audit_root(events)
+    assert len(root_original) == 64
+
+    tampered_events = [
+        {"deal_id": "DEAL-091", "action": "quote_created", "val": 100000},
+        {"deal_id": "DEAL-091", "action": "discount_requested", "val": 35},
+        {"deal_id": "DEAL-091", "action": "vp_approval", "actor": "vp_sales_01"},
+    ]
+    root_tampered = verifier.build_audit_root(tampered_events)
+    assert root_original != root_tampered
+
+    solver = PubGrubCPQValidator()
+    solver.add_dependency("SKU-ENTERPRISE-CLOUD", "SKU-CORE-DB")
+    solver.add_incompatibility("SKU-ENTERPRISE-CLOUD", "SKU-LEGACY-ONPREM")
+
+    valid, errors = solver.validate_cart({"SKU-ENTERPRISE-CLOUD"})
+    assert not valid and any("requires missing dependency" in err for err in errors)
+
+    valid, errors = solver.validate_cart(
+        {"SKU-ENTERPRISE-CLOUD", "SKU-CORE-DB", "SKU-LEGACY-ONPREM"}
+    )
+    assert not valid and any("is incompatible with present items" in err for err in errors)
+
+    valid, errors = solver.validate_cart({"SKU-ENTERPRISE-CLOUD", "SKU-CORE-DB"})
+    assert valid and len(errors) == 0
