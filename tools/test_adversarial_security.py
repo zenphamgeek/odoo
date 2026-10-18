@@ -6231,6 +6231,74 @@ def test_patch_60_nahlaleah102_env_cache_guard_db_lock_tiers_and_fullwidth_formu
     print("[✓] Patch 60 / nahlaleah102 Env Cache Guard, DB Lock Tiers & Fullwidth Formula Sanitizer verified")
 
 
+def test_patch_61_coderedgen_fullwidth_cell_sanitizer_lock_tiers_and_isolate_tenant():
+    """
+    Patch 61 (coderedgen / gemini-4-argon-high):
+    1. FullwidthFormulaSanitizer: sanitize_cell_value & sanitize_record_dict with ideographic space (\\u3000)
+       and BOM (\\uFEFF) stripping after NFKC normalization.
+    2. CanonicalLockHierarchyManager.acquire_deterministic_locks: enforces LOCK_TIERS (1 -> 2 -> 3)
+       and raises LockTierViolationError on tier inversion.
+    3. AtomicMultiTenantGuard.isolate_tenant: flushes env.cache.invalidate() and env.clear() pre/post
+       execution and validates isolated_env.company.id.
+    """
+    import importlib.util
+    from unittest.mock import MagicMock
+
+    lock_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py")
+    spec = importlib.util.spec_from_file_location("advisory_lock_p61", lock_path)
+    lock_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lock_mod)
+
+    # 1. FullwidthFormulaSanitizer
+    san = lock_mod.FullwidthFormulaSanitizer
+    for payload in [
+        "=SUM(A1:A10)",
+        "\uff1dHYPERLINK(\"http://malicious.link\")",
+        "   \u3000\u200b\uff1dSUM(B1)",
+        "\uFEFF=cmd",
+    ]:
+        out = san.sanitize_cell_value(payload)
+        assert out.startswith("'") and len(out) == len(payload) + 1
+
+    rec = san.sanitize_record_dict({"notes": "\uff1dcmd|'/c powershell'!A1", "ref": "SO-001"})
+    assert rec["notes"].startswith("'")
+    assert rec["ref"] == "SO-001"
+
+    # 2. CanonicalLockHierarchyManager.acquire_deterministic_locks
+    mock_cr = MagicMock()
+    tier = lock_mod.CanonicalLockHierarchyManager.acquire_deterministic_locks(mock_cr, "res.company", [1], 0)
+    assert tier == 1
+    tier = lock_mod.CanonicalLockHierarchyManager.acquire_deterministic_locks(mock_cr, "sale.order", [10, 5, 20], tier)
+    assert tier == 2
+    tier = lock_mod.CanonicalLockHierarchyManager.acquire_deterministic_locks(mock_cr, "sale.order.line", [101, 102], tier)
+    assert tier == 3
+    assert mock_cr.execute.call_args_list[1][0][1] == [[5, 10, 20]]
+
+    try:
+        lock_mod.CanonicalLockHierarchyManager.acquire_deterministic_locks(mock_cr, "res.company", [1], current_highest_tier=2)
+        raise AssertionError("Expected LockTierViolationError")
+    except lock_mod.LockTierViolationError as exc:
+        assert "Deadlock hazard" in str(exc)
+
+    # 3. AtomicMultiTenantGuard.isolate_tenant
+    mock_env = MagicMock()
+    mock_env.company.id = 1
+    mock_env.context = {"allowed_company_ids": [1], "lang": "en_US"}
+    tracker = []
+    mock_env.cache.invalidate.side_effect = lambda: tracker.append("cache_invalidated")
+    mock_env.clear.side_effect = lambda: tracker.append("env_cleared")
+    mock_sub_env = MagicMock()
+    mock_sub_env.company.id = 42
+    mock_env.side_effect = lambda context: mock_sub_env
+
+    with lock_mod.AtomicMultiTenantGuard.isolate_tenant(mock_env, 42) as active_env:
+        assert active_env.company.id == 42
+    assert tracker.count("cache_invalidated") == 2
+    assert tracker.count("env_cleared") == 2
+
+    print("[✓] Patch 61 / coderedgen Fullwidth Cell Sanitizer, Lock Tiers & isolate_tenant verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6306,8 +6374,9 @@ def main():
     test_patch_58_coderedgen_canonical_lock_timeout_and_multitenant_context_guard()
     test_patch_59_traimai_atomic_multitenant_guard_lock_level_and_dde_formula_sanitizer()
     test_patch_60_nahlaleah102_env_cache_guard_db_lock_tiers_and_fullwidth_formula_sanitizer()
-    print("[✓] ALL 60 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 60 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_61_coderedgen_fullwidth_cell_sanitizer_lock_tiers_and_isolate_tenant()
+    print("[✓] ALL 61 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 61 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
