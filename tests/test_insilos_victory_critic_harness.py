@@ -659,3 +659,86 @@ def test_kanban_sales_pipeline_e2e_lifecycle_and_wip_bounds() -> None:
     asyncio.run(_run_scenario())
 
 
+CircuitState = _lock_mod.CircuitState
+SalesStage = _lock_mod.SalesStage
+BulkheadCapacityExceededError = _lock_mod.BulkheadCapacityExceededError
+SalesEvent = _lock_mod.SalesEvent
+CircuitBreaker = _lock_mod.CircuitBreaker
+BulkheadPool = _lock_mod.BulkheadPool
+ResilientSalesEngine = _lock_mod.ResilientSalesEngine
+
+
+def test_resilient_sales_engine_e2e_circuit_breaker_and_bulkhead() -> None:
+    """Verifies end-to-end ResilientSalesEngine bulkhead isolation, circuit breaker transitions, and deterministic CPQ fallback."""
+    async def _run_resilience_e2e() -> None:
+        engine = ResilientSalesEngine()
+
+        async def healthy_agent(event: SalesEvent) -> Dict[str, Any]:
+            return {"amount": 1500.0, "status": "APPROVED"}
+
+        def cpq_fallback(event: SalesEvent) -> Dict[str, Any]:
+            return {"amount": 500.0, "status": "FALLBACK_CPQ"}
+
+        for i in range(4):
+            evt = SalesEvent(
+                event_id=f"EVT-{i}",
+                tenant_id=f"TENANT-{i % 2}",
+                stage=SalesStage.P1_QUOTATION,
+                action="GENERATE_QUOTE",
+                payload={"line_items": 3},
+            )
+            res = await engine.execute_sales_step(evt, healthy_agent, cpq_fallback)
+            assert res["amount"] == 1500.0
+
+        assert len(engine.state_ledger) == 4
+        assert engine.verify_invariant() is True
+        assert engine.apply_odoo_odoo_pattern() is True
+        assert engine.apply_astral_sh_uv_pattern() is True
+        assert engine._current_state["pipeline_revenue"] == 6000.0
+        assert engine._current_state["total_deals"] == 4
+        assert engine._current_state["tenant_deals"]["TENANT-0"] == 2
+        assert engine._current_state["tenant_deals"]["TENANT-1"] == 2
+
+        # Verify CircuitBreaker state machine: CLOSED -> OPEN -> HALF_OPEN -> CLOSED
+        cb = CircuitBreaker(failure_threshold=2, recovery_time_seconds=0.1, success_threshold=2)
+        assert cb.state == CircuitState.CLOSED
+        await cb.record_result(success=False)
+        await cb.record_result(success=False)
+        assert cb.state == CircuitState.OPEN
+        assert await cb.can_execute() is False
+
+        await asyncio.sleep(0.12)
+        assert await cb.can_execute() is True
+        assert cb.state == CircuitState.HALF_OPEN
+        await cb.record_result(success=True)
+        await cb.record_result(success=True)
+        assert cb.state == CircuitState.CLOSED
+
+        # Verify Bulkhead concurrency isolation between P2_ENRICHMENT and P0_CLOSING
+        pool = BulkheadPool({SalesStage.P2_ENRICHMENT: 1, SalesStage.P0_CLOSING: 5})
+        entered = asyncio.Event()
+        release = asyncio.Event()
+
+        async def hold_enrichment() -> str:
+            entered.set()
+            await release.wait()
+            return "ENRICHED"
+
+        async def fast_close() -> str:
+            return "CLOSED_DEAL"
+
+        t1 = asyncio.create_task(pool.execute_in_bulkhead(SalesStage.P2_ENRICHMENT, hold_enrichment))
+        await entered.wait()
+
+        with pytest.raises(BulkheadCapacityExceededError):
+            await pool.execute_in_bulkhead(SalesStage.P2_ENRICHMENT, fast_close)
+
+        res_p0 = await pool.execute_in_bulkhead(SalesStage.P0_CLOSING, fast_close)
+        assert res_p0 == "CLOSED_DEAL"
+
+        release.set()
+        assert await t1 == "ENRICHED"
+
+    asyncio.run(_run_resilience_e2e())
+
+
