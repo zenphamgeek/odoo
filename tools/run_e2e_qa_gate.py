@@ -113,6 +113,15 @@ E2E_QA_GATES: List[Dict[str, Any]] = [
             ["node", "tools/test_e2e_qa_master_flows.js"],
         ],
     },
+    {
+        "id": "E2E-QA-11",
+        "title": "Order-to-Cash (O2C) Sales Lifecycle DAG, PubGrub Discount Solver & Double-Entry Clearing E2E",
+        "category": "domain",
+        "fast": True,
+        "commands": [
+            ["pytest", "tests/test_insilos_victory_critic_harness.py", "-q"],
+        ],
+    },
 ]
 
 

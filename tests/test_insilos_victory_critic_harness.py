@@ -449,3 +449,104 @@ def test_2506_01423_invariant_illegal_state_skip_and_discount_solver() -> None:
     assert engine.verify_invariant(order_tamper) is False
 
 
+AccountingLeg = _lock_mod.AccountingLeg
+DealSnapshot = _lock_mod.DealSnapshot
+DealState = _lock_mod.DealState
+DomainInvariantViolationError = _lock_mod.DomainInvariantViolationError
+EnterpriseStateInvariantEngine = _lock_mod.EnterpriseStateInvariantEngine
+LedgerEvent = _lock_mod.LedgerEvent
+LedgerIntegrityError = _lock_mod.LedgerIntegrityError
+TenantIsolationViolationError = _lock_mod.TenantIsolationViolationError
+
+
+def test_a2a_clearing_e2e_deal_lifecycle_and_double_entry() -> None:
+    """Verifies end-to-end A2A deal lifecycle (DRAFT -> PROPOSED -> COMMITTED -> SETTLED) and double-entry balance."""
+    engine = EnterpriseStateInvariantEngine(
+        allowed_companies=["comp-alpha", "comp-beta", "comp-gamma"]
+    )
+    valid_legs = [
+        AccountingLeg(account_id="1010-CASH", debit_cents=500000, credit_cents=0),
+        AccountingLeg(account_id="4000-REVENUE", debit_cents=0, credit_cents=500000),
+    ]
+
+    deal = engine.create_genesis_deal(
+        deal_id="DEAL-2026-001",
+        initiator_id="comp-alpha",
+        counterparty_id="comp-beta",
+        sku_manifest=["SKU-AI-ROUTER-ENTERPRISE", "SKU-SUPPORT-TIER-1"],
+        total_value_cents=500000,
+        initial_legs=valid_legs,
+    )
+    assert deal.state == DealState.DRAFT
+    assert deal.sequence_number == 0
+    assert len(deal.current_hash) == 64
+
+    snap1 = engine.transition_state(
+        deal_id=deal.deal_id,
+        target_state=DealState.PROPOSED,
+        event=LedgerEvent(
+            event_id="evt-prop-1",
+            event_type="AGENT_PRICE_QUOTE",
+            company_id="comp-alpha",
+            payload={"term_days": 30},
+        ),
+    )
+    assert snap1.state == DealState.PROPOSED
+    assert snap1.sequence_number == 1
+
+    snap2 = engine.transition_state(
+        deal_id=deal.deal_id,
+        target_state=DealState.COMMITTED,
+        event=LedgerEvent(
+            event_id="evt-comm-2",
+            event_type="COUNTERPARTY_ACCEPT",
+            company_id="comp-beta",
+            payload={"accepted": True},
+        ),
+    )
+    assert snap2.state == DealState.COMMITTED
+    assert snap2.sequence_number == 2
+
+    snap3 = engine.transition_state(
+        deal_id=deal.deal_id,
+        target_state=DealState.SETTLED,
+        event=LedgerEvent(
+            event_id="evt-settle-3",
+            event_type="CLEARINGHOUSE_SETTLEMENT",
+            company_id="comp-alpha",
+            payload={"settled_cents": 500000},
+        ),
+    )
+    assert snap3.state == DealState.SETTLED
+    assert snap3.sequence_number == 3
+    assert engine.verify_ledger_chain(deal.deal_id) is True
+
+    # Double-entry imbalance must fail closed
+    unbalanced_legs = [
+        AccountingLeg(account_id="1010-CASH", debit_cents=500000, credit_cents=0),
+        AccountingLeg(account_id="4000-REVENUE", debit_cents=0, credit_cents=450000),
+    ]
+    with pytest.raises(LedgerIntegrityError):
+        engine.create_genesis_deal(
+            deal_id="DEAL-UNBALANCED",
+            initiator_id="comp-alpha",
+            counterparty_id="comp-beta",
+            sku_manifest=["SKU-ORCHESTRATOR"],
+            total_value_cents=500000,
+            initial_legs=unbalanced_legs,
+        )
+
+    # Unauthorized third-party company must fail closed
+    with pytest.raises(TenantIsolationViolationError):
+        engine.transition_state(
+            deal_id=deal.deal_id,
+            target_state=DealState.TERMINATED,
+            event=LedgerEvent(
+                event_id="evt-tamper-01",
+                event_type="UNAUTHORIZED_MUTATION",
+                company_id="comp-gamma",
+                payload={},
+            ),
+        )
+
+
