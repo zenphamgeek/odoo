@@ -264,3 +264,188 @@ class TestAtomicMultiTenantGuardAdversarial:
         assert result == 5
 
 
+from decimal import Decimal
+
+ConstraintViolationError = _lock_mod.ConstraintViolationError
+DiscountConstraintSolver = _lock_mod.DiscountConstraintSolver
+EnterpriseSalesProcessEngine = _lock_mod.EnterpriseSalesProcessEngine
+FlowStateStepRecord = _lock_mod.FlowStateStepRecord
+InvalidStateTransitionError = _lock_mod.InvalidStateTransitionError
+SalesOrder = _lock_mod.SalesOrder
+SalesOrderLine = _lock_mod.SalesOrderLine
+SalesOrderStatus = _lock_mod.SalesOrderStatus
+TenantContext = _lock_mod.TenantContext
+TenantSecurityError = _lock_mod.TenantSecurityError
+
+
+def test_2506_01423_invariant_full_lifecycle() -> None:
+    """Verifies end-to-end sales lifecycle, cryptographic hash chaining, and margin integrity."""
+    tenant = TenantContext(
+        company_id="COMP_US_01",
+        allowed_company_ids=("COMP_US_01", "COMP_EU_02"),
+        user_id="USR_SALES_LEAD",
+        is_system_admin=False,
+    )
+    engine = EnterpriseSalesProcessEngine(tenant_context=tenant)
+
+    order = SalesOrder(
+        order_id="SO-2026-0091",
+        company_id="COMP_US_01",
+        customer_id="CUST-GLOBAL-CORP",
+    )
+    line1 = SalesOrderLine(
+        line_id="LINE-1",
+        product_sku="SKU-ENTERPRISE-AGENT-CORE",
+        quantity=Decimal("5.00"),
+        unit_price=Decimal("12000.00"),
+        unit_cost=Decimal("4000.00"),
+        discount_pct=Decimal("10.00"),
+    )
+    line2 = SalesOrderLine(
+        line_id="LINE-2",
+        product_sku="SKU-KNOWLEDGE-BASE-WAL",
+        quantity=Decimal("2.00"),
+        unit_price=Decimal("8500.00"),
+        unit_cost=Decimal("3000.00"),
+        discount_pct=Decimal("5.00"),
+    )
+    order.lines.extend([line1, line2])
+
+    assert order.total_net_amount == Decimal("70150.00")
+    assert order.total_cost_amount == Decimal("26000.00")
+    assert order.overall_margin_pct == Decimal("62.94")
+
+    engine.execute_ai_qualification_pipeline(order=order, step_id="STEP-QUAL-01")
+    assert order.status == SalesOrderStatus.AI_SCORED
+    assert order.ai_risk_score == Decimal("0.08")
+    assert order.ai_conversion_probability == Decimal("0.92")
+    assert len(order.state_history) == 1
+    assert engine.verify_invariant(order) is True
+
+    engine.transition_order_state(
+        order=order,
+        target_status=SalesOrderStatus.APPROVED,
+        step_id="STEP-APPR-02",
+        reason="Margin exceeds compliance gate; AI risk score optimal",
+    )
+    assert order.status == SalesOrderStatus.APPROVED
+    assert len(order.state_history) == 2
+    assert engine.verify_invariant(order) is True
+
+    engine.transition_order_state(
+        order=order,
+        target_status=SalesOrderStatus.CONFIRMED,
+        step_id="STEP-CONF-03",
+        reason="Client signed Master Service Agreement",
+    )
+    assert order.status == SalesOrderStatus.CONFIRMED
+    assert len(order.state_history) == 3
+    assert engine.verify_invariant(order) is True
+
+    final_step = engine.transition_order_state(
+        order=order,
+        target_status=SalesOrderStatus.INVOICED,
+        step_id="STEP-INV-04",
+        reason="ERP Billing synchronized and posted to GL",
+    )
+    assert order.status == SalesOrderStatus.INVOICED
+    assert len(order.state_history) == 4
+    assert order.current_state_hash == final_step.cumulative_hash
+    assert engine.verify_invariant(order) is True
+
+
+def test_2506_01423_invariant_tenant_boundary_fail_closed() -> None:
+    """Verifies that cross-company data access triggers fail-closed security errors."""
+    unauthorized_tenant = TenantContext(
+        company_id="COMP_ASIA_03",
+        allowed_company_ids=("COMP_ASIA_03",),
+        user_id="USR_REGIONAL_REP",
+        is_system_admin=False,
+    )
+    engine = EnterpriseSalesProcessEngine(tenant_context=unauthorized_tenant)
+    foreign_order = SalesOrder(
+        order_id="SO-EU-9999",
+        company_id="COMP_EU_02",
+        customer_id="CUST-EUROPE-AG",
+    )
+
+    with pytest.raises(TenantSecurityError) as exc_info:
+        engine.execute_ai_qualification_pipeline(order=foreign_order, step_id="STEP-BREACH-01")
+
+    assert "Unauthorized tenant operation" in str(exc_info.value)
+    assert foreign_order.status == SalesOrderStatus.DRAFT
+    assert len(foreign_order.state_history) == 0
+
+
+def test_2506_01423_invariant_illegal_state_skip_and_discount_solver() -> None:
+    """Verifies state skip rejection, PubGrub discount bounds, and cryptographic tamper detection."""
+    tenant = TenantContext(
+        company_id="COMP_US_01",
+        allowed_company_ids=("COMP_US_01",),
+        user_id="USR_AGENT_AUTO",
+        is_system_admin=False,
+    )
+    engine = EnterpriseSalesProcessEngine(tenant_context=tenant)
+    order = SalesOrder(order_id="SO-JUMP-01", company_id="COMP_US_01", customer_id="CUST-01")
+
+    with pytest.raises(InvalidStateTransitionError) as exc_info:
+        engine.transition_order_state(
+            order=order,
+            target_status=SalesOrderStatus.INVOICED,
+            step_id="STEP-JUMP-ATTEMPT",
+        )
+    assert "Illegal state transition from DRAFT to INVOICED" in str(exc_info.value)
+
+    order.lines.append(
+        SalesOrderLine(
+            line_id="L-01",
+            product_sku="HARDWARE-SERVER",
+            quantity=Decimal("1.00"),
+            unit_price=Decimal("100.00"),
+            unit_cost=Decimal("90.00"),
+            discount_pct=Decimal("0.00"),
+        )
+    )
+    valid, msg = DiscountConstraintSolver.evaluate_discount_constraints(
+        order=order, target_discount_pct=Decimal("20.00"), is_executive_override=False
+    )
+    assert valid is False
+    assert "requires executive approval override" in msg
+
+    valid_exec, msg_exec = DiscountConstraintSolver.evaluate_discount_constraints(
+        order=order, target_discount_pct=Decimal("45.00"), is_executive_override=True
+    )
+    assert valid_exec is False
+    assert "exceeds maximum absolute ceiling" in msg_exec
+
+    # Tamper detection on approved order
+    order_tamper = SalesOrder(order_id="SO-TAMPER-01", company_id="COMP_US_01", customer_id="CUST-AUDIT")
+    order_tamper.lines.append(
+        SalesOrderLine(
+            line_id="L1",
+            product_sku="SKU-CORE",
+            quantity=Decimal("1.00"),
+            unit_price=Decimal("1000.00"),
+            unit_cost=Decimal("500.00"),
+        )
+    )
+    engine.execute_ai_qualification_pipeline(order=order_tamper, step_id="STEP-T1")
+    engine.transition_order_state(
+        order=order_tamper, target_status=SalesOrderStatus.APPROVED, step_id="STEP-T2"
+    )
+    assert engine.verify_invariant(order_tamper) is True
+
+    corrupted_step = FlowStateStepRecord(
+        step_id=order_tamper.state_history[0].step_id,
+        source_status=order_tamper.state_history[0].source_status,
+        target_status=order_tamper.state_history[0].target_status,
+        timestamp_utc=order_tamper.state_history[0].timestamp_utc,
+        initiator_user_id=order_tamper.state_history[0].initiator_user_id,
+        state_payload_hash="0" * 64,
+        previous_hash=order_tamper.state_history[0].previous_hash,
+        cumulative_hash="F" * 64,
+    )
+    order_tamper.state_history[0] = corrupted_step
+    assert engine.verify_invariant(order_tamper) is False
+
+

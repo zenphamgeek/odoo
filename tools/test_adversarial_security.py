@@ -7288,6 +7288,96 @@ def test_patch_72_binhthuong_64bit_advisory_lock_and_reentrant_callable_tenant_g
     print("[✓] Patch 72 / binhthuong 64-Bit BLAKE2b Advisory Lock & Reentrant Callable ScopedTenantEnvironmentGuard verified")
 
 
+def test_patch_73_binhthuong_detf_sales_flow_engine_and_pubgrub_discount_solver():
+    import importlib.util
+    from decimal import Decimal
+
+    lock_path = os.path.join(
+        ROOT_DIR,
+        "enterprise/insilos_industry_showcase/security/advisory_lock.py",
+    )
+    spec = importlib.util.spec_from_file_location("insilos_adv_lock_p73", lock_path)
+    lock_mod = importlib.util.module_from_spec(spec)
+    sys.modules["insilos_adv_lock_p73"] = lock_mod
+    spec.loader.exec_module(lock_mod)
+
+    tenant = lock_mod.TenantContext(
+        company_id="COMP_ALPHA",
+        allowed_company_ids=("COMP_ALPHA", "COMP_BETA"),
+        user_id="USR_SALES_01",
+    )
+    engine = lock_mod.EnterpriseSalesProcessEngine(tenant)
+    lines = [
+        lock_mod.SalesOrderLine(
+            line_id="L1",
+            product_sku="SKU-CLOUD-ENT",
+            quantity=Decimal("10"),
+            unit_price=Decimal("1000.00"),
+            unit_cost=Decimal("600.00"),
+            discount_pct=Decimal("10.00"),
+        ),
+        lock_mod.SalesOrderLine(
+            line_id="L2",
+            product_sku="SKU-AI-AGENT",
+            quantity=Decimal("5"),
+            unit_price=Decimal("500.00"),
+            unit_cost=Decimal("200.00"),
+            discount_pct=Decimal("5.00"),
+        ),
+    ]
+    order = lock_mod.SalesOrder(
+        order_id="SO-2026-0001",
+        company_id="COMP_ALPHA",
+        customer_id="CUST-998",
+        lines=lines,
+    )
+
+    order = engine.execute_ai_qualification_pipeline(order, step_id="STEP-01")
+    assert order.status == lock_mod.SalesOrderStatus.AI_SCORED
+    assert order.ai_risk_score == Decimal("0.08")
+    assert order.ai_conversion_probability == Decimal("0.92")
+
+    engine.transition_order_state(order, lock_mod.SalesOrderStatus.APPROVED, step_id="STEP-02")
+    engine.transition_order_state(order, lock_mod.SalesOrderStatus.CONFIRMED, step_id="STEP-03")
+    engine.transition_order_state(order, lock_mod.SalesOrderStatus.INVOICED, step_id="STEP-04")
+    assert order.status == lock_mod.SalesOrderStatus.INVOICED
+    assert len(order.state_history) == 4
+    assert engine.verify_invariant(order) is True
+
+    # PubGrub DiscountConstraintSolver checks
+    ok, _ = lock_mod.DiscountConstraintSolver.evaluate_discount_constraints(
+        order, target_discount_pct=Decimal("20.00"), is_executive_override=False
+    )
+    assert ok is False
+    ok_exec, _ = lock_mod.DiscountConstraintSolver.evaluate_discount_constraints(
+        order, target_discount_pct=Decimal("20.00"), is_executive_override=True
+    )
+    assert ok_exec is True
+
+    # Cross-tenant isolation check
+    foreign_order = lock_mod.SalesOrder(
+        order_id="SO-FOREIGN-99",
+        company_id="COMP_OMEGA",
+        customer_id="CUST-OMEGA",
+        lines=[
+            lock_mod.SalesOrderLine(
+                line_id="L1",
+                product_sku="SKU-1",
+                quantity=Decimal("1"),
+                unit_price=Decimal("100.00"),
+                unit_cost=Decimal("50.00"),
+            )
+        ],
+    )
+    try:
+        engine.execute_ai_qualification_pipeline(foreign_order, step_id="STEP-ATTACK")
+        raise AssertionError("Expected TenantSecurityError on cross-tenant transition")
+    except lock_mod.TenantSecurityError:
+        pass
+
+    print("[✓] Patch 73 / binhthuong DETF Sales Process Engine & PubGrub Discount Constraint Solver verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -7375,25 +7465,10 @@ def main():
     test_patch_70_ai_digimate_canonical_advisory_key_bounded_lock_guard_and_env_restore()
     test_patch_71_agy_home_lexicographical_bounded_lock_and_callable_env_guard()
     test_patch_72_binhthuong_64bit_advisory_lock_and_reentrant_callable_tenant_guard()
-    print("[✓] ALL 72 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 72 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_73_binhthuong_detf_sales_flow_engine_and_pubgrub_discount_solver()
+    print("[✓] ALL 73 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 73 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
