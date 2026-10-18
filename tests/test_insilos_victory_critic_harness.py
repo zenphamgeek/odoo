@@ -1584,6 +1584,95 @@ def test_replicated_sales_lead_crdt_convergence_and_merkle_tamper_e2e() -> None:
         )
 
 
+DeltaCRDTJsonObject = _lock_mod.DeltaCRDTJsonObject
+TransparencyMerkleLog = _lock_mod.TransparencyMerkleLog
+OdooTenantSecurityContext = _lock_mod.OdooTenantSecurityContext
+PubGrubQuoteConstraintEngine = _lock_mod.PubGrubQuoteConstraintEngine
+
+
+def test_delta_crdt_merkle_fabric_and_pubgrub_quote_engine_e2e() -> None:
+    """Verifies DeltaCRDTJsonObject convergence, TransparencyMerkleLog RFC-6962 style inclusion proofs, OdooTenantSecurityContext, and PubGrubQuoteConstraintEngine."""
+    doc_sales_rep = DeltaCRDTJsonObject(replica_id="rep_human_01")
+    doc_ai_agent = DeltaCRDTJsonObject(replica_id="agent_pricing_02")
+
+    delta_init = doc_sales_rep.set_field("quote_status", "draft")
+    doc_ai_agent.apply_delta(delta_init)
+
+    delta_human = doc_sales_rep.set_field("discount_tier", "10_percent")
+    delta_ai = doc_ai_agent.set_field("discount_tier", "12_percent")
+
+    doc_sales_rep.apply_delta(delta_ai)
+    doc_ai_agent.apply_delta(delta_human)
+
+    state_rep = doc_sales_rep.read_document()
+    state_ai = doc_ai_agent.read_document()
+    assert state_rep == state_ai
+    assert state_rep["discount_tier"] == "12_percent"
+    assert doc_sales_rep.compute_state_hash() == doc_ai_agent.compute_state_hash()
+
+    log = TransparencyMerkleLog()
+    _, root_0 = log.append_decision("agent_pricing", "override_discount", {"from": 10.0, "to": 15.0})
+    _, root_1 = log.append_decision("compliance_bot", "flag_compliance", {"risk_score": 0.12})
+    _, root_2 = log.append_decision("human_director", "approve_quote", {"approved": True})
+    assert root_0 != root_1
+    assert root_1 != root_2
+
+    target_entry = log.entries[1]
+    proof_1 = log.generate_inclusion_proof(1)
+    assert TransparencyMerkleLog.verify_inclusion_proof(target_entry, proof_1, root_2) is True
+    tampered_entry = {**target_entry, "details": {"risk_score": 0.99}}
+    assert TransparencyMerkleLog.verify_inclusion_proof(tampered_entry, proof_1, root_2) is False
+
+    ctx_eu_rep = OdooTenantSecurityContext(
+        user_id="user_eu_1", company_id=2, allowed_company_ids={2}
+    )
+    ctx_global_director = OdooTenantSecurityContext(
+        user_id="user_dir_hq", company_id=1, allowed_company_ids={1, 2, 3}
+    )
+    quote_eu = {"quote_id": "SO-2026-EU-001", "company_id": 2, "total_eur": 125000.0}
+    quote_apac = {"quote_id": "SO-2026-APAC-002", "company_id": 3, "total_eur": 85000.0}
+    assert ctx_eu_rep.evaluate_record_rule(quote_eu) is True
+    assert ctx_eu_rep.evaluate_record_rule(quote_apac) is False
+    assert ctx_global_director.evaluate_record_rule(quote_eu) is True
+    assert ctx_global_director.evaluate_record_rule(quote_apac) is True
+    assert ctx_global_director.evaluate_record_rule({"quote_id": "ORPHAN"}) is False
+
+    solver = PubGrubQuoteConstraintEngine()
+    solver.register_incompatibility(
+        sku_a="ENTERPRISE_AI_SUITE",
+        sku_b="LEGACY_ONPREM_CONNECTOR",
+        reason="Cloud AI Suite requires modern gRPC cloud gateway; legacy connector unsupported.",
+    )
+    valid, err = solver.validate_quote(
+        skus=["ENTERPRISE_AI_SUITE", "CLOUD_STORAGE_10TB"],
+        discount_percent=15.0,
+        is_executive=False,
+    )
+    assert valid is True and err is None
+
+    valid, err = solver.validate_quote(
+        skus=["ENTERPRISE_AI_SUITE", "LEGACY_ONPREM_CONNECTOR"],
+        discount_percent=10.0,
+        is_executive=False,
+    )
+    assert valid is False and "Conflict between ENTERPRISE_AI_SUITE" in str(err)
+
+    valid, err = solver.validate_quote(
+        skus=["ENTERPRISE_AI_SUITE"],
+        discount_percent=25.0,
+        is_executive=False,
+    )
+    assert valid is False and "Discounts exceeding 20.0% require Executive approval" in str(err)
+
+    valid, err = solver.validate_quote(
+        skus=["ENTERPRISE_AI_SUITE"],
+        discount_percent=25.0,
+        is_executive=True,
+    )
+    assert valid is True and err is None
+
+
+
 
 
 
