@@ -7088,6 +7088,100 @@ def test_patch_70_ai_digimate_canonical_advisory_key_bounded_lock_guard_and_env_
     print("[✓] Patch 70 / ai-digimate Canonical Advisory Key, BoundedAdvisoryLockGuard & Env Restore verified")
 
 
+def test_patch_71_agy_home_lexicographical_bounded_lock_and_callable_env_guard():
+    """
+    Patch 71 Verification Suite (agy-home / gemini-4-argon-high):
+    1. INT4_MIN, INT4_MAX, INT4_RANGE constants and canonical_advisory_key(namespace, resource_id)
+       supporting both integer and string resource_id hashing into signed 32-bit int4 bounds.
+    2. BoundedAdvisoryLockGuard(cr=cr, keys=raw_keys, timeout_seconds=2.5) instance context manager
+       mode: deduplicating and lexicographically sorting keys, setting SET LOCAL lock_timeout,
+       acquiring pg_advisory_xact_lock in sorted order, and executing RESET lock_timeout on exit.
+    3. ScopedTenantEnvironmentGuard(env=env, target_company_id=5, allowed_company_ids=[5, 1])
+       creating an isolated callable environment without mutating parent env.context in place
+       and restoring parent context on exception.
+    """
+    import importlib.util
+
+    lock_py = os.path.join(
+        ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py"
+    )
+    spec_lock = importlib.util.spec_from_file_location("adv_lock_patch71", lock_py)
+    lock_mod = importlib.util.module_from_spec(spec_lock)
+    sys.modules["adv_lock_patch71"] = lock_mod
+    spec_lock.loader.exec_module(lock_mod)
+
+    # 1. Exact boundaries & string resource_id hashing in canonical_advisory_key
+    assert lock_mod.to_signed_int4(0) == 0
+    assert lock_mod.to_signed_int4(lock_mod.INT4_MAX) == lock_mod.INT4_MAX
+    assert lock_mod.to_signed_int4(2147483648) == lock_mod.INT4_MIN
+    assert lock_mod.to_signed_int4(4294967295) == -1
+    assert lock_mod.to_signed_int4(4294967296) == 0
+
+    key1, key2 = lock_mod.canonical_advisory_key("account.move.post", 100502)
+    assert lock_mod.INT4_MIN <= key1 <= lock_mod.INT4_MAX
+    assert key2 == 100502
+    assert (key1, key2) == lock_mod.canonical_advisory_key("account.move.post", 100502)
+
+    k1_str, k2_str = lock_mod.canonical_advisory_key("sale.order.confirm", "SO-2026-US-TENANT-99")
+    assert lock_mod.INT4_MIN <= k1_str <= lock_mod.INT4_MAX
+    assert lock_mod.INT4_MIN <= k2_str <= lock_mod.INT4_MAX
+
+    # 2. BoundedAdvisoryLockGuard instance mode sorting & RESET lock_timeout
+    class _MockSortingCursor:
+        def __init__(self):
+            self.executed_queries = []
+
+        def execute(self, query, params=None):
+            self.executed_queries.append((query, params))
+
+    cr = _MockSortingCursor()
+    raw_keys = [(50, 100), (-10, 500), (50, 10), (-10, -200)]
+    with lock_mod.BoundedAdvisoryLockGuard(cr=cr, keys=raw_keys, timeout_seconds=2.5) as guard:
+        assert guard._acquired is True
+    assert guard._acquired is False
+    assert cr.executed_queries[0] == ("SET LOCAL lock_timeout = %s;", ("2500ms",))
+    expected_order = [(-10, -200), (-10, 500), (50, 10), (50, 100)]
+    actual_lock_calls = [
+        params
+        for query, params in cr.executed_queries[1:5]
+        if query == "SELECT pg_advisory_xact_lock(%s, %s);"
+    ]
+    assert actual_lock_calls == expected_order
+    assert cr.executed_queries[5] == ("RESET lock_timeout;", None)
+
+    # 3. ScopedTenantEnvironmentGuard callable environment isolation & exception safety
+    class _MockCallableEnvironment:
+        def __init__(self, context):
+            self.context = dict(context)
+
+        def __call__(self, context):
+            return _MockCallableEnvironment(context=context)
+
+    parent_context = {"company_id": 1, "allowed_company_ids": [1], "lang": "en_US"}
+    env = _MockCallableEnvironment(context=parent_context)
+    with lock_mod.ScopedTenantEnvironmentGuard(
+        env=env, target_company_id=5, allowed_company_ids=[5, 1]
+    ) as tenant_env:
+        assert tenant_env.context["company_id"] == 5
+        assert tenant_env.context["allowed_company_ids"] == [5, 1]
+        assert tenant_env.context["lang"] == "en_US"
+        assert env.context["company_id"] == 1
+
+    assert env.context["company_id"] == 1
+    assert env.context["allowed_company_ids"] == [1]
+
+    env_err = _MockCallableEnvironment(context={"company_id": 10, "allowed_company_ids": [10]})
+    try:
+        with lock_mod.ScopedTenantEnvironmentGuard(env=env_err, target_company_id=99):
+            raise RuntimeError("Simulated crash")
+    except RuntimeError:
+        pass
+    assert env_err.context["company_id"] == 10
+    assert env_err.context["allowed_company_ids"] == [10]
+
+    print("[✓] Patch 71 / agy-home Lexicographical BoundedAdvisoryLockGuard & Callable ScopedTenantEnvironmentGuard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -7173,8 +7267,9 @@ def main():
     test_patch_68_traimai_dual_int4_lock_pair_3arg_activate_and_max_nodes_ast_guard()
     test_patch_69_codegeekvn_signed_int4_canonical_tuple_and_ast_recursion_bomb_guard()
     test_patch_70_ai_digimate_canonical_advisory_key_bounded_lock_guard_and_env_restore()
-    print("[✓] ALL 70 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 70 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_71_agy_home_lexicographical_bounded_lock_and_callable_env_guard()
+    print("[✓] ALL 71 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 71 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
