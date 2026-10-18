@@ -6086,6 +6086,76 @@ def test_patch_58_coderedgen_canonical_lock_timeout_and_multitenant_context_guar
     print("[✓] Patch 58 / coderedgen Canonical Lock Timeout, MultiTenantContextGuard & Formula Sanitizer verified")
 
 
+def test_patch_59_traimai_atomic_multitenant_guard_lock_level_and_dde_formula_sanitizer():
+    """
+    Patch 59 (traimai / gemini-4-argon-high):
+    1. AtomicMultiTenantGuard & TenantContextToken.create/verify: enforces HMAC-SHA256 epoch+nonce
+       verification and blocks illegal nested tenant switches.
+    2. CanonicalLockHierarchyManager & LockLevel: enforces strict total-order hierarchy across levels
+       and lexicographical order within the same level, plus LIFO release.
+    3. HardenedFormulaSanitizer: strips ASCII control chars, neutralizes leading formula prefixes
+       after whitespace, and blocks DDE pipe command vectors (cmd|powershell).
+    """
+    import importlib.util
+
+    lock_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py")
+    spec = importlib.util.spec_from_file_location("advisory_lock_p59", lock_path)
+    lock_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lock_mod)
+
+    secret = bytes([i + 5 for i in range(32)])
+
+    # 1. TenantContextToken & AtomicMultiTenantGuard
+    token_a = lock_mod.TenantContextToken.create(101, {101, 102}, secret, "nonce_p59_a")
+    assert token_a.verify(secret, max_age_seconds=60.0) is True
+    token_b = lock_mod.TenantContextToken.create(202, {202}, secret, "nonce_p59_b")
+
+    with lock_mod.AtomicMultiTenantGuard(token_a, secret):
+        assert lock_mod.AtomicMultiTenantGuard.get_active_tenant_id() == 101
+        lock_mod.AtomicMultiTenantGuard.assert_record_access(101)
+        lock_mod.AtomicMultiTenantGuard.assert_record_access(102)
+        try:
+            lock_mod.AtomicMultiTenantGuard.assert_record_access(999)
+            raise AssertionError("Expected MultiTenantSecurityError on cross-tenant access")
+        except lock_mod.MultiTenantSecurityError as exc:
+            assert "Cross-tenant access violation" in str(exc)
+
+        # Illegal nested tenant switch
+        try:
+            with lock_mod.AtomicMultiTenantGuard(token_b, secret):
+                raise AssertionError("Expected MultiTenantSecurityError on nested tenant switch")
+        except lock_mod.MultiTenantSecurityError as exc:
+            assert "Illegal nested tenant switch" in str(exc)
+
+    # 2. CanonicalLockHierarchyManager total-order & LIFO checks
+    mgr = lock_mod.CanonicalLockHierarchyManager()
+    k1 = mgr.acquire(lock_mod.LockLevel.TENANT_ACCOUNT, "tenant_101", timeout_seconds=1.0)
+    k2 = mgr.acquire(lock_mod.LockLevel.GENERAL_LEDGER, "ledger_2026", timeout_seconds=1.0)
+    try:
+        try:
+            mgr.acquire(lock_mod.LockLevel.SYSTEM_CONFIG, "sys_root", timeout_seconds=1.0)
+            raise AssertionError("Expected LockHierarchyError on level inversion")
+        except lock_mod.LockHierarchyError as exc:
+            assert "Lock hierarchy inversion violation" in str(exc)
+
+        try:
+            mgr.acquire(lock_mod.LockLevel.GENERAL_LEDGER, "ledger_2020", timeout_seconds=1.0)
+            raise AssertionError("Expected LockHierarchyError on same-level order violation")
+        except lock_mod.LockHierarchyError as exc:
+            assert "Lock total-order violation" in str(exc)
+    finally:
+        mgr.release(k2)
+        mgr.release(k1)
+
+    # 3. HardenedFormulaSanitizer DDE & control-char stripping
+    san = lock_mod.HardenedFormulaSanitizer
+    assert san.sanitize_field("cmd|powershell -Command calc").startswith("'cmd|powershell")
+    assert san.sanitize_field("Clean\x00Text\x1fHere") == "CleanTextHere"
+    assert san.sanitize_row(["=1+1", "ok"]) == ["'=1+1", "ok"]
+
+    print("[✓] Patch 59 / traimai AtomicMultiTenantGuard, CanonicalLockHierarchyManager & DDE Formula Sanitizer verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6159,8 +6229,9 @@ def main():
     test_patch_56_agy_home_merkle_sum_quarantine_and_ansi_escape_guard()
     test_patch_57_zeninallgeek_canonical_lexicographical_lock_and_formula_guard()
     test_patch_58_coderedgen_canonical_lock_timeout_and_multitenant_context_guard()
-    print("[✓] ALL 58 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 58 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_59_traimai_atomic_multitenant_guard_lock_level_and_dde_formula_sanitizer()
+    print("[✓] ALL 59 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 59 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
