@@ -5239,6 +5239,145 @@ def test_patch_46_zenphamgeek_autonomous_cursor_nonce_and_kanban_wip_limiter():
     print("[✓] Patch 46 / zenphamgeek Autonomous Cursor Nonce Commit, v1 6-Part Token & Kanban WIP Slot Limiter verified")
 
 
+def test_patch_47_coderedgen_rfc5869_hkdf_numeric_slug_guard_and_canonical_token_v1():
+    """Patch 47 (coderedgen / gemini-4-argon-high):
+    Verify numeric-only/IP-like slug rejection (anti-SSRF CWE-918), RFC 5869 _hkdf_extract_and_expand,
+    sanitized secret resolution error (CWE-209), signed 64-bit Kanban lock boundary,
+    and verify_onboarding_token_v1 with canonical SHA-256 segment hashing (anti-delimiter bleed CWE-328).
+    """
+    import importlib.util
+    import sys
+    import types
+
+    main_py = os.path.join(REPO_ROOT, "enterprise/insilos_industry_showcase/controllers/main.py")
+    if "odoo" in sys.modules:
+        odoo_mod = sys.modules["odoo"]
+        if not hasattr(odoo_mod, "fields"):
+            odoo_mod.fields = types.SimpleNamespace(Datetime=types.SimpleNamespace(now=lambda: None))
+        if not hasattr(odoo_mod, "http"):
+            class _DummyController:
+                pass
+            def _dummy_route(*args, **kwargs):
+                return lambda fn: fn
+            odoo_mod.http = types.SimpleNamespace(Controller=_DummyController, route=_dummy_route, request=None)
+            sys.modules["odoo.http"] = odoo_mod.http
+        if hasattr(odoo_mod, "exceptions"):
+            if not hasattr(odoo_mod.exceptions, "AccessError"):
+                class _AccessError(Exception):
+                    pass
+                odoo_mod.exceptions.AccessError = _AccessError
+            if not hasattr(odoo_mod.exceptions, "UserError"):
+                class _UserError(Exception):
+                    pass
+                odoo_mod.exceptions.UserError = _UserError
+
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_main_ctrl_47", main_py)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    # 1. Verify numeric-only and IP-like slugs are rejected (CWE-918)
+    for bad_numeric in ("123456", "169-254-169-254", "127-0-0-1", "999-888"):
+        try:
+            ctrl_mod.sanitize_and_validate_slug(bad_numeric)
+            raise AssertionError(f"Numeric/IP-like slug {bad_numeric!r} was not blocked")
+        except ctrl_mod.ValidationError as exc:
+            assert "numbers and hyphens" in str(exc)
+
+    # 2. Verify RFC 5869 _hkdf_extract_and_expand determinism and length
+    okm_32 = ctrl_mod._hkdf_extract_and_expand(
+        salt=b"insilos-sovereign-hkdf-salt-v1",
+        ikm=b"master-ikm-material-2026",
+        info=ctrl_mod.HMAC_ONBOARDING_CONTEXT,
+        length=32,
+    )
+    okm_64 = ctrl_mod._hkdf_extract_and_expand(
+        salt=b"insilos-sovereign-hkdf-salt-v1",
+        ikm=b"master-ikm-material-2026",
+        info=ctrl_mod.HMAC_ONBOARDING_CONTEXT,
+        length=64,
+    )
+    assert len(okm_32) == 32 and len(okm_64) == 64 and okm_64[:32] == okm_32
+
+    # 3. Verify sanitized error when secret is missing (does not leak internal 'database.secret' string)
+    class _EmptyEnv:
+        def __getitem__(self, key):
+            return self
+        def sudo(self):
+            return self
+        def get_param(self, key, default=False):
+            return ""
+
+    try:
+        ctrl_mod._resolve_onboarding_hmac_secret(_EmptyEnv())
+        raise AssertionError("Expected ValidationError on empty secret")
+    except ctrl_mod.ValidationError as exc:
+        assert "database.secret" not in str(exc)
+
+    # 4. Verify verify_onboarding_token_v1 with canonical SHA-256 segment hashes & consume_onboarding_nonce
+    class _MockLedgerCursor:
+        def __init__(self):
+            self.nonces = set()
+            self._last = None
+        def execute(self, query, params=None):
+            q_up = " ".join(query.split()).upper()
+            if "INSERT INTO INSILOS_ONBOARDING_NONCE_LEDGER" in q_up:
+                nonce = params[0]
+                if nonce in self.nonces:
+                    self._last = None
+                else:
+                    self.nonces.add(nonce)
+                    self._last = (nonce,)
+            elif "SELECT PG_TRY_ADVISORY_XACT_LOCK" in q_up:
+                lock_key = params[0]
+                assert -9223372036854775808 <= lock_key <= 9223372036854775807
+                self._last = (True,)
+        def fetchone(self):
+            return self._last
+
+    class _MockEnv47:
+        def __init__(self, secret):
+            self.cr = _MockLedgerCursor()
+            self._secret = secret
+        def __getitem__(self, key):
+            return self
+        def sudo(self):
+            return self
+        def get_param(self, key, default=False):
+            if "secret" in key:
+                return self._secret
+            return default
+
+    env47 = _MockEnv47("coderedgen-hkdf-secret-" + str(47474747))
+    now_ts = int(time.time())
+    issued_ts = now_ts - 10
+    expiry_ts = now_ts + 900
+    slug_v1 = "carbon-tenant-01"
+    nonce_v1 = "a1b2c3d4e5f60718293a4b5c6d7e8f90"
+    derived_key = ctrl_mod._derive_domain_hmac_secret(env47, ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+    canonical_payload = (
+        hashlib.sha256(b"v1").hexdigest() + ":" +
+        hashlib.sha256(slug_v1.encode("utf-8")).hexdigest() + ":" +
+        hashlib.sha256(str(issued_ts).encode("ascii")).hexdigest() + ":" +
+        hashlib.sha256(str(expiry_ts).encode("ascii")).hexdigest() + ":" +
+        hashlib.sha256(nonce_v1.encode("utf-8")).hexdigest()
+    ).encode("ascii")
+    sig_hex = hmac.new(derived_key, canonical_payload, hashlib.sha256).hexdigest()
+    tok_v1 = f"v1.{slug_v1}.{issued_ts}.{expiry_ts}.{nonce_v1}.{sig_hex}"
+
+    res = ctrl_mod.verify_onboarding_token_v1(env47, tok_v1)
+    assert res["slug"] == slug_v1 and res["nonce"] == nonce_v1
+    try:
+        ctrl_mod.verify_onboarding_token_v1(env47, tok_v1)
+        raise AssertionError("Replayed v1 canonical token was not rejected")
+    except ctrl_mod.AccessError as exc:
+        assert "already been consumed" in str(exc)
+
+    with ctrl_mod.acquire_kanban_wip_slot(env47, max_slots=3) as slot_idx:
+        assert slot_idx == 0
+
+    print("[✓] Patch 47 / coderedgen RFC 5869 HKDF, Numeric-Only Slug Block & Canonical SHA-256 Segment Token v1 verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5300,8 +5439,9 @@ def main():
     test_patch_44_zenphamgeek_hkdf_domain_separation_and_nonce_replay_guard()
     test_patch_45_zenphamgeek_persistent_nonce_ledger_and_self_contained_token()
     test_patch_46_zenphamgeek_autonomous_cursor_nonce_and_kanban_wip_limiter()
-    print("[✓] ALL 46 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 46 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_47_coderedgen_rfc5869_hkdf_numeric_slug_guard_and_canonical_token_v1()
+    print("[✓] ALL 47 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 47 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
