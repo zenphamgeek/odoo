@@ -6020,6 +6020,72 @@ def test_patch_57_zeninallgeek_canonical_lexicographical_lock_and_formula_guard(
     print("[✓] Patch 57 / zeninallgeek Canonical Lexicographical Lock Hierarchy & Formula Injection Guard verified")
 
 
+def test_patch_58_coderedgen_canonical_lock_timeout_and_multitenant_context_guard():
+    """
+    Patch 58 (coderedgen / gemini-4-argon-high):
+    1. CanonicalLockHierarchy: sorts resources lexicographically, enforces monotonic timeout
+       with partial lock cleanup on contention.
+    2. MultiTenantContextGuard: binds TenantContextToken via ContextVar with HMAC-SHA256 lease_signature
+       and detects savepoint rollback context poisoning / cross-tenant mismatch.
+    3. FormulaInjectionSanitizer: neutralizes =, +, -, @, \\t, \\r prefixes.
+    """
+    import importlib.util
+
+    lock_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py")
+    spec = importlib.util.spec_from_file_location("advisory_lock_p58", lock_path)
+    lock_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lock_mod)
+
+    # 1. CanonicalLockHierarchy order and partial cleanup on contention
+    secret = bytes([i + 1 for i in range(32)])
+    hierarchy = lock_mod.CanonicalLockHierarchy(secret_key=secret)
+    locks = hierarchy.acquire_ordered_locks(
+        ["stock.quant:200", "account.move:50", "stock.quant:10", "account.move:50"],
+        timeout_seconds=1.0,
+    )
+    assert len(locks) == 3
+    hierarchy.release_locks(locks)
+
+    # Contention rolls back already-acquired locks and raises ConcurrencyLockTimeoutError
+    pre_locked = hierarchy._get_lock("stock.quant:999")
+    pre_locked.acquire()
+    try:
+        try:
+            hierarchy.acquire_ordered_locks(
+                ["stock.quant:999", "account.move:10"],
+                timeout_seconds=0.05,
+            )
+            raise AssertionError("Expected ConcurrencyLockTimeoutError")
+        except lock_mod.ConcurrencyLockTimeoutError:
+            # Verify partial lock ("account.move:10") was released
+            assert not hierarchy._get_lock("account.move:10").locked()
+    finally:
+        pre_locked.release()
+
+    # 2. MultiTenantContextGuard HMAC verification & cross-tenant poisoning rejection
+    guard = lock_mod.MultiTenantContextGuard(secret_salt=secret)
+    tok = guard.create_lease_token(tenant_id=101, allowed_company_ids=[1, 101])
+    ctx_tok = guard.bind_context(tok)
+    try:
+        guard.assert_tenant_access(record_company_id=101)
+        guard.assert_tenant_access(record_company_id=1)
+        try:
+            guard.assert_tenant_access(record_company_id=202)
+            raise AssertionError("Expected SecurityIntegrityError on unauthorized company")
+        except lock_mod.SecurityIntegrityError as exc:
+            assert "Tenant boundary violation" in str(exc)
+    finally:
+        guard.restore_context(ctx_tok)
+
+    # 3. FormulaInjectionSanitizer
+    san = lock_mod.FormulaInjectionSanitizer
+    assert san.sanitize_field("=cmd|' /C calc'!A0").startswith("'=cmd|")
+    assert san.sanitize_field("  @SUM(1,2)").startswith("'  @SUM")
+    assert san.sanitize_field("normal") == "normal"
+
+    print("[✓] Patch 58 / coderedgen Canonical Lock Timeout, MultiTenantContextGuard & Formula Sanitizer verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6092,8 +6158,9 @@ def main():
     test_patch_55_binhthuong_commit_subject_xss_guard_and_submodule_integrity()
     test_patch_56_agy_home_merkle_sum_quarantine_and_ansi_escape_guard()
     test_patch_57_zeninallgeek_canonical_lexicographical_lock_and_formula_guard()
-    print("[✓] ALL 57 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 57 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_58_coderedgen_canonical_lock_timeout_and_multitenant_context_guard()
+    print("[✓] ALL 58 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 58 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
