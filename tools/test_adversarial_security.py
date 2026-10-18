@@ -5590,6 +5590,72 @@ def test_patch_49_coderedgen_tasr_p_nonce_journal_and_webhook_reserved_slugs():
     print("[✓] Patch 49 / coderedgen TASR-P Transactional Nonce Journal, Webhook Reserved Slugs & HKDF Subkey verified")
 
 
+def test_patch_50_coderedgen_hkdf_salt_entropy_and_context_nonce_journal():
+    """Verify Patch 50 (coderedgen / gemini-4-argon-high):
+    1. Domain-separated HKDF extraction salt (extract_salt = salt if salt is not None else bytes(context_info)) and minimum entropy >= 16 chars in derive_hkdf_subkey.
+    2. Extended RESERVED_SLUGS ('apps', 'broadcast', 'default', 'docs', 'help', 'localhost', 'media', 'odoo', 'public', 'rpc', 'support', 'terms').
+    3. validate_and_consume_nonce_transactional(cr, nonce, context) raising AccessError on IntegrityError replay.
+    """
+    import importlib.util
+    from psycopg2 import IntegrityError
+
+    ctrl_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_ctrl_p50", ctrl_path)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    # 1. Extended reserved slugs
+    for reserved in ("apps", "broadcast", "default", "docs", "help", "localhost", "media", "odoo", "public", "rpc", "support", "terms"):
+        assert reserved in ctrl_mod.RESERVED_SLUGS, f"Missing reserved slug: {reserved}"
+        try:
+            ctrl_mod.sanitize_and_validate_slug(reserved.upper())
+            raise AssertionError(f"Expected ValidationError for reserved slug: {reserved}")
+        except ctrl_mod.ValidationError as exc:
+            assert "is reserved by the platform" in str(exc)
+
+    # 2. Pure numeric rejection message
+    for num_slug in ("12345", "007", "999999999"):
+        try:
+            ctrl_mod.sanitize_and_validate_slug(num_slug)
+            raise AssertionError(f"Expected ValidationError for numeric slug: {num_slug}")
+        except ctrl_mod.ValidationError as exc:
+            assert "cannot be purely numeric" in str(exc)
+
+    # 3. Minimum entropy & domain-separated salt in derive_hkdf_subkey
+    try:
+        ctrl_mod.derive_hkdf_subkey("short", ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+        raise AssertionError("Expected ValidationError for short master secret (<16 chars)")
+    except ctrl_mod.ValidationError as exc:
+        assert "insufficient entropy" in str(exc)
+
+    master_sec = "master-secret-sovereign-production-entropy-" + str(123456)
+    key_onb = ctrl_mod.derive_hkdf_subkey(master_sec, ctrl_mod.HMAC_ONBOARDING_CONTEXT, salt=ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+    key_lease = ctrl_mod.derive_hkdf_subkey(master_sec, ctrl_mod.HMAC_LEASE_CONTEXT, salt=ctrl_mod.HMAC_LEASE_CONTEXT)
+    assert len(key_onb) == 32 and len(key_lease) == 32 and key_onb != key_lease
+
+    # 4. validate_and_consume_nonce_transactional
+    class _MockCtxNonceCr:
+        def __init__(self):
+            self.seen = set()
+        def execute(self, sql, params=None):
+            if "INSERT INTO insilos_onboarding_nonce_journal" in sql:
+                key = (params[0], params[1])
+                if key in self.seen:
+                    raise IntegrityError("duplicate key value violates unique constraint")
+                self.seen.add(key)
+
+    cr50 = _MockCtxNonceCr()
+    nonce50 = "valid_nonce_token_1234567890"
+    ctrl_mod.validate_and_consume_nonce_transactional(cr50, nonce50, ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+    try:
+        ctrl_mod.validate_and_consume_nonce_transactional(cr50, nonce50, ctrl_mod.HMAC_ONBOARDING_CONTEXT)
+        raise AssertionError("Expected AccessError on duplicate nonce IntegrityError")
+    except ctrl_mod.AccessError as exc:
+        assert "already been consumed or replayed" in str(exc)
+
+    print("[✓] Patch 50 / coderedgen Domain-Separated HKDF Salt, Minimum Entropy Check & Context Nonce Journal verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5654,8 +5720,9 @@ def main():
     test_patch_47_coderedgen_rfc5869_hkdf_numeric_slug_guard_and_canonical_token_v1()
     test_patch_48_justaskgao_hkdf_subkey_and_transactional_advisory_nonce_ring()
     test_patch_49_coderedgen_tasr_p_nonce_journal_and_webhook_reserved_slugs()
-    print("[✓] ALL 49 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 49 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_50_coderedgen_hkdf_salt_entropy_and_context_nonce_journal()
+    print("[✓] ALL 50 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 50 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
