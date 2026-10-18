@@ -38,12 +38,14 @@ MAX_METRIC_VALUE = Decimal('1000000.0')
 
 
 def sanitize_string_field(val: Optional[str], max_len: int = 1024) -> str:
-    """Strips terminal ANSI control characters and null bytes and enforces length bounds."""
+    """Strips terminal ANSI control characters, neutralizes formula injection (CWE-1236), and enforces length bounds."""
     if val is None:
         return ""
     cleaned = ANSI_ESCAPE_RE.sub('', str(val))
-    cleaned = cleaned.replace('\r', '').replace('\x00', '')
-    return cleaned[:max_len].strip()
+    cleaned = cleaned.replace('\r', '').replace('\x00', '').strip()
+    if cleaned.startswith(("=", "@")):
+        cleaned = "'" + cleaned
+    return cleaned[:max_len]
 
 
 def validate_and_accumulate_metric(current: Decimal, delta: Any, metric_name: str) -> Decimal:

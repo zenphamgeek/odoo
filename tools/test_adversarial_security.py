@@ -5977,6 +5977,49 @@ def test_patch_56_agy_home_merkle_sum_quarantine_and_ansi_escape_guard():
     print("[✓] Patch 56 / agy-home Merkle-Sum Quarantine, IEEE 754 NaN Guard & ANSI Escape Sanitizer verified")
 
 
+def test_patch_57_zeninallgeek_canonical_lexicographical_lock_and_formula_guard():
+    """Verify Patch 57 (zeninallgeek / gemini-4-argon-high):
+    1. acquire_canonical_ordered_locks sorts resource IDs monotonically ascending (Coffman Invariant #4 deadlock prevention) and blocks invalid table names.
+    2. sanitize_string_field neutralizes CSV/Formula Injection (CWE-1236) on leading '=' or '@'.
+    """
+    import importlib.util
+
+    lock_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py")
+    spec = importlib.util.spec_from_file_location("advisory_lock_p57", lock_path)
+    lock_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lock_mod)
+
+    class _MockOrderCr:
+        def __init__(self):
+            self.queries = []
+            self.params = []
+        def execute(self, q, p=None):
+            self.queries.append(q)
+            self.params.append(p)
+
+    cr = _MockOrderCr()
+    ordered = lock_mod.acquire_canonical_ordered_locks(cr, "product_product", [102, 54, 881, 12, 54])
+    assert ordered == [12, 54, 102, 881]
+    assert cr.params[0] == ((12, 54, 102, 881),)
+    assert "ORDER BY id ASC FOR UPDATE" in cr.queries[0]
+
+    try:
+        lock_mod.acquire_canonical_ordered_locks(cr, "product_product; DROP TABLE users;--", [1, 2])
+        raise AssertionError("Expected ValueError for invalid SQL table name")
+    except ValueError as exc:
+        assert "Invalid SQL table identifier" in str(exc)
+
+    scanner_path = os.path.join(ROOT_DIR, "tools/multi_repo_scanner.py")
+    spec_s = importlib.util.spec_from_file_location("multi_repo_scanner_p57", scanner_path)
+    scanner_mod = importlib.util.module_from_spec(spec_s)
+    spec_s.loader.exec_module(scanner_mod)
+
+    assert scanner_mod.sanitize_string_field("=cmd|' /C calc'!A0") == "'=cmd|' /C calc'!A0"
+    assert scanner_mod.sanitize_string_field("@SUM(1+1)") == "'@SUM(1+1)"
+
+    print("[✓] Patch 57 / zeninallgeek Canonical Lexicographical Lock Hierarchy & Formula Injection Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6048,8 +6091,9 @@ def main():
     test_patch_54_immoon0009_reverse_clock_drift_resurrection_and_submodule_parity()
     test_patch_55_binhthuong_commit_subject_xss_guard_and_submodule_integrity()
     test_patch_56_agy_home_merkle_sum_quarantine_and_ansi_escape_guard()
-    print("[✓] ALL 56 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 56 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_57_zeninallgeek_canonical_lexicographical_lock_and_formula_guard()
+    print("[✓] ALL 57 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 57 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
