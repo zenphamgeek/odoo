@@ -1320,5 +1320,77 @@ def test_json_crdt_merkle_transparency_and_pubgrub_quotation_solver_e2e() -> Non
         solver.solve_bundle(["SKU-ENTERPRISE-BUNDLE", "SKU-LEGACY-ONPREM"])
 
 
+EnvelopeBreachError = _lock_mod.EnvelopeBreachError
+TwoChallengeLockoutError = _lock_mod.TwoChallengeLockoutError
+MerkleTreeIntegrity = _lock_mod.MerkleTreeIntegrity
+CrdtJsonRegister = _lock_mod.CrdtJsonRegister
+AviationPreFlightChecklistGate = _lock_mod.AviationPreFlightChecklistGate
+
+
+def test_aviation_preflight_checklist_gate_and_two_challenge_circuit_breaker_e2e() -> None:
+    """Verifies AviationPreFlightChecklistGate margin envelope protection, Two-Challenge lockout, CrdtJsonRegister, and MerkleTreeIntegrity."""
+    reg = CrdtJsonRegister(key="discount_rate", initial_value=0.10, timestamp=100, author="agent_a")
+    assert reg.update(new_value=0.25, timestamp=95, author="agent_b") is False
+    assert reg.value == 0.10
+    assert reg.update(new_value=0.15, timestamp=105, author="agent_b") is True
+    assert reg.value == 0.15
+    assert reg.author == "agent_b"
+
+    leaves = [
+        MerkleTreeIntegrity.hash_leaf({"quote_id": "Q-001", "discount": 0.05}),
+        MerkleTreeIntegrity.hash_leaf({"quote_id": "Q-002", "discount": 0.12}),
+        MerkleTreeIntegrity.hash_leaf({"quote_id": "Q-003", "discount": 0.08}),
+    ]
+    root_1 = MerkleTreeIntegrity.compute_root(leaves)
+    assert len(root_1) == 64
+    assert root_1 == MerkleTreeIntegrity.compute_root(leaves)
+    tampered_leaves = list(leaves)
+    tampered_leaves[1] = MerkleTreeIntegrity.hash_leaf({"quote_id": "Q-002", "discount": 0.20})
+    assert root_1 != MerkleTreeIntegrity.compute_root(tampered_leaves)
+
+    gate = AviationPreFlightChecklistGate(tenant_id="enterprise_sg", flag_enabled=True)
+    res = gate.evaluate_preflight_envelope(
+        quote_id="Q-1001",
+        total_revenue=100000.0,
+        cost_basis=75000.0,
+        line_items=[{"sku": "ERP-CORE", "qty": 1, "price": 100000.0}],
+        company_id="enterprise_sg",
+    )
+    assert res["status"] == "CLEARED"
+    assert res["margin_ratio"] == 0.25
+
+    with pytest.raises(InvariantViolationError, match="Tenant Isolation Breach"):
+        gate.evaluate_preflight_envelope(
+            quote_id="Q-1002",
+            total_revenue=50000.0,
+            cost_basis=30000.0,
+            line_items=[{"sku": "ERP-ADDON", "qty": 1, "price": 50000.0}],
+            company_id="malicious_tenant",
+        )
+    assert gate.consecutive_challenge_failures == 1
+
+    with pytest.raises(EnvelopeBreachError, match="Margin breach: Computed 0.1000"):
+        gate.evaluate_preflight_envelope(
+            quote_id="Q-1003",
+            total_revenue=10000.0,
+            cost_basis=9000.0,
+            line_items=[{"sku": "CONSULTING", "price": 10000.0}],
+            company_id="enterprise_sg",
+        )
+    assert gate.consecutive_challenge_failures == 2
+
+    with pytest.raises(
+        TwoChallengeLockoutError, match="locked out: 2 consecutive flight-envelope challenges tripped"
+    ):
+        gate.evaluate_preflight_envelope(
+            quote_id="Q-1004",
+            total_revenue=10000.0,
+            cost_basis=5000.0,
+            line_items=[{"sku": "CONSULTING", "price": 10000.0}],
+            company_id="enterprise_sg",
+        )
+
+
+
 
 
