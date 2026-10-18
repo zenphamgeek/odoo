@@ -492,7 +492,7 @@
         }
 
         .al2c-inline-code {
-            font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: var(--al2c-concierge-bg-card);
             border: 1px solid var(--al2c-concierge-border-subtle);
             padding: 1px 4px;
@@ -666,7 +666,7 @@
         border-radius: 4px;
         background: var(--al2c-concierge-bg-chip);
         border: 1px solid var(--al2c-concierge-border-subtle);
-        font-family: ui-monospace, Menlo, Monaco, Consolas, monospace;
+        font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         font-size: 11px;
         color: var(--al2c-concierge-text-secondary);
         word-break: break-all;

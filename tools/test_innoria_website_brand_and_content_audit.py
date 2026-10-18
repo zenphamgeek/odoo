@@ -127,13 +127,63 @@ def verify_source_files():
         matches = combined_rx.findall(content)
         assert not matches, f"Forbidden explicit names found in {os.path.relpath(path, ROOT_DIR)}: {sorted(set(matches))}"
 
-    print("[✓] Source audit passed: 100% INNORIA primary website brand & zero explicit client/vendor/competitor names across public views & AI Concierge.")
+    # 6. Verify Patch 41 IBM Carbon v11 & Poppins Sans-Serif Typography Overhaul
+    #    - 12 Poppins .woff2 font files exist with valid wOF2 header
+    #    - website_templates.xml preloads poppins-latin.woff2 and poppins-vietnamese.woff2
+    #    - Zero font-monospace, JetBrains Mono, Fira Code, or Roboto Mono across all public Website, Portal, and AI Concierge XML views
+    #    - IBM Carbon v11 tokens (--cds-interactive: #0f62fe, --cds-background: #ffffff, --cds-layer-01: #f4f4f4) present in SCSS
+    fonts_dir = os.path.join(ROOT_DIR, "enterprise/insilos_website/static/src/fonts")
+    for required_font in (
+        "poppins-latin.woff2",
+        "poppins-vietnamese.woff2",
+        "poppins-latin-400.woff2",
+        "poppins-latin-600.woff2",
+        "poppins-latin-700.woff2",
+    ):
+        fp = os.path.join(fonts_dir, required_font)
+        assert os.path.isfile(fp), f"Missing Poppins font file: {fp}"
+        with open(fp, "rb") as bf:
+            magic = bf.read(4)
+        assert magic == b"wOF2", f"Invalid WOFF2 magic header in {fp}: {magic}"
+
+    assert "/insilos_website/static/src/fonts/poppins-latin.woff2" in wt_content
+    assert "/insilos_website/static/src/fonts/poppins-vietnamese.woff2" in wt_content
+    assert "font-family: 'Poppins'" in wt_content
+
+    all_checked_xml = list(public_xml_files) + [
+        os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/views/templates.xml"),
+        os.path.join(ROOT_DIR, "addons/insilos_al2c/static/src/xml/ai_concierge_widget.xml"),
+    ]
+    forbidden_font_rx = re.compile(r"font-monospace|JetBrains\s*Mono|Fira\s*Code|Roboto\s*Mono", re.IGNORECASE)
+    for xml_p in all_checked_xml:
+        with open(xml_p, "r", encoding="utf-8") as f:
+            xml_txt = f.read()
+        bad_fonts = forbidden_font_rx.findall(xml_txt)
+        assert not bad_fonts, f"Forbidden monospace/robotic font token in {os.path.relpath(xml_p, ROOT_DIR)}: {bad_fonts}"
+
+    forbidden_scss_font_rx = re.compile(r"JetBrains\s*Mono|Fira\s*Code|Roboto\s*Mono", re.IGNORECASE)
+    for scss_rel in (
+        "enterprise/insilos_website/static/src/scss/insilos.scss",
+        "enterprise/insilos_website/static/src/scss/innoria_theme.scss",
+        "enterprise/insilos_website/static/src/scss/insilos_liquid_spatial.scss",
+    ):
+        scss_p = os.path.join(ROOT_DIR, scss_rel)
+        with open(scss_p, "r", encoding="utf-8") as f:
+            scss_txt = f.read()
+        assert "--cds-interactive: #0f62fe" in scss_txt, f"Missing --cds-interactive in {scss_rel}"
+        assert "--cds-background: #ffffff" in scss_txt, f"Missing --cds-background in {scss_rel}"
+        assert "--cds-layer-01: #f4f4f4" in scss_txt, f"Missing --cds-layer-01 in {scss_rel}"
+        assert "'Poppins'" in scss_txt, f"Missing 'Poppins' font-family in {scss_rel}"
+        assert not forbidden_scss_font_rx.findall(scss_txt), f"Forbidden monospace token in {scss_rel}"
+
+    print("[✓] Source audit passed: 100% INNORIA primary website brand, IBM Carbon v11 design system, Poppins sans-serif typography & zero explicit client/vendor/competitor names.")
 
 
 def main():
     verify_source_files()
-    print("[🎉] PATCH 39 INNORIA WEBSITE PRIMARY BRAND & DE-EXPLICITIZED CONTENT AUDIT PASSED (EXIT 0)")
+    print("[🎉] PATCH 39 & PATCH 41 INNORIA WEBSITE BRAND, IBM CARBON V11 & POPPINS TYPOGRAPHY AUDIT PASSED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+

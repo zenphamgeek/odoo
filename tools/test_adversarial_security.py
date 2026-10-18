@@ -4593,6 +4593,115 @@ def test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter():
     print("[✓] Patch 40 / MFL-CLW MonotonicLeaseSavepointBarrier, Fleet Model Resolver & Brand Isolation Linter verified")
 
 
+def test_patch_41_ibm_carbon_design_and_poppins_typography_overhaul():
+    """Patch 41 (`IBM Carbon v11 Web Element Architecture & Poppins Sans-Serif Typography Overhaul`):
+    1. All 12 `Poppins` `.woff2` font files (`poppins-latin.woff2`, `poppins-vietnamese.woff2`,
+       `poppins-latin-300..700.woff2`, `poppins-latin-ext-300..700.woff2`) exist in
+       `enterprise/insilos_website/static/src/fonts/` with valid `wOF2` binary magic header.
+    2. `enterprise/insilos_website/views/website_templates.xml` (`insilos_vietnamese_fonts`) preloads
+       `poppins-latin.woff2` and `poppins-vietnamese.woff2`, loads Google Fonts `Poppins`, and declares
+       `@font-face { font-family: 'Poppins'; ... }`.
+    3. Zero occurrences of `font-monospace`, `JetBrains Mono`, `Fira Code`, or `Roboto Mono` across all 22
+       Website, Portal, and AI Concierge XML views and all 11 Website/Concierge SCSS files.
+    4. IBM Carbon v11 design tokens (`--cds-interactive: #0f62fe`, `--cds-background: #ffffff`,
+       `--cds-layer-01: #f4f4f4`, `--cds-border-subtle-01: #e0e0e0`, `--cds-text-primary: #161616`,
+       `--cds-font-sans: 'Poppins'`), rectangular button geometry (`border-radius: 0px !important`), and
+       tile geometry (`border-radius: 2px !important; box-shadow: none !important`) are present in
+       `insilos.scss`, `innoria_theme.scss`, and `insilos_liquid_spatial.scss`.
+    5. `.unslop_ledger.json` has zero drift across all 20 tracked XML files.
+    """
+    import glob
+    import re
+    import subprocess
+
+    # 1. Verify all 12 Poppins .woff2 font binaries
+    fonts_dir = os.path.join(ROOT_DIR, "enterprise/insilos_website/static/src/fonts")
+    expected_fonts = [
+        "poppins-latin.woff2",
+        "poppins-vietnamese.woff2",
+        "poppins-latin-300.woff2",
+        "poppins-latin-400.woff2",
+        "poppins-latin-500.woff2",
+        "poppins-latin-600.woff2",
+        "poppins-latin-700.woff2",
+        "poppins-latin-ext-300.woff2",
+        "poppins-latin-ext-400.woff2",
+        "poppins-latin-ext-500.woff2",
+        "poppins-latin-ext-600.woff2",
+        "poppins-latin-ext-700.woff2",
+    ]
+    for fname in expected_fonts:
+        fpath = os.path.join(fonts_dir, fname)
+        assert os.path.isfile(fpath), f"Missing Poppins font binary: {fpath}"
+        with open(fpath, "rb") as bf:
+            header = bf.read(4)
+        assert header == b"wOF2", f"Invalid WOFF2 magic bytes in {fname}: {header}"
+
+    # 2. Verify website_templates.xml font preload & @font-face
+    wt_path = os.path.join(ROOT_DIR, "enterprise/insilos_website/views/website_templates.xml")
+    with open(wt_path, "r", encoding="utf-8") as f:
+        wt_src = f.read()
+    assert "/insilos_website/static/src/fonts/poppins-latin.woff2" in wt_src
+    assert "/insilos_website/static/src/fonts/poppins-vietnamese.woff2" in wt_src
+    assert "family=Poppins:" in wt_src
+    assert "font-family: 'Poppins';" in wt_src
+
+    # 3. Verify zero robotic monospace fonts across all 22 XML views and 11 SCSS files
+    xml_targets = sorted(glob.glob(os.path.join(ROOT_DIR, "enterprise/insilos_website/views/*.xml"))) + [
+        os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/views/templates.xml"),
+        os.path.join(ROOT_DIR, "addons/insilos_al2c/views/portal_templates.xml"),
+        os.path.join(ROOT_DIR, "addons/insilos_al2c/static/src/xml/ai_concierge_widget.xml"),
+    ]
+    scss_targets = sorted(glob.glob(os.path.join(ROOT_DIR, "enterprise/insilos_website/static/src/scss/*.scss"))) + sorted(
+        glob.glob(os.path.join(ROOT_DIR, "addons/insilos_al2c/static/src/scss/*.scss"))
+    )
+    bad_xml_font_rx = re.compile(r"font-monospace|JetBrains\s*Mono|Fira\s*Code|Roboto\s*Mono", re.IGNORECASE)
+    for target in xml_targets:
+        with open(target, "r", encoding="utf-8") as f:
+            txt = f.read()
+        matches = bad_xml_font_rx.findall(txt)
+        assert not matches, f"Robotic monospace font token found in {os.path.relpath(target, ROOT_DIR)}: {matches}"
+
+    bad_scss_font_rx = re.compile(r"JetBrains\s*Mono|Fira\s*Code|Roboto\s*Mono", re.IGNORECASE)
+    for target in scss_targets:
+        with open(target, "r", encoding="utf-8") as f:
+            txt = f.read()
+        matches = bad_scss_font_rx.findall(txt)
+        assert not matches, f"Robotic monospace font token found in {os.path.relpath(target, ROOT_DIR)}: {matches}"
+
+    # 4. Verify IBM Carbon v11 tokens & geometry in core website SCSS files
+    for scss_rel in (
+        "enterprise/insilos_website/static/src/scss/insilos.scss",
+        "enterprise/insilos_website/static/src/scss/innoria_theme.scss",
+        "enterprise/insilos_website/static/src/scss/insilos_liquid_spatial.scss",
+    ):
+        scss_p = os.path.join(ROOT_DIR, scss_rel)
+        with open(scss_p, "r", encoding="utf-8") as f:
+            scss_txt = f.read()
+        for token in (
+            "--cds-interactive: #0f62fe",
+            "--cds-background: #ffffff",
+            "--cds-layer-01: #f4f4f4",
+            "--cds-border-subtle-01: #e0e0e0",
+            "--cds-text-primary: #161616",
+            "border-radius: 0px !important;",
+            "border-radius: 2px !important;",
+            "box-shadow: none !important;",
+        ):
+            assert token in scss_txt, f"Missing IBM Carbon v11 token/rule `{token}` in {scss_rel}"
+
+    # 5. Verify .unslop_ledger.json zero drift
+    drift_res = subprocess.run(
+        [sys.executable, os.path.join(ROOT_DIR, "tools/execute_fleet_unslop_views.py"), "--check-drift"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert drift_res.returncode == 0, f"Unslop ledger drift check failed: {drift_res.stdout} {drift_res.stderr}"
+
+    print("[✓] Patch 41 / IBM Carbon v11 Web Element Architecture & Poppins Sans-Serif Typography Overhaul verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -4648,12 +4757,14 @@ def main():
     test_patch_38_prefect_lease_odoo_savepoint_and_smt_bounded_ast()
     test_patch_39_innoria_website_primary_brand_and_deexplicitized_content()
     test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter()
-    print("[✓] ALL 40 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 40 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_41_ibm_carbon_design_and_poppins_typography_overhaul()
+    print("[✓] ALL 41 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 41 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 
