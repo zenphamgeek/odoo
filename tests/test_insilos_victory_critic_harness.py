@@ -1515,6 +1515,76 @@ def test_axiomatic_discretion_enclave_delta_merge_and_merkle_proof_e2e() -> None
         )
 
 
+CRDTOperation = _lock_mod.CRDTOperation
+MerkleAuditNode = _lock_mod.MerkleAuditNode
+ReplicatedSalesLeadCRDT = _lock_mod.ReplicatedSalesLeadCRDT
+TenantSecurityError = _lock_mod.TenantSecurityError
+
+
+def test_replicated_sales_lead_crdt_convergence_and_merkle_tamper_e2e() -> None:
+    """Verifies ReplicatedSalesLeadCRDT out-of-order convergence, MerkleAuditNode tamper detection, and TenantSecurityError isolation."""
+    lead_id = "crm_lead_10492"
+    tenant_id = "company_group_alpha"
+
+    replica_a = ReplicatedSalesLeadCRDT(lead_id=lead_id, tenant_id=tenant_id)
+    replica_b = ReplicatedSalesLeadCRDT(lead_id=lead_id, tenant_id=tenant_id)
+
+    op1 = CRDTOperation(
+        op_id="op_agent1_001",
+        tenant_id=tenant_id,
+        lead_id=lead_id,
+        field_name="discount_rate",
+        value=0.15,
+        lamport_timestamp=2,
+        actor_id="agent_pricing_tier1",
+    )
+    op2 = CRDTOperation(
+        op_id="op_vp_002",
+        tenant_id=tenant_id,
+        lead_id=lead_id,
+        field_name="discount_rate",
+        value=0.10,
+        lamport_timestamp=3,
+        actor_id="human_sales_vp",
+    )
+
+    replica_a.apply_operation(op1)
+    replica_a.apply_operation(op2)
+
+    replica_b.apply_operation(op2)
+    replica_b.apply_operation(op1)
+
+    state_a = replica_a.get_state()
+    state_b = replica_b.get_state()
+    assert state_a["discount_rate"] == 0.10
+    assert state_a == state_b
+    assert replica_a.verify_transparency_chain() is True
+    assert replica_b.verify_transparency_chain() is True
+
+    # Tamper detection on MerkleAuditNode
+    tampered_node = replica_a._audit_trail[0]
+    replica_a._audit_trail[0] = MerkleAuditNode(
+        op_hash="fake_hash_injected_after_fact",
+        prev_root=tampered_node.prev_root,
+    )
+    assert replica_a.verify_transparency_chain() is False
+
+    # Cross-tenant isolation check
+    with pytest.raises(TenantSecurityError, match="Tenant mismatch"):
+        replica_b.apply_operation(
+            CRDTOperation(
+                op_id="malicious_op_403",
+                tenant_id="tenant_external_competitor",
+                lead_id=lead_id,
+                field_name="expected_revenue",
+                value=0.0,
+                lamport_timestamp=10,
+                actor_id="compromised_agent",
+            )
+        )
+
+
+
 
 
 
