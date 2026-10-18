@@ -4970,6 +4970,133 @@ def test_patch_44_zenphamgeek_hkdf_domain_separation_and_nonce_replay_guard():
     print("[✓] Patch 44 / zenphamgeek DS-INC HKDF Domain Separation, 128-Bit Nonce Replay Guard & Monotonic Lease Epoch verified")
 
 
+def test_patch_45_zenphamgeek_persistent_nonce_ledger_and_self_contained_token():
+    """Patch 45 (zenphamgeek / gemini-4-argon-high):
+    Verify PostgreSQL persistent nonce ledger (_ensure_nonce_ledger_table, _record_consumed_nonce_persistent),
+    automatic TTL pruning of expired nonces, expanded cloud/orchestrator RESERVED_SLUGS (prefect, vault, argocd, grafana),
+    and 5-part self-contained signup token envelope (validate_and_consume_signup_token).
+    """
+    import importlib.util
+    import sys
+    import types
+
+    main_py = os.path.join(REPO_ROOT, "enterprise/insilos_industry_showcase/controllers/main.py")
+    if "odoo" in sys.modules:
+        odoo_mod = sys.modules["odoo"]
+        if not hasattr(odoo_mod, "fields"):
+            odoo_mod.fields = types.SimpleNamespace(Datetime=types.SimpleNamespace(now=lambda: None))
+        if not hasattr(odoo_mod, "http"):
+            class _DummyController:
+                pass
+            def _dummy_route(*args, **kwargs):
+                return lambda fn: fn
+            odoo_mod.http = types.SimpleNamespace(Controller=_DummyController, route=_dummy_route, request=None)
+            sys.modules["odoo.http"] = odoo_mod.http
+        if hasattr(odoo_mod, "exceptions") and not hasattr(odoo_mod.exceptions, "AccessError"):
+            class _AccessError(Exception):
+                pass
+            odoo_mod.exceptions.AccessError = _AccessError
+
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_main_ctrl_45", main_py)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    # 1. Verify expanded cloud/orchestrator RESERVED_SLUGS
+    for reserved in ("prefect", "vault", "argocd", "grafana", "keycloak", "kibana", "consul", "tempo", "loki"):
+        try:
+            ctrl_mod.sanitize_and_validate_slug(reserved)
+            raise AssertionError(f"Reserved orchestrator slug {reserved!r} was not blocked")
+        except ctrl_mod.ValidationError as exc:
+            assert "reserved" in str(exc).lower()
+
+    # 2. Mock PostgreSQL cursor replicating ON CONFLICT (nonce) DO NOTHING & TTL DELETE
+    class _MockPgCursor:
+        def __init__(self):
+            self.consumed_table = {}
+            self.rowcount = 0
+
+        def execute(self, query, params=None):
+            q_up = " ".join(query.split()).upper()
+            if "CREATE TABLE" in q_up or "CREATE INDEX" in q_up:
+                self.rowcount = 0
+                return
+            if "DELETE FROM INSILOS_CONSUMED_NONCE" in q_up:
+                cutoff_ts = params[0]
+                before = len(self.consumed_table)
+                self.consumed_table = {
+                    k: v for k, v in self.consumed_table.items() if v["expiry_ts"] >= cutoff_ts
+                }
+                self.rowcount = before - len(self.consumed_table)
+                return
+            if "INSERT INTO INSILOS_CONSUMED_NONCE" in q_up:
+                nonce, tenant_id, slug, expiry_ts = params
+                if nonce in self.consumed_table:
+                    self.rowcount = 0
+                else:
+                    self.consumed_table[nonce] = {
+                        "tenant_id": tenant_id,
+                        "slug": slug,
+                        "expiry_ts": expiry_ts,
+                    }
+                    self.rowcount = 1
+                return
+            raise NotImplementedError(f"Unhandled SQL: {query}")
+
+    class _MockConfigParameter:
+        def __init__(self, root_secret):
+            self.params = {"database.secret": root_secret}
+        def get_param(self, key, default=False):
+            return self.params.get(key, default)
+        def sudo(self):
+            return self
+
+    class _MockEnvWithCursor:
+        def __init__(self, secret):
+            self._cp = _MockConfigParameter(secret)
+            self.cr = _MockPgCursor()
+        def __getitem__(self, key):
+            if key == "ir.config_parameter":
+                return self._cp
+            raise KeyError(key)
+
+    dyn_secret = "sovereign-pg-ledger-key-" + str(45454545)
+    env = _MockEnvWithCursor(dyn_secret)
+
+    # 3. Verify 5-part self-contained token generation & single-use multi-worker persistent consumption
+    sc_tok = ctrl_mod.generate_self_contained_signup_token(env, 42, "sovereign-corp")
+    parts = sc_tok.split(".")
+    assert len(parts) == 5 and parts[0] == "42" and parts[1] == "sovereign-corp"
+    claims = ctrl_mod.validate_and_consume_signup_token(env, sc_tok)
+    assert claims["tenant_id"] == 42 and claims["slug"] == "sovereign-corp" and claims["nonce"] == parts[3]
+
+    # Second attempt on same cursor (multi-worker DB state): MUST raise AccessError
+    try:
+        ctrl_mod.validate_and_consume_signup_token(env, sc_tok)
+        raise AssertionError("Replayed self-contained token was not rejected by persistent ledger")
+    except ctrl_mod.AccessError as exc:
+        assert "already been consumed" in str(exc)
+
+    # 4. Verify claim tampering rejection (swapping tenant_id or slug in 5-part envelope)
+    tampered_tenant_tok = f"43.{parts[1]}.{parts[2]}.{parts[3]}.{parts[4]}"
+    try:
+        ctrl_mod.validate_and_consume_signup_token(env, tampered_tenant_tok)
+        raise AssertionError("Tampered tenant_id in 5-part token was not rejected")
+    except ctrl_mod.AccessError as exc:
+        assert "signature verification failed" in str(exc)
+
+    # 5. Verify TTL garbage collection prunes expired nonces from insilos_consumed_nonce
+    now_ts = int(time.time())
+    env.cr.consumed_table["stale_nonce_001"] = {"tenant_id": 1, "slug": "old-co", "expiry_ts": now_ts - 1000}
+    env.cr.consumed_table["active_nonce_001"] = {"tenant_id": 2, "slug": "fresh-co", "expiry_ts": now_ts + 600}
+    new_nonce = "c" * 32
+    assert ctrl_mod._record_consumed_nonce_persistent(env.cr, new_nonce, 4, "fresh-co-2", now_ts + 600) is True
+    assert "stale_nonce_001" not in env.cr.consumed_table
+    assert "active_nonce_001" in env.cr.consumed_table
+    assert new_nonce in env.cr.consumed_table
+
+    print("[✓] Patch 45 / zenphamgeek Persistent PostgreSQL Nonce Ledger, Orchestrator Slugs & 5-Part Token Envelope verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -5029,8 +5156,9 @@ def main():
     test_patch_42_immoon0009_saas_slug_and_tls_workspace_guard()
     test_patch_43_zenphamgeek_nfkc_slug_hmac_token_and_offline_lease()
     test_patch_44_zenphamgeek_hkdf_domain_separation_and_nonce_replay_guard()
-    print("[✓] ALL 44 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 44 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_45_zenphamgeek_persistent_nonce_ledger_and_self_contained_token()
+    print("[✓] ALL 45 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 45 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
