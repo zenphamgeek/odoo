@@ -6299,6 +6299,92 @@ def test_patch_61_coderedgen_fullwidth_cell_sanitizer_lock_tiers_and_isolate_ten
     print("[✓] Patch 61 / coderedgen Fullwidth Cell Sanitizer, Lock Tiers & isolate_tenant verified")
 
 
+def test_patch_62_traimai_cyclic_dict_sanitizer_heterogeneous_lock_order_and_tenant_id_guard():
+    """
+    Patch 62 (traimai / gemini-4-argon-high):
+    1. FullwidthFormulaSanitizer.sanitize_cell & sanitize_dict_structure with cycle detection (seen_ids)
+       and MAX_RECURSION_DEPTH = 16, plus small Unicode variants (\\ufe62, \\ufe63, \\ufe66, \\uff5c).
+    2. CanonicalLockHierarchyManager.get_canonical_lock_order: sorts heterogeneous (model_name, record_id)
+       pairs by (tier, model_name, record_id) with deduplication and input validation.
+    3. AtomicMultiTenantGuard(tenant_id=...) integer ContextVar mode (_ACTIVE_TENANT_ID) with exception-safe
+       reset on nested scopes.
+    """
+    import importlib.util
+
+    lock_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py")
+    spec = importlib.util.spec_from_file_location("advisory_lock_p62", lock_path)
+    lock_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lock_mod)
+
+    san = lock_mod.FullwidthFormulaSanitizer
+    # 1. Small/fullwidth Unicode variants & sanitize_dict_structure cycle/depth bounds
+    assert san.sanitize_cell("\ufe66SUM(A1)").startswith("'")
+    assert san.sanitize_cell("\ufe621+1").startswith("'")
+    assert san.sanitize_cell("\ufe631-1").startswith("'")
+    assert san.sanitize_cell("\uff5ccmd").startswith("'")
+
+    nested = {"=key": ["\uff0b1+2", {"inner": "\u200b\r@SUM(B1:B5)", "count": 42}]}
+    res = san.sanitize_dict_structure(nested)
+    assert "'=key" in res
+    assert res["'=key"][0].startswith("'")
+    assert res["'=key"][1]["inner"].startswith("'")
+    assert res["'=key"][1]["count"] == 42
+
+    cyclic = {"a": "safe"}
+    cyclic["self"] = cyclic
+    try:
+        san.sanitize_dict_structure(cyclic)
+        raise AssertionError("Expected ValueError on cyclic reference")
+    except ValueError as exc:
+        assert "Cyclic reference detected" in str(exc)
+
+    deep = "leaf"
+    for _ in range(20):
+        deep = {"n": deep}
+    try:
+        san.sanitize_dict_structure(deep)
+        raise AssertionError("Expected ValueError on max sanitization depth")
+    except ValueError as exc:
+        assert "Max sanitization depth exceeded" in str(exc)
+
+    # 2. CanonicalLockHierarchyManager.get_canonical_lock_order
+    unordered = [
+        ("account.move.line", 105),
+        ("sale.order", 42),
+        ("res.company", 1),
+        ("sale.order", 12),
+        ("res.partner", 88),
+        ("sale.order", 42),
+        ("custom.unknown.model", 5),
+        ("custom.alpha.model", 99),
+    ]
+    ordered = lock_mod.CanonicalLockHierarchyManager.get_canonical_lock_order(unordered)
+    assert ordered == [
+        ("res.company", 1),
+        ("res.partner", 88),
+        ("sale.order", 12),
+        ("sale.order", 42),
+        ("account.move.line", 105),
+        ("custom.alpha.model", 99),
+        ("custom.unknown.model", 5),
+    ]
+
+    # 3. AtomicMultiTenantGuard integer tenant_id ContextVar mode
+    assert lock_mod.AtomicMultiTenantGuard.get_active_tenant_id() is None
+    with lock_mod.AtomicMultiTenantGuard(10):
+        assert lock_mod.AtomicMultiTenantGuard.get_active_tenant_id() == 10
+        try:
+            with lock_mod.AtomicMultiTenantGuard(tenant_id=25):
+                assert lock_mod.AtomicMultiTenantGuard.get_active_tenant_id() == 25
+                raise RuntimeError("Simulated failure inside tenant 25")
+        except RuntimeError:
+            pass
+        assert lock_mod.AtomicMultiTenantGuard.get_active_tenant_id() == 10
+    assert lock_mod.AtomicMultiTenantGuard.get_active_tenant_id() is None
+
+    print("[✓] Patch 62 / traimai Cyclic Dict Sanitizer, Heterogeneous Lock Order & Integer Tenant Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6375,12 +6461,14 @@ def main():
     test_patch_59_traimai_atomic_multitenant_guard_lock_level_and_dde_formula_sanitizer()
     test_patch_60_nahlaleah102_env_cache_guard_db_lock_tiers_and_fullwidth_formula_sanitizer()
     test_patch_61_coderedgen_fullwidth_cell_sanitizer_lock_tiers_and_isolate_tenant()
-    print("[✓] ALL 61 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 61 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_62_traimai_cyclic_dict_sanitizer_heterogeneous_lock_order_and_tenant_id_guard()
+    print("[✓] ALL 62 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 62 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
     main()
+
 
 
 
