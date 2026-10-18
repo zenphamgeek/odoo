@@ -4702,6 +4702,95 @@ def test_patch_41_ibm_carbon_design_and_poppins_typography_overhaul():
     print("[✓] Patch 41 / IBM Carbon v11 Web Element Architecture & Poppins Sans-Serif Typography Overhaul verified")
 
 
+def test_patch_42_immoon0009_saas_slug_and_tls_workspace_guard():
+    """Patch 42: immoon0009 SaaS Tenant RFC 1123 Slug Sanitizer, Canonical HTTPS Workspace URL & Reverse-Tabnabbing Guard."""
+    import importlib.util
+    import xml.etree.ElementTree as ET
+
+    main_py = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/controllers/main.py")
+    tpl_xml = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/views/templates.xml")
+
+    with open(main_py, "r", encoding="utf-8") as f:
+        main_src = f.read()
+    with open(tpl_xml, "r", encoding="utf-8") as f:
+        xml_src = f.read()
+
+    # 1. Verify template eliminates http://...:18069 and enforces rel="noopener noreferrer"
+    assert "18069" not in xml_src, "Insecure raw port 18069 must not appear in enterprise/insilos_industry_showcase/views/templates.xml"
+    assert "http://#{" not in xml_src, "Cleartext http://#{slug} interpolation must not appear in templates.xml"
+    assert 't-att-href="tenant_workspace_url"' in xml_src, "Missing canonical tenant_workspace_url binding in templates.xml"
+    assert 'rel="noopener noreferrer"' in xml_src, "Missing rel=\"noopener noreferrer\" on external workspace links in templates.xml"
+    ET.parse(tpl_xml)
+
+    # 2. Dynamically load main.py and run empirical boundary tests on sanitize_and_validate_slug & compute_tenant_workspace_url
+    import types
+    odoo_mod = sys.modules.get("odoo")
+    if odoo_mod is not None:
+        if not hasattr(odoo_mod, "fields"):
+            odoo_mod.fields = types.SimpleNamespace(Datetime=types.SimpleNamespace(now=lambda: None))
+        if not hasattr(odoo_mod, "http"):
+            class _DummyController:
+                pass
+            def _dummy_route(*args, **kwargs):
+                return lambda fn: fn
+            odoo_mod.http = types.SimpleNamespace(Controller=_DummyController, route=_dummy_route, request=None)
+            sys.modules["odoo.http"] = odoo_mod.http
+
+    spec = importlib.util.spec_from_file_location("insilos_industry_showcase_main_ctrl", main_py)
+    ctrl_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(ctrl_mod)
+
+    ValidationError = ctrl_mod.ValidationError
+
+    valid_cases = [
+        ("acme-corp", "acme-corp"),
+        ("tenant123", "tenant123"),
+        ("ALPHA-BETA", "alpha-beta"),
+        ("v-1", "v-1"),
+        ("company-360-degree", "company-360-degree"),
+    ]
+    for raw_in, expected in valid_cases:
+        res = ctrl_mod.sanitize_and_validate_slug(raw_in)
+        assert res == expected, f"Expected {expected}, got {res}"
+        assert ctrl_mod.SLUG_REGEX.match(res) is not None
+
+    malicious_inputs = [
+        "evil.com#",
+        "sub.domain.attacker.com",
+        "tenant/admin",
+        "tenant?debug=1",
+        "-leading-hyphen",
+        "trailing-hyphen-",
+        "spaces in slug",
+        "javascript:alert(1)",
+        "double--hyphens-denial",
+        "a" * 33,
+        "ab",
+        "",
+    ]
+    for bad in malicious_inputs:
+        raised = False
+        try:
+            ctrl_mod.sanitize_and_validate_slug(bad)
+        except ValidationError:
+            raised = True
+        assert raised, f"sanitize_and_validate_slug failed to reject malicious input: {bad!r}"
+
+    for reserved in ctrl_mod.RESERVED_SLUGS:
+        raised = False
+        try:
+            ctrl_mod.sanitize_and_validate_slug(reserved)
+        except ValidationError as exc:
+            raised = "reserved by the platform" in str(exc)
+        assert raised, f"sanitize_and_validate_slug failed to reject reserved slug: {reserved!r}"
+
+    ws_url = ctrl_mod.compute_tenant_workspace_url("vietnam-logistics")
+    assert ws_url == "https://vietnam-logistics.insilos.com/insilos", f"Unexpected workspace URL: {ws_url}"
+    assert ws_url.startswith("https://") and "18069" not in ws_url
+
+    print("[✓] Patch 42 / immoon0009 SaaS RFC 1123 Slug Guard, Canonical HTTPS Workspace URL & Carbon Hairline Templates verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -4758,8 +4847,9 @@ def main():
     test_patch_39_innoria_website_primary_brand_and_deexplicitized_content()
     test_patch_40_monotonic_fencing_leases_and_brand_isolation_linter()
     test_patch_41_ibm_carbon_design_and_poppins_typography_overhaul()
-    print("[✓] ALL 41 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 41 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_42_immoon0009_saas_slug_and_tls_workspace_guard()
+    print("[✓] ALL 42 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 42 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
