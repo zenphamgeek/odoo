@@ -6156,6 +6156,81 @@ def test_patch_59_traimai_atomic_multitenant_guard_lock_level_and_dde_formula_sa
     print("[✓] Patch 59 / traimai AtomicMultiTenantGuard, CanonicalLockHierarchyManager & DDE Formula Sanitizer verified")
 
 
+def test_patch_60_nahlaleah102_env_cache_guard_db_lock_tiers_and_fullwidth_formula_sanitizer():
+    """
+    Patch 60 (nahlaleah102 / gemini-4-argon-high):
+    1. AtomicMultiTenantGuard (env mode): snapshots env.context, enforces user.company_ids membership,
+       calls env.invalidate_all() on entry & exit, and reverts context on unhandled exception.
+    2. CanonicalLockHierarchyManager (DB cursor mode): enforces MODEL_LOCK_TIERS ascending order
+       (res.company -> res.partner -> sale.order -> account.move) and sorted IDs with FOR UPDATE.
+    3. HardenedFormulaSanitizer: sanitize_scalar, sanitize_record, sanitize_table with fullwidth
+       operator neutralization (\\uff1d, \\uff0b, \\uff0d).
+    """
+    import importlib.util
+    from unittest.mock import MagicMock
+
+    lock_path = os.path.join(ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py")
+    spec = importlib.util.spec_from_file_location("advisory_lock_p60", lock_path)
+    lock_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(lock_mod)
+
+    # 1. AtomicMultiTenantGuard in Odoo env mode
+    class _MockEnv:
+        def __init__(self, user_cids, initial_cid):
+            self.user = MagicMock(id=42)
+            self.user.company_ids = MagicMock(ids=user_cids)
+            self.company = MagicMock(id=initial_cid)
+            self.su = False
+            self.context = {"company_id": initial_cid, "allowed_company_ids": [initial_cid]}
+            self.cache_cleared_count = 0
+
+        def invalidate_all(self):
+            self.cache_cleared_count += 1
+
+    env = _MockEnv([1, 2], 1)
+    with lock_mod.AtomicMultiTenantGuard(env, target_company_id=2):
+        assert env.context["company_id"] == 2
+        assert env.context["allowed_company_ids"][0] == 2
+        assert env.cache_cleared_count == 1
+    assert env.context["company_id"] == 1
+    assert env.cache_cleared_count == 2
+
+    try:
+        with lock_mod.AtomicMultiTenantGuard(env, target_company_id=999):
+            raise AssertionError("Expected MultiTenantIsolationViolationError")
+    except lock_mod.MultiTenantIsolationViolationError as exc:
+        assert "Access Denied" in str(exc)
+    assert env.context["company_id"] == 1
+
+    # 2. CanonicalLockHierarchyManager DB cursor mode
+    mock_cr = MagicMock()
+    mock_cr.fetchall.return_value = [(10,), (20,), (30,)]
+    lock_mgr = lock_mod.CanonicalLockHierarchyManager(mock_cr)
+    locked = lock_mgr.acquire_locks("res.company", [30, 10, 20])
+    assert locked == [10, 20, 30]
+    mock_cr.execute.assert_called_with(
+        "SELECT id FROM res_company WHERE id = ANY(%s) ORDER BY id ASC FOR UPDATE",
+        ([10, 20, 30],),
+    )
+    mock_cr.fetchall.return_value = [(100,)]
+    assert lock_mgr.acquire_locks("sale.order", [100]) == [100]
+    try:
+        lock_mgr.acquire_locks("res.partner", [5])
+        raise AssertionError("Expected LockHierarchyViolationError")
+    except lock_mod.LockHierarchyViolationError as exc:
+        assert "Deadlock Hazard" in str(exc)
+
+    # 3. HardenedFormulaSanitizer fullwidth & recursive record sanitization
+    san = lock_mod.HardenedFormulaSanitizer
+    assert str(san.sanitize_scalar("\uff1dSUM(A1)")).startswith("'\t\uff1d")
+    rec = san.sanitize_record({"order": "=DDE()", "nested": {"partner": "@EVIL", "qty": 10}})
+    assert rec["order"].startswith("'\t=")
+    assert rec["nested"]["partner"].startswith("'\t@")
+    assert rec["nested"]["qty"] == 10
+
+    print("[✓] Patch 60 / nahlaleah102 Env Cache Guard, DB Lock Tiers & Fullwidth Formula Sanitizer verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6230,8 +6305,9 @@ def main():
     test_patch_57_zeninallgeek_canonical_lexicographical_lock_and_formula_guard()
     test_patch_58_coderedgen_canonical_lock_timeout_and_multitenant_context_guard()
     test_patch_59_traimai_atomic_multitenant_guard_lock_level_and_dde_formula_sanitizer()
-    print("[✓] ALL 59 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 59 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_60_nahlaleah102_env_cache_guard_db_lock_tiers_and_fullwidth_formula_sanitizer()
+    print("[✓] ALL 60 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 60 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
