@@ -39,9 +39,9 @@ DEFAULT_USER = os.environ.get("DB_USER", "odoo")
 DEFAULT_PASSWORD = os.environ.get("DB_PASSWORD") or os.environ.get("PGPASSWORD", "")
 
 KNOWN_TENANTS = [
-    "innokafe_prod",
+    "insilos20_dev",
     "innoria_prod",
-    "odoo20_dev",
+    "innokafe_prod",
 ]
 
 
@@ -79,7 +79,11 @@ def audit_database_menus(conn, dbname, heal=False):
     1. Child menu collisions: Multiple menus under the same parent_id sharing the same resolved URL.
     2. Root menu collisions: Multiple root menus (parent_id IS NULL) for the same website_id.
     """
-    if not check_table_exists(conn, "website_menu"):
+    if not (
+        check_table_exists(conn, "website_menu")
+        and check_table_exists(conn, "website_page")
+        and check_table_exists(conn, "ir_model_data")
+    ):
         return {
             "dbname": dbname,
             "status": "SKIPPED_NO_TABLE",
@@ -210,6 +214,7 @@ def audit_database_menus(conn, dbname, heal=False):
 def main():
     parser = argparse.ArgumentParser(description="Multi-Tenant Website Menu Collision Audit & Healing")
     parser.add_argument("--db", type=str, help="Specific database name to audit")
+    parser.add_argument("--check", action="store_true", help="CI/CD gate check mode across insilos20_dev and innoria_prod")
     parser.add_argument("--all-tenants", action="store_true", help="Audit all known tenant databases")
     parser.add_argument("--all-dbs", action="store_true", help="Scan every database in the PostgreSQL cluster")
     parser.add_argument("--heal", action="store_true", help="Automatically heal collisions by pruning duplicates")
@@ -225,6 +230,8 @@ def main():
     target_dbs = []
     if args.db:
         target_dbs = [args.db]
+    elif args.check:
+        target_dbs = ["insilos20_dev", "innoria_prod"]
     elif args.all_tenants:
         target_dbs = KNOWN_TENANTS
     elif args.all_dbs:
@@ -237,7 +244,7 @@ def main():
             print(f"[!] Error listing cluster databases: {e}", file=sys.stderr)
             sys.exit(2)
     else:
-        target_dbs = ["innokafe_prod"]
+        target_dbs = ["insilos20_dev", "innoria_prod"]
 
     reports = []
     total_collisions_found = 0

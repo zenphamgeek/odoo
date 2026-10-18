@@ -15,12 +15,14 @@ import os
 import subprocess
 import sys
 
-VENV_PYTHON = "/home/zen/O20/.venv/bin/python3"
-if os.path.exists(VENV_PYTHON) and os.path.realpath(sys.executable) != os.path.realpath(VENV_PYTHON):
-    try:
-        import psycopg2  # noqa: F401
-    except ImportError:
-        os.execv(VENV_PYTHON, [VENV_PYTHON] + sys.argv)
+for _candidate_py in ("/home/zen/O20/.venv/bin/python3", "/usr/bin/python3"):
+    if os.path.exists(_candidate_py) and os.path.realpath(sys.executable) != os.path.realpath(_candidate_py):
+        try:
+            import babel  # noqa: F401
+            import psycopg2  # noqa: F401
+            break
+        except ImportError:
+            os.execv(_candidate_py, [_candidate_py] + sys.argv)
 
 sys.path.insert(0, "/home/zen/O20")
 

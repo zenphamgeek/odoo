@@ -449,6 +449,9 @@ class App extends owl.App {
                             if (prop === "then") {
                                 return undefined;
                             }
+                            if (prop === "constructor" && target.this) {
+                                return target.this.constructor;
+                            }
                             if (prop in target) {
                                 return Reflect.get(target, prop, receiver);
                             }

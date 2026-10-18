@@ -1,0 +1,391 @@
+{
+  "generated_at_utc": "2026-10-18T12:01:53.397041+00:00",
+  "mode": "full",
+  "summary": {
+    "total_gates": 10,
+    "passed_gates": 10,
+    "failed_gates": 0,
+    "total_evidence_assertions": 72,
+    "total_duration_sec": 307.584,
+    "overall_passed": true
+  },
+  "gates": [
+    {
+      "id": "E2E-QA-01",
+      "title": "Public Website Brand, IBM Carbon v11, Poppins Typography & Header Menu Uniqueness",
+      "category": "website",
+      "fast": true,
+      "passed": true,
+      "duration_sec": 11.259,
+      "evidence_count": 4,
+      "commands": [
+        {
+          "command": [
+            "python3",
+            "tools/audit_header_menu_collision.py",
+            "--check"
+          ],
+          "command_str": "python3 tools/audit_header_menu_collision.py --check",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 0.799,
+          "evidence_count": 2,
+          "evidence": [
+            "[✓] insilos20_dev             Menus: 33   Collisions: 0",
+            "[✓] innoria_prod              Menus: 33   Collisions: 0"
+          ],
+          "stdout_tail": "================================================================================\n INSILOS MULTI-TENANT WEBSITE MENU COLLISION AUDIT\n Target Mode: CHECK ONLY\n Cluster: 127.0.0.1:5434 | Databases: 2\n================================================================================\n[✓] insilos20_dev             Menus: 33   Collisions: 0  \n[✓] innoria_prod              Menus: 33   Collisions: 0  \n--------------------------------------------------------------------------------\nSummary: 2 DBs checked | 0 Collisions Found | 0 Healed\n================================================================================\n[SUCCESS] All tenant website menus pass collision-free invariant.\n",
+          "stderr_tail": ""
+        },
+        {
+          "command": [
+            "python3",
+            "tools/test_innoria_website_brand_and_content_audit.py"
+          ],
+          "command_str": "python3 tools/test_innoria_website_brand_and_content_audit.py",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 10.46,
+          "evidence_count": 2,
+          "evidence": [
+            "[✓] Source audit passed: 100% INNORIA primary website brand, IBM Carbon v11 design system, Poppins sans-serif typography & zero explicit client/vendor/competitor names.",
+            "[🎉] PATCH 39 & PATCH 41 INNORIA WEBSITE BRAND, IBM CARBON V11 & POPPINS TYPOGRAPHY AUDIT PASSED (EXIT 0)"
+          ],
+          "stdout_tail": "[✓] Source audit passed: 100% INNORIA primary website brand, IBM Carbon v11 design system, Poppins sans-serif typography & zero explicit client/vendor/competitor names.\n[🎉] PATCH 39 & PATCH 41 INNORIA WEBSITE BRAND, IBM CARBON V11 & POPPINS TYPOGRAPHY AUDIT PASSED (EXIT 0)\n",
+          "stderr_tail": ""
+        }
+      ]
+    },
+    {
+      "id": "E2E-QA-02",
+      "title": "Public AI Concierge, Service Configurator & Grounded RAG Lead-to-CRM Flow",
+      "category": "website",
+      "fast": false,
+      "passed": true,
+      "duration_sec": 35.499,
+      "evidence_count": 9,
+      "commands": [
+        {
+          "command": [
+            "python3",
+            "tools/test_website_concierge_and_marketing.py"
+          ],
+          "command_str": "python3 tools/test_website_concierge_and_marketing.py",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 35.498,
+          "evidence_count": 9,
+          "evidence": [
+            "[✓] insilos20_dev [1/4]: /innoria/ai_concierge/services_catalog verified (6 services, 13 live SKUs)",
+            "[✓] insilos20_dev [2/4]: /innoria/ai_concierge/estimate_service verified (sw_squad=1.140.000.000 VNĐ, sw_turnkey=480.000.000 VNĐ, erp=150.000.000 VNĐ)",
+            "[✓] insilos20_dev [3/4]: /innoria/ai_concierge/query verified across all 6 service pillars with grounded citations, service_cards & suggested_actions",
+            "[✓] insilos20_dev [4/4]: /innoria/ai_concierge/book_lead + /health + AB-PCT + ESIH + DDK-CDLQ + Savepoint Isolation verified (lead_id=358, expected_revenue=1,140,000,000 VND, tags=['AI Concierge Interactive', 'Co-Engineering Squad (TT 13/2020)', 'Innoria Software Services'], marketing_campaign_enrolled=True, quarantine_ledger_size=5)",
+            "[✓] innoria_prod [1/4]: /innoria/ai_concierge/services_catalog verified (6 services, 13 live SKUs)",
+            "[✓] innoria_prod [2/4]: /innoria/ai_concierge/estimate_service verified (sw_squad=1.140.000.000 VNĐ, sw_turnkey=480.000.000 VNĐ, erp=150.000.000 VNĐ)",
+            "[✓] innoria_prod [3/4]: /innoria/ai_concierge/query verified across all 6 service pillars with grounded citations, service_cards & suggested_actions",
+            "[✓] innoria_prod [4/4]: /innoria/ai_concierge/book_lead + /health + AB-PCT + ESIH + DDK-CDLQ + Savepoint Isolation verified (lead_id=64, expected_revenue=1,140,000,000 VND, tags=['AI Concierge Interactive', 'Co-Engineering Squad (TT 13/2020)', 'Innoria Software Services'], marketing_campaign_enrolled=True, quarantine_ledger_size=10)",
+            "[🎉] ALL INNORIA AI CONCIERGE SERVICE CATALOG, PRICING CONFIGURATOR, GROUNDED QUERY & MARKETING CAMPAIGN CHECKS PASSED (EXIT 0)"
+          ],
+          "stdout_tail": "[*] Initializing Odoo Registry & Environment for `insilos20_dev`...\n[✓] insilos20_dev [1/4]: /innoria/ai_concierge/services_catalog verified (6 services, 13 live SKUs)\n[✓] insilos20_dev [2/4]: /innoria/ai_concierge/estimate_service verified (sw_squad=1.140.000.000 VNĐ, sw_turnkey=480.000.000 VNĐ, erp=150.000.000 VNĐ)\n[✓] insilos20_dev [3/4]: /innoria/ai_concierge/query verified across all 6 service pillars with grounded citations, service_cards & suggested_actions\n[✓] insilos20_dev [4/4]: /innoria/ai_concierge/book_lead + /health + AB-PCT + ESIH + DDK-CDLQ + Savepoint Isolation verified (lead_id=358, expected_revenue=1,140,000,000 VND, tags=['AI Concierge Interactive', 'Co-Engineering Squad (TT 13/2020)', 'Innoria Software Services'], marketing_campaign_enrolled=True, quarantine_ledger_size=5)\n[*] Initializing Odoo Registry & Environment for `innoria_prod`...\n[✓] innoria_prod [1/4]: /innoria/ai_concierge/services_catalog verified (6 services, 13 live SKUs)\n[✓] innoria_prod [2/4]: /innoria/ai_concierge/estimate_service verified (sw_squad=1.140.000.000 VNĐ, sw_turnkey=480.000.000 VNĐ, erp=150.000.000 VNĐ)\n[✓] innoria_prod [3/4]: /innoria/ai_concierge/query verified across all 6 service pillars with grounded citations, service_cards & suggested_actions\n[✓] innoria_prod [4/4]: /innoria/ai_concierge/book_lead + /health + AB-PCT + ESIH + DDK-CDLQ + Savepoint Isolation verified (lead_id=64, expected_revenue=1,140,000,000 VND, tags=['AI Concierge Interactive', 'Co-Engineering Squad (TT 13/2020)', 'Innoria Software Services'], marketing_campaign_enrolled=True, quarantine_ledger_size=10)\n[🎉] ALL INNORIA AI CONCIERGE SERVICE CATALOG, PRICING CONFIGURATOR, GROUNDED QUERY & MARKETING CAMPAIGN CHECKS PASSED (EXIT 0)\n",
+          "stderr_tail": "e/zen/.pyenv/versions/3.12.13/lib/python3.12/functools.py\", line 998, in __get__\n    val = self.func(instance)\n  File \"/home/zen/O20/odoo/orm/registry.py\", line 913, in _field_triggers\n    dependencies = list(field.resolve_depends(self))\n  File \"/home/zen/O20/odoo/orm/fields.py\", line 961, in resolve_depends\n    warnings.warn(f\"Field {self} cannot be precomputed as it depends on non-precomputed field {field}\", stacklevel=1)\n\n2026-10-18 11:57:21,503 1131949 INFO innoria_prod insilos.modules.loading: loading 1 modules...\n2026-10-18 11:57:21,519 1131949 INFO innoria_prod insilos.modules.loading: 1 modules loaded in 0.01s, 0 queries (+0 extra)\n2026-10-18 11:57:21,555 1131949 INFO innoria_prod insilos.modules.loading: loading 700 modules...\n2026-10-18 11:57:22,739 1131949 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:57:22,919 1131949 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:57:23,443 1131949 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:57:23,444 1131949 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:57:23,480 1131949 INFO innoria_prod insilos.modules.loading: 700 modules loaded in 1.92s, 0 queries (+0 extra)\n2026-10-18 11:57:26,243 1131949 INFO innoria_prod insilos.modules.loading: Modules loaded.\n2026-10-18 11:57:26,340 1131949 WARNING innoria_prod insilos.schema: Missing not-null constraint on ir.access.operation\n2026-10-18 11:57:26,377 1131949 WARNING innoria_prod insilos.schema: Missing not-null constraint on ir.access.operation\n2026-10-18 11:57:26,404 1131949 INFO innoria_prod insilos.registry: Registry loaded in 4.956s\n"
+        }
+      ]
+    },
+    {
+      "id": "E2E-QA-03",
+      "title": "Sales-First Partner Onboarding, Tiering, Companion Docs (TPL-ONB-01..04) & Payment Gate",
+      "category": "domain",
+      "fast": true,
+      "passed": true,
+      "duration_sec": 3.988,
+      "evidence_count": 5,
+      "commands": [
+        {
+          "command": [
+            "python3",
+            "tools/test_dgm_partner_onboarding.py"
+          ],
+          "command_str": "python3 tools/test_dgm_partner_onboarding.py",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 3.987,
+          "evidence_count": 5,
+          "evidence": [
+            "[✓] insilos20_dev: 8 canonical DGM partners (PTN-DGM-2026-0001..0008 incl. AIfin & KTT Khang Trường Thịnh), 32 companion documents (TPL-ONB-01..04), SOP-DGM-09 Software Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04), 5 Drive Logo PNGs, 22 Master Standardized Templates, 3 SOP-DGM-07 SKUs, 2 SOP-DGM-08 Official E-Invoiced Timesheet Sheets, 0 empty folders, and SOP-DGM-06/07/08/09 Knowledge Articles verified",
+            "[✓] innoria_prod: 8 canonical DGM partners (PTN-DGM-2026-0001..0008 incl. AIfin & KTT Khang Trường Thịnh), 32 companion documents (TPL-ONB-01..04), SOP-DGM-09 Software Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04), 5 Drive Logo PNGs, 22 Master Standardized Templates, 3 SOP-DGM-07 SKUs, 2 SOP-DGM-08 Official E-Invoiced Timesheet Sheets, 0 empty folders, and SOP-DGM-06/07/08/09 Knowledge Articles verified",
+            "[✓] SOP-DGM-06 & SOP-DGM-07 Partner Tiering, Sales-First Confirm, Companion Docs (TPL-ONB-01..05), Staff Augmentation 140-180h SLA, OT 100%/150%, 5-Day Trial & Net 40 Gate verified",
+            "[✓] K8s live production (`innoria_prod` SOP-DGM-06 & SOP-DGM-07): K8S_SOP_DGM_06_07_OK partners=8 companion_docs=32 empty_folders=0 kb06=1 kb07=1 kb09=1 skus=3",
+            "[🎉] ALL SOP-DGM-06 & SOP-DGM-07 PARTNER ONBOARDING, STAFF AUGMENTATION & PAYMENT GATE CHECKS PASSED (EXIT 0)"
+          ],
+          "stdout_tail": "[✓] insilos20_dev: 8 canonical DGM partners (PTN-DGM-2026-0001..0008 incl. AIfin & KTT Khang Trường Thịnh), 32 companion documents (TPL-ONB-01..04), SOP-DGM-09 Software Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04), 5 Drive Logo PNGs, 22 Master Standardized Templates, 3 SOP-DGM-07 SKUs, 2 SOP-DGM-08 Official E-Invoiced Timesheet Sheets, 0 empty folders, and SOP-DGM-06/07/08/09 Knowledge Articles verified\n[✓] innoria_prod: 8 canonical DGM partners (PTN-DGM-2026-0001..0008 incl. AIfin & KTT Khang Trường Thịnh), 32 companion documents (TPL-ONB-01..04), SOP-DGM-09 Software Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04), 5 Drive Logo PNGs, 22 Master Standardized Templates, 3 SOP-DGM-07 SKUs, 2 SOP-DGM-08 Official E-Invoiced Timesheet Sheets, 0 empty folders, and SOP-DGM-06/07/08/09 Knowledge Articles verified\n[✓] SOP-DGM-06 & SOP-DGM-07 Partner Tiering, Sales-First Confirm, Companion Docs (TPL-ONB-01..05), Staff Augmentation 140-180h SLA, OT 100%/150%, 5-Day Trial & Net 40 Gate verified\n[✓] K8s live production (`innoria_prod` SOP-DGM-06 & SOP-DGM-07): K8S_SOP_DGM_06_07_OK partners=8 companion_docs=32 empty_folders=0 kb06=1 kb07=1 kb09=1 skus=3\n[🎉] ALL SOP-DGM-06 & SOP-DGM-07 PARTNER ONBOARDING, STAFF AUGMENTATION & PAYMENT GATE CHECKS PASSED (EXIT 0)\n",
+          "stderr_tail": ""
+        }
+      ]
+    },
+    {
+      "id": "E2E-QA-04",
+      "title": "Project Delivery, SAP Activate Stage Gates & Timesheet-to-1C26TAA E-Invoice Pipeline",
+      "category": "domain",
+      "fast": true,
+      "passed": true,
+      "duration_sec": 41.449,
+      "evidence_count": 6,
+      "commands": [
+        {
+          "command": [
+            "python3",
+            "tools/test_dgm_timesheet_to_invoice_pipeline.py"
+          ],
+          "command_str": "python3 tools/test_dgm_timesheet_to_invoice_pipeline.py",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 41.446,
+          "evidence_count": 6,
+          "evidence": [
+            "[✓] insilos20_dev: SOP-DGM-08 Knowledge Article, PRJ-NTF-202610-0001..0002, TS-DGM-202610-0001 (MTI 250M/270M VND) & TS-DGM-202610-0002 (AIfin 35M/37.8M VND), 8 companion billing HTML documents, 1C26TAA official E-Invoices, and 0 empty folders verified!",
+            "[✓] innoria_prod: SOP-DGM-08 Knowledge Article, PRJ-NTF-202610-0001..0002, TS-DGM-202610-0001 (MTI 250M/270M VND) & TS-DGM-202610-0002 (AIfin 35M/37.8M VND), 8 companion billing HTML documents, 1C26TAA official E-Invoices, and 0 empty folders verified!",
+            "[✓] Portal Controller Security: 2 @http.route endpoints verified with hmac.compare_digest & readonly=False",
+            "[✓] Behavioral & Security Guardrails: UserError before customer_approved, revision_requested loop, 64-char SHA-256 signature hash, and MTI draft->official 1C26TAA E-Invoice state machine verified (savepoint rolled back cleanly)!",
+            "[✓] K8s live production (`innoria_prod` SOP-DGM-08): K8S_SOP_DGM_08_OK kb08=1 ntfs=2 sheets=2 empty_folders=0",
+            "=== ALL SOP-DGM-08 TIMESHEET-TO-INVOICE PIPELINE VERIFICATION GATES PASSED (EXIT 0) ==="
+          ],
+          "stdout_tail": "[✓] insilos20_dev: SOP-DGM-08 Knowledge Article, PRJ-NTF-202610-0001..0002, TS-DGM-202610-0001 (MTI 250M/270M VND) & TS-DGM-202610-0002 (AIfin 35M/37.8M VND), 8 companion billing HTML documents, 1C26TAA official E-Invoices, and 0 empty folders verified!\n[✓] innoria_prod: SOP-DGM-08 Knowledge Article, PRJ-NTF-202610-0001..0002, TS-DGM-202610-0001 (MTI 250M/270M VND) & TS-DGM-202610-0002 (AIfin 35M/37.8M VND), 8 companion billing HTML documents, 1C26TAA official E-Invoices, and 0 empty folders verified!\n[✓] Portal Controller Security: 2 @http.route endpoints verified with hmac.compare_digest & readonly=False\n[✓] Behavioral & Security Guardrails: UserError before customer_approved, revision_requested loop, 64-char SHA-256 signature hash, and MTI draft->official 1C26TAA E-Invoice state machine verified (savepoint rolled back cleanly)!\n[✓] K8s live production (`innoria_prod` SOP-DGM-08): K8S_SOP_DGM_08_OK kb08=1 ntfs=2 sheets=2 empty_folders=0\n\n=== ALL SOP-DGM-08 TIMESHEET-TO-INVOICE PIPELINE VERIFICATION GATES PASSED (EXIT 0) ===\n",
+          "stderr_tail": "ial_invoice\n    ntf.action_send_project_notification()\n  File \"/home/zen/O20/addons/insilos_al2c/models/dgm_project_timesheet_billing.py\", line 358, in action_send_project_notification\n    att = Attachment.create({\n  File \"/home/zen/O20/odoo/orm/decorators.py\", line 330, in create\n    return method(self, vals_list)\n  File \"/home/zen/O20/enterprise/documents_account/models/ir_attachment.py\", line 11, in create\n    attachments = super().create(vals_list)\n  File \"/home/zen/O20/odoo/orm/decorators.py\", line 330, in create\n    return method(self, vals_list)\n  File \"/home/zen/O20/addons/website/models/ir_attachment.py\", line 19, in create\n    return super().create(vals_list)\n  File \"/home/zen/O20/odoo/orm/decorators.py\", line 330, in create\n    return method(self, vals_list)\n  File \"/home/zen/O20/enterprise/documents/models/ir_attachment.py\", line 102, in create\n    attachments = super().create(vals_list)\n  File \"/home/zen/O20/odoo/orm/decorators.py\", line 330, in create\n    return method(self, vals_list)\n  File \"/home/zen/O20/addons/product/models/ir_attachment.py\", line 12, in create\n    attachments = super().create(vals_list)\n  File \"/home/zen/O20/odoo/orm/decorators.py\", line 330, in create\n    return method(self, vals_list)\n  File \"/home/zen/O20/odoo/addons/base/models/ir_attachment.py\", line 946, in create\n    values.update(self._get_datas_related_values(raw, values['mimetype']))\n  File \"/home/zen/O20/odoo/addons/base/models/ir_attachment.py\", line 442, in _get_datas_related_values\n    index_content = self._index(data, mimetype, checksum=checksum)\n  File \"/home/zen/O20/addons/attachment_indexation/models/ir_attachment.py\", line 261, in _index\n    buf = getattr(self, '_index_%s' % ftype)(bin_data)\n  File \"/home/zen/O20/addons/attachment_indexation/models/ir_attachment.py\", line 217, in _index_pdf\n    if bin_data.mimetype != 'application/pdf':\n  File \"/home/zen/O20/odoo/tools/binary.py\", line 33, in mimetype\n    from .mimetypes import guess_mimetype  # noqa: PLC0415\n\n"
+        }
+      ]
+    },
+    {
+      "id": "E2E-QA-05",
+      "title": "Knowledge Management & Grounded SOP-RAG Chatbot (SOP-DGM-12)",
+      "category": "domain",
+      "fast": false,
+      "passed": true,
+      "duration_sec": 25.666,
+      "evidence_count": 1,
+      "commands": [
+        {
+          "command": [
+            "python3",
+            "tools/test_dgm_knowledge_rag_chatbot.py"
+          ],
+          "command_str": "python3 tools/test_dgm_knowledge_rag_chatbot.py",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 25.665,
+          "evidence_count": 1,
+          "evidence": [
+            "=== ALL 8 SOP-DGM-12 KNOWLEDGE MANAGEMENT, AI CHAT BOX & SOP-RAG GATES PASSED (EXIT 0) ==="
+          ],
+          "stdout_tail": "\n=== Verifying SOP-DGM-12 Knowledge Management & Grounded SOP-RAG in `insilos20_dev` ===\n  [PASS] Gate 1: 19 KMS workflows in `indexed_rag` with valid SHA-256 & chunks.\n  [PASS] Gate 2: 20 active `al2c.rag.chunk` records with RBAC metadata.\n  [PASS] Gate 3: Public Website Concierge strictly scoped to `public_brand` with Entailment >= 0.85.\n  [PASS] Gate 4: Internal SOP Copilot enforces per-employee RBAC (CEO/CTO 11 profiles vs SWE 5 profiles).\n  [PASS] Gate 5: Prompt Injection & Unauthorized Confidential Probes blocked & quarantined.\n  [PASS] Gate 6: ISO/IEC 27701 & Decree 13/2023 PII & API Secret Scrubber verified.\n  [PASS] Gate 7: Branded HTML Documents (`SOP-DGM-12`, `TPL-AI-01`), Knowledge Article & 0 Empty Folders verified.\n\n=== Verifying SOP-DGM-12 Knowledge Management & Grounded SOP-RAG in `innoria_prod` ===\n  [PASS] Gate 1: 19 KMS workflows in `indexed_rag` with valid SHA-256 & chunks.\n  [PASS] Gate 2: 18 active `al2c.rag.chunk` records with RBAC metadata.\n  [PASS] Gate 3: Public Website Concierge strictly scoped to `public_brand` with Entailment >= 0.85.\n  [PASS] Gate 4: Internal SOP Copilot enforces per-employee RBAC (CEO/CTO 11 profiles vs SWE 5 profiles).\n  [PASS] Gate 5: Prompt Injection & Unauthorized Confidential Probes blocked & quarantined.\n  [PASS] Gate 6: ISO/IEC 27701 & Decree 13/2023 PII & API Secret Scrubber verified.\n  [PASS] Gate 7: Branded HTML Documents (`SOP-DGM-12`, `TPL-AI-01`), Knowledge Article & 0 Empty Folders verified.\n  [PASS] Gate 8: Employee Dashboard Controller & OWL HomeMenu (`home_menu.js` / `home_menu.xml`) wired.\n\n=== ALL 8 SOP-DGM-12 KNOWLEDGE MANAGEMENT, AI CHAT BOX & SOP-RAG GATES PASSED (EXIT 0) ===\n",
+          "stderr_tail": "e/zen/.pyenv/versions/3.12.13/lib/python3.12/functools.py\", line 998, in __get__\n    val = self.func(instance)\n  File \"/home/zen/O20/odoo/orm/registry.py\", line 913, in _field_triggers\n    dependencies = list(field.resolve_depends(self))\n  File \"/home/zen/O20/odoo/orm/fields.py\", line 961, in resolve_depends\n    warnings.warn(f\"Field {self} cannot be precomputed as it depends on non-precomputed field {field}\", stacklevel=1)\n\n2026-10-18 11:58:37,144 1147882 INFO innoria_prod insilos.modules.loading: loading 1 modules...\n2026-10-18 11:58:37,159 1147882 INFO innoria_prod insilos.modules.loading: 1 modules loaded in 0.01s, 0 queries (+0 extra)\n2026-10-18 11:58:37,187 1147882 INFO innoria_prod insilos.modules.loading: loading 700 modules...\n2026-10-18 11:58:38,237 1147882 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:58:38,359 1147882 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:58:38,621 1147882 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:58:38,622 1147882 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:58:38,644 1147882 INFO innoria_prod insilos.modules.loading: 700 modules loaded in 1.46s, 0 queries (+0 extra)\n2026-10-18 11:58:40,630 1147882 INFO innoria_prod insilos.modules.loading: Modules loaded.\n2026-10-18 11:58:40,711 1147882 WARNING innoria_prod insilos.schema: Missing not-null constraint on ir.access.operation\n2026-10-18 11:58:40,727 1147882 WARNING innoria_prod insilos.schema: Missing not-null constraint on ir.access.operation\n2026-10-18 11:58:40,740 1147882 INFO innoria_prod insilos.registry: Registry loaded in 3.632s\n"
+        }
+      ]
+    },
+    {
+      "id": "E2E-QA-06",
+      "title": "Employee Self-Service Hub (HomeMenu), Statutory VN 2026 Payroll, VCB DigiBiz 11-Col Export & ISO 27701 Masking",
+      "category": "domain",
+      "fast": false,
+      "passed": true,
+      "duration_sec": 4.89,
+      "evidence_count": 12,
+      "commands": [
+        {
+          "command": [
+            "python3",
+            "tools/test_dgm_hr_payroll_dashboard.py"
+          ],
+          "command_str": "python3 tools/test_dgm_hr_payroll_dashboard.py",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 4.89,
+          "evidence_count": 12,
+          "evidence": [
+            "[✓] insilos20_dev: 9 DGM employees (including DGM-009 Trần Văn Huỳnh Phố), 4 departments, 9 contracts, 18 payslips, and VCB bank accounts verified",
+            "[✓] innoria_prod: 9 DGM employees (including DGM-009 Trần Văn Huỳnh Phố), 4 departments, 9 contracts, 18 payslips, and VCB bank accounts verified",
+            "[✓] VCB DigiBiz 11-Column Excel (.xlsx) generator verified (0111000287863 leading zero preserved)",
+            "[✓] ISO/IEC 27701 & Decree 13/2023/ND-CP Partial Masking, Need-to-Know RBAC, 30s Audited Reveal, TOCTOU FOR UPDATE NOWAIT Lock, Dual-Control SoD, OKR PDCA Loop, 360° HR Appraisal 9-Box & Mandatory SWE Skill Gate verified",
+            "[✓] OWL 2 HomeMenu Employee Dashboard JS/XML/SCSS, Sovereign Dark Mode Tokens & dgm_hr_master_data.xml verified",
+            "[✓] K8s live production (`innoria_prod`): K8S_BUNDLE_AND_DB_OK emps=9 depts=4 slips=18 okrs=12 aprs=9 pdca_tpls=4 asset_js_bytes=13802993",
+            "[✓] insilos20_dev: 8 canonical DGM partners (PTN-DGM-2026-0001..0008 incl. AIfin & KTT Khang Trường Thịnh), 32 companion documents (TPL-ONB-01..04), SOP-DGM-09 Software Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04), 5 Drive Logo PNGs, 22 Master Standardized Templates, 3 SOP-DGM-07 SKUs, 2 SOP-DGM-08 Official E-Invoiced Timesheet Sheets, 0 empty folders, and SOP-DGM-06/07/08/09 Knowledge Articles verified",
+            "[✓] innoria_prod: 8 canonical DGM partners (PTN-DGM-2026-0001..0008 incl. AIfin & KTT Khang Trường Thịnh), 32 companion documents (TPL-ONB-01..04), SOP-DGM-09 Software Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04), 5 Drive Logo PNGs, 22 Master Standardized Templates, 3 SOP-DGM-07 SKUs, 2 SOP-DGM-08 Official E-Invoiced Timesheet Sheets, 0 empty folders, and SOP-DGM-06/07/08/09 Knowledge Articles verified",
+            "[✓] SOP-DGM-06 & SOP-DGM-07 Partner Tiering, Sales-First Confirm, Companion Docs (TPL-ONB-01..05), Staff Augmentation 140-180h SLA, OT 100%/150%, 5-Day Trial & Net 40 Gate verified",
+            "[✓] K8s live production (`innoria_prod` SOP-DGM-06 & SOP-DGM-07): K8S_SOP_DGM_06_07_OK partners=8 companion_docs=32 empty_folders=0 kb06=1 kb07=1 kb09=1 skus=3",
+            "[🎉] ALL SOP-DGM-06 & SOP-DGM-07 PARTNER ONBOARDING, STAFF AUGMENTATION & PAYMENT GATE CHECKS PASSED (EXIT 0)",
+            "[🎉] ALL DGM HR, PAYROLL, ONBOARDING, LEAVING & VCB DIGIBIZ DASHBOARD CHECKS PASSED (EXIT 0)"
+          ],
+          "stdout_tail": "[✓] insilos20_dev: 9 DGM employees (including DGM-009 Trần Văn Huỳnh Phố), 4 departments, 9 contracts, 18 payslips, and VCB bank accounts verified\n[✓] innoria_prod: 9 DGM employees (including DGM-009 Trần Văn Huỳnh Phố), 4 departments, 9 contracts, 18 payslips, and VCB bank accounts verified\n[✓] VCB DigiBiz 11-Column Excel (.xlsx) generator verified (0111000287863 leading zero preserved)\n[✓] ISO/IEC 27701 & Decree 13/2023/ND-CP Partial Masking, Need-to-Know RBAC, 30s Audited Reveal, TOCTOU FOR UPDATE NOWAIT Lock, Dual-Control SoD, OKR PDCA Loop, 360° HR Appraisal 9-Box & Mandatory SWE Skill Gate verified\n[✓] OWL 2 HomeMenu Employee Dashboard JS/XML/SCSS, Sovereign Dark Mode Tokens & dgm_hr_master_data.xml verified\n[✓] K8s live production (`innoria_prod`): K8S_BUNDLE_AND_DB_OK emps=9 depts=4 slips=18 okrs=12 aprs=9 pdca_tpls=4 asset_js_bytes=13802993\n[✓] insilos20_dev: 8 canonical DGM partners (PTN-DGM-2026-0001..0008 incl. AIfin & KTT Khang Trường Thịnh), 32 companion documents (TPL-ONB-01..04), SOP-DGM-09 Software Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04), 5 Drive Logo PNGs, 22 Master Standardized Templates, 3 SOP-DGM-07 SKUs, 2 SOP-DGM-08 Official E-Invoiced Timesheet Sheets, 0 empty folders, and SOP-DGM-06/07/08/09 Knowledge Articles verified\n[✓] innoria_prod: 8 canonical DGM partners (PTN-DGM-2026-0001..0008 incl. AIfin & KTT Khang Trường Thịnh), 32 companion documents (TPL-ONB-01..04), SOP-DGM-09 Software Contracts (TPL-SW-MTI-01..04 & TPL-SW-KTT-01..04), 5 Drive Logo PNGs, 22 Master Standardized Templates, 3 SOP-DGM-07 SKUs, 2 SOP-DGM-08 Official E-Invoiced Timesheet Sheets, 0 empty folders, and SOP-DGM-06/07/08/09 Knowledge Articles verified\n[✓] SOP-DGM-06 & SOP-DGM-07 Partner Tiering, Sales-First Confirm, Companion Docs (TPL-ONB-01..05), Staff Augmentation 140-180h SLA, OT 100%/150%, 5-Day Trial & Net 40 Gate verified\n[✓] K8s live production (`innoria_prod` SOP-DGM-06 & SOP-DGM-07): K8S_SOP_DGM_06_07_OK partners=8 companion_docs=32 empty_folders=0 kb06=1 kb07=1 kb09=1 skus=3\n[🎉] ALL SOP-DGM-06 & SOP-DGM-07 PARTNER ONBOARDING, STAFF AUGMENTATION & PAYMENT GATE CHECKS PASSED (EXIT 0)\n[🎉] ALL DGM HR, PAYROLL, ONBOARDING, LEAVING & VCB DIGIBIZ DASHBOARD CHECKS PASSED (EXIT 0)\n",
+          "stderr_tail": ""
+        }
+      ]
+    },
+    {
+      "id": "E2E-QA-07",
+      "title": "KPI & SWE Skill Framework + OKR, 360° Appraisal & Project PDCA (SOP-DGM-10/11)",
+      "category": "domain",
+      "fast": false,
+      "passed": true,
+      "duration_sec": 58.568,
+      "evidence_count": 2,
+      "commands": [
+        {
+          "command": [
+            "python3",
+            "tools/test_dgm_kpi_skill_framework.py"
+          ],
+          "command_str": "python3 tools/test_dgm_kpi_skill_framework.py",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 30.835,
+          "evidence_count": 1,
+          "evidence": [
+            "✅ ALL SOP-DGM-10 KPI & SOFTWARE ENGINEER SKILL UPGRADE GATE CHECKS PASSED ACROSS ALL DATABASES!"
+          ],
+          "stdout_tail": "\n======================================================================\n🔍 [SOP-DGM-10 Verification] Auditing database: insilos20_dev\n======================================================================\n  [PASS] All 8 canonical dgm.hr.skill.track records exist and are active: ['SKL-AI-MOJO', 'SKL-AI-RAG', 'SKL-B2B-ACTIVATE', 'SKL-ERP-OWL3', 'SKL-ERP-SCSS-DARK', 'SKL-K8S-PG', 'SKL-QA-PLAYWRIGHT', 'SKL-SEC-ISO27001']\n  [PASS] All 9 Digimate employees (DGM-001..DGM-009) verified with 2026-Q4 KPI, Work Review, and >= 3 Mandatory Skill Gates\n  [PASS] Verified 'SOP-DGM-10_KPI_Danh_Gia_Nhan_Su_Va_Khung_Nang_Luc_Ky_Su_Phan_Mem_2026.html' (2 active record(s)) with canonical Drive logo & brand footer\n  [PASS] Verified 'TPL-HR-06_Phieu_Danh_Gia_KPI_Va_Lo_Trinh_Nang_Cap_Ky_Nang_SOP_DGM_10.html' (1 active record(s)) with canonical Drive logo & brand footer\n  [PASS] Verified SOP-DGM-10 knowledge.article (id=2593) with canonical footer\n  [PASS] Zero empty active folders invariant verified (0 empty active folders)\n  [PASS] Pre-certification Skill Gate cap verified for DGM-007: raw=93.86, final=84.90, skill_gate_capped=True, rank_grade=tier_b, promotion_eligible=False\n  [PASS] Post-certification Skill Gate unlock verified for DGM-007: raw=96.13, final=96.13, skill_gate_capped=False, rank_grade=tier_s, promotion_eligible=True, bonus_multiplier_pct=150.0%\n\n======================================================================\n🔍 [SOP-DGM-10 Verification] Auditing database: innoria_prod\n======================================================================\n  [PASS] All 8 canonical dgm.hr.skill.track records exist and are active: ['SKL-AI-MOJO', 'SKL-AI-RAG', 'SKL-B2B-ACTIVATE', 'SKL-ERP-OWL3', 'SKL-ERP-SCSS-DARK', 'SKL-K8S-PG', 'SKL-QA-PLAYWRIGHT', 'SKL-SEC-ISO27001']\n  [PASS] All 9 Digimate employees (DGM-001..DGM-009) verified with 2026-Q4 KPI, Work Review, and >= 3 Mandatory Skill Gates\n  [PASS] Verified 'SOP-DGM-10_KPI_Danh_Gia_Nhan_Su_Va_Khung_Nang_Luc_Ky_Su_Phan_Mem_2026.html' (2 active record(s)) with canonical Drive logo & brand footer\n  [PASS] Verified 'TPL-HR-06_Phieu_Danh_Gia_KPI_Va_Lo_Trinh_Nang_Cap_Ky_Nang_SOP_DGM_10.html' (1 active record(s)) with canonical Drive logo & brand footer\n  [PASS] Verified SOP-DGM-10 knowledge.article (id=155) with canonical footer\n  [PASS] Zero empty active folders invariant verified (0 empty active folders)\n  [PASS] Pre-certification Skill Gate cap verified for DGM-007: raw=93.86, final=84.90, skill_gate_capped=True, rank_grade=tier_b, promotion_eligible=False\n  [PASS] Post-certification Skill Gate unlock verified for DGM-007: raw=96.13, final=96.13, skill_gate_capped=False, rank_grade=tier_s, promotion_eligible=True, bonus_multiplier_pct=150.0%\n\n✅ ALL SOP-DGM-10 KPI & SOFTWARE ENGINEER SKILL UPGRADE GATE CHECKS PASSED ACROSS ALL DATABASES!\n",
+          "stderr_tail": "e/zen/.pyenv/versions/3.12.13/lib/python3.12/functools.py\", line 998, in __get__\n    val = self.func(instance)\n  File \"/home/zen/O20/odoo/orm/registry.py\", line 913, in _field_triggers\n    dependencies = list(field.resolve_depends(self))\n  File \"/home/zen/O20/odoo/orm/fields.py\", line 961, in resolve_depends\n    warnings.warn(f\"Field {self} cannot be precomputed as it depends on non-precomputed field {field}\", stacklevel=1)\n\n2026-10-18 11:59:09,099 1153751 INFO innoria_prod insilos.modules.loading: loading 1 modules...\n2026-10-18 11:59:09,112 1153751 INFO innoria_prod insilos.modules.loading: 1 modules loaded in 0.01s, 0 queries (+0 extra)\n2026-10-18 11:59:09,136 1153751 INFO innoria_prod insilos.modules.loading: loading 700 modules...\n2026-10-18 11:59:10,675 1153751 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:59:10,980 1153751 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:59:11,547 1153751 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:59:11,550 1153751 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:59:11,597 1153751 INFO innoria_prod insilos.modules.loading: 700 modules loaded in 2.46s, 0 queries (+0 extra)\n2026-10-18 11:59:14,911 1153751 INFO innoria_prod insilos.modules.loading: Modules loaded.\n2026-10-18 11:59:15,053 1153751 WARNING innoria_prod insilos.schema: Missing not-null constraint on ir.access.operation\n2026-10-18 11:59:15,072 1153751 WARNING innoria_prod insilos.schema: Missing not-null constraint on ir.access.operation\n2026-10-18 11:59:15,083 1153751 INFO innoria_prod insilos.registry: Registry loaded in 6.017s\n"
+        },
+        {
+          "command": [
+            "python3",
+            "tools/test_dgm_okr_appraisal_project_pdca.py"
+          ],
+          "command_str": "python3 tools/test_dgm_okr_appraisal_project_pdca.py",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 27.731,
+          "evidence_count": 1,
+          "evidence": [
+            "=== ALL SOP-DGM-11 PDCA PROJECT, 360° APPRAISAL & OKR TESTS PASSED (EXIT 0) ==="
+          ],
+          "stdout_tail": "\n=== Verifying SOP-DGM-11 PDCA Project Templates, 360° Appraisals & OKRs in `insilos20_dev` ===\n  [PASS] 4/4 Project PDCA Templates (`PRJ-TPL-PDCA-01..04`) & 5-Stage Projects verified.\n  [PASS] 12 OKR Objectives & 24 Key Results verified.\n  [PASS] 9/9 360° HR Appraisal Sheets & 9-Box Skill Gate Cap verified.\n  [PASS] 6/6 Branded HTML Templates, SOP-DGM-11 Knowledge Article, 0 Empty Folders & 0 Unmapped RBAC verified.\n  [PASS] Savepoint Behavioral Test (KR Check-in Cascade & 9-Box Skill Gate Promotion) verified.\n\n=== Verifying SOP-DGM-11 PDCA Project Templates, 360° Appraisals & OKRs in `innoria_prod` ===\n  [PASS] 4/4 Project PDCA Templates (`PRJ-TPL-PDCA-01..04`) & 5-Stage Projects verified.\n  [PASS] 12 OKR Objectives & 24 Key Results verified.\n  [PASS] 9/9 360° HR Appraisal Sheets & 9-Box Skill Gate Cap verified.\n  [PASS] 6/6 Branded HTML Templates, SOP-DGM-11 Knowledge Article, 0 Empty Folders & 0 Unmapped RBAC verified.\n  [PASS] Savepoint Behavioral Test (KR Check-in Cascade & 9-Box Skill Gate Promotion) verified.\n\n=== ALL SOP-DGM-11 PDCA PROJECT, 360° APPRAISAL & OKR TESTS PASSED (EXIT 0) ===\n",
+          "stderr_tail": "e/zen/.pyenv/versions/3.12.13/lib/python3.12/functools.py\", line 998, in __get__\n    val = self.func(instance)\n  File \"/home/zen/O20/odoo/orm/registry.py\", line 913, in _field_triggers\n    dependencies = list(field.resolve_depends(self))\n  File \"/home/zen/O20/odoo/orm/fields.py\", line 961, in resolve_depends\n    warnings.warn(f\"Field {self} cannot be precomputed as it depends on non-precomputed field {field}\", stacklevel=1)\n\n2026-10-18 11:59:38,425 1159144 INFO innoria_prod insilos.modules.loading: loading 1 modules...\n2026-10-18 11:59:38,452 1159144 INFO innoria_prod insilos.modules.loading: 1 modules loaded in 0.02s, 0 queries (+0 extra)\n2026-10-18 11:59:38,487 1159144 INFO innoria_prod insilos.modules.loading: loading 700 modules...\n2026-10-18 11:59:39,531 1159144 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:59:39,725 1159144 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:59:40,250 1159144 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:59:40,253 1159144 WARNING innoria_prod insilos.registry: Model attribute '_sql_constraints' is no longer supported, please define models.Constraint on the model.\n2026-10-18 11:59:40,311 1159144 INFO innoria_prod insilos.modules.loading: 700 modules loaded in 1.82s, 0 queries (+0 extra)\n2026-10-18 11:59:43,118 1159144 INFO innoria_prod insilos.modules.loading: Modules loaded.\n2026-10-18 11:59:43,198 1159144 WARNING innoria_prod insilos.schema: Missing not-null constraint on ir.access.operation\n2026-10-18 11:59:43,214 1159144 WARNING innoria_prod insilos.schema: Missing not-null constraint on ir.access.operation\n2026-10-18 11:59:43,226 1159144 INFO innoria_prod insilos.registry: Registry loaded in 4.842s\n"
+        }
+      ]
+    },
+    {
+      "id": "E2E-QA-08",
+      "title": "Documents Multi-Level Tree & Google Drive Shared-With-Me RBAC Matrix",
+      "category": "domain",
+      "fast": false,
+      "passed": true,
+      "duration_sec": 35.68,
+      "evidence_count": 10,
+      "commands": [
+        {
+          "command": [
+            "/usr/bin/python3",
+            "tools/test_documents_rbac_matrix.py"
+          ],
+          "command_str": "/usr/bin/python3 tools/test_documents_rbac_matrix.py",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 35.667,
+          "evidence_count": 10,
+          "evidence": [
+            "[✓] insilos20_dev: 978 folders & 7920 files verified across all 11 RBAC profiles (0 unmapped, 0 empty folders)",
+            "[✓] innoria_prod: 978 folders & 7917 files verified across all 11 RBAC profiles (0 unmapped, 0 empty folders)",
+            "[✓] ORM _compute_user_folder_id verified across all 978 active folders ('COMPANY' root & str(folder_id.id) children)",
+            "[✓] Adversarial Test 1 (test_cross_tenant_isolation_boundary): CWE-284 cross-company boundary verified",
+            "[✓] Adversarial Test 2 (test_dag_acyclicity_and_chunked_generation): DAG cycle interception & deterministic generation hash verified",
+            "[✓] Autonomous Triage Cron RBAC Reconciliation ('rbac_reconciled') & INNO Customer Folder -> Project Linkage verified",
+            "[✓] Runtime ORM RBAC enforcement (check_dgm_folder_rbac_access) verified across 5 role personas",
+            "[✓] Adversarial Test 3 (test_working_tree_clean_gate): Dirty working tree fail-closed gate verified",
+            "[✓] K8s live production (`innoria_prod`): K8S_RBAC_OK folders=981 files=7908 unmapped=0",
+            "[🎉] ALL DGM & INNORIA DOCUMENTS RBAC MATRIX CHECKS PASSED (EXIT 0)"
+          ],
+          "stdout_tail": "[✓] insilos20_dev: 978 folders & 7920 files verified across all 11 RBAC profiles (0 unmapped, 0 empty folders)\n[✓] innoria_prod: 978 folders & 7917 files verified across all 11 RBAC profiles (0 unmapped, 0 empty folders)\n[✓] ORM _compute_user_folder_id verified across all 978 active folders ('COMPANY' root & str(folder_id.id) children)\n[✓] Adversarial Test 1 (test_cross_tenant_isolation_boundary): CWE-284 cross-company boundary verified\n[✓] Adversarial Test 2 (test_dag_acyclicity_and_chunked_generation): DAG cycle interception & deterministic generation hash verified\n[✓] Autonomous Triage Cron RBAC Reconciliation ('rbac_reconciled') & INNO Customer Folder -> Project Linkage verified\n[✓] Runtime ORM RBAC enforcement (check_dgm_folder_rbac_access) verified across 5 role personas\n[✓] Adversarial Test 3 (test_working_tree_clean_gate): Dirty working tree fail-closed gate verified\n[✓] K8s live production (`innoria_prod`): K8S_RBAC_OK folders=981 files=7908 unmapped=0\n[🎉] ALL DGM & INNORIA DOCUMENTS RBAC MATRIX CHECKS PASSED (EXIT 0)\n",
+          "stderr_tail": ".create(vals_list)\n  File \"/home/zen/O20/odoo/orm/decorators.py\", line 330, in create\n    return method(self, vals_list)\n  File \"/home/zen/O20/addons/website/models/ir_attachment.py\", line 19, in create\n    return super().create(vals_list)\n  File \"/home/zen/O20/odoo/orm/decorators.py\", line 330, in create\n    return method(self, vals_list)\n  File \"/home/zen/O20/enterprise/documents/models/ir_attachment.py\", line 102, in create\n    attachments = super().create(vals_list)\n  File \"/home/zen/O20/odoo/orm/decorators.py\", line 330, in create\n    return method(self, vals_list)\n  File \"/home/zen/O20/addons/product/models/ir_attachment.py\", line 12, in create\n    attachments = super().create(vals_list)\n  File \"/home/zen/O20/odoo/orm/decorators.py\", line 330, in create\n    return method(self, vals_list)\n  File \"/home/zen/O20/odoo/addons/base/models/ir_attachment.py\", line 946, in create\n    values.update(self._get_datas_related_values(raw, values['mimetype']))\n  File \"/home/zen/O20/odoo/addons/base/models/ir_attachment.py\", line 442, in _get_datas_related_values\n    index_content = self._index(data, mimetype, checksum=checksum)\n  File \"/home/zen/O20/addons/attachment_indexation/models/ir_attachment.py\", line 261, in _index\n    buf = getattr(self, '_index_%s' % ftype)(bin_data)\n  File \"/home/zen/O20/addons/attachment_indexation/models/ir_attachment.py\", line 217, in _index_pdf\n    if bin_data.mimetype != 'application/pdf':\n  File \"/home/zen/O20/odoo/tools/binary.py\", line 33, in mimetype\n    from .mimetypes import guess_mimetype  # noqa: PLC0415\n\n2026-10-18 12:00:12,407 1164287 INFO insilos20_dev insilos.addons.insilos_al2c.models.documents_document: Applied DGM & INNORIA RBAC Matrix [GEN-20261016-0623D4BE] across 979 folders and 7920 files.\n2026-10-18 12:00:12,419 1164287 INFO insilos20_dev insilos.addons.insilos_al2c.models.documents_document: DGM Document Triage Watchdog completed: {'status': 'success', 'scanned': 7, 'routed': 0, 'multipage_split': 0, 'rbac_reconciled': 2}\n"
+        }
+      ]
+    },
+    {
+      "id": "E2E-QA-09",
+      "title": "Playwright Dual-Theme (Light <-> Dark) & CRM/Documents Luminance E2E",
+      "category": "ui",
+      "fast": true,
+      "passed": true,
+      "duration_sec": 49.349,
+      "evidence_count": 1,
+      "commands": [
+        {
+          "command": [
+            "node",
+            "tools/audit_crm_dual_theme.js"
+          ],
+          "command_str": "node tools/audit_crm_dual_theme.js",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 19.44,
+          "evidence_count": 0,
+          "evidence": [],
+          "stdout_tail": "Starting Dual-Scheme Playwright Audit...\nAuthenticating session...\nOpening CRM Pipeline Form (Light Mode)...\nLight Mode Audit Result: {\n  \"mode\": \"LIGHT\",\n  \"formBg\": \"rgb(248, 250, 252)\",\n  \"formColor\": \"rgb(15, 23, 42)\",\n  \"sheetBg\": \"rgb(255, 255, 255)\",\n  \"sheetWidth\": 1046,\n  \"bgCanvasVar\": \"#f8fafc\",\n  \"launcherImgs\": [\n    {\n      \"src\": \"insilos_mark.svg\",\n      \"className\": \"o_insilos_launcher_icon o_insilos_launcher_icon_light\",\n      \"display\": \"block\",\n      \"width\": 26,\n      \"height\": 19\n    },\n    {\n      \"src\": \"insilos_mark_dark.svg\",\n      \"className\": \"o_insilos_launcher_icon o_insilos_launcher_icon_dark\",\n      \"display\": \"none\",\n      \"width\": 0,\n      \"height\": 0\n    }\n  ],\n  \"visibleLogoCount\": 1,\n  \"visibleLogos\": [\n    {\n      \"src\": \"insilos_mark.svg\",\n      \"className\": \"o_insilos_launcher_icon o_insilos_launcher_icon_light\",\n      \"display\": \"block\",\n      \"width\": 26,\n      \"height\": 19\n    }\n  ]\n}\nSwitching to Dark Theme (color_scheme=dark cookie + reload)...\nDark Mode Audit Result: {\n  \"mode\": \"DARK\",\n  \"formBg\": \"rgb(7, 11, 20)\",\n  \"formColor\": \"rgb(248, 250, 252)\",\n  \"sheetBg\": \"rgb(20, 30, 51)\",\n  \"sheetColor\": \"rgb(248, 250, 252)\",\n  \"sheetWidth\": 1046,\n  \"tabsBg\": \"rgba(0, 0, 0, 0)\",\n  \"bgCanvasVar\": \"#070b14\",\n  \"launcherImgs\": [\n    {\n      \"src\": \"insilos_mark.svg\",\n      \"className\": \"o_insilos_launcher_icon o_insilos_launcher_icon_light\",\n      \"display\": \"none\",\n      \"width\": 0,\n      \"height\": 0\n    },\n    {\n      \"src\": \"insilos_mark_dark.svg\",\n      \"className\": \"o_insilos_launcher_icon o_insilos_launcher_icon_dark\",\n      \"display\": \"block\",\n      \"width\": 26,\n      \"height\": 19\n    }\n  ],\n  \"visibleLogoCount\": 1,\n  \"visibleLogos\": [\n    {\n      \"src\": \"insilos_mark_dark.svg\",\n      \"className\": \"o_insilos_launcher_icon o_insilos_launcher_icon_dark\",\n      \"display\": \"block\",\n      \"width\": 26,\n      \"height\": 19\n    }\n  ],\n  \"bareWhiteCount\": 0,\n  \"whiteElements\": []\n}\nSUCCESS - 100% Invariants Cleared: Single Logo, Full Width, Zero Bare White Surfaces!\n",
+          "stderr_tail": ""
+        },
+        {
+          "command": [
+            "node",
+            "tools/test_theme_switch_dark_to_light.js"
+          ],
+          "command_str": "node tools/test_theme_switch_dark_to_light.js",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 29.909,
+          "evidence_count": 1,
+          "evidence": [
+            "[🎉] ALL DARK -> LIGHT THEME SWITCH E2E LUMINANCE & SCREENSHOT CHECKS PASSED!"
+          ],
+          "stdout_tail": "\n      \"bgRgb\": \"rgb(11, 15, 25)\",\n      \"bgLuminance\": 0.0048,\n      \"fgRgb\": \"rgb(241, 245, 249)\",\n      \"textLuminance\": 0.9085\n    },\n    \".o_control_panel\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(15, 23, 42)\",\n      \"bgLuminance\": 0.0088,\n      \"fgRgb\": \"rgb(0, 242, 254)\",\n      \"textLuminance\": 0.7066\n    },\n    \".o_search_panel\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(15, 23, 42)\",\n      \"bgLuminance\": 0.0088,\n      \"fgRgb\": \"rgb(203, 213, 225)\",\n      \"textLuminance\": 0.6572\n    },\n    \".o_content\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(7, 11, 20)\",\n      \"bgLuminance\": 0.0034,\n      \"fgRgb\": \"rgb(203, 213, 225)\",\n      \"textLuminance\": 0.6572\n    }\n  }\n}\n[2/4] Clicking UserMenu -> Light theme toggle button...\nLight Mode (/odoo/documents) Audit: {\n  \"cookie\": \"frontend_lang=en_US; tz=UTC; cids=1; color_scheme=light\",\n  \"localStorageTheme\": \"light\",\n  \"htmlDarkClass\": false,\n  \"bodyDarkClass\": false,\n  \"stylesheets\": [\n    \"/web/assets/3b7eefe/web.assets_web_print.min.css\",\n    \"/web/assets/203739b/web.assets_web.min.css\"\n  ],\n  \"sections\": {\n    \".o_main_navbar\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(255, 255, 255)\",\n      \"bgLuminance\": 1,\n      \"fgRgb\": \"rgb(51, 65, 85)\",\n      \"textLuminance\": 0.0514\n    },\n    \".o_control_panel\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(255, 255, 255)\",\n      \"bgLuminance\": 1,\n      \"fgRgb\": \"rgb(11, 46, 100)\",\n      \"textLuminance\": 0.0295\n    },\n    \".o_search_panel\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(255, 255, 255)\",\n      \"bgLuminance\": 1,\n      \"fgRgb\": \"rgb(51, 65, 85)\",\n      \"textLuminance\": 0.0514\n    },\n    \".o_content\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(248, 250, 252)\",\n      \"bgLuminance\": 0.9536,\n      \"fgRgb\": \"rgb(51, 65, 85)\",\n      \"textLuminance\": 0.0514\n    }\n  }\n}\nSaved screenshot: /home/zen/.gemini/antigravity/brain/790b1743-1724-4f27-a6fd-6d949bee50cf/screenshots/verified_theme_dark_to_light_documents.png\n[3/4] Verifying /odoo (HomeMenu / Employee Dashboard) in Light Mode...\nLight Mode (/odoo HomeMenu) Audit: {\n  \"cookie\": \"frontend_lang=en_US; tz=UTC; cids=1; color_scheme=light\",\n  \"localStorageTheme\": \"light\",\n  \"htmlDarkClass\": false,\n  \"bodyDarkClass\": false,\n  \"stylesheets\": [\n    \"/web/assets/1/596b1f1/web.assets_web_print.min.css\",\n    \"/web/assets/1/96b346b/web.assets_web.min.css\"\n  ],\n  \"sections\": {\n    \".o_main_navbar\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(255, 255, 255)\",\n      \"bgLuminance\": 1,\n      \"fgRgb\": \"rgb(51, 65, 85)\",\n      \"textLuminance\": 0.0514\n    },\n    \".o_insilos_emp_dashboard\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(255, 255, 255)\",\n      \"bgLuminance\": 1,\n      \"fgRgb\": \"rgb(15, 23, 42)\",\n      \"textLuminance\": 0.0088\n    }\n  }\n}\nSaved screenshot: /home/zen/.gemini/antigravity/brain/790b1743-1724-4f27-a6fd-6d949bee50cf/screenshots/verified_theme_dark_to_light_homemenu.png\n[4/4] Verifying /odoo/crm in Light Mode...\nLight Mode (/odoo/crm) Audit: {\n  \"cookie\": \"frontend_lang=en_US; tz=UTC; cids=1; color_scheme=light\",\n  \"localStorageTheme\": \"light\",\n  \"htmlDarkClass\": false,\n  \"bodyDarkClass\": false,\n  \"stylesheets\": [\n    \"/web/assets/3b7eefe/web.assets_web_print.min.css\",\n    \"/web/assets/203739b/web.assets_web.min.css\"\n  ],\n  \"sections\": {\n    \".o_main_navbar\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(255, 255, 255)\",\n      \"bgLuminance\": 1,\n      \"fgRgb\": \"rgb(15, 23, 42)\",\n      \"textLuminance\": 0.0088\n    },\n    \".o_control_panel\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(255, 255, 255)\",\n      \"bgLuminance\": 1,\n      \"fgRgb\": \"rgb(15, 23, 42)\",\n      \"textLuminance\": 0.0088\n    },\n    \".o_content\": {\n      \"found\": true,\n      \"bgRgb\": \"rgb(248, 250, 252)\",\n      \"bgLuminance\": 0.9536,\n      \"fgRgb\": \"rgb(17, 24, 39)\",\n      \"textLuminance\": 0.0092\n    }\n  }\n}\nSaved screenshot: /home/zen/.gemini/antigravity/brain/790b1743-1724-4f27-a6fd-6d949bee50cf/screenshots/verified_theme_dark_to_light_crm.png\n[🎉] ALL DARK -> LIGHT THEME SWITCH E2E LUMINANCE & SCREENSHOT CHECKS PASSED!\n",
+          "stderr_tail": ""
+        }
+      ]
+    },
+    {
+      "id": "E2E-QA-10",
+      "title": "Playwright Master User Journeys E2E (Public Nav, AI Concierge, HomeMenu Hub, Documents Tree Switcher, CRM Form)",
+      "category": "ui",
+      "fast": true,
+      "passed": true,
+      "duration_sec": 41.236,
+      "evidence_count": 22,
+      "commands": [
+        {
+          "command": [
+            "node",
+            "tools/test_e2e_qa_master_flows.js"
+          ],
+          "command_str": "node tools/test_e2e_qa_master_flows.js",
+          "returncode": 0,
+          "passed": true,
+          "duration_sec": 41.235,
+          "evidence_count": 22,
+          "evidence": [
+            "✓ /            -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px",
+            "✓ /platform    -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px",
+            "✓ /solutions   -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px",
+            "✓ /industries  -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px",
+            "✓ /about       -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px",
+            "✓ /pricing     -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px",
+            "✓ /contactus   -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px",
+            "✅ [Journey 1/5] PASSED!",
+            "✓ Step 2a (services_catalog): 6 service pillars, 13 SKUs, PCT token issued",
+            "✓ Step 2b (estimate_service): sw_squad (4 eng × 6 mos) -> 1.140.000.000 VNĐ (1140000000 VND) | ESIH token verified",
+            "✓ Step 2c (query): Grounded answer (1539 chars) with 5 citations",
+            "✓ Step 2d (health): status=ok, rag_chunks_active=158, esih=active",
+            "✅ [Journey 2/5] PASSED!",
+            "✓ HomeMenu (.o_insilos_emp_dashboard) visible | Single Light Logo (dark=none) | Masked PII: CCCD=089******917, Phone=090*****01, Bank=13****8161",
+            "✅ [Journey 3/5] PASSED!",
+            "✓ Documents .o_search_panel rendered (46 nodes, sample: All, Company, DGM · Công ty Cổ phần Người Bạn Số (Digimate JSC), 01. Pháp lý & Hành chính (Legal & Corporate), 378. Người Bạn Số - Thay đổi)",
+            "✓ Switched Documents view List (.o_switch_view.o_list) <-> Kanban (.o_switch_view.o_kanban) cleanly",
+            "✅ [Journey 4/5] PASSED!",
+            "✓ CRM Form Sheet (.o_form_sheet) width=1046px (> 900px) | bgColor=rgb(255, 255, 255)",
+            "✓ innoria_prod (http://localhost:28070) -> HTTP 200 | Logo: logo_innoria_header.svg | Font: Poppins | AI Concierge: ok",
+            "✅ [Journey 5/5] PASSED!",
+            "🎉 ALL 5 LIVE BROWSER E2E QA MASTER JOURNEYS PASSED 100% (EXIT CODE 0)!"
+          ],
+          "stdout_tail": "================================================================================\n🚀 STARTING MASTER PLAYWRIGHT LIVE BROWSER E2E QA SUITE (5 USER JOURNEYS)\n   • Target Dev Server : http://localhost:28069 (insilos20_dev)\n   • Target Prod Server: http://localhost:28070 (innoria_prod)\n================================================================================\n\n[Journey 1/5] Public Website Routes, Header Navigation Uniqueness, IBM Carbon v11 & Poppins Typography...\n   ✓ /            -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px\n   ✓ /platform    -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px\n   ✓ /solutions   -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px\n   ✓ /industries  -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px\n   ✓ /about       -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px\n   ✓ /pricing     -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px\n   ✓ /contactus   -> HTTP 200 | Logo: logo_innoria_header.svg | Nav links: 8 (0 dupes) | Font: Poppins | CTA radius: 0px\n✅ [Journey 1/5] PASSED!\n\n[Journey 2/5] Public AI Concierge End-to-End Flow (Catalog -> Estimate -> Grounded RAG Query -> Health)...\n   ✓ Step 2a (services_catalog): 6 service pillars, 13 SKUs, PCT token issued\n   ✓ Step 2b (estimate_service): sw_squad (4 eng × 6 mos) -> 1.140.000.000 VNĐ (1140000000 VND) | ESIH token verified\n   ✓ Step 2c (query): Grounded answer (1539 chars) with 5 citations\n   ✓ Step 2d (health): status=ok, rag_chunks_active=158, esih=active\n✅ [Journey 2/5] PASSED!\n\n[Journey 3/5] Authenticated Backend Login & HomeMenu Employee Self-Service Hub (.o_insilos_emp_dashboard)...\n   ✓ HomeMenu (.o_insilos_emp_dashboard) visible | Single Light Logo (dark=none) | Masked PII: CCCD=089******917, Phone=090*****01, Bank=13****8161\n✅ [Journey 3/5] PASSED!\n\n[Journey 4/5] Documents Multi-Level Tree & View Switcher E2E (/odoo/documents)...\n   ✓ Documents .o_search_panel rendered (46 nodes, sample: All, Company, DGM · Công ty Cổ phần Người Bạn Số (Digimate JSC), 01. Pháp lý & Hành chính (Legal & Corporate), 378. Người Bạn Số - Thay đổi)\n   ✓ Switched Documents view List (.o_switch_view.o_list) <-> Kanban (.o_switch_view.o_kanban) cleanly\n✅ [Journey 4/5] PASSED!\n\n[Journey 5/5] CRM Pipeline & Full-Width Form Sheet E2E (/odoo/crm) + innoria_prod (http://localhost:28070) Smoke...\n   ✓ CRM Form Sheet (.o_form_sheet) width=1046px (> 900px) | bgColor=rgb(255, 255, 255)\n   ✓ innoria_prod (http://localhost:28070) -> HTTP 200 | Logo: logo_innoria_header.svg | Font: Poppins | AI Concierge: ok\n✅ [Journey 5/5] PASSED!\n\n================================================================================\n🎉 ALL 5 LIVE BROWSER E2E QA MASTER JOURNEYS PASSED 100% (EXIT CODE 0)!\n================================================================================\n",
+          "stderr_tail": ""
+        }
+      ]
+    }
+  ]
+}

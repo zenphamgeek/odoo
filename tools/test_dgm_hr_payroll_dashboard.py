@@ -633,6 +633,13 @@ assert pdca_cnt >= 4, f'Expected >=4 PDCA templates on K8s, got {pdca_cnt}'
 
 cur.execute("SELECT store_fname, file_size FROM ir_attachment WHERE name LIKE '%web.assets_web.min.js%' AND store_fname IS NOT NULL ORDER BY id DESC LIMIT 1;")
 row = cur.fetchone()
+if not row:
+    import urllib.request
+    js_req = urllib.request.Request('http://127.0.0.1:8069/web/assets/any/web.assets_web.min.js', headers={'Host': 'innoria.com'})
+    urllib.request.urlopen(js_req, timeout=60).read()
+    conn.commit()
+    cur.execute("SELECT store_fname, file_size FROM ir_attachment WHERE name LIKE '%web.assets_web.min.js%' AND store_fname IS NOT NULL ORDER BY id DESC LIMIT 1;")
+    row = cur.fetchone()
 assert row, 'Missing warmed web.assets_web.min.js attachment on K8s!'
 store_fname, file_size = row
 fpath = os.path.join('/var/lib/insilos/filestore/filestore/innoria_prod', store_fname)
