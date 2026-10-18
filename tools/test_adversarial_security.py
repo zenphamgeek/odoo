@@ -6615,6 +6615,116 @@ def test_patch_65_immoon0009_ast_formula_evaluator_thread_lock_rollback_and_scop
     print("[✓] Patch 65 / immoon0009 AST Formula Evaluator, Thread Lock Rollback & ScopedTenantEnvironmentGuard verified")
 
 
+def test_patch_66_ai_digimate_dl_masoe_formula_sandbox_lock_acquire_all_and_token_guard():
+    """
+    Patch 66 Verification Suite (ai-digimate / gemini-4-argon-high):
+    1. ScopedEnterpriseFormulaGuard: NFKD sanitization, zero-dunder/attribute AST evaluation,
+       bounded exponentiation DoS protection (abs(exp) <= 10.0), and division-by-zero rejection.
+    2. HeterogeneousLockKey.create(tier_name, resource_id) & DeterministicHeterogeneousLockManager.acquire_all()
+       with cross-thread shared lock registry and timeout rollback (LockTimeoutError).
+    3. TenantContextToken.generate() / .verify() and ScopedTenantEnvironmentGuard(token, secret_key)
+       lifecycle & tampering rejection (TenantIsolationError).
+    """
+    import importlib.util
+    import math
+    import threading
+
+    lock_py = os.path.join(
+        ROOT_DIR, "enterprise/insilos_industry_showcase/security/advisory_lock.py"
+    )
+    spec_lock = importlib.util.spec_from_file_location("adv_lock_patch66", lock_py)
+    lock_mod = importlib.util.module_from_spec(spec_lock)
+    sys.modules["adv_lock_patch66"] = lock_mod
+    spec_lock.loader.exec_module(lock_mod)
+
+    # 1. ScopedEnterpriseFormulaGuard tests
+    fg = lock_mod.ScopedEnterpriseFormulaGuard
+    res_1 = fg.evaluate(
+        "base_price * (1.0 - discount) + surcharge",
+        {"base_price": 1000.0, "discount": 0.15, "surcharge": 25.5},
+    )
+    assert math.isclose(res_1, 875.5, rel_tol=1e-5)
+
+    res_2 = fg.evaluate(
+        "round(max(base_price, min_cap) * 1.0825, 2)",
+        {"base_price": 49.999, "min_cap": 50.0},
+    )
+    assert res_2 == 54.13
+
+    for bad_payload, bad_ctx in (
+        ("().__class__.__base__.__subclasses__()[0]", {}),
+        ("base_price.__class__", {"base_price": 100.0}),
+        ("2 ** 9999", {}),
+        ("base_price / 0", {"base_price": 100.0}),
+    ):
+        try:
+            fg.evaluate(bad_payload, bad_ctx)
+            raise AssertionError(f"Expected ASTFormulaSandboxError for {bad_payload!r}")
+        except lock_mod.ASTFormulaSandboxError:
+            pass
+
+    # 2. HeterogeneousLockKey.create & DeterministicHeterogeneousLockManager.acquire_all + cross-thread timeout
+    k_order = lock_mod.HeterogeneousLockKey.create("order", "ORD-999")
+    k_company = lock_mod.HeterogeneousLockKey.create("company", "COMP-01")
+    k_journal = lock_mod.HeterogeneousLockKey.create("journal", "JRN-05")
+
+    manager = lock_mod.DeterministicHeterogeneousLockManager(timeout_seconds=2.0)
+    with manager.acquire_all([k_order, k_company, k_journal]):
+        assert manager._acquired_keys_lifo == [k_company, k_journal, k_order]
+
+    k_res = lock_mod.HeterogeneousLockKey.create("company", "COMP-TIMEOUT-01")
+    manager1 = lock_mod.DeterministicHeterogeneousLockManager(timeout_seconds=2.0)
+    manager2 = lock_mod.DeterministicHeterogeneousLockManager(timeout_seconds=0.15)
+    lock_acquired_event = threading.Event()
+    worker_finished_event = threading.Event()
+
+    def background_holder():
+        with manager1.acquire_all([k_res]):
+            lock_acquired_event.set()
+            worker_finished_event.wait(timeout=2.0)
+
+    t = threading.Thread(target=background_holder)
+    t.start()
+    try:
+        assert lock_acquired_event.wait(timeout=1.5), "Background thread failed to acquire lock"
+        try:
+            manager2.acquire_all([k_res])
+            raise AssertionError("Expected LockTimeoutError on contended lock")
+        except lock_mod.LockTimeoutError as exc:
+            assert "Lock acquisition timed out" in str(exc)
+    finally:
+        worker_finished_event.set()
+        t.join(timeout=2.0)
+
+    # 3. TenantContextToken.generate & ScopedTenantEnvironmentGuard(token, secret_key)
+    ephemeral_key = os.urandom(32)
+    token = lock_mod.TenantContextToken.generate("tenant_a", "company_01", "user_100", ephemeral_key)
+    with lock_mod.ScopedTenantEnvironmentGuard(token, ephemeral_key):
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant_id(ephemeral_key) == "tenant_a"
+        assert lock_mod.ScopedTenantEnvironmentGuard.get_current_company_id(ephemeral_key) == "company_01"
+
+    try:
+        lock_mod.ScopedTenantEnvironmentGuard.get_current_tenant_id(ephemeral_key)
+        raise AssertionError("Expected TenantIsolationError outside context")
+    except lock_mod.TenantIsolationError:
+        pass
+
+    tampered = lock_mod.TenantContextToken(
+        tenant_id=token.tenant_id,
+        company_id="company_02_hacked",
+        user_id=token.user_id,
+        signature=token.signature,
+    )
+    try:
+        with lock_mod.ScopedTenantEnvironmentGuard(tampered, ephemeral_key):
+            pass
+        raise AssertionError("Expected TenantIsolationError on tampered token")
+    except lock_mod.TenantIsolationError as exc:
+        assert "Cryptographic verification failed" in str(exc)
+
+    print("[✓] Patch 66 / ai-digimate DL-MASOE Formula Sandbox, Lock acquire_all & Token Guard verified")
+
+
 def main():
     test_patch_1_error_dialog()
     test_patch_2_frozen_props_hooks()
@@ -6695,8 +6805,9 @@ def main():
     test_patch_63_traimai_nfkd_strong_ref_sanitizer_heterogeneous_lock_manager_and_dom_selector_guard()
     test_patch_64_nahlaleah102_heterogeneous_cross_tier_lock_nfkd_formula_graph_and_partitioned_revaluation()
     test_patch_65_immoon0009_ast_formula_evaluator_thread_lock_rollback_and_scoped_tenant_guard()
-    print("[✓] ALL 65 AUDIT PATCH DIRECTIVES SATISFIED")
-    print("[🎉] ALL 65 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
+    test_patch_66_ai_digimate_dl_masoe_formula_sandbox_lock_acquire_all_and_token_guard()
+    print("[✓] ALL 66 AUDIT PATCH DIRECTIVES SATISFIED")
+    print("[🎉] ALL 66 SOVEREIGN ADVERSARIAL SECURITY AUDIT PATCHES & VULN REMEDIATIONS VERIFIED (EXIT 0)")
 
 
 if __name__ == "__main__":
