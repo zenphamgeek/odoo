@@ -8,9 +8,13 @@
             <list string="Enterprise Value Cases">
                 <field name="name"/>
                 <field name="partner_id"/>
+                <field name="customer_business_archetype"/>
+                <field name="quotation_price_vnd"/>
                 <field name="tco_current_vnd"/>
                 <field name="tco_future_vnd"/>
                 <field name="net_annual_benefit_vnd"/>
+                <field name="three_year_net_benefit_vnd"/>
+                <field name="quote_to_roi_ratio"/>
                 <field name="roi_percentage"/>
                 <field name="payback_months"/>
                 <field name="state" widget="badge"/>
@@ -25,6 +29,7 @@
         <field name="arch" type="xml">
             <form string="Enterprise Value Case">
                 <header>
+                    <button name="action_calibrate_archetype_roi" string="Calibrate Archetype ROI &amp; Battlecard" type="object" class="btn-secondary"/>
                     <button name="action_quantify" string="Quantify &amp; Propose" type="object" class="btn-primary" invisible="state != 'draft'"/>
                     <button name="action_mark_realized" string="Confirm Value Realized" type="object" class="btn-success" invisible="state != 'signed_off'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,quantified,signed_off,realized"/>
@@ -37,15 +42,25 @@
                         </h1>
                     </div>
                     <group>
-                        <group string="Enterprise Stakeholders">
+                        <group string="Enterprise Stakeholders &amp; Business Archetype">
                             <field name="partner_id"/>
                             <field name="lead_id"/>
+                            <field name="customer_business_archetype"/>
+                            <field name="headcount_scale"/>
+                            <field name="monthly_invoice_volume"/>
+                            <field name="outsourcing_man_hours_monthly"/>
                             <field name="company_currency" invisible="1"/>
                         </group>
-                        <group string="Financial Impact Metrics">
+                        <group string="Financial Impact &amp; 3-Year ROI Metrics">
+                            <field name="quotation_price_vnd"/>
                             <field name="tco_current_vnd"/>
                             <field name="tco_future_vnd"/>
+                            <field name="annual_man_hour_savings_vnd"/>
+                            <field name="annual_compliance_risk_avoidance_vnd"/>
+                            <field name="annual_productivity_gain_vnd"/>
                             <field name="net_annual_benefit_vnd"/>
+                            <field name="three_year_net_benefit_vnd"/>
+                            <field name="quote_to_roi_ratio"/>
                             <field name="roi_percentage"/>
                             <field name="payback_months"/>
                         </group>
@@ -61,6 +76,12 @@
                                     <field name="notes"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Competitive Battlecard &amp; SOP-DGM-15 Grounding" name="battlecard_rag">
+                            <group>
+                                <field name="rag_sop_citation_summary"/>
+                                <field name="battlecard_comparison_json"/>
+                            </group>
                         </page>
                         <page string="Linked Contracts &amp; Projects" name="realization">
                             <group>

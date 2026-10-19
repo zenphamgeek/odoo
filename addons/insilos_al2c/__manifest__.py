@@ -53,6 +53,7 @@ Autonomous Lead-to-Cash foundation for Innoria / Insilos.
         'data/dgm_master_data.xml',
         'data/dgm_hr_master_data.xml',
         'data/dgm_sop_corpus_data.xml',
+        'data/dgm_rapid_quote_roi_sop_data.xml',
         'data/dgm_partner_onboarding_data.xml',
         'data/al2c_claim_atom_data.xml',
         'data/hr_payroll_data.xml',

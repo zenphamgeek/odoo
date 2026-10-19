@@ -78,18 +78,21 @@
                         <!-- Section 2: Clean Core Extensibility Matrix -->
                         <div class="mb-4" t-if="doc.fts_item_ids">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                2. Ma Trận Phạm Vi Extensibility (Fit-to-Standard Clean Core)
+                                2. Ma Trận Phạm Vi Feature Items &amp; Extensibility (Fit-to-Standard Clean Core)
                             </h5>
                             <table class="table table-sm table-bordered" style="font-size: 10px;">
                                 <thead style="background: #F4F4F4; color: #161616;">
                                     <tr>
-                                        <th style="width: 40%;">Hạng Mục Yêu Cầu</th>
-                                        <th style="width: 25%;">Phân Loại Clean Core</th>
-                                        <th style="width: 35%;">Giải Pháp Kiến Trúc</th>
+                                        <th style="width: 12%;">Mã Feature</th>
+                                        <th style="width: 30%;">Hạng Mục Giải Pháp</th>
+                                        <th style="width: 18%;">Phân Loại Clean Core</th>
+                                        <th style="width: 15%;" class="text-end">Dự Toán (VND)</th>
+                                        <th style="width: 25%;">Tác Động ROI &amp; Kiến Trúc</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr t-foreach="doc.fts_item_ids" t-as="item">
+                                        <td><code t-out="item.feature_code or 'FTS-STD'"/></td>
                                         <td><strong t-out="item.name"/></td>
                                         <td>
                                             <span t-if="item.clean_core_class == 'class_a'" class="badge bg-success">Class A: Chuẩn OOTB</span>
@@ -97,7 +100,8 @@
                                             <span t-elif="item.clean_core_class == 'class_c'" class="badge bg-primary">Class C: Decoupled API</span>
                                             <span t-else="" class="badge bg-danger">Class D: Core Exception</span>
                                         </td>
-                                        <td t-out="item.description or item.justification or 'Cấu hình tiêu chuẩn theo quy trình ERP'"/>
+                                        <td class="text-end"><t t-out="'{:,.0f}'.format(item.estimated_price_vnd or 0.0)"/></td>
+                                        <td t-out="item.roi_driver_impact or item.description or item.justification or 'Cấu hình tiêu chuẩn theo quy trình ERP'"/>
                                     </tr>
                                 </tbody>
                             </table>
@@ -106,30 +110,38 @@
                         <!-- Section 3: Value Case and ROI -->
                         <div class="mb-4" t-if="doc.value_case_id">
                             <h5 style="font-weight: 700; color: #0070F2; border-bottom: 1px solid #E0E0E0; padding-bottom: 4px;">
-                                3. Lập Luận Giá Trị Kinh Tế &amp; TCO / ROI (Economic Value Case)
+                                3. Lập Luận Giá Trị Kinh Tế, TCO / ROI 3 Năm &amp; So Sánh Đầu Tư (Economic Value Case)
                             </h5>
                             <div class="row g-2 mb-2">
-                                <div class="col-4">
+                                <div class="col-3">
                                     <div class="p-2 border text-center" style="background: #F4F4F4;">
                                         <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Mức Tiết Kiệm TCO Dự Kiến</div>
-                                        <div style="font-size: 15px; font-weight: 700; color: #0070F2;">
+                                        <div style="font-size: 14px; font-weight: 700; color: #0070F2;">
                                             <t t-out="round(((doc.value_case_id.tco_current_vnd - doc.value_case_id.tco_future_vnd) / doc.value_case_id.tco_current_vnd * 100), 1) if doc.value_case_id.tco_current_vnd else 34.5"/>%
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <div class="p-2 border text-center" style="background: #F4F4F4;">
-                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Thời Gian Hoàn Vốn (Payback)</div>
-                                        <div style="font-size: 15px; font-weight: 700; color: #0070F2;">
-                                            <t t-out="doc.value_case_id.payback_months or 9.0"/> tháng
+                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Lợi Ích Ròng 3 Năm (VND)</div>
+                                        <div style="font-size: 14px; font-weight: 700; color: #0070F2;">
+                                            <t t-out="'{:,.0f}'.format(doc.value_case_id.three_year_net_benefit_vnd or 0.0)"/>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     <div class="p-2 border text-center" style="background: #F4F4F4;">
-                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Hiệu Suất Vận Hành ROI (3 Năm)</div>
-                                        <div style="font-size: 15px; font-weight: 700; color: #0070F2;">
-                                            +<t t-out="doc.value_case_id.roi_percentage or 45.0"/>%
+                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Hệ Số Lợi Ích / Báo Giá</div>
+                                        <div style="font-size: 14px; font-weight: 700; color: #0070F2;">
+                                            <t t-out="doc.value_case_id.quote_to_roi_ratio or 3.2"/>x
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-3">
+                                    <div class="p-2 border text-center" style="background: #F4F4F4;">
+                                        <div style="font-size: 9px; color: #525252; text-transform: uppercase;">Hoàn Vốn / ROI 3 Năm</div>
+                                        <div style="font-size: 14px; font-weight: 700; color: #0070F2;">
+                                            <t t-out="doc.value_case_id.payback_months or 9.0"/> tháng (+<t t-out="doc.value_case_id.roi_percentage or 45.0"/>%)
                                         </div>
                                     </div>
                                 </div>

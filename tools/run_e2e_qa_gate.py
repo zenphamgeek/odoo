@@ -122,6 +122,15 @@ E2E_QA_GATES: List[Dict[str, Any]] = [
             ["pytest", "tests/test_insilos_victory_critic_harness.py", "-q"],
         ],
     },
+    {
+        "id": "E2E-QA-12",
+        "title": "RAG-SOP Sales & Marketing Framework (SOP-DGM-15), <5 Min Rapid CPQ Quoting, 5-Archetype ROI Matrix & Executive PDF Report",
+        "category": "domain",
+        "fast": True,
+        "commands": [
+            ["python3", "tools/test_dgm_rapid_quote_roi_pdf.py"],
+        ],
+    },
 ]
 
 

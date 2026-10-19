@@ -42,5 +42,4 @@ from . import dgm_hr_kpi_skill_framework
 from . import dgm_okr_appraisal_project_pdca
 from . import dgm_knowledge_rag_chatbot
 from . import dgm_autonomous_marketing_research
-
-
+from . import dgm_rapid_quote_roi_engine

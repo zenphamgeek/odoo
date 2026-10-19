@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="0">
+
+    <!-- ===================================================================
+         SOP-DGM-15: Khung RAG-SOP Phòng Sale & Marketing
+         Chăm sóc Khách hàng Cũ, Đối soát Timesheet, Thanh toán & Báo giá Nhanh
+         (Insilos ERP · Vertical Resilience GRC · Mojo AI · KTT & Man-Hour)
+         =================================================================== -->
+    <record id="knowledge_article_sop_dgm_15_sales_cpq_roi" model="knowledge.article">
+        <field name="name">SOP-DGM-15: Khung RAG-SOP Phòng Sale &amp; Marketing — Chăm sóc Khách hàng Cũ, Đối soát Timesheet, Thanh toán &amp; Báo giá Nhanh (Insilos ERP · Vertical Resilience GRC · Mojo AI · KTT &amp; Man-Hour)</field>
+        <field name="parent_id" ref="insilos_al2c.kb_dgm_sop_root"/>
+        <field name="icon">🚀</field>
+        <field name="internal_permission">write</field>
+        <field name="sequence">150</field>
+        <field name="body"><![CDATA[<div class="dgm-sop-container">
+<h1>SOP-DGM-15: Khung RAG-SOP Phòng Sale &amp; Marketing — Chăm sóc Khách hàng Cũ, Đối soát Timesheet, Thanh toán &amp; Báo giá Nhanh (Insilos ERP · Vertical Resilience GRC · Mojo AI · KTT &amp; Man-Hour)</h1>
+
+<h2>0. Thông Tin Kiểm Soát Văn Bản (Document Control Header)</h2>
+<table class="table table-bordered">
+    <tbody>
+        <tr>
+            <th style="width: 25%;">Mã Quy Trình (SOP Code)</th>
+            <td style="width: 25%;"><strong>SOP-DGM-15</strong> (<code>KMS-SOP-DGM-15</code>)</td>
+            <th style="width: 25%;">Phiên Bản (Version)</th>
+            <td style="width: 25%;">v3.0.0 (Enterprise Gold Master)</td>
+        </tr>
+        <tr>
+            <th>Pháp Nhân Sở Hữu</th>
+            <td colspan="3">
+                <strong>CÔNG TY CỔ PHẦN NGƯỜI BẠN SỐ (DIGIMATE JSC — MST: 0317958465)</strong> &amp; Hệ sinh thái Thương mại <strong>INNORIA ENTERPRISE PLATFORM</strong><br/>
+                <em>Tài khoản thụ hưởng chuẩn:</em> Vietcombank (VCB) — STK <code>1202703007</code> — Ký hiệu HĐĐT: <code>1C26TAA</code> (Nghị định 70/2025/NĐ-CP) — Mã đơn vị BHXH: <code>TZ0857G</code>
+            </td>
+        </tr>
+        <tr>
+            <th>Phân Hệ Áp Dụng</th>
+            <td><code>sale.order</code>, <code>al2c.value.case</code>, <code>al2c.fts.item</code>, <code>al2c.timesheet.staging</code>, <code>account.analytic.line</code>, <code>account.move</code>, <code>dgm.knowledge.sop.workflow</code></td>
+            <th>SLA Báo Giá Nhanh</th>
+            <td><strong>&lt; 5.0 Phút</strong> (Mục tiêu vận hành chuẩn: <strong>1.8 - 3.0 Phút</strong>)</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>1. Maintain Sale &amp; Chăm Sóc Khách Hàng Hiện Hữu (Account Retention, Renewal &amp; Upsell)</h2>
+<p>Phòng Kinh doanh (Sales) và Quản lý Tài khoản Trọng yếu (Key Account Management - KAM) vận hành chu trình chăm sóc khách hàng hiện hữu khép kín nhằm duy trì tỷ lệ giữ chân khách hàng (Net Dollar Retention &gt;= 125%):</p>
+<ul>
+    <li><strong>Đánh giá Giá trị Định kỳ Hàng quý (Quarterly Business Review - QBR):</strong> Rà soát mức độ hiện thực hóa lợi ích kinh tế trên <code>al2c.value.case</code> (so sánh TCO thực tế với cam kết ban đầu, hiệu suất tiết kiệm Man-Hour và mức độ tuân thủ GRC).</li>
+    <li><strong>Cảnh báo Gia hạn Tự động (45-Day Renewal Sentinel):</strong> Hệ thống theo dõi các hợp đồng thuê bao định kỳ (<code>SAAS-USER-M</code>, <code>SAAS-HOSTING-PRO</code>, <code>MOJO-APP-SUB</code>, <code>AMS-SILVER</code>, <code>AMS-GOLD</code>) và hợp đồng khung Man-Hour, kích hoạt nhiệm vụ chăm sóc trước 45 ngày hết hạn.</li>
+    <li><strong>Chiến lược Mở rộng Đa Trụ cột (5-Pillar Cross-Sell Matrix):</strong>
+        <ol>
+            <li>Khách hàng đang thuê Kỹ sư Man-Hour (<code>man_hour</code>) -&gt; Mở rộng sang Bộ công cụ Tự động hóa Tri thức <strong>Mojo AI Tools</strong> (<code>mojo_ai</code>) và dịch vụ Quản trị Vận hành AMS.</li>
+            <li>Khách hàng đang dùng Phần mềm Kế toán Trưởng KTT (<code>ktt_finance</code>) -&gt; Nâng cấp lên gói <strong>Insilos Clean-Core ERP</strong> toàn diện (<code>erp_insilos</code>).</li>
+            <li>Khách hàng Doanh nghiệp ERP (<code>erp_insilos</code>) -&gt; Tích hợp gói đóng gói <strong>Vertical Resilience GRC</strong> (<code>grc_resilience</code> — ISO/IEC 27001, ISO/IEC 27701 &amp; Nghị định 13/2023/NĐ-CP).</li>
+        </ol>
+    </li>
+</ul>
+
+<h2>2. Động Cơ Báo Giá Nhanh CPQ &lt; 5 Phút (Insilos ERP, Vertical Resilience GRC, Mojo AI, KTT &amp; Man-Hour)</h2>
+<p>Mọi yêu cầu báo giá từ khách hàng B2B được xử lý qua động cơ <code>action_generate_rapid_quote_and_roi</code> trên <code>sale.order</code> với SLA chuẩn <strong>1.8 phút</strong> (tối đa không quá 5 phút):</p>
+<table class="table table-bordered">
+    <thead>
+        <tr style="background-color: #f1f5f9;">
+            <th>Trụ Cột Giải Pháp (Product Pillar)</th>
+            <th>Mã SKU Trọng Tâm</th>
+            <th>Phân Loại Clean-Core</th>
+            <th>Chính Sách Thuế GTGT (Luật 48/2024 &amp; NĐ 70/174)</th>
+            <th>Định Mức &amp; Đơn Giá Tham Chiếu</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td><strong>1. Man-Hour Outsourcing &amp; Dedicated Squad</strong> (<code>man_hour</code>)</td>
+            <td><code>CONSULT-HOUR</code>, <code>DGM-ONSITE-STD</code>, <code>DGM-ONSITE-OT100</code>, <code>DGM-ONSITE-OT150</code></td>
+            <td>Class A (Chuẩn OOTB)</td>
+            <td>KCT (Phần mềm) / VAT 8% (Tư vấn CNTT) / VAT 0% (Xuất khẩu)</td>
+            <td>450,000 - 1,200,000 VND/giờ (hoặc theo Hợp đồng khung MTI)</td>
+        </tr>
+        <tr>
+            <td><strong>2. Chief Accountant (KTT) &amp; Automated Finance</strong> (<code>ktt_finance</code>)</td>
+            <td><code>ERP-STARTER</code>, <code>AMS-SILVER</code></td>
+            <td>Class A (Chuẩn OOTB)</td>
+            <td>KCT (Phần mềm lõi) / VAT 8% (Dịch vụ AMS)</td>
+            <td>Gói triển khai 150,000,000 VND + AMS 35,000,000 VND/tháng</td>
+        </tr>
+        <tr>
+            <td><strong>3. Packaged Insilos Clean-Core ERP</strong> (<code>erp_insilos</code>)</td>
+            <td><code>ERP-GROWTH</code>, <code>ERP-ENT</code>, <code>SAAS-HOSTING-PRO</code></td>
+            <td>Class A / Class B</td>
+            <td>KCT (Phần mềm ERP) / VAT 10% (Hạ tầng Hosting Cloud)</td>
+            <td>450,000,000 - 1,200,000,000 VND (Theo 5 mốc Activate)</td>
+        </tr>
+        <tr>
+            <td><strong>4. Packaged Vertical Resilience GRC</strong> (<code>grc_resilience</code>)</td>
+            <td><code>GRC-ESSENTIALS</code>, <code>GRC-RISK-REGISTER</code>, <code>GRC-AUDIT-PACK</code></td>
+            <td>Class B (Low-Code Studio / QWeb)</td>
+            <td>KCT (Phần mềm &amp; Bộ công cụ GRC)</td>
+            <td>120,000,000 - 250,000,000 VND/gói tuân thủ ISO 27001/27701 &amp; NĐ 13</td>
+        </tr>
+        <tr>
+            <td><strong>5. Mojo AI Tools, Sovereign RAG &amp; Agentic Automation</strong> (<code>mojo_ai</code>)</td>
+            <td><code>AI-PILOT</code>, <code>MOJO-APP-SUB</code>, <code>MOJO-TOKENS</code></td>
+            <td>Class C (Decoupled API / Microservice)</td>
+            <td>KCT (Phần mềm AI nội địa) / VAT 0% (Xuất khẩu toàn cầu)</td>
+            <td>AI Pilot 380,000,000 VND; Thuê bao 25,000,000 VND/tháng; Token 10,000,000 VND/1M</td>
+        </tr>
+    </tbody>
+</table>
+
+<h2>3. Quy Trình Chốt &amp; Đối Soát Timesheet Đa Kênh (<code>MTI - TIMESHEET</code> -&gt; <code>al2c.timesheet.staging</code> -&gt; <code>account.analytic.line</code>)</h2>
+<ol>
+    <li><strong>Đồng bộ Dữ liệu Chấm công Đa kênh:</strong> Dữ liệu giờ công của kỹ sư Onsite/Offshore từ thư mục chuẩn <code>MTI - TIMESHEET</code> (Workspace <code>Shared with me</code> của <code>info@inno.ai.vn</code>) và bảng chấm công dự án được nạp vào <code>al2c.timesheet.staging</code>.</li>
+    <li><strong>Thuật toán Tách Giờ Làm Thêm 2 Bậc (2-Tier Overtime Split):</strong>
+        <ul>
+            <li>Giờ hành chính tiêu chuẩn (<code>normal_hours</code>): Áp dụng đơn giá chuẩn theo hợp đồng.</li>
+            <li>Làm thêm Bậc 1 (<code>ot_tier1_hours &lt;= 20h/tháng</code>): Tính <strong>100% đơn giá cơ sở</strong> (<code>DGM-ONSITE-OT100</code> — 316,030 VND/giờ).</li>
+            <li>Làm thêm Bậc 2 (<code>ot_tier2_hours &gt; 20h/tháng</code>): Tính <strong>150% đơn giá cơ sở</strong> (<code>DGM-ONSITE-OT150</code> — 474,045 VND/giờ).</li>
+        </ul>
+    </li>
+    <li><strong>Cổng Ký duyệt &amp; Chuyển đổi Sổ cái Phân tích:</strong> Trước <strong>ngày làm việc thứ 5 của tháng kế tiếp</strong>, PM và đại diện khách hàng xác nhận Biên bản Nghiệm thu Giờ công. Khi đạt trạng thái <code>approved</code>, hệ thống tự động sinh bút toán <code>account.analytic.line</code> gắn kết trực tiếp với <code>sale.order.line</code> để sẵn sàng lập hóa đơn.</li>
+</ol>
+
+<h2>4. Quy Trình Thanh Toán, Hóa Đơn Điện Tử <code>1C26TAA</code> (NĐ 70/2025) &amp; Đối Soát Công Nợ (<code>VCB DigiBiz 11 Cột</code> / <code>24h Foreign Wire SLA</code>)</h2>
+<ul>
+    <li><strong>Rào chắn Xuất Hóa đơn Điện tử Hợp chuẩn (Nghị định 70/2025/NĐ-CP &amp; Nghị định 123/2020/NĐ-CP):</strong> Hệ thống khóa chặt việc phát hành hóa đơn ký hiệu <code>1C26TAA</code> nếu mốc bàn giao dự án (<code>project.milestone</code>) hoặc bảng đối soát Timesheet chưa được nghiệm thu hợp lệ.</li>
+    <li><strong>Đối soát Doanh thu Xuất khẩu Phần mềm 0% GTGT (24h Foreign Wire SLA):</strong> Khi nhận báo có ngoại tệ (Swift Credit Advice từ đối tác quốc tế vào tài khoản Vietcombank <code>1202703007</code>), Kế toán Ngân hàng đối soát tỷ giá và phát hành hóa đơn điện tử thuế suất <code>0%</code> trong vòng <strong>24 giờ</strong>.</li>
+    <li><strong>Chuẩn hóa Thanh toán Nội bộ &amp; Lương (VCB DigiBiz 11 Cột):</strong> Toàn bộ chi trả lương kỹ sư và đối tác tuân thủ định dạng tệp <code>.xlsx</code> 11 cột chuẩn Vietcombank DigiBiz (giữ nguyên số <code>0</code> ở đầu số tài khoản bằng định dạng chuỗi <code>@</code>), khấu trừ đúng tỷ lệ BHXH <code>8%</code>, BHYT <code>1.5%</code>, BHTN <code>1%</code> dưới mã đơn vị <code>TZ0857G</code> và biểu thuế TNCN 5 bậc 2026.</li>
+</ul>
+
+<h2>5. Ma Trận Feature Items, Battlecard So Sánh &amp; Định Lượng ROI Theo Đặc Thù Kinh Doanh Khách Hàng</h2>
+<p>Mỗi báo giá trên <code>sale.order</code> bắt buộc liên kết với một Hồ sơ Định lượng Giá trị (<code>al2c.value.case</code>) được hiệu chuẩn tự động qua <code>action_calibrate_archetype_roi</code> theo 6 đặc thù kinh doanh (<code>customer_business_archetype</code>):</p>
+<ol>
+    <li><code>outsourcing_partner</code>: Đối tác Outsourcing &amp; Cung ứng Man-Hour (Staff Augmentation).</li>
+    <li><code>ktt_finance_ops</code>: Kế toán Trưởng (KTT) &amp; Tự động hóa Tài chính - Thuế - Lương.</li>
+    <li><code>erp_insilos_enterprise</code>: Doanh nghiệp Triển khai ERP Đóng gói (Insilos Clean-Core ERP).</li>
+    <li><code>grc_vertical_resilience</code>: Doanh nghiệp Quản trị Rủi ro &amp; Tuân thủ GRC (Vertical Resilience).</li>
+    <li><code>mojo_ai_automation</code>: Doanh nghiệp Chuyển đổi AI &amp; Tự động hóa Tri thức (Mojo AI Tools).</li>
+    <li><code>hybrid_full_stack</code>: Tổ hợp Toàn diện (ERP Insilos + GRC Vertical Resilience + Mojo AI + KTT).</li>
+</ol>
+<p><strong>Công thức Định lượng Giá trị Kinh tế Bất biến (3-Year Value-to-Quote Formula):</strong></p>
+<ul>
+    <li><code>net_annual_benefit_vnd</code> = Tổng lợi ích 3 nhóm động lực (<code>cost_reduction</code> + <code>risk_avoidance</code> + <code>productivity</code>) + Chênh lệch tiết kiệm TCO hàng năm (<code>max(tco_current_vnd - tco_future_vnd, 0)</code>).</li>
+    <li><code>three_year_net_benefit_vnd</code> = <code>(net_annual_benefit_vnd * 3.0) - quotation_price_vnd</code> (Lợi ích ròng thu về sau khi đã trừ toàn bộ chi phí đầu tư báo giá).</li>
+    <li><code>quote_to_roi_ratio</code> = <code>round((net_annual_benefit_vnd * 3.0) / max(quotation_price_vnd, 1.0), 2)</code> — Chứng minh rõ khách hàng nhận lại gấp bao nhiêu lần giá trị so với số tiền bỏ ra trên báo giá, kèm Ma trận Battlecard so sánh trực diện với <em>Legacy Tier-1 ERP</em>, <em>Fragmented SaaS</em>, <em>Generic Outsourcing</em> và <em>Manual Excel-KTT</em>.</li>
+</ul>
+</div>]]></field>
+    </record>
+
+    <!-- ===================================================================
+         SOP-RAG Workflow Registry Record: KMS-SOP-DGM-15 (SOP-DGM-15)
+         =================================================================== -->
+    <record id="sop_workflow_dgm_15_sales_cpq_roi" model="dgm.knowledge.sop.workflow">
+        <field name="code">KMS-SOP-DGM-15</field>
+        <field name="sop_code">SOP-DGM-15</field>
+        <field name="name">SOP-DGM-15: Khung RAG-SOP Phòng Sale &amp; Marketing — Chăm sóc Khách hàng Cũ, Đối soát Timesheet, Thanh toán &amp; Báo giá Nhanh (Insilos ERP · Vertical Resilience GRC · Mojo AI · KTT &amp; Man-Hour)</field>
+        <field name="category">sop_governance</field>
+        <field name="knowledge_article_id" ref="insilos_al2c.knowledge_article_sop_dgm_15_sales_cpq_roi"/>
+        <field name="rbac_profile">crm_sales</field>
+        <field name="confidentiality_level">public</field>
+        <field name="visibility_channel">both_public_internal</field>
+        <field name="lifecycle_stage">indexed_rag</field>
+        <field name="state">indexed_rag</field>
+        <field name="min_entailment_threshold">0.85</field>
+        <field name="summary_markdown">Quy trình SOP-DGM-15 (KMS-SOP-DGM-15) chuẩn hóa hoạt động Phòng Sale &amp; Marketing: (1) Maintain Sale &amp; Chăm sóc Khách hàng hiện hữu (QBR hàng quý, cảnh báo gia hạn 45 ngày, mở rộng 5 trụ cột Man-Hour, KTT Finance, Insilos ERP, Vertical Resilience GRC, Mojo AI); (2) Động cơ Báo giá Nhanh CPQ &lt; 5 phút (SLA 1.8 phút) trên sale.order; (3) Quy trình chốt &amp; đối soát Timesheet đa kênh từ MTI - TIMESHEET qua al2c.timesheet.staging sang account.analytic.line với OT 2 bậc (100% và 150%); (4) Thanh toán, xuất hóa đơn điện tử 1C26TAA theo Nghị định 70/2025/NĐ-CP sau nghiệm thu, đối soát lương VCB DigiBiz 11 cột (BHXH TZ0857G) và 24h Foreign Wire SLA; (5) Định lượng ROI 3 năm (three_year_net_benefit_vnd, quote_to_roi_ratio) và Battlecard so sánh cạnh tranh trên al2c.value.case.</field>
+    </record>
+
+</odoo>
