@@ -3,7 +3,7 @@
 
 {
     'name': 'FX Rate Scheduler',
-    'version': '20.0.1.0.0',
+    'version': '26.0.1.0.0',
     'category': 'Accounting/Accounting',
     'summary': 'DPAS-TSM Dual-Key Prefect-Airflow Slot-Sensing Transactional State Machine for Pinned Conversions',
     'description': """

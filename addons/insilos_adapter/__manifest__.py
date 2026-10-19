@@ -3,7 +3,7 @@
 
 {
     'name': 'Hexagonal Gateway',
-    'version': '20.0.1.0.0',
+    'version': '26.0.1.0.0',
     'category': 'Technical',
     'summary': 'IBM Integration Bus & Hexagonal Ports-and-Adapters Perimeter Gateway',
     'description': """

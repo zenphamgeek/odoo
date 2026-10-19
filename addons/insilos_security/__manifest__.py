@@ -3,7 +3,7 @@
 
 {
     'name': 'Security Guard',
-    'version': '20.0.1.0.0',
+    'version': '26.0.1.0.0',
     'category': 'Technical/Security',
     'summary': 'Insilos Sovereign Security Guard: Two-Key Partitioned Advisory Locking & Hermetic Tenant Boundaries',
     'author': 'Insilos Core Team',

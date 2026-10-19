@@ -3,7 +3,7 @@
 
 {
     'name': 'Fiori Horizon',
-    'version': '20.0.1.0.0',
+    'version': '26.0.1.0.0',
     'category': 'Customization',
     'summary': 'SAP S/4HANA Enterprise Lexicon Terminology & Fiori 4 Horizon High-Density UI/UX Design System',
     'description': """

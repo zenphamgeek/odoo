@@ -314,8 +314,57 @@ def install() -> None:
         # Dynamically patch sovereign model view & action aliasing
         _patch_sovereign_model_view_aliasing()
 
+        # Enforce Sovereign v26.0 release & manifest compatibility series
+        _patch_sovereign_version_26()
+
     except Exception as exc:
         _logger.warning("Error initializing insilos namespace aliases: %s", exc)
+
+
+def _patch_sovereign_version_26() -> None:
+    """Enforce Sovereign v26.0 release series and compatible manifest version validation (26.0, 20.0, 19.1)."""
+    try:
+        import odoo.release as release
+        import odoo.modules.module as mod_module
+
+        release.version_info = (26, 0, 0, release.FINAL, 0, '')
+        release.series = release.serie = release.major_version = '26.0'
+        release.version = '26.0'
+        release.COMPATIBLE_SERIES = frozenset({'26.0', '20.0', '19.1'})
+
+        def _sovereign_adapt_version(version: str) -> str:
+            version_str_parts = str(version).split('.')
+            if not (2 <= len(version_str_parts) <= 5):
+                raise ValueError(f"Invalid version {version!r}, must have between 2 and 5 parts")
+            serie = release.major_version
+            if version.startswith(serie) and not version_str_parts[0].isdigit():
+                version_str_parts[0] = ''.join(c for c in version_str_parts[0] if c.isdigit())
+            try:
+                version_parts = [int(v) for v in version_str_parts]
+            except ValueError as e:
+                raise ValueError(f"Invalid version {version!r}") from e
+            compatible_series = getattr(release, 'COMPATIBLE_SERIES', {'26.0', '20.0', '19.1'})
+            has_compat_prefix = any(str(version).startswith(f"{s}.") for s in compatible_series)
+            if len(version_parts) <= 3 and not has_compat_prefix:
+                return f"{serie}.{version}"
+            return str(version)
+
+        def _sovereign_check_version(version: str, should_raise: bool = True) -> bool:
+            version = _sovereign_adapt_version(version)
+            compatible_prefixes = tuple(f"{s}." for s in getattr(release, 'COMPATIBLE_SERIES', {'26.0', '20.0', '19.1'}))
+            if version.startswith(compatible_prefixes):
+                return True
+            if should_raise:
+                raise ValueError(
+                    f"Invalid version {version!r}. Modules should have a version in format `x.y`, `x.y.z`,"
+                    f" `26.0.x.y` or `26.0.x.y.z`."
+                )
+            return False
+
+        mod_module.adapt_version = _sovereign_adapt_version
+        mod_module.check_version = _sovereign_check_version
+    except Exception as exc:
+        _logger.debug("Failed patching sovereign version 26: %s", exc)
 
 
 def _patch_sovereign_model_view_aliasing() -> None:

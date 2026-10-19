@@ -3,7 +3,7 @@
 
 {
     'name': 'Pinned FX Rates',
-    'version': '20.0.1.0.0',
+    'version': '26.0.1.0.0',
     'category': 'Accounting/Accounting',
     'summary': 'DERS-ZLRR and Decree 70 Statutory Barrier for Pinned FX Currency Conversions',
     'description': """

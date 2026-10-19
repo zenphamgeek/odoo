@@ -1,6 +1,6 @@
 {
     'name': 'Lead-to-Cash',
-    'version': '20.0.1.0.0',
+    'version': '26.0.1.0.0',
     'category': 'Sales/Sales',
     'summary': 'IBM Autonomous Lead-to-Cash (AL2C): Catalog as Code, Delivery, E-Invoice, Commissions & Contracts',
     'description': """
