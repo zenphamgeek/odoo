@@ -131,6 +131,15 @@ E2E_QA_GATES: List[Dict[str, Any]] = [
             ["python3", "tools/test_dgm_rapid_quote_roi_pdf.py"],
         ],
     },
+    {
+        "id": "E2E-QA-13",
+        "title": "CRM 7-Stage Dual-Motion AL2C Pipeline, Hunter/Farmer/SDR Teams, 1-Click Lead-to-CPQ-ROI Bridge, 6 ICP Email Lists, 8 Carbon Mailings & 24 ABM Activities",
+        "category": "domain",
+        "fast": True,
+        "commands": [
+            ["python3", "tools/test_dgm_crm_email_marketing_e2e.py"],
+        ],
+    },
 ]
 
 

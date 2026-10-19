@@ -43,3 +43,4 @@ from . import dgm_okr_appraisal_project_pdca
 from . import dgm_knowledge_rag_chatbot
 from . import dgm_autonomous_marketing_research
 from . import dgm_rapid_quote_roi_engine
+from . import dgm_crm_email_marketing_pipeline

@@ -5,6 +5,12 @@
         <field name="model">crm.lead</field>
         <field name="inherit_id" ref="crm.crm_lead_view_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_generate_rapid_quote_from_lead"
+                        string="⚡ Lập Báo giá Nhanh CPQ &amp; Định lượng ROI (&lt; 5 Phút)"
+                        type="object"
+                        class="btn-primary"/>
+            </xpath>
             <xpath expr="//notebook" position="inside">
                 <page string="AL2C Autonomous Qualification &amp; Clean Core" name="al2c_qualification">
                     <group>
@@ -14,7 +20,18 @@
                             <field name="al2c_sentiment"/>
                             <field name="al2c_touch_count"/>
                             <field name="value_case_id"/>
+                            <field name="rapid_quote_order_id"/>
                         </group>
+                        <group string="B2B Solution Pillar &amp; Maintain Sale Governance">
+                            <field name="customer_business_archetype"/>
+                            <field name="service_pillar"/>
+                            <field name="deal_motion"/>
+                            <field name="billing_governance_mode"/>
+                            <field name="account_health_score"/>
+                            <field name="next_qbr_or_renewal_date"/>
+                        </group>
+                    </group>
+                    <group>
                         <group string="BANT Framework">
                             <field name="al2c_bant_budget"/>
                             <field name="al2c_bant_budget_amount"/>
