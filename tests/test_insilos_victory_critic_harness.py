@@ -2096,3 +2096,107 @@ def test_crdt_sales_doc_odoo_rls_guard_and_prefect_flow_orchestrator_e2e():
     assert ctx_retry.state == FlowState.COMPLETED
     assert ctx_retry.retry_count == 1
     assert ctx_retry.result["status"] == "APPROVED_ON_RETRY"
+
+
+def test_bounded_sales_quote_crdt_merkle_ledger_and_supervisor_e2e():
+    """Verify Bounded-Delta CRDT with Snapshot Folding, MerkleTransparencyLedger & SalesWorkflowSupervisor."""
+    from decimal import Decimal
+
+    BoundedSalesQuoteCRDT = _lock_mod.BoundedSalesQuoteCRDT
+    MerkleTransparencyLedger = _lock_mod.MerkleTransparencyLedger
+    SalesWorkflowSupervisor = _lock_mod.SalesWorkflowSupervisor
+
+    replica_a = BoundedSalesQuoteCRDT(order_id="SO-2026-001", company_id=1)
+    replica_b = BoundedSalesQuoteCRDT(order_id="SO-2026-001", company_id=1)
+
+    mut_a1 = replica_a.create_or_update_line(
+        node_id="node_a",
+        line_id="line_1",
+        product_id="PROD_SERVER_RACK",
+        quantity=2.0,
+        price_unit=1200.00,
+        discount=5.0,
+    )
+    mut_b1 = replica_b.create_or_update_line(
+        node_id="node_b",
+        line_id="line_2",
+        product_id="PROD_SWITCH_48P",
+        quantity=4.0,
+        price_unit=450.00,
+        discount=10.0,
+    )
+
+    replica_a.apply_mutation(mut_b1)
+    replica_b.apply_mutation(mut_a1)
+    assert replica_a.canonical_json() == replica_b.canonical_json()
+
+    mut_b_conflict = replica_b.create_or_update_line(
+        node_id="node_b",
+        line_id="line_1",
+        product_id="PROD_SERVER_RACK",
+        quantity=3.0,
+        price_unit=1200.00,
+        discount=5.0,
+    )
+    mut_a_conflict = replica_a.create_or_update_line(
+        node_id="node_a",
+        line_id="line_1",
+        product_id="PROD_SERVER_RACK",
+        quantity=2.0,
+        price_unit=1200.00,
+        discount=12.0,
+    )
+
+    replica_a.apply_mutation(mut_b_conflict)
+    replica_b.apply_mutation(mut_a_conflict)
+    assert replica_a.canonical_json() == replica_b.canonical_json()
+
+    final_line_1 = replica_a.lines["line_1"]
+    assert final_line_1.quantity == 3.0
+    assert final_line_1.discount == 5.0
+    assert final_line_1.timestamp.node_id == "node_b"
+
+    ledger = MerkleTransparencyLedger(genesis_salt="test_enterprise_salt")
+    quote = BoundedSalesQuoteCRDT(order_id="SO-2026-002", company_id=1)
+    quote.create_or_update_line("agent_alpha", "l1", "PROD_A", 10.0, 100.0, 0.0)
+    root_1 = ledger.append_transition("agent_alpha", "DRAFT_CREATE", quote.canonical_json())
+
+    quote.create_or_update_line("agent_beta", "l1", "PROD_A", 10.0, 100.0, 20.0)
+    root_2 = ledger.append_transition("agent_beta", "APPLY_DISCOUNT", quote.canonical_json())
+
+    assert root_1 != root_2
+    assert ledger.verify_chain_integrity() is True
+
+    ledger.transition_history[1]["actor"] = "fraudulent_actor"
+    assert ledger.verify_chain_integrity() is False
+
+    supervisor_company_1 = SalesWorkflowSupervisor(tenant_company_id=1)
+    quote_c1 = BoundedSalesQuoteCRDT(order_id="SO-C1-001", company_id=1)
+    quote_c2 = BoundedSalesQuoteCRDT(order_id="SO-C2-001", company_id=2)
+
+    assert supervisor_company_1.validate_tenant_isolation(quote_c1) is True
+    with pytest.raises(PermissionError):
+        supervisor_company_1.validate_tenant_isolation(quote_c2)
+
+    quote_c1.create_or_update_line("rep_1", "line_x", "PROD_MICRO", 3.0, 33.33, 10.0)
+    totals = quote_c1.compute_subtotals(tax_rate_percent=10.0)
+    assert totals["amount_untaxed"] == Decimal("89.99")
+    assert totals["amount_tax"] == Decimal("9.00")
+    assert totals["amount_total"] == Decimal("98.99")
+
+    costs = {
+        "PROD_HIGH_MARGIN": Decimal("50.00"),
+        "PROD_LOW_MARGIN": Decimal("90.00"),
+    }
+    quote_m = BoundedSalesQuoteCRDT(order_id="SO-MARGIN-001", company_id=1)
+    quote_m.create_or_update_line("rep_1", "l1", "PROD_HIGH_MARGIN", 1.0, 100.0, 0.0)
+    is_valid, margin = supervisor_company_1.validate_pricing_constraints(quote_m, costs)
+    assert is_valid is True and margin == Decimal("50.00")
+
+    quote_m.create_or_update_line("rep_1", "l2", "PROD_LOW_MARGIN", 1.0, 100.0, 15.0)
+    is_valid_after, margin_after = supervisor_company_1.validate_pricing_constraints(quote_m, costs)
+    assert is_valid_after is True and margin_after == Decimal("24.32")
+
+    quote_m.create_or_update_line("rep_1", "l2", "PROD_LOW_MARGIN", 1.0, 100.0, 50.0)
+    is_valid_fail, margin_fail = supervisor_company_1.validate_pricing_constraints(quote_m, costs)
+    assert is_valid_fail is False and margin_fail == Decimal("6.67")
