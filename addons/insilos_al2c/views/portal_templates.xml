@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- =====================================================================
-         INNORIA / INSILOS ENTERPRISE CUSTOMER PORTAL TEMPLATES
-         Architecture: IBM Carbon Design System & Enterprise Horizon Standards
+         INNORIA / INSILOS SOFTWARE ENGINEERING & PRODUCT CUSTOMER PORTAL
+         Architecture: IBM Carbon Design System v11 & Poppins Sans-Serif Standard
          Branding: Official Web Innoria Logo (/insilos_website/static/src/img/innoria/logo_innoria_header.svg)
-         Compliance: Zero third-party platform strings, ISO/IEC 27001, Decree 13/2023/ND-CP
-         Processes: 5-Gate Enterprise Milestones, Napas247 VietQR, AL2C-INV-103 Dispute
+         Compliance: Zero third-party platform strings, ISO/IEC 27001, Decree 70/2025/ND-CP
+         Processes: Quotations & Fit-to-Standard Scope, Engineer Timesheet & Sprint Acceptance,
+                    Draft Invoice Reconciliation, Official 1C26TAA E-Invoice, AL2C-INV-103 & SOP-RAG-003
          ===================================================================== -->
 
     <!-- 1. Master Frontend & Portal Layout Enhancement (Preserves Native Website Header & Footer) -->
     <template id="portal_frontend_layout_inherit_al2c" inherit_id="portal.frontend_layout">
-        <!-- Subtle 3px gradient accent stripe above header without replacing website.layout navbar/footer -->
         <xpath expr="//header" position="before">
-            <div class="al2c_portal_horizon_stripe" data-innoria-brand="/insilos_website/static/src/img/innoria/logo_innoria_header.svg" style="height: 3px; background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%); width: 100%; position: relative; z-index: 1050;"/>
+            <div class="al2c_portal_horizon_stripe" data-innoria-brand="/insilos_website/static/src/img/innoria/logo_innoria_header.svg" style="height: 3px; background: #0f62fe; width: 100%; position: relative; z-index: 1050;"/>
         </xpath>
 
-        <!-- Replace copyright column name -->
         <xpath expr="//div[@name='footer_copyright_col']" position="replace">
-            <div name="footer_copyright_col" class="col-md text-center text-sm-start text-muted small" style="font-size: 11px;">
+            <div name="footer_copyright_col" class="col-md text-center text-sm-start text-muted small" style="font-size: 11px; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
                 <span class="o_footer_copyright_name">
                     INNORIA GROUP · Innoria Enterprise Platform · ISO/IEC 27001:2022
                 </span>
@@ -29,83 +28,106 @@
     <!-- Global Zero-Platform Brand Promotion Override (Clean Sovereign Enterprise) -->
     <template id="brand_promotion_message_inherit_al2c" inherit_id="web.brand_promotion_message">
         <xpath expr="//t[@t-out]" position="replace">
-            <span style="font-size: 11px; color: var(--insilos-text-secondary, #475569); font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+            <span style="font-size: 11px; color: var(--insilos-text-secondary, #525252); font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
                 ISO/IEC 27001 · INNORIA GROUP
             </span>
         </xpath>
     </template>
 
-    <!-- 2. Portal Home Cockpit with Clean IBM Carbon Enterprise Cards -->
+    <!-- 2. Portal Home Cockpit: 5-Card Software Engineering & Product Customer Portal Cockpit -->
     <template id="portal_my_home_inherit_al2c" inherit_id="portal.portal_my_home">
         <xpath expr="//div[hasclass('o_portal_my_home')]/div[hasclass('o_portal_docs')]" position="before">
-            <div class="al2c-portal-cockpit mb-4">
-                <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+            <div class="al2c-portal-cockpit mb-4" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 border-bottom pb-3 gap-2">
                     <div class="d-flex align-items-center gap-3">
-                        <img src="/insilos_website/static/src/img/innoria/logo_innoria_header.svg" style="max-height: 28px; width: auto;" alt="INNORIA" title="Innoria Enterprise Portal"/>
+                        <img src="/insilos_website/static/src/img/innoria/logo_innoria_header.svg" style="max-height: 28px; width: auto;" alt="INNORIA" title="Innoria Software Engineering &amp; Product Portal"/>
                         <div>
-                            <h4 class="mb-0 fw-bold" style="color: var(--insilos-text-primary, #1e293b); letter-spacing: -0.02em;">Cổng Thông tin &amp; Dịch vụ Doanh nghiệp INNORIA</h4>
-                            <div class="text-muted small mt-1">Quản lý báo giá, hợp đồng SOW, hóa đơn điện tử Nghị định 70/2025, tiến độ triển khai 5 cổng quốc tế (5-Gate Delivery) và giải quyết đối soát AL2C-INV-103.</div>
+                            <h4 class="mb-0 fw-bold" style="color: #161616; letter-spacing: -0.02em;">Cổng Khách Hàng Kỹ Thuật Phần Mềm &amp; Sản Phẩm Số INNORIA</h4>
+                            <div class="text-muted small mt-1" style="color: #525252;">
+                                Duyệt báo giá &amp; Fit-to-Standard Scope, nghiệm thu bảng chấm công kỹ sư (Timesheet Sprint), đối soát hóa đơn nháp và tra cứu hóa đơn GTGT điện tử chính thức chuẩn 1C26TAA (Nghị định 70/2025/NĐ-CP).
+                            </div>
                         </div>
                     </div>
-                    <div>
-                        <span class="badge bg-light border" style="color: var(--insilos-text-primary, #1e293b); font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10px;">ENTERPRISE COCKPIT</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="/my/software-portal" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important; font-size: 12px;">
+                            Mở Trung Tâm Dự Án &amp; Nghiệm Thu →
+                        </a>
+                        <span class="badge bg-light border" style="color: #161616; border-radius: 4px !important; box-shadow: none !important; font-size: 10px;">SOFTWARE DELIVERY COCKPIT</span>
                     </div>
                 </div>
 
-                <!-- 4 IBM Carbon Enterprise Action Cards -->
-                <div class="row g-3">
-                    <!-- Card 1: Báo giá & Hợp đồng -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="/my/quotes" class="al2c-portal-card p-3 shadow-sm">
+                <!-- 5-Card Software Engineering & Product Customer Portal Cockpit -->
+                <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xl-5">
+                    <!-- Card 1: Software Delivery Hub -->
+                    <div class="col">
+                        <a href="/my/software-portal" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0;">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge bg-primary text-white" style="font-size: 10px; font-weight: 600;">AL2C SOW CONTRACTS</span>
+                                <span class="badge text-white" style="background: #0f62fe; border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">SOFTWARE DELIVERY HUB</span>
                                 <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
                             </div>
-                            <h6 class="fw-bold mb-1" style="color: #161616;">Báo giá &amp; Hợp đồng</h6>
-                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5;">
-                                Quản lý danh mục giải pháp, điều khoản dịch vụ SOW và tiến hành ký kết số trực tuyến.
+                            <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Trung tâm Dự án Phần mềm &amp; Nghiệm thu</h6>
+                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
+                                Không gian hợp nhất toàn trình: Duyệt báo giá SOW, nghiệm thu giờ công kỹ sư, đối soát hóa đơn nháp và tải HĐĐT 1C26TAA.
                             </p>
                         </a>
                     </div>
 
-                    <!-- Card 2: Hóa đơn & Đối soát -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="/my/invoices" class="al2c-portal-card p-3 shadow-sm">
+                    <!-- Card 2: Quotations, Fit-to-Standard Scope & SOW -->
+                    <div class="col">
+                        <a href="/my/quotes" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0;">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge bg-success text-white" style="font-size: 10px; font-weight: 600;">NGHỊ ĐỊNH 70/2025</span>
+                                <span class="badge bg-dark text-white" style="border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">QUOTATIONS &amp; SOW</span>
                                 <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
                             </div>
-                            <h6 class="fw-bold mb-1" style="color: #161616;">Hóa đơn &amp; Đối soát</h6>
-                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5;">
-                                Tra cứu hóa đơn điện tử xác thực CQT, tải file XML/PDF gốc và thanh toán Napas247.
+                            <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Báo giá, Fit-to-Standard Scope &amp; Ký SOW</h6>
+                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
+                                Rà soát kiến trúc Clean Core (Class A/B/C), bài toán hiệu quả đầu tư (Value Case ROI) và phê duyệt báo giá trực tuyến.
                             </p>
                         </a>
                     </div>
 
-                    <!-- Card 3: Dự án Triển khai 5-Gate -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="/my/projects" class="al2c-portal-card p-3 shadow-sm">
+                    <!-- Card 3: Engineer Timesheets & Sprint Man-Hour Acceptance -->
+                    <div class="col">
+                        <a href="/my/timesheets" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0;">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge bg-info text-white" style="font-size: 10px; font-weight: 600;">5-GATE ENTERPRISE DELIVERY</span>
+                                <span class="badge bg-info text-dark" style="border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">
+                                    TIMESHEETS (<t t-out="timesheet_sheet_count or 0"/>)
+                                </span>
                                 <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
                             </div>
-                            <h6 class="fw-bold mb-1" style="color: #161616;">Dự án Triển khai 5-Gate</h6>
-                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5;">
-                                Giám sát 5 giai đoạn: Prepare, Explore, Realize, Deploy, Run và phê duyệt nghiệm thu SOW.
+                            <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Bảng Chấm công Kỹ sư &amp; Nghiệm thu Sprint</h6>
+                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
+                                Kiểm tra ngày công thực tế, giờ OT, deliverables của đội ngũ kỹ sư, ký xác thực băm SHA-256 và tự động tạo Hóa đơn Nháp.
                             </p>
                         </a>
                     </div>
 
-                    <!-- Card 4: Khiếu nại & Tranh chấp Commercial Disputes -->
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <a href="/my/invoices" class="al2c-portal-card p-3 shadow-sm">
+                    <!-- Card 4: Draft Reconciliation & Official 1C26TAA E-Invoices -->
+                    <div class="col">
+                        <a href="/my/invoices" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0;">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge bg-warning text-body" style="font-size: 10px; font-weight: 600;">AL2C-INV-103</span>
+                                <span class="badge bg-success text-white" style="border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">
+                                    1C26TAA (<t t-out="draft_invoice_count or 0"/> NHÁP · <t t-out="official_invoice_count or 0"/> CQT)
+                                </span>
                                 <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
                             </div>
-                            <h6 class="fw-bold mb-1" style="color: #161616;">Khiếu nại &amp; Đối soát</h6>
-                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5;">
-                                Cơ chế bảo vệ khách hàng: Gửi yêu cầu đối soát để lập tức đóng băng tiến trình dunning tự động.
+                            <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Hóa đơn Nháp &amp; HĐĐT Chính thức 1C26TAA</h6>
+                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
+                                Đối soát thông tin thuế trên Hóa đơn Nháp để phát hành tức thời HĐĐT có mã CQT (Nghị định 70/2025) và tải XML/HTML gốc.
+                            </p>
+                        </a>
+                    </div>
+
+                    <!-- Card 5: Commercial Disputes & AI RAG Assistant -->
+                    <div class="col">
+                        <a href="/my/software-portal#disputes" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-warning text-dark" style="border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">AL2C-INV-103 &amp; SOP-RAG</span>
+                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                            </div>
+                            <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Đối soát Thương mại &amp; Trợ lý AI</h6>
+                            <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
+                                Hỏi Trợ lý AI đối soát hợp đồng SOW (SOP-RAG-003) hoặc gửi yêu cầu đối soát AL2C-INV-103 để đóng băng nhắc nợ tự động.
                             </p>
                         </a>
                     </div>
@@ -114,68 +136,211 @@
         </xpath>
     </template>
 
-    <!-- 3. Sales Order Portal Content Enhancement: 5-Gate Milestones & Napas247 -->
+    <!-- 3. Sales Order Portal Content Enhancement: Fit-to-Standard Scope, Value Case ROI, Interactive Quotation Approval & 5-Gate SOW -->
     <template id="sale_order_portal_content_inherit_al2c" inherit_id="sale.sale_order_portal_content">
-        <!-- Top Horizon Accent stripe on SO introduction -->
         <xpath expr="//div[@id='introduction']" position="before">
-            <div class="al2c_portal_horizon_stripe" style="height: 3px; background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%); width: 100%; border-top-left-radius: 4px; border-top-right-radius: 4px;"/>
+            <div class="al2c_portal_horizon_stripe" style="height: 3px; background: #0f62fe; width: 100%; border-radius: 0px;"/>
+            <div t-if="request.params.get('quotation_approved')" class="alert alert-success d-flex align-items-center justify-content-between p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
+                <div>
+                    <strong>✓ Đã phê duyệt Báo giá &amp; Xác nhận Phạm vi Kỹ thuật (SOW) thành công!</strong>
+                    Đội ngũ Quản lý Dự án (PMO) đang khởi tạo Sprint thực thi theo chuẩn 5-Gate Delivery.
+                </div>
+                <a href="/my/software-portal" class="btn btn-sm btn-outline-success" style="border-radius: 0px !important; box-shadow: none !important;">Về Trung Tâm Dự Án</a>
+            </div>
+            <div t-if="request.params.get('scope_revision_requested')" class="alert alert-warning d-flex align-items-center justify-content-between p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
+                <div>
+                    <strong>✎ Đã ghi nhận Yêu cầu Điều chỉnh Scope / Ước lượng Man-Hour:</strong>
+                    Kiến trúc sư Giải pháp (Solution Architect) sẽ cập nhật lại bảng Fit-to-Standard và phản hồi trong vòng 4 giờ làm việc.
+                </div>
+                <a href="/my/software-portal" class="btn btn-sm btn-outline-dark" style="border-radius: 0px !important; box-shadow: none !important;">Về Trung Tâm Dự Án</a>
+            </div>
         </xpath>
 
-        <!-- SOW Framework Badge in Introduction -->
         <xpath expr="//div[@id='introduction']//div[hasclass('d-flex')][1]" position="inside">
-            <div class="d-none d-md-flex align-items-center ms-auto">
-                <span class="badge bg-light text-body border px-2 py-1" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10px;">
+            <div class="d-none d-md-flex align-items-center ms-auto gap-2">
+                <span class="badge bg-light text-body border px-2 py-1" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; border-radius: 4px !important;">
                     5-GATE SOW · ISO 27001
                 </span>
             </div>
         </xpath>
 
-        <!-- Content Area: Milestones Roadmap & Napas247 Payment Box -->
         <xpath expr="//div[@id='content']" position="inside">
+            <!-- 3A. Fit-to-Standard Clean Core Scope Table (fts_item_ids) & Business Value Case ROI (value_case_id) -->
+            <div t-if="sale_order.fts_item_ids or sale_order.value_case_id" class="border p-3 p-lg-4 mt-3 bg-white" style="border-radius: 2px !important; border-color: #e0e0e0 !important; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
+                    <div>
+                        <h6 class="fw-bold mb-0" style="color: #161616;">Phạm Vi Kỹ Thuật Phần Mềm (Fit-to-Standard Scope) &amp; Hiệu Quả Đầu Tư (Value Case ROI)</h6>
+                        <div class="text-muted small" style="font-size: 11px;">Phân loại kiến trúc Clean Core (AL2C-CRM-101) và định lượng lợi ích kinh tế 3 năm (AL2C-VAL-101).</div>
+                    </div>
+                    <span class="badge text-white" style="background: #0f62fe; border-radius: 4px !important; font-size: 10px;">CLEAN CORE ARCHITECTURE</span>
+                </div>
+
+                <!-- Value Case ROI Summary Strip -->
+                <div t-if="sale_order.value_case_id" class="row g-2 mb-3">
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 border bg-light h-100" style="border-radius: 2px !important;">
+                            <div class="text-muted" style="font-size: 10px;">CHI PHÍ TCO HIỆN TẠI / NĂM</div>
+                            <div class="fw-bold" style="font-size: 13px; color: #161616;" t-out="sale_order.value_case_id.tco_current_vnd" t-options="{'widget': 'monetary', 'display_currency': sale_order.value_case_id.company_currency}"/>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 border bg-light h-100" style="border-radius: 2px !important;">
+                            <div class="text-muted" style="font-size: 10px;">LỢI ÍCH RÒNG HÀNG NĂM</div>
+                            <div class="fw-bold text-success" style="font-size: 13px;" t-out="sale_order.value_case_id.net_annual_benefit_vnd" t-options="{'widget': 'monetary', 'display_currency': sale_order.value_case_id.company_currency}"/>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 border bg-light h-100" style="border-radius: 2px !important;">
+                            <div class="text-muted" style="font-size: 10px;">TỶ SUẤT HOÀN VỐN (3Y ROI)</div>
+                            <div class="fw-bold text-primary" style="font-size: 13px;"><t t-out="'{:,.1f}%'.format(sale_order.value_case_id.roi_percentage or 0.0)"/></div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="p-2 border bg-light h-100" style="border-radius: 2px !important;">
+                            <div class="text-muted" style="font-size: 10px;">THỜI GIAN HOÀN VỐN (PAYBACK)</div>
+                            <div class="fw-bold" style="font-size: 13px; color: #161616;"><t t-out="'{:,.1f}'.format(sale_order.value_case_id.payback_months or 0.0)"/> tháng</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fit-to-Standard Scope Items Table -->
+                <div t-if="sale_order.fts_item_ids" class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0" style="font-size: 12px;">
+                        <thead style="background: #f4f4f4;">
+                            <tr>
+                                <th>Phân hệ (Module)</th>
+                                <th>Hạng mục Yêu cầu Kỹ thuật (Requirement Summary)</th>
+                                <th>Phân loại Clean Core</th>
+                                <th>Đặc tả &amp; Giải pháp Kiến trúc</th>
+                                <th class="text-center">Thẩm định</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="sale_order.fts_item_ids" t-as="fts">
+                                <tr>
+                                    <td class="fw-bold" t-out="fts.module or 'Core'"/>
+                                    <td t-out="fts.name"/>
+                                    <td>
+                                        <span class="badge bg-light text-dark border" style="border-radius: 4px !important; font-size: 10px;" t-out="fts.clean_core_class"/>
+                                    </td>
+                                    <td class="text-muted" t-out="fts.description or fts.justification or 'Theo chuẩn Fit-to-Standard'"/>
+                                    <td class="text-center">
+                                        <span t-if="fts.approved_by_architect or fts.clean_core_class != 'class_d'" class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">✓ Đạt Chuẩn</span>
+                                        <span t-else="" class="badge bg-warning-subtle text-dark border" style="border-radius: 4px !important; font-size: 10px;">Chờ Hội đồng KT</span>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3B. Interactive Customer Quotation & SOW Approval Box (/my/orders/<id>/software_decide) -->
+            <div class="border p-3 p-lg-4 mt-3 bg-white" style="border-radius: 2px !important; border-left: 4px solid #0f62fe !important; border-color: #e0e0e0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
+                    <div>
+                        <h6 class="fw-bold mb-0" style="color: #161616;">Phê Duyệt Báo Giá &amp; Ký Xác Nhận Phạm Vi Công Việc (SOW Sign-Off)</h6>
+                        <div class="text-muted small" style="font-size: 11px;">
+                            Khách hàng: <strong t-out="sale_order.partner_id.name"/> · Trạng thái hiện tại: <code t-out="sale_order.state"/>
+                        </div>
+                    </div>
+                    <span t-if="sale_order.state == 'sale'" class="badge bg-success text-white px-2 py-1" style="border-radius: 4px !important; font-size: 11px;">✓ ĐÃ PHÊ DUYỆT &amp; KÍCH HOẠT SOW</span>
+                    <span t-else="" class="badge bg-primary text-white px-2 py-1" style="background: #0f62fe; border-radius: 4px !important; font-size: 11px;">CHỜ KHÁCH HÀNG PHÊ DUYỆT</span>
+                </div>
+
+                <div class="row g-3">
+                    <!-- Form 1: 1-Click Approve Quotation & SOW -->
+                    <div class="col-12 col-lg-7">
+                        <form t-attf-action="/my/orders/#{sale_order.id}/software_decide" method="post" class="p-3 border bg-light h-100" style="border-radius: 2px !important;">
+                            <input type="hidden" name="action" value="approve_quotation"/>
+                            <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
+                            <div class="fw-bold mb-2" style="font-size: 13px; color: #161616;">1. Phê duyệt Báo giá &amp; Khởi động Dự án Phần mềm</div>
+                            <div class="row g-2 mb-2">
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label small mb-1">Họ tên Người đại diện phê duyệt:</label>
+                                    <input type="text" name="approver_name" class="form-control form-control-sm" t-att-value="sale_order.partner_id.name" required="required" style="border-radius: 0px !important;"/>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label small mb-1">Email nhận biên bản SOW:</label>
+                                    <input type="email" name="approver_email" class="form-control form-control-sm" t-att-value="sale_order.partner_id.email" style="border-radius: 0px !important;"/>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">Ghi chú phê duyệt / Điều kiện nghiệm thu Sprint:</label>
+                                <input type="text" name="note" class="form-control form-control-sm" value="Đồng ý phê duyệt Báo giá, Scope Fit-to-Standard và Lộ trình 5-Gate SOW." style="border-radius: 0px !important;"/>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
+                                ✅ Phê duyệt Báo giá &amp; Ký Xác nhận SOW
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Form 2: Request Scope / Man-Hour Revision -->
+                    <div class="col-12 col-lg-5">
+                        <form t-attf-action="/my/orders/#{sale_order.id}/software_decide" method="post" class="p-3 border bg-light h-100" style="border-radius: 2px !important;">
+                            <input type="hidden" name="action" value="request_scope_revision"/>
+                            <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
+                            <div class="fw-bold mb-2" style="font-size: 13px; color: #161616;">2. Yêu cầu Điều chỉnh Scope / Man-Hour</div>
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">Người yêu cầu:</label>
+                                <input type="text" name="requested_by" class="form-control form-control-sm" t-att-value="sale_order.partner_id.name" style="border-radius: 0px !important;"/>
+                            </div>
+                            <div class="mb-2">
+                                <label class="form-label small mb-1">Nội dung cần điều chỉnh (Scope / Rate / Timeline):</label>
+                                <textarea name="note" rows="2" class="form-control form-control-sm" placeholder="Nhập hạng mục tính năng hoặc số Man-Hour cần rà soát lại..." required="required" style="border-radius: 0px !important;"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-outline-dark btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
+                                ✏️ Yêu cầu Điều chỉnh Scope / Man-Hour
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
             <!-- 5-Gate Enterprise Delivery Roadmap -->
-            <div class="border rounded p-3 p-lg-4 mt-3 bg-white shadow-sm">
+            <div class="border p-3 p-lg-4 mt-3 bg-white" style="border-radius: 2px !important; border-color: #e0e0e0 !important;">
                 <div class="d-flex align-items-center justify-content-between border-bottom pb-2 mb-3">
                     <div>
                         <h6 class="fw-bold mb-0" style="color: #161616;">Lộ trình Triển khai Chuẩn 5 Cổng Quốc tế (5-Gate Delivery) &amp; Nghiệm thu SOW</h6>
                         <div class="text-muted small" style="font-size: 11px;">Khung phương pháp luận 5 giai đoạn bàn giao giải pháp bảo đảm chất lượng theo chuẩn Innoria Enterprise.</div>
                     </div>
-                    <span class="badge bg-info text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10px;">
+                    <span class="badge bg-info text-dark" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; border-radius: 4px !important;">
                         AL2C-ACT-001
                     </span>
                 </div>
 
                 <div class="row g-2 text-center">
                     <div class="col">
-                        <div class="p-2 border rounded bg-light h-100">
-                            <span class="badge bg-primary text-white rounded-1 mb-1">1</span>
+                        <div class="p-2 border bg-light h-100" style="border-radius: 2px !important;">
+                            <span class="badge bg-primary text-white mb-1" style="border-radius: 4px !important;">1</span>
                             <div class="fw-bold small" style="font-size: 12px; color: #161616;">Prepare</div>
                             <div class="text-muted" style="font-size: 10px;">Khởi động &amp; Thiết lập</div>
                         </div>
                     </div>
                     <div class="col">
-                        <div class="p-2 border rounded bg-light h-100">
-                            <span class="badge bg-primary text-white rounded-1 mb-1">2</span>
+                        <div class="p-2 border bg-light h-100" style="border-radius: 2px !important;">
+                            <span class="badge bg-primary text-white mb-1" style="border-radius: 4px !important;">2</span>
                             <div class="fw-bold small" style="font-size: 12px; color: #161616;">Explore</div>
                             <div class="text-muted" style="font-size: 10px;">Fit-to-Standard &amp; Gap</div>
                         </div>
                     </div>
                     <div class="col">
-                        <div class="p-2 border rounded bg-light h-100">
-                            <span class="badge bg-primary text-white rounded-1 mb-1">3</span>
+                        <div class="p-2 border bg-light h-100" style="border-radius: 2px !important;">
+                            <span class="badge bg-primary text-white mb-1" style="border-radius: 4px !important;">3</span>
                             <div class="fw-bold small" style="font-size: 12px; color: #161616;">Realize</div>
-                            <div class="text-muted" style="font-size: 10px;">Cấu hình &amp; Tích hợp SIT</div>
+                            <div class="text-muted" style="font-size: 10px;">Phát triển Sprint &amp; SIT</div>
                         </div>
                     </div>
                     <div class="col">
-                        <div class="p-2 border rounded bg-light h-100">
-                            <span class="badge bg-primary text-white rounded-1 mb-1">4</span>
+                        <div class="p-2 border bg-light h-100" style="border-radius: 2px !important;">
+                            <span class="badge bg-primary text-white mb-1" style="border-radius: 4px !important;">4</span>
                             <div class="fw-bold small" style="font-size: 12px; color: #161616;">Deploy</div>
                             <div class="text-muted" style="font-size: 10px;">UAT &amp; Go-Live</div>
                         </div>
                     </div>
                     <div class="col">
-                        <div class="p-2 border rounded bg-light h-100">
-                            <span class="badge bg-primary text-white rounded-1 mb-1">5</span>
+                        <div class="p-2 border bg-light h-100" style="border-radius: 2px !important;">
+                            <span class="badge bg-primary text-white mb-1" style="border-radius: 4px !important;">5</span>
                             <div class="fw-bold small" style="font-size: 12px; color: #161616;">Run</div>
                             <div class="text-muted" style="font-size: 10px;">Hypercare &amp; Vận hành</div>
                         </div>
@@ -184,11 +349,11 @@
             </div>
 
             <!-- Napas247 VietQR Payment & Settlement Card -->
-            <div class="border rounded p-3 p-lg-4 mt-3 bg-light shadow-sm">
+            <div class="border p-3 p-lg-4 mt-3 bg-light" style="border-radius: 2px !important;">
                 <div class="row align-items-center gy-3">
                     <div class="col-12 col-md-7">
                         <div class="d-flex align-items-center gap-2 mb-2">
-                            <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10px;">NAPAS247 VIETQR</span>
+                            <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; border-radius: 4px !important;">NAPAS247 VIETQR</span>
                             <strong style="color: #161616; font-size: 13px;">Thanh toán &amp; Ký quỹ Hợp đồng Nhanh:</strong>
                         </div>
                         <table class="table table-sm table-borderless mb-0" style="font-size: 12px;">
@@ -198,7 +363,7 @@
                             </tr>
                             <tr>
                                 <td class="text-muted p-1">Tài khoản ngân hàng:</td>
-                                <td class="fw-bold p-1" style="color: #0070F2;">0071001234567 <span class="fw-normal text-muted">(Ngân hàng Thương mại Quốc doanh - CN TP.HCM)</span></td>
+                                <td class="fw-bold p-1" style="color: #0f62fe;">0071001234567 <span class="fw-normal text-muted">(Ngân hàng Thương mại Quốc doanh - CN TP.HCM)</span></td>
                             </tr>
                             <tr>
                                 <td class="text-muted p-1">Nội dung chuyển khoản:</td>
@@ -211,7 +376,7 @@
                         </table>
                     </div>
                     <div class="col-12 col-md-5 text-center">
-                        <div class="p-2 bg-white border rounded d-inline-block shadow-sm">
+                        <div class="p-2 bg-white border d-inline-block" style="border-radius: 2px !important;">
                             <img t-attf-src="https://img.vietqr.io/image/970436-0071001234567-compact2.png?amount={{ int(sale_order.amount_total) }}&amp;addInfo={{ sale_order.name }}&amp;accountName=INNORIA%20GROUP"
                                  alt="Napas247 VietQR"
                                  style="max-height: 140px; width: auto;"
@@ -223,41 +388,50 @@
             </div>
 
             <!-- Clarification & SOW Dispute Safeguard -->
-            <div class="p-3 mt-3 border rounded bg-white small" style="border-left: 4px solid #0070F2 !important; font-size: 12px; color: #525252;">
-                <strong>QUY CHẾ GIẢI QUYẾT ĐỐI SOÁT AL2C-INV-103:</strong> Quý Khách hàng có quyền yêu cầu làm rõ điều khoản hoặc đề nghị đối soát phạm vi công việc bất kỳ lúc nào qua cổng thông tin hoặc email <strong style="color: #161616;">contact@innoria.com</strong>.
+            <div class="p-3 mt-3 border bg-white small" style="border-left: 4px solid #0f62fe !important; border-radius: 2px !important; font-size: 12px; color: #525252;">
+                <strong>QUY CHẾ GIẢI QUYẾT ĐỐI SOÁT AL2C-INV-103:</strong> Quý Khách hàng có quyền yêu cầu làm rõ điều khoản hoặc đề nghị đối soát phạm vi công việc bất kỳ lúc nào qua cổng thông tin <a href="/my/software-portal">/my/software-portal</a> hoặc email <strong style="color: #161616;">contact@innoria.com</strong>.
             </div>
         </xpath>
     </template>
 
-    <!-- 4. Portal Invoice Page Enhancement: Napas247, VietQR, Decree 70 & AL2C-INV-103 Dispute Button -->
+    <!-- 4. Portal Invoice Page Enhancement: Draft Invoice Reconciliation (State 1) vs Official 1C26TAA E-Invoice (State 2) -->
     <template id="portal_invoice_page_inherit_al2c" inherit_id="account.portal_invoice_page">
-        <!-- Sidebar Enhancement: Napas247 Box & AL2C-INV-103 Dispute Button -->
+        <!-- Sidebar Enhancement: E-Invoice Downloads, Napas247 Box & AL2C-INV-103 Dispute Button -->
         <xpath expr="//t[@t-set='entries']//div[hasclass('d-flex')][1]" position="after">
+            <div class="mt-3 d-grid gap-2">
+                <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_xml" class="btn btn-outline-primary btn-sm py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
+                    ⬇️ Tải File XML Chuẩn CQT (1C26TAA)
+                </a>
+                <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
+                    📄 Xem Bản Thể Hiện HĐĐT (HTML)
+                </a>
+            </div>
+
             <!-- AL2C-INV-103 Dispute Action Button / Status -->
             <div class="mt-3">
                 <t t-if="invoice.al2c_has_open_dispute">
-                    <div class="alert alert-warning p-2 small text-center mb-0 border-secondary">
+                    <div class="alert alert-warning p-2 small text-center mb-0 border-secondary" style="border-radius: 2px !important;">
                         <div class="fw-bold text-body"><i class="oi oi-clock me-1"/> Đang Đối Soát AL2C-INV-103</div>
                         <div class="text-muted" style="font-size: 10px;">Tiến trình nhắc nợ Dunning đã được ĐÓNG BĂNG để bảo vệ quyền lợi đối tác.</div>
                     </div>
                 </t>
                 <t t-elif="invoice.move_type == 'out_invoice' and invoice.state == 'posted' and invoice.payment_state not in ('paid', 'in_payment', 'reversed')">
-                    <button type="button" class="btn btn-outline-danger w-100 btn-sm py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal">
+                    <button type="button" class="btn btn-outline-danger w-100 btn-sm py-2" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal" style="border-radius: 0px !important; box-shadow: none !important;">
                         <i class="oi oi-flag me-1"/> Khiếu nại / Đối soát AL2C-INV-103
                     </button>
                 </t>
             </div>
 
             <!-- Napas247 VietQR Sidebar Widget -->
-            <div t-if="invoice.move_type == 'out_invoice' and invoice.state == 'posted' and invoice.payment_state not in ('paid', 'in_payment', 'reversed')" class="mt-3 p-2 bg-light border rounded text-center">
+            <div t-if="invoice.move_type == 'out_invoice' and invoice.state == 'posted' and invoice.payment_state not in ('paid', 'in_payment', 'reversed')" class="mt-3 p-2 bg-light border text-center" style="border-radius: 2px !important;">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 9px;">NAPAS247</span>
+                    <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 9px; border-radius: 4px !important;">NAPAS247</span>
                     <span class="text-muted" style="font-size: 10px;">Ngân hàng Quốc doanh</span>
                 </div>
                 <img t-attf-src="https://img.vietqr.io/image/970436-0071001234567-compact2.png?amount={{ int(invoice.amount_residual) }}&amp;addInfo={{ invoice.name }}&amp;accountName=INNORIA%20GROUP"
                      alt="Napas247 VietQR"
                      style="max-height: 130px; width: auto;"
-                     class="img-fluid border rounded bg-white p-1 mb-2"/>
+                     class="img-fluid border bg-white p-1 mb-2"/>
                 <div class="small text-start" style="font-size: 11px; line-height: 1.4;">
                     <div>STK: <strong class="text-primary">0071001234567</strong></div>
                     <div>Nội dung: <strong class="text-body" t-out="invoice.name"/></div>
@@ -266,84 +440,220 @@
             </div>
         </xpath>
 
-        <!-- Content Area: Top Decree 70/2025 Verification & Dispute Notification Banner -->
+        <!-- Content Area: Draft Reconciliation vs Official 1C26TAA E-Invoice, Timesheet Statement & AI RAG -->
         <xpath expr="//div[hasclass('o_portal_html_view')]" position="before">
-            <!-- Active Dispute Banner (AL2C-INV-103) -->
-            <div t-if="invoice.al2c_has_open_dispute" class="al2c-dispute-alert shadow-sm">
+            <!-- Status Alert Banners -->
+            <div t-if="request.params.get('draft_invoice_confirmed')" class="alert alert-success alert-dismissible fade show" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
+                <strong>✓ Đã xác nhận Hóa đơn Nháp &amp; Phát hành Hóa đơn GTGT Điện tử Chính thức (1C26TAA) thành công!</strong>
+                Quý Khách hàng có thể tải trực tiếp file XML chuẩn CQT và bản thể hiện HTML bên dưới.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div t-if="request.params.get('draft_adjustment_requested')" class="alert alert-warning alert-dismissible fade show" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
+                <strong>✎ Đã ghi nhận Yêu cầu Điều chỉnh Hóa đơn Nháp:</strong> Bộ phận Kế toán Thuế (FinOps) sẽ cập nhật lại thông tin pháp nhân / số liệu và gửi lại bản nháp đối soát.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div t-if="invoice.al2c_has_open_dispute" class="al2c-dispute-alert" style="border-radius: 2px !important;">
                 <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="badge bg-warning text-body" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 11px;">AL2C-INV-103 ĐANG XỬ LÝ</span>
+                    <span class="badge bg-warning text-body" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 11px; border-radius: 4px !important;">AL2C-INV-103 ĐANG XỬ LÝ</span>
                     <strong style="color: #8D660D;">Thông báo Đóng băng Dunning &amp; Đối soát Thương mại:</strong>
                 </div>
                 <div class="small" style="color: #4E342E; font-size: 12px; line-height: 1.5;">
-                    Hóa đơn này đang trong quy trình đối soát thương mại theo yêu cầu của Quý Khách hàng. Toàn bộ tiến trình nhắc nợ tự động (Dunning Ladder) đã được <strong>ĐÓNG BĂNG</strong> trên hệ thống nhằm bảo đảm tối đa quyền lợi đối tác. Đội ngũ Kế toán &amp; Ban Quản lý Dự án Innoria đang tiến hành kiểm tra và sẽ phản hồi biên bản đối soát trong thời gian sớm nhất.
+                    Hóa đơn này đang trong quy trình đối soát thương mại theo yêu cầu của Quý Khách hàng. Toàn bộ tiến trình nhắc nợ tự động (Dunning Ladder) đã được <strong>ĐÓNG BĂNG</strong> trên hệ thống nhằm bảo đảm tối đa quyền lợi đối tác.
                 </div>
             </div>
-
-            <!-- Dispute Submitted Alert -->
-            <div t-if="request.params.get('dispute_submitted')" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
-                <strong>✓ Yêu cầu đối soát / khiếu nại AL2C-INV-103 đã được ghi nhận:</strong> Hệ thống đã lập tức đóng băng tiến trình nhắc nợ tự động. Nhân sự phụ trách hợp đồng sẽ liên hệ trong vòng 24 giờ làm việc.
+            <div t-if="request.params.get('dispute_submitted')" class="alert alert-success alert-dismissible fade show" style="border-radius: 2px !important;" role="alert">
+                <strong>✓ Yêu cầu đối soát / khiếu nại AL2C-INV-103 đã được ghi nhận:</strong> Hệ thống đã lập tức đóng băng tiến trình nhắc nợ tự động.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-
-            <!-- Timesheet Confirmed Alert Banner -->
-            <div t-if="request.params.get('timesheet_confirmed')" class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+            <div t-if="request.params.get('timesheet_confirmed')" class="alert alert-success alert-dismissible fade show" style="border-radius: 2px !important;" role="alert">
                 <strong>✓ Xác nhận Bảng kê Giờ công thành công!</strong> Cảm ơn Quý Khách hàng. Hệ thống đang tiến hành ký số và phát hành Hóa đơn Giá trị Gia tăng điện tử theo Nghị định 70/2025/NĐ-CP.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <div t-if="request.params.get('invalid_token')" class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+            <div t-if="request.params.get('invalid_token')" class="alert alert-danger alert-dismissible fade show" style="border-radius: 2px !important;" role="alert">
                 <strong>✕ Mã xác nhận không hợp lệ hoặc đã hết hạn:</strong> Vui lòng đăng nhập Cổng Khách hàng để xác nhận hoặc liên hệ quản trị viên dự án.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
+            <!-- =========================================================================
+                 TRẠNG THÁI 1: HÓA ĐƠN NHÁP ĐỐI SOÁT (DRAFT INVOICE RECONCILIATION)
+                 ========================================================================= -->
+            <t t-if="invoice.state == 'draft' or invoice.dgm_invoice_stage in ('draft_internal', 'draft_reconciliation', 'customer_reconciled')">
+                <div class="border p-3 p-lg-4 mb-3 bg-white" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important; border-color: #e0e0e0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-warning text-dark" style="border-radius: 4px !important; font-size: 10px; font-weight: 700;">
+                                    BẢN NHÁP HÓA ĐƠN GTGT CHỜ KHÁCH HÀNG ĐỐI SOÁT — CHƯA CẤP MÃ CQT
+                                </span>
+                                <span class="badge bg-light text-dark border" style="border-radius: 4px !important; font-size: 10px;">SOP-DGM-08 RECONCILIATION FLOW</span>
+                            </div>
+                            <div class="fw-bold" style="font-size: 15px; color: #161616;">
+                                Đối Soát Thông Tin Thuế &amp; Khối Lượng Trước Khi Phát Hành HĐĐT Chính Thức (1C26TAA)
+                            </div>
+                            <div class="text-muted small" style="font-size: 11px;">
+                                Đơn vị phát hành: <strong t-out="issuer_legal_name or invoice.company_id.name"/> · Tham chiếu: <strong t-out="invoice.ref or invoice.invoice_origin or invoice.name"/>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
+                                📄 Xem Bản Nháp (HTML)
+                            </a>
+                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_xml" class="btn btn-outline-primary btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
+                                ⬇️ XML Nháp 1C26TAA
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Form 1: Confirm Draft Invoice & Issue Official 1C26TAA E-Invoice -->
+                        <div class="col-12 col-lg-7">
+                            <form t-attf-action="/my/invoices/#{invoice.id}/draft_decide" method="post" class="p-3 border bg-light h-100" style="border-radius: 2px !important;">
+                                <input type="hidden" name="action" value="confirm_draft_invoice"/>
+                                <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
+                                <div class="fw-bold mb-2" style="font-size: 13px; color: #161616;">
+                                    1. Xác nhận Thông tin Pháp nhân Bên mua &amp; Phát hành HĐĐT Chính thức
+                                </div>
+                                <div class="row g-2 mb-2">
+                                    <div class="col-12 col-sm-7">
+                                        <label class="form-label small mb-1">Tên đơn vị mua hàng (Pháp nhân trên HĐĐT):</label>
+                                        <input type="text" name="buyer_name" class="form-control form-control-sm" t-att-value="invoice.partner_id.name" required="required" style="border-radius: 0px !important;"/>
+                                    </div>
+                                    <div class="col-12 col-sm-5">
+                                        <label class="form-label small mb-1">Mã số thuế (MST):</label>
+                                        <input type="text" name="buyer_vat" class="form-control form-control-sm" t-att-value="invoice.partner_id.vat or ''" placeholder="Nhập MST doanh nghiệp" style="border-radius: 0px !important;"/>
+                                    </div>
+                                    <div class="col-12 col-sm-7">
+                                        <label class="form-label small mb-1">Địa chỉ đăng ký thuế:</label>
+                                        <input type="text" name="buyer_address" class="form-control form-control-sm" t-att-value="invoice.partner_id.street or invoice.partner_id.contact_address_complete or ''" style="border-radius: 0px !important;"/>
+                                    </div>
+                                    <div class="col-12 col-sm-5">
+                                        <label class="form-label small mb-1">Email nhận HĐĐT (XML/PDF):</label>
+                                        <input type="email" name="buyer_email" class="form-control form-control-sm" t-att-value="invoice.partner_id.email or ''" style="border-radius: 0px !important;"/>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label small mb-1">Người đại diện xác nhận đối soát:</label>
+                                        <input type="text" name="confirmed_by" class="form-control form-control-sm" t-att-value="invoice.partner_id.name" required="required" style="border-radius: 0px !important;"/>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
+                                    🧾 Xác nhận Hóa đơn Nháp &amp; Phát hành HĐĐT Chính thức (1C26TAA)
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Form 2: Request Draft Adjustment -->
+                        <div class="col-12 col-lg-5">
+                            <form t-attf-action="/my/invoices/#{invoice.id}/draft_decide" method="post" class="p-3 border bg-light h-100" style="border-radius: 2px !important;">
+                                <input type="hidden" name="action" value="request_draft_adjustment"/>
+                                <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
+                                <div class="fw-bold mb-2" style="font-size: 13px; color: #161616;">
+                                    2. Yêu cầu Điều chỉnh Thông tin Thuế / Số liệu Nháp
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small mb-1">Người yêu cầu điều chỉnh:</label>
+                                    <input type="text" name="requested_by" class="form-control form-control-sm" t-att-value="invoice.partner_id.name" style="border-radius: 0px !important;"/>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small mb-1">Mã số thuế / Địa chỉ đúng (nếu cần sửa):</label>
+                                    <input type="text" name="buyer_vat" class="form-control form-control-sm" t-att-value="invoice.partner_id.vat or ''" placeholder="MST hoặc thông tin pháp nhân cần cập nhật..." style="border-radius: 0px !important;"/>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label small mb-1">Nội dung yêu cầu điều chỉnh:</label>
+                                    <textarea name="reason" rows="2" class="form-control form-control-sm" placeholder="Nhập chi tiết nội dung dòng hàng hóa dịch vụ, thuế suất hoặc thông tin pháp nhân cần điều chỉnh..." required="required" style="border-radius: 0px !important;"></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-outline-danger btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
+                                    ✏️ Yêu cầu Điều chỉnh Thông tin Thuế / Số liệu Nháp
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
+            <!-- =========================================================================
+                 TRẠNG THÁI 2: HÓA ĐƠN GTGT ĐIỆN TỬ CHÍNH THỨC (OFFICIAL 1C26TAA E-INVOICE)
+                 ========================================================================= -->
+            <t t-else="">
+                <div class="border p-3 p-lg-4 mb-3 bg-white" style="border-radius: 2px !important; border-left: 4px solid #0f62fe !important; border-color: #e0e0e0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                    <div class="row align-items-center gy-2">
+                        <div class="col-12 col-md-8">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <span class="badge text-white" style="background: #0f62fe; border-radius: 4px !important; font-size: 10px;">NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
+                                <span class="badge bg-light text-body border" style="border-radius: 4px !important; font-size: 10px;">MẪU SỐ 1/001 · KÝ HIỆU <t t-out="invoice.dgm_einvoice_symbol or '1C26TAA'"/></span>
+                                <span class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">✓ ĐÃ CẤP MÃ CQT &amp; KÝ SỐ HỢP LỆ</span>
+                            </div>
+                            <div class="fw-bold mt-2" style="font-size: 15px; color: #161616;">
+                                Hóa Đơn Giá Trị Gia Tăng Điện Tử Chính Thức (<t t-out="invoice.dgm_einvoice_symbol or '1C26TAA'"/> - <t t-out="invoice.dgm_einvoice_number or invoice.name"/>)
+                            </div>
+                            <div class="text-muted small mt-1" style="font-size: 11px;">
+                                Đơn vị phát hành: <strong t-out="issuer_legal_name or invoice.company_id.name"/>
+                                · Số HĐĐT: <strong class="text-primary" t-out="invoice.dgm_einvoice_number or invoice.name"/>
+                                <t t-if="invoice.dgm_einvoice_lookup_code or invoice.al2c_einvoice_lookup_code">
+                                    · Mã tra cứu CQT: <code t-out="invoice.dgm_einvoice_lookup_code or invoice.al2c_einvoice_lookup_code"/>
+                                </t>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4 text-md-end d-flex flex-wrap justify-content-md-end gap-2">
+                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_xml" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
+                                ⬇️ Tải File XML Chuẩn CQT (1C26TAA)
+                            </a>
+                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
+                                📄 Xem Bản Thể Hiện HĐĐT (HTML/Print)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </t>
+
             <!-- Timesheet Statement Confirmation Action Box (AL2C-SOP-002) -->
-            <div t-if="invoice.al2c_timesheet_statement_state == 'sent_to_client'" class="border rounded p-3 mb-3 bg-white shadow-sm" style="border-left: 4px solid #0070F2 !important;">
+            <div t-if="invoice.al2c_timesheet_statement_state == 'sent_to_client'" class="border p-3 mb-3 bg-white" style="border-left: 4px solid #0f62fe !important; border-radius: 2px !important;">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10px;">BẢNG KÊ GIỜ CÔNG CHỜ XÁC NHẬN</span>
+                    <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; border-radius: 4px !important;">BẢNG KÊ GIỜ CÔNG CHỜ XÁC NHẬN</span>
                     <span class="text-muted small" style="font-size: 11px;">Hạn xác nhận: 7 ngày</span>
                 </div>
                 <p class="small text-muted mb-3" style="font-size: 12px; line-height: 1.5;">
                     Kính mời Quý Khách hàng rà soát chi tiết giờ công của các chuyên gia tư vấn tham gia dự án. Sau khi Quý Đơn vị xác nhận, hóa đơn điện tử chính thức theo Nghị định 70/2025/NĐ-CP sẽ được ký số và phát hành.
                 </p>
-                <div t-if="invoice.al2c_is_foreign_currency" class="bg-light p-2 rounded mb-3 small" style="border: 1px dashed #D0E2FF; font-size: 11px;">
-                    <strong>Tỷ giá quy đổi (Snapshot):</strong> 1 <span t-out="invoice.currency_id.name"/> = <span t-out="'{:,.2f}'.format(invoice.al2c_exchange_rate_snapshot)"/> VND | 
+                <div t-if="invoice.al2c_is_foreign_currency" class="bg-light p-2 mb-3 small" style="border: 1px dashed #D0E2FF; font-size: 11px;">
+                    <strong>Tỷ giá quy đổi (Snapshot):</strong> 1 <span t-out="invoice.currency_id.name"/> = <span t-out="'{:,.2f}'.format(invoice.al2c_exchange_rate_snapshot)"/> VND |
                     <strong>Quy đổi VND:</strong> <span t-out="invoice.al2c_statement_amount_total_company_currency" t-options="{'widget': 'monetary', 'display_currency': invoice.company_currency_id}"/>
                 </div>
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
                     <form t-attf-action="/my/invoices/#{invoice.id}/confirm_timesheet" method="post" class="d-inline">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                         <input t-if="request.params.get('confirm_token')" type="hidden" name="confirm_token" t-att-value="request.params.get('confirm_token')"/>
-                        <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-bold shadow-sm">
+                        <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
                             <i class="oi oi-check me-1"/> Xác Nhận Giờ Công &amp; Đồng Ý Phát Hành Hóa Đơn
                         </button>
                     </form>
-                    <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 shadow-sm" data-bs-toggle="collapse" data-bs-target="#al2cAiExplainerCollapse" aria-expanded="false" aria-controls="al2cAiExplainerCollapse">
+                    <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2" data-bs-toggle="collapse" data-bs-target="#al2cAiExplainerCollapse" aria-expanded="false" aria-controls="al2cAiExplainerCollapse" style="border-radius: 0px !important; box-shadow: none !important;">
                         <i class="oi oi-search me-1"/> Hỏi Trợ Lý AI (SOP-RAG)
                     </button>
-                    <button type="button" class="btn btn-outline-danger btn-sm px-3 py-2 shadow-sm" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal">
+                    <button type="button" class="btn btn-outline-danger btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal" style="border-radius: 0px !important; box-shadow: none !important;">
                         <i class="oi oi-flag me-1"/> Yêu Cầu Đối Soát / Khiếu Nại AL2C-INV-103
                     </button>
                 </div>
             </div>
 
-            <!-- Interactive AI Statement & Timesheet Explainer Container (SOP-11 & SOP-12) -->
+            <!-- Interactive AI Statement & Timesheet Explainer Container (SOP-RAG-003) -->
             <div class="collapse mb-3" id="al2cAiExplainerCollapse">
-                <div class="card card-body bg-light border-primary shadow-sm" style="border-left: 4px solid #0070F2 !important;">
+                <div class="card card-body bg-light border-primary" style="border-left: 4px solid #0f62fe !important; border-radius: 2px !important;">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10px;">SOP-RAG-003</span>
+                            <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; border-radius: 4px !important;">SOP-RAG-003</span>
                             <strong class="text-body small">Trợ Lý AI Đối Soát Giờ Công &amp; Căn Cứ Hợp Đồng</strong>
                         </div>
-                        <span class="badge bg-light text-muted border small" style="font-size: 10px;">CITATION CONTRACT [Doc | Sec | ID | Hash]</span>
+                        <span class="badge bg-light text-muted border small" style="font-size: 10px; border-radius: 4px !important;">CITATION CONTRACT [Doc | Sec | ID | Hash]</span>
                     </div>
                     <div class="small text-muted mb-2">
                         Truy xuất cơ sở tri thức KMS, phạm vi bàn giao SOW và nhật ký nghiệm thu được ký số để đối soát chi tiết từng dòng hóa đơn.
                     </div>
-                    <div id="al2cAiExplainerResult" class="p-3 bg-white rounded border mb-2 small" style="min-height: 80px; max-height: 250px; overflow-y: auto;">
+                    <div id="al2cAiExplainerResult" class="p-3 bg-white border mb-2 small" style="min-height: 80px; max-height: 250px; overflow-y: auto; border-radius: 2px !important;">
                         <span class="text-muted fst-italic">Bấm "Giải Trình Bảng Kê" để đối soát tự động hoặc nhập câu hỏi chi tiết bên dưới...</span>
                     </div>
                     <div class="input-group input-group-sm">
-                        <input type="text" id="al2cAiQueryInput" class="form-control" placeholder="Đặt câu hỏi về các dòng giờ công này (VD: Căn cứ tính giờ giai đoạn Realize?)..."/>
-                        <button class="btn btn-primary" type="button" id="al2cBtnAskAi" t-att-data-invoice-id="invoice.id" t-att-data-access-token="access_token">
+                        <input type="text" id="al2cAiQueryInput" class="form-control" placeholder="Đặt câu hỏi về các dòng giờ công này (VD: Căn cứ tính giờ giai đoạn Realize?)..." style="border-radius: 0px !important;"/>
+                        <button class="btn btn-primary" type="button" id="al2cBtnAskAi" t-att-data-invoice-id="invoice.id" t-att-data-access-token="access_token" style="border-radius: 0px !important; box-shadow: none !important;">
                             <i class="oi oi-play me-1"/> Giải Trình Bảng Kê
                         </button>
                     </div>
@@ -354,15 +664,15 @@
                         const input = document.getElementById('al2cAiQueryInput');
                         const resultDiv = document.getElementById('al2cAiExplainerResult');
                         if (!btn || !resultDiv) return;
-                        
+
                         btn.addEventListener('click', async function() {
                             const invId = btn.getAttribute('data-invoice-id');
                             const accessToken = btn.getAttribute('data-access-token') || '';
                             const query = (input &amp;&amp; input.value) ? input.value : '';
-                            
+
                             resultDiv.innerHTML = '&lt;span class="text-primary"&gt;&lt;i class="oi oi-clock me-1"/&gt; Đang đối soát cơ sở tri thức KMS và kiểm tra Entailment Gate...&lt;/span&gt;';
                             btn.disabled = true;
-                            
+
                             try {
                                 const resp = await fetch('/my/invoices/' + invId + '/ai_explain', {
                                     method: 'POST',
@@ -404,36 +714,10 @@
             </div>
 
             <!-- Timesheet Confirmed Status Banner -->
-            <div t-elif="invoice.al2c_timesheet_statement_state == 'confirmed'" class="alert alert-success d-flex align-items-center gap-2 p-3 mb-3 shadow-sm" role="alert">
-                <span class="badge bg-success text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10px;">ĐÃ XÁC NHẬN BẢNG KÊ</span>
+            <div t-if="invoice.al2c_timesheet_statement_state == 'confirmed'" class="alert alert-success d-flex align-items-center gap-2 p-3 mb-3" style="border-radius: 2px !important;" role="alert">
+                <span class="badge bg-success text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; border-radius: 4px !important;">ĐÃ XÁC NHẬN BẢNG KÊ</span>
                 <div class="small" style="font-size: 12px;">
                     <strong>✓ Bảng kê giờ công đã được Quý Khách hàng xác nhận</strong> vào ngày <span t-out="invoice.al2c_timesheet_confirmed_date"/> (Bởi: <strong t-out="invoice.al2c_timesheet_confirmed_by"/>). Hóa đơn điện tử đủ điều kiện phát hành theo Nghị định 70/2025/NĐ-CP.
-                </div>
-            </div>
-
-            <!-- Decree 70/2025 E-Invoice Header & Verification Box -->
-            <div class="border rounded p-3 mb-3 bg-white shadow-sm" style="border-left: 4px solid #0070F2 !important;">
-                <div class="row align-items-center gy-2">
-                    <div class="col-12 col-md-8">
-                        <div class="d-flex align-items-center gap-2">
-                            <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10px;">NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
-                            <span class="badge bg-light text-body border" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; font-size: 10px;">NGHỊ ĐỊNH 123/2020/NĐ-CP</span>
-                        </div>
-                        <div class="fw-bold mt-1" style="font-size: 14px; color: #161616;">
-                            Hóa Đơn Giá Trị Gia Tăng Điện Tử Khởi Tạo Tự Động
-                        </div>
-                        <div class="text-muted small" style="font-size: 11px;">
-                            Mẫu số &amp; Ký hiệu: <strong>1/001 - C26TIN</strong> · Số HĐ: <strong class="text-primary" t-out="invoice.name"/>
-                            <t t-if="invoice.al2c_einvoice_lookup_code">
-                                · Mã tra cứu CQT: <code t-out="invoice.al2c_einvoice_lookup_code"/>
-                            </t>
-                        </div>
-                    </div>
-                    <div class="col-12 col-md-4 text-md-end">
-                        <span class="badge bg-success-subtle text-success border border-success px-2 py-1" style="font-size: 11px;">
-                            ✓ Ký Số Doanh Nghiệp Hợp Lệ
-                        </span>
-                    </div>
                 </div>
             </div>
         </xpath>
@@ -442,7 +726,7 @@
         <xpath expr="//div[hasclass('o_portal_invoice_sidebar')]" position="inside">
             <div class="modal fade" id="al2cDisputeModal" tabindex="-1" aria-labelledby="al2cDisputeModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
+                    <div class="modal-content" style="border-radius: 2px !important;">
                         <form t-attf-action="/my/invoices/#{invoice.id}/dispute" method="post">
                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                             <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
@@ -455,13 +739,13 @@
                             </div>
 
                             <div class="modal-body">
-                                <div class="alert alert-info small mb-3" style="font-size: 12px;">
+                                <div class="alert alert-info small mb-3" style="font-size: 12px; border-radius: 2px !important;">
                                     <strong>Quy chế bảo vệ đối tác:</strong> Ngay sau khi gửi yêu cầu, tiến trình nhắc nợ tự động (Dunning) của hóa đơn <strong t-out="invoice.name"/> sẽ được <strong>ĐÓNG BĂNG ngay lập tức</strong>.
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold small">Lý do khiếu nại / đối soát:</label>
-                                    <select class="form-select form-select-sm" name="reason" required="required">
+                                    <select class="form-select form-select-sm" name="reason" required="required" style="border-radius: 0px !important;">
                                         <option value="milestone_deliverable" selected="selected">Sai khác mốc bàn giao / Chất lượng nghiệm thu SOW</option>
                                         <option value="timesheet_billing">Giờ công kỹ thuật (Timesheet) vượt định mức SOW</option>
                                         <option value="rate_mismatch">Sai khác đơn giá hoặc chiết khấu thương mại</option>
@@ -471,19 +755,19 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold small">Số tiền yêu cầu đối soát (VNĐ):</label>
-                                    <input type="number" step="any" class="form-control form-control-sm" name="disputed_amount" t-att-value="invoice.amount_residual" required="required"/>
+                                    <input type="number" step="any" class="form-control form-control-sm" name="disputed_amount" t-att-value="invoice.amount_residual" required="required" style="border-radius: 0px !important;"/>
                                     <div class="form-text" style="font-size: 11px;">Mặc định là số dư còn nợ trên hóa đơn. Quý Khách có thể điều chỉnh theo phần tiền thực tế đang tranh chấp.</div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-bold small">Nội dung giải trình chi tiết:</label>
-                                    <textarea class="form-control form-control-sm" name="note" rows="3" placeholder="Vui lòng cung cấp chi tiết hạng mục mốc SOW chưa đạt yêu cầu hoặc phần chênh lệch cần đối soát..." required="required"></textarea>
+                                    <textarea class="form-control form-control-sm" name="note" rows="3" placeholder="Vui lòng cung cấp chi tiết hạng mục mốc SOW chưa đạt yêu cầu hoặc phần chênh lệch cần đối soát..." required="required" style="border-radius: 0px !important;"></textarea>
                                 </div>
                             </div>
 
                             <div class="modal-footer bg-light border-top">
-                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Hủy bỏ</button>
-                                <button type="submit" class="btn btn-danger btn-sm fw-bold">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal" style="border-radius: 0px !important; box-shadow: none !important;">Hủy bỏ</button>
+                                <button type="submit" class="btn btn-danger btn-sm fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
                                     Gửi Yêu Cầu Đối Soát (Đóng Băng Dunning)
                                 </button>
                             </div>
@@ -492,5 +776,518 @@
                 </div>
             </div>
         </xpath>
+    </template>
+
+    <!-- =========================================================================
+         5. UNIFIED SOFTWARE ENGINEERING & PRODUCT CUSTOMER PORTAL WORKSPACE
+            Routes: /my/software-portal, /my/timesheets, /my/timesheets/<int:sheet_id>
+         ========================================================================= -->
+    <template id="portal_software_company_workspace" name="Innoria Software Engineering &amp; Product Customer Portal">
+        <t t-call="portal.portal_layout">
+            <div class="container py-4" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <!-- Top Brand Header & Navigation Strip -->
+                <div class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-top: 4px solid #0f62fe !important; border-color: #e0e0e0;">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-3">
+                            <img src="/insilos_website/static/src/img/innoria/logo_innoria_header.svg" style="max-height: 32px; width: auto;" alt="INNORIA"/>
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge text-white" style="background: #0f62fe; border-radius: 4px !important; font-size: 10px;">INNORIA SOFTWARE DELIVERY HUB</span>
+                                    <span class="badge bg-light text-dark border" style="border-radius: 4px !important; font-size: 10px;">SOP-DGM-08 · NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
+                                </div>
+                                <h4 class="fw-bold mb-0 mt-1" style="color: #161616; letter-spacing: -0.02em;">
+                                    Trung Tâm Dự Án Phần Mềm, Nghiệm Thu Timesheet &amp; Đối Soát Hóa Đơn 1C26TAA
+                                </h4>
+                                <div class="text-muted small mt-1" style="color: #525252;">
+                                    Đối tác / Khách hàng: <strong style="color: #161616;" t-out="partner.name if partner else 'Quý Khách hàng Doanh nghiệp'"/>
+                                    <t t-if="partner and partner.vat"> · MST: <code t-out="partner.vat"/></t>
+                                    · Pháp nhân xuất hóa đơn: <strong t-out="issuer_legal_name"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a href="#quotations-section" class="btn btn-outline-dark btn-sm px-3 py-2" style="border-radius: 0px !important; box-shadow: none !important;">1. Báo giá &amp; SOW</a>
+                            <a href="#timesheets-section" class="btn btn-outline-primary btn-sm px-3 py-2" style="border-radius: 0px !important; box-shadow: none !important;">2. Chấm công Kỹ sư</a>
+                            <a href="#invoices-section" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">3. Hóa đơn Nháp &amp; 1C26TAA</a>
+                            <a href="#disputes" class="btn btn-outline-danger btn-sm px-3 py-2" style="border-radius: 0px !important; box-shadow: none !important;">4. AI Đối soát &amp; AL2C-INV-103</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive Action Feedback Banners -->
+                <div t-if="request.params.get('quotation_approved')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
+                    <strong>✓ Phê duyệt Báo giá &amp; Scope Fit-to-Standard thành công!</strong> Hợp đồng SOW đã được kích hoạt để triển khai theo lộ trình 5-Gate Delivery.
+                </div>
+                <div t-if="request.params.get('scope_revision_requested')" class="alert alert-warning p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
+                    <strong>✎ Đã gửi yêu cầu điều chỉnh Scope / Man-Hour:</strong> Kiến trúc sư Giải pháp sẽ cập nhật lại báo giá và thông báo qua Cổng Khách hàng.
+                </div>
+                <div t-if="request.params.get('timesheet_approved')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
+                    <strong>✓ Đã ký nghiệm thu Bảng chấm công Kỹ sư (SHA-256) &amp; Khởi tạo Hóa đơn Nháp Đối soát thành công!</strong> Quý Khách hàng có thể kiểm tra và xác nhận Hóa đơn Nháp ngay tại mục số 3 bên dưới.
+                </div>
+                <div t-if="request.params.get('timesheet_revision_requested')" class="alert alert-warning p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
+                    <strong>⚠️ Đã ghi nhận yêu cầu điều chỉnh số liệu Bảng chấm công:</strong> Quản lý Dự án (PM) sẽ rà soát lại log công việc của kỹ sư.
+                </div>
+                <div t-if="request.params.get('draft_invoice_confirmed')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
+                    <strong>🧾 Đã xác nhận Hóa đơn Nháp &amp; Phát hành Hóa đơn GTGT Điện tử Chính thức (1C26TAA) thành công!</strong> File XML chuẩn CQT và bản thể hiện HTML đã sẵn sàng tải xuống.
+                </div>
+                <div t-if="request.params.get('draft_adjustment_requested')" class="alert alert-warning p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
+                    <strong>✎ Đã ghi nhận yêu cầu điều chỉnh thông tin Hóa đơn Nháp:</strong> Bộ phận Kế toán Thuế sẽ cập nhật lại dự thảo trước khi ký số CQT.
+                </div>
+
+                <!-- Live KPI Strip -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-lg-3">
+                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                            <div class="text-muted small" style="font-size: 11px;">BÁO GIÁ &amp; HỢP ĐỒNG SOW</div>
+                            <div class="fw-bold mt-1" style="font-size: 22px; color: #161616;" t-out="len(quotations)"/>
+                            <div class="small text-muted" style="font-size: 11px;">Hồ sơ Fit-to-Standard &amp; Value Case</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                            <div class="text-muted small" style="font-size: 11px;">CHẤM CÔNG &amp; NGHIỆM THU SPRINT</div>
+                            <div class="fw-bold mt-1" style="font-size: 22px; color: #0f62fe;">
+                                <t t-out="'{:,.1f}'.format(total_billable_days or 0.0)"/> <span style="font-size: 13px;">ngày công</span>
+                            </div>
+                            <div class="small text-muted" style="font-size: 11px;"><t t-out="len(timesheet_sheets)"/> kỳ đối soát (<t t-out="'{:,.1f}'.format(total_logged_hours or 0.0)"/> giờ kỹ sư)</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                            <div class="text-muted small" style="font-size: 11px;">HÓA ĐƠN NHÁP CHỜ ĐỐI SOÁT</div>
+                            <div class="fw-bold mt-1" style="font-size: 22px; color: #b28600;" t-out="len(draft_invoices)"/>
+                            <div class="small text-muted" style="font-size: 11px;">Kiểm tra MST &amp; nội dung trước khi ký CQT</div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-lg-3">
+                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                            <div class="text-muted small" style="font-size: 11px;">HÓA ĐƠN GTGT CHÍNH THỨC (1C26TAA)</div>
+                            <div class="fw-bold mt-1 text-success" style="font-size: 22px;" t-out="len(official_invoices)"/>
+                            <div class="small text-muted" style="font-size: 11px;">Đã cấp mã CQT · Tải XML &amp; HTML</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =====================================================================
+                     SECTION 1: DUYỆT BÁO GIÁ & SCOPE PHẦN MỀM (QUOTATIONS & FTS SCOPE)
+                     ===================================================================== -->
+                <div id="quotations-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
+                        <div>
+                            <span class="badge bg-dark text-white mb-1" style="border-radius: 4px !important; font-size: 10px;">BƯỚC 1 · QUOTATIONS, FIT-TO-STANDARD SCOPE &amp; ROI</span>
+                            <h5 class="fw-bold mb-0" style="color: #161616;">1. Duyệt Báo Giá, Phạm Vi Kỹ Thuật (Fit-to-Standard) &amp; Ký Xác Nhận SOW</h5>
+                        </div>
+                        <a href="/my/quotes" class="btn btn-outline-dark btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">Xem Tất Cả Báo Giá (/my/quotes)</a>
+                    </div>
+
+                    <t t-if="not quotations">
+                        <div class="p-3 bg-light border text-muted small" style="border-radius: 2px !important;">
+                            Hiện chưa có báo giá hoặc hợp đồng SOW nào đang mở.
+                        </div>
+                    </t>
+                    <t t-foreach="quotations" t-as="so">
+                        <div class="border p-3 mb-3 bg-light" style="border-radius: 2px !important; border-left: 4px solid #0f62fe !important;">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                <div>
+                                    <a t-att-href="so.get_portal_url()" class="fw-bold text-decoration-none" style="font-size: 15px; color: #0f62fe;" t-out="so.name"/>
+                                    <span class="text-muted small ms-2">Khách hàng: <strong t-out="so.partner_id.name"/></span>
+                                    <span class="text-muted small ms-2">· Tổng giá trị: <strong class="text-dark" t-out="so.amount_total" t-options="{'widget': 'monetary', 'display_currency': so.currency_id}"/></span>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span t-if="so.state == 'sale'" class="badge bg-success text-white" style="border-radius: 4px !important; font-size: 10px;">✓ ĐÃ DUYỆT SOW (SALE ORDER)</span>
+                                    <span t-else="" class="badge bg-warning text-dark" style="border-radius: 4px !important; font-size: 10px;">CHỜ PHÊ DUYỆT BÁO GIÁ</span>
+                                    <a t-att-href="so.get_portal_url()" class="btn btn-outline-primary btn-sm" style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px;">Chi tiết SOW</a>
+                                </div>
+                            </div>
+
+                            <!-- Value Case ROI pill if linked -->
+                            <div t-if="so.value_case_id" class="d-flex flex-wrap gap-2 mb-2">
+                                <span class="badge bg-white text-dark border" style="border-radius: 4px !important; font-size: 11px;">
+                                    📈 Value Case: <strong t-out="so.value_case_id.name"/>
+                                </span>
+                                <span class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 11px;">
+                                    3Y ROI: <t t-out="'{:,.1f}%'.format(so.value_case_id.roi_percentage or 0.0)"/> · Hoàn vốn: <t t-out="'{:,.1f}'.format(so.value_case_id.payback_months or 0.0)"/> tháng
+                                </span>
+                            </div>
+
+                            <!-- Fit-to-Standard Scope Items if present -->
+                            <div t-if="so.fts_item_ids" class="table-responsive mb-2">
+                                <table class="table table-sm table-bordered bg-white mb-0" style="font-size: 11px;">
+                                    <thead style="background: #f4f4f4;">
+                                        <tr>
+                                            <th>Module</th>
+                                            <th>Hạng mục Kỹ thuật (Fit-to-Standard Scope)</th>
+                                            <th>Phân loại Clean Core</th>
+                                            <th>Đặc tả Giải pháp</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="so.fts_item_ids" t-as="fts">
+                                            <tr>
+                                                <td class="fw-bold" t-out="fts.module or 'Core'"/>
+                                                <td t-out="fts.name"/>
+                                                <td><code t-out="fts.clean_core_class"/></td>
+                                                <td class="text-muted" t-out="fts.description or fts.justification or 'Standard Clean Core'"/>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Inline Approve & Revise Forms -->
+                            <div class="row g-2 mt-1">
+                                <div class="col-12 col-md-7">
+                                    <form t-attf-action="/my/orders/#{so.id}/software_decide" method="post" class="d-flex flex-wrap align-items-center gap-2">
+                                        <input type="hidden" name="action" value="approve_quotation"/>
+                                        <input type="hidden" name="redirect_portal" value="1"/>
+                                        <input type="text" name="approver_name" class="form-control form-control-sm" style="max-width: 190px; border-radius: 0px !important;" t-att-value="so.partner_id.name" placeholder="Người phê duyệt" required="required"/>
+                                        <input type="text" name="note" class="form-control form-control-sm flex-grow-1" style="min-width: 180px; border-radius: 0px !important;" value="Đồng ý phê duyệt Báo giá &amp; Scope Fit-to-Standard SOW."/>
+                                        <button type="submit" class="btn btn-primary btn-sm fw-bold px-3" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
+                                            ✅ Phê duyệt Báo giá &amp; Ký SOW
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-12 col-md-5">
+                                    <form t-attf-action="/my/orders/#{so.id}/software_decide" method="post" class="d-flex flex-wrap align-items-center gap-2">
+                                        <input type="hidden" name="action" value="request_scope_revision"/>
+                                        <input type="hidden" name="redirect_portal" value="1"/>
+                                        <input type="text" name="note" class="form-control form-control-sm flex-grow-1" style="border-radius: 0px !important;" placeholder="Nhập nội dung cần điều chỉnh Scope / Man-Hour..." required="required"/>
+                                        <button type="submit" class="btn btn-outline-dark btn-sm fw-bold px-3" style="border-radius: 0px !important; box-shadow: none !important;">
+                                            ✏️ Yêu cầu Điều chỉnh
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- =====================================================================
+                     SECTION 2: BẢNG CHẤM CÔNG KỸ SƯ & NGHIỆM THU SPRINT (TIMESHEETS)
+                     ===================================================================== -->
+                <div id="timesheets-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
+                        <div>
+                            <span class="badge bg-info text-dark mb-1" style="border-radius: 4px !important; font-size: 10px;">BƯỚC 2 · ENGINEER TIMESHEETS &amp; SPRINT MAN-HOUR ACCEPTANCE</span>
+                            <h5 class="fw-bold mb-0" style="color: #161616;">2. Phê Duyệt Bảng Chấm Công Kỹ Sư &amp; Nghiệm Thu Khối Lượng Sprint (SOP-DGM-08)</h5>
+                        </div>
+                        <span class="badge bg-light text-dark border" style="border-radius: 4px !important; font-size: 10px;">HMAC-SHA256 CRYPTOGRAPHIC SEAL</span>
+                    </div>
+
+                    <t t-if="not timesheet_sheets">
+                        <div class="p-3 bg-light border text-muted small" style="border-radius: 2px !important;">
+                            Hiện chưa có bảng chấm công kỹ sư nào cần phê duyệt.
+                        </div>
+                    </t>
+                    <t t-foreach="timesheet_sheets" t-as="sheet">
+                        <div class="border p-3 mb-4 bg-light" style="border-radius: 2px !important; border-left: 4px solid #0f62fe !important;">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                                <div>
+                                    <span class="fw-bold" style="font-size: 15px; color: #161616;" t-out="sheet.name"/>
+                                    <span class="badge bg-white text-dark border ms-2" style="border-radius: 4px !important; font-size: 11px;">Kỳ: <t t-out="sheet.billing_period"/></span>
+                                    <span class="text-muted small ms-2">Dự án: <strong t-out="sheet.project_id.name"/></span>
+                                    <t t-if="sheet.sale_order_id">
+                                        <span class="text-muted small ms-2">· Hợp đồng: <strong t-out="sheet.sale_order_id.name"/></span>
+                                    </t>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-primary text-white" style="background: #0f62fe; border-radius: 4px !important; font-size: 10px;" t-out="sheet.state"/>
+                                    <span t-if="sheet.customer_signature_hash" class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">
+                                        🔒 SHA-256: <t t-out="sheet.customer_signature_hash[:16]"/>...
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Engineer Squad Man-Hour Table -->
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm table-bordered bg-white mb-0" style="font-size: 12px;">
+                                    <thead style="background: #f4f4f4;">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Nhân sự Kỹ thuật (Engineer &amp; Role)</th>
+                                            <th>Nội dung Công việc &amp; Deliverables trong Sprint</th>
+                                            <th class="text-end">Công chuẩn</th>
+                                            <th class="text-end">Công thực tế</th>
+                                            <th class="text-end">OT</th>
+                                            <th class="text-end">Công nghiệm thu</th>
+                                            <th class="text-end">Đơn giá (VNĐ)</th>
+                                            <th class="text-end">Thành tiền (VNĐ)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-set="line_idx" t-value="0"/>
+                                        <t t-foreach="sheet.line_ids" t-as="line">
+                                            <t t-set="line_idx" t-value="line_idx + 1"/>
+                                            <tr>
+                                                <td t-out="line_idx"/>
+                                                <td>
+                                                    <strong t-out="line.employee_id.name or 'Senior Engineer'"/>
+                                                    <div class="text-muted" style="font-size: 10px;" t-out="line.role_title or 'Senior Software Engineer'"/>
+                                                </td>
+                                                <td t-out="line.work_summary or 'Phát triển tính năng &amp; bàn giao Sprint theo SOW'"/>
+                                                <td class="text-end" t-out="'{:,.1f}'.format(line.standard_days or 22.0)"/>
+                                                <td class="text-end" t-out="'{:,.1f}'.format(line.actual_worked_days or 0.0)"/>
+                                                <td class="text-end"><t t-out="'{:,.1f}'.format(line.overtime_hours or 0.0)"/>h</td>
+                                                <td class="text-end fw-bold">
+                                                    <t t-out="'{:,.2f}'.format(line.billable_days or 0.0)"/>
+                                                    <span class="text-muted" style="font-size: 10px;">(<t t-out="'{:,.1f}%'.format(line.pro_rata_ratio or 100.0)"/>)</span>
+                                                </td>
+                                                <td class="text-end" t-out="'{:,.0f}'.format(line.contract_monthly_rate_vnd or 0.0)"/>
+                                                <td class="text-end fw-bold" t-out="'{:,.0f}'.format(line.subtotal_vnd or 0.0)"/>
+                                            </tr>
+                                        </t>
+                                        <tr style="background: #f4f4f4;">
+                                            <td colspan="8" class="text-end fw-bold">Cộng tiền dịch vụ chưa thuế GTGT (VNĐ):</td>
+                                            <td class="text-end fw-bold" t-out="'{:,.0f}'.format(sheet.amount_untaxed_vnd or 0.0)"/>
+                                        </tr>
+                                        <tr style="background: #f4f4f4;">
+                                            <td colspan="8" class="text-end fw-bold">Thuế GTGT (<t t-out="sheet.vat_rate or '8'"/>%):</td>
+                                            <td class="text-end fw-bold" t-out="'{:,.0f}'.format(sheet.amount_tax_vnd or 0.0)"/>
+                                        </tr>
+                                        <tr style="background: #e8f1ff;">
+                                            <td colspan="8" class="text-end fw-bold" style="color: #0f62fe;">TỔNG CỘNG NGHIỆM THU THANH TOÁN (VNĐ):</td>
+                                            <td class="text-end fw-bold" style="color: #0f62fe; font-size: 13px;" t-out="'{:,.0f}'.format(sheet.amount_total_vnd or 0.0)"/>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Inline Timesheet Approval & Revision Actions -->
+                            <div class="row g-2">
+                                <div class="col-12 col-lg-7">
+                                    <form t-attf-action="/my/timesheets/#{sheet.id}/decide" method="post" class="d-flex flex-wrap align-items-center gap-2">
+                                        <input type="hidden" name="action" value="approve_timesheet"/>
+                                        <input type="hidden" name="token" t-att-value="sheet.approval_token"/>
+                                        <input type="text" name="approver_name" class="form-control form-control-sm" style="max-width: 180px; border-radius: 0px !important;" t-att-value="sheet.customer_approver_name or sheet.partner_id.name" placeholder="Người duyệt" required="required"/>
+                                        <input type="email" name="approver_email" class="form-control form-control-sm" style="max-width: 190px; border-radius: 0px !important;" t-att-value="sheet.customer_approver_email or sheet.partner_id.email" placeholder="Email"/>
+                                        <input type="text" name="note" class="form-control form-control-sm flex-grow-1" style="min-width: 180px; border-radius: 0px !important;" value="Đồng ý nghiệm thu 100% khối lượng bảng chấm công kỹ sư."/>
+                                        <button type="submit" class="btn btn-success btn-sm fw-bold px-3" style="border-radius: 0px !important; box-shadow: none !important;">
+                                            ✅ Phê duyệt Timesheet &amp; Khởi tạo Hóa đơn Nháp
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-12 col-lg-5">
+                                    <form t-attf-action="/my/timesheets/#{sheet.id}/decide" method="post" class="d-flex flex-wrap align-items-center gap-2">
+                                        <input type="hidden" name="action" value="request_revision"/>
+                                        <input type="hidden" name="token" t-att-value="sheet.approval_token"/>
+                                        <input type="text" name="reason" class="form-control form-control-sm flex-grow-1" style="border-radius: 0px !important;" placeholder="Lý do yêu cầu điều chỉnh giờ công / OT..." required="required"/>
+                                        <button type="submit" class="btn btn-outline-danger btn-sm fw-bold px-3" style="border-radius: 0px !important; box-shadow: none !important;">
+                                            ⚠️ Yêu cầu Điều chỉnh
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+
+                <!-- =====================================================================
+                     SECTION 3: ĐỐI SOÁT HÓA ĐƠN NHÁP & TRA CỨU HĐĐT CHÍNH THỨC (1C26TAA)
+                     ===================================================================== -->
+                <div id="invoices-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
+                        <div>
+                            <span class="badge bg-success text-white mb-1" style="border-radius: 4px !important; font-size: 10px;">BƯỚC 3 · DRAFT INVOICE RECONCILIATION &amp; OFFICIAL 1C26TAA E-INVOICE</span>
+                            <h5 class="fw-bold mb-0" style="color: #161616;">3. Đối Soát Hóa Đơn Nháp &amp; Tra Cứu Hóa Đơn GTGT Điện Tử Chính Thức (1C26TAA)</h5>
+                        </div>
+                        <a href="/my/invoices" class="btn btn-outline-dark btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">Danh Sách Hóa Đơn (/my/invoices)</a>
+                    </div>
+
+                    <div class="row g-3">
+                        <!-- Column A: Draft Invoices Pending Customer Reconciliation -->
+                        <div class="col-12 col-lg-6">
+                            <div class="p-3 border bg-light h-100" style="border-radius: 2px !important; border-top: 3px solid #f1c21b !important;">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <h6 class="fw-bold mb-0" style="color: #161616;">A. Hóa Đơn Nháp Chờ Khách Hàng Đối Soát (<t t-out="len(draft_invoices)"/>)</h6>
+                                    <span class="badge bg-warning text-dark" style="border-radius: 4px !important; font-size: 10px;">CHƯA CẤP MÃ CQT</span>
+                                </div>
+
+                                <t t-if="not draft_invoices">
+                                    <div class="p-3 bg-white border text-muted small" style="border-radius: 2px !important;">
+                                        Không có Hóa đơn Nháp nào đang chờ đối soát (hoặc toàn bộ đã được xuất thành HĐĐT 1C26TAA chính thức).
+                                    </div>
+                                </t>
+                                <t t-foreach="draft_invoices" t-as="dinv">
+                                    <div class="p-3 bg-white border mb-3" style="border-radius: 2px !important;">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <div>
+                                                <a t-att-href="dinv.get_portal_url()" class="fw-bold text-decoration-none" style="color: #0f62fe;" t-out="dinv.ref or dinv.name or 'DRAFT-INVOICE'"/>
+                                                <div class="text-muted small" style="font-size: 11px;">
+                                                    Bên mua: <strong t-out="dinv.partner_id.name"/> · MST: <code t-out="dinv.partner_id.vat or 'Chưa cập nhật'"/>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="fw-bold text-dark" t-out="dinv.amount_total" t-options="{'widget': 'monetary', 'display_currency': dinv.currency_id}"/>
+                                                <span class="badge bg-warning-subtle text-dark border" style="border-radius: 4px !important; font-size: 10px;" t-out="dinv.dgm_invoice_stage or 'draft_reconciliation'"/>
+                                            </div>
+                                        </div>
+
+                                        <form t-attf-action="/my/invoices/#{dinv.id}/draft_decide" method="post" class="mt-2 pt-2 border-top">
+                                            <input type="hidden" name="action" value="confirm_draft_invoice"/>
+                                            <input type="hidden" name="redirect_portal" value="1"/>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-7">
+                                                    <input type="text" name="confirmed_by" class="form-control form-control-sm" t-att-value="dinv.partner_id.name" placeholder="Người xác nhận nháp" required="required" style="border-radius: 0px !important;"/>
+                                                </div>
+                                                <div class="col-5">
+                                                    <input type="text" name="buyer_vat" class="form-control form-control-sm" t-att-value="dinv.partner_id.vat or ''" placeholder="MST Bên mua" style="border-radius: 0px !important;"/>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex flex-wrap gap-2">
+                                                <button type="submit" class="btn btn-success btn-sm fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
+                                                    🧾 Xác nhận Hóa đơn Nháp -&gt; Xuất HĐĐT Chính thức 1C26TAA
+                                                </button>
+                                                <a t-attf-href="/my/invoices/#{dinv.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
+                                                    📄 Xem Bản Nháp
+                                                </a>
+                                                <a t-att-href="dinv.get_portal_url()" class="btn btn-outline-primary btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
+                                                    Chi tiết / Điều chỉnh
+                                                </a>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+
+                        <!-- Column B: Official 1C26TAA VAT E-Invoices Issued -->
+                        <div class="col-12 col-lg-6">
+                            <div class="p-3 border bg-light h-100" style="border-radius: 2px !important; border-top: 3px solid #198038 !important;">
+                                <div class="d-flex align-items-center justify-content-between mb-3">
+                                    <h6 class="fw-bold mb-0" style="color: #161616;">B. Hóa Đơn GTGT Điện Tử Chính Thức 1C26TAA (<t t-out="len(official_invoices)"/>)</h6>
+                                    <span class="badge bg-success text-white" style="border-radius: 4px !important; font-size: 10px;">ĐÃ CẤP MÃ CQT</span>
+                                </div>
+
+                                <t t-if="not official_invoices">
+                                    <div class="p-3 bg-white border text-muted small" style="border-radius: 2px !important;">
+                                        Chưa có Hóa đơn GTGT Điện tử Chính thức nào được phát hành.
+                                    </div>
+                                </t>
+                                <t t-foreach="official_invoices" t-as="oinv">
+                                    <div class="p-3 bg-white border mb-3" style="border-radius: 2px !important;">
+                                        <div class="d-flex align-items-center justify-content-between mb-2">
+                                            <div>
+                                                <a t-att-href="oinv.get_portal_url()" class="fw-bold text-decoration-none" style="color: #0f62fe;">
+                                                    <t t-out="oinv.dgm_einvoice_symbol or '1C26TAA'"/> - <t t-out="oinv.dgm_einvoice_number or oinv.name"/>
+                                                </a>
+                                                <div class="text-muted small" style="font-size: 11px;">
+                                                    Bên mua: <strong t-out="oinv.partner_id.name"/>
+                                                    <t t-if="oinv.dgm_einvoice_lookup_code or oinv.al2c_einvoice_lookup_code">
+                                                        · Mã CQT: <code t-out="oinv.dgm_einvoice_lookup_code or oinv.al2c_einvoice_lookup_code"/>
+                                                    </t>
+                                                </div>
+                                            </div>
+                                            <div class="text-end">
+                                                <div class="fw-bold text-success" t-out="oinv.amount_total" t-options="{'widget': 'monetary', 'display_currency': oinv.currency_id}"/>
+                                                <span class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">✓ Ký số CQT hợp lệ</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex flex-wrap gap-2 mt-2 pt-2 border-top">
+                                            <a t-attf-href="/my/invoices/#{oinv.id}/download_einvoice_xml" class="btn btn-primary btn-sm fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
+                                                ⬇️ Tải XML 1C26TAA
+                                            </a>
+                                            <a t-attf-href="/my/invoices/#{oinv.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
+                                                📄 Xem Bản Thể Hiện HĐĐT
+                                            </a>
+                                            <a t-att-href="oinv.get_portal_url()" class="btn btn-outline-danger btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
+                                                Khiếu nại AL2C-INV-103
+                                            </a>
+                                        </div>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- =====================================================================
+                     SECTION 4: ĐỐI SOÁT THƯƠNG MẠI AL2C-INV-103 & TRỢ LÝ AI SOP-RAG-003
+                     ===================================================================== -->
+                <div id="disputes" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
+                        <div>
+                            <span class="badge bg-warning text-dark mb-1" style="border-radius: 4px !important; font-size: 10px;">BƯỚC 4 · COMMERCIAL DISPUTE SAFEGUARD &amp; AI RAG EXPLAINER</span>
+                            <h5 class="fw-bold mb-0" style="color: #161616;">4. Hỏi Trợ Lý AI Đối Soát Hợp Đồng (SOP-RAG-003) &amp; Bảo Vệ Khách Hàng (AL2C-INV-103)</h5>
+                        </div>
+                        <span class="badge bg-light text-dark border" style="border-radius: 4px !important; font-size: 10px;">AUTO DUNNING FREEZE</span>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-6">
+                            <div class="p-3 border bg-light h-100" style="border-radius: 2px !important;">
+                                <div class="fw-bold mb-2" style="color: #161616; font-size: 13px;">
+                                    🤖 Trợ Lý AI Giải Trình Giờ Công &amp; Điều Khoản Hợp Đồng (SOP-RAG-003)
+                                </div>
+                                <p class="text-muted small mb-2" style="font-size: 12px;">
+                                    Đặt câu hỏi trực tiếp về định mức Man-Hour, điều khoản nghiệm thu SOW 5-Gate, hoặc căn cứ tính phí OT trên hóa đơn.
+                                </p>
+                                <t t-set="sample_inv" t-value="(official_invoices or draft_invoices)[:1]"/>
+                                <div id="wsAiResult" class="p-2 bg-white border mb-2 small" style="min-height: 72px; border-radius: 2px !important;">
+                                    <span class="text-muted fst-italic">Sẵn sàng truy xuất KMS &amp; kiểm tra Entailment Gate...</span>
+                                </div>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" id="wsAiQuery" class="form-control" value="Giải trình chi tiết căn cứ nghiệm thu bảng chấm công kỹ sư và quy trình xuất hóa đơn 1C26TAA?" style="border-radius: 0px !important;"/>
+                                    <button type="button" id="wsAiBtn" class="btn btn-primary fw-bold" t-att-data-invoice-id="sample_inv.id if sample_inv else 0" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
+                                        Hỏi AI Đối Soát
+                                    </button>
+                                </div>
+                                <script type="text/javascript">
+                                    document.addEventListener('DOMContentLoaded', function() {
+                                        const btn = document.getElementById('wsAiBtn');
+                                        const input = document.getElementById('wsAiQuery');
+                                        const box = document.getElementById('wsAiResult');
+                                        if (!btn || !box) return;
+                                        btn.addEventListener('click', async function() {
+                                            const invId = btn.getAttribute('data-invoice-id');
+                                            if (!invId || invId === '0') {
+                                                box.innerHTML = '&lt;span class="text-muted"&gt;Vui lòng chọn một hóa đơn cụ thể để đối soát AI.&lt;/span&gt;';
+                                                return;
+                                            }
+                                            box.innerHTML = '&lt;span class="text-primary"&gt;Đang truy xuất SOP-RAG-003...&lt;/span&gt;';
+                                            try {
+                                                const resp = await fetch('/my/invoices/' + invId + '/ai_explain', {
+                                                    method: 'POST',
+                                                    headers: {'Content-Type': 'application/json'},
+                                                    body: JSON.stringify({jsonrpc: '2.0', params: {query: input ? input.value : ''}})
+                                                });
+                                                const data = await resp.json();
+                                                const res = data.result || {};
+                                                box.innerHTML = res.answer ? ('&lt;div class="fw-bold text-dark"&gt;' + res.answer.replace(/\n/g, '&lt;br/&gt;') + '&lt;/div&gt;') : ('&lt;span class="text-danger"&gt;' + (res.error || 'Không thể lấy phản hồi.') + '&lt;/span&gt;');
+                                            } catch (err) {
+                                                box.innerHTML = '&lt;span class="text-danger"&gt;Lỗi kết nối máy chủ.&lt;/span&gt;';
+                                            }
+                                        });
+                                    });
+                                </script>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6">
+                            <div class="p-3 border bg-light h-100" style="border-radius: 2px !important;">
+                                <div class="fw-bold mb-2" style="color: #161616; font-size: 13px;">
+                                    🛡️ Hồ Sơ Đối Soát Thương Mại Đang Mở (AL2C-INV-103)
+                                </div>
+                                <t t-if="not disputes">
+                                    <div class="p-3 bg-white border text-muted small" style="border-radius: 2px !important;">
+                                        Hiện không có tranh chấp thương mại nào đang mở. Mọi yêu cầu đối soát gửi từ trang chi tiết Hóa đơn sẽ lập tức đóng băng tiến trình nhắc nợ tự động (Dunning Freeze).
+                                    </div>
+                                </t>
+                                <t t-foreach="disputes" t-as="dsp">
+                                    <div class="p-2 bg-white border mb-2 small" style="border-radius: 2px !important;">
+                                        <div class="d-flex justify-content-between">
+                                            <strong t-out="dsp.name"/>
+                                            <span class="badge bg-warning text-dark" style="border-radius: 4px !important; font-size: 10px;" t-out="dsp.state"/>
+                                        </div>
+                                        <div class="text-muted">Hóa đơn: <strong t-out="dsp.invoice_id.name"/> · Số tiền đối soát: <strong t-out="dsp.disputed_amount" t-options="{'widget': 'monetary', 'display_currency': dsp.invoice_id.currency_id}"/></div>
+                                        <div class="mt-1" t-out="dsp.resolution_note"/>
+                                    </div>
+                                </t>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
     </template>
 </odoo>

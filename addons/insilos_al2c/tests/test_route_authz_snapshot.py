@@ -14,8 +14,20 @@ PUBLIC_ALLOWLIST = frozenset([
     '/llms.txt',
     '/llms-full.txt',
 
-    # Customer Portal Dispute Route (CSRF-protected, form-clamped, auth='public' for portal invitation links)
+    # Customer Portal Dispute, Quotation, Timesheet & E-Invoice Routes (token/session verified)
     '/my/invoices/<int:invoice_id>/dispute',
+    '/my/invoices/<int:invoice_id>/confirm_timesheet',
+    '/my/invoices/<int:invoice_id>/ai_explain',
+    '/my/invoices/<int:invoice_id>/draft_decide',
+    '/my/invoices/<int:invoice_id>/download_einvoice_xml',
+    '/my/invoices/<int:invoice_id>/download_einvoice_html',
+    '/my/orders/<int:order_id>/software_decide',
+    '/my/timesheets',
+    '/my/timesheets/<int:sheet_id>',
+    '/my/timesheets/<int:sheet_id>/decide',
+    '/my/software-portal',
+    '/insilos/timesheet_approval/<int:sheet_id>/<string:token>',
+    '/insilos/timesheet_approval/<int:sheet_id>/<string:token>/decide',
 
     # Anti-DoS Runtime Incident Reporting Gateway (Protected by HMAC signature, IP rate limits, and 256KB cap)
     '/api/v1/runtime-report',

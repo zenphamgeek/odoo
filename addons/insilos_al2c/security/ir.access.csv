@@ -131,4 +131,13 @@ access_dgm_marketing_automation_campaign_sm,dgm.marketing.automation.campaign sm
 access_dgm_marketing_automation_campaign_pm,dgm.marketing.automation.campaign pm,dgm.marketing.automation.campaign,project.group_project_manager,crud,
 access_dgm_marketing_automation_campaign_hr_manager,dgm.marketing.automation.campaign hr manager,dgm.marketing.automation.campaign,hr.group_hr_manager,crud,
 access_dgm_marketing_automation_campaign_system,dgm.marketing.automation.campaign system,dgm.marketing.automation.campaign,base.group_system,crud,
+access_al2c_value_case_portal,al2c.value.case portal,al2c.value.case,base.group_portal,r,"[('partner_id', 'child_of', [user.commercial_partner_id.id])]"
+access_al2c_value_driver_portal,al2c.value.driver portal,al2c.value.driver,base.group_portal,r,"[('case_id.partner_id', 'child_of', [user.commercial_partner_id.id])]"
+access_al2c_fts_item_portal,al2c.fts.item portal,al2c.fts.item,base.group_portal,r,"[('sale_order_id.partner_id', 'child_of', [user.commercial_partner_id.id])]"
+access_al2c_dispute_portal,al2c.dispute portal,al2c.dispute,base.group_portal,r,"[('invoice_id.partner_id', 'child_of', [user.commercial_partner_id.id])]"
+access_dgm_project_timesheet_sheet_portal,dgm.project.timesheet.sheet portal,dgm.project.timesheet.sheet,base.group_portal,r,"[('partner_id', 'child_of', [user.commercial_partner_id.id])]"
+access_dgm_project_timesheet_line_portal,dgm.project.timesheet.line portal,dgm.project.timesheet.line,base.group_portal,r,"[('sheet_id.partner_id', 'child_of', [user.commercial_partner_id.id])]"
+account_invoice_draft_reconciliation_rule_portal,Portal Draft Reconciliation Invoices,account.move,base.group_portal,r,"[('state', '=', 'draft'), '|', ('dgm_invoice_stage', 'in', ('draft_reconciliation', 'customer_reconciled')), ('al2c_timesheet_statement_state', 'in', ('sent_to_client', 'confirmed')), ('move_type', 'in', ('out_invoice', 'out_refund')), ('partner_id', 'child_of', [user.commercial_partner_id.id])]"
+account_invoice_line_draft_reconciliation_rule_portal,Portal Draft Reconciliation Invoice Lines,account.move.line,base.group_portal,r,"[('parent_state', '=', 'draft'), '|', ('move_id.dgm_invoice_stage', 'in', ('draft_reconciliation', 'customer_reconciled')), ('move_id.al2c_timesheet_statement_state', 'in', ('sent_to_client', 'confirmed')), ('move_id.move_type', 'in', ('out_invoice', 'out_refund')), ('move_id.partner_id', 'child_of', [user.commercial_partner_id.id])]"
+
 
