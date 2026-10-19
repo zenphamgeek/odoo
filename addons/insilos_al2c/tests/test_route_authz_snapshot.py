@@ -26,6 +26,8 @@ PUBLIC_ALLOWLIST = frozenset([
     '/my/timesheets/<int:sheet_id>',
     '/my/timesheets/<int:sheet_id>/decide',
     '/my/software-portal',
+    '/my/software-portal/chat_assistant',
+    '/my/software-portal/customer_care_ticket',
     '/insilos/timesheet_approval/<int:sheet_id>/<string:token>',
     '/insilos/timesheet_approval/<int:sheet_id>/<string:token>/decide',
 
