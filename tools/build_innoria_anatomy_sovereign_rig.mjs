@@ -403,76 +403,48 @@ putPart(
 );
 
 // ============================================================================
-// F. 3D NON-COLLIDING CONDUIT TUBES (conduits)
+// F. FLUSH ISOMETRIC AXIAL BUS TRACES (z = 0 on sovereign.foundation)
 // ============================================================================
-function addConduit(name, controlPoints, r = 1.4, { bend = 6, tone = "hi" } = {}) {
-  const route = G.fillet(controlPoints, Math.max(bend, r * 3.2), 10, { P, tube: r });
-  R.route(name, route, r, {
-    piece: "conduits",
-    limp: false,
-    ends: [true, true],
-    rims: [r, r],
-  });
-  tubePieces(route, r, P, { maxLength: 22, spacing: 1.2 }).forEach((piece, index) => {
-    putPart(
-      `${name}:${index}`,
-      "conduits",
-      piece.mid,
-      tubeSvg(piece, { tone }),
-      [A.tube(piece.points, piece.radii, { name: `${name}:${index}`, owner: name })],
-      { route: name, chunk: index }
-    );
-  });
-}
-
-// 1. Digiforce Manifold (east vertical wall x = -67) -> Foundation Floor Port
-addConduit(
-  "conduit.digiforce",
+const deckBusRoutes = [
+  // 1. Digiforce Manifold East Port -> Insilos Core West Flange Port (straight axial)
   [
-    [-67, -14, 12],
-    [-50, -14, 12],
-    [-50, -14, 0],
+    [-67, 18],
+    [-39, 18],
   ],
-  1.3,
-  { bend: 5.5, tone: "hi" }
-);
-
-// 2. VisionX Turret (west vertical wall x = 68) -> Foundation Floor Port
-addConduit(
-  "conduit.visionx",
+  // 2. Insilos Core East Flange Port -> VisionX Turret West Port (straight axial)
   [
-    [68, -14, 12],
-    [50, -14, 12],
-    [50, -14, 0],
+    [39, 18],
+    [68, 18],
   ],
-  1.3,
-  { bend: 5.5, tone: "hi" }
-);
+];
 
-// 3. ZKLedger Vault (front vertical wall y = -38) -> Foundation Floor Port (clear of insilos.flange)
-addConduit(
-  "conduit.zkledger",
-  [
-    [-40, -38, 14],
-    [-40, -25, 14],
-    [-40, -25, 0],
-  ],
-  1.3,
-  { bend: 5.0, tone: "hi" }
-);
+const deckBusTerminals = [
+  [-64, 18],
+  [-42, 18],
+  [42, 18],
+  [65, 18],
+];
 
-// 4. Insilos Core Flange (top shelf z = 8 at [0, 46, 8]) -> Foundation Floor Port [0, 68, 0]
-addConduit(
-  "conduit.insilos",
-  [
-    [0, 46, 8],
-    [0, 46, 18],
-    [0, 68, 18],
-    [0, 68, 0],
-  ],
-  1.3,
-  { bend: 5.0, tone: "hi" }
-);
+const deckBusSvg = [
+  ...deckBusRoutes.map((pts) => {
+    let segs = "";
+    for (let i = 0; i < pts.length - 1; i++) {
+      segs += lineOnTop(pts[i], pts[i + 1], 0, P);
+    }
+    return Ln(segs, { tone: "hi", free: true });
+  }),
+  Ln(deckBusTerminals.map(([bx, by]) => ring(bx, by, 1.6, 0, P, 14)).join(""), {
+    tone: "lo",
+    free: true,
+  }),
+  Dots(
+    deckBusTerminals.map(([bx, by]) => at([bx, by, 0])),
+    { size: 0.5, tone: "hi", pulse: true }
+  ),
+].join("");
+
+// Append flush deck bus traces to sovereign.foundation item
+R.items[R.items.findIndex((it) => it.name === "sovereign.foundation")].svg += deckBusSvg;
 
 // ============================================================================
 // G. SETTLE DEPTH ORDER & AUDIT
@@ -511,7 +483,6 @@ const groupOrder = [
   "digiforce.manifold",
   "insilos.core",
   "visionx.turret",
-  "conduits",
 ];
 
 // Compute lift vectors for interactive explode/regime highlight
@@ -521,7 +492,6 @@ export const PART_LIFTS = {
   "insilos.core": translateAlong(P, [0, 0, 12]),
   "visionx.turret": translateAlong(P, [0, 0, 10]),
   "zkledger.vault": translateAlong(P, [0, 0, 10]),
-  conduits: translateAlong(P, [0, 0, 4]),
 };
 
 const groupedBuckets = new Map(groupOrder.map((g) => [g, []]));
@@ -595,7 +565,7 @@ if (process.argv.includes("--write-xml")) {
                     --anatomy-halo-opacity: 0.85;
                     --anatomy-dot: #38bdf8;
                     --anatomy-weight: 0.65px;
-                    --anatomy-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+                    --anatomy-mono: ui-sans-serif, "Poppins", -apple-system, BlinkMacSystemFont, sans-serif;
                 }
                 #innoria_anatomy_sovereign_rig .iso-svg {
                     display: block;
@@ -716,9 +686,9 @@ if (process.argv.includes("--write-xml")) {
                 <!-- 1. EXECUTIVE HEADER (Rule 29 Borderless Neo-Noir Obsidian) -->
                 <div class="row mb-5 align-items-end">
                     <div class="col-lg-8">
-                        <div class="d-inline-flex align-items-center gap-2 mb-3 font-monospace text-uppercase"
+                        <div class="d-inline-flex align-items-center gap-2 mb-3 text-uppercase"
                              style="color: #ffd700; font-size: 0.76rem; letter-spacing: 0.12em;">
-                            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#38bdf8; box-shadow:0 0 10px #38bdf8;"/>
+                            <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#38bdf8; box-shadow: none;"/>
                             <span>SYSTEMS ANATOMY // CỖ MÁY GIẢI PHẪU KIẾN TRÚC TỰ HÀNH</span>
                         </div>
                         <h2 class="display-5 fw-bold mb-3" style="color: #F8FAFC !important; letter-spacing: -0.02em;">
@@ -728,7 +698,7 @@ if (process.argv.includes("--write-xml")) {
                             Mỗi cấu kiện cơ khí trên mô hình đẳng cự (Isometric Rig) phản ánh chính xác một cơ chế vận hành thực chứng: từ phân luồng chứng từ hải quan, thị giác biên 120 FPS ngắt mạch rơ-le an toàn, đến buồng mật mã kế toán cô lập vật lý.
                         </p>
                     </div>
-                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0 font-monospace">
+                    <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
                         <div class="small text-uppercase" style="color: #64748B; font-size: 0.72rem; letter-spacing: 0.08em;">FIG 04 // ISOMETRIC BENCHMARK</div>
                         <div class="fw-bold" style="color: #38bdf8; font-size: 0.9rem;">0 COLLISIONS · 0 LOOSE ENDS · 16 SOLIDS</div>
                     </div>
@@ -738,7 +708,7 @@ if (process.argv.includes("--write-xml")) {
                 <div class="row g-5 align-items-start">
                     <!-- LEFT COLUMN: 3 REGIME PILLS, ACTIVE REGIME PANEL & THROUGHPUT SLIDER -->
                     <div class="col-lg-5">
-                        <div class="font-monospace text-uppercase small mb-2" style="color: #64748B; font-size: 0.72rem; letter-spacing: 0.08em;">
+                        <div class="text-uppercase small mb-2" style="color: #64748B; font-size: 0.72rem; letter-spacing: 0.08em;">
                             CHỌN CHẾ ĐỘ VẬN HÀNH THỰC CHỨNG (3 REGIMES)
                         </div>
                         <div class="d-flex flex-column gap-2 mb-4" role="tablist" aria-label="Innoria Sovereign Rig Regimes">
@@ -766,57 +736,57 @@ if (process.argv.includes("--write-xml")) {
                         <div class="pt-3 pb-4" style="border-top: 1px solid rgba(56, 189, 248, 0.28); border-bottom: 1px solid rgba(148, 163, 184, 0.16);">
                             <!-- Regime 1 Content -->
                             <div class="rig-regime-detail" data-regime-panel="regime1">
-                                <div class="font-monospace small text-uppercase mb-1" style="color: #ffd700; font-size: 0.73rem; letter-spacing: 0.06em;">
+                                <div class="small text-uppercase mb-1" style="color: #ffd700; font-size: 0.73rem; letter-spacing: 0.06em;">
                                     EXECUTIVE HOOK // CHẾ ĐỘ 01
                                 </div>
                                 <h3 class="h4 fw-bold mb-2" style="color: #F8FAFC !important;">
                                     Khóa cứng rủi ro xuất xứ trong 3 giây.
                                 </h3>
-                                <div class="font-monospace small mb-3" style="color: #38bdf8;">
+                                <div class="small mb-3" style="color: #38bdf8;">
                                     RVC 48.6%, đối soát 5 luồng ECUS5-VNACCS hoàn tất dưới 3.2 giây.
                                 </div>
                                 <p class="small mb-3" style="color: #CBD5E1; line-height: 1.65;">
                                     Cụm van phân phối 5 cổng (Manifold Distributor) tiếp nhận song song 5 luồng tài liệu: PO, Invoice, Packing List, Tờ khai hải quan và B/L. Con trượt quang học (Vernier Slider) cân đo hàm lượng nội địa hóa RVC và kích hoạt van chốt cơ khí (Solenoid Interlock) khóa tờ khai khi lệch mã HS hoặc BOM vượt 0.5%.
                                 </p>
-                                <div class="font-monospace small" style="color: #94A3B8; font-size: 0.72rem;">
+                                <div class="small" style="color: #94A3B8; font-size: 0.72rem;">
                                     <strong style="color: #ffd700;">CHUẨN PHÁP LÝ:</strong> Thông tư 11/2020/TT-BCT · Nghị định 35/2020/NĐ-CP · EVFTA Protocol 1 &amp; CPTPP · ECUS5-VNACCS
                                 </div>
                             </div>
 
                             <!-- Regime 2 Content -->
                             <div class="rig-regime-detail d-none" data-regime-panel="regime2">
-                                <div class="font-monospace small text-uppercase mb-1" style="color: #ffd700; font-size: 0.73rem; letter-spacing: 0.06em;">
+                                <div class="small text-uppercase mb-1" style="color: #ffd700; font-size: 0.73rem; letter-spacing: 0.06em;">
                                     EXECUTIVE HOOK // CHẾ ĐỘ 02
                                 </div>
                                 <h3 class="h4 fw-bold mb-2" style="color: #F8FAFC !important;">
                                     Ngắt nguồn tức thì khi vi phạm an toàn.
                                 </h3>
-                                <div class="font-monospace small mb-3" style="color: #38bdf8;">
+                                <div class="small mb-3" style="color: #38bdf8;">
                                     Độ trễ biên &lt; 12ms, nhận diện 99.8%, duy trì OEE &gt; 98.5%.
                                 </div>
                                 <p class="small mb-3" style="color: #CBD5E1; line-height: 1.65;">
                                     Thấu kính quang học viễn tâm kép (Dual Telecentric Lens) quét liên tục 120 FPS nhận diện hành lang an toàn và PPE, nối cứng vào rơ-le cách ly quang (Galvanic Safety Relay) ngắt mạch PLC trong 12ms độc lập đám mây, kết hợp cảm biến áp điện RCM FFT phân tích phổ rung động trục quay.
                                 </p>
-                                <div class="font-monospace small" style="color: #94A3B8; font-size: 0.72rem;">
+                                <div class="small" style="color: #94A3B8; font-size: 0.72rem;">
                                     <strong style="color: #ffd700;">CHUẨN PHÁP LÝ:</strong> ISO 45001:2018 (Khoản 8.1.2) · ISO 13849-1:2023 (PL e, Cat 4) · RCM FFT ISO 10816-3
                                 </div>
                             </div>
 
                             <!-- Regime 3 Content -->
                             <div class="rig-regime-detail d-none" data-regime-panel="regime3">
-                                <div class="font-monospace small text-uppercase mb-1" style="color: #ffd700; font-size: 0.73rem; letter-spacing: 0.06em;">
+                                <div class="small text-uppercase mb-1" style="color: #ffd700; font-size: 0.73rem; letter-spacing: 0.06em;">
                                     EXECUTIVE HOOK // CHẾ ĐỘ 03
                                 </div>
                                 <h3 class="h4 fw-bold mb-2" style="color: #F8FAFC !important;">
                                     Xóa bỏ 80% thời gian nhập liệu kế toán.
                                 </h3>
-                                <div class="font-monospace small mb-3" style="color: #38bdf8;">
+                                <div class="small mb-3" style="color: #38bdf8;">
                                     Giảm 80% giờ nhập liệu, SLA 99.999%, cắt giảm 50% TCO.
                                 </div>
                                 <p class="small mb-3" style="color: #CBD5E1; line-height: 1.65;">
                                     Buồng mật mã Faraday cô lập mạng vật lý qua công tắc ngắt quang (Air-Gapped Optical Switch). Trụ pittông Zero-Knowledge (ZK Plunger) dập dấu băm SHA-256 / Ed25519 và bánh răng vi sai cơ khí đồng bộ đối ứng Nợ - Có chuẩn VAS 200 với 0 sai số.
                                 </p>
-                                <div class="font-monospace small" style="color: #94A3B8; font-size: 0.72rem;">
+                                <div class="small" style="color: #94A3B8; font-size: 0.72rem;">
                                     <strong style="color: #ffd700;">CHUẨN PHÁP LÝ:</strong> Thông tư 200/2014/TT-BTC · Luật Kế toán 88/2015/QH13 · Nghị định 13/2023/NĐ-CP · ISO/IEC 27001:2022
                                 </div>
                             </div>
@@ -824,7 +794,7 @@ if (process.argv.includes("--write-xml")) {
 
                         <!-- INTERACTIVE THROUGHPUT SLIDER (100 - 10,000 tx/s) -->
                         <div class="mt-4">
-                            <div class="d-flex justify-content-between align-items-center font-monospace mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
                                 <label for="innoriaRigThroughputSlider" class="small text-uppercase" style="color: #94A3B8; font-size: 0.74rem;">
                                     TẦN SUẤT GIAO DỊCH &amp; XUNG LƯỢNG HỆ THỐNG
                                 </label>
@@ -838,7 +808,7 @@ if (process.argv.includes("--write-xml")) {
                                    step="100"
                                    value="2400"
                                    aria-label="Throughput tx/s"/>
-                            <div class="d-flex justify-content-between font-monospace small" style="color: #64748B; font-size: 0.68rem;">
+                            <div class="d-flex justify-content-between small" style="color: #64748B; font-size: 0.68rem;">
                                 <span>100 tx/s (Baseline)</span>
                                 <span>2,400 tx/s (Nominal)</span>
                                 <span>10,000 tx/s (Peak Burst)</span>
@@ -848,24 +818,24 @@ if (process.argv.includes("--write-xml")) {
                         <!-- 4 LIVE TELEMETRY READOUTS -->
                         <div class="row g-3 mt-2">
                             <div class="col-6 rig-telemetry-row">
-                                <div class="font-monospace text-uppercase small" style="color: #64748B; font-size: 0.68rem;">Độ Trễ Biên</div>
-                                <div id="rigReadoutLatency" class="font-monospace fw-bold fs-5" style="color: #38bdf8;">8.4 ms</div>
-                                <div class="font-monospace small" style="color: #94A3B8; font-size: 0.7rem;">Galvanic PLC Cut-off &lt; 12ms</div>
+                                <div class="text-uppercase small" style="color: #64748B; font-size: 0.68rem;">Độ Trễ Biên</div>
+                                <div id="rigReadoutLatency" class="fw-bold fs-5" style="color: #38bdf8;">8.4 ms</div>
+                                <div class="small" style="color: #94A3B8; font-size: 0.7rem;">Galvanic PLC Cut-off &lt; 12ms</div>
                             </div>
                             <div class="col-6 rig-telemetry-row">
-                                <div class="font-monospace text-uppercase small" style="color: #64748B; font-size: 0.68rem;">Tỷ Lệ Tự Động Hóa</div>
-                                <div id="rigReadoutAutomation" class="font-monospace fw-bold fs-5" style="color: #ffd700;">84.2%</div>
-                                <div class="font-monospace small" style="color: #94A3B8; font-size: 0.7rem;">RVC 48.6% · OEE 98.7%</div>
+                                <div class="text-uppercase small" style="color: #64748B; font-size: 0.68rem;">Tỷ Lệ Tự Động Hóa</div>
+                                <div id="rigReadoutAutomation" class="fw-bold fs-5" style="color: #ffd700;">84.2%</div>
+                                <div class="small" style="color: #94A3B8; font-size: 0.7rem;">RVC 48.6% · OEE 98.7%</div>
                             </div>
                             <div class="col-6 rig-telemetry-row">
-                                <div class="font-monospace text-uppercase small" style="color: #64748B; font-size: 0.68rem;">Tiết Kiệm TCO</div>
-                                <div id="rigReadoutTco" class="font-monospace fw-bold fs-5" style="color: #10b981;">-52.4% TCO</div>
-                                <div class="font-monospace small" style="color: #94A3B8; font-size: 0.7rem;">-80% Giờ Nhập Liệu VAS 200</div>
+                                <div class="text-uppercase small" style="color: #64748B; font-size: 0.68rem;">Tiết Kiệm TCO</div>
+                                <div id="rigReadoutTco" class="fw-bold fs-5" style="color: #10b981;">-52.4% TCO</div>
+                                <div class="small" style="color: #94A3B8; font-size: 0.7rem;">-80% Giờ Nhập Liệu VAS 200</div>
                             </div>
                             <div class="col-6 rig-telemetry-row">
-                                <div class="font-monospace text-uppercase small" style="color: #64748B; font-size: 0.68rem;">Chuẩn Tuân Thủ &amp; Bảo Chứng SHA-256</div>
-                                <div id="rigReadoutCompliance" class="font-monospace fw-bold fs-6" style="color: #F8FAFC;">SLA 99.999% · 0x9F4A..E82C</div>
-                                <div class="font-monospace small" style="color: #94A3B8; font-size: 0.7rem;">Ed25519 Air-Gapped Verified</div>
+                                <div class="text-uppercase small" style="color: #64748B; font-size: 0.68rem;">Chuẩn Tuân Thủ &amp; Bảo Chứng SHA-256</div>
+                                <div id="rigReadoutCompliance" class="fw-bold fs-6" style="color: #F8FAFC;">SLA 99.999% · 0x9F4A..E82C</div>
+                                <div class="small" style="color: #94A3B8; font-size: 0.7rem;">Ed25519 Air-Gapped Verified</div>
                             </div>
                         </div>
                     </div>
@@ -888,7 +858,7 @@ if (process.argv.includes("--write-xml")) {
                                     04 · ZKLedger Air-Gapped Vault
                                 </button>
                             </div>
-                            <span id="rigActivePartReadout" class="font-monospace small" style="color: #ffd700; font-size: 0.74rem;">
+                            <span id="rigActivePartReadout" class="small" style="color: #ffd700; font-size: 0.74rem;">
                                 ACTIVE: DIGIFORCE.MANIFOLD // RVC 48.6%
                             </span>
                         </div>
@@ -899,7 +869,7 @@ if (process.argv.includes("--write-xml")) {
                         </div>
 
                         <!-- Bottom Legend & Engineering Callout Strip -->
-                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-3 mt-2 font-monospace small"
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 pt-3 mt-2 small"
                              style="border-top: 1px solid rgba(148, 163, 184, 0.16); color: #94A3B8; font-size: 0.72rem;">
                             <div>
                                 <span style="color: #38bdf8;">●</span> Nhấp trực tiếp vào từng cụm cơ khí trên bản vẽ hoặc thanh chọn để tách lớp trục Z
