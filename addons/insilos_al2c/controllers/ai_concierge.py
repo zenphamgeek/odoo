@@ -24,6 +24,69 @@ _PCT_LOCK = threading.Lock()
 _PCT_BUDGET_LEDGER = {}
 _QUARANTINE_LOCK = threading.Lock()
 _SECURITY_QUARANTINE_LEDGER = []
+_SECURITY_SHIELD_LOCK = threading.Lock()
+_CHAT_ABUSE_STRIKES = {}
+_RATE_LIMIT_WINDOWS = {}
+_LEAD_DEDUP_LEDGER = {}
+_CHALLENGE_LEDGER = {}
+
+DISPOSABLE_AND_FAKE_EMAIL_DOMAINS = frozenset({
+    'mailinator.com', 'tempmail.com', 'temp-mail.org', '10minutemail.com',
+    'guerrillamail.com', 'yopmail.com', 'trashmail.com', 'sharklasers.com',
+    'getnada.com', 'fakeinbox.com', 'throwawaymail.com', 'maildrop.cc',
+    'dispostable.com', 'mailnesia.com', 'mohmal.com', 'mytemp.email',
+    'test.com', 'fake.com',
+    'abc.com', 'xyz.com', '123.com', 'asdf.com', 'qwer.com', 'spam.com',
+    'bot.com', 'noemail.com', 'none.com', 'invalid.com', 'localhost.local',
+})
+
+FAKE_EMAIL_LOCAL_PARTS = frozenset({
+    'test', 'testing', 'tester', 'fake', 'spam', 'bot', 'asdf', 'asdfgh',
+    'qwerty', 'qwer', 'zxcv', '123', '1234', '12345', '123456', '12345678',
+    'admin123', 'abc', 'abcdef', 'none', 'null', 'undefined', 'noemail',
+    'khongco', 'ao', 'taolao', 'linhtinh',
+})
+
+FAKE_PHONE_SEQUENCES = frozenset({
+    '0123456789', '0987654321', '1234567890', '0912345678', '0987654320',
+    '0901234567', '0911111111', '0922222222', '0933333333', '0944444444',
+    '0955555555', '0966666666', '0977777777', '0988888888', '0999999999',
+    '0900000000', '0888888888', '0777777777', '0555555555', '0333333333',
+    '0000000000', '1111111111', '2222222222', '3333333333', '4444444444',
+    '5555555555', '6666666666', '7777777777', '8888888888', '9999999999',
+    '0909090909', '0919191919', '0989898989', '0345678910',
+})
+
+KEYBOARD_MASH_TOKENS = (
+    'asdf', 'sdfg', 'dfgh', 'fghj', 'ghjk', 'hjkl',
+    'qwer', 'wert', 'erty', 'rtyu', 'tyui', 'yuio', 'uiop',
+    'zxcv', 'xcvb', 'cvbn', 'vbnm',
+)
+
+CHAT_HARASSMENT_REGEX = re.compile(
+    r'(?:\b(?:đm|đkm|đcm|địt|đéo|đụ|vãi\s*lồn|vãi\s*cặc|vcl|vl|vkl|cc|clgt|lồn|cặc|buồi|'
+    r'óc\s*chó|chó\s*đẻ|ngu\s*ngốc|đồ\s*ngu|mẹ\s*mày|bố\s*mày|con\s*đĩ|thằng\s*chó|'
+    r'cút\s*đi|xạo\s*lồn|xl|lừa\s*đảo\s*à|'
+    r'fuck|fucking|fucker|motherfucker|bitch|asshole|bastard|dickhead|cunt|whore|slut|stfu|'
+    r'idiot|moron|stupid\s*bot|piece\s*of\s*shit|bullshit|kill\s*yourself|kys)\b)',
+    re.IGNORECASE,
+)
+
+CHAT_SPAM_SCAM_REGEX = re.compile(
+    r'(?:\b(?:bet88|kubet|nhà\s*cái|cá\s*độ|cá\s*cược|tài\s*xỉu|nổ\s*hũ|xổ\s*số\s*lô\s*đề|'
+    r'vay\s*tiền\s*nhanh|tín\s*dụng\s*đen|viagra|casino\s*online|poker\s*online|'
+    r'free\s*crypto|airdrop\s*scam|telegram\s*sex|web\s*đen)\b)',
+    re.IGNORECASE,
+)
+
+CYBER_ATTACK_REGEX = re.compile(
+    r'(?:<\s*script\b|javascript\s*:|onerror\s*=|onload\s*=|<\s*iframe\b|<\s*svg\b[^>]*on\w+\s*=|'
+    r'\bunion\s+all\s+select\b|\bunion\s+select\b|\bdrop\s+table\b|\bdelete\s+from\s+\w+\s+where\s+1\s*=\s*1|'
+    r';\s*rm\s+-rf\b|\.\./\.\./etc/passwd|\$\{jndi:(?:ldap|rmi|dns):|'
+    r'\{\{\s*\d+\s*\*\s*\d+\s*\}\}|__import__\s*\(\s*[\'"]os[\'"]\s*\))',
+    re.IGNORECASE,
+)
+
 
 CANONICAL_CATALOG_SKUS = [
     'ERP-STARTER',
@@ -467,6 +530,379 @@ class InnoriaAiConciergeController(http.Controller):
             })
         return seal
 
+    def _resolve_client_key(self, kw=None):
+        """Resolve client IP / session fingerprint for rate-limiting and strike tracking."""
+        kw = kw or {}
+        if kw.get('client_ip') or kw.get('session_key'):
+            return str(kw.get('client_ip') or kw.get('session_key')).strip()
+        try:
+            req = request._get_current_object()
+            if req and hasattr(req, 'httprequest') and req.httprequest:
+                xff = req.httprequest.headers.get('X-Forwarded-For', '')
+                ip = (xff.split(',')[0].strip() if xff else '') or req.httprequest.remote_addr or '127.0.0.1'
+                sid = getattr(req.session, 'sid', '') if hasattr(req, 'session') and req.session else ''
+                return f"{ip}:{sid[:12]}" if sid else ip
+        except Exception:
+            pass
+        return 'local_direct'
+
+    def mint_security_challenge(self, env=None, ttl=1800):
+        """
+        Mint a signed Anti-Bot Arithmetic Challenge (AB-CHAL) for the Lead Capture Form.
+        Returns dict with {'challenge_token': str, 'question': str, 'operand_a': int, 'operand_b': int}.
+        """
+        a = (secrets.randbelow(8) + 2)  # 2..9
+        b = (secrets.randbelow(8) + 1)  # 1..8
+        ans = a + b
+        nonce = secrets.token_hex(6)
+        exp_ts = int(time.time()) + int(ttl)
+        secret = self._get_pct_secret(env)
+        payload = f"chal:{nonce}:{ans}:{exp_ts}"
+        sig = hmac.new(secret.encode('utf-8'), payload.encode('utf-8'), hashlib.sha256).hexdigest()[:24]
+        token = f"chal.{nonce}.{exp_ts}.{sig}"
+        with _SECURITY_SHIELD_LOCK:
+            if len(_CHALLENGE_LEDGER) >= 4096:
+                oldest = next(iter(_CHALLENGE_LEDGER))
+                _CHALLENGE_LEDGER.pop(oldest, None)
+            _CHALLENGE_LEDGER[nonce] = {'ans': str(ans), 'exp': exp_ts}
+        return {
+            'challenge_token': token,
+            'question': f"{a} + {b} = ?",
+            'operand_a': a,
+            'operand_b': b,
+        }
+
+    def verify_security_challenge(self, challenge_token, answer, env=None):
+        """Verify HMAC-signed Anti-Bot Arithmetic Challenge with one-time replay protection."""
+        if not challenge_token or not isinstance(challenge_token, str):
+            return False, 'missing_security_challenge'
+        parts = challenge_token.strip().split('.')
+        if len(parts) != 4 or parts[0] != 'chal':
+            return False, 'malformed_security_challenge'
+        _, nonce, exp_str, sig = parts
+        try:
+            exp_ts = int(exp_str)
+            clean_ans = str(int(str(answer or '').strip()))
+        except (ValueError, TypeError):
+            return False, 'invalid_security_challenge_answer'
+        if int(time.time()) > exp_ts:
+            return False, 'expired_security_challenge'
+        secret = self._get_pct_secret(env)
+        payload = f"chal:{nonce}:{clean_ans}:{exp_ts}"
+        expected_sig = hmac.new(secret.encode('utf-8'), payload.encode('utf-8'), hashlib.sha256).hexdigest()[:24]
+        if not hmac.compare_digest(sig, expected_sig):
+            return False, 'security_challenge_mismatch'
+        with _SECURITY_SHIELD_LOCK:
+            entry = _CHALLENGE_LEDGER.get(nonce)
+            if entry and entry.get('consumed'):
+                return False, 'replayed_security_challenge'
+            if len(_CHALLENGE_LEDGER) >= 4096 and nonce not in _CHALLENGE_LEDGER:
+                oldest = next(iter(_CHALLENGE_LEDGER))
+                _CHALLENGE_LEDGER.pop(oldest, None)
+            _CHALLENGE_LEDGER[nonce] = {'ans': clean_ans, 'exp': exp_ts, 'consumed': True}
+        return True, 'ok'
+
+    def validate_b2b_contact_authenticity(self, name="", email="", phone="", company_name="", notes=""):
+        """
+        Multi-layer Anti-Fake Contact Validator for B2B Lead Capture:
+        - Validates corporate/personal email syntax, blocks disposable/throwaway/fake domains & gibberish local-parts.
+        - Validates VN mobile (03/05/07/08/09 - 10 digits), VN landline (02 - 10/11 digits), or E.164 (+84...),
+          blocking sequential/repeated fake phone numbers (0123456789, 0999999999, 0000000000, etc.).
+        - Validates contact name and company name against XSS/SQLi, keyboard mash, single-char repeats, or profanity.
+        Returns (ok: bool, status_code: str, error_message: str).
+        """
+        clean_name = str(name or '').strip()
+        clean_email = str(email or '').strip().lower()
+        clean_phone = str(phone or '').strip()
+        clean_company = str(company_name or '').strip()
+        clean_notes = str(notes or '').strip()
+
+        # 1. Cyber Attack / XSS / SQLi / Harassment Check across all fields
+        combined_fields = f"{clean_name} | {clean_email} | {clean_phone} | {clean_company} | {clean_notes}"
+        if CYBER_ATTACK_REGEX.search(combined_fields):
+            return (
+                False,
+                'cyber_attack_payload_blocked',
+                _("Hệ thống Bảo mật Innoria đã chặn nội dung chứa mã thực thi hoặc truy vấn bất thường (XSS/SQLi Guard)."),
+            )
+        if CHAT_HARASSMENT_REGEX.search(combined_fields) or CHAT_SPAM_SCAM_REGEX.search(combined_fields):
+            return (
+                False,
+                'abusive_or_spam_contact_blocked',
+                _("Thông tin liên hệ hoặc ghi chú chứa từ ngữ không phù hợp chuẩn mực doanh nghiệp B2B."),
+            )
+
+        # 2. Contact Name Validation (when provided)
+        if clean_name:
+            if len(clean_name) < 2 or len(clean_name) > 120:
+                return (
+                    False,
+                    'fake_contact_name',
+                    _("Họ và tên người liên hệ phải từ 2 đến 120 ký tự hợp lệ."),
+                )
+            name_alpha = re.sub(r'[\s\.\-\']+', '', clean_name.lower())
+            if name_alpha.isdigit() or len(set(name_alpha)) <= 1:
+                return (
+                    False,
+                    'fake_contact_name',
+                    _("Họ và tên không hợp lệ (phát hiện chuỗi ký tự lặp hoặc số ảo). Vui lòng nhập họ tên thật."),
+                )
+            if any(tok in name_alpha for tok in KEYBOARD_MASH_TOKENS) or name_alpha in FAKE_EMAIL_LOCAL_PARTS:
+                return (
+                    False,
+                    'fake_contact_name',
+                    _("Hệ thống phát hiện Họ và tên giả mạo hoặc gõ phím ngẫu nhiên. Vui lòng nhập họ tên thật."),
+                )
+
+        # 3. Company Name Validation (when provided)
+        if clean_company:
+            comp_alpha = re.sub(r'[\s\.\-\,\&\(\)]+', '', clean_company.lower())
+            if len(clean_company) < 2 or comp_alpha.isdigit() or (len(comp_alpha) >= 4 and len(set(comp_alpha)) <= 1):
+                return (
+                    False,
+                    'fake_company_name',
+                    _("Tên công ty / tổ chức không hợp lệ. Vui lòng nhập tên doanh nghiệp hoặc tổ chức thực tế."),
+                )
+            if any(tok in comp_alpha for tok in KEYBOARD_MASH_TOKENS) or comp_alpha in FAKE_EMAIL_LOCAL_PARTS:
+                return (
+                    False,
+                    'fake_company_name',
+                    _("Tên công ty có dấu hiệu dữ liệu giả (Fake Contact). Vui lòng cung cấp tên pháp nhân hoặc đơn vị công tác."),
+                )
+
+        # 4. Email Authenticity Validation (when provided)
+        if clean_email:
+            email_match = re.match(r'^([a-zA-Z0-9_.+\-]+)@([a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)+)$', clean_email)
+            if not email_match:
+                return (
+                    False,
+                    'invalid_email_format',
+                    _("Định dạng Email không hợp lệ. Vui lòng nhập đúng địa chỉ Email doanh nghiệp (VD: ten@congty.vn)."),
+                )
+            local_part, domain_part = email_match.group(1).lower(), email_match.group(2).lower()
+            tld = domain_part.split('.')[-1]
+            if len(tld) < 2 or tld.isdigit():
+                return (
+                    False,
+                    'invalid_email_domain',
+                    _("Tên miền Email không hợp lệ."),
+                )
+            if domain_part in DISPOSABLE_AND_FAKE_EMAIL_DOMAINS or any(
+                domain_part.endswith('.' + d) for d in DISPOSABLE_AND_FAKE_EMAIL_DOMAINS
+            ):
+                return (
+                    False,
+                    'fake_or_disposable_email_blocked',
+                    _("Hệ thống chống Spam từ chối Email rác / Email dùng 1 lần (%s). Vui lòng sử dụng Email doanh nghiệp hoặc Email công việc chính thức.") % domain_part,
+                )
+            local_clean = re.sub(r'[^a-z0-9]', '', local_part)
+            if (
+                local_part in FAKE_EMAIL_LOCAL_PARTS
+                or local_clean in FAKE_EMAIL_LOCAL_PARTS
+                or (len(local_clean) >= 4 and len(set(local_clean)) <= 1)
+                or any(tok in local_clean for tok in ('asdfgh', 'qwerty', 'zxcvbn', '1234567'))
+            ):
+                return (
+                    False,
+                    'fake_email_local_part_blocked',
+                    _("Địa chỉ Email (%s) có dấu hiệu Email ảo / thử nghiệm. Vui lòng nhập Email liên hệ thực tế.") % clean_email,
+                )
+
+        # 5. Phone Number Authenticity Validation (when provided)
+        if clean_phone:
+            normalized_phone = re.sub(r'[\s\-\.\(\)]+', '', clean_phone)
+            if normalized_phone.startswith('+84'):
+                vn_digits = '0' + normalized_phone[3:]
+            elif normalized_phone.startswith('84') and len(normalized_phone) in (11, 12):
+                vn_digits = '0' + normalized_phone[2:]
+            else:
+                vn_digits = normalized_phone
+
+            if vn_digits.startswith('+'):
+                # International E.164 format (+1..., +61..., +65..., etc.)
+                intl_digits = vn_digits[1:]
+                if not intl_digits.isdigit() or not (8 <= len(intl_digits) <= 15):
+                    return (
+                        False,
+                        'invalid_phone_number',
+                        _("Số điện thoại quốc tế không đúng chuẩn E.164."),
+                    )
+                check_digits = intl_digits
+            else:
+                if not vn_digits.isdigit():
+                    return (
+                        False,
+                        'invalid_phone_number',
+                        _("Số điện thoại chỉ được chứa chữ số (VD: 0912 345 678 hoặc +84 912 345 678)."),
+                    )
+                # Valid VN mobile (03, 05, 07, 08, 09 -> 10 digits) or VN landline (02 -> 10 or 11 digits)
+                is_valid_vn_mobile = bool(re.match(r'^0[35789]\d{8}$', vn_digits))
+                is_valid_vn_landline = bool(re.match(r'^02\d{8,9}$', vn_digits))
+                if not (is_valid_vn_mobile or is_valid_vn_landline):
+                    return (
+                        False,
+                        'invalid_phone_number',
+                        _("Số điện thoại không hợp lệ (cần đúng 10 số đầu 03/05/07/08/09 hoặc cố định 02x)."),
+                    )
+                check_digits = vn_digits
+
+            # Reject fake phone sequences, repeated digits (e.g. 0999999999, 0900000000), or ascending/descending ladders
+            if (
+                check_digits in FAKE_PHONE_SEQUENCES
+                or len(set(check_digits)) <= 2
+                or re.search(r'(\d)\1{6,}', check_digits)
+                or check_digits[-7:] in ('1234567', '2345678', '3456789', '7654321', '8765432', '9876543', '0000000')
+            ):
+                return (
+                    False,
+                    'fake_phone_number_blocked',
+                    _("Hệ thống phát hiện Số điện thoại ảo / dãy số lặp hoặc tiến đều (%s). Vui lòng nhập số điện thoại thực tế để nhận báo giá.") % clean_phone,
+                )
+
+        return True, 'ok', ''
+
+    def inspect_chat_security_and_harassment(self, query_text, client_key='local_direct', env=None):
+        """
+        Chatbox Anti-Harassment, Anti-Profanity, Anti-Spam & Cyber-Attack Firewall (SOP-SEC-CONCIERGE-01).
+        Tracks progressive strikes per client_key:
+          - Strike 1..2: Blocks abusive/spam/attack message, logs DDK-CDLQ quarantine seal, returns warning.
+          - Strike 3+: Locks out client for 120 seconds (cooldown_seconds).
+        Returns (allowed: bool, block_payload: dict | None).
+        """
+        now_ts = int(time.time())
+        ckey = str(client_key or 'local_direct')
+
+        with _SECURITY_SHIELD_LOCK:
+            strike_entry = _CHAT_ABUSE_STRIKES.get(ckey)
+            if strike_entry and strike_entry.get('lock_until', 0) > now_ts:
+                rem_sec = int(strike_entry['lock_until'] - now_ts)
+                return False, {
+                    'success': False,
+                    'blocked': True,
+                    'locked_out': True,
+                    'status': 'security_cooldown_locked',
+                    'security_code': 'security_cooldown_locked',
+                    'strike_count': strike_entry.get('strikes', 3),
+                    'max_strikes': 3,
+                    'cooldown_seconds': rem_sec,
+                    'direct_execution_permitted': False,
+                    'adversarial_containment': True,
+                    'error': _(
+                        "🔒 Phiên chat tạm khóa bảo mật (%s giây) do phát hiện nhiều lần gửi nội dung quấy rối, spam hoặc tấn công."
+                    ) % rem_sec,
+                }
+
+        q_clean = str(query_text or '').strip()
+        violation_code = None
+        violation_msg = None
+
+        # 1. Check XSS / SQLi / Command Injection / SSTI Cyber Attacks
+        if CYBER_ATTACK_REGEX.search(q_clean):
+            violation_code = 'cyber_attack_blocked'
+            violation_msg = _(
+                "🛡️ [Cảnh báo An ninh Mạng] Hệ thống Innoria WAF đã chặn truy vấn chứa mã độc thực thi (XSS / SQLi / Injection). "
+                "Mọi hành vi tấn công đều được ghi nhận vào nhật ký kiểm toán bảo mật ISO/IEC 27001."
+            )
+        # 2. Check Profanity / Harassment / Insults
+        elif CHAT_HARASSMENT_REGEX.search(q_clean):
+            violation_code = 'harassment_or_profanity'
+            violation_msg = _(
+                "⚠️ [Quy chuẩn Văn hóa Doanh nghiệp] Hệ thống AI Concierge từ chối phản hồi các tin nhắn chứa ngôn từ xúc phạm, "
+                "quấy rối hoặc thiếu chuẩn mực. Vui lòng đặt câu hỏi lịch sự về giải pháp công nghệ."
+            )
+        # 3. Check Casino / Crypto / Link Spam & Character Flooding
+        elif (
+            CHAT_SPAM_SCAM_REGEX.search(q_clean)
+            or len(re.findall(r'https?://', q_clean, re.IGNORECASE)) >= 2
+            or re.search(r'(.)\1{11,}', q_clean)
+            or (len(q_clean) >= 12 and any(tok in q_clean.lower() for tok in ('asdfghjkl', 'qwertyuiop', 'zxcvbnm')))
+        ):
+            violation_code = 'chat_spam_or_flood'
+            violation_msg = _(
+                "🚫 [Chống Spam Tự Động] Hệ thống phát hiện nội dung Spam, quảng cáo trái phép hoặc chuỗi ký tự vô nghĩa lặp lại. "
+                "Vui lòng nhập nội dung câu hỏi tư vấn hợp lệ."
+            )
+
+        if not violation_code:
+            # Check sliding-window burst rate limit (only for HTTP browser requests, not internal local_direct batch tests)
+            if ckey != 'local_direct':
+                with _SECURITY_SHIELD_LOCK:
+                    win_key = f"chat:{ckey}"
+                    timestamps = [t for t in _RATE_LIMIT_WINDOWS.get(win_key, []) if now_ts - t < 60]
+                    if len(timestamps) >= 18:
+                        q_seal = self.quarantine_corrupted_payload(
+                            'chat_rate_limit_exceeded',
+                            {'client_key': ckey, 'query': q_clean[:120]},
+                            env=env,
+                        )
+                        return False, {
+                            'success': False,
+                            'blocked': True,
+                            'status': 'rate_limit_exceeded',
+                            'security_code': 'rate_limit_exceeded',
+                            'cooldown_seconds': 30,
+                            'quarantine_seal': q_seal,
+                            'direct_execution_permitted': False,
+                            'adversarial_containment': True,
+                            'error': _("⏱️ Quý khách đang gửi tin nhắn quá nhanh (vượt ngưỡng chống Flood). Vui lòng đợi 30 giây trước khi tiếp tục."),
+                        }
+                    timestamps.append(now_ts)
+                    _RATE_LIMIT_WINDOWS[win_key] = timestamps
+            return True, None
+
+        # Record strike and quarantine payload
+        q_seal = self.quarantine_corrupted_payload(
+            violation_code,
+            {'client_key': ckey, 'query': q_clean[:200]},
+            env=env,
+        )
+        with _SECURITY_SHIELD_LOCK:
+            if len(_CHAT_ABUSE_STRIKES) >= 4096:
+                oldest = next(iter(_CHAT_ABUSE_STRIKES))
+                _CHAT_ABUSE_STRIKES.pop(oldest, None)
+            entry = _CHAT_ABUSE_STRIKES.get(ckey) or {'strikes': 0, 'lock_until': 0, 'last_ts': now_ts}
+            if now_ts - entry.get('last_ts', 0) > 900:
+                entry['strikes'] = 0
+            entry['strikes'] += 1
+            entry['last_ts'] = now_ts
+            strikes = entry['strikes']
+            locked_out = False
+            cooldown_sec = 0
+            if strikes >= 3:
+                locked_out = True
+                cooldown_sec = 120
+                entry['lock_until'] = now_ts + cooldown_sec
+            _CHAT_ABUSE_STRIKES[ckey] = entry
+
+        if locked_out:
+            violation_msg = _(
+                "🔒 [Khóa Bảo Mật Tạm Thời — 120 giây] Phiên hội thoại đã bị khóa tạm thời do vi phạm quy tắc chống Quấy rối / Spam / Tấn công quá 3 lần liên tiếp (Mã niêm phong: %s)."
+            ) % q_seal[:12]
+
+        return False, {
+            'success': False,
+            'blocked': True,
+            'locked_out': locked_out,
+            'status': violation_code,
+            'security_code': violation_code,
+            'strike_count': strikes,
+            'max_strikes': 3,
+            'cooldown_seconds': cooldown_sec,
+            'quarantine_seal': q_seal,
+            'direct_execution_permitted': False,
+            'adversarial_containment': True,
+            'error': violation_msg,
+        }
+
+    @http.route(['/innoria/ai_concierge/security_challenge'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=True)
+    def ai_concierge_security_challenge(self, **kw):
+        """Issue a fresh HMAC-signed Anti-Bot Arithmetic Challenge for the Lead Capture Form."""
+        env = _resolve_env(self, kw)
+        chal = self.mint_security_challenge(env=env)
+        chal['status'] = 'ok'
+        chal['success'] = True
+        return chal
+
     @http.route(['/innoria/ai_concierge/services_catalog'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=True)
     def ai_concierge_services_catalog(self, **kw):
         """
@@ -500,6 +936,7 @@ class InnoriaAiConciergeController(http.Controller):
             ]
 
         pct_token = self.mint_capability_token(env=env)
+        security_challenge = self.mint_security_challenge(env=env)
         return {
             'status': 'ok',
             'success': True,
@@ -507,6 +944,7 @@ class InnoriaAiConciergeController(http.Controller):
             'catalog_skus': catalog_skus,
             'pct_token': pct_token,
             'capability_budget_remaining': self.DEFAULT_PCT_BUDGET,
+            'security_challenge': security_challenge,
         }
 
     @http.route(['/innoria/ai_concierge/estimate_service'], type='jsonrpc', auth='public', methods=['POST'], website=True, csrf=False, readonly=True)
@@ -714,6 +1152,11 @@ class InnoriaAiConciergeController(http.Controller):
                 'error': _("Vui lòng nhập câu hỏi cần tư vấn."),
                 'status': 'empty_query'
             }
+
+        client_key = self._resolve_client_key(kw)
+        allowed, block_payload = self.inspect_chat_security_and_harassment(user_query, client_key=client_key, env=env)
+        if not allowed and block_payload:
+            return block_payload
 
         rag_service = env['al2c.rag.service'].sudo()
         company_id = env.company.id
@@ -1006,12 +1449,120 @@ class InnoriaAiConciergeController(http.Controller):
         company = _strip_nul(company_name) or contact_name or _("Doanh Nghiệp Mới")
         clean_notes = _strip_nul(notes)
 
+        # 0a. Anti-Bot Honeypot Trap Check (website_url_hp / fax_hp)
+        honeypot_val = _strip_nul(kw.get('website_url_hp') or kw.get('fax_hp') or kw.get('honeypot'))
+        if honeypot_val:
+            q_seal = self.quarantine_corrupted_payload(
+                'spam_honeypot_blocked',
+                {'honeypot': honeypot_val, 'email': contact_email, 'phone': contact_phone},
+                env=env,
+            )
+            return {
+                'success': False,
+                'status': 'spam_honeypot_blocked',
+                'security_code': 'spam_honeypot_blocked',
+                'quarantine_seal': q_seal,
+                'error': _("🛡️ Hệ thống Bảo mật Chống Spam đã chặn yêu cầu tự động bất thường (Honeypot Bot Trap)."),
+            }
+
+        # 0b. Minimum Human Dwell-Time Check (when form_dwell_ms is provided by browser widget)
+        form_dwell_ms = kw.get('form_dwell_ms')
+        if form_dwell_ms is not None and form_dwell_ms != '':
+            try:
+                dwell_val = float(form_dwell_ms)
+                if 0 <= dwell_val < 1200:
+                    q_seal = self.quarantine_corrupted_payload(
+                        'bot_dwell_time_too_fast',
+                        {'form_dwell_ms': dwell_val, 'email': contact_email},
+                        env=env,
+                    )
+                    return {
+                        'success': False,
+                        'status': 'bot_dwell_time_too_fast',
+                        'security_code': 'bot_dwell_time_too_fast',
+                        'quarantine_seal': q_seal,
+                        'error': _("🛡️ Thao tác gửi biểu mẫu quá nhanh bất thường (nghi ngờ Bot tự động). Vui lòng kiểm tra lại thông tin và gửi lại."),
+                    }
+            except (ValueError, TypeError):
+                pass
+
+        # 0c. Signed Anti-Bot Security Challenge Verification (when challenge token/answer is provided)
+        sec_chal_tok = kw.get('sec_challenge_token')
+        sec_chal_ans = kw.get('sec_challenge_answer')
+        if sec_chal_tok or sec_chal_ans is not None:
+            ok_chal, chal_status = self.verify_security_challenge(sec_chal_tok, sec_chal_ans, env=env)
+            if not ok_chal:
+                q_seal = self.quarantine_corrupted_payload(
+                    chal_status,
+                    {'sec_challenge_token': sec_chal_tok, 'sec_challenge_answer': sec_chal_ans, 'email': contact_email},
+                    env=env,
+                )
+                return {
+                    'success': False,
+                    'status': 'security_challenge_failed',
+                    'security_code': chal_status,
+                    'quarantine_seal': q_seal,
+                    'error': _("🛡️ Mã xác thực chống Spam (Câu hỏi bảo mật) chưa chính xác hoặc đã hết hạn. Vui lòng nhập đúng kết quả phép tính bảo mật."),
+                }
+
         if not contact_email and not contact_phone:
             return {
                 'success': False,
                 'error': _("Vui lòng cung cấp ít nhất Email hoặc Số điện thoại để liên hệ."),
                 'status': 'missing_contact_info'
             }
+
+        # 0d. B2B Contact Authenticity Validation (Anti-Fake Email, Anti-Fake Phone, Anti-Gibberish Name/Company)
+        ok_contact, contact_status, contact_err = self.validate_b2b_contact_authenticity(
+            name=contact_name,
+            email=contact_email,
+            phone=contact_phone,
+            company_name=_strip_nul(company_name),
+            notes=clean_notes,
+        )
+        if not ok_contact:
+            q_seal = self.quarantine_corrupted_payload(
+                contact_status,
+                {
+                    'name': contact_name,
+                    'email': contact_email,
+                    'phone': contact_phone,
+                    'company_name': company,
+                },
+                env=env,
+            )
+            return {
+                'success': False,
+                'status': contact_status,
+                'security_code': contact_status,
+                'quarantine_seal': q_seal,
+                'error': contact_err,
+            }
+
+        # 0e. Per-IP Rate Limit & Duplicate Lead Submission Cooldown Guard (for HTTP requests / non-PCT flood)
+        client_key = self._resolve_client_key(kw)
+        now_ts = int(time.time())
+        if client_key != 'local_direct' and not (isinstance(resolved_pct_token, str) and resolved_pct_token.strip()):
+            dedup_fingerprint = f"{client_key}:{contact_email.lower()}:{re.sub(r'[^0-9]', '', contact_phone)}"
+            with _SECURITY_SHIELD_LOCK:
+                last_sub_ts = _LEAD_DEDUP_LEDGER.get(dedup_fingerprint, 0)
+                if now_ts - last_sub_ts < 180:
+                    q_seal = self.quarantine_corrupted_payload(
+                        'duplicate_lead_cooldown',
+                        {'fingerprint': dedup_fingerprint, 'email': contact_email},
+                        env=env,
+                    )
+                    return {
+                        'success': False,
+                        'status': 'duplicate_lead_cooldown',
+                        'security_code': 'duplicate_lead_cooldown',
+                        'quarantine_seal': q_seal,
+                        'error': _("⏱️ Yêu cầu báo giá của Quý khách vừa được tiếp nhận. Vui lòng đợi 3 phút trước khi gửi lại thông tin trùng lặp."),
+                    }
+                if len(_LEAD_DEDUP_LEDGER) >= 4096:
+                    oldest_fp = next(iter(_LEAD_DEDUP_LEDGER))
+                    _LEAD_DEDUP_LEDGER.pop(oldest_fp, None)
+                _LEAD_DEDUP_LEDGER[dedup_fingerprint] = now_ts
 
         norm_service_code = str(service_code or '').strip().lower() or None
         if not norm_service_code and verified_prc:
@@ -1282,6 +1833,9 @@ class InnoriaAiConciergeController(http.Controller):
             'pct_ledger_active_tokens': pct_active,
             'shadow_kernel_status': 'ready',
             'esih_pricing_attestation': 'active',
+            'anti_spam_shield': 'active',
+            'anti_fake_contact_validator': 'active',
+            'anti_harassment_firewall': 'active',
             'service_lines_count': len(SOFTWARE_SERVICE_CATALOG),
             'marketing_campaigns_active': marketing_campaigns_active,
             'pillars': ['insilos_erp', 'vertical_resilience', 'mojo_ai', 'zencode_ent'],

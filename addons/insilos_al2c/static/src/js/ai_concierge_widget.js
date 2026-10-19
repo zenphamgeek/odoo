@@ -462,6 +462,28 @@ export class AiConciergeWidget extends Component {
             pctToken: null,
             pricingToken: null,
             capabilityBudgetRemaining: 3,
+            leadFormOpenedAt: Date.now() - 5000,
+            securityChallenge: {
+                challenge_token: null,
+                question: "6 + 4 = ?",
+                operand_a: 6,
+                operand_b: 4,
+                expected: 10,
+            },
+            leadFieldErrors: {
+                name: null,
+                email: null,
+                phone: null,
+                company_name: null,
+                security_answer: null,
+            },
+            chatSecurity: {
+                strikeCount: 0,
+                maxStrikes: 3,
+                lockedOut: false,
+                cooldownSeconds: 0,
+                warningBanner: null,
+            },
             servicesCatalog: initialCatalog,
             configurator: {
                 service_code: defaultService.code,
@@ -479,6 +501,8 @@ export class AiConciergeWidget extends Component {
                 product_interest: defaultService.lead_option,
                 employee_count: "50 - 200 nhân sự",
                 notes: "",
+                website_url_hp: "",
+                security_answer: "",
             },
             messages: [
                 {
@@ -531,6 +555,7 @@ export class AiConciergeWidget extends Component {
 
         // Bind external website trigger handler
         this._onDocumentConciergeClick = this._handleDocumentConciergeClick.bind(this);
+        this._cooldownTimer = null;
 
         onMounted(() => {
             this.scrollToBottom();
@@ -541,6 +566,10 @@ export class AiConciergeWidget extends Component {
 
         onWillUnmount(() => {
             document.removeEventListener("click", this._onDocumentConciergeClick);
+            if (this._cooldownTimer) {
+                clearInterval(this._cooldownTimer);
+                this._cooldownTimer = null;
+            }
         });
     }
 
@@ -639,6 +668,16 @@ export class AiConciergeWidget extends Component {
             if (typeof result?.capability_budget_remaining === "number") {
                 this.state.capabilityBudgetRemaining = result.capability_budget_remaining;
             }
+            if (result?.security_challenge && result.security_challenge.challenge_token) {
+                const sc = result.security_challenge;
+                this.state.securityChallenge = {
+                    challenge_token: sc.challenge_token,
+                    question: sc.question || `${sc.operand_a || 6} + ${sc.operand_b || 4} = ?`,
+                    operand_a: sc.operand_a || 6,
+                    operand_b: sc.operand_b || 4,
+                    expected: Number(sc.operand_a || 6) + Number(sc.operand_b || 4),
+                };
+            }
             const rawList = result?.services || result?.catalog || (Array.isArray(result) ? result : null);
             if (Array.isArray(rawList) && rawList.length > 0) {
                 const normalized = rawList.map((item) => normalizeServiceCard(item));
@@ -651,6 +690,38 @@ export class AiConciergeWidget extends Component {
         } catch (_err) {
             // Keep embedded DEFAULT_SERVICES_CATALOG fallback seamlessly
         }
+    }
+
+    /**
+     * Refresh Anti-Bot Arithmetic Security Challenge from backend or deterministic fallback.
+     */
+    async refreshSecurityChallenge() {
+        this.state.leadForm.security_answer = "";
+        this.state.leadFieldErrors.security_answer = null;
+        try {
+            const res = await callJsonRpc("/innoria/ai_concierge/security_challenge", {});
+            if (res && res.challenge_token) {
+                this.state.securityChallenge = {
+                    challenge_token: res.challenge_token,
+                    question: res.question || `${res.operand_a} + ${res.operand_b} = ?`,
+                    operand_a: res.operand_a,
+                    operand_b: res.operand_b,
+                    expected: Number(res.operand_a) + Number(res.operand_b),
+                };
+                return;
+            }
+        } catch (_err) {
+            // Local fallback
+        }
+        const a = Math.floor(Math.random() * 8) + 2;
+        const b = Math.floor(Math.random() * 8) + 1;
+        this.state.securityChallenge = {
+            challenge_token: null,
+            question: `${a} + ${b} = ?`,
+            operand_a: a,
+            operand_b: b,
+            expected: a + b,
+        };
     }
 
     /**
@@ -681,6 +752,12 @@ export class AiConciergeWidget extends Component {
         const validTab = ["chat", "services", "lead"].includes(tab) ? tab : "chat";
         this.state.activeTab = validTab;
         this.state.showLeadForm = validTab === "lead";
+        if (validTab === "lead") {
+            this.state.leadFormOpenedAt = Date.now();
+            if (!this.state.securityChallenge.challenge_token) {
+                this.refreshSecurityChallenge();
+            }
+        }
         if (validTab === "chat") {
             this.scrollToBottom();
             setTimeout(() => {
@@ -947,12 +1024,130 @@ export class AiConciergeWidget extends Component {
     }
 
     /**
-     * Update specific field in lead capture form.
+     * Update specific field in lead capture form and run real-time anti-fake contact validation.
      * @param {string} field
      * @param {Event} ev
      */
     updateLeadField(field, ev) {
-        this.state.leadForm[field] = ev.target.value;
+        const val = ev.target.value;
+        this.state.leadForm[field] = val;
+        if (field in this.state.leadFieldErrors) {
+            this.state.leadFieldErrors[field] = this.validateLeadFieldClient(field, val);
+        }
+    }
+
+    /**
+     * Client-side Anti-Fake Contact & Anti-Bot Challenge Validator.
+     * @param {string} field
+     * @param {string} rawVal
+     * @returns {string|null}
+     */
+    validateLeadFieldClient(field, rawVal) {
+        const val = String(rawVal || "").trim();
+        if (!val) {
+            return null;
+        }
+        const lower = val.toLowerCase();
+        if (/(<\s*script|javascript:|onerror=|onload=|\bdrop\s+table\b|\bunion\s+select\b)/i.test(val)) {
+            return "Phát hiện mã thực thi hoặc truy vấn không hợp lệ (WAF Guard).";
+        }
+        if (field === "name") {
+            if (val.length < 2) {
+                return "Họ và tên cần tối thiểu 2 ký tự.";
+            }
+            const clean = lower.replace(/[\s.\-']/g, "");
+            if (/^\d+$/.test(clean) || new Set(clean).size <= 1 || /(asdf|qwer|zxcv|test|fake)/.test(clean)) {
+                return "Họ và tên có dấu hiệu dữ liệu giả (Fake Contact). Vui lòng nhập họ tên thật.";
+            }
+        } else if (field === "email") {
+            const m = lower.match(/^([a-z0-9_.+-]+)@([a-z0-9-]+(?:\.[a-z0-9-]+)+)$/);
+            if (!m) {
+                return "Định dạng Email chưa hợp lệ (VD: ten@congty.vn).";
+            }
+            const localPart = m[1];
+            const domainPart = m[2];
+            const blockedDomains = [
+                "mailinator.com", "tempmail.com", "temp-mail.org", "10minutemail.com",
+                "guerrillamail.com", "yopmail.com", "trashmail.com", "sharklasers.com",
+                "getnada.com", "fakeinbox.com", "test.com", "example.com", "fake.com",
+                "abc.com", "xyz.com", "123.com", "asdf.com", "spam.com",
+            ];
+            if (blockedDomains.some((d) => domainPart === d || domainPart.endsWith(`.${d}`))) {
+                return `Từ chối Email tạm thời / tên miền ảo (${domainPart}). Vui lòng dùng Email doanh nghiệp.`;
+            }
+            const cleanLocal = localPart.replace(/[^a-z0-9]/g, "");
+            if (
+                ["test", "testing", "fake", "spam", "asdf", "asdfgh", "qwerty", "123456", "abc"].includes(cleanLocal) ||
+                (cleanLocal.length >= 4 && new Set(cleanLocal).size <= 1)
+            ) {
+                return "Địa chỉ Email có dấu hiệu Email thử nghiệm / giả mạo.";
+            }
+        } else if (field === "phone") {
+            let digits = val.replace(/[\s\-.()]/g, "");
+            if (digits.startsWith("+84")) {
+                digits = "0" + digits.slice(3);
+            } else if (digits.startsWith("84") && (digits.length === 11 || digits.length === 12)) {
+                digits = "0" + digits.slice(2);
+            }
+            if (digits.startsWith("+")) {
+                const intl = digits.slice(1);
+                if (!/^\d{8,15}$/.test(intl)) {
+                    return "Số điện thoại quốc tế chưa đúng chuẩn (+MãQuốcGia...).";
+                }
+            } else {
+                if (!/^(0[35789]\d{8}|02\d{8,9})$/.test(digits)) {
+                    return "Số ĐT cần đúng 10 số di động VN (03/05/07/08/09) hoặc cố định (02x).";
+                }
+            }
+            const fakePhones = [
+                "0123456789", "0987654321", "0912345678", "0987654320", "0901234567",
+                "0999999999", "0988888888", "0977777777", "0966666666", "0944444444",
+                "0933333333", "0911111111", "0900000000", "0000000000", "0909090909",
+            ];
+            if (
+                fakePhones.includes(digits) ||
+                new Set(digits).size <= 2 ||
+                /(\d)\1{6,}/.test(digits) ||
+                ["1234567", "2345678", "3456789", "7654321", "8765432", "9876543", "0000000"].includes(digits.slice(-7))
+            ) {
+                return "Phát hiện Số điện thoại ảo / dãy số lặp. Vui lòng nhập số thực tế.";
+            }
+        } else if (field === "company_name") {
+            const cleanComp = lower.replace(/[\s.\-,&()]/g, "");
+            if (val.length < 2 || /^\d+$/.test(cleanComp) || /(asdf|qwer|zxcv|fake|test)/.test(cleanComp)) {
+                return "Vui lòng nhập tên công ty / tổ chức thực tế.";
+            }
+        } else if (field === "security_answer") {
+            const expected = Number(this.state.securityChallenge.expected);
+            if (Number(val) !== expected) {
+                return "Kết quả phép tính xác thực chưa đúng.";
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Start a countdown timer when Chatbox is temporarily locked due to repeated harassment/spam.
+     * @param {number} seconds
+     */
+    startChatCooldownTimer(seconds) {
+        const sec = Math.max(1, Number(seconds) || 60);
+        this.state.chatSecurity.lockedOut = true;
+        this.state.chatSecurity.cooldownSeconds = sec;
+        if (this._cooldownTimer) {
+            clearInterval(this._cooldownTimer);
+        }
+        this._cooldownTimer = setInterval(() => {
+            if (this.state.chatSecurity.cooldownSeconds > 1) {
+                this.state.chatSecurity.cooldownSeconds -= 1;
+            } else {
+                this.state.chatSecurity.cooldownSeconds = 0;
+                this.state.chatSecurity.lockedOut = false;
+                this.state.chatSecurity.warningBanner = null;
+                clearInterval(this._cooldownTimer);
+                this._cooldownTimer = null;
+            }
+        }, 1000);
     }
 
     /**
@@ -1073,11 +1268,11 @@ export class AiConciergeWidget extends Component {
     }
 
     /**
-     * Send user query to AI Concierge API.
+     * Send user query to AI Concierge API with Anti-Harassment & Anti-Attack Firewall handling.
      */
     async sendMessage() {
         const query = (this.state.currentQuery || "").trim();
-        if (!query || this.state.isLoading) {
+        if (!query || this.state.isLoading || this.state.chatSecurity.lockedOut) {
             return;
         }
 
@@ -1100,6 +1295,7 @@ export class AiConciergeWidget extends Component {
             });
 
             if (result && result.success) {
+                this.state.chatSecurity.warningBanner = null;
                 if (result.pct_token) {
                     this.state.pctToken = result.pct_token;
                 }
@@ -1131,31 +1327,42 @@ export class AiConciergeWidget extends Component {
                 }
             } else {
                 const errorMsg = result?.error || "Không thể tải phản hồi từ AI Concierge lúc này.";
+                if (result?.blocked) {
+                    if (typeof result.strike_count === "number") {
+                        this.state.chatSecurity.strikeCount = result.strike_count;
+                    }
+                    this.state.chatSecurity.warningBanner = errorMsg;
+                    if (result.locked_out || (result.cooldown_seconds && result.cooldown_seconds > 0)) {
+                        this.startChatCooldownTimer(result.cooldown_seconds || 120);
+                    }
+                }
                 this.state.messages.push({
                     id: `ai-err-${Date.now()}`,
                     sender: "assistant",
                     text: errorMsg,
                     formattedText: markup(parseMarkdownToHtml(errorMsg)),
-                    service_cards: this._resolveRelevantServiceCards(query, this.state.selectedPillar),
-                    citations: [],
+                    service_cards: result?.blocked ? [] : this._resolveRelevantServiceCards(query, this.state.selectedPillar),
+                    citations: result?.quarantine_seal ? [`[WAF Quarantine Seal | ${result.quarantine_seal.slice(0, 16)}]`] : [],
                     citationsExpanded: false,
                     grounded: false,
                     entailment_score: 0,
-                    reason: "",
-                    suggested_actions: [
-                        {
-                            label: "🧮 Dự Toán Dịch Vụ Phần Mềm",
-                            type: "open_configurator",
-                            action: "open_configurator",
-                            service_code: "sw_squad",
-                        },
-                        {
-                            label: "📅 Đăng Ký Tư Vấn Trực Tiếp",
-                            type: "open_lead",
-                            action: "book_lead",
-                            pillar: this.state.selectedPillar,
-                        },
-                    ],
+                    reason: result?.security_code ? `Security Policy: ${result.security_code}` : "",
+                    suggested_actions: result?.blocked
+                        ? []
+                        : [
+                              {
+                                  label: "🧮 Dự Toán Dịch Vụ Phần Mềm",
+                                  type: "open_configurator",
+                                  action: "open_configurator",
+                                  service_code: "sw_squad",
+                              },
+                              {
+                                  label: "📅 Đăng Ký Tư Vấn Trực Tiếp",
+                                  type: "open_lead",
+                                  action: "book_lead",
+                                  pillar: this.state.selectedPillar,
+                              },
+                          ],
                     time: this.getNowTime(),
                 });
             }
@@ -1196,16 +1403,23 @@ export class AiConciergeWidget extends Component {
     }
 
     /**
-     * Submit lead capture form to /innoria/ai_concierge/book_lead including configurator parameters.
+     * Submit lead capture form to /innoria/ai_concierge/book_lead including configurator & anti-spam parameters.
      */
     async submitLeadForm() {
         const form = this.state.leadForm;
+
+        // 0. Honeypot check
+        if (form.website_url_hp && String(form.website_url_hp).trim()) {
+            this.state.leadErrorMessage = "🛡️ Hệ thống Bảo mật Chống Spam đã chặn yêu cầu tự động (Honeypot Guard).";
+            return;
+        }
+
         if (!form.name || !form.name.trim()) {
             this.state.leadErrorMessage = "Vui lòng nhập họ và tên của Quý khách.";
             return;
         }
         if ((!form.email || !form.email.trim()) && (!form.phone || !form.phone.trim())) {
-            this.state.leadErrorMessage = "Vui lòng cung cấp ít nhất Email hoặc Số điện thoại để chuyên gia liên hệ.";
+            this.state.leadErrorMessage = "Vui lòng cung cấp ít nhất Email doanh nghiệp hoặc Số điện thoại hợp lệ.";
             return;
         }
         if (!form.company_name || !form.company_name.trim()) {
@@ -1213,15 +1427,41 @@ export class AiConciergeWidget extends Component {
             return;
         }
 
+        // Validate authenticity of all fields
+        const nameErr = this.validateLeadFieldClient("name", form.name);
+        const emailErr = form.email ? this.validateLeadFieldClient("email", form.email) : null;
+        const phoneErr = form.phone ? this.validateLeadFieldClient("phone", form.phone) : null;
+        const compErr = this.validateLeadFieldClient("company_name", form.company_name);
+        const chalErr = this.validateLeadFieldClient("security_answer", form.security_answer);
+
+        this.state.leadFieldErrors.name = nameErr;
+        this.state.leadFieldErrors.email = emailErr;
+        this.state.leadFieldErrors.phone = phoneErr;
+        this.state.leadFieldErrors.company_name = compErr;
+
+        if (nameErr || emailErr || phoneErr || compErr) {
+            this.state.leadErrorMessage = nameErr || emailErr || phoneErr || compErr;
+            return;
+        }
+
+        if (!String(form.security_answer || "").trim() || chalErr) {
+            this.state.leadFieldErrors.security_answer =
+                chalErr || `Vui lòng nhập kết quả phép tính bảo mật (${this.state.securityChallenge.question}).`;
+            this.state.leadErrorMessage = this.state.leadFieldErrors.security_answer;
+            return;
+        }
+        this.state.leadFieldErrors.security_answer = null;
+
         this.state.leadErrorMessage = null;
         this.state.leadSuccessMessage = null;
         this.state.isLoading = true;
 
         const cfg = this.state.configurator;
         const est = cfg.estimate || {};
+        const dwellMs = Math.max(1500, Date.now() - (this.state.leadFormOpenedAt || Date.now() - 5000));
 
         try {
-            const result = await callJsonRpc("/innoria/ai_concierge/book_lead", {
+            const payload = {
                 name: form.name.trim(),
                 email: form.email.trim(),
                 phone: form.phone.trim(),
@@ -1236,7 +1476,15 @@ export class AiConciergeWidget extends Component {
                 estimated_total_vnd: est.total_vnd || 0,
                 pct_token: this.state.pctToken,
                 pricing_token: this.state.pricingToken,
-            });
+                website_url_hp: form.website_url_hp || "",
+                form_dwell_ms: dwellMs,
+            };
+            if (this.state.securityChallenge.challenge_token) {
+                payload.sec_challenge_token = this.state.securityChallenge.challenge_token;
+                payload.sec_challenge_answer = String(form.security_answer).trim();
+            }
+
+            const result = await callJsonRpc("/innoria/ai_concierge/book_lead", payload);
 
             if (result && result.success) {
                 if (typeof result.capability_budget_remaining === "number") {
@@ -1272,6 +1520,9 @@ export class AiConciergeWidget extends Component {
                     time: this.getNowTime(),
                 });
 
+                // Refresh challenge for next use
+                this.refreshSecurityChallenge();
+
                 // Auto-close lead drawer after 2.2 seconds and return to chat view
                 setTimeout(() => {
                     this.setActiveTab("chat");
@@ -1279,11 +1530,15 @@ export class AiConciergeWidget extends Component {
                     this.scrollToBottom();
                 }, 2200);
 
-                // Reset notes
+                // Reset notes & security answer
                 this.state.leadForm.notes = "";
+                this.state.leadForm.security_answer = "";
             } else {
                 this.state.leadErrorMessage =
                     result?.error || "Không thể tiếp nhận yêu cầu lúc này. Quý khách vui lòng thử lại sau ít phút.";
+                if (result?.status === "security_challenge_failed") {
+                    this.refreshSecurityChallenge();
+                }
             }
         } catch (err) {
             this.state.leadErrorMessage = err.message || "Đã xảy ra lỗi khi gửi yêu cầu.";

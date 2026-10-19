@@ -1373,4 +1373,199 @@
             background: var(--al2c-concierge-bg-hover);
         }
     }
+
+    // Hidden Honeypot Trap (Invisible to Human Users, Traps Automated Spam Bots)
+    .al2c-hp-trap {
+        position: absolute;
+        left: -9999px;
+        top: -9999px;
+        width: 1px;
+        height: 1px;
+        opacity: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    // Live Field Validation Error & Invalid Border
+    .al2c-input-invalid {
+        border-color: #e11d48;
+    }
+
+    .al2c-field-error {
+        font-size: 11px;
+        font-weight: 500;
+        color: #e11d48;
+        line-height: 1.35;
+        margin-top: 2px;
+    }
+
+    // Sovereign Anti-Spam, Anti-Fake-Contact & Anti-Bot Security Shield Card
+    .al2c-security-shield-card {
+        background: var(--al2c-concierge-bg-subtle);
+        border: 1px solid var(--al2c-concierge-border-medium);
+        border-left: 3px solid var(--al2c-concierge-primary);
+        border-radius: 8px;
+        padding: 9px 11px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-top: 2px;
+    }
+
+    .al2c-security-shield-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .al2c-security-shield-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--al2c-concierge-text-primary);
+    }
+
+    .al2c-security-shield-badge {
+        font-size: 9.5px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        background: var(--al2c-concierge-badge-green-bg);
+        color: var(--al2c-concierge-badge-green);
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+    }
+
+    .al2c-security-shield-pills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .al2c-sec-pill {
+        font-size: 10px;
+        font-weight: 600;
+        padding: 2px 7px;
+        border-radius: 4px;
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        color: var(--al2c-concierge-text-secondary);
+
+        i {
+            color: var(--al2c-concierge-badge-green);
+        }
+    }
+
+    .al2c-security-challenge-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-top: 4px;
+        border-top: 1px dashed var(--al2c-concierge-border-subtle);
+    }
+
+    .al2c-security-challenge-label {
+        font-size: 11.5px;
+        font-weight: 600;
+        color: var(--al2c-concierge-text-secondary);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+
+        .al2c-challenge-math {
+            font-size: 12.5px;
+            font-weight: 800;
+            color: var(--al2c-concierge-primary);
+            background: var(--al2c-concierge-bg-card);
+            padding: 2px 7px;
+            border-radius: 4px;
+            border: 1px solid var(--al2c-concierge-border-medium);
+        }
+    }
+
+    .al2c-security-challenge-controls {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .al2c-challenge-input {
+        width: 82px;
+        text-align: center;
+        font-weight: 700;
+        padding: 4px 8px;
+        height: 30px;
+    }
+
+    .al2c-btn-refresh-challenge {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border-radius: 6px;
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid var(--al2c-concierge-border-subtle);
+        color: var(--al2c-concierge-text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+
+        &:hover {
+            border-color: var(--al2c-concierge-primary);
+            color: var(--al2c-concierge-primary);
+        }
+    }
 }
+
+// Chatbox Anti-Harassment, Anti-Spam & Cyber-Attack Lockout Banner
+.al2c-chat-security-banner {
+    margin: 0 0 8px 0;
+    padding: 8px 10px;
+    border-radius: 8px;
+    font-size: 11.5px;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+
+    &.al2c-chat-security-warn {
+        background: rgba(245, 158, 11, 0.14);
+        border: 1px solid rgba(245, 158, 11, 0.4);
+        color: #b45309;
+    }
+
+    &.al2c-chat-security-locked {
+        background: rgba(244, 63, 94, 0.14);
+        border: 1px solid rgba(244, 63, 94, 0.45);
+        color: #be123c;
+    }
+
+    .al2c-chat-security-banner-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+    }
+
+    .al2c-chat-security-title {
+        font-weight: 700;
+        font-size: 11.5px;
+    }
+
+    .al2c-chat-security-tag {
+        font-size: 9.5px;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 4px;
+        background: rgba(244, 63, 94, 0.18);
+        letter-spacing: 0.03em;
+    }
+
+    .al2c-chat-security-banner-msg {
+        font-size: 11px;
+        opacity: 0.95;
+    }
+}
+

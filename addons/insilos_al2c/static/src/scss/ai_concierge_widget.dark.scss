@@ -239,6 +239,57 @@ body.o_dark_mode,
         border-color: rgba(244, 63, 94, 0.4);
         color: #FB7185;
     }
+
+    .al2c-input-invalid {
+        border-color: #FB7185;
+    }
+
+    .al2c-field-error {
+        color: #FB7185;
+    }
+
+    .al2c-security-shield-card {
+        background: #0F172A;
+        border-color: rgba(255, 255, 255, 0.16);
+        border-left-color: #00F2FE;
+
+        .al2c-sec-pill {
+            background: #1E293B;
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #CBD5E1;
+        }
+
+        .al2c-challenge-math {
+            background: #1E293B;
+            border-color: rgba(0, 242, 254, 0.4);
+            color: #00F2FE;
+        }
+
+        .al2c-btn-refresh-challenge {
+            background: #1E293B;
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #CBD5E1;
+
+            &:hover {
+                border-color: #00F2FE;
+                color: #00F2FE;
+            }
+        }
+    }
+
+    .al2c-chat-security-banner {
+        &.al2c-chat-security-warn {
+            background: rgba(245, 158, 11, 0.18);
+            border-color: rgba(245, 158, 11, 0.45);
+            color: #FBBF24;
+        }
+
+        &.al2c-chat-security-locked {
+            background: rgba(244, 63, 94, 0.2);
+            border-color: rgba(244, 63, 94, 0.5);
+            color: #FDA4AF;
+        }
+    }
 }
 
 html[data-theme="light"] body:not(.o_dark_mode) {

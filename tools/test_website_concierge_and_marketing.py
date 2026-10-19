@@ -438,8 +438,176 @@ def verify_database(dbname):
             assert health_res.get("marketing_campaigns_active", 0) >= 1, (
                 f"{dbname}: Expected marketing_campaigns_active >= 1 in health_res, got {health_res}"
             )
+            assert health_res.get("anti_spam_shield") == "active", f"{dbname}: Expected anti_spam_shield=='active'"
+            assert health_res.get("anti_fake_contact_validator") == "active", f"{dbname}: Expected anti_fake_contact_validator=='active'"
+            assert health_res.get("anti_harassment_firewall") == "active", f"{dbname}: Expected anti_harassment_firewall=='active'"
 
-            print(f"[✓] {dbname} [4/4]: /innoria/ai_concierge/book_lead + /health + AB-PCT + ESIH + DDK-CDLQ + Savepoint Isolation verified (lead_id={lead_rec.id}, expected_revenue={lead_rec.expected_revenue:,.0f} VND, tags={sorted(tag_names)}, marketing_campaign_enrolled=True, quarantine_ledger_size={health_res['quarantine_ledger_size']})")
+            # =========================================================================
+            # 8. Verify Anti-Spam, Anti-Fake-Contact, Anti-Harassment & WAF Shield
+            # =========================================================================
+            from odoo.addons.insilos_al2c.controllers import ai_concierge as ac_mod
+            ac_mod._CHAT_ABUSE_STRIKES.clear()
+            ac_mod._LEAD_DEDUP_LEDGER.clear()
+
+            # 8a. Honeypot trap blocks automated bots
+            hp_res = controller.ai_concierge_book_lead(
+                name="Trần Minh Quân",
+                email="quan.tran@enterprise.vn",
+                phone="0909112233",
+                company_name="Công ty Cổ phần Giải pháp Số",
+                website_url_hp="http://spambot.example.org/payload",
+                env=env,
+            )
+            assert hp_res.get("success") is False and hp_res.get("status") == "spam_honeypot_blocked", (
+                f"{dbname}: Expected spam_honeypot_blocked, got {hp_res}"
+            )
+
+            # 8b. Sub-1.2s dwell time blocks headless form flooders
+            dwell_res = controller.ai_concierge_book_lead(
+                name="Trần Minh Quân",
+                email="quan.tran@enterprise.vn",
+                phone="0909112233",
+                company_name="Công ty Cổ phần Giải pháp Số",
+                form_dwell_ms=250,
+                env=env,
+            )
+            assert dwell_res.get("success") is False and dwell_res.get("status") == "bot_dwell_time_too_fast", (
+                f"{dbname}: Expected bot_dwell_time_too_fast, got {dwell_res}"
+            )
+
+            # 8c. HMAC Anti-Bot Security Challenge (wrong answer rejected, right answer consumed once)
+            chal = controller.mint_security_challenge(env=env)
+            assert chal.get("challenge_token") and chal.get("question"), f"{dbname}: Invalid challenge: {chal}"
+            expected_sum = int(chal["operand_a"]) + int(chal["operand_b"])
+
+            bad_chal_res = controller.ai_concierge_book_lead(
+                name="Trần Minh Quân",
+                email="quan.tran@enterprise.vn",
+                phone="0909112233",
+                company_name="Công ty Cổ phần Giải pháp Số",
+                sec_challenge_token=chal["challenge_token"],
+                sec_challenge_answer=str(expected_sum + 9),
+                form_dwell_ms=3500,
+                env=env,
+            )
+            assert bad_chal_res.get("success") is False and bad_chal_res.get("status") == "security_challenge_failed", (
+                f"{dbname}: Expected security_challenge_failed on wrong answer, got {bad_chal_res}"
+            )
+
+            good_chal = controller.mint_security_challenge(env=env)
+            good_sum = str(int(good_chal["operand_a"]) + int(good_chal["operand_b"]))
+            ok_chal_res = controller.ai_concierge_book_lead(
+                name="Phạm Quốc Bảo",
+                email="bao.pham@viettelpost-partner.vn",
+                phone="0918223344",
+                company_name="Công ty Cổ phần Logistics Đông Nam Á",
+                sec_challenge_token=good_chal["challenge_token"],
+                sec_challenge_answer=good_sum,
+                form_dwell_ms=4200,
+                env=env,
+            )
+            assert ok_chal_res.get("success") is True, f"{dbname}: Valid challenge lead failed: {ok_chal_res}"
+
+            # Replay of consumed challenge token must fail
+            replay_chal_res = controller.ai_concierge_book_lead(
+                name="Phạm Quốc Bảo 2",
+                email="bao.pham2@viettelpost-partner.vn",
+                phone="0918223355",
+                company_name="Công ty Cổ phần Logistics Đông Nam Á",
+                sec_challenge_token=good_chal["challenge_token"],
+                sec_challenge_answer=good_sum,
+                form_dwell_ms=4200,
+                env=env,
+            )
+            assert replay_chal_res.get("success") is False and replay_chal_res.get("status") == "security_challenge_failed", (
+                f"{dbname}: Expected challenge replay rejection, got {replay_chal_res}"
+            )
+
+            # 8d. Anti-Fake-Contact rejection (invalid prefix, sequential VN mobile phone, disposable email, keyboard mash)
+            invalid_prefix_phone = controller.ai_concierge_book_lead(
+                name="Nguyễn Văn Thật",
+                email="that.nguyen@fintech-vietnam.vn",
+                phone="0123456789",
+                company_name="Công ty Cổ phần Fintech",
+                env=env,
+            )
+            assert invalid_prefix_phone.get("success") is False and invalid_prefix_phone.get("status") == "invalid_phone_number", (
+                f"{dbname}: Expected invalid_phone_number for 0123456789, got {invalid_prefix_phone}"
+            )
+
+            fake_phone_res = controller.ai_concierge_book_lead(
+                name="Nguyễn Văn Thật",
+                email="that.nguyen@fintech-vietnam.vn",
+                phone="0912345678",
+                company_name="Công ty Cổ phần Fintech",
+                env=env,
+            )
+            assert fake_phone_res.get("success") is False and fake_phone_res.get("status") == "fake_phone_number_blocked", (
+                f"{dbname}: Expected fake_phone_number_blocked for 0912345678, got {fake_phone_res}"
+            )
+
+            fake_email_res = controller.ai_concierge_book_lead(
+                name="Nguyễn Văn Thật",
+                email="spambot@mailinator.com",
+                phone="0909223344",
+                company_name="Công ty Cổ phần Fintech",
+                env=env,
+            )
+            assert fake_email_res.get("success") is False and fake_email_res.get("status") == "fake_or_disposable_email_blocked", (
+                f"{dbname}: Expected fake_or_disposable_email_blocked for mailinator.com, got {fake_email_res}"
+            )
+
+            fake_name_res = controller.ai_concierge_book_lead(
+                name="asdfghjkl",
+                email="valid.person@fintech-vietnam.vn",
+                phone="0909223344",
+                company_name="Công ty Cổ phần Fintech",
+                env=env,
+            )
+            assert fake_name_res.get("success") is False and fake_name_res.get("status") == "fake_contact_name", (
+                f"{dbname}: Expected fake_contact_name for keyboard-mash name, got {fake_name_res}"
+            )
+
+            # 8e. Chatbox Anti-Harassment, Casino Spam & Cyber-Attack 3-Strike Lockout
+            strike1 = controller.ai_concierge_query(query="địt mẹ con bot ngu vcl", env=env)
+            assert strike1.get("blocked") is True and strike1.get("status") == "harassment_or_profanity", (
+                f"{dbname}: Expected harassment_or_profanity on strike 1, got {strike1}"
+            )
+            assert strike1.get("strike_count") == 1, f"{dbname}: Expected strike_count=1, got {strike1}"
+
+            strike2 = controller.ai_concierge_query(
+                query="nhà cái bet88 tài xỉu nổ hũ tặng tiền http://a.vn http://b.vn http://c.vn",
+                env=env,
+            )
+            assert strike2.get("blocked") is True and strike2.get("status") == "chat_spam_or_flood", (
+                f"{dbname}: Expected chat_spam_or_flood on strike 2, got {strike2}"
+            )
+            assert strike2.get("strike_count") == 2, f"{dbname}: Expected strike_count=2, got {strike2}"
+
+            strike3 = controller.ai_concierge_query(
+                query="<script>alert(document.cookie)</script> UNION SELECT password FROM res_users",
+                env=env,
+            )
+            assert strike3.get("blocked") is True and strike3.get("status") == "cyber_attack_blocked", (
+                f"{dbname}: Expected cyber_attack_blocked on strike 3, got {strike3}"
+            )
+            assert strike3.get("locked_out") is True and strike3.get("cooldown_seconds", 0) > 0, (
+                f"{dbname}: Expected locked_out=True on strike 3, got {strike3}"
+            )
+
+            locked_check = controller.ai_concierge_query(
+                query="Cho tôi hỏi giá gói ERP Starter?",
+                env=env,
+            )
+            assert locked_check.get("blocked") is True and locked_check.get("status") == "security_cooldown_locked", (
+                f"{dbname}: Expected security_cooldown_locked during lockout window, got {locked_check}"
+            )
+
+            # Clear strikes after verification so subsequent runs are clean
+            ac_mod._CHAT_ABUSE_STRIKES.clear()
+            ac_mod._LEAD_DEDUP_LEDGER.clear()
+
+            print(f"[✓] {dbname} [4/4]: /innoria/ai_concierge/book_lead + /health + Anti-Spam/Fake-Contact/Harassment/WAF Shield verified (lead_id={lead_rec.id}, expected_revenue={lead_rec.expected_revenue:,.0f} VND, tags={sorted(tag_names)}, marketing_campaign_enrolled=True, quarantine_ledger_size={health_res['quarantine_ledger_size']})")
         finally:
             # Rollback cursor so test records do not pollute dev or prod databases
             cr.rollback()
