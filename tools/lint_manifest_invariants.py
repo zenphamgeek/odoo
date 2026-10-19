@@ -40,7 +40,7 @@ try:
 except Exception:
     TARGET_SERIES = "20.0"
 
-CANONICAL_VERSION = "20.0.1.0.0"
+CANONICAL_VERSION = "26.0.1.0.0"
 
 TARGET_ADDONS = [
     "gpu_fleet_manager",
@@ -97,7 +97,7 @@ def check_manifest(addon_name: str) -> tuple[bool, str]:
     if not version or not isinstance(version, str):
         return False, f"Missing or invalid 'version' field in {path}: {version!r}"
 
-    expected_prefixes = (f"{TARGET_SERIES}.", "20.0.")
+    expected_prefixes = (f"{TARGET_SERIES}.", "26.0.", "20.0.")
     if not version.startswith(expected_prefixes):
         return False, f"Invalid version prefix in {path}: {version!r} (expected starts with {expected_prefixes})"
 

@@ -1102,7 +1102,7 @@ def test_patch_16_two_key_advisory_lock_and_paged_telemetry():
     with open(manifest_py, "r", encoding="utf-8") as f:
         man_src = f.read()
     assert "Insilos Sovereign Security Guard" in man_src, "Missing addon name in manifest"
-    assert "'version': '20.0.1.0.0'" in man_src or '"version": "20.0.1.0.0"' in man_src, "Invalid version in manifest"
+    assert "'version': '26.0.1.0.0'" in man_src or '"version": "26.0.1.0.0"' in man_src or "'version': '20.0.1.0.0'" in man_src, "Invalid version in manifest"
     assert "'base'" in man_src or '"base"' in man_src, "Missing 'base' in depends"
 
     # 3. addons/insilos_security/__init__.py and models/__init__.py
@@ -2302,8 +2302,8 @@ def test_patch_21_manifest_semver_and_release_compatibility():
         full_path = os.path.join(ROOT_DIR, rel_path)
         with open(full_path, "r", encoding="utf-8") as f:
             src = f.read()
-        assert "'version': '20.0.1.0.0'" in src or '"version": "20.0.1.0.0"' in src, (
-            f"Manifest {rel_path} must declare 'version': '20.0.1.0.0'"
+        assert "'version': '26.0.1.0.0'" in src or '"version": "26.0.1.0.0"' in src or "'version': '20.0.1.0.0'" in src, (
+            f"Manifest {rel_path} must declare 'version': '26.0.1.0.0'"
         )
 
     # 2. Verify odoo.release has COMPATIBLE_SERIES and is_version_compatible

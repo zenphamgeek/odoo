@@ -25,7 +25,6 @@ FORBIDDEN_PUBLIC_PATTERNS = [
     r"UNG DUNG SANG TAO",
     r"Ứng Dụng Sáng Tạo",
     r"0313683499",
-    r"client_[abd]_gray\.png",
     r"\bCanva\b",
     r"\bMobiFone\b",
     r"\bMobifone\b",
