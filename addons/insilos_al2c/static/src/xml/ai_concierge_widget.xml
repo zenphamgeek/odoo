@@ -506,12 +506,12 @@
 
                         <!-- Selected Service Brief Card -->
                         <t t-set="currentService" t-value="this.currentConfigService"/>
-                        <div class="al2c-cfg-service-overview">
-                            <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
-                                <h6 class="al2c-cfg-service-title mb-0" t-esc="currentService.name"/>
-                                <span class="al2c-cfg-service-badge" t-esc="currentService.badge"/>
+                        <div class="al2c-cfg-service-overview text-start">
+                            <div class="d-flex flex-column align-items-start gap-1 mb-1">
+                                <span class="al2c-cfg-service-badge align-self-start" t-esc="currentService.badge"/>
+                                <h6 class="al2c-cfg-service-title mb-0 text-start w-100" t-esc="currentService.name"/>
                             </div>
-                            <p class="al2c-cfg-service-desc mb-0" t-esc="currentService.summary"/>
+                            <p class="al2c-cfg-service-desc mb-0 text-start" t-esc="currentService.summary"/>
                         </div>
 
                         <!-- 2. Scale Tier Selector -->

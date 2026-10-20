@@ -203,18 +203,34 @@ def run_sub_suite(script_rel_path):
     print(f"  [PASS] {script_rel_path} passed (exit code 0).")
 
 
+def run_node_suite(script_rel_path):
+    script_abs = os.path.join(ROOT_DIR, script_rel_path)
+    env = dict(os.environ)
+    env["NODE_PATH"] = os.path.join(ROOT_DIR, "node_modules")
+    res = subprocess.run(["node", script_abs], cwd=ROOT_DIR, env=env, capture_output=True, text=True)
+    if res.returncode != 0:
+        print(res.stdout)
+        print(res.stderr, file=sys.stderr)
+        raise AssertionError(f"Node suite {script_rel_path} failed with exit code {res.returncode}")
+    print(res.stdout.strip())
+    print(f"  [PASS] {script_rel_path} passed (exit code 0).")
+
+
 def main():
     assert_sota_ui_ux_static_invariants()
     test_ai_concierge_endpoints()
-    print("=== [3/5] Running Website AI Concierge & Marketing Campaign Suite ===")
+    print("=== [3/6] Running Website AI Concierge & Marketing Campaign Suite ===")
     run_sub_suite("tools/test_website_concierge_and_marketing.py")
-    print("=== [4/5] Running Quote Attachment + EN/VI Semantic Translation Suite ===")
+    print("=== [4/6] Running Quote Attachment + EN/VI Semantic Translation Suite ===")
     run_sub_suite("tools/test_quote_attachment_and_i18n.py")
-    print("=== [5/5] Running Customer Portal, Grounded AI Copilot & SLA Dunning Freeze Suites ===")
+    print("=== [5/6] Running Customer Portal, Grounded AI Copilot & SLA Dunning Freeze Suites ===")
     run_sub_suite("tools/test_portal_chat_assistant_pdca.py")
     run_sub_suite("tools/test_customer_portal_and_mail_tham_mai.py")
-    print("\nALL AL2C FULL UI/UX & END-TO-END SUITES PASSED (EXIT CODE 0).")
+    print("=== [6/6] Running Automated Playwright Pixel-Level Layout & Bounding-Box Audit ===")
+    run_node_suite("tools/test_al2c_pixel_layout_audit.js")
+    print("\nALL AL2C FULL UI/UX, PIXEL-LEVEL LAYOUT & END-TO-END SUITES PASSED (EXIT CODE 0).")
 
 
 if __name__ == "__main__":
     main()
+
