@@ -212,6 +212,20 @@ CANONICAL_O20_ADRS: List[Dict[str, str]] = [
             "across all 17 insilos_website XML views, portal_templates.xml, and Public AI Concierge (ai_concierge.py, KMS-CAT-01..04)."
         ),
     },
+    {
+        "adr_id": "ADR-20261020-015",
+        "title": "SOP-UI-SOTA-01: Innoria SOTA Enterprise UI, Split-Pane Form & Orientation-Aware Multi-Style Logo Design Standard",
+        "valid_from": "2026-10-20T03:35:00+00:00",
+        "rationale": (
+            "Codifies the SOTA Enterprise UI & Form Design Standard across Innoria.com and Customer Portal (/my/software-portal, /contactus, "
+            "AI Concierge): (1) Brand Logo Palette DNA (#0ABBDB Innoria Cyan -> #005F73 Deep Teal -> #003333 Forest Teal & #FF8000 Solar Orange "
+            "on #FFF4E5 / #E6F8FB soft surfaces, zero generic #0f62fe blue or harsh #da1e28 red); (2) Split-Pane Card Framing "
+            "(.innoria-sota-pane-teal border-top 3px #005F73 for AI/analytical panes, .innoria-sota-pane-orange border-top 3px #FF8000 for "
+            "SLA/intake form desks, 0px rectangular Poppins form inputs); and (3) Orientation-Aware Multi-Style Logo Placement "
+            "(logo_innoria_header.svg for horizontal navbars, logo_innoria_vertical.svg inside .al2c-logo-square-frame for square/vertical zones, "
+            "and logo_innoria_square_icon.svg for 1:1 avatars/launchers)."
+        ),
+    },
 ]
 
 
@@ -384,6 +398,7 @@ session_id: "{SESSION_ID}"
   3. [[20-Projects/Active/O20-Insilos-ERP/02-DGM-INNORIA-SOP-01-to-11-Master-Ledger|02 — Digimate & Innoria Master SOP Ledger (SOP-DGM-01 to SOP-DGM-11)]]
   4. [[20-Projects/Active/O20-Insilos-ERP/03-BiTemporal-ADRs-and-Session-Links|03 — Bi-Temporal Architecture Decision Records ({len(adrs)} Active ADRs)]]
   5. [[20-Projects/Active/O20-Insilos-ERP/04-Google-Drive-SharedWithMe-RBAC-Matrix|04 — Google Drive Shared-with-me 9-Level Tree & 11-Profile RBAC Matrix]]
+  6. [[20-Projects/Active/O20-Insilos-ERP/05-Innoria-SOTA-Enterprise-UI-and-Form-Design-Standard|05 — Innoria SOTA Enterprise UI, Split-Pane Form & Multi-Style Logo Design Standard (SOP-UI-SOTA-01)]]
 - **Direct Documentation Link**: [O20 Organization & Process SOP Docs](../../../Data/Projects/O20__docs/organization_and_processes/)
 
 ---
@@ -685,12 +700,105 @@ session_id: "{SESSION_ID}"
     rbac_content = _sanitize_for_obsidian_export(rbac_content)
     rbac_path.write_text(rbac_content, encoding="utf-8")
 
+    # -------------------------------------------------------------------------
+    # Note 6: 05-Innoria-SOTA-Enterprise-UI-and-Form-Design-Standard.md
+    # -------------------------------------------------------------------------
+    ui_std_path = O20_VAULT_DIR / "05-Innoria-SOTA-Enterprise-UI-and-Form-Design-Standard.md"
+    ui_std_content = f"""---
+hermes_research: true
+type: architecture
+project: O20
+status: active
+compiled_at: "{now_iso}"
+session_id: "{SESSION_ID}"
+---
+
+# Innoria SOTA Enterprise UI, Split-Pane Form & Multi-Style Logo Design Standard (`SOP-UI-SOTA-01` / `ADR-20261020-015`)
+
+> Linked to [[20-Projects/Active/O20-Insilos-ERP/00-O20-Master-Architecture-MOC|00 — O20 Master Architecture MOC]] • [[20-Projects/Active/O20-Insilos-ERP/03-BiTemporal-ADRs-and-Session-Links#ADR-20261020-015|ADR-20261020-015]] • [[Session-{SESSION_ID}]]
+
+---
+
+## 1. Executive Summary & SOTA Design Philosophy
+
+The **Innoria SOTA Enterprise UI & Form Design Standard (`SOP-UI-SOTA-01`)** establishes the canonical visual, typographic, and interaction blueprint across `innoria.com` (Public Website, `/contactus` Executive Intake Desk, Customer Portal `/my/software-portal`, and Grounded AI Concierge).
+
+It unifies **IBM Carbon Design System v11** structural geometry (`0px` rectangular inputs/buttons, `2px` architectural tiles, zero drop-shadows) with the **Innoria & Digimate Brand Logo Palette DNA** (`#0ABBDB` $\\rightarrow$ `#005F73` $\\rightarrow$ `#003333` & `#FF8000` Solar Orange) and **Orientation-Aware Multi-Style Logo Placement**.
+
+---
+
+## 2. Canonical Brand Logo Palette Matrix (`Innoria & Digimate DNA`)
+
+All UI workspaces (`.al2c-brand-workspace`, `.innoria-sota-workspace`) derive their color hierarchy directly from the vector gradients of `logo_innoria_header.svg` and `logo_innoria_vertical.svg`. Generic `#0f62fe` blue and harsh `#da1e28` red are strictly replaced on branded customer/partner workspaces:
+
+| Semantic Role | Hex Code / CSS Token | Visual Usage & Component Mapping |
+| :--- | :--- | :--- |
+| **Brand Primary Cyan** | `#0ABBDB` (`--cds-focus`) | Top horizon stripe start, `.al2c-logo-square-frame` bottom accent (`3px`), topic chips `01..04` left border, input `:focus` ring, Care Ticket (`PRJ-NTF-*`) left border. |
+| **Brand Deep Teal (Primary CTA)** | `#005F73` (`--cds-button-primary`) | Primary submit buttons (`#wsAiBtn`, SLA submit, SOW approval, `/contactus` booking submit), `.innoria-sota-pane-teal` top border (`3px`), step numbers `01..04`. |
+| **Brand Deep Forest Teal** | `#003333` (`--cds-button-primary-hover`) | Primary workspace headings (`h3`, `h4`, `h5`), button hover states, `.al2c-pill-teal-dark` gradient endpoint (`#005F73 -> #003333`). |
+| **Soft Cyan Surface** | `#E6F8FB` (text `#004D5A`, border `#8CE0F0`) | `.al2c-pill-cyan-soft` badges (`VERIFIED ENTAILMENT: 100.0%`, `GROUNDED 100.0%`, KMS citation chips `[SOP-RAG-003 ...]`). |
+| **Brand Solar Orange (Action / SLA)** | `#FF8000` / `#D97706` | Extracted from the 3-petal Innoria emblem. Used for `.innoria-sota-pane-orange` form desk top border (`3px`), Dispute card (`DISP-INV/*`) left border (`3px`), and topic chips `05..06`. |
+| **Soft Amber Surface** | `#FFF4E5` (text `#B45309`, border `#FF8000` / `#FFD8A8`) | `.al2c-pill-orange-soft` badges (`AL2C-INV-103 DUNNING GUARD`, `SLA 24/7 DESK`, `DUNNING FROZEN`), Dunning Freeze consent callout box. |
+
+---
+
+## 3. Orientation-Aware Multi-Style Logo Placement Invariant
+
+Innoria maintains a multi-style vector logo suite in `/insilos_website/static/src/img/innoria/` and `/insilos_al2c/static/src/img/`. Every UI container MUST select the logo variant whose aspect ratio matches the container's geometry:
+
+| Container Geometry | Aspect Ratio Range | Required Asset | Container Wrapper & Sizing Standard |
+| :--- | :--- | :--- | :--- |
+| **1. Horizontal Bar Zone** (Navbar, Slim Footer, Drawer Topbar) | `W / H >= 2.2` | `logo_innoria_header.svg` (`1238x381`) or `logo_innoria_horizontal_white.svg` | Inline `height: 34px..38px; width: auto;` |
+| **2. Square / Vertical Zone** (Multi-row Hero Headers, Portal Cockpit Header, Form Desk Header) | `0.65 <= W / H <= 1.5` | `logo_innoria_vertical.svg` (`1135x1781`) or `logo_innoria_vertical_white.svg` | `.al2c-logo-square-frame` (`72px..78px` square box, `1px solid #d1e8ed`, `border-bottom: 3px solid #0ABBDB`, `padding: 6px`, `object-fit: contain`) |
+| **3. Compact 1:1 Avatar / Launcher** (AI Chat Message Avatar, Floating Launcher Button) | `W / H == 1.0` (`<= 48x48px`) | `logo_innoria_square_icon.svg` (`512x512` symbol crop of `i` + 3 petals) | `.al2c-message-avatar` (`32x32px`) or `.al2c-concierge-launcher` |
+
+---
+
+## 4. SOTA Split-Pane & Enterprise Form Blueprint (`SOP-UI-SOTA-01`)
+
+### 4.1 Asymmetric Split-Pane Framing (`col-lg-7` + `col-lg-5`)
+- **Left Analytical / AI Copilot Pane (`.innoria-sota-pane-teal`)**:
+  - `background: #ffffff; border: 1px solid #e0e0e0; border-top: 3px solid #005F73 !important; border-radius: 2px !important; box-shadow: none !important;`
+  - Houses interactive 2x3 quick-query grid (`01..04` with `#0ABBDB` left border, `05..06` with `#FF8000` left border), grounded response viewport with KMS SHA-256 citation chips, and inline prompt bar (`input` + solid `#005F73` button).
+- **Right Interactive Form & SLA Desk (`.innoria-sota-pane-orange .innoria-sota-form`)**:
+  - `background: #ffffff; border: 1px solid #e0e0e0; border-top: 3px solid #FF8000 !important; border-radius: 2px !important; box-shadow: none !important;`
+  - Header pairs title + subtitle with `.al2c-pill-orange-soft` (`SLA 24/7 DESK` / `SLA 2H RESPONSE`) and optional `.al2c-logo-square-frame` (`logo_innoria_vertical.svg`).
+  - Form grid uses compact 2-column rows (`row g-2`), bold `11.5px..12px` labels (`color: #161616`), rectangular `0px` inputs (`height: 36px..38px; border: 1px solid #cbd5e1; font-family: 'Poppins', sans-serif;`), `#FFF4E5` highlighted consent/dunning-freeze callout box, and full-width `#005F73` primary submit button.
+  - Live ledger below the form renders active items with `3px` semantic left borders (`#FF8000` for `DISP-INV/*` disputes, `#0ABBDB` for `PRJ-NTF-*` SLA tickets).
+
+### 4.2 Canonical CSS Implementation (`innoria_theme.scss` & `portal_templates.xml`)
+```scss
+.innoria-sota-workspace,
+.al2c-brand-workspace {{
+    --cds-interactive: #005F73 !important;
+    --cds-button-primary: #005F73 !important;
+    --cds-button-primary-hover: #003333 !important;
+    --cds-focus: #0ABBDB !important;
+}}
+.al2c-logo-square-frame {{
+    width: 78px !important;
+    height: 78px !important;
+    border: 1px solid #d1e8ed !important;
+    border-bottom: 3px solid #0ABBDB !important;
+    background: #ffffff !important;
+    border-radius: 2px !important;
+    padding: 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}}
+```
+"""
+    ui_std_content = _sanitize_for_obsidian_export(ui_std_content)
+    ui_std_path.write_text(ui_std_content, encoding="utf-8")
+
     return [
         (str(moc_path.relative_to(VAULT_ROOT)), "ADR-20261016-001"),
         (str(ast_path.relative_to(VAULT_ROOT)), "ADR-20261016-002"),
         (str(sop_path.relative_to(VAULT_ROOT)), "ADR-20261017-010"),
         (str(adr_path.relative_to(VAULT_ROOT)), "ADR-20261017-011"),
         (str(rbac_path.relative_to(VAULT_ROOT)), "ADR-20261016-007"),
+        (str(ui_std_path.relative_to(VAULT_ROOT)), "ADR-20261020-015"),
     ]
 
 

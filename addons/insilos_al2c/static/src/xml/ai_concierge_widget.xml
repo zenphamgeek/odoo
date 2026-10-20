@@ -46,7 +46,7 @@
                     </t>
                     <t t-else="">
                         <img
-                            src="/insilos_al2c/static/src/img/logo_innoria_header.svg"
+                            src="/insilos_al2c/static/src/img/logo_innoria_square_icon.svg"
                             alt="Innoria AI"
                             class="al2c-launcher-logo"
                         />
@@ -653,7 +653,7 @@
                                 <t t-if="msg.sender === 'assistant'">
                                     <div class="al2c-message-avatar" aria-hidden="true">
                                         <img
-                                            src="/insilos_al2c/static/src/img/logo_innoria_header.svg"
+                                            src="/insilos_al2c/static/src/img/logo_innoria_square_icon.svg"
                                             alt="Innoria AI Avatar"
                                             class="al2c-avatar-img"
                                         />
@@ -774,7 +774,7 @@
                             <div class="al2c-typing-row">
                                 <div class="al2c-message-avatar" aria-hidden="true">
                                     <img
-                                        src="/insilos_al2c/static/src/img/logo_innoria_header.svg"
+                                        src="/insilos_al2c/static/src/img/logo_innoria_square_icon.svg"
                                         alt="Innoria AI Avatar"
                                         class="al2c-avatar-img"
                                     />

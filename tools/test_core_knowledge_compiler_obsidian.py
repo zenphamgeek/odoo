@@ -57,6 +57,8 @@ EXPECTED_ADR_IDS = [
     "ADR-20261017-011",
     "ADR-20261017-012",
     "ADR-20261017-013",
+    "ADR-20261017-014",
+    "ADR-20261020-015",
 ]
 
 EXPECTED_OBSIDIAN_NOTES = [
@@ -65,6 +67,7 @@ EXPECTED_OBSIDIAN_NOTES = [
     "02-DGM-INNORIA-SOP-01-to-11-Master-Ledger.md",
     "03-BiTemporal-ADRs-and-Session-Links.md",
     "04-Google-Drive-SharedWithMe-RBAC-Matrix.md",
+    "05-Innoria-SOTA-Enterprise-UI-and-Form-Design-Standard.md",
 ]
 
 
@@ -162,15 +165,17 @@ def main() -> int:
         for line in research_jsonl.read_text(encoding="utf-8").splitlines()
         if line.strip() and json.loads(line).get("project") == "O20"
     ]
-    assert len(o20_records) >= 5, f"Expected >= 5 exported O20 records in hermes-research.jsonl, got {len(o20_records)}"
-    print(f"  [PASS] 5/5 Obsidian Notes, Maps/Decisions.md, Home.md & {len(o20_records)} exported hermes-research.jsonl records verified.")
+    assert len(o20_records) >= 6, f"Expected >= 6 exported O20 records in hermes-research.jsonl, got {len(o20_records)}"
+    print(f"  [PASS] 6/6 Obsidian Notes, Maps/Decisions.md, Home.md & {len(o20_records)} exported hermes-research.jsonl records verified.")
 
-    # 5. Verify AGENTS.md & .agents/rules/01_insilos_enterprise_odoo_standards.md Section 10
+    # 5. Verify AGENTS.md & .agents/rules/01_insilos_enterprise_odoo_standards.md Section 10 & Section 13
     agents_md = (O20_ROOT / "AGENTS.md").read_text(encoding="utf-8")
     rules_md = (O20_ROOT / ".agents" / "rules" / "01_insilos_enterprise_odoo_standards.md").read_text(encoding="utf-8")
     assert "## 10. Core Knowledge Compiler" in agents_md
     assert "## 10. Core Knowledge Compiler" in rules_md
-    print("  [PASS] Section 10 verified in AGENTS.md and .agents/rules/01_insilos_enterprise_odoo_standards.md.")
+    assert "## 13. Innoria SOTA Enterprise UI" in agents_md
+    assert "## 13. Innoria SOTA Enterprise UI" in rules_md
+    print("  [PASS] Section 10 & Section 13 verified in AGENTS.md and .agents/rules/01_insilos_enterprise_odoo_standards.md.")
 
     print("\n=== ALL CORE KNOWLEDGE COMPILER & OBSIDIAN TESTS PASSED (EXIT 0) ===")
     return 0
