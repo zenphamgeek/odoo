@@ -38,19 +38,19 @@
     <template id="portal_my_home_inherit_al2c" inherit_id="portal.portal_my_home">
         <xpath expr="//div[hasclass('o_portal_my_home')]/div[hasclass('o_portal_docs')]" position="before">
             <div class="al2c-portal-cockpit mb-4" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
-                <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 border-bottom pb-3 gap-2">
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="al2c-logo-square-frame" style="width: 72px; height: 72px; min-width: 72px; border: 1px solid #d1e8ed; border-bottom: 3px solid #0ABBDB; background: #ffffff; border-radius: 2px !important; padding: 6px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                            <img src="/insilos_website/static/src/img/innoria/logo_innoria_vertical.svg" style="max-height: 58px; max-width: 58px; width: auto; height: auto; object-fit: contain;" alt="INNORIA" title="Innoria Software Engineering &amp; Product Portal"/>
+                <div class="d-flex flex-wrap align-items-stretch justify-content-between mb-3 border-bottom pb-3 gap-2">
+                    <div class="d-flex align-items-stretch gap-3">
+                        <div class="al2c-logo-square-frame" style="align-self: stretch !important; width: 92px !important; min-width: 92px !important; height: auto !important; min-height: 82px !important; border: 1px solid #d1e8ed; border-bottom: 3px solid #0ABBDB; background: #ffffff; border-radius: 2px !important; padding: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <img src="/insilos_website/static/src/img/innoria/logo_innoria_vertical.svg" style="height: 100% !important; max-height: 76px !important; max-width: 76px !important; width: auto; object-fit: contain;" alt="INNORIA" title="Innoria Software Engineering &amp; Product Portal"/>
                         </div>
-                        <div>
-                            <h4 class="mb-0 fw-bold" style="color: #003333; letter-spacing: -0.02em;">Cổng Khách Hàng Kỹ Thuật Phần Mềm &amp; Sản Phẩm Số INNORIA</h4>
-                            <div class="text-muted small mt-1" style="color: #525252;">
+                        <div class="d-flex flex-column justify-content-between text-start">
+                            <h4 class="mb-0 fw-bold text-start" style="color: #003333; letter-spacing: -0.02em; text-align: left !important;">Cổng Khách Hàng Kỹ Thuật Phần Mềm &amp; Sản Phẩm Số INNORIA</h4>
+                            <div class="text-muted small mt-1 text-start" style="color: #525252; text-align: left !important;">
                                 Duyệt báo giá &amp; Fit-to-Standard Scope, nghiệm thu bảng chấm công kỹ sư (Timesheet Sprint), đối soát hóa đơn nháp và tra cứu hóa đơn GTGT điện tử chính thức chuẩn 1C26TAA (Nghị định 70/2025/NĐ-CP).
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex align-items-center gap-2 ms-auto text-end">
                         <a href="/my/software-portal" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important; font-size: 12px;">
                             Mở Trung Tâm Dự Án &amp; Nghiệm Thu →
                         </a>
@@ -880,44 +880,46 @@
                     line-height: 1.2 !important;
                 }
                 #wrapwrap .al2c-brand-workspace .al2c-logo-square-frame {
-                    width: 78px !important;
-                    height: 78px !important;
-                    min-width: 78px !important;
+                    align-self: stretch !important;
+                    width: 96px !important;
+                    min-width: 96px !important;
+                    height: auto !important;
+                    min-height: 86px !important;
                     border: 1px solid #d1e8ed !important;
                     border-bottom: 3px solid #0ABBDB !important;
                     background: #ffffff !important;
                     border-radius: 2px !important;
                     padding: 6px !important;
-                    display: inline-flex !important;
+                    display: flex !important;
                     align-items: center !important;
                     justify-content: center !important;
                     flex-shrink: 0 !important;
                 }
                 #wrapwrap .al2c-brand-workspace .al2c-logo-square-frame img {
-                    max-height: 64px !important;
-                    max-width: 64px !important;
+                    height: 100% !important;
+                    max-height: 80px !important;
+                    max-width: 80px !important;
                     width: auto !important;
-                    height: auto !important;
                     object-fit: contain !important;
                 }
             </style>
             <div class="container py-4 al2c-brand-workspace" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
                 <!-- Top Brand Header & Navigation Strip -->
                 <div class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-top: 4px solid #005F73 !important; border-color: #e0e0e0;">
-                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                        <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex flex-wrap align-items-stretch justify-content-between gap-3">
+                        <div class="d-flex align-items-stretch gap-3">
                             <div class="al2c-logo-square-frame">
                                 <img src="/insilos_website/static/src/img/innoria/logo_innoria_vertical.svg" alt="INNORIA"/>
                             </div>
-                            <div>
+                            <div class="d-flex flex-column justify-content-between text-start">
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="al2c-pill-teal-dark">INNORIA SOFTWARE DELIVERY HUB</span>
                                     <span class="al2c-pill-cyan-soft">SOP-DGM-08 · NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
                                 </div>
-                                <h4 class="fw-bold mb-0 mt-1" style="color: #003333; letter-spacing: -0.02em;">
+                                <h4 class="fw-bold mb-0 mt-1 text-start" style="color: #003333; letter-spacing: -0.02em; text-align: left !important;">
                                     Trung Tâm Dự Án Phần Mềm, Nghiệm Thu Timesheet &amp; Đối Soát Hóa Đơn 1C26TAA
                                 </h4>
-                                <div class="text-muted small mt-1" style="color: #525252;">
+                                <div class="text-muted small mt-1 text-start" style="color: #525252; text-align: left !important;">
                                     Đối tác / Khách hàng: <strong style="color: #003333;" t-out="partner.name if partner else 'Quý Khách hàng Doanh nghiệp'"/>
                                     <t t-if="partner and partner.vat"> · MST: <code style="color: #005F73;" t-out="partner.vat"/></t>
                                     · Pháp nhân xuất hóa đơn: <strong style="color: #003333;" t-out="issuer_legal_name"/>
@@ -1823,22 +1825,22 @@
                                         <textarea name="description" rows="2" class="form-control form-control-sm" placeholder="Mô tả chi tiết hạng mục kỹ thuật, dòng chấm công hoặc hóa đơn cần đối soát..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;"></textarea>
                                     </div>
 
-                                    <div class="mb-2 p-2 innoria-priority-dropzone" style="background: #FFF4E5; border: 1px dashed #FF8000; border-left: 3px solid #FF8000; border-radius: 2px;">
-                                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-1">
-                                            <label class="form-label small fw-bold mb-0" for="portal_care_attachments" style="font-size: 10px; color: #003333; cursor: pointer;">
+                                    <div class="mb-2 p-2 innoria-priority-dropzone text-start" style="background: #FFF4E5; border: 1px dashed #FF8000; border-left: 3px solid #FF8000; border-radius: 2px; text-align: left !important;">
+                                        <div class="innoria-dropzone-header-row d-flex flex-wrap align-items-center justify-content-between gap-1 mb-1 w-100">
+                                            <label class="form-label small fw-bold mb-0 innoria-col-left text-start" for="portal_care_attachments" style="font-size: 10px; color: #003333; cursor: pointer; text-align: left !important;">
                                                 📎 Đính kèm Tài liệu / SOW / Biên bản (Ưu tiên P1 &lt; 2h)
                                             </label>
-                                            <span class="px-1 fw-bold innoria-dropzone-status-badge" style="background: #FF8000; color: #FFFFFF; font-size: 9px; border-radius: 2px;">
+                                            <span class="px-1 fw-bold innoria-dropzone-status-badge innoria-col-right text-end ms-auto" style="background: #FF8000; color: #FFFFFF; font-size: 9px; border-radius: 2px; text-align: right !important; margin-left: auto !important;">
                                                 ⚡ PRIORITY SLA
                                             </span>
                                         </div>
                                         <input id="portal_care_attachments" type="file" name="quote_attachments" multiple="multiple" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.png,.jpg,.jpeg,.webp,.txt,.csv,.json" class="form-control form-control-sm innoria-file-input" style="border-radius: 0px !important; font-size: 10.5px;"/>
-                                        <div class="innoria-attached-files-summary mt-1 d-none small fw-bold" style="color: #005F73; font-size: 10px;"/>
+                                        <div class="innoria-attached-files-summary mt-1 d-none small fw-bold text-end ms-auto" style="color: #005F73; font-size: 10px; text-align: right !important;"/>
                                     </div>
 
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="checkbox" name="freeze_dunning" value="1" id="chkFreezeDunning"/>
-                                        <label class="form-check-label small fw-bold" for="chkFreezeDunning" style="font-size: 10.5px; color: #003333;">
+                                    <div class="form-check innoria-sota-check-row mb-2" style="display: flex !important; flex-direction: row !important; align-items: flex-start !important; gap: 8px !important; padding-left: 0 !important; text-align: left !important;">
+                                        <input class="form-check-input" type="checkbox" name="freeze_dunning" value="1" id="chkFreezeDunning" style="float: none !important; margin: 2px 0 0 0 !important; flex: 0 0 15px !important; width: 15px !important; height: 15px !important;"/>
+                                        <label class="form-check-label small fw-bold" for="chkFreezeDunning" style="font-size: 10.5px; color: #003333; display: block !important; flex: 1 1 0% !important; min-width: 0 !important; margin: 0 !important; text-align: left !important; line-height: 1.4 !important;">
                                             Kích hoạt chốt chặn AL2C-INV-103: Tạm dừng nhắc nợ tự động (Dunning Freeze)
                                         </label>
                                     </div>
