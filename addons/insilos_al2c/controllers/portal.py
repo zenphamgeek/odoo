@@ -1733,6 +1733,34 @@ class Al2cPortalController(PortalAccount):
         }
         if priority_level not in priority_map:
             priority_level = 'p2_high'
+
+        # Extract any uploaded files (multipart or base64)
+        import base64 as _b64
+        uploaded_files = []
+        if has_http_request and hasattr(request, 'httprequest') and getattr(request.httprequest, 'files', None):
+            for fkey in ('quote_attachments', 'attachments', 'attachment'):
+                try:
+                    flist = request.httprequest.files.getlist(fkey)
+                except Exception:
+                    fsingle = request.httprequest.files.get(fkey)
+                    flist = [fsingle] if fsingle else []
+                for fobj in flist:
+                    if not fobj or not getattr(fobj, 'filename', None):
+                        continue
+                    try:
+                        raw = fobj.read()
+                    except Exception:
+                        continue
+                    if not raw or len(raw) > 25 * 1024 * 1024:
+                        continue
+                    uploaded_files.append({
+                        'name': _clean_text(fobj.filename, 'Attachment.pdf', 180),
+                        'datas': _b64.b64encode(raw).decode('ascii'),
+                        'mimetype': getattr(fobj, 'content_type', None) or 'application/octet-stream',
+                    })
+
+        if uploaded_files:
+            priority_level = 'p1_critical'
         priority_label = priority_map[priority_level]
 
         category_map = {
@@ -1804,6 +1832,12 @@ class Al2cPortalController(PortalAccount):
             })
             target_invoice.invalidate_recordset(['al2c_has_open_dispute'])
 
+        files_li = (
+            f"<li><strong>Tài liệu đính kèm ({len(uploaded_files)} tệp):</strong> "
+            f"{escape(', '.join(f['name'] for f in uploaded_files))}</li>"
+            if uploaded_files
+            else ""
+        )
         summary_html = (
             f"<div style='font-family: Poppins, Arial, sans-serif; font-size: 13px; color: #161616;'>"
             f"<p><strong>[CUSTOMER CARE TICKET · {escape(priority_label)}]</strong></p>"
@@ -1812,6 +1846,7 @@ class Al2cPortalController(PortalAccount):
             f"<li><strong>Tiêu đề yêu cầu:</strong> {escape(subject)}</li>"
             f"<li><strong>Người liên hệ:</strong> {escape(contact_name)} (<code>{escape(contact_email)}</code>)</li>"
             f"<li><strong>Hóa đơn liên kết:</strong> {escape(target_invoice.name if target_invoice else 'N/A')}</li>"
+            f"{files_li}"
             f"<li><strong>Trạng thái Đóng băng Dunning (AL2C-INV-103):</strong> "
             f"{'ĐÃ KÍCH HOẠT (' + escape(created_dispute.name) + ')' if created_dispute else 'Không áp dụng'}</li>"
             f"</ul>"
@@ -1831,14 +1866,33 @@ class Al2cPortalController(PortalAccount):
             'summary_html': summary_html,
         })
 
-        for thread_rec in (target_project, target_order, target_sheet, target_invoice):
+        Attachment = active_env['ir.attachment'].sudo()
+        attachment_ids = []
+        for fmeta in uploaded_files:
+            try:
+                att = Attachment.create({
+                    'name': fmeta['name'],
+                    'type': 'binary',
+                    'datas': fmeta['datas'],
+                    'mimetype': fmeta['mimetype'],
+                    'res_model': 'project.project',
+                    'res_id': target_project.id,
+                })
+                attachment_ids.append(att.id)
+            except Exception:
+                pass
+
+        for idx_rec, thread_rec in enumerate((target_project, target_order, target_sheet, target_invoice)):
             if thread_rec and hasattr(thread_rec, 'message_post'):
                 try:
-                    thread_rec.sudo().message_post(
-                        body=summary_html,
-                        message_type='comment',
-                        subtype_xmlid='mail.mt_comment',
-                    )
+                    post_kw = {
+                        'body': summary_html,
+                        'message_type': 'comment',
+                        'subtype_xmlid': 'mail.mt_comment',
+                    }
+                    if idx_rec == 0 and attachment_ids:
+                        post_kw['attachment_ids'] = attachment_ids
+                    thread_rec.sudo().message_post(**post_kw)
                 except Exception:
                     pass
 
@@ -1851,12 +1905,16 @@ class Al2cPortalController(PortalAccount):
                 'priority_level': priority_level,
                 'priority_label': priority_label,
                 'subject': subject,
+                'attachment_count': len(attachment_ids),
+                'attachment_ids': attachment_ids,
                 'dispute_id': created_dispute.id if created_dispute else False,
                 'dispute_code': created_dispute.name if created_dispute else False,
                 'dunning_frozen': bool(created_dispute or (target_invoice and target_invoice.al2c_has_open_dispute)),
             })
 
         redirect_url = f"/my/software-portal?care_ticket_submitted=1&ticket_code={ntf.name}"
+        if attachment_ids:
+            redirect_url += f"&files={len(attachment_ids)}"
         if created_dispute:
             redirect_url += f"&dispute_code={created_dispute.name}"
         return request.redirect(redirect_url + "#customer-care-section")

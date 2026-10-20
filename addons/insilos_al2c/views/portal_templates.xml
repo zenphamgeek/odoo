@@ -1766,7 +1766,7 @@
                                 </div>
 
                                 <!-- Customer Care Ticket Submission Form -->
-                                <form action="/my/software-portal/customer_care_ticket" method="post" class="p-2 border mb-3" style="border-radius: 2px !important; background: #F8FAFC; border-color: #cbd5e1 !important;">
+                                <form action="/my/software-portal/customer_care_ticket" method="post" enctype="multipart/form-data" class="p-2 border mb-3" style="border-radius: 2px !important; background: #F8FAFC; border-color: #cbd5e1 !important;">
                                     <input t-if="provided_token" type="hidden" name="access_token" t-att-value="provided_token"/>
                                     <input t-if="partner" type="hidden" name="partner_id" t-att-value="partner.id"/>
 
@@ -1775,7 +1775,7 @@
                                             <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Phân loại nghiệp vụ:</label>
                                             <select name="care_category" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;">
                                                 <option value="technical_sla">[SLA] Hỗ trợ Kỹ thuật &amp; Bảo hành</option>
-                                                <option value="timesheet_scope">[TS] Đối soát Chấm công &amp; Scope SOW</option>
+                                                <option value="timesheet_scope">[TS] Đối soát Chấm công &amp; Báo giá SOW</option>
                                                 <option value="billing_einvoice">[INV] Điều chỉnh Hóa đơn Nháp / 1C26TAA</option>
                                                 <option value="commercial_dispute">[AL2C-INV-103] Khiếu nại &amp; Đóng băng Dunning</option>
                                             </select>
@@ -1814,13 +1814,26 @@
                                     </div>
 
                                     <div class="mb-2">
-                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Tiêu đề yêu cầu hỗ trợ / đối soát:</label>
-                                        <input type="text" name="subject" class="form-control form-control-sm" placeholder="VD: Yêu cầu kiểm tra số giờ OT Sprint hoặc cập nhật MST Hóa đơn Nháp..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;"/>
+                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Tiêu đề yêu cầu hỗ trợ / báo giá SOW:</label>
+                                        <input type="text" name="subject" class="form-control form-control-sm" placeholder="VD: Yêu cầu báo giá mở rộng SOW hoặc kiểm tra số giờ OT Sprint..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;"/>
                                     </div>
 
                                     <div class="mb-2">
                                         <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Nội dung chi tiết:</label>
                                         <textarea name="description" rows="2" class="form-control form-control-sm" placeholder="Mô tả chi tiết hạng mục kỹ thuật, dòng chấm công hoặc hóa đơn cần đối soát..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;"></textarea>
+                                    </div>
+
+                                    <div class="mb-2 p-2 innoria-priority-dropzone" style="background: #FFF4E5; border: 1px dashed #FF8000; border-left: 3px solid #FF8000; border-radius: 2px;">
+                                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-1">
+                                            <label class="form-label small fw-bold mb-0" for="portal_care_attachments" style="font-size: 10px; color: #003333; cursor: pointer;">
+                                                📎 Đính kèm Tài liệu / SOW / Biên bản (Ưu tiên P1 &lt; 2h)
+                                            </label>
+                                            <span class="px-1 fw-bold innoria-dropzone-status-badge" style="background: #FF8000; color: #FFFFFF; font-size: 9px; border-radius: 2px;">
+                                                ⚡ PRIORITY SLA
+                                            </span>
+                                        </div>
+                                        <input id="portal_care_attachments" type="file" name="quote_attachments" multiple="multiple" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.png,.jpg,.jpeg,.webp,.txt,.csv,.json" class="form-control form-control-sm innoria-file-input" style="border-radius: 0px !important; font-size: 10.5px;"/>
+                                        <div class="innoria-attached-files-summary mt-1 d-none small fw-bold" style="color: #005F73; font-size: 10px;"/>
                                     </div>
 
                                     <div class="form-check mb-2">

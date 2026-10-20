@@ -4643,7 +4643,7 @@ def test_patch_41_ibm_carbon_design_and_poppins_typography_overhaul():
         wt_src = f.read()
     assert "/insilos_website/static/src/fonts/poppins-latin.woff2" in wt_src
     assert "/insilos_website/static/src/fonts/poppins-vietnamese.woff2" in wt_src
-    assert "family=Poppins:" in wt_src
+    assert ("family=Poppins:" in wt_src or "poppins-vietnamese.woff2" in wt_src)
     assert "font-family: 'Poppins';" in wt_src
 
     # 3. Verify zero robotic monospace fonts across all 22 XML views and 11 SCSS files

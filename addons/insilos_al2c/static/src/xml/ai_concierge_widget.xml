@@ -364,6 +364,31 @@
                                     />
                                 </div>
 
+                                <div class="al2c-form-group p-2 mb-2" style="background: #FFF4E5; border: 1px dashed #FF8000; border-left: 3px solid #FF8000; border-radius: 2px;">
+                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-1">
+                                        <label class="al2c-form-label mb-0 fw-bold" for="al2c_lead_attachments" style="color: #003333; font-size: 11px; cursor: pointer;">
+                                            📎 Đính kèm Tài liệu Dự án (RFP / SRS / BoQ)
+                                        </label>
+                                        <span class="px-2 py-0 fw-bold" style="background: #FF8000; color: #FFFFFF; font-size: 9.5px; border-radius: 2px;">
+                                            ⚡ ƯU TIÊN BÁO GIÁ &lt; 2 GIỜ
+                                        </span>
+                                    </div>
+                                    <input
+                                        id="al2c_lead_attachments"
+                                        type="file"
+                                        multiple="multiple"
+                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.png,.jpg,.jpeg,.webp,.txt,.csv,.json"
+                                        class="form-control form-control-sm al2c-form-input"
+                                        style="font-size: 11px;"
+                                        t-on-change="(ev) => this.onLeadFilesChange(ev)"
+                                    />
+                                    <t t-if="state.leadForm.attachments and state.leadForm.attachments.length">
+                                        <div class="mt-1 fw-bold" style="color: #005F73; font-size: 10.5px;">
+                                            ✓ Đã đính kèm <t t-esc="state.leadForm.attachments.length"/> tệp — Kích hoạt Fast-Track Priority (&lt; 2h SLA)
+                                        </div>
+                                    </t>
+                                </div>
+
                                 <!-- Sovereign Anti-Spam, Anti-Fake-Contact & Anti-Bot Security Shield -->
                                 <div class="al2c-security-shield-card">
                                     <div class="al2c-security-shield-header">

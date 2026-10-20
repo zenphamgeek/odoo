@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # Part of Insilos AL2C Enterprise Architecture (SOP-12 & SOP-11)
+import base64
 import copy
 from contextlib import nullcontext
 from decimal import Decimal, ROUND_HALF_UP, InvalidOperation
@@ -7,6 +8,7 @@ import hashlib
 import hmac
 import json
 import logging
+import os
 import re
 import secrets
 import threading
@@ -1617,14 +1619,52 @@ class InnoriaAiConciergeController(http.Controller):
         if resolved_estimate_vnd and resolved_estimate_vnd >= 180_000_000:
             fit_score = max(fit_score, 80.0)
 
+        # 1b. Extract Priority File Attachments (attachments_json / attachments)
+        raw_atts = kw.get('attachments_json') or kw.get('attachments') or []
+        if isinstance(raw_atts, str):
+            try:
+                raw_atts = json.loads(raw_atts)
+            except Exception:
+                raw_atts = []
+        uploaded_atts = []
+        if isinstance(raw_atts, list):
+            for item in raw_atts[:10]:
+                if not isinstance(item, dict):
+                    continue
+                fname = os.path.basename(_strip_nul(item.get('name') or item.get('filename') or '')).strip()[:200]
+                b64_data = item.get('data') or item.get('datas') or ''
+                ftype = _strip_nul(item.get('type') or item.get('mimetype') or 'application/octet-stream').strip()[:120]
+                if not fname or not b64_data:
+                    continue
+                if isinstance(b64_data, str) and ',' in b64_data and b64_data.startswith('data:'):
+                    b64_data = b64_data.split(',', 1)[1]
+                try:
+                    decoded = base64.b64decode(b64_data)
+                    if not decoded or len(decoded) > 25 * 1024 * 1024:
+                        continue
+                    uploaded_atts.append({
+                        'name': fname,
+                        'datas': base64.b64encode(decoded).decode('ascii'),
+                        'mimetype': ftype,
+                        'size': len(decoded),
+                    })
+                except Exception:
+                    continue
+
+        has_priority_files = len(uploaded_atts) > 0
+        if has_priority_files:
+            fit_score = max(fit_score, 95.0)
         fit_score = min(100.0, fit_score)
 
         # 2. Determine qualification state & priority
-        priority = '3' if fit_score >= 80 else ('2' if fit_score >= 60 else '1')
-        qual_state = 'qualified' if fit_score >= 70 else 'in_progress'
+        priority = '3' if (has_priority_files or fit_score >= 80) else ('2' if fit_score >= 60 else '1')
+        qual_state = 'qualified' if (has_priority_files or fit_score >= 70) else 'in_progress'
 
         # 3. Resolve CRM Tag names & build structured Software Service Configuration description
         tag_names = ['Innoria Software Services', 'AI Concierge Interactive']
+        if has_priority_files:
+            tag_names.append('Fast-Track Priority (< 2h SLA)')
+            tag_names.append('RFP / File Attached')
         if norm_service_code == 'sw_squad':
             tag_names.append('Co-Engineering Squad (TT 13/2020)')
         elif norm_service_code in ('sw_turnkey', 'erp', 'grc', 'ai', 'zencode'):
@@ -1632,6 +1672,11 @@ class InnoriaAiConciergeController(http.Controller):
 
         base_notes = clean_notes or _("Đăng ký tư vấn giải pháp từ AI Concierge trên website innoria.com")
         config_summary_lines = []
+        if has_priority_files:
+            config_summary_lines.append(
+                f"• [⚡ FAST-TRACK PRIORITY < 2H SLA] Đính kèm {len(uploaded_atts)} tài liệu yêu cầu: "
+                + ", ".join(a['name'] for a in uploaded_atts)
+            )
         if svc_def or resolved_estimate_vnd is not None:
             config_summary_lines.extend([
                 "",
@@ -1650,6 +1695,7 @@ class InnoriaAiConciergeController(http.Controller):
             env.cr = type('_FallbackCr', (), {'savepoint': staticmethod(nullcontext)})()
 
         # 4. Transactional Savepoint Isolation for Tag, Campaign & CRM Lead Creation
+        attachment_ids = []
         with env.cr.savepoint():
             tag_ids = []
             if 'crm.tag' in env:
@@ -1661,8 +1707,9 @@ class InnoriaAiConciergeController(http.Controller):
                     tag_ids.append(tag_rec.id)
 
             CrmLead = env['crm.lead'].sudo()
+            lead_prefix = "[⚡ FAST-TRACK AI CONCIERGE]" if has_priority_files else "[AI Concierge]"
             lead_vals = {
-                'name': f"[AI Concierge] Khảo sát giải pháp: {company}",
+                'name': f"{lead_prefix} Khảo sát & Báo giá: {company}",
                 'partner_name': company,
                 'contact_name': contact_name,
                 'email_from': contact_email,
@@ -1728,6 +1775,18 @@ class InnoriaAiConciergeController(http.Controller):
 
             lead = CrmLead.create(lead_vals)
 
+            if uploaded_atts and 'ir.attachment' in env:
+                IrAttachment = env['ir.attachment'].sudo()
+                for att_item in uploaded_atts:
+                    att_rec = IrAttachment.create({
+                        'name': att_item['name'],
+                        'datas': att_item['datas'],
+                        'mimetype': att_item['mimetype'],
+                        'res_model': 'crm.lead',
+                        'res_id': lead.id,
+                    })
+                    attachment_ids.append(att_rec.id)
+
             estimate_html = ""
             if svc_def or resolved_estimate_vnd is not None:
                 estimate_html = (
@@ -1758,6 +1817,7 @@ class InnoriaAiConciergeController(http.Controller):
                     "• <b>Quy mô nhân sự:</b> %s<br/>"
                     "• <b>Điểm Đánh Giá Tiềm Năng (B2B Fit Score):</b> <b>%.0f / 100</b><br/>"
                     "• <b>Trạng thái phân loại:</b> <code>%s</code> (Ưu tiên: %s sao)<br/>"
+                    "• <b>Tài liệu đính kèm (%s file):</b> %s<br/>"
                     "• <b>Ghi chú nhu cầu:</b> %s%s"
                 ) % (
                     escape(company),
@@ -1769,18 +1829,53 @@ class InnoriaAiConciergeController(http.Controller):
                     fit_score,
                     escape(qual_state.upper()),
                     priority,
+                    len(uploaded_atts),
+                    escape(", ".join(a['name'] for a in uploaded_atts) if uploaded_atts else 'Không đính kèm'),
                     escape(str(clean_notes or '')),
                     estimate_html,
                 ),
                 message_type='comment',
                 subtype_xmlid='mail.mt_comment',
+                attachment_ids=attachment_ids if attachment_ids else None,
             )
+
+            if 'mail.mail' in env:
+                try:
+                    sla_subj = "[FAST-TRACK PRIORITY < 2H · FILE ATTACHED]" if has_priority_files else "[AI CONCIERGE QUOTE]"
+                    mail_vals = {
+                        'subject': f"{sla_subj} Yêu cầu Báo giá & Dự toán: {company} — {resolved_interest}",
+                        'email_from': 'contact@innoria.com',
+                        'email_to': 'tham.mai@inno.ai.vn',
+                        'reply_to': contact_email or 'contact@innoria.com',
+                        'body_html': (
+                            f"<h3>{escape(sla_subj)} Hồ sơ Báo giá từ {escape(company)}</h3>"
+                            f"<p><b>Người liên hệ:</b> {escape(contact_name)} ({escape(contact_email)} | {escape(contact_phone)})</p>"
+                            f"<p><b>Giải pháp:</b> {escape(str(resolved_interest))}</p>"
+                            f"<p><b>Dự toán:</b> {escape(_format_vnd(resolved_estimate_vnd or 0.0))}</p>"
+                            f"<p><b>Tài liệu đính kèm ({len(uploaded_atts)} file):</b> {escape(', '.join(a['name'] for a in uploaded_atts) if uploaded_atts else 'Không có')}</p>"
+                            f"<p><b>Ghi chú:</b> {escape(str(clean_notes or ''))}</p>"
+                        ),
+                        'model': 'crm.lead',
+                        'res_id': lead.id,
+                        'auto_delete': False,
+                    }
+                    if attachment_ids:
+                        mail_vals['attachment_ids'] = [(6, 0, attachment_ids)]
+                    env['mail.mail'].sudo().create(mail_vals)
+                except Exception as exc:
+                    _logger.warning("AI Concierge mail queue warning: %s", exc)
 
         out = {
             'status': 'ok',
             'success': True,
             'lead_id': lead.id,
             'lead_name': lead.name,
+            'priority': priority,
+            'fast_track_priority': has_priority_files,
+            'is_fast_track': has_priority_files,
+            'attachment_count': len(uploaded_atts),
+            'files_count': len(uploaded_atts),
+            'attachment_ids': attachment_ids,
             'fit_score': fit_score,
             'qualification_state': qual_state,
             'service_code': norm_service_code,
@@ -1794,7 +1889,11 @@ class InnoriaAiConciergeController(http.Controller):
             'campaign_name': campaign_name,
             'tags': tag_names,
             'capability_budget_remaining': pct_remaining,
-            'message': _("Yêu cầu khảo sát của Quý khách đã được tiếp nhận thành công. Chuyên gia tư vấn Innoria sẽ liên hệ trong vòng 24 giờ làm việc.")
+            'message': (
+                _("⚡ Yêu cầu báo giá Ưu tiên Fast-Track (kèm tài liệu đính kèm) của Quý khách đã được tiếp nhận! Chuyên gia Innoria sẽ phản hồi báo giá trong vòng 2 giờ làm việc.")
+                if has_priority_files
+                else _("Yêu cầu khảo sát của Quý khách đã được tiếp nhận thành công. Chuyên gia tư vấn Innoria sẽ liên hệ trong vòng 24 giờ làm việc.")
+            )
         }
         if pct_status:
             out['pct_status'] = pct_status

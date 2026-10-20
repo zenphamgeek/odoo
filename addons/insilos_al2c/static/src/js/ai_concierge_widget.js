@@ -503,6 +503,7 @@ export class AiConciergeWidget extends Component {
                 notes: "",
                 website_url_hp: "",
                 security_answer: "",
+                attachments: [],
             },
             messages: [
                 {
@@ -1403,6 +1404,41 @@ export class AiConciergeWidget extends Component {
     }
 
     /**
+     * Read selected project files (RFP/SRS/BoQ) into base64 for Fast-Track Priority Quote submission.
+     * @param {Event} ev
+     */
+    async onLeadFilesChange(ev) {
+        const input = ev && ev.target;
+        const files = input && input.files ? Array.from(input.files).slice(0, 8) : [];
+        if (!files.length) {
+            this.state.leadForm.attachments = [];
+            return;
+        }
+        const readOne = (file) =>
+            new Promise((resolve) => {
+                if (file.size > 25 * 1024 * 1024) {
+                    resolve(null);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const dataUrl = String(reader.result || "");
+                    const b64 = dataUrl.includes(",") ? dataUrl.split(",", 2)[1] : dataUrl;
+                    resolve({
+                        name: file.name || "Project_Document.pdf",
+                        type: file.type || "application/octet-stream",
+                        size: file.size || 0,
+                        data: b64,
+                    });
+                };
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(file);
+            });
+        const loaded = (await Promise.all(files.map(readOne))).filter(Boolean);
+        this.state.leadForm.attachments = loaded;
+    }
+
+    /**
      * Submit lead capture form to /innoria/ai_concierge/book_lead including configurator & anti-spam parameters.
      */
     async submitLeadForm() {
@@ -1478,6 +1514,7 @@ export class AiConciergeWidget extends Component {
                 pricing_token: this.state.pricingToken,
                 website_url_hp: form.website_url_hp || "",
                 form_dwell_ms: dwellMs,
+                attachments_json: Array.isArray(form.attachments) ? form.attachments : [],
             };
             if (this.state.securityChallenge.challenge_token) {
                 payload.sec_challenge_token = this.state.securityChallenge.challenge_token;
@@ -1502,8 +1539,8 @@ export class AiConciergeWidget extends Component {
                     `• **Mã hồ sơ CRM:** #${result.lead_id} (${result.lead_name})\n` +
                     `• **Cấu hình dự toán:** ${est.scale_label || cfg.scale_tier} • ${cfg.units} ${est.unit_label || "đơn vị"} • ${cfg.duration_months} tháng (**${est.formatted_total_vnd || "Theo khảo sát"}**)\n` +
                     `• **Điểm đánh giá tiềm năng B2B (Fit Score):** ${Math.round(result.fit_score)}/100\n` +
-                    `• **Phân hạng:** ${result.qualification_state === "qualified" ? "Ưu tiên cao (Qualified)" : "Đang xử lý (In Progress)"}\n\n` +
-                    `Chuyên gia Solution Architect phụ trách khối doanh nghiệp sẽ liên hệ với Quý khách qua **${form.email || form.phone}** trong vòng 24 giờ làm việc.`;
+                    `• **Phân hạng:** ${result.fast_track_priority ? "⚡ ƯU TIÊN CAO (SLA < 2h · Đã đính kèm tài liệu)" : result.qualification_state === "qualified" ? "Ưu tiên cao (Qualified)" : "Đang xử lý (In Progress)"}\n\n` +
+                    `Chuyên gia Solution Architect phụ trách khối doanh nghiệp sẽ liên hệ với Quý khách qua **${form.email || form.phone}** theo cam kết SLA.`;
 
                 this.state.messages.push({
                     id: `ai-lead-${Date.now()}`,
@@ -1515,7 +1552,7 @@ export class AiConciergeWidget extends Component {
                     citationsExpanded: false,
                     grounded: true,
                     entailment_score: 1.0,
-                    reason: "Đã tạo Lead trên hệ thống crm.lead với BANT qualification, cấu hình dự toán dịch vụ và cam kết SLA phản hồi 24h.",
+                    reason: "Đã tạo Lead trên hệ thống crm.lead với BANT qualification, cấu hình dự toán dịch vụ và cam kết SLA phản hồi.",
                     suggested_actions: [],
                     time: this.getNowTime(),
                 });
@@ -1530,9 +1567,10 @@ export class AiConciergeWidget extends Component {
                     this.scrollToBottom();
                 }, 2200);
 
-                // Reset notes & security answer
+                // Reset notes, attachments & security answer
                 this.state.leadForm.notes = "";
                 this.state.leadForm.security_answer = "";
+                this.state.leadForm.attachments = [];
             } else {
                 this.state.leadErrorMessage =
                     result?.error || "Không thể tiếp nhận yêu cầu lúc này. Quý khách vui lòng thử lại sau ít phút.";
