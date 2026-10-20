@@ -8,38 +8,38 @@
 
 :root {
     // 1. Surface and Canvas Hierarchy (Zero Bare White in component rules)
-    --al2c-concierge-bg-canvas: var(--insilos-bg-canvas, #F4F6F9);
+    --al2c-concierge-bg-canvas: var(--insilos-bg-canvas, #F4F7F8);
     --al2c-concierge-bg-surface: var(--insilos-bg-surface, #FFFFFF);
     --al2c-concierge-bg-card: var(--insilos-bg-card, #FFFFFF);
     --al2c-concierge-bg-header: var(--insilos-bg-header, #FFFFFF);
     --al2c-concierge-bg-subtle: var(--insilos-bg-subtle, #F8FAFC);
-    --al2c-concierge-bg-hover: var(--insilos-bg-hover, #F1F5F9);
-    --al2c-concierge-bg-active: var(--insilos-bg-active, #E2E8F0);
-    --al2c-concierge-bg-bubble-user: var(--insilos-primary, #0070F2);
+    --al2c-concierge-bg-hover: var(--insilos-bg-hover, #E6F8FB);
+    --al2c-concierge-bg-active: var(--insilos-bg-active, #D1F2F9);
+    --al2c-concierge-bg-bubble-user: var(--insilos-primary, #005F73);
     --al2c-concierge-bg-bubble-assistant: var(--insilos-bg-subtle, #F1F5F9);
     --al2c-concierge-bg-chip: var(--insilos-bg-surface, #FFFFFF);
 
     // 2. Hairline Architectural Borders
     --al2c-concierge-border-subtle: var(--insilos-border-subtle, #E2E8F0);
     --al2c-concierge-border-medium: var(--insilos-border-medium, #CBD5E1);
-    --al2c-concierge-border-focus: var(--insilos-primary, #0070F2);
+    --al2c-concierge-border-focus: var(--insilos-accent, #0ABBDB);
 
     // 3. High Contrast Typography (WCAG 2.1 AA Compliant)
-    --al2c-concierge-text-primary: var(--insilos-text-primary, #0F172A);
+    --al2c-concierge-text-primary: var(--insilos-text-primary, #003333);
     --al2c-concierge-text-secondary: var(--insilos-text-secondary, #334155);
-    --al2c-concierge-text-muted: var(--insilos-text-muted, #64748B);
+    --al2c-concierge-text-muted: var(--insilos-text-muted, #525252);
     --al2c-concierge-text-on-primary: var(--insilos-text-on-primary, #FFFFFF);
 
-    // 4. Enterprise Brand Accents (SAP Fiori Blue & Cyan)
-    --al2c-concierge-primary: var(--insilos-primary, #0070F2);
-    --al2c-concierge-primary-hover: #005BB5;
+    // 4. Enterprise Brand Accents (Innoria Deep Teal #005F73 & Cyan #0ABBDB)
+    --al2c-concierge-primary: var(--insilos-primary, #005F73);
+    --al2c-concierge-primary-hover: #003333;
     --al2c-concierge-accent: var(--insilos-accent, #0ABBDB);
     --al2c-concierge-badge-green: #10B981;
     --al2c-concierge-badge-green-bg: rgba(16, 185, 129, 0.12);
 
     // 5. Elevations and Shadows
-    --al2c-concierge-shadow: 0 16px 48px rgba(15, 23, 42, 0.16);
-    --al2c-concierge-launcher-shadow: 0 8px 24px rgba(0, 112, 242, 0.35);
+    --al2c-concierge-shadow: 0 16px 48px rgba(0, 51, 51, 0.16);
+    --al2c-concierge-launcher-shadow: 0 8px 24px rgba(0, 95, 115, 0.35);
 
     // 6. Positioning Layer
     --al2c-concierge-zindex: 1055;
@@ -79,7 +79,7 @@
 // -----------------------------------------------------------------------------
 .al2c-concierge-root {
     position: relative;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     color: var(--al2c-concierge-text-primary);
 }
 
@@ -93,10 +93,11 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px 8px 10px;
-    border-radius: 999px;
+    border-radius: 2px;
     background: var(--al2c-concierge-bg-surface);
     border: 1px solid var(--al2c-concierge-border-medium);
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.14);
+    border-left: 3px solid #0ABBDB;
+    box-shadow: 0 10px 28px rgba(0, 51, 51, 0.14);
     cursor: pointer;
     max-width: calc(100vw - 120px);
     transition: transform 0.2s ease, border-color 0.2s ease;
@@ -108,8 +109,8 @@
 
     .al2c-nudge-badge {
         padding: 2px 8px;
-        border-radius: 999px;
-        background: linear-gradient(135deg, #0070F2 0%, #0ABBDB 100%);
+        border-radius: 2px;
+        background: linear-gradient(135deg, #005F73 0%, #003333 100%);
         color: var(--al2c-concierge-text-on-primary);
         font-size: 10.5px;
         font-weight: 700;
@@ -128,7 +129,7 @@
     .al2c-nudge-dismiss {
         width: 20px;
         height: 20px;
-        border-radius: 50%;
+        border-radius: 2px;
         border: none;
         background: var(--al2c-concierge-bg-subtle);
         color: var(--al2c-concierge-text-muted);
@@ -159,8 +160,8 @@
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #0070F2 0%, #0ABBDB 100%);
-    border: none;
+    background: linear-gradient(135deg, #005F73 0%, #003333 100%);
+    border: 2px solid #0ABBDB;
     box-shadow: var(--al2c-concierge-launcher-shadow);
     z-index: var(--al2c-concierge-zindex);
     cursor: pointer;
@@ -172,7 +173,7 @@
 
     &:hover {
         transform: scale(1.06);
-        box-shadow: 0 12px 30px rgba(0, 112, 242, 0.45);
+        box-shadow: 0 12px 30px rgba(0, 95, 115, 0.45);
     }
 
     &:active {
@@ -223,8 +224,8 @@
     height: 670px;
     max-height: calc(100vh - 116px);
     background: var(--al2c-concierge-bg-surface);
-    border: 1px solid var(--al2c-concierge-border-subtle);
-    border-radius: 16px;
+    border: 1px solid var(--al2c-concierge-border-medium);
+    border-radius: 4px;
     box-shadow: var(--al2c-concierge-shadow);
     display: flex;
     flex-direction: column;
@@ -253,11 +254,11 @@
     }
 }
 
-// SAP Horizon 3px Gradient Stripe
+// Innoria SOTA 3px Brand Horizon Stripe
 .al2c-horizon-stripe {
     height: 3px;
     width: 100%;
-    background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%);
+    background: linear-gradient(90deg, #0ABBDB 0%, #005F73 60%, #FF8000 100%);
     flex-shrink: 0;
 }
 
@@ -318,15 +319,15 @@
         padding: 4px 10px;
         font-size: 11.5px;
         font-weight: 600;
-        border-radius: 12px;
-        background: rgba(0, 112, 242, 0.1);
+        border-radius: 2px;
+        background: rgba(0, 95, 115, 0.1);
         color: var(--al2c-concierge-primary);
-        border: 1px solid rgba(0, 112, 242, 0.25);
+        border: 1px solid rgba(0, 95, 115, 0.25);
         cursor: pointer;
         transition: all 0.15s ease;
 
         &:hover {
-            background: rgba(0, 112, 242, 0.18);
+            background: rgba(0, 95, 115, 0.18);
         }
     }
 
@@ -336,7 +337,7 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        border-radius: 6px;
+        border-radius: 2px;
         border: none;
         background: transparent;
         color: var(--al2c-concierge-text-muted);
@@ -368,7 +369,7 @@
         font-size: 11.5px;
         font-weight: 600;
         padding: 6px 8px;
-        border-radius: 8px;
+        border-radius: 2px;
         cursor: pointer;
         text-align: center;
         white-space: nowrap;
@@ -383,7 +384,8 @@
             background: var(--al2c-concierge-bg-card);
             color: var(--al2c-concierge-primary);
             border-color: var(--al2c-concierge-border-medium);
-            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+            border-top: 2px solid #0ABBDB;
+            box-shadow: none;
         }
     }
 }
@@ -425,8 +427,9 @@
     .al2c-message-avatar {
         width: 32px;
         height: 32px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #0070F2 0%, #0ABBDB 100%);
+        border-radius: 4px;
+        background: linear-gradient(135deg, #005F73 0%, #003333 100%);
+        border: 1px solid #0ABBDB;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -456,19 +459,20 @@
         padding: 12px 14px;
         font-size: 13px;
         line-height: 1.55;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        box-shadow: none;
 
         &.al2c-bubble-assistant {
             background: var(--al2c-concierge-bg-bubble-assistant);
             border: 1px solid var(--al2c-concierge-border-subtle);
-            border-radius: 14px 14px 14px 2px;
+            border-left: 3px solid #0ABBDB;
+            border-radius: 2px;
             color: var(--al2c-concierge-text-primary);
         }
 
         &.al2c-bubble-user {
             background: var(--al2c-concierge-bg-bubble-user);
             color: var(--al2c-concierge-text-on-primary);
-            border-radius: 14px 14px 2px 14px;
+            border-radius: 2px;
         }
     }
 
@@ -496,7 +500,7 @@
             background: var(--al2c-concierge-bg-card);
             border: 1px solid var(--al2c-concierge-border-subtle);
             padding: 1px 4px;
-            border-radius: 4px;
+            border-radius: 2px;
             font-size: 12px;
         }
 
@@ -528,7 +532,8 @@
     .al2c-service-card {
         background: var(--al2c-concierge-bg-card);
         border: 1px solid var(--al2c-concierge-border-subtle);
-        border-radius: 10px;
+        border-top: 2px solid #005F73;
+        border-radius: 2px;
         padding: 10px 12px;
         transition: border-color 0.15s ease;
 
@@ -549,8 +554,8 @@
         font-size: 10px;
         font-weight: 700;
         padding: 2px 6px;
-        border-radius: 4px;
-        background: rgba(0, 112, 242, 0.1);
+        border-radius: 2px;
+        background: rgba(0, 95, 115, 0.1);
         color: var(--al2c-concierge-primary);
     }
 
@@ -584,7 +589,7 @@
         font-size: 11px;
         font-weight: 600;
         padding: 5px 8px;
-        border-radius: 6px;
+        border-radius: 0px;
         cursor: pointer;
         text-align: center;
         transition: all 0.15s ease;
@@ -619,7 +624,7 @@
     align-items: center;
     gap: 4px;
     padding: 3px 8px;
-    border-radius: 6px;
+    border-radius: 2px;
     font-size: 11px;
     font-weight: 500;
     background: var(--al2c-concierge-badge-green-bg);
@@ -663,7 +668,7 @@
         align-items: center;
         gap: 6px;
         padding: 4px 8px;
-        border-radius: 4px;
+        border-radius: 2px;
         background: var(--al2c-concierge-bg-chip);
         border: 1px solid var(--al2c-concierge-border-subtle);
         font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -691,7 +696,7 @@
         padding: 4px 10px;
         font-size: 11.5px;
         font-weight: 500;
-        border-radius: 8px;
+        border-radius: 2px;
         background: var(--al2c-concierge-bg-chip);
         border: 1px solid var(--al2c-concierge-border-medium);
         color: var(--al2c-concierge-primary);
@@ -716,7 +721,7 @@
         align-items: center;
         gap: 8px;
         padding: 8px 14px;
-        border-radius: 12px;
+        border-radius: 2px;
         background: var(--al2c-concierge-bg-bubble-assistant);
         border: 1px solid var(--al2c-concierge-border-subtle);
     }
@@ -772,7 +777,7 @@
     .al2c-quick-chip {
         padding: 4px 10px;
         font-size: 11px;
-        border-radius: 12px;
+        border-radius: 2px;
         background: var(--al2c-concierge-bg-subtle);
         border: 1px solid var(--al2c-concierge-border-subtle);
         color: var(--al2c-concierge-text-secondary);
@@ -801,7 +806,7 @@
         gap: 8px;
         background: var(--al2c-concierge-bg-subtle);
         border: 1px solid var(--al2c-concierge-border-subtle);
-        border-radius: 10px;
+        border-radius: 0px;
         padding: 4px 6px 4px 12px;
         transition: border-color 0.15s ease;
 
@@ -833,7 +838,7 @@
     .al2c-btn-send {
         width: 34px;
         height: 34px;
-        border-radius: 8px;
+        border-radius: 0px;
         background: var(--al2c-concierge-primary);
         color: var(--al2c-concierge-text-on-primary);
         border: none;
@@ -897,7 +902,7 @@
 
     .al2c-cfg-service-pill {
         padding: 7px 10px;
-        border-radius: 8px;
+        border-radius: 2px;
         background: var(--al2c-concierge-bg-card);
         border: 1px solid var(--al2c-concierge-border-subtle);
         color: var(--al2c-concierge-text-secondary);
@@ -913,7 +918,7 @@
         }
 
         &.is-selected {
-            background: rgba(0, 112, 242, 0.1);
+            background: #E6F8FB;
             border-color: var(--al2c-concierge-primary);
             color: var(--al2c-concierge-primary);
         }
@@ -921,9 +926,10 @@
 
     .al2c-cfg-service-overview {
         padding: 10px 12px;
-        border-radius: 10px;
+        border-radius: 2px;
         background: var(--al2c-concierge-bg-card);
         border: 1px solid var(--al2c-concierge-border-subtle);
+        border-top: 3px solid #005F73;
 
         .al2c-cfg-service-title {
             font-size: 12.5px;
@@ -935,8 +941,8 @@
             font-size: 10px;
             font-weight: 700;
             padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(0, 112, 242, 0.1);
+            border-radius: 2px;
+            background: rgba(0, 95, 115, 0.1);
             color: var(--al2c-concierge-primary);
             white-space: nowrap;
         }
@@ -957,7 +963,7 @@
 
     .al2c-cfg-option-btn {
         padding: 6px 8px;
-        border-radius: 7px;
+        border-radius: 0px;
         background: var(--al2c-concierge-bg-card);
         border: 1px solid var(--al2c-concierge-border-subtle);
         color: var(--al2c-concierge-text-secondary);
@@ -1001,7 +1007,7 @@
         min-width: 34px;
         height: 30px;
         padding: 0 8px;
-        border-radius: 6px;
+        border-radius: 0px;
         background: var(--al2c-concierge-bg-card);
         border: 1px solid var(--al2c-concierge-border-subtle);
         color: var(--al2c-concierge-text-secondary);
@@ -1020,7 +1026,7 @@
         display: inline-flex;
         align-items: center;
         border: 1px solid var(--al2c-concierge-border-medium);
-        border-radius: 7px;
+        border-radius: 0px;
         background: var(--al2c-concierge-bg-card);
         overflow: hidden;
 
@@ -1051,12 +1057,13 @@
     .al2c-estimate-card {
         background: var(--al2c-concierge-bg-card);
         border: 1px solid var(--al2c-concierge-border-medium);
-        border-radius: 12px;
+        border-top: 3px solid #FF8000;
+        border-radius: 2px;
         padding: 12px 14px;
         display: flex;
         flex-direction: column;
         gap: 10px;
-        box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+        box-shadow: none;
     }
 
     .al2c-estimate-header {
@@ -1134,7 +1141,7 @@
     .al2c-btn-cfg-ask {
         width: 100%;
         padding: 7px 12px;
-        border-radius: 8px;
+        border-radius: 0px;
         background: var(--al2c-concierge-bg-subtle);
         border: 1px solid var(--al2c-concierge-border-medium);
         color: var(--al2c-concierge-text-primary);
@@ -1152,7 +1159,7 @@
     .al2c-btn-cfg-proceed {
         width: 100%;
         padding: 9px 12px;
-        border-radius: 8px;
+        border-radius: 0px;
         background: var(--al2c-concierge-primary);
         border: none;
         color: var(--al2c-concierge-text-on-primary);
@@ -1167,7 +1174,7 @@
 }
 
 // =============================================================================
-// TAB 3: LEAD CAPTURE FORM SECTION ('lead')
+// TAB 3: LEAD CAPTURE FORM SECTION ('lead') — SOTA ENTERPRISE FORM STANDARD
 // =============================================================================
 .al2c-lead-section {
     flex: 1 1 auto;
@@ -1179,35 +1186,77 @@
     .al2c-lead-header {
         padding: 12px 16px;
         border-bottom: 1px solid var(--al2c-concierge-border-subtle);
+
+        .al2c-lead-eyebrow-badge {
+            background-color: #005F73 !important;
+            color: #ffffff !important;
+            padding: 2px 7px !important;
+            font-size: 9px !important;
+            font-weight: 700 !important;
+            border-radius: 2px !important;
+            letter-spacing: 0.04em !important;
+            display: inline-block !important;
+            line-height: 1.3 !important;
+        }
+
+        .al2c-logo-square-frame {
+            align-self: stretch !important;
+            width: 68px !important;
+            min-width: 68px !important;
+            height: auto !important;
+            min-height: 64px !important;
+            border: 1px solid #d1e8ed !important;
+            border-bottom: 3px solid #0ABBDB !important;
+            background: #ffffff !important;
+            border-radius: 2px !important;
+            padding: 5px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            flex-shrink: 0 !important;
+
+            img {
+                height: 100% !important;
+                max-height: 54px !important;
+                max-width: 56px !important;
+                width: auto !important;
+                object-fit: contain !important;
+            }
+        }
     }
 
     .al2c-btn-back {
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
-        border: none;
-        background: var(--al2c-concierge-bg-subtle);
-        color: var(--al2c-concierge-text-primary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        padding: 0;
+        width: 28px !important;
+        height: 28px !important;
+        min-width: 28px !important;
+        border-radius: 0px !important;
+        border: 1px solid var(--al2c-concierge-border-medium) !important;
+        background: var(--al2c-concierge-bg-subtle) !important;
+        color: var(--al2c-concierge-text-primary) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        cursor: pointer !important;
+        padding: 0 !important;
 
         &:hover {
-            background: var(--al2c-concierge-bg-hover);
+            background: var(--al2c-concierge-bg-hover) !important;
+            border-color: var(--al2c-concierge-primary) !important;
+            color: var(--al2c-concierge-primary) !important;
         }
     }
 
     .al2c-lead-title {
-        font-size: 14px;
-        font-weight: 600;
+        font-size: 13.5px;
+        font-weight: 700;
         color: var(--al2c-concierge-text-primary);
+        text-align: left !important;
     }
 
     .al2c-lead-subtitle {
         font-size: 11px;
         color: var(--al2c-concierge-text-muted);
+        text-align: left !important;
     }
 
     .al2c-lead-body {
@@ -1224,39 +1273,44 @@
         justify-content: space-between;
         gap: 10px;
         padding: 10px 12px;
-        border-radius: 10px;
-        background: var(--al2c-concierge-bg-subtle);
-        border: 1px solid var(--al2c-concierge-border-medium);
+        border-radius: 2px;
+        background: #E6F8FB;
+        border: 1px solid #8CE0F0;
+        border-left: 3px solid #005F73;
 
         .al2c-lead-config-label {
             font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
-            color: var(--al2c-concierge-text-muted);
+            color: #005F73;
+            text-align: left !important;
         }
 
         .al2c-lead-config-title {
             font-size: 12px;
             font-weight: 700;
             color: var(--al2c-concierge-text-primary);
+            text-align: left !important;
         }
 
         .al2c-lead-config-meta {
             font-size: 11px;
             color: var(--al2c-concierge-text-secondary);
+            text-align: left !important;
         }
 
         .al2c-lead-config-price {
             font-size: 12px;
             color: var(--al2c-concierge-primary);
             margin-top: 2px;
+            text-align: left !important;
         }
 
         .al2c-btn-edit-config {
             padding: 4px 8px;
             font-size: 11px;
             font-weight: 600;
-            border-radius: 6px;
+            border-radius: 0px;
             background: var(--al2c-concierge-bg-card);
             border: 1px solid var(--al2c-concierge-border-medium);
             color: var(--al2c-concierge-text-primary);
@@ -1274,6 +1328,7 @@
         flex-direction: column;
         gap: 4px;
         margin-bottom: 8px;
+        text-align: left !important;
     }
 
     .al2c-form-row {
@@ -1295,14 +1350,15 @@
         font-weight: 600;
         color: var(--al2c-concierge-text-secondary);
         margin: 0;
+        text-align: left !important;
     }
 
     .al2c-form-input {
         background: var(--al2c-concierge-bg-subtle);
-        border: 1px solid var(--al2c-concierge-border-subtle);
+        border: 1px solid #cbd5e1;
         color: var(--al2c-concierge-text-primary);
         font-size: 13px;
-        border-radius: 6px;
+        border-radius: 0px !important;
         padding: 7px 10px;
 
         &:focus {
@@ -1313,19 +1369,79 @@
         }
     }
 
+    .innoria-col-left {
+        text-align: left !important;
+        justify-content: flex-start !important;
+    }
+
+    .innoria-col-right {
+        text-align: right !important;
+        justify-content: flex-end !important;
+        margin-left: auto !important;
+    }
+
+    .innoria-priority-dropzone {
+        background: #FFF4E5;
+        border: 1.5px dashed #FF8000;
+        border-radius: 2px;
+        padding: 10px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        text-align: left !important;
+
+        .innoria-dropzone-header-row {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 8px !important;
+            width: 100% !important;
+        }
+    }
+
+    .innoria-sota-check-row,
+    .al2c-consent-group .form-check {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+        padding-left: 0 !important;
+        text-align: left !important;
+
+        .form-check-input {
+            float: none !important;
+            flex: 0 0 15px !important;
+            width: 15px !important;
+            height: 15px !important;
+            margin: 3px 0 0 0 !important;
+            position: static !important;
+        }
+
+        .form-check-label {
+            display: block !important;
+            flex: 1 1 0% !important;
+            min-width: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            text-align: left !important;
+            line-height: 1.45 !important;
+        }
+    }
+
     .al2c-alert-success {
         background: var(--al2c-concierge-badge-green-bg);
         border: 1px solid rgba(16, 185, 129, 0.3);
         color: var(--al2c-concierge-badge-green);
-        border-radius: 8px;
+        border-radius: 2px;
         padding: 10px 14px;
     }
 
     .al2c-alert-danger {
-        background: rgba(244, 63, 94, 0.12);
-        border: 1px solid rgba(244, 63, 94, 0.3);
-        color: #e11d48;
-        border-radius: 8px;
+        background: #FFF4E5;
+        border: 1px solid #FF8000;
+        color: #B45309;
+        border-radius: 2px;
         padding: 10px 14px;
     }
 
@@ -1339,7 +1455,7 @@
     .al2c-btn-primary {
         width: 100%;
         padding: 9px 16px;
-        border-radius: 8px;
+        border-radius: 0px !important;
         background: var(--al2c-concierge-primary);
         color: var(--al2c-concierge-text-on-primary);
         border: none;
@@ -1361,7 +1477,7 @@
     .al2c-btn-secondary {
         width: 100%;
         padding: 7px 16px;
-        border-radius: 8px;
+        border-radius: 0px !important;
         background: var(--al2c-concierge-bg-subtle);
         color: var(--al2c-concierge-text-secondary);
         border: 1px solid var(--al2c-concierge-border-subtle);
@@ -1388,13 +1504,13 @@
 
     // Live Field Validation Error & Invalid Border
     .al2c-input-invalid {
-        border-color: #e11d48;
+        border-color: #D97706;
     }
 
     .al2c-field-error {
         font-size: 11px;
         font-weight: 500;
-        color: #e11d48;
+        color: #B45309;
         line-height: 1.35;
         margin-top: 2px;
     }
@@ -1404,7 +1520,7 @@
         background: var(--al2c-concierge-bg-subtle);
         border: 1px solid var(--al2c-concierge-border-medium);
         border-left: 3px solid var(--al2c-concierge-primary);
-        border-radius: 8px;
+        border-radius: 2px;
         padding: 9px 11px;
         display: flex;
         flex-direction: column;
@@ -1423,17 +1539,20 @@
         font-size: 11px;
         font-weight: 700;
         color: var(--al2c-concierge-text-primary);
+        text-align: left !important;
     }
 
     .al2c-security-shield-badge {
         font-size: 9.5px;
         font-weight: 700;
         padding: 2px 6px;
-        border-radius: 4px;
+        border-radius: 2px;
         background: var(--al2c-concierge-badge-green-bg);
         color: var(--al2c-concierge-badge-green);
         letter-spacing: 0.02em;
         white-space: nowrap;
+        text-align: right !important;
+        margin-left: auto !important;
     }
 
     .al2c-security-shield-pills {
@@ -1446,7 +1565,7 @@
         font-size: 10px;
         font-weight: 600;
         padding: 2px 7px;
-        border-radius: 4px;
+        border-radius: 2px;
         background: var(--al2c-concierge-bg-card);
         border: 1px solid var(--al2c-concierge-border-subtle);
         color: var(--al2c-concierge-text-secondary);
@@ -1480,7 +1599,7 @@
             color: var(--al2c-concierge-primary);
             background: var(--al2c-concierge-bg-card);
             padding: 2px 7px;
-            border-radius: 4px;
+            border-radius: 2px;
             border: 1px solid var(--al2c-concierge-border-medium);
         }
     }
@@ -1503,7 +1622,7 @@
         width: 30px;
         height: 30px;
         padding: 0;
-        border-radius: 6px;
+        border-radius: 0px;
         background: var(--al2c-concierge-bg-card);
         border: 1px solid var(--al2c-concierge-border-subtle);
         color: var(--al2c-concierge-text-secondary);
@@ -1523,7 +1642,7 @@
 .al2c-chat-security-banner {
     margin: 0 0 8px 0;
     padding: 8px 10px;
-    border-radius: 8px;
+    border-radius: 2px;
     font-size: 11.5px;
     line-height: 1.4;
     display: flex;
@@ -1537,9 +1656,9 @@
     }
 
     &.al2c-chat-security-locked {
-        background: rgba(244, 63, 94, 0.14);
-        border: 1px solid rgba(244, 63, 94, 0.45);
-        color: #be123c;
+        background: #FFF4E5;
+        border: 1px solid #FF8000;
+        color: #B45309;
     }
 
     .al2c-chat-security-banner-head {
@@ -1558,8 +1677,8 @@
         font-size: 9.5px;
         font-weight: 700;
         padding: 1px 6px;
-        border-radius: 4px;
-        background: rgba(244, 63, 94, 0.18);
+        border-radius: 2px;
+        background: rgba(255, 128, 0, 0.18);
         letter-spacing: 0.03em;
     }
 
@@ -1568,4 +1687,24 @@
         opacity: 0.95;
     }
 }
+
+#wrapwrap #innoria_ai_concierge_root {
+    .al2c-lead-header .al2c-logo-square-frame {
+        align-self: stretch !important;
+        width: 68px !important;
+        min-width: 68px !important;
+        height: auto !important;
+        min-height: 64px !important;
+        padding: 5px !important;
+
+        img {
+            height: 100% !important;
+            max-height: 54px !important;
+            max-width: 56px !important;
+            width: auto !important;
+            object-fit: contain !important;
+        }
+    }
+}
+
 

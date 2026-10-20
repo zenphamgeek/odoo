@@ -108,21 +108,21 @@
                         </t>
                         <button
                             type="button"
-                            class="btn al2c-btn-header-icon"
+                            class="al2c-btn-header-icon"
                             t-on-click="this.clearChat"
                             title="Làm mới cuộc trò chuyện"
                             aria-label="Làm mới cuộc trò chuyện"
                         >
-                            <i class="fa fa-refresh" aria-hidden="true"/>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
                         </button>
                         <button
                             type="button"
-                            class="btn al2c-btn-header-icon"
+                            class="al2c-btn-header-icon"
                             t-on-click="this.toggleDrawer"
                             title="Thu nhỏ cửa sổ"
                             aria-label="Thu nhỏ cửa sổ"
                         >
-                            <i class="fa fa-times" aria-hidden="true"/>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
                     </div>
                 </header>
@@ -167,20 +167,26 @@
                 <t t-if="state.activeTab === 'lead' or state.showLeadForm">
                     <section class="al2c-lead-section">
                         <div class="al2c-lead-header">
-                            <div class="d-flex align-items-center gap-2">
+                            <div class="d-flex align-items-stretch justify-content-between gap-2 w-100">
+                                <div class="d-flex align-items-stretch gap-2 innoria-col-left text-start">
+                                    <div class="al2c-logo-square-frame">
+                                        <img src="/insilos_website/static/src/img/innoria/logo_innoria_vertical.svg" alt="INNORIA"/>
+                                    </div>
+                                    <div class="d-flex flex-column justify-content-center gap-1 text-start innoria-sota-header-text-col">
+                                        <span class="al2c-lead-eyebrow-badge align-self-start">FAST-TRACK SOW DESK</span>
+                                        <h5 class="al2c-lead-title mb-0 text-start">Đăng Ký Tư Vấn &amp; Nhận Báo Giá</h5>
+                                        <p class="al2c-lead-subtitle mb-0 text-start">Solution Architect gửi dự toán SOW trong &lt; 2h (khi đính kèm RFP/SRS)</p>
+                                    </div>
+                                </div>
                                 <button
                                     type="button"
-                                    class="btn al2c-btn-back"
+                                    class="al2c-btn-back innoria-col-right ms-auto align-self-start"
                                     t-on-click="this.closeLeadForm"
                                     title="Quay lại"
                                     aria-label="Quay lại"
                                 >
-                                    <i class="fa fa-arrow-left" aria-hidden="true"/>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
                                 </button>
-                                <div>
-                                    <h5 class="al2c-lead-title mb-0">Đăng Ký Tư Vấn &amp; Nhận Báo Giá</h5>
-                                    <p class="al2c-lead-subtitle mb-0">Solution Architect sẽ gửi hồ sơ dự toán chi tiết trong 24 giờ</p>
-                                </div>
                             </div>
                         </div>
 
@@ -188,7 +194,7 @@
                             <!-- Configured Service & Estimate Summary Banner -->
                             <t t-if="state.configurator and state.configurator.estimate">
                                 <div class="al2c-lead-config-banner">
-                                    <div class="al2c-lead-config-info">
+                                    <div class="al2c-lead-config-info innoria-col-left text-start">
                                         <div class="al2c-lead-config-label">Cấu hình dịch vụ đã chọn:</div>
                                         <div class="al2c-lead-config-title" t-esc="state.configurator.estimate.service_name"/>
                                         <div class="al2c-lead-config-meta">
@@ -208,7 +214,7 @@
                                     </div>
                                     <button
                                         type="button"
-                                        class="btn al2c-btn-edit-config"
+                                        class="btn al2c-btn-edit-config innoria-col-right ms-auto"
                                         t-on-click="() => this.setActiveTab('services')"
                                     >
                                         <i class="fa fa-sliders me-1" aria-hidden="true"/>
@@ -364,13 +370,13 @@
                                     />
                                 </div>
 
-                                <div class="al2c-form-group p-2 mb-2" style="background: #FFF4E5; border: 1px dashed #FF8000; border-left: 3px solid #FF8000; border-radius: 2px;">
-                                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-1 mb-1">
-                                        <label class="al2c-form-label mb-0 fw-bold" for="al2c_lead_attachments" style="color: #003333; font-size: 11px; cursor: pointer;">
-                                            📎 Đính kèm Tài liệu Dự án (RFP / SRS / BoQ)
+                                <div class="al2c-form-group p-2 mb-2 innoria-priority-dropzone text-start" style="background: #FFF4E5; border: 1px dashed #FF8000; border-left: 3px solid #FF8000; border-radius: 2px; text-align: left !important;">
+                                    <div class="innoria-dropzone-header-row d-flex flex-nowrap align-items-center justify-content-between gap-2 mb-1 w-100">
+                                        <label class="al2c-form-label mb-0 fw-bold innoria-col-left text-start text-truncate" for="al2c_lead_attachments" style="color: #003333; font-size: 11px; cursor: pointer; text-align: left !important;">
+                                            📎 Đính kèm Tài liệu (RFP / SRS / BoQ)
                                         </label>
-                                        <span class="px-2 py-0 fw-bold" style="background: #FF8000; color: #FFFFFF; font-size: 9.5px; border-radius: 2px;">
-                                            ⚡ ƯU TIÊN BÁO GIÁ &lt; 2 GIỜ
+                                        <span class="px-2 py-0 fw-bold innoria-col-right text-end ms-auto flex-shrink-0" style="background: #FF8000; color: #FFFFFF; font-size: 9.5px; border-radius: 2px; text-align: right !important; margin-left: auto !important; white-space: nowrap;">
+                                            ⚡ ƯU TIÊN BÁO GIÁ &lt; 2H
                                         </span>
                                     </div>
                                     <input
@@ -383,7 +389,7 @@
                                         t-on-change="(ev) => this.onLeadFilesChange(ev)"
                                     />
                                     <t t-if="state.leadForm.attachments and state.leadForm.attachments.length">
-                                        <div class="mt-1 fw-bold" style="color: #005F73; font-size: 10.5px;">
+                                        <div class="mt-1 fw-bold innoria-col-right text-end ms-auto" style="color: #005F73; font-size: 10.5px; text-align: right !important;">
                                             ✓ Đã đính kèm <t t-esc="state.leadForm.attachments.length"/> tệp — Kích hoạt Fast-Track Priority (&lt; 2h SLA)
                                         </div>
                                     </t>
@@ -428,6 +434,21 @@
                                                 <i class="fa fa-refresh" aria-hidden="true"/>
                                             </button>
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div class="al2c-form-group al2c-consent-group mb-1">
+                                    <div class="form-check innoria-sota-check-row">
+                                        <input
+                                            class="form-check-input"
+                                            type="checkbox"
+                                            id="al2c_lead_consent"
+                                            checked="checked"
+                                            required="required"
+                                        />
+                                        <label class="form-check-label" for="al2c_lead_consent" style="font-size: 11px; color: var(--al2c-concierge-text-secondary);">
+                                            Cam kết bảo mật NDA hai chiều &amp; xử lý dữ liệu theo chuẩn ISO/IEC 27701, Nghị định 13/2023/NĐ-CP.
+                                        </label>
                                     </div>
                                 </div>
 
@@ -888,13 +909,13 @@
                             />
                             <button
                                 type="button"
-                                class="btn al2c-btn-send"
+                                class="al2c-btn-send"
                                 t-on-click="this.sendMessage"
                                 t-att-disabled="state.isLoading or state.chatSecurity.lockedOut or !state.currentQuery.trim()"
                                 title="Gửi câu hỏi (Enter)"
                                 aria-label="Gửi câu hỏi"
                             >
-                                <i class="fa fa-paper-plane" aria-hidden="true"/>
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                             </button>
                         </div>
 

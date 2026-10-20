@@ -1602,17 +1602,3 @@ export class AiConciergeInteraction extends Interaction {
 
 registry.category("public.interactions").add("insilos_al2c.ai_concierge", AiConciergeInteraction);
 
-/**
- * Standalone DOM ready fallback mounting
- */
-whenReady(async () => {
-    const el = document.getElementById("innoria_ai_concierge_root");
-    if (el && !el.dataset.conciergeMounted) {
-        el.dataset.conciergeMounted = "true";
-        try {
-            await mountComponent(AiConciergeWidget, el, { name: "Innoria AI Concierge" });
-        } catch (_err) {
-            // Handled or already mounted by interaction
-        }
-    }
-});

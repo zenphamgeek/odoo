@@ -21,14 +21,14 @@ body.o_dark_mode,
     --al2c-concierge-bg-subtle: #1E293B;
     --al2c-concierge-bg-hover: #1E293B;
     --al2c-concierge-bg-active: #334155;
-    --al2c-concierge-bg-bubble-user: #0070F2;
+    --al2c-concierge-bg-bubble-user: #005F73;
     --al2c-concierge-bg-bubble-assistant: #1E293B;
     --al2c-concierge-bg-chip: #111827;
 
     // 2. Hairline Architectural Borders
     --al2c-concierge-border-subtle: rgba(255, 255, 255, 0.12);
     --al2c-concierge-border-medium: rgba(255, 255, 255, 0.22);
-    --al2c-concierge-border-focus: #00F2FE;
+    --al2c-concierge-border-focus: #0ABBDB;
 
     // 3. High Contrast Typography (Dark Calibrated)
     --al2c-concierge-text-primary: #F8FAFC;
@@ -37,15 +37,15 @@ body.o_dark_mode,
     --al2c-concierge-text-on-primary: #F8FAFC;
 
     // 4. High-Contrast Tech Cyan Accents
-    --al2c-concierge-primary: #00F2FE;
+    --al2c-concierge-primary: #0ABBDB;
     --al2c-concierge-primary-hover: #38BDF8;
-    --al2c-concierge-accent: #38BDF8;
+    --al2c-concierge-accent: #0ABBDB;
     --al2c-concierge-badge-green: #34D399;
     --al2c-concierge-badge-green-bg: rgba(52, 211, 153, 0.18);
 
     // 5. Deep Ambient Shadows
     --al2c-concierge-shadow: 0 16px 48px rgba(0, 0, 0, 0.65);
-    --al2c-concierge-launcher-shadow: 0 8px 24px rgba(0, 242, 254, 0.35);
+    --al2c-concierge-launcher-shadow: 0 8px 24px rgba(10, 187, 219, 0.35);
 }
 
 // Dark Mode Specific Overrides and Enhancements
@@ -54,7 +54,7 @@ body.o_dark_mode,
 .o_dark_mode {
     .al2c-proactive-nudge {
         background: #0F172A;
-        border-color: rgba(0, 242, 254, 0.3);
+        border-color: rgba(10, 187, 219, 0.3);
         box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
     }
 
@@ -69,8 +69,8 @@ body.o_dark_mode,
 
         .al2c-tab-btn.is-active {
             background: #1E293B;
-            color: #00F2FE;
-            border-color: rgba(0, 242, 254, 0.35);
+            color: #0ABBDB;
+            border-color: rgba(10, 187, 219, 0.35);
         }
     }
 
@@ -79,7 +79,7 @@ body.o_dark_mode,
     }
 
     .al2c-bubble-user {
-        background: #0070F2;
+        background: #005F73;
         color: var(--al2c-concierge-text-on-primary);
     }
 
@@ -90,41 +90,41 @@ body.o_dark_mode,
         }
 
         .al2c-service-card-badge {
-            background: rgba(0, 242, 254, 0.14);
-            color: #00F2FE;
+            background: rgba(10, 187, 219, 0.14);
+            color: #0ABBDB;
         }
 
         .al2c-service-card-btn.quote {
-            background: #0070F2;
-            border-color: #0070F2;
+            background: #005F73;
+            border-color: #005F73;
             color: var(--al2c-concierge-text-on-primary);
 
             &:hover {
-                background: #005BB5;
+                background: #003333;
             }
         }
     }
 
     .al2c-configurator-section {
         .al2c-cfg-service-pill.is-selected {
-            background: rgba(0, 242, 254, 0.14);
-            border-color: #00F2FE;
-            color: #00F2FE;
+            background: rgba(10, 187, 219, 0.14);
+            border-color: #0ABBDB;
+            color: #0ABBDB;
         }
 
         .al2c-cfg-option-btn.is-selected,
         .al2c-cfg-unit-pill.is-selected {
-            background: #0070F2;
-            border-color: #0070F2;
+            background: #005F73;
+            border-color: #005F73;
             color: var(--al2c-concierge-text-on-primary);
         }
 
         .al2c-btn-cfg-proceed {
-            background: #0070F2;
+            background: #005F73;
             color: var(--al2c-concierge-text-on-primary);
 
             &:hover {
-                background: #005BB5;
+                background: #003333;
             }
         }
     }
@@ -137,12 +137,12 @@ body.o_dark_mode,
 
     .al2c-action-chip {
         background: #111827;
-        border-color: rgba(0, 242, 254, 0.35);
-        color: #00F2FE;
+        border-color: rgba(10, 187, 219, 0.35);
+        color: #0ABBDB;
 
         &:hover {
             background: #1E293B;
-            border-color: #00F2FE;
+            border-color: #0ABBDB;
         }
     }
 
@@ -153,8 +153,8 @@ body.o_dark_mode,
 
         &:hover {
             background: #334155;
-            color: #00F2FE;
-            border-color: rgba(0, 242, 254, 0.4);
+            color: #0ABBDB;
+            border-color: rgba(10, 187, 219, 0.4);
         }
     }
 
@@ -165,7 +165,7 @@ body.o_dark_mode,
 
         &:focus {
             background: #0F172A;
-            border-color: #00F2FE;
+            border-color: #0ABBDB;
             color: #F8FAFC;
         }
     }
@@ -175,7 +175,7 @@ body.o_dark_mode,
         border-color: rgba(255, 255, 255, 0.15);
 
         &:focus-within {
-            border-color: #00F2FE;
+            border-color: #0ABBDB;
         }
     }
 
@@ -188,20 +188,20 @@ body.o_dark_mode,
     }
 
     .al2c-btn-send {
-        background: #0070F2;
+        background: #005F73;
         color: var(--al2c-concierge-text-on-primary);
 
         &:not(:disabled):hover {
-            background: #005BB5;
+            background: #003333;
         }
     }
 
     .al2c-btn-primary {
-        background: #0070F2;
+        background: #005F73;
         color: var(--al2c-concierge-text-on-primary);
 
         &:hover {
-            background: #005BB5;
+            background: #003333;
         }
     }
 

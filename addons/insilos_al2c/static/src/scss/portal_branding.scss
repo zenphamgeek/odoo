@@ -1,14 +1,14 @@
 /* =====================================================================
    INNORIA / INSILOS ENTERPRISE CUSTOMER PORTAL STYLING
-   Standards: IBM Carbon Design Language & SAP Fiori Horizon Standards
-   Typography: System native / IBM Carbon sans-serif & monospace
-   Tokens: --o-theme-primary, --portal-primary-color
+   Standards: IBM Carbon Design Language v11 & Innoria SOTA Brand Palette
+   Typography: Poppins Sans-Serif Standard
+   Tokens: --al2c-sap-blue (#005F73), --al2c-sap-cyan (#0ABBDB)
    ===================================================================== */
 
 :root {
-    --al2c-sap-blue: var(--insilos-primary, #0070F2);
+    --al2c-sap-blue: var(--insilos-primary, #005F73);
     --al2c-sap-cyan: var(--insilos-accent, #0ABBDB);
-    --al2c-sap-dark: #12171C;
+    --al2c-sap-dark: #003333;
     --al2c-carbon-gray-10: var(--insilos-bg-subtle);
     --al2c-carbon-gray-20: var(--insilos-border-subtle);
     --al2c-carbon-gray-70: var(--insilos-text-muted);
@@ -19,7 +19,7 @@
 [data-bs-theme="dark"],
 body.o_dark_mode,
 .o_dark_mode {
-    --al2c-sap-blue: var(--insilos-primary, #00F2FE);
+    --al2c-sap-blue: var(--insilos-primary, #0ABBDB);
     --al2c-sap-cyan: var(--insilos-accent, #38BDF8);
     --al2c-carbon-gray-10: var(--insilos-bg-subtle);
     --al2c-carbon-gray-20: var(--insilos-border-subtle);
@@ -31,7 +31,7 @@ body.o_dark_mode,
 /* 1. Header Gradient Accent Stripe */
 .al2c_portal_horizon_stripe {
     height: 3px;
-    background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%);
+    background: linear-gradient(90deg, #0ABBDB 0%, #005F73 65%, #FF8000 100%);
     width: 100%;
     position: relative;
     z-index: 1030;
@@ -47,13 +47,15 @@ body.o_dark_mode,
 /* 3. IBM Carbon Enterprise Cards on Portal Home */
 .al2c-portal-cockpit {
     margin-bottom: 2rem;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 .al2c-portal-card {
     background: var(--al2c-card-bg, var(--insilos-bg-card, var(--o-view-background)));
     border: 1px solid var(--al2c-carbon-gray-20);
-    border-radius: 4px;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    border-radius: 2px !important;
+    box-shadow: none !important;
+    transition: border-color 0.15s ease;
     text-decoration: none !important;
     display: flex;
     flex-direction: column;
@@ -62,9 +64,7 @@ body.o_dark_mode,
     overflow: hidden;
 
     &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        border-color: var(--al2c-sap-blue);
+        border-color: var(--al2c-sap-blue) !important;
 
         .al2c-card-arrow {
             color: var(--al2c-sap-blue);
@@ -84,7 +84,7 @@ body.o_dark_mode,
     }
 
     &:hover::before {
-        background: linear-gradient(90deg, #0070F2 0%, #0ABBDB 100%);
+        background: linear-gradient(90deg, #0ABBDB 0%, #005F73 65%, #FF8000 100%);
     }
 }
 
@@ -93,7 +93,7 @@ body.o_dark_mode,
     font-weight: 700;
 }
 
-/* 4. SAP Activate Milestone Indicator */
+/* 4. 5-Gate Delivery Milestone Indicator */
 .al2c-milestone-stepper {
     display: flex;
     align-items: center;
@@ -145,7 +145,7 @@ body.o_dark_mode,
     &.current .step-circle {
         border-color: var(--al2c-sap-blue);
         color: var(--al2c-sap-blue);
-        box-shadow: 0 0 0 4px rgba(0, 112, 242, 0.15);
+        box-shadow: 0 0 0 4px rgba(0, 95, 115, 0.15);
     }
 
     .step-title {
@@ -164,7 +164,7 @@ body.o_dark_mode,
 .al2c-napas-box {
     background: var(--insilos-bg-subtle);
     border: 1px solid var(--al2c-carbon-gray-20);
-    border-radius: 6px;
+    border-radius: 2px;
     padding: 1.25rem;
 
     .napas-badge {
@@ -180,10 +180,10 @@ body.o_dark_mode,
 
 /* 6. Dispute Notice Banner */
 .al2c-dispute-alert {
-    border-left: 4px solid var(--insilos-warning, #F1C21B);
-    background-color: var(--insilos-warning-bg, rgba(245, 158, 11, 0.15));
+    border-left: 4px solid var(--insilos-warning, #FF8000);
+    background-color: var(--insilos-warning-bg, #FFF4E5);
     color: var(--insilos-text-primary);
-    border-radius: 4px;
+    border-radius: 2px;
     padding: 1rem 1.25rem;
     margin-bottom: 1.5rem;
 }

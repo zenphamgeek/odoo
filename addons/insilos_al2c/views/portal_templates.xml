@@ -141,7 +141,7 @@
     <!-- 3. Sales Order Portal Content Enhancement: Fit-to-Standard Scope, Value Case ROI, Interactive Quotation Approval & 5-Gate SOW -->
     <template id="sale_order_portal_content_inherit_al2c" inherit_id="sale.sale_order_portal_content">
         <xpath expr="//div[@id='introduction']" position="before">
-            <div class="al2c_portal_horizon_stripe" style="height: 3px; background: #0f62fe; width: 100%; border-radius: 0px;"/>
+            <div class="al2c_portal_horizon_stripe" style="height: 3px; background: #005F73; width: 100%; border-radius: 0px;"/>
             <div t-if="request.params.get('quotation_approved')" class="alert alert-success d-flex align-items-center justify-content-between p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
                 <div>
                     <strong>✓ Đã phê duyệt Báo giá &amp; Xác nhận Phạm vi Kỹ thuật (SOW) thành công!</strong>
@@ -174,7 +174,7 @@
                         <h6 class="fw-bold mb-0" style="color: #161616;">Phạm Vi Kỹ Thuật Phần Mềm (Fit-to-Standard Scope) &amp; Hiệu Quả Đầu Tư (Value Case ROI)</h6>
                         <div class="text-muted small" style="font-size: 11px;">Phân loại kiến trúc Clean Core (AL2C-CRM-101) và định lượng lợi ích kinh tế 3 năm (AL2C-VAL-101).</div>
                     </div>
-                    <span class="badge text-white" style="background: #0f62fe; border-radius: 4px !important; font-size: 10px;">CLEAN CORE ARCHITECTURE</span>
+                    <span class="badge text-white" style="background: #005F73; border-radius: 4px !important; font-size: 10px;">CLEAN CORE ARCHITECTURE</span>
                 </div>
 
                 <!-- Value Case ROI Summary Strip -->
@@ -238,7 +238,7 @@
             </div>
 
             <!-- 3B. Interactive Customer Quotation & SOW Approval Box (/my/orders/<id>/software_decide) -->
-            <div class="border p-3 p-lg-4 mt-3 bg-white" style="border-radius: 2px !important; border-left: 4px solid #0f62fe !important; border-color: #e0e0e0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+            <div class="border p-3 p-lg-4 mt-3 bg-white" style="border-radius: 2px !important; border-left: 4px solid #005F73 !important; border-color: #e0e0e0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
                 <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
                     <div>
                         <h6 class="fw-bold mb-0" style="color: #161616;">Phê Duyệt Báo Giá &amp; Ký Xác Nhận Phạm Vi Công Việc (SOW Sign-Off)</h6>
@@ -247,7 +247,7 @@
                         </div>
                     </div>
                     <span t-if="sale_order.state == 'sale'" class="badge bg-success text-white px-2 py-1" style="border-radius: 4px !important; font-size: 11px;">✓ ĐÃ PHÊ DUYỆT &amp; KÍCH HOẠT SOW</span>
-                    <span t-else="" class="badge bg-primary text-white px-2 py-1" style="background: #0f62fe; border-radius: 4px !important; font-size: 11px;">CHỜ KHÁCH HÀNG PHÊ DUYỆT</span>
+                    <span t-else="" class="badge bg-primary text-white px-2 py-1" style="background: #005F73; border-radius: 4px !important; font-size: 11px;">CHỜ KHÁCH HÀNG PHÊ DUYỆT</span>
                 </div>
 
                 <div class="row g-3">
@@ -271,7 +271,7 @@
                                 <label class="form-label small mb-1">Ghi chú phê duyệt / Điều kiện nghiệm thu Sprint:</label>
                                 <input type="text" name="note" class="form-control form-control-sm" value="Đồng ý phê duyệt Báo giá, Scope Fit-to-Standard và Lộ trình 5-Gate SOW." style="border-radius: 0px !important;"/>
                             </div>
-                            <button type="submit" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
+                            <button type="submit" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #005F73; border-color: #005F73; border-radius: 0px !important; box-shadow: none !important;">
                                 ✅ Phê duyệt Báo giá &amp; Ký Xác nhận SOW
                             </button>
                         </form>
@@ -365,7 +365,7 @@
                             </tr>
                             <tr>
                                 <td class="text-muted p-1">Tài khoản ngân hàng:</td>
-                                <td class="fw-bold p-1" style="color: #0f62fe;">0071001234567 <span class="fw-normal text-muted">(Ngân hàng Thương mại Quốc doanh - CN TP.HCM)</span></td>
+                                <td class="fw-bold p-1" style="color: #005F73;">0071001234567 <span class="fw-normal text-muted">(Ngân hàng Thương mại Quốc doanh - CN TP.HCM)</span></td>
                             </tr>
                             <tr>
                                 <td class="text-muted p-1">Nội dung chuyển khoản:</td>
@@ -390,7 +390,7 @@
             </div>
 
             <!-- Clarification & SOW Dispute Safeguard -->
-            <div class="p-3 mt-3 border bg-white small" style="border-left: 4px solid #0f62fe !important; border-radius: 2px !important; font-size: 12px; color: #525252;">
+            <div class="p-3 mt-3 border bg-white small" style="border-left: 4px solid #005F73 !important; border-radius: 2px !important; font-size: 12px; color: #525252;">
                 <strong>QUY CHẾ GIẢI QUYẾT ĐỐI SOÁT AL2C-INV-103:</strong> Quý Khách hàng có quyền yêu cầu làm rõ điều khoản hoặc đề nghị đối soát phạm vi công việc bất kỳ lúc nào qua cổng thông tin <a href="/my/software-portal">/my/software-portal</a> hoặc email <strong style="color: #161616;">contact@innoria.com</strong>.
             </div>
         </xpath>
@@ -576,11 +576,11 @@
                  TRẠNG THÁI 2: HÓA ĐƠN GTGT ĐIỆN TỬ CHÍNH THỨC (OFFICIAL 1C26TAA E-INVOICE)
                  ========================================================================= -->
             <t t-else="">
-                <div class="border p-3 p-lg-4 mb-3 bg-white" style="border-radius: 2px !important; border-left: 4px solid #0f62fe !important; border-color: #e0e0e0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <div class="border p-3 p-lg-4 mb-3 bg-white" style="border-radius: 2px !important; border-left: 4px solid #005F73 !important; border-color: #e0e0e0; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
                     <div class="row align-items-center gy-2">
                         <div class="col-12 col-md-8">
                             <div class="d-flex flex-wrap align-items-center gap-2">
-                                <span class="badge text-white" style="background: #0f62fe; border-radius: 4px !important; font-size: 10px;">NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
+                                <span class="badge text-white" style="background: #005F73; border-radius: 4px !important; font-size: 10px;">NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
                                 <span class="badge bg-light text-body border" style="border-radius: 4px !important; font-size: 10px;">MẪU SỐ 1/001 · KÝ HIỆU <t t-out="invoice.dgm_einvoice_symbol or '1C26TAA'"/></span>
                                 <span class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">✓ ĐÃ CẤP MÃ CQT &amp; KÝ SỐ HỢP LỆ</span>
                             </div>
@@ -596,7 +596,7 @@
                             </div>
                         </div>
                         <div class="col-12 col-md-4 text-md-end d-flex flex-wrap justify-content-md-end gap-2">
-                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_xml" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
+                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_xml" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #005F73; border-color: #005F73; border-radius: 0px !important; box-shadow: none !important;">
                                 ⬇️ Tải File XML Chuẩn CQT (1C26TAA)
                             </a>
                             <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
@@ -608,7 +608,7 @@
             </t>
 
             <!-- Timesheet Statement Confirmation Action Box (AL2C-SOP-002) -->
-            <div t-if="invoice.al2c_timesheet_statement_state == 'sent_to_client'" class="border p-3 mb-3 bg-white" style="border-left: 4px solid #0f62fe !important; border-radius: 2px !important;">
+            <div t-if="invoice.al2c_timesheet_statement_state == 'sent_to_client'" class="border p-3 mb-3 bg-white" style="border-left: 4px solid #005F73 !important; border-radius: 2px !important;">
                 <div class="d-flex align-items-center justify-content-between mb-2">
                     <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; border-radius: 4px !important;">BẢNG KÊ GIỜ CÔNG CHỜ XÁC NHẬN</span>
                     <span class="text-muted small" style="font-size: 11px;">Hạn xác nhận: 7 ngày</span>
@@ -639,7 +639,7 @@
 
             <!-- Interactive AI Statement & Timesheet Explainer Container (SOP-RAG-003) -->
             <div class="collapse mb-3" id="al2cAiExplainerCollapse">
-                <div class="card card-body bg-light border-primary" style="border-left: 4px solid #0f62fe !important; border-radius: 2px !important;">
+                <div class="card card-body bg-light border-primary" style="border-left: 4px solid #005F73 !important; border-radius: 2px !important;">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
                             <span class="badge bg-primary text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; border-radius: 4px !important;">SOP-RAG-003</span>
