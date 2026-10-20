@@ -12,7 +12,7 @@
     <!-- 1. Master Frontend & Portal Layout Enhancement (Preserves Native Website Header & Footer) -->
     <template id="portal_frontend_layout_inherit_al2c" inherit_id="portal.frontend_layout">
         <xpath expr="//header" position="before">
-            <div class="al2c_portal_horizon_stripe" data-innoria-brand="/insilos_website/static/src/img/innoria/logo_innoria_header.svg" style="height: 3px; background: #0f62fe; width: 100%; position: relative; z-index: 1050;"/>
+            <div class="al2c_portal_horizon_stripe" data-innoria-brand="/insilos_website/static/src/img/innoria/logo_innoria_header.svg" style="height: 3px; background: linear-gradient(90deg, #0ABBDB 0%, #005F73 65%, #FF8000 100%); width: 100%; position: relative; z-index: 1050;"/>
         </xpath>
 
         <xpath expr="//div[@name='footer_copyright_col']" position="replace">
@@ -49,10 +49,10 @@
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <a href="/my/software-portal" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important; font-size: 12px;">
+                        <a href="/my/software-portal" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #005F73; border-color: #005F73; border-radius: 0px !important; box-shadow: none !important; font-size: 12px;">
                             Mở Trung Tâm Dự Án &amp; Nghiệm Thu →
                         </a>
-                        <span class="badge bg-light border" style="color: #161616; border-radius: 4px !important; box-shadow: none !important; font-size: 10px;">SOFTWARE DELIVERY COCKPIT</span>
+                        <span class="badge bg-light border" style="color: #003333; border-radius: 4px !important; box-shadow: none !important; font-size: 10px;">SOFTWARE DELIVERY COCKPIT</span>
                     </div>
                 </div>
 
@@ -60,9 +60,9 @@
                 <div class="row g-3 row-cols-1 row-cols-md-2 row-cols-xl-5">
                     <!-- Card 1: Software Delivery Hub -->
                     <div class="col">
-                        <a href="/my/software-portal" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0;">
+                        <a href="/my/software-portal" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0; border-top: 3px solid #0ABBDB !important;">
                             <div class="d-flex align-items-center justify-content-between mb-2">
-                                <span class="badge text-white" style="background: #0f62fe; border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">SOFTWARE DELIVERY HUB</span>
+                                <span class="badge text-white" style="background: #005F73; border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">SOFTWARE DELIVERY HUB</span>
                                 <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
                             </div>
                             <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Trung tâm Dự án Phần mềm &amp; Nghiệm thu</h6>
@@ -814,90 +814,154 @@
          ========================================================================= -->
     <template id="portal_software_company_workspace" name="Innoria Software Engineering &amp; Product Customer Portal">
         <t t-call="portal.portal_layout">
-            <div class="container py-4" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+            <style>
+                #wrapwrap .al2c-brand-workspace {
+                    --cds-interactive: #005F73 !important;
+                    --cds-button-primary: #005F73 !important;
+                    --cds-button-primary-hover: #003333 !important;
+                    --cds-button-primary-active: #002626 !important;
+                    --cds-focus: #0ABBDB !important;
+                    --cds-link-primary: #005F73 !important;
+                }
+                #wrapwrap .al2c-brand-workspace .btn-primary {
+                    background: #005F73 !important;
+                    background-color: #005F73 !important;
+                    border-color: #005F73 !important;
+                    color: #ffffff !important;
+                }
+                #wrapwrap .al2c-brand-workspace .btn-primary:hover {
+                    background: #003333 !important;
+                    background-color: #003333 !important;
+                    border-color: #003333 !important;
+                    color: #ffffff !important;
+                }
+                #wrapwrap .al2c-brand-workspace .al2c-pill-teal-dark {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    background: linear-gradient(90deg, #005F73 0%, #003333 100%) !important;
+                    background-color: #005F73 !important;
+                    color: #ffffff !important;
+                    border: 1px solid #003333 !important;
+                    border-radius: 2px !important;
+                    font-size: 9.5px !important;
+                    font-weight: 700 !important;
+                    padding: 3px 8px !important;
+                    letter-spacing: 0.04em !important;
+                    line-height: 1.2 !important;
+                }
+                #wrapwrap .al2c-brand-workspace .al2c-pill-cyan-soft {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    background: #E6F8FB !important;
+                    background-color: #E6F8FB !important;
+                    color: #004D5A !important;
+                    border: 1px solid #8CE0F0 !important;
+                    border-radius: 2px !important;
+                    font-size: 9.5px !important;
+                    font-weight: 700 !important;
+                    padding: 3px 8px !important;
+                    letter-spacing: 0.03em !important;
+                    line-height: 1.2 !important;
+                }
+                #wrapwrap .al2c-brand-workspace .al2c-pill-orange-soft {
+                    display: inline-flex !important;
+                    align-items: center !important;
+                    background: #FFF4E5 !important;
+                    background-color: #FFF4E5 !important;
+                    color: #B45309 !important;
+                    border: 1px solid #FF8000 !important;
+                    border-radius: 2px !important;
+                    font-size: 9.5px !important;
+                    font-weight: 700 !important;
+                    padding: 3px 8px !important;
+                    letter-spacing: 0.03em !important;
+                    line-height: 1.2 !important;
+                }
+            </style>
+            <div class="container py-4 al2c-brand-workspace" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
                 <!-- Top Brand Header & Navigation Strip -->
-                <div class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-top: 4px solid #0f62fe !important; border-color: #e0e0e0;">
+                <div class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-top: 4px solid #005F73 !important; border-color: #e0e0e0;">
                     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
                         <div class="d-flex align-items-center gap-3">
                             <img src="/insilos_website/static/src/img/innoria/logo_innoria_header.svg" style="max-height: 32px; width: auto;" alt="INNORIA"/>
                             <div>
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="badge text-white" style="background: #0f62fe; border-radius: 4px !important; font-size: 10px;">INNORIA SOFTWARE DELIVERY HUB</span>
-                                    <span class="badge bg-light text-dark border" style="border-radius: 4px !important; font-size: 10px;">SOP-DGM-08 · NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
+                                    <span class="al2c-pill-teal-dark">INNORIA SOFTWARE DELIVERY HUB</span>
+                                    <span class="al2c-pill-cyan-soft">SOP-DGM-08 · NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
                                 </div>
-                                <h4 class="fw-bold mb-0 mt-1" style="color: #161616; letter-spacing: -0.02em;">
+                                <h4 class="fw-bold mb-0 mt-1" style="color: #003333; letter-spacing: -0.02em;">
                                     Trung Tâm Dự Án Phần Mềm, Nghiệm Thu Timesheet &amp; Đối Soát Hóa Đơn 1C26TAA
                                 </h4>
                                 <div class="text-muted small mt-1" style="color: #525252;">
-                                    Đối tác / Khách hàng: <strong style="color: #161616;" t-out="partner.name if partner else 'Quý Khách hàng Doanh nghiệp'"/>
-                                    <t t-if="partner and partner.vat"> · MST: <code t-out="partner.vat"/></t>
-                                    · Pháp nhân xuất hóa đơn: <strong t-out="issuer_legal_name"/>
+                                    Đối tác / Khách hàng: <strong style="color: #003333;" t-out="partner.name if partner else 'Quý Khách hàng Doanh nghiệp'"/>
+                                    <t t-if="partner and partner.vat"> · MST: <code style="color: #005F73;" t-out="partner.vat"/></t>
+                                    · Pháp nhân xuất hóa đơn: <strong style="color: #003333;" t-out="issuer_legal_name"/>
                                 </div>
                             </div>
                         </div>
                         <div class="d-flex flex-wrap gap-2">
-                            <a href="#quotations-section" class="btn btn-outline-dark btn-sm px-3 py-2" style="border-radius: 0px !important; box-shadow: none !important;">1. Báo giá &amp; SOW</a>
-                            <a href="#timesheets-section" class="btn btn-outline-primary btn-sm px-3 py-2" style="border-radius: 0px !important; box-shadow: none !important;">2. Chấm công Kỹ sư</a>
-                            <a href="#invoices-section" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">3. Hóa đơn Nháp &amp; 1C26TAA</a>
-                            <a href="#customer-care-section" class="btn btn-outline-danger btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">4. Trợ lý AI &amp; Customer Care SLA</a>
+                            <a href="#quotations-section" class="btn btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #003333 !important; color: #003333 !important; background: #ffffff !important;">1. Báo giá &amp; SOW</a>
+                            <a href="#timesheets-section" class="btn btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #0ABBDB !important; color: #005F73 !important; background: #E6F8FB !important;">2. Chấm công Kỹ sư</a>
+                            <a href="#invoices-section" class="btn btn-primary btn-sm px-3 py-2 fw-bold" style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important;">3. Hóa đơn Nháp &amp; 1C26TAA</a>
+                            <a href="#customer-care-section" class="btn btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important; background: #FFF4E5 !important; border: 1px solid #FF8000 !important; color: #B45309 !important;">4. Trợ lý AI &amp; Customer Care SLA</a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Interactive Action Feedback Banners -->
-                <div t-if="request.params.get('care_ticket_submitted')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
+                <div t-if="request.params.get('care_ticket_submitted')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #005F73 !important;" role="alert">
                     <strong>✓ Đã khởi tạo Phiếu Hỗ trợ Customer Care &amp; Kích hoạt Cam kết SLA thành công!</strong>
                     <t t-if="request.params.get('ticket_code')"> Mã hồ sơ: <code class="fw-bold" t-out="request.params.get('ticket_code')"/>.</t>
                     <t t-if="request.params.get('dispute_code')"> Hồ sơ đối soát <code class="fw-bold" t-out="request.params.get('dispute_code')"/> đã được mở và tiến trình nhắc nợ tự động (Dunning) đã được <strong>ĐÓNG BĂNG (AL2C-INV-103)</strong>.</t>
                 </div>
-                <div t-if="request.params.get('quotation_approved')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
+                <div t-if="request.params.get('quotation_approved')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #005F73 !important;" role="alert">
                     <strong>✓ Phê duyệt Báo giá &amp; Scope Fit-to-Standard thành công!</strong> Hợp đồng SOW đã được kích hoạt để triển khai theo lộ trình 5-Gate Delivery.
                 </div>
-                <div t-if="request.params.get('scope_revision_requested')" class="alert alert-warning p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
+                <div t-if="request.params.get('scope_revision_requested')" class="alert alert-warning p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #FF8000 !important;" role="alert">
                     <strong>✎ Đã gửi yêu cầu điều chỉnh Scope / Man-Hour:</strong> Kiến trúc sư Giải pháp sẽ cập nhật lại báo giá và thông báo qua Cổng Khách hàng.
                 </div>
-                <div t-if="request.params.get('timesheet_approved')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
+                <div t-if="request.params.get('timesheet_approved')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #005F73 !important;" role="alert">
                     <strong>✓ Đã ký nghiệm thu Bảng chấm công Kỹ sư (SHA-256) &amp; Khởi tạo Hóa đơn Nháp Đối soát thành công!</strong> Quý Khách hàng có thể kiểm tra và xác nhận Hóa đơn Nháp ngay tại mục số 3 bên dưới.
                 </div>
-                <div t-if="request.params.get('timesheet_revision_requested')" class="alert alert-warning p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
+                <div t-if="request.params.get('timesheet_revision_requested')" class="alert alert-warning p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #FF8000 !important;" role="alert">
                     <strong>⚠️ Đã ghi nhận yêu cầu điều chỉnh số liệu Bảng chấm công:</strong> Quản lý Dự án (PM) sẽ rà soát lại log công việc của kỹ sư.
                 </div>
-                <div t-if="request.params.get('draft_invoice_confirmed')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
+                <div t-if="request.params.get('draft_invoice_confirmed')" class="alert alert-success p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #005F73 !important;" role="alert">
                     <strong>🧾 Đã xác nhận Hóa đơn Nháp &amp; Phát hành Hóa đơn GTGT Điện tử Chính thức (1C26TAA) thành công!</strong> File XML chuẩn CQT và bản thể hiện HTML đã sẵn sàng tải xuống.
                 </div>
-                <div t-if="request.params.get('draft_adjustment_requested')" class="alert alert-warning p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
+                <div t-if="request.params.get('draft_adjustment_requested')" class="alert alert-warning p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #FF8000 !important;" role="alert">
                     <strong>✎ Đã ghi nhận yêu cầu điều chỉnh thông tin Hóa đơn Nháp:</strong> Bộ phận Kế toán Thuế sẽ cập nhật lại dự thảo trước khi ký số CQT.
                 </div>
 
                 <!-- Live KPI Strip -->
                 <div class="row g-3 mb-4">
                     <div class="col-6 col-lg-3">
-                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0; border-top: 3px solid #003333 !important;">
                             <div class="text-muted small" style="font-size: 11px;">BÁO GIÁ &amp; HỢP ĐỒNG SOW</div>
-                            <div class="fw-bold mt-1" style="font-size: 22px; color: #161616;" t-out="len(quotations)"/>
+                            <div class="fw-bold mt-1" style="font-size: 22px; color: #003333;" t-out="len(quotations)"/>
                             <div class="small text-muted" style="font-size: 11px;">Hồ sơ Fit-to-Standard &amp; Value Case</div>
                         </div>
                     </div>
                     <div class="col-6 col-lg-3">
-                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0; border-top: 3px solid #0ABBDB !important;">
                             <div class="text-muted small" style="font-size: 11px;">CHẤM CÔNG &amp; NGHIỆM THU SPRINT</div>
-                            <div class="fw-bold mt-1" style="font-size: 22px; color: #0f62fe;">
+                            <div class="fw-bold mt-1" style="font-size: 22px; color: #005F73;">
                                 <t t-out="'{:,.1f}'.format(total_billable_days or 0.0)"/> <span style="font-size: 13px;">ngày công</span>
                             </div>
                             <div class="small text-muted" style="font-size: 11px;"><t t-out="len(timesheet_sheets)"/> kỳ đối soát (<t t-out="'{:,.1f}'.format(total_logged_hours or 0.0)"/> giờ kỹ sư)</div>
                         </div>
                     </div>
                     <div class="col-6 col-lg-3">
-                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0; border-top: 3px solid #FF8000 !important;">
                             <div class="text-muted small" style="font-size: 11px;">HÓA ĐƠN NHÁP CHỜ ĐỐI SOÁT</div>
-                            <div class="fw-bold mt-1" style="font-size: 22px; color: #b28600;" t-out="len(draft_invoices)"/>
+                            <div class="fw-bold mt-1" style="font-size: 22px; color: #D97706;" t-out="len(draft_invoices)"/>
                             <div class="small text-muted" style="font-size: 11px;">Kiểm tra MST &amp; nội dung trước khi ký CQT</div>
                         </div>
                     </div>
                     <div class="col-6 col-lg-3">
-                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0;">
+                        <div class="border bg-white p-3 h-100" style="border-radius: 2px !important; border-color: #e0e0e0; border-top: 3px solid #005F73 !important;">
                             <div class="text-muted small" style="font-size: 11px;">HÓA ĐƠN GTGT CHÍNH THỨC (1C26TAA)</div>
-                            <div class="fw-bold mt-1 text-success" style="font-size: 22px;" t-out="len(official_invoices)"/>
+                            <div class="fw-bold mt-1" style="font-size: 22px; color: #005F73;" t-out="len(official_invoices)"/>
                             <div class="small text-muted" style="font-size: 11px;">Đã cấp mã CQT · Tải XML &amp; HTML</div>
                         </div>
                     </div>
@@ -909,8 +973,8 @@
                 <div id="quotations-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #e0e0e0;">
                     <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
                         <div>
-                            <span class="badge bg-dark text-white mb-1" style="border-radius: 4px !important; font-size: 10px;">BƯỚC 1 · QUOTATIONS, FIT-TO-STANDARD SCOPE &amp; ROI</span>
-                            <h5 class="fw-bold mb-0" style="color: #161616;">1. Duyệt Báo Giá, Phạm Vi Kỹ Thuật (Fit-to-Standard) &amp; Ký Xác Nhận SOW</h5>
+                            <span class="al2c-pill-teal-dark mb-1">BƯỚC 1 · QUOTATIONS, FIT-TO-STANDARD SCOPE &amp; ROI</span>
+                            <h5 class="fw-bold mb-0 mt-1" style="color: #003333;">1. Duyệt Báo Giá, Phạm Vi Kỹ Thuật (Fit-to-Standard) &amp; Ký Xác Nhận SOW</h5>
                         </div>
                         <a href="/my/quotes" class="btn btn-outline-dark btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">Xem Tất Cả Báo Giá (/my/quotes)</a>
                     </div>
@@ -921,26 +985,26 @@
                         </div>
                     </t>
                     <t t-foreach="quotations" t-as="so">
-                        <div class="border p-3 mb-3 bg-light" style="border-radius: 2px !important; border-left: 4px solid #0f62fe !important;">
+                        <div class="border p-3 mb-3 bg-light" style="border-radius: 2px !important; border-left: 4px solid #005F73 !important;">
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                                 <div>
-                                    <a t-att-href="so.get_portal_url()" class="fw-bold text-decoration-none" style="font-size: 15px; color: #0f62fe;" t-out="so.name"/>
+                                    <a t-att-href="so.get_portal_url()" class="fw-bold text-decoration-none" style="font-size: 15px; color: #005F73;" t-out="so.name"/>
                                     <span class="text-muted small ms-2">Khách hàng: <strong t-out="so.partner_id.name"/></span>
                                     <span class="text-muted small ms-2">· Tổng giá trị: <strong class="text-dark" t-out="so.amount_total" t-options="{'widget': 'monetary', 'display_currency': so.currency_id}"/></span>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
-                                    <span t-if="so.state == 'sale'" class="badge bg-success text-white" style="border-radius: 4px !important; font-size: 10px;">✓ ĐÃ DUYỆT SOW (SALE ORDER)</span>
-                                    <span t-else="" class="badge bg-warning text-dark" style="border-radius: 4px !important; font-size: 10px;">CHỜ PHÊ DUYỆT BÁO GIÁ</span>
-                                    <a t-att-href="so.get_portal_url()" class="btn btn-outline-primary btn-sm" style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px;">Chi tiết SOW</a>
+                                    <span t-if="so.state == 'sale'" class="al2c-pill-teal-dark">✓ ĐÃ DUYỆT SOW (SALE ORDER)</span>
+                                    <span t-else="" class="al2c-pill-orange-soft">CHỜ PHÊ DUYỆT BÁO GIÁ</span>
+                                    <a t-att-href="so.get_portal_url()" class="btn btn-sm" style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px; border: 1px solid #005F73 !important; color: #005F73 !important; background: #ffffff !important;">Chi tiết SOW</a>
                                 </div>
                             </div>
 
                             <!-- Value Case ROI pill if linked -->
                             <div t-if="so.value_case_id" class="d-flex flex-wrap gap-2 mb-2">
-                                <span class="badge bg-white text-dark border" style="border-radius: 4px !important; font-size: 11px;">
-                                    📈 Value Case: <strong t-out="so.value_case_id.name"/>
+                                <span class="al2c-pill-cyan-soft" style="background: #ffffff !important; color: #003333 !important; border-color: #cbd5e1 !important;">
+                                    📈 Value Case: <strong class="ms-1" t-out="so.value_case_id.name"/>
                                 </span>
-                                <span class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 11px;">
+                                <span class="al2c-pill-cyan-soft">
                                     3Y ROI: <t t-out="'{:,.1f}%'.format(so.value_case_id.roi_percentage or 0.0)"/> · Hoàn vốn: <t t-out="'{:,.1f}'.format(so.value_case_id.payback_months or 0.0)"/> tháng
                                 </span>
                             </div>
@@ -961,7 +1025,7 @@
                                             <tr>
                                                 <td class="fw-bold" t-out="fts.module or 'Core'"/>
                                                 <td t-out="fts.name"/>
-                                                <td><code t-out="fts.clean_core_class"/></td>
+                                                <td><code style="color: #005F73;" t-out="fts.clean_core_class"/></td>
                                                 <td class="text-muted" t-out="fts.description or fts.justification or 'Standard Clean Core'"/>
                                             </tr>
                                         </t>
@@ -977,7 +1041,7 @@
                                         <input type="hidden" name="redirect_portal" value="1"/>
                                         <input type="text" name="approver_name" class="form-control form-control-sm" style="max-width: 190px; border-radius: 0px !important;" t-att-value="so.partner_id.name" placeholder="Người phê duyệt" required="required"/>
                                         <input type="text" name="note" class="form-control form-control-sm flex-grow-1" style="min-width: 180px; border-radius: 0px !important;" value="Đồng ý phê duyệt Báo giá &amp; Scope Fit-to-Standard SOW."/>
-                                        <button type="submit" class="btn btn-primary btn-sm fw-bold px-3" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
+                                        <button type="submit" class="btn btn-primary btn-sm fw-bold px-3" style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important;">
                                             ✅ Phê duyệt Báo giá &amp; Ký SOW
                                         </button>
                                     </form>
@@ -987,7 +1051,7 @@
                                         <input type="hidden" name="action" value="request_scope_revision"/>
                                         <input type="hidden" name="redirect_portal" value="1"/>
                                         <input type="text" name="note" class="form-control form-control-sm flex-grow-1" style="border-radius: 0px !important;" placeholder="Nhập nội dung cần điều chỉnh Scope / Man-Hour..." required="required"/>
-                                        <button type="submit" class="btn btn-outline-dark btn-sm fw-bold px-3" style="border-radius: 0px !important; box-shadow: none !important;">
+                                        <button type="submit" class="btn btn-sm fw-bold px-3" style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #FF8000 !important; color: #B45309 !important; background: #FFF4E5 !important;">
                                             ✏️ Yêu cầu Điều chỉnh
                                         </button>
                                     </form>
@@ -1003,10 +1067,10 @@
                 <div id="timesheets-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #e0e0e0;">
                     <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
                         <div>
-                            <span class="badge bg-info text-dark mb-1" style="border-radius: 4px !important; font-size: 10px;">BƯỚC 2 · ENGINEER TIMESHEETS &amp; SPRINT MAN-HOUR ACCEPTANCE</span>
-                            <h5 class="fw-bold mb-0" style="color: #161616;">2. Phê Duyệt Bảng Chấm Công Kỹ Sư &amp; Nghiệm Thu Khối Lượng Sprint (SOP-DGM-08)</h5>
+                            <span class="al2c-pill-cyan-soft mb-1">BƯỚC 2 · ENGINEER TIMESHEETS &amp; SPRINT MAN-HOUR ACCEPTANCE</span>
+                            <h5 class="fw-bold mb-0 mt-1" style="color: #003333;">2. Phê Duyệt Bảng Chấm Công Kỹ Sư &amp; Nghiệm Thu Khối Lượng Sprint (SOP-DGM-08)</h5>
                         </div>
-                        <span class="badge bg-light text-dark border" style="border-radius: 4px !important; font-size: 10px;">HMAC-SHA256 CRYPTOGRAPHIC SEAL</span>
+                        <span class="al2c-pill-cyan-soft">HMAC-SHA256 CRYPTOGRAPHIC SEAL</span>
                     </div>
 
                     <t t-if="not timesheet_sheets">
@@ -1015,19 +1079,19 @@
                         </div>
                     </t>
                     <t t-foreach="timesheet_sheets" t-as="sheet">
-                        <div class="border p-3 mb-4 bg-light" style="border-radius: 2px !important; border-left: 4px solid #0f62fe !important;">
+                        <div class="border p-3 mb-4 bg-light" style="border-radius: 2px !important; border-left: 4px solid #0ABBDB !important;">
                             <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
                                 <div>
-                                    <span class="fw-bold" style="font-size: 15px; color: #161616;" t-out="sheet.name"/>
-                                    <span class="badge bg-white text-dark border ms-2" style="border-radius: 4px !important; font-size: 11px;">Kỳ: <t t-out="sheet.billing_period"/></span>
+                                    <span class="fw-bold" style="font-size: 15px; color: #003333;" t-out="sheet.name"/>
+                                    <span class="al2c-pill-cyan-soft ms-2">Kỳ: <t t-out="sheet.billing_period"/></span>
                                     <span class="text-muted small ms-2">Dự án: <strong t-out="sheet.project_id.name"/></span>
                                     <t t-if="sheet.sale_order_id">
                                         <span class="text-muted small ms-2">· Hợp đồng: <strong t-out="sheet.sale_order_id.name"/></span>
                                     </t>
                                 </div>
                                 <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-primary text-white" style="background: #0f62fe; border-radius: 4px !important; font-size: 10px;" t-out="sheet.state"/>
-                                    <span t-if="sheet.customer_signature_hash" class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">
+                                    <span class="al2c-pill-teal-dark" t-out="sheet.state"/>
+                                    <span t-if="sheet.customer_signature_hash" class="al2c-pill-cyan-soft">
                                         🔒 SHA-256: <t t-out="sheet.customer_signature_hash[:16]"/>...
                                     </span>
                                 </div>
@@ -1079,9 +1143,9 @@
                                             <td colspan="8" class="text-end fw-bold">Thuế GTGT (<t t-out="sheet.vat_rate or '8'"/>%):</td>
                                             <td class="text-end fw-bold" t-out="'{:,.0f}'.format(sheet.amount_tax_vnd or 0.0)"/>
                                         </tr>
-                                        <tr style="background: #e8f1ff;">
-                                            <td colspan="8" class="text-end fw-bold" style="color: #0f62fe;">TỔNG CỘNG NGHIỆM THU THANH TOÁN (VNĐ):</td>
-                                            <td class="text-end fw-bold" style="color: #0f62fe; font-size: 13px;" t-out="'{:,.0f}'.format(sheet.amount_total_vnd or 0.0)"/>
+                                        <tr style="background: #E6F8FB;">
+                                            <td colspan="8" class="text-end fw-bold" style="color: #005F73;">TỔNG CỘNG NGHIỆM THU THANH TOÁN (VNĐ):</td>
+                                            <td class="text-end fw-bold" style="color: #005F73; font-size: 13px;" t-out="'{:,.0f}'.format(sheet.amount_total_vnd or 0.0)"/>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -1096,7 +1160,7 @@
                                         <input type="text" name="approver_name" class="form-control form-control-sm" style="max-width: 180px; border-radius: 0px !important;" t-att-value="sheet.customer_approver_name or sheet.partner_id.name" placeholder="Người duyệt" required="required"/>
                                         <input type="email" name="approver_email" class="form-control form-control-sm" style="max-width: 190px; border-radius: 0px !important;" t-att-value="sheet.customer_approver_email or sheet.partner_id.email" placeholder="Email"/>
                                         <input type="text" name="note" class="form-control form-control-sm flex-grow-1" style="min-width: 180px; border-radius: 0px !important;" value="Đồng ý nghiệm thu 100% khối lượng bảng chấm công kỹ sư."/>
-                                        <button type="submit" class="btn btn-success btn-sm fw-bold px-3" style="border-radius: 0px !important; box-shadow: none !important;">
+                                        <button type="submit" class="btn btn-primary btn-sm fw-bold px-3" style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important;">
                                             ✅ Phê duyệt Timesheet &amp; Khởi tạo Hóa đơn Nháp
                                         </button>
                                     </form>
@@ -1106,7 +1170,7 @@
                                         <input type="hidden" name="action" value="request_revision"/>
                                         <input type="hidden" name="token" t-att-value="sheet.approval_token"/>
                                         <input type="text" name="reason" class="form-control form-control-sm flex-grow-1" style="border-radius: 0px !important;" placeholder="Lý do yêu cầu điều chỉnh giờ công / OT..." required="required"/>
-                                        <button type="submit" class="btn btn-outline-danger btn-sm fw-bold px-3" style="border-radius: 0px !important; box-shadow: none !important;">
+                                        <button type="submit" class="btn btn-sm fw-bold px-3" style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #FF8000 !important; color: #B45309 !important; background: #FFF4E5 !important;">
                                             ⚠️ Yêu cầu Điều chỉnh
                                         </button>
                                     </form>
@@ -1122,8 +1186,8 @@
                 <div id="invoices-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #e0e0e0;">
                     <div class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
                         <div>
-                            <span class="badge bg-success text-white mb-1" style="border-radius: 4px !important; font-size: 10px;">BƯỚC 3 · DRAFT INVOICE RECONCILIATION &amp; OFFICIAL 1C26TAA E-INVOICE</span>
-                            <h5 class="fw-bold mb-0" style="color: #161616;">3. Đối Soát Hóa Đơn Nháp &amp; Tra Cứu Hóa Đơn GTGT Điện Tử Chính Thức (1C26TAA)</h5>
+                            <span class="al2c-pill-teal-dark mb-1">BƯỚC 3 · DRAFT INVOICE RECONCILIATION &amp; OFFICIAL 1C26TAA E-INVOICE</span>
+                            <h5 class="fw-bold mb-0 mt-1" style="color: #003333;">3. Đối Soát Hóa Đơn Nháp &amp; Tra Cứu Hóa Đơn GTGT Điện Tử Chính Thức (1C26TAA)</h5>
                         </div>
                         <a href="/my/invoices" class="btn btn-outline-dark btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">Danh Sách Hóa Đơn (/my/invoices)</a>
                     </div>
@@ -1131,10 +1195,10 @@
                     <div class="row g-3">
                         <!-- Column A: Draft Invoices Pending Customer Reconciliation -->
                         <div class="col-12 col-lg-6">
-                            <div class="p-3 border bg-light h-100" style="border-radius: 2px !important; border-top: 3px solid #f1c21b !important;">
+                            <div class="p-3 border bg-light h-100" style="border-radius: 2px !important; border-top: 3px solid #FF8000 !important;">
                                 <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <h6 class="fw-bold mb-0" style="color: #161616;">A. Hóa Đơn Nháp Chờ Khách Hàng Đối Soát (<t t-out="len(draft_invoices)"/>)</h6>
-                                    <span class="badge bg-warning text-dark" style="border-radius: 4px !important; font-size: 10px;">CHƯA CẤP MÃ CQT</span>
+                                    <h6 class="fw-bold mb-0" style="color: #003333;">A. Hóa Đơn Nháp Chờ Khách Hàng Đối Soát (<t t-out="len(draft_invoices)"/>)</h6>
+                                    <span class="al2c-pill-orange-soft">CHƯA CẤP MÃ CQT</span>
                                 </div>
 
                                 <t t-if="not draft_invoices">
@@ -1146,14 +1210,14 @@
                                     <div class="p-3 bg-white border mb-3" style="border-radius: 2px !important;">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
                                             <div>
-                                                <a t-att-href="dinv.get_portal_url()" class="fw-bold text-decoration-none" style="color: #0f62fe;" t-out="dinv.ref or dinv.name or 'DRAFT-INVOICE'"/>
+                                                <a t-att-href="dinv.get_portal_url()" class="fw-bold text-decoration-none" style="color: #005F73;" t-out="dinv.ref or dinv.name or 'DRAFT-INVOICE'"/>
                                                 <div class="text-muted small" style="font-size: 11px;">
-                                                    Bên mua: <strong t-out="dinv.partner_id.name"/> · MST: <code t-out="dinv.partner_id.vat or 'Chưa cập nhật'"/>
+                                                    Bên mua: <strong t-out="dinv.partner_id.name"/> · MST: <code style="color: #005F73;" t-out="dinv.partner_id.vat or 'Chưa cập nhật'"/>
                                                 </div>
                                             </div>
                                             <div class="text-end">
                                                 <div class="fw-bold text-dark" t-out="dinv.amount_total" t-options="{'widget': 'monetary', 'display_currency': dinv.currency_id}"/>
-                                                <span class="badge bg-warning-subtle text-dark border" style="border-radius: 4px !important; font-size: 10px;" t-out="dinv.dgm_invoice_stage or 'draft_reconciliation'"/>
+                                                <span class="al2c-pill-orange-soft" t-out="dinv.dgm_invoice_stage or 'draft_reconciliation'"/>
                                             </div>
                                         </div>
 
@@ -1169,13 +1233,13 @@
                                                 </div>
                                             </div>
                                             <div class="d-flex flex-wrap gap-2">
-                                                <button type="submit" class="btn btn-success btn-sm fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
+                                                <button type="submit" class="btn btn-primary btn-sm fw-bold" style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important;">
                                                     🧾 Xác nhận Hóa đơn Nháp -&gt; Xuất HĐĐT Chính thức 1C26TAA
                                                 </button>
                                                 <a t-attf-href="/my/invoices/#{dinv.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
                                                     📄 Xem Bản Nháp
                                                 </a>
-                                                <a t-att-href="dinv.get_portal_url()" class="btn btn-outline-primary btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
+                                                <a t-att-href="dinv.get_portal_url()" class="btn btn-sm" style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #005F73 !important; color: #005F73 !important;">
                                                     Chi tiết / Điều chỉnh
                                                 </a>
                                             </div>
@@ -1187,10 +1251,10 @@
 
                         <!-- Column B: Official 1C26TAA VAT E-Invoices Issued -->
                         <div class="col-12 col-lg-6">
-                            <div class="p-3 border bg-light h-100" style="border-radius: 2px !important; border-top: 3px solid #198038 !important;">
+                            <div class="p-3 border bg-light h-100" style="border-radius: 2px !important; border-top: 3px solid #005F73 !important;">
                                 <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <h6 class="fw-bold mb-0" style="color: #161616;">B. Hóa Đơn GTGT Điện Tử Chính Thức 1C26TAA (<t t-out="len(official_invoices)"/>)</h6>
-                                    <span class="badge bg-success text-white" style="border-radius: 4px !important; font-size: 10px;">ĐÃ CẤP MÃ CQT</span>
+                                    <h6 class="fw-bold mb-0" style="color: #003333;">B. Hóa Đơn GTGT Điện Tử Chính Thức 1C26TAA (<t t-out="len(official_invoices)"/>)</h6>
+                                    <span class="al2c-pill-teal-dark">ĐÃ CẤP MÃ CQT</span>
                                 </div>
 
                                 <t t-if="not official_invoices">
@@ -1202,30 +1266,30 @@
                                     <div class="p-3 bg-white border mb-3" style="border-radius: 2px !important;">
                                         <div class="d-flex align-items-center justify-content-between mb-2">
                                             <div>
-                                                <a t-att-href="oinv.get_portal_url()" class="fw-bold text-decoration-none" style="color: #0f62fe;">
+                                                <a t-att-href="oinv.get_portal_url()" class="fw-bold text-decoration-none" style="color: #005F73;">
                                                     <t t-out="oinv.dgm_einvoice_symbol or '1C26TAA'"/> - <t t-out="oinv.dgm_einvoice_number or oinv.name"/>
                                                 </a>
                                                 <div class="text-muted small" style="font-size: 11px;">
                                                     Bên mua: <strong t-out="oinv.partner_id.name"/>
                                                     <t t-if="oinv.dgm_einvoice_lookup_code or oinv.al2c_einvoice_lookup_code">
-                                                        · Mã CQT: <code t-out="oinv.dgm_einvoice_lookup_code or oinv.al2c_einvoice_lookup_code"/>
+                                                        · Mã CQT: <code style="color: #005F73;" t-out="oinv.dgm_einvoice_lookup_code or oinv.al2c_einvoice_lookup_code"/>
                                                     </t>
                                                 </div>
                                             </div>
                                             <div class="text-end">
-                                                <div class="fw-bold text-success" t-out="oinv.amount_total" t-options="{'widget': 'monetary', 'display_currency': oinv.currency_id}"/>
-                                                <span class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">✓ Ký số CQT hợp lệ</span>
+                                                <div class="fw-bold" style="color: #005F73;" t-out="oinv.amount_total" t-options="{'widget': 'monetary', 'display_currency': oinv.currency_id}"/>
+                                                <span class="al2c-pill-cyan-soft">✓ Ký số CQT hợp lệ</span>
                                             </div>
                                         </div>
 
                                         <div class="d-flex flex-wrap gap-2 mt-2 pt-2 border-top">
-                                            <a t-attf-href="/my/invoices/#{oinv.id}/download_einvoice_xml" class="btn btn-primary btn-sm fw-bold" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
+                                            <a t-attf-href="/my/invoices/#{oinv.id}/download_einvoice_xml" class="btn btn-primary btn-sm fw-bold" style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important;">
                                                 ⬇️ Tải XML 1C26TAA
                                             </a>
                                             <a t-attf-href="/my/invoices/#{oinv.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
                                                 📄 Xem Bản Thể Hiện HĐĐT
                                             </a>
-                                            <a t-att-href="oinv.get_portal_url()" class="btn btn-outline-danger btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
+                                            <a t-att-href="oinv.get_portal_url()" class="btn btn-sm fw-bold" style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #FF8000 !important; color: #B45309 !important; background: #FFF4E5 !important;">
                                                 Khiếu nại AL2C-INV-103
                                             </a>
                                         </div>
@@ -1238,6 +1302,7 @@
 
                 <!-- =====================================================================
                      SECTION 4: TRỢ LÝ AI CHĂM SÓC KHÁCH HÀNG ĐA TÁC VỤ & TRUNG TÂM SLA / AL2C-INV-103
+                     Unified Brand Palette: Innoria Teal-Cyan (#0ABBDB -> #005F73 -> #003333) + Solar Orange (#FF8000)
                      ===================================================================== -->
                 <style>
                     #innoria_ai_concierge_root,
@@ -1245,24 +1310,24 @@
                         display: none !important;
                     }
                     .ws-ai-topic-chip:hover {
-                        background: #edf5ff !important;
-                        border-color: #0f62fe !important;
+                        background: #E6F8FB !important;
+                        border-color: #005F73 !important;
                     }
                 </style>
-                <div id="customer-care-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #d0d7de !important;">
+                <div id="customer-care-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #d0d7de !important; border-top: 3px solid #005F73 !important;">
                     <div id="disputes" class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-3 mb-3 gap-2" style="border-color: #e0e0e0 !important;">
                         <div>
                             <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                <span class="badge text-white fw-bold" style="background: #0f62fe; border-radius: 2px !important; font-size: 10px; letter-spacing: 0.04em; padding: 4px 8px;">STEP 04 · AI COPILOT &amp; SLA DESK</span>
-                                <span class="badge fw-bold" style="background: #defbe6; color: #0e6027; border: 1px solid #a7f0ba; border-radius: 2px !important; font-size: 10px; padding: 3px 8px;">GROUNDED KMS · ISO/IEC 27701</span>
+                                <span class="al2c-pill-teal-dark">STEP 04 · AI COPILOT &amp; SLA DESK</span>
+                                <span class="al2c-pill-cyan-soft">GROUNDED KMS · ISO/IEC 27701</span>
                             </div>
-                            <h5 class="fw-bold mb-0" style="color: #161616; font-size: 17px; letter-spacing: -0.01em;">
+                            <h5 class="fw-bold mb-0 mt-1" style="color: #003333; font-size: 17px; letter-spacing: -0.01em;">
                                 4. Trợ Lý AI Chăm Sóc Khách Hàng Đa Tác Vụ &amp; Trung Tâm Hỗ Trợ SLA / Đối Soát AL2C-INV-103
                             </h5>
                         </div>
                         <div class="d-flex flex-wrap align-items-center gap-2">
-                            <span id="wsAiEntailmentBadge" class="badge fw-bold" style="background: #f4f4f4; color: #161616; border: 1px solid #c6c6c6; border-radius: 2px !important; font-size: 10px; padding: 4px 8px;">ENTAILMENT GATE &gt;= 85%</span>
-                            <span class="badge fw-bold" style="background: #edf5ff; color: #0043ce; border: 1px solid #a6c8ff; border-radius: 2px !important; font-size: 10px; padding: 4px 8px;">AL2C-INV-103 DUNNING GUARD</span>
+                            <span id="wsAiEntailmentBadge" class="al2c-pill-cyan-soft">ENTAILMENT GATE &gt;= 85%</span>
+                            <span class="al2c-pill-orange-soft">AL2C-INV-103 DUNNING GUARD</span>
                         </div>
                     </div>
 
@@ -1273,81 +1338,81 @@
                     <div class="row g-3 align-items-stretch">
                         <!-- LEFT COLUMN (col-12 col-lg-7): Multi-Turn Interactive Portal AI Chat Assistant -->
                         <div class="col-12 col-lg-7 d-flex">
-                            <div class="p-3 border bg-white w-100 d-flex flex-column" style="border-radius: 2px !important; border-color: #d0d7de !important; border-top: 3px solid #0f62fe !important;">
+                            <div class="p-3 border bg-white w-100 d-flex flex-column" style="border-radius: 2px !important; border-color: #d0d7de !important; border-top: 3px solid #0ABBDB !important;">
                                 <div class="d-flex align-items-start justify-content-between pb-2 mb-2 border-bottom gap-2" style="border-color: #e8e8e8 !important;">
                                     <div>
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="badge text-white fw-bold flex-shrink-0" style="background: #0f62fe; border-radius: 2px !important; font-size: 9.5px; padding: 3px 6px; white-space: nowrap;">SOP-RAG-003</span>
-                                            <span class="fw-bold" style="color: #161616; font-size: 13.5px;">
+                                            <span class="al2c-pill-teal-dark flex-shrink-0">SOP-RAG-003</span>
+                                            <span class="fw-bold" style="color: #003333; font-size: 13.5px;">
                                                 Trợ Lý AI Đối Soát Hợp Đồng SOW, Timesheet, Hóa Đơn 1C26TAA &amp; SLA
                                             </span>
                                         </div>
                                         <div class="text-muted mt-1" style="font-size: 11px;">
-                                            Kết nối dữ liệu thời gian thực của <strong style="color: #161616;" t-out="partner.name if partner else 'Quý Khách hàng'"/> và đối chiếu kho tri thức chuẩn.
+                                            Kết nối dữ liệu thời gian thực của <strong style="color: #003333;" t-out="partner.name if partner else 'Quý Khách hàng'"/> và đối chiếu kho tri thức chuẩn.
                                         </div>
                                     </div>
-                                    <button type="button" id="wsAiClearBtn" class="btn btn-outline-secondary btn-sm py-1 px-2 flex-shrink-0" style="border-radius: 0px !important; box-shadow: none !important; font-size: 10.5px; border-color: #8d8d8d; color: #161616; white-space: nowrap;">
+                                    <button type="button" id="wsAiClearBtn" class="btn btn-sm py-1 px-2 flex-shrink-0 fw-bold" style="border-radius: 0px !important; box-shadow: none !important; font-size: 10.5px; border: 1px solid #005F73 !important; color: #005F73 !important; background: #E6F8FB !important; white-space: nowrap;">
                                         Làm mới hội thoại
                                     </button>
                                 </div>
 
-                                <!-- 6 Quick-Prompt Topic Chips in Uniform 2x3 IBM Carbon Grid -->
+                                <!-- 6 Quick-Prompt Topic Chips in Uniform 2x3 Brand Grid -->
                                 <div class="mb-2">
-                                    <div class="text-uppercase mb-1" style="font-size: 10px; font-weight: 700; color: #525252; letter-spacing: 0.04em;">
+                                    <div class="text-uppercase mb-1" style="font-size: 10px; font-weight: 700; color: #004D5A; letter-spacing: 0.04em;">
                                         CHỦ ĐỀ TRUY VẤN &amp; ĐỐI SOÁT NHANH (6 NGHIỆP VỤ TRỌNG TÂM):
                                     </div>
                                     <div id="wsAiTopicChips" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;">
                                         <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="sow_quotation"
                                                 data-prompt="Giải trình hồ sơ Báo giá, phạm vi kỹ thuật Fit-to-Standard (Class A/B/C), lộ trình 5-Gate SOW và chỉ số 3Y Value Case ROI của doanh nghiệp?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
-                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">01</span>
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #cbd5e1; border-left: 3px solid #0ABBDB !important; background: #F8FAFC; color: #003333; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #005F73 !important; font-size: 9px; padding: 1px 5px; border-radius: 2px;">01</span>
                                             <span class="text-truncate">Báo giá, Scope Fit-to-Standard &amp; ROI</span>
                                         </button>
                                         <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="timesheet_sprint"
                                                 data-prompt="Giải trình chi tiết bảng chấm công kỹ sư (Timesheet Sprint), công thức tính Pro-rata 22 ngày công chuẩn, giờ OT và trạng thái chữ ký số SHA-256?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
-                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">02</span>
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #cbd5e1; border-left: 3px solid #0ABBDB !important; background: #F8FAFC; color: #003333; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #005F73 !important; font-size: 9px; padding: 1px 5px; border-radius: 2px;">02</span>
                                             <span class="text-truncate">Bảng chấm công Kỹ sư &amp; Pro-rata OT</span>
                                         </button>
                                         <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="draft_vs_official_einvoice"
                                                 data-prompt="Phân biệt Hóa đơn Nháp chờ đối soát (chưa cấp mã CQT) và Hóa đơn GTGT Điện tử Chính thức 1C26TAA (Nghị định 70/2025/NĐ-CP) cùng cách tải XML/HTML?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
-                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">03</span>
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #cbd5e1; border-left: 3px solid #0ABBDB !important; background: #F8FAFC; color: #003333; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #005F73 !important; font-size: 9px; padding: 1px 5px; border-radius: 2px;">03</span>
                                             <span class="text-truncate">Hóa đơn Nháp vs HĐĐT 1C26TAA</span>
                                         </button>
                                         <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="tax_payment_policy"
                                                 data-prompt="Chính sách thuế GTGT phần mềm (Không chịu thuế KCT, 0% xuất khẩu, 8% dịch vụ CNTT) và hướng dẫn thanh toán qua Napas247 VietQR?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
-                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">04</span>
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #cbd5e1; border-left: 3px solid #0ABBDB !important; background: #F8FAFC; color: #003333; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #005F73 !important; font-size: 9px; padding: 1px 5px; border-radius: 2px;">04</span>
                                             <span class="text-truncate">Thuế GTGT Phần mềm (KCT / 0% / 8%)</span>
                                         </button>
                                         <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="dispute_dunning_freeze"
                                                 data-prompt="Quy chế bảo vệ khách hàng AL2C-INV-103 và cơ chế tự động đóng băng nhắc nợ (Dunning Freeze) khi gửi yêu cầu đối soát hóa đơn hoạt động như thế nào?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
-                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">05</span>
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #cbd5e1; border-left: 3px solid #FF8000 !important; background: #F8FAFC; color: #003333; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #D97706 !important; font-size: 9px; padding: 1px 5px; border-radius: 2px;">05</span>
                                             <span class="text-truncate">Khiếu nại AL2C-INV-103 &amp; Dunning</span>
                                         </button>
                                         <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="sla_customer_care"
                                                 data-prompt="Cam kết SLA hỗ trợ kỹ thuật và bảo hành phần mềm (Mức P1 Critical 15 phút, P2 High 1 giờ, P3 Normal 4 giờ) và cách gửi phiếu yêu cầu hỗ trợ?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
-                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">06</span>
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #cbd5e1; border-left: 3px solid #FF8000 !important; background: #F8FAFC; color: #003333; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #D97706 !important; font-size: 9px; padding: 1px 5px; border-radius: 2px;">06</span>
                                             <span class="text-truncate">Cam kết SLA Kỹ thuật P1 / P2 / P3</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 <!-- Scrollable Multi-Turn Chat History Window -->
-                                <div id="wsAiChatMessages" class="p-2 mb-2 small" style="flex: 1 1 auto; min-height: 360px; max-height: 450px; overflow-y: auto; border-radius: 2px !important; background: #f4f4f4; border: 1px solid #d0d7de;">
-                                    <div class="p-2 mb-2 bg-white border" style="border-radius: 2px !important; border-left: 3px solid #0f62fe !important; border-color: #d0d7de;">
+                                <div id="wsAiChatMessages" class="p-2 mb-2 small" style="flex: 1 1 auto; min-height: 360px; max-height: 450px; overflow-y: auto; border-radius: 2px !important; background: #F4F7F8; border: 1px solid #cbd5e1;">
+                                    <div class="p-2 mb-2 bg-white border" style="border-radius: 2px !important; border-left: 3px solid #0ABBDB !important; border-color: #cbd5e1;">
                                         <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #efefef !important;">
-                                            <strong style="color: #0f62fe; font-size: 10.5px; letter-spacing: 0.02em;">INNORIA PORTAL AI COPILOT · SOP-RAG-003</strong>
-                                            <span class="badge fw-bold" style="background: #defbe6; color: #0e6027; border-radius: 2px !important; font-size: 9px;">READY · GROUNDED</span>
+                                            <strong style="color: #005F73; font-size: 10.5px; letter-spacing: 0.02em;">INNORIA PORTAL AI COPILOT · SOP-RAG-003</strong>
+                                            <span class="al2c-pill-cyan-soft">READY · GROUNDED</span>
                                         </div>
                                         <div style="font-size: 11.5px; color: #161616; line-height: 1.55;">
                                             Xin chào <strong t-out="partner.name if partner else 'Quý Đối tác'"/>. Hệ thống đang đồng bộ trực tiếp
@@ -1366,14 +1431,14 @@
                                     <input type="text" id="wsAiQuery" class="form-control"
                                            value="Giải trình chi tiết căn cứ nghiệm thu bảng chấm công kỹ sư và quy trình xuất hóa đơn 1C26TAA?"
                                            placeholder="Nhập câu hỏi về SOW, Timesheet, Hóa đơn Nháp / 1C26TAA, Thuế GTGT hoặc SLA..."
-                                           style="border-radius: 0px !important; border-color: #8d8d8d; font-size: 11.5px;"/>
+                                           style="border-radius: 0px !important; border-color: #005F73; font-size: 11.5px;"/>
                                     <button type="button" id="wsAiBtn" class="btn btn-primary fw-bold px-3"
                                             t-att-data-invoice-id="sample_inv.id if sample_inv else 0"
                                             t-att-data-order-id="sample_so.id if sample_so else 0"
                                             t-att-data-sheet-id="sample_sheet.id if sample_sheet else 0"
                                             t-att-data-partner-id="partner.id if partner else 0"
                                             t-att-data-access-token="provided_token or ''"
-                                            style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important; font-size: 11.5px;">
+                                            style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important; font-size: 11.5px;">
                                         Gửi Yêu Cầu Giải Trình
                                     </button>
                                 </div>
@@ -1424,14 +1489,14 @@
                                                 const userBubble = document.createElement('div');
                                                 userBubble.className = 'p-2 mb-2 bg-white border';
                                                 userBubble.style.borderRadius = '2px';
-                                                userBubble.style.borderColor = '#d0d7de';
-                                                userBubble.style.borderRight = '3px solid #161616';
+                                                userBubble.style.borderColor = '#cbd5e1';
+                                                userBubble.style.borderRight = '3px solid #003333';
                                                 const userHeader = document.createElement('div');
                                                 userHeader.className = 'd-flex justify-content-between align-items-center mb-1';
                                                 const userRole = document.createElement('span');
                                                 userRole.className = 'fw-bold text-uppercase';
                                                 userRole.style.fontSize = '9.5px';
-                                                userRole.style.color = '#525252';
+                                                userRole.style.color = '#004D5A';
                                                 userRole.textContent = 'TRUY VẤN CỦA ĐỐI TÁC / KHÁCH HÀNG';
                                                 userHeader.appendChild(userRole);
                                                 const userBody = document.createElement('div');
@@ -1447,10 +1512,10 @@
                                                 const botBubble = document.createElement('div');
                                                 botBubble.className = 'p-2 mb-2 bg-white border';
                                                 botBubble.style.borderRadius = '2px';
-                                                botBubble.style.borderColor = '#d0d7de';
-                                                botBubble.style.borderLeft = '3px solid #0f62fe';
+                                                botBubble.style.borderColor = '#cbd5e1';
+                                                botBubble.style.borderLeft = '3px solid #0ABBDB';
                                                 const loadingSpan = document.createElement('span');
-                                                loadingSpan.style.color = '#0f62fe';
+                                                loadingSpan.style.color = '#005F73';
                                                 loadingSpan.style.fontSize = '11.5px';
                                                 loadingSpan.textContent = 'Đang truy xuất dữ liệu SOW / Timesheet / 1C26TAA và kiểm định Entailment Gate (SOP-RAG-003)...';
                                                 botBubble.appendChild(loadingSpan);
@@ -1483,27 +1548,16 @@
                                                         const scorePct = ((res.entailment_score || 0.95) * 100).toFixed(1);
                                                         if (entailBadge) {
                                                             entailBadge.textContent = 'VERIFIED ENTAILMENT: ' + scorePct + '%';
-                                                            entailBadge.style.background = '#defbe6';
-                                                            entailBadge.style.color = '#0e6027';
-                                                            entailBadge.style.borderColor = '#a7f0ba';
                                                         }
 
                                                         const topRow = document.createElement('div');
                                                         topRow.className = 'd-flex flex-wrap align-items-center justify-content-between pb-1 mb-2 border-bottom gap-1';
                                                         topRow.style.borderColor = '#efefef';
                                                         const intentBadge = document.createElement('span');
-                                                        intentBadge.className = 'badge text-white fw-bold';
-                                                        intentBadge.style.background = '#0f62fe';
-                                                        intentBadge.style.borderRadius = '2px';
-                                                        intentBadge.style.fontSize = '9px';
+                                                        intentBadge.className = 'al2c-pill-teal-dark';
                                                         intentBadge.textContent = res.intent_badge || 'SOP-RAG-003 VERIFIED';
                                                         const groundBadge = document.createElement('span');
-                                                        groundBadge.className = 'badge fw-bold';
-                                                        groundBadge.style.background = '#defbe6';
-                                                        groundBadge.style.color = '#0e6027';
-                                                        groundBadge.style.border = '1px solid #a7f0ba';
-                                                        groundBadge.style.borderRadius = '2px';
-                                                        groundBadge.style.fontSize = '9px';
+                                                        groundBadge.className = 'al2c-pill-cyan-soft';
                                                         groundBadge.textContent = 'GROUNDED ' + scorePct + '%';
                                                         topRow.appendChild(intentBadge);
                                                         topRow.appendChild(groundBadge);
@@ -1520,11 +1574,11 @@
                                                             const rowEl = document.createElement('div');
                                                             if (idx === 0) {
                                                                 rowEl.className = 'fw-bold mb-1';
-                                                                rowEl.style.color = '#0043ce';
+                                                                rowEl.style.color = '#005F73';
                                                                 rowEl.style.fontSize = '12px';
                                                             } else if (trimmed.indexOf('1.') === 0 || trimmed.indexOf('2.') === 0 || trimmed.indexOf('3.') === 0 || trimmed.indexOf('**1.') === 0 || trimmed.indexOf('**2.') === 0 || trimmed.indexOf('**3.') === 0) {
                                                                 rowEl.className = 'fw-bold mt-1 mb-1';
-                                                                rowEl.style.color = '#161616';
+                                                                rowEl.style.color = '#003333';
                                                             } else {
                                                                 rowEl.className = 'mb-1';
                                                             }
@@ -1541,17 +1595,12 @@
                                                                 const citTitle = document.createElement('span');
                                                                 citTitle.className = 'fw-bold text-uppercase me-1';
                                                                 citTitle.style.fontSize = '9.5px';
-                                                                citTitle.style.color = '#525252';
+                                                                citTitle.style.color = '#004D5A';
                                                                 citTitle.textContent = 'Citations:';
                                                                 citDiv.appendChild(citTitle);
                                                                 res.citations.slice(0, 3).forEach(function(cit) {
                                                                     const cSpan = document.createElement('span');
-                                                                    cSpan.className = 'badge fw-normal';
-                                                                    cSpan.style.background = '#edf5ff';
-                                                                    cSpan.style.color = '#0043ce';
-                                                                    cSpan.style.border = '1px solid #a6c8ff';
-                                                                    cSpan.style.borderRadius = '2px';
-                                                                    cSpan.style.fontSize = '9.5px';
+                                                                    cSpan.className = 'al2c-pill-cyan-soft fw-normal';
                                                                     cSpan.style.padding = '2px 6px';
                                                                     cSpan.textContent = compactCitationText(cit);
                                                                     citDiv.appendChild(cSpan);
@@ -1573,13 +1622,13 @@
                                                                     aTag.style.boxShadow = 'none';
                                                                     aTag.style.fontSize = '10.5px';
                                                                     if (isPrimary) {
-                                                                        aTag.style.background = '#0f62fe';
-                                                                        aTag.style.borderColor = '#0f62fe';
-                                                                        aTag.style.color = '#ffffff';
+                                                                        aTag.style.setProperty('background', '#005F73', 'important');
+                                                                        aTag.style.setProperty('border-color', '#005F73', 'important');
+                                                                        aTag.style.setProperty('color', '#ffffff', 'important');
                                                                     } else {
-                                                                        aTag.style.background = '#ffffff';
-                                                                        aTag.style.border = '1px solid #161616';
-                                                                        aTag.style.color = '#161616';
+                                                                        aTag.style.setProperty('background', '#FFF4E5', 'important');
+                                                                        aTag.style.setProperty('border', '1px solid #FF8000', 'important');
+                                                                        aTag.style.setProperty('color', '#B45309', 'important');
                                                                     }
                                                                     aTag.textContent = cleanMarkdownText(act.label || 'Thao tác');
                                                                     actDiv.appendChild(aTag);
@@ -1596,7 +1645,7 @@
                                                                 const fqLabel = document.createElement('div');
                                                                 fqLabel.className = 'fw-bold text-uppercase mb-1';
                                                                 fqLabel.style.fontSize = '9.5px';
-                                                                fqLabel.style.color = '#525252';
+                                                                fqLabel.style.color = '#004D5A';
                                                                 fqLabel.textContent = 'Truy vấn đối soát liên quan:';
                                                                 const fqWrap = document.createElement('div');
                                                                 fqWrap.className = 'd-flex flex-wrap gap-1';
@@ -1605,10 +1654,10 @@
                                                                     fbtn.type = 'button';
                                                                     fbtn.className = 'btn btn-sm py-1 px-2 text-start ws-ai-followup-btn';
                                                                     fbtn.style.borderRadius = '0px';
-                                                                    fbtn.style.border = '1px solid #d0d7de';
-                                                                    fbtn.style.borderLeft = '2px solid #0f62fe';
-                                                                    fbtn.style.background = '#f8f9fa';
-                                                                    fbtn.style.color = '#161616';
+                                                                    fbtn.style.border = '1px solid #cbd5e1';
+                                                                    fbtn.style.borderLeft = '2px solid #0ABBDB';
+                                                                    fbtn.style.background = '#F8FAFC';
+                                                                    fbtn.style.color = '#003333';
                                                                     fbtn.style.fontSize = '10px';
                                                                     fbtn.textContent = '▸ ' + fq;
                                                                     fbtn.addEventListener('click', function() {
@@ -1678,28 +1727,28 @@
 
                         <!-- RIGHT COLUMN (col-12 col-lg-5): Interactive Customer Care & SLA Support Ticket / AL2C-INV-103 Desk -->
                         <div class="col-12 col-lg-5 d-flex">
-                            <div class="p-3 border bg-white w-100 d-flex flex-column" style="border-radius: 2px !important; border-color: #d0d7de !important; border-top: 3px solid #161616 !important;">
+                            <div class="p-3 border bg-white w-100 d-flex flex-column" style="border-radius: 2px !important; border-color: #d0d7de !important; border-top: 3px solid #FF8000 !important;">
                                 <div class="d-flex align-items-start justify-content-between pb-2 mb-2 border-bottom gap-2" style="border-color: #e8e8e8 !important;">
                                     <div>
-                                        <div class="fw-bold" style="color: #161616; font-size: 13.5px;">
+                                        <div class="fw-bold" style="color: #003333; font-size: 13.5px;">
                                             Gửi Yêu Cầu Hỗ Trợ Kỹ Thuật SLA &amp; Đối Soát AL2C-INV-103
                                         </div>
                                         <div class="text-muted mt-1" style="font-size: 11px;">
                                             Định tuyến trực tiếp tới Quản lý Dự án (PM) &amp; Kế toán Trưởng (FinOps).
                                         </div>
                                     </div>
-                                    <span class="badge text-white fw-bold flex-shrink-0" style="background: #161616; border-radius: 2px !important; font-size: 9px; padding: 4px 7px; white-space: nowrap;">SLA 24/7 DESK</span>
+                                    <span class="al2c-pill-orange-soft flex-shrink-0">SLA 24/7 DESK</span>
                                 </div>
 
                                 <!-- Customer Care Ticket Submission Form -->
-                                <form action="/my/software-portal/customer_care_ticket" method="post" class="p-2 border mb-3" style="border-radius: 2px !important; background: #f8f9fa; border-color: #d0d7de !important;">
+                                <form action="/my/software-portal/customer_care_ticket" method="post" class="p-2 border mb-3" style="border-radius: 2px !important; background: #F8FAFC; border-color: #cbd5e1 !important;">
                                     <input t-if="provided_token" type="hidden" name="access_token" t-att-value="provided_token"/>
                                     <input t-if="partner" type="hidden" name="partner_id" t-att-value="partner.id"/>
 
                                     <div class="row g-2 mb-2">
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Phân loại nghiệp vụ:</label>
-                                            <select name="care_category" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;">
+                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Phân loại nghiệp vụ:</label>
+                                            <select name="care_category" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;">
                                                 <option value="technical_sla">[SLA] Hỗ trợ Kỹ thuật &amp; Bảo hành</option>
                                                 <option value="timesheet_scope">[TS] Đối soát Chấm công &amp; Scope SOW</option>
                                                 <option value="billing_einvoice">[INV] Điều chỉnh Hóa đơn Nháp / 1C26TAA</option>
@@ -1707,8 +1756,8 @@
                                             </select>
                                         </div>
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Mức cam kết SLA:</label>
-                                            <select name="priority_level" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;">
+                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Mức cam kết SLA:</label>
+                                            <select name="priority_level" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;">
                                                 <option value="p1_critical">P1 Critical (Phản hồi 15p · Xử lý 2h)</option>
                                                 <option value="p2_high" selected="selected">P2 High (Phản hồi 1h · Xử lý 8h)</option>
                                                 <option value="p3_normal">P3 Normal (Phản hồi 4h · Xử lý 24h)</option>
@@ -1718,18 +1767,18 @@
 
                                     <div class="row g-2 mb-2">
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Người đại diện liên hệ:</label>
-                                            <input type="text" name="contact_name" class="form-control form-control-sm" t-att-value="partner.name if partner else ''" required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;"/>
+                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Người đại diện liên hệ:</label>
+                                            <input type="text" name="contact_name" class="form-control form-control-sm" t-att-value="partner.name if partner else ''" required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;"/>
                                         </div>
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Email nhận biên bản SLA:</label>
-                                            <input type="email" name="contact_email" class="form-control form-control-sm" t-att-value="(partner.email if (partner and partner.email) else 'tham.mai@inno.ai.vn')" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;"/>
+                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Email nhận biên bản SLA:</label>
+                                            <input type="email" name="contact_email" class="form-control form-control-sm" t-att-value="(partner.email if (partner and partner.email) else 'tham.mai@inno.ai.vn')" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;"/>
                                         </div>
                                     </div>
 
                                     <div class="mb-2" t-if="draft_invoices or official_invoices">
-                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Chứng từ / Hóa đơn liên kết:</label>
-                                        <select name="invoice_id" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;">
+                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Chứng từ / Hóa đơn liên kết:</label>
+                                        <select name="invoice_id" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;">
                                             <option value="">-- Áp dụng chung cho Dự án / Hợp đồng SOW --</option>
                                             <t t-foreach="draft_invoices | official_invoices" t-as="inv_opt">
                                                 <option t-att-value="inv_opt.id">
@@ -1740,34 +1789,34 @@
                                     </div>
 
                                     <div class="mb-2">
-                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Tiêu đề yêu cầu hỗ trợ / đối soát:</label>
-                                        <input type="text" name="subject" class="form-control form-control-sm" placeholder="VD: Yêu cầu kiểm tra số giờ OT Sprint hoặc cập nhật MST Hóa đơn Nháp..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;"/>
+                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Tiêu đề yêu cầu hỗ trợ / đối soát:</label>
+                                        <input type="text" name="subject" class="form-control form-control-sm" placeholder="VD: Yêu cầu kiểm tra số giờ OT Sprint hoặc cập nhật MST Hóa đơn Nháp..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;"/>
                                     </div>
 
                                     <div class="mb-2">
-                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Nội dung chi tiết:</label>
-                                        <textarea name="description" rows="2" class="form-control form-control-sm" placeholder="Mô tả chi tiết hạng mục kỹ thuật, dòng chấm công hoặc hóa đơn cần đối soát..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;"></textarea>
+                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #003333;">Nội dung chi tiết:</label>
+                                        <textarea name="description" rows="2" class="form-control form-control-sm" placeholder="Mô tả chi tiết hạng mục kỹ thuật, dòng chấm công hoặc hóa đơn cần đối soát..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #94a3b8;"></textarea>
                                     </div>
 
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" name="freeze_dunning" value="1" id="chkFreezeDunning"/>
-                                        <label class="form-check-label small fw-bold" for="chkFreezeDunning" style="font-size: 10.5px; color: #161616;">
+                                        <label class="form-check-label small fw-bold" for="chkFreezeDunning" style="font-size: 10.5px; color: #003333;">
                                             Kích hoạt chốt chặn AL2C-INV-103: Tạm dừng nhắc nợ tự động (Dunning Freeze)
                                         </label>
                                     </div>
 
-                                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold py-2" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important; font-size: 11.5px;">
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold py-2" style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important; font-size: 11.5px;">
                                         Gửi Yêu Cầu Hỗ Trợ &amp; Cấp Mã Theo Dõi SLA
                                     </button>
                                 </form>
 
                                 <!-- Active Disputes & Customer Care Tickets Feed -->
                                 <div class="d-flex align-items-center justify-content-between mb-1">
-                                    <span class="text-uppercase fw-bold" style="color: #525252; font-size: 10px; letter-spacing: 0.04em;">
+                                    <span class="text-uppercase fw-bold" style="color: #004D5A; font-size: 10px; letter-spacing: 0.04em;">
                                         HỒ SƠ ĐỐI SOÁT AL2C-INV-103 &amp; PHIẾU SLA ĐANG MỞ
                                     </span>
-                                    <span class="badge fw-bold" style="background: #f4f4f4; color: #161616; border: 1px solid #d0d7de; border-radius: 2px !important; font-size: 9.5px;">
-                                        <t t-out="len(disputes) + len(care_tickets or [])"/> HỒ SƠ
+                                    <span class="al2c-pill-cyan-soft">
+                                        <t t-out="len(disputes[:1]) + len((care_tickets or [])[:1])"/> HỒ SƠ
                                     </span>
                                 </div>
                                 <div class="flex-grow-1" style="max-height: 155px; overflow-y: auto;">
@@ -1776,22 +1825,22 @@
                                             Hiện không có tranh chấp thương mại nào đang mở. Mọi yêu cầu gửi từ biểu mẫu trên được cấp mã SLA tức thời.
                                         </div>
                                     </t>
-                                    <t t-foreach="disputes[:2]" t-as="dsp">
-                                        <div class="p-2 bg-white border mb-1 small" style="border-radius: 2px !important; border-color: #d0d7de; border-left: 3px solid #da1e28 !important; font-size: 10.5px;">
+                                    <t t-foreach="disputes[:1]" t-as="dsp">
+                                        <div class="p-2 bg-white border mb-1 small" style="border-radius: 2px !important; border-color: #cbd5e1; border-left: 3px solid #FF8000 !important; font-size: 10.5px;">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <strong style="color: #161616;" t-out="dsp.name"/>
-                                                <span class="badge fw-bold" style="background: #fff1f1; color: #a2191f; border: 1px solid #ffd7d9; border-radius: 2px !important; font-size: 9px;">DUNNING FROZEN · <t t-out="dsp.state"/></span>
+                                                <strong style="color: #003333;" t-out="dsp.name"/>
+                                                <span class="al2c-pill-orange-soft">DUNNING FROZEN · <t t-out="dsp.state"/></span>
                                             </div>
-                                            <div class="text-muted">Hóa đơn: <strong style="color: #161616;" t-out="dsp.invoice_id.name"/> · Giá trị đối soát: <strong style="color: #161616;"><t t-out="'{:,.0f}'.format(dsp.disputed_amount or 0.0)"/> VNĐ</strong></div>
+                                            <div class="text-muted">Hóa đơn: <strong style="color: #003333;" t-out="dsp.invoice_id.name"/> · Giá trị đối soát: <strong style="color: #B45309;"><t t-out="'{:,.0f}'.format(dsp.disputed_amount or 0.0)"/> VNĐ</strong></div>
                                         </div>
                                     </t>
-                                    <t t-foreach="(care_tickets or [])[:2]" t-as="ctk">
-                                        <div class="p-2 bg-white border mb-1 small" style="border-radius: 2px !important; border-color: #d0d7de; border-left: 3px solid #0f62fe !important; font-size: 10.5px;">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <strong style="color: #0f62fe;" t-out="ctk.name"/>
-                                                <span class="badge" style="background: #edf5ff; color: #0043ce; border-radius: 2px !important; font-size: 9px;" t-out="ctk.state"/>
+                                    <t t-foreach="(care_tickets or [])[:1]" t-as="ctk">
+                                        <div class="p-2 bg-white border mb-1 small" style="border-radius: 2px !important; border-color: #cbd5e1; border-left: 3px solid #0ABBDB !important; font-size: 10.5px;">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <strong style="color: #005F73;" t-out="ctk.name"/>
+                                                <span class="al2c-pill-cyan-soft" t-out="ctk.state"/>
                                             </div>
-                                            <div class="text-muted">Dự án: <strong style="color: #161616;" t-out="ctk.project_id.name"/> · Đầu mối: <span style="color: #161616;" t-out="ctk.recipient_email or 'PM/FinOps'"/></div>
+                                            <div class="text-muted">Dự án: <strong style="color: #003333;" t-out="ctk.project_id.name"/> · Đầu mối: <span style="color: #005F73;" t-out="ctk.recipient_email or 'PM/FinOps'"/></div>
                                         </div>
                                     </t>
                                 </div>
