@@ -68,8 +68,8 @@ def assert_sota_ui_ux_static_invariants():
 
     with open(concierge_xml, "r", encoding="utf-8") as f:
         c_xml = f.read()
-    assert "logo_innoria_vertical.svg" in c_xml and "al2c-logo-square-frame" in c_xml, (
-        "ai_concierge_widget.xml must render logo_innoria_vertical.svg inside .al2c-logo-square-frame"
+    assert "logo_innoria_square_icon.svg" in c_xml and "al2c-header-logo-square" in c_xml and "al2c-logo-square-frame" in c_xml, (
+        "ai_concierge_widget.xml must render logo_innoria_square_icon.svg inside .al2c-header-logo-square and .al2c-logo-square-frame"
     )
     assert "innoria-priority-dropzone" in c_xml and "innoria-dropzone-header-row" in c_xml, (
         "ai_concierge_widget.xml must render .innoria-priority-dropzone with boundary header row"
@@ -78,13 +78,26 @@ def assert_sota_ui_ux_static_invariants():
         "ai_concierge_widget.xml must wrap consent checkbox in .innoria-sota-check-row"
     )
 
+    with open(portal_xml, "r", encoding="utf-8") as f:
+        p_xml = f.read()
+    assert 't-set="no_breadcrumbs" t-value="True"' in p_xml and "portal_breadcrumbs_inherit_al2c" in p_xml, (
+        "portal_templates.xml must suppress orphaned breadcrumbs on /my/software-portal and upgrade portal.portal_breadcrumbs"
+    )
+
+    contactus_xml = os.path.join(ROOT_DIR, "enterprise/insilos_website/views/innoria_pages.xml")
+    with open(contactus_xml, "r", encoding="utf-8") as f:
+        cu_xml = f.read()
+    assert "innoria-sota-pane-teal" in cu_xml and "innoria-sota-pane-orange" in cu_xml and "row g-4 align-items-stretch" in cu_xml, (
+        "innoria_pages.xml (#executive-booking-form) must enforce equal-height split-pane cards (.innoria-sota-pane-teal + .innoria-sota-pane-orange)"
+    )
+
     with open(portal_scss, "r", encoding="utf-8") as f:
         p_scss = f.read()
     assert "#005F73" in p_scss and "#0ABBDB" in p_scss and "#FF8000" in p_scss, (
         "portal_branding.scss must enforce canonical Innoria brand palette"
     )
     assert "'Poppins'" in p_scss, "portal_branding.scss must enforce 'Poppins' typography"
-    print("  [PASS] All AL2C static SCSS & XML files satisfy SOP-UI-SOTA-01 invariants.")
+    print("  [PASS] All AL2C & Website static SCSS & XML files satisfy SOP-UI-SOTA-01 & ADR-20261020-017 invariants.")
 
 
 def jsonrpc_call(opener, path, params=None):

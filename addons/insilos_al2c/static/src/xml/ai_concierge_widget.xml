@@ -69,11 +69,13 @@
                 <!-- Drawer Header -->
                 <header class="al2c-concierge-header">
                     <div class="al2c-header-brand">
-                        <img
-                            src="/insilos_al2c/static/src/img/logo_innoria_header.svg"
-                            alt="Innoria Enterprise Logo"
-                            class="al2c-header-logo"
-                        />
+                        <div class="al2c-header-logo-square">
+                            <img
+                                src="/insilos_website/static/src/img/innoria/logo_innoria_square_icon.svg"
+                                alt="Innoria Enterprise Square Logo"
+                                class="al2c-header-logo"
+                            />
+                        </div>
                         <div class="al2c-header-meta">
                             <h6 id="al2c-concierge-title" class="al2c-header-title">Innoria AI Concierge</h6>
                             <div class="al2c-status-badge">
@@ -170,7 +172,7 @@
                             <div class="d-flex align-items-stretch justify-content-between gap-2 w-100">
                                 <div class="d-flex align-items-stretch gap-2 innoria-col-left text-start">
                                     <div class="al2c-logo-square-frame">
-                                        <img src="/insilos_website/static/src/img/innoria/logo_innoria_vertical.svg" alt="INNORIA"/>
+                                        <img src="/insilos_website/static/src/img/innoria/logo_innoria_square_icon.svg" alt="INNORIA"/>
                                     </div>
                                     <div class="d-flex flex-column justify-content-center gap-1 text-start innoria-sota-header-text-col">
                                         <span class="al2c-lead-eyebrow-badge align-self-start">FAST-TRACK SOW DESK</span>

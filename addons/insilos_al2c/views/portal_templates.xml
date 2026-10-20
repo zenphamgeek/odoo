@@ -34,6 +34,16 @@
         </xpath>
     </template>
 
+    <!-- 1B. Portal Breadcrumbs SOTA Enhancement (Zero Orphaned Tiny Home Icon) -->
+    <template id="portal_breadcrumbs_inherit_al2c" inherit_id="portal.portal_breadcrumbs">
+        <xpath expr="//li[hasclass('breadcrumb-item')][1]/a[@href='/my/home']" position="replace">
+            <a href="/my/home" aria-label="Cổng Khách Hàng" title="Về Cổng Khách Hàng INNORIA" class="d-inline-flex align-items-center gap-1 fw-bold text-decoration-none" style="color: #005F73; font-size: 12px; font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+                <img src="/insilos_website/static/src/img/innoria/logo_innoria_square_icon.svg" alt="INNORIA" style="width: 16px; height: 16px; object-fit: contain;"/>
+                <span>Cổng Khách Hàng INNORIA</span>
+            </a>
+        </xpath>
+    </template>
+
     <!-- 2. Portal Home Cockpit: 5-Card Software Engineering & Product Customer Portal Cockpit -->
     <template id="portal_my_home_inherit_al2c" inherit_id="portal.portal_my_home">
         <xpath expr="//div[hasclass('o_portal_my_home')]/div[hasclass('o_portal_docs')]" position="before">
@@ -815,6 +825,7 @@
             Routes: /my/software-portal, /my/timesheets, /my/timesheets/<int:sheet_id>
          ========================================================================= -->
     <template id="portal_software_company_workspace" name="Innoria Software Engineering &amp; Product Customer Portal">
+        <t t-set="no_breadcrumbs" t-value="True"/>
         <t t-call="portal.portal_layout">
             <style>
                 #wrapwrap .al2c-brand-workspace {

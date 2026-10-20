@@ -193,7 +193,6 @@
         width: 32px;
         height: 32px;
         object-fit: contain;
-        filter: brightness(0) invert(1);
     }
 
     .al2c-launcher-icon-close {
@@ -264,7 +263,7 @@
 
 // Drawer Header
 .al2c-concierge-header {
-    padding: 11px 16px;
+    padding: 10px 16px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -274,13 +273,30 @@
 
     .al2c-header-brand {
         display: flex;
-        align-items: center;
+        align-items: stretch;
         gap: 10px;
     }
 
+    .al2c-header-logo-square {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        align-self: stretch;
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid #d1e8ed;
+        border-bottom: 2px solid #0ABBDB;
+        border-radius: 2px;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
     .al2c-header-logo {
-        max-height: 26px;
-        width: auto;
+        width: 28px;
+        height: 28px;
+        max-height: 28px;
         object-fit: contain;
     }
 
@@ -427,9 +443,10 @@
     .al2c-message-avatar {
         width: 32px;
         height: 32px;
-        border-radius: 4px;
-        background: linear-gradient(135deg, #005F73 0%, #003333 100%);
-        border: 1px solid #0ABBDB;
+        border-radius: 2px;
+        background: var(--al2c-concierge-bg-card);
+        border: 1px solid #d1e8ed;
+        border-bottom: 2px solid #0ABBDB;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -437,9 +454,9 @@
         margin-top: 2px;
 
         .al2c-avatar-img {
-            width: 18px;
-            height: 18px;
-            filter: brightness(0) invert(1);
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
         }
     }
 
