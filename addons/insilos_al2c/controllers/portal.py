@@ -1338,8 +1338,8 @@ class Al2cPortalController(PortalAccount):
                 so_lines.append("- Hiện đang thiết lập hồ sơ Báo giá & SOW cho đối tác trên hệ thống.")
 
             answer_lines = [
-                f"### 📋 Giải Trình Báo Giá, Phạm Vi Kỹ Thuật Fit-to-Standard & Lộ Trình 5-Gate SOW ({partner_name})",
-                f"Hệ thống ghi nhận **{len(quotations)} hồ sơ Báo giá / Hợp đồng SOW** của **{partner_name}** (MST: `{partner_vat}`):",
+                f"### Giải Trình Báo Giá, Phạm Vi Kỹ Thuật Fit-to-Standard & Lộ Trình 5-Gate SOW ({partner_name})",
+                f"Hệ thống ghi nhận **{len(quotations)} hồ sơ Báo giá / Hợp đồng SOW** của **{partner_name}** (MST: {partner_vat}):",
                 *so_lines,
                 "",
                 "**1. Tiêu chuẩn Phân loại Kiến trúc Clean Core (AL2C-CRM-101):**",
@@ -1348,13 +1348,13 @@ class Al2cPortalController(PortalAccount):
                 "- **Class C (Custom Module Isolation)**: Module chuyên biệt tách rời theo chuẩn kiến trúc doanh nghiệp.",
                 "",
                 "**2. Phương pháp luận Triển khai 5-Gate Delivery (AL2C-ACT-001):**",
-                "- `Gate 1: Prepare` (Khởi động & Thiết lập môi trường) -> `Gate 2: Explore` (Fit-to-Standard & Gap Analysis) -> `Gate 3: Realize` (Phát triển Sprint & Kiểm thử SIT) -> `Gate 4: Deploy` (Nghiệm thu UAT & Go-Live) -> `Gate 5: Run` (Bảo hành Hypercare & SLA).",
+                "- Gate 1: Prepare (Khởi động & Thiết lập môi trường) -> Gate 2: Explore (Fit-to-Standard & Gap Analysis) -> Gate 3: Realize (Phát triển Sprint & Kiểm thử SIT) -> Gate 4: Deploy (Nghiệm thu UAT & Go-Live) -> Gate 5: Run (Bảo hành Hypercare & SLA).",
                 "",
-                "**3. Thao tác Phê duyệt Trực tuyến:** Quý Khách hàng có thể bấm **Phê duyệt Báo giá & Ký SOW** hoặc **Yêu cầu Điều chỉnh Scope / Man-Hour** ngay tại mục Số 1 trên trang `/my/software-portal`.",
+                "**3. Thao tác Phê duyệt Trực tuyến:** Quý Khách hàng có thể bấm **Phê duyệt Báo giá & Ký SOW** hoặc **Yêu cầu Điều chỉnh Scope / Man-Hour** ngay tại mục Số 1 trên trang /my/software-portal.",
             ]
             recommended_actions = [
-                {'label': '📋 Xem & Duyệt Báo Giá SOW (#quotations-section)', 'url': '/my/software-portal#quotations-section', 'style': 'primary'},
-                {'label': '📂 Danh Sách Báo Giá (/my/quotes)', 'url': '/my/quotes', 'style': 'outline-dark'},
+                {'label': 'Xem & Duyệt Báo Giá SOW (#quotations-section)', 'url': '/my/software-portal#quotations-section', 'style': 'primary'},
+                {'label': 'Danh Sách Báo Giá (/my/quotes)', 'url': '/my/quotes', 'style': 'outline-dark'},
             ]
             follow_up_questions = [
                 'Cách tính ngày công kỹ sư Pro-rata 22 ngày và nghiệm thu SHA-256?',
@@ -1368,37 +1368,37 @@ class Al2cPortalController(PortalAccount):
             sheet_lines = []
             for sh in sheets[:3]:
                 sig_short = (sh.customer_signature_hash or '')[:16]
-                sig_txt = f"Đã ký SHA-256 `{sig_short}...`" if sig_short else "Chờ KH ký duyệt SHA-256"
+                sig_txt = f"Đã ký SHA-256 ({sig_short}...)" if sig_short else "Chờ KH ký duyệt SHA-256"
                 sheet_lines.append(
-                    f"- Bảng chấm công **{sh.name}** (Kỳ `{sh.billing_period}` · Trạng thái `{sh.state}`): "
+                    f"- Bảng chấm công **{sh.name}** (Kỳ {sh.billing_period} · Trạng thái {sh.state}): "
                     f"**{sh.total_billable_days:.2f} ngày công nghiệm thu** ({sh.total_logged_hours:.1f} giờ kỹ sư) · "
                     f"Thành tiền có thuế: **{sh.amount_total_vnd:,.0f} VNĐ** · {sig_txt}."
                 )
                 for ln in sh.line_ids[:4]:
                     sheet_lines.append(
-                        f"  * Kỹ sư **{ln.employee_id.name or 'Senior Engineer'}** ({ln.role_title or 'SWE'}): "
-                        f"Công chuẩn `{ln.standard_days:.0f}` ngày, Thực tế `{ln.actual_worked_days:.1f}` ngày, "
-                        f"OT `{ln.overtime_hours:.1f}h` -> Nghiệm thu `{ln.billable_days:.2f}` ngày (`{ln.pro_rata_ratio:.1f}%`)."
+                        f"  • Kỹ sư **{ln.employee_id.name or 'Senior Engineer'}** ({ln.role_title or 'SWE'}): "
+                        f"Công chuẩn {ln.standard_days:.0f} ngày, Thực tế {ln.actual_worked_days:.1f} ngày, "
+                        f"OT {ln.overtime_hours:.1f}h -> Nghiệm thu {ln.billable_days:.2f} ngày ({ln.pro_rata_ratio:.1f}%)."
                     )
             if not sheet_lines:
                 sheet_lines.append("- Hiện chưa có bảng chấm công kỹ sư nào đang mở trong kỳ.")
 
             answer_lines = [
-                f"### ⏱️ Giải Trình Bảng Chấm Công Kỹ Sư (Timesheet Sprint) & Công Thức Pro-Rata ({partner_name})",
-                f"Tổng hợp khối lượng thực thi của đội ngũ kỹ sư cho **{partner_name}**: **{len(sheets)} kỳ đối soát** với tổng cộng **{total_days:.2f} ngày công nghiệm thu** (`{total_hours:.1f} giờ`):",
+                f"### Giải Trình Bảng Chấm Công Kỹ Sư (Timesheet Sprint) & Công Thức Pro-Rata ({partner_name})",
+                f"Tổng hợp khối lượng thực thi của đội ngũ kỹ sư cho **{partner_name}**: **{len(sheets)} kỳ đối soát** với tổng cộng **{total_days:.2f} ngày công nghiệm thu** ({total_hours:.1f} giờ):",
                 *sheet_lines,
                 "",
                 "**1. Công thức Tính Cước Nhân sự Kỹ thuật (SOP-DGM-08 Standard 22-Day Pro-Rata):**",
-                "- **Định mức chuẩn**: `22 ngày công / tháng` (`8 giờ / ngày`).",
-                "- **Ngày công nghiệm thu**: `Billable Days = Ngày công thực tế + (Giờ Overtime được duyệt / 8)`.",
-                "- **Tỷ lệ thanh toán Pro-rata**: `Pro-rata Ratio (%) = (Billable Days / 22) x 100%`.",
+                "- **Định mức chuẩn**: 22 ngày công / tháng (8 giờ / ngày).",
+                "- **Ngày công nghiệm thu**: Billable Days = Ngày công thực tế + (Giờ Overtime được duyệt / 8).",
+                "- **Tỷ lệ thanh toán Pro-rata**: Pro-rata Ratio (%) = (Billable Days / 22) x 100%.",
                 "",
                 "**2. Niêm phong Chữ ký Số SHA-256 & Tự động Khởi tạo Hóa đơn Nháp:**",
                 "- Khi Quý Khách hàng bấm **Phê duyệt Timesheet**, hệ thống tạo mã băm bất biến **HMAC-SHA256** chống chối bỏ và tự động sinh **Hóa đơn Nháp đối soát** để Quý vị kiểm tra thông tin thuế trước khi ký CQT.",
             ]
             recommended_actions = [
-                {'label': '⏱️ Nghiệm Thu Bảng Chấm Công (#timesheets-section)', 'url': '/my/software-portal#timesheets-section', 'style': 'success'},
-                {'label': '🧾 Kiểm Tra Hóa Đơn Nháp (#invoices-section)', 'url': '/my/software-portal#invoices-section', 'style': 'primary'},
+                {'label': 'Nghiệm Thu Bảng Chấm Công (#timesheets-section)', 'url': '/my/software-portal#timesheets-section', 'style': 'primary'},
+                {'label': 'Kiểm Tra Hóa Đơn Nháp (#invoices-section)', 'url': '/my/software-portal#invoices-section', 'style': 'outline-dark'},
             ]
             follow_up_questions = [
                 'Sau khi duyệt Timesheet thì Hóa đơn Nháp được đối soát và xuất 1C26TAA như thế nào?',
@@ -1412,42 +1412,42 @@ class Al2cPortalController(PortalAccount):
             inv_lines = []
             for dinv in draft_invoices[:3]:
                 inv_lines.append(
-                    f"- **Hóa đơn Nháp chờ đối soát** `{dinv.ref or dinv.name or 'DRAFT'}` (ID `{dinv.id}`): "
-                    f"Tổng thanh toán **{dinv.amount_total:,.0f} {dinv.currency_id.symbol or 'VND'}** · "
-                    f"Trạng thái: `Chưa cấp mã CQT — Chờ KH xác nhận MST & thông tin pháp nhân`."
+                    f"- **Hóa đơn Nháp chờ đối soát** {dinv.ref or dinv.name or 'DRAFT'} (ID #{dinv.id}): "
+                    f"Tổng thanh toán **{dinv.amount_total:,.0f} VNĐ** · "
+                    f"Trạng thái: Chưa cấp mã CQT — Chờ KH xác nhận MST & thông tin pháp nhân."
                 )
             for oinv in official_invoices[:3]:
                 cqt_code = getattr(oinv, 'dgm_einvoice_lookup_code', False) or oinv.al2c_einvoice_lookup_code or 'CQT-70-VERIFIED'
                 einv_num = getattr(oinv, 'dgm_einvoice_number', False) or oinv.al2c_einvoice_number or oinv.name
                 inv_lines.append(
-                    f"- **HĐĐT Chính thức 1C26TAA** `{einv_num}` (ID `{oinv.id}`): "
-                    f"Tổng thanh toán **{oinv.amount_total:,.0f} {oinv.currency_id.symbol or 'VND'}** · "
-                    f"Mã tra cứu CQT: `{cqt_code}` (Đã ký số hợp lệ theo Nghị định 70/2025/NĐ-CP)."
+                    f"- **HĐĐT Chính thức 1C26TAA** {einv_num} (ID #{oinv.id}): "
+                    f"Tổng thanh toán **{oinv.amount_total:,.0f} VNĐ** · "
+                    f"Mã tra cứu CQT: {cqt_code} (Đã ký số hợp lệ theo Nghị định 70/2025/NĐ-CP)."
                 )
             if not inv_lines:
                 inv_lines.append("- Hiện chưa có hóa đơn nháp hoặc hóa đơn chính thức nào phát sinh.")
 
             answer_lines = [
-                f"### 🧾 Phân Biệt Hóa Đơn Nháp Đối Soát & Hóa Đơn GTGT Điện Tử Chính Thức 1C26TAA ({partner_name})",
-                f"Hiện trạng hóa đơn của **{partner_name}** (MST: `{partner_vat}`): **{len(draft_invoices)} Hóa đơn Nháp** và **{len(official_invoices)} HĐĐT Chính thức 1C26TAA**:",
+                f"### Phân Biệt Hóa Đơn Nháp Đối Soát & Hóa Đơn GTGT Điện Tử Chính Thức 1C26TAA ({partner_name})",
+                f"Hiện trạng hóa đơn của **{partner_name}** (MST: {partner_vat}): **{len(draft_invoices)} Hóa đơn Nháp** và **{len(official_invoices)} HĐĐT Chính thức 1C26TAA**:",
                 *inv_lines,
                 "",
-                "**1. Trạng thái 1 — Hóa đơn Nháp Chờ Đối Soát (`draft_reconciliation` — Chưa cấp mã CQT):**",
+                "**1. Trạng thái 1 — Hóa đơn Nháp Chờ Đối Soát (Chưa cấp mã CQT):**",
                 "- Là bản dự thảo được tạo ngay sau khi nghiệm thu Timesheet/Sprint nhằm tránh sai sót thông tin pháp nhân trước khi truyền dữ liệu lên Tổng cục Thuế.",
                 "- Quý Khách hàng có thể cập nhật trực tiếp **Mã số thuế (MST)**, **Tên đơn vị mua hàng**, **Địa chỉ đăng ký thuế** và bấm **Xác nhận Hóa đơn Nháp** chỉ với 1 cú nhấp chuột.",
                 "",
-                "**2. Trạng thái 2 — Hóa đơn GTGT Điện tử Chính thức (`1C26TAA` — Đã cấp mã CQT):**",
-                "- Tuân thủ **Nghị định 70/2025/NĐ-CP** (Mẫu số `1/001`, Ký hiệu `1C26TAA`), có đầy đủ chữ ký số C14N XML, mã băm SHA-256 và **Mã tra cứu CQT**.",
-                "- Quý Khách hàng có thể tải trực tiếp **File XML Chuẩn CQT (`1C26TAA`)** và **Bản thể hiện HĐĐT (`HTML/Print`)** ngay trên cổng.",
+                "**2. Trạng thái 2 — Hóa đơn GTGT Điện tử Chính thức (1C26TAA — Đã cấp mã CQT):**",
+                "- Tuân thủ **Nghị định 70/2025/NĐ-CP** (Mẫu số 1/001, Ký hiệu 1C26TAA), có đầy đủ chữ ký số C14N XML, mã băm SHA-256 và **Mã tra cứu CQT**.",
+                "- Quý Khách hàng có thể tải trực tiếp **File XML Chuẩn CQT (1C26TAA)** và **Bản thể hiện HĐĐT (HTML/Print)** ngay trên cổng.",
             ]
             recommended_actions = [
-                {'label': '🧾 Đối Soát Nháp & Tải XML 1C26TAA (#invoices-section)', 'url': '/my/software-portal#invoices-section', 'style': 'primary'},
+                {'label': 'Đối Soát Nháp & Tải XML 1C26TAA (#invoices-section)', 'url': '/my/software-portal#invoices-section', 'style': 'primary'},
             ]
             if lead_oinv:
                 recommended_actions.append({
-                    'label': f'⬇️ Tải XML 1C26TAA ({lead_oinv.name})',
+                    'label': f'Tải XML 1C26TAA ({lead_oinv.name})',
                     'url': f'/my/invoices/{lead_oinv.id}/download_einvoice_xml',
-                    'style': 'success',
+                    'style': 'outline-dark',
                 })
             follow_up_questions = [
                 'Làm sao để sửa Mã số thuế hoặc địa chỉ pháp nhân trên Hóa đơn Nháp?',
@@ -1462,21 +1462,21 @@ class Al2cPortalController(PortalAccount):
                 "[SOP-DGM-09 | Software Revenue & Payment Rails | 9 | b909dgm2]",
             ])
             answer_lines = [
-                f"### ⚖️ Chính Sách Thuế GTGT Doanh Nghiệp Phần Mềm (SOP-DGM-15) & Kênh Thanh Toán ({partner_name})",
-                f"Đơn vị phát hành hóa đơn: **{ISSUER_LEGAL_ENTITY_FULL}** · Đối tác: **{partner_name}** (MST: `{partner_vat}`).",
+                f"### Chính Sách Thuế GTGT Doanh Nghiệp Phần Mềm (SOP-DGM-15) & Kênh Thanh Toán ({partner_name})",
+                f"Đơn vị phát hành hóa đơn: **{ISSUER_LEGAL_ENTITY_FULL}** · Đối tác: **{partner_name}** (MST: {partner_vat}).",
                 "",
                 "**1. Khung Thuế Suất GTGT Ngành Phần Mềm & Dịch Vụ CNTT (SOP-DGM-15):**",
-                "- **Đối tượng Không chịu thuế GTGT (`KCT` — Luật Thuế GTGT số 48/2024/QH15)**: Áp dụng cho sản phẩm phần mềm và dịch vụ phần mềm theo quy định pháp luật (phát triển phần mềm, chuyển giao bản quyền phần mềm lõi).",
-                "- **Thuế suất `0%` (Phần mềm Xuất khẩu / Khách hàng Quốc tế)**: Áp dụng khi đáp ứng đủ bộ hồ sơ hợp đồng ngoại thương, biên bản nghiệm thu điện tử và chứng từ thanh toán không dùng tiền mặt qua ngân hàng (SLA hoàn tất hồ sơ thuế trong **24 giờ**).",
-                "- **Thuế suất `8%` (Nghị định 174/2025/NĐ-CP) / `10%`**: Áp dụng cho dịch vụ tư vấn quản trị CNTT, tích hợp vận hành hạ tầng hoặc dịch vụ kỹ thuật số chịu thuế chuẩn.",
+                "- **Đối tượng Không chịu thuế GTGT (KCT — Luật Thuế GTGT số 48/2024/QH15)**: Áp dụng cho sản phẩm phần mềm và dịch vụ phần mềm theo quy định pháp luật (phát triển phần mềm, chuyển giao bản quyền phần mềm lõi).",
+                "- **Thuế suất 0% (Phần mềm Xuất khẩu / Khách hàng Quốc tế)**: Áp dụng khi đáp ứng đủ bộ hồ sơ hợp đồng ngoại thương, biên bản nghiệm thu điện tử và chứng từ thanh toán không dùng tiền mặt qua ngân hàng (SLA hoàn tất hồ sơ thuế trong **24 giờ**).",
+                "- **Thuế suất 8% (Nghị định 174/2025/NĐ-CP) / 10%**: Áp dụng cho dịch vụ tư vấn quản trị CNTT, tích hợp vận hành hạ tầng hoặc dịch vụ kỹ thuật số chịu thuế chuẩn.",
                 "",
                 "**2. Kênh Thanh Toán & Đối Soát Tự Động (SOP-DGM-09):**",
                 "- **Napas247 VietQR**: Quét mã QR trực tiếp trên trang Hóa đơn hoặc Báo giá để gạch nợ tự động tức thời.",
-                "- **Chuyển khoản Doanh nghiệp VCB DigiBiz / Ngân hàng Thương mại Quốc doanh** (VND) và **SWIFT Quốc tế** (USD, tự động khóa tỷ giá Snapshot theo Nghị định 70/2025/NĐ-CP).",
+                "- **Chuyển khoản Doanh nghiệp** (VND) và **SWIFT Quốc tế** (USD, tự động khóa tỷ giá Snapshot theo Nghị định 70/2025/NĐ-CP).",
             ]
             recommended_actions = [
-                {'label': '💳 Xem Hóa Đơn & Mã Thanh Toán VietQR', 'url': '/my/software-portal#invoices-section', 'style': 'primary'},
-                {'label': '🛠️ Gửi Yêu Cầu Tư Vấn Thuế / Kế Toán Trưởng', 'url': '/my/software-portal#customer-care-section', 'style': 'outline-dark'},
+                {'label': 'Xem Hóa Đơn & Mã Thanh Toán VietQR', 'url': '/my/software-portal#invoices-section', 'style': 'primary'},
+                {'label': 'Gửi Yêu Cầu Tư Vấn Thuế / Kế Toán Trưởng', 'url': '/my/software-portal#customer-care-section', 'style': 'outline-dark'},
             ]
             follow_up_questions = [
                 'Phân biệt Hóa đơn Nháp chờ đối soát và HĐĐT Chính thức 1C26TAA?',
@@ -1490,28 +1490,28 @@ class Al2cPortalController(PortalAccount):
             dsp_lines = []
             for dsp in disputes[:4]:
                 dsp_lines.append(
-                    f"- Hồ sơ đối soát **{dsp.name}** (Hóa đơn `{dsp.invoice_id.name}` · Trạng thái `{dsp.state}`): "
-                    f"Số tiền đối soát **{dsp.disputed_amount:,.0f} {dsp.invoice_id.currency_id.symbol or 'VND'}** — "
-                    f"Lý do: `{dsp.reason}` · Ghi chú: {dsp.resolution_note or 'Đang rà soát'}."
+                    f"- Hồ sơ đối soát **{dsp.name}** (Hóa đơn {dsp.invoice_id.name} · Trạng thái {dsp.state}): "
+                    f"Số tiền đối soát **{dsp.disputed_amount:,.0f} VNĐ** — "
+                    f"Lý do: {dsp.reason} · Ghi chú: {dsp.resolution_note or 'Đang rà soát'}."
                 )
             if not dsp_lines:
                 dsp_lines.append("- Hiện không có hồ sơ tranh chấp nào đang mở (100% hóa đơn đang ở trạng thái tín nhiệm chuẩn).")
 
             answer_lines = [
-                f"### 🛡️ Quy Chế Khiếu Nại Thương Mại AL2C-INV-103 & Đóng Băng Nhắc Nợ Tự Động ({partner_name})",
+                f"### Quy Chế Khiếu Nại Thương Mại AL2C-INV-103 & Đóng Băng Nhắc Nợ Tự Động ({partner_name})",
                 f"Trạng thái bảo vệ quyền lợi đối tác của **{partner_name}**: **{len(disputes)} hồ sơ đối soát AL2C-INV-103**:",
                 *dsp_lines,
                 "",
                 "**1. Cơ chế Đóng Băng Nhắc Nợ Tức Thời (Instant Dunning Freeze Invariant):**",
-                "- Theo quy chuẩn **AL2C-INV-103**, ngay khi Quý Khách hàng gửi yêu cầu đối soát trên trang Hóa đơn hoặc tại **Trung tâm Customer Care**, hệ thống lập tức chuyển trạng thái hóa đơn sang `al2c_has_open_dispute = True`.",
-                "- Toàn bộ tiến trình nhắc nợ tự động (**Dunning Ladder**: `D+3 Nhắc nhở`, `D+15 Cảnh báo phí chậm trả`, `D+30 Tạm ngưng dịch vụ`) bị **ĐÓNG BĂNG 100%** cho đến khi hai bên ký biên bản thống nhất.",
+                "- Theo quy chuẩn **AL2C-INV-103**, ngay khi Quý Khách hàng gửi yêu cầu đối soát trên trang Hóa đơn hoặc tại **Trung tâm Customer Care**, hệ thống lập tức chuyển trạng thái hóa đơn sang đóng băng nhắc nợ.",
+                "- Toàn bộ tiến trình nhắc nợ tự động (**Dunning Ladder**: D+3 Nhắc nhở, D+15 Cảnh báo phí chậm trả, D+30 Tạm ngưng dịch vụ) bị **ĐÓNG BĂNG 100%** cho đến khi hai bên ký biên bản thống nhất.",
                 "",
                 "**2. Quy trình Giải quyết Độc lập (Segregation of Duties):**",
                 "- Các tác nhân AI tự động bị khóa quyền tự ý đóng khiếu nại. Chỉ **Kế toán Trưởng (Billing Manager)** và **Giám đốc Dự án (Sales/Delivery Manager)** mới có thẩm quyền phê duyệt phương án xử lý hoặc phát hành Hóa đơn Điều chỉnh / Credit Note.",
             ]
             recommended_actions = [
-                {'label': '🛡️ Gửi Yêu Cầu Đối Soát AL2C-INV-103 (#customer-care-section)', 'url': '/my/software-portal#customer-care-section', 'style': 'danger'},
-                {'label': '🧾 Danh Sách Hóa Đơn (/my/invoices)', 'url': '/my/invoices', 'style': 'outline-dark'},
+                {'label': 'Gửi Yêu Cầu Đối Soát AL2C-INV-103 (#customer-care-section)', 'url': '/my/software-portal#customer-care-section', 'style': 'primary'},
+                {'label': 'Danh Sách Hóa Đơn (/my/invoices)', 'url': '/my/invoices', 'style': 'outline-dark'},
             ]
             follow_up_questions = [
                 'Cách gửi yêu cầu hỗ trợ kỹ thuật khẩn cấp SLA P1 (phản hồi 15 phút)?',
@@ -1525,14 +1525,14 @@ class Al2cPortalController(PortalAccount):
             ticket_lines = []
             for tk in care_notifications[:4]:
                 ticket_lines.append(
-                    f"- Mã phiếu **{tk.name}** (Dự án `{tk.project_id.name}` · Trạng thái `{tk.state}`): "
-                    f"Loại thông báo `{tk.notification_type}` · Email nhận: `{tk.recipient_email or partner.email or 'N/A'}`."
+                    f"- Mã phiếu **{tk.name}** (Dự án {tk.project_id.name} · Trạng thái {tk.state}): "
+                    f"Loại thông báo {tk.notification_type} · Email nhận: {tk.recipient_email or partner.email or 'N/A'}."
                 )
             if not ticket_lines:
                 ticket_lines.append("- Hiện chưa có phiếu yêu cầu hỗ trợ kỹ thuật mới nào đang chờ xử lý.")
 
             answer_lines = [
-                f"### 🛠️ Trung Tâm Chăm Sóc Khách Hàng, Bảo Hành Kỹ Thuật & Cam Kết SLA ({partner_name})",
+                f"### Trung Tâm Chăm Sóc Khách Hàng, Bảo Hành Kỹ Thuật & Cam Kết SLA ({partner_name})",
                 f"Hệ thống ghi nhận **{len(care_notifications)} thông báo / phiếu hỗ trợ dự án** và **{len(disputes)} hồ sơ đối soát** của **{partner_name}**:",
                 *ticket_lines,
                 "",
@@ -1542,11 +1542,11 @@ class Al2cPortalController(PortalAccount):
                 "- **Mức P3 — Normal (Yêu cầu tư vấn, Change Request CR, Điều chỉnh Hóa đơn Nháp)**: Thời gian phản hồi **<= 4 giờ** · Thời gian hoàn tất **<= 24 giờ làm việc**.",
                 "",
                 "**2. Kênh Tiếp Nhận & Escalation Trực Tuyến:**",
-                "- Quý Khách hàng có thể điền trực tiếp biểu mẫu **Gửi Yêu Cầu Customer Care & Kích Hoạt SLA** ngay tại cột bên phải (`#customer-care-section`) để khởi tạo mã hồ sơ `PRJ-NTF-...` và thông báo tức thời tới **Quản lý Dự án (PM)** cùng **Kế toán Trưởng (KTT)**.",
+                "- Quý Khách hàng có thể điền trực tiếp biểu mẫu **Gửi Yêu Cầu Customer Care & Kích Hoạt SLA** ngay tại cột bên phải (#customer-care-section) để khởi tạo mã hồ sơ PRJ-NTF-... và thông báo tức thời tới **Quản lý Dự án (PM)** cùng **Kế toán Trưởng (KTT)**.",
             ]
             recommended_actions = [
-                {'label': '🚀 Gửi Ticket Hỗ Trợ SLA Ngay (#customer-care-section)', 'url': '/my/software-portal#customer-care-section', 'style': 'primary'},
-                {'label': '📋 Rà Soát Hợp Đồng SOW (#quotations-section)', 'url': '/my/software-portal#quotations-section', 'style': 'outline-dark'},
+                {'label': 'Gửi Ticket Hỗ Trợ SLA Ngay (#customer-care-section)', 'url': '/my/software-portal#customer-care-section', 'style': 'primary'},
+                {'label': 'Rà Soát Hợp Đồng SOW (#quotations-section)', 'url': '/my/software-portal#quotations-section', 'style': 'outline-dark'},
             ]
             follow_up_questions = [
                 'Làm sao để đóng băng nhắc nợ tự động khi đang đối soát hóa đơn (AL2C-INV-103)?',
@@ -1575,8 +1575,12 @@ class Al2cPortalController(PortalAccount):
         context_blocks = [portfolio_context_doc]
         for chunk in chunks:
             context_blocks.append(f"[{chunk.name} | {chunk.section_header}]\n{chunk.content}")
-            tag = chunk.citation_tag or f"[{chunk.name} | {chunk.section_header} | {chunk.id} | {chunk.chunk_hash[:8]}]"
-            if tag not in citations:
+            short_doc = (chunk.name or "KMS-DOC").split("·")[0].split(":")[0].strip()[:22]
+            short_sec = (chunk.section_header or "Standard").split(">")[-1].split("·")[-1].strip()
+            short_sec = re.sub(r"\([^)]*Digimate[^)]*\)", "", short_sec, flags=re.IGNORECASE).strip()[:28]
+            h8 = (chunk.chunk_hash or "verified")[:8]
+            tag = f"[{short_doc} | {short_sec} | {chunk.id} | {h8}]"
+            if tag not in citations and len(citations) < 4:
                 citations.append(tag)
 
         is_grounded, entailment_score, reason = rag_service.verify_grounding_entailment(

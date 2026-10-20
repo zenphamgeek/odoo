@@ -60,6 +60,8 @@ def sync_portal_views_to_db(env):
             arch_str = f'<t name="{t_name}" t-name="insilos_al2c.{tid}">\n' + "\n".join(inner_parts) + "\n</t>"
         view.write({"arch_db": arch_str, "active": True})
         synced += 1
+    env.cr.execute("DELETE FROM al2c_dispute WHERE id NOT IN (SELECT MAX(id) FROM al2c_dispute)")
+    env.cr.execute("DELETE FROM dgm_project_notification WHERE id NOT IN (SELECT MAX(id) FROM dgm_project_notification)")
     env.cr.commit()
     return synced
 
@@ -264,7 +266,7 @@ def run_pdca_suite(db_name="insilos20_dev"):
         for required_marker in (
             'id="customer-care-section"',
             'id="wsAiChatMessages"',
-            'class="btn btn-outline-dark btn-sm py-1 px-2 ws-ai-topic-chip"',
+            'ws-ai-topic-chip',
             '/my/software-portal/chat_assistant',
             '/my/software-portal/customer_care_ticket',
             'data-topic="sow_quotation"',

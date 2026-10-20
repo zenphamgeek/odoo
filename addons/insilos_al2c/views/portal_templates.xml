@@ -1239,20 +1239,30 @@
                 <!-- =====================================================================
                      SECTION 4: TRỢ LÝ AI CHĂM SÓC KHÁCH HÀNG ĐA TÁC VỤ & TRUNG TÂM SLA / AL2C-INV-103
                      ===================================================================== -->
-                <div id="customer-care-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #e0e0e0;">
-                    <div id="disputes" class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-2 mb-3 gap-2">
+                <style>
+                    #innoria_ai_concierge_root,
+                    .o_innoria_ai_concierge_launcher {
+                        display: none !important;
+                    }
+                    .ws-ai-topic-chip:hover {
+                        background: #edf5ff !important;
+                        border-color: #0f62fe !important;
+                    }
+                </style>
+                <div id="customer-care-section" class="border bg-white p-3 p-lg-4 mb-4" style="border-radius: 2px !important; border-color: #d0d7de !important;">
+                    <div id="disputes" class="d-flex flex-wrap align-items-center justify-content-between border-bottom pb-3 mb-3 gap-2" style="border-color: #e0e0e0 !important;">
                         <div>
                             <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-                                <span class="badge text-white" style="background: #0f62fe; border-radius: 4px !important; font-size: 10px;">BƯỚC 4 · CONTEXT-AWARE AI ASSISTANT &amp; CUSTOMER CARE SLA</span>
-                                <span class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">ONLINE · GROUNDED KMS · ISO 27701 SAFE</span>
+                                <span class="badge text-white fw-bold" style="background: #0f62fe; border-radius: 2px !important; font-size: 10px; letter-spacing: 0.04em; padding: 4px 8px;">STEP 04 · AI COPILOT &amp; SLA DESK</span>
+                                <span class="badge fw-bold" style="background: #defbe6; color: #0e6027; border: 1px solid #a7f0ba; border-radius: 2px !important; font-size: 10px; padding: 3px 8px;">GROUNDED KMS · ISO/IEC 27701</span>
                             </div>
-                            <h5 class="fw-bold mb-0" style="color: #161616;">
+                            <h5 class="fw-bold mb-0" style="color: #161616; font-size: 17px; letter-spacing: -0.01em;">
                                 4. Trợ Lý AI Chăm Sóc Khách Hàng Đa Tác Vụ &amp; Trung Tâm Hỗ Trợ SLA / Đối Soát AL2C-INV-103
                             </h5>
                         </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <span id="wsAiEntailmentBadge" class="badge bg-light text-dark border" style="border-radius: 4px !important; font-size: 10px;">ENTAILMENT GATE &gt;= 85%</span>
-                            <span class="badge bg-warning text-dark" style="border-radius: 4px !important; font-size: 10px;">AUTO DUNNING FREEZE (AL2C-INV-103)</span>
+                        <div class="d-flex flex-wrap align-items-center gap-2">
+                            <span id="wsAiEntailmentBadge" class="badge fw-bold" style="background: #f4f4f4; color: #161616; border: 1px solid #c6c6c6; border-radius: 2px !important; font-size: 10px; padding: 4px 8px;">ENTAILMENT GATE &gt;= 85%</span>
+                            <span class="badge fw-bold" style="background: #edf5ff; color: #0043ce; border: 1px solid #a6c8ff; border-radius: 2px !important; font-size: 10px; padding: 4px 8px;">AL2C-INV-103 DUNNING GUARD</span>
                         </div>
                     </div>
 
@@ -1260,84 +1270,95 @@
                     <t t-set="sample_so" t-value="quotations[:1]"/>
                     <t t-set="sample_sheet" t-value="timesheet_sheets[:1]"/>
 
-                    <div class="row g-3">
+                    <div class="row g-3 align-items-stretch">
                         <!-- LEFT COLUMN (col-12 col-lg-7): Multi-Turn Interactive Portal AI Chat Assistant -->
-                        <div class="col-12 col-lg-7">
-                            <div class="p-3 border bg-light h-100 d-flex flex-column" style="border-radius: 2px !important; border-top: 3px solid #0f62fe !important;">
-                                <div class="d-flex flex-wrap align-items-center justify-content-between mb-2 gap-2">
+                        <div class="col-12 col-lg-7 d-flex">
+                            <div class="p-3 border bg-white w-100 d-flex flex-column" style="border-radius: 2px !important; border-color: #d0d7de !important; border-top: 3px solid #0f62fe !important;">
+                                <div class="d-flex align-items-start justify-content-between pb-2 mb-2 border-bottom gap-2" style="border-color: #e8e8e8 !important;">
                                     <div>
-                                        <div class="fw-bold" style="color: #161616; font-size: 14px;">
-                                            🤖 Trợ Lý AI Đối Soát Hợp Đồng SOW, Timesheet, Hóa Đơn 1C26TAA &amp; SLA (SOP-RAG-003)
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge text-white fw-bold flex-shrink-0" style="background: #0f62fe; border-radius: 2px !important; font-size: 9.5px; padding: 3px 6px; white-space: nowrap;">SOP-RAG-003</span>
+                                            <span class="fw-bold" style="color: #161616; font-size: 13.5px;">
+                                                Trợ Lý AI Đối Soát Hợp Đồng SOW, Timesheet, Hóa Đơn 1C26TAA &amp; SLA
+                                            </span>
                                         </div>
-                                        <div class="text-muted small" style="font-size: 11px;">
-                                            Tự động kết nối dữ liệu thực của <strong t-out="partner.name if partner else 'Quý Khách hàng'"/> và đối chiếu kho tri thức chuẩn.
+                                        <div class="text-muted mt-1" style="font-size: 11px;">
+                                            Kết nối dữ liệu thời gian thực của <strong style="color: #161616;" t-out="partner.name if partner else 'Quý Khách hàng'"/> và đối chiếu kho tri thức chuẩn.
                                         </div>
                                     </div>
-                                    <button type="button" id="wsAiClearBtn" class="btn btn-outline-secondary btn-sm py-1 px-2" style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px;">
-                                        Xóa hội thoại
+                                    <button type="button" id="wsAiClearBtn" class="btn btn-outline-secondary btn-sm py-1 px-2 flex-shrink-0" style="border-radius: 0px !important; box-shadow: none !important; font-size: 10.5px; border-color: #8d8d8d; color: #161616; white-space: nowrap;">
+                                        Làm mới hội thoại
                                     </button>
                                 </div>
 
-                                <!-- 6 Quick-Prompt Topic Chips -->
+                                <!-- 6 Quick-Prompt Topic Chips in Uniform 2x3 IBM Carbon Grid -->
                                 <div class="mb-2">
-                                    <div class="text-muted mb-1" style="font-size: 11px; font-weight: 600;">CHỌN NHANH CHỦ ĐỀ CẦN TRỢ LÝ AI GIẢI TRÌNH:</div>
-                                    <div class="d-flex flex-wrap gap-1" id="wsAiTopicChips">
-                                        <button type="button" class="btn btn-outline-dark btn-sm py-1 px-2 ws-ai-topic-chip"
+                                    <div class="text-uppercase mb-1" style="font-size: 10px; font-weight: 700; color: #525252; letter-spacing: 0.04em;">
+                                        CHỦ ĐỀ TRUY VẤN &amp; ĐỐI SOÁT NHANH (6 NGHIỆP VỤ TRỌNG TÂM):
+                                    </div>
+                                    <div id="wsAiTopicChips" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px;">
+                                        <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="sow_quotation"
                                                 data-prompt="Giải trình hồ sơ Báo giá, phạm vi kỹ thuật Fit-to-Standard (Class A/B/C), lộ trình 5-Gate SOW và chỉ số 3Y Value Case ROI của doanh nghiệp?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px;">
-                                            📋 Báo giá, Scope Fit-to-Standard &amp; ROI
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">01</span>
+                                            <span class="text-truncate">Báo giá, Scope Fit-to-Standard &amp; ROI</span>
                                         </button>
-                                        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ws-ai-topic-chip"
+                                        <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="timesheet_sprint"
                                                 data-prompt="Giải trình chi tiết bảng chấm công kỹ sư (Timesheet Sprint), công thức tính Pro-rata 22 ngày công chuẩn, giờ OT và trạng thái chữ ký số SHA-256?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px;">
-                                            ⏱️ Giải trình Bảng chấm công Kỹ sư &amp; OT
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">02</span>
+                                            <span class="text-truncate">Bảng chấm công Kỹ sư &amp; Pro-rata OT</span>
                                         </button>
-                                        <button type="button" class="btn btn-outline-success btn-sm py-1 px-2 ws-ai-topic-chip"
+                                        <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="draft_vs_official_einvoice"
                                                 data-prompt="Phân biệt Hóa đơn Nháp chờ đối soát (chưa cấp mã CQT) và Hóa đơn GTGT Điện tử Chính thức 1C26TAA (Nghị định 70/2025/NĐ-CP) cùng cách tải XML/HTML?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px;">
-                                            🧾 Hóa đơn Nháp vs HĐĐT Chính thức 1C26TAA
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">03</span>
+                                            <span class="text-truncate">Hóa đơn Nháp vs HĐĐT 1C26TAA</span>
                                         </button>
-                                        <button type="button" class="btn btn-outline-dark btn-sm py-1 px-2 ws-ai-topic-chip"
+                                        <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="tax_payment_policy"
                                                 data-prompt="Chính sách thuế GTGT phần mềm (Không chịu thuế KCT, 0% xuất khẩu, 8% dịch vụ CNTT) và hướng dẫn thanh toán qua Napas247 VietQR?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px;">
-                                            ⚖️ Thuế GTGT Phần mềm (KCT / 0% / 8%)
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">04</span>
+                                            <span class="text-truncate">Thuế GTGT Phần mềm (KCT / 0% / 8%)</span>
                                         </button>
-                                        <button type="button" class="btn btn-outline-danger btn-sm py-1 px-2 ws-ai-topic-chip"
+                                        <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="dispute_dunning_freeze"
                                                 data-prompt="Quy chế bảo vệ khách hàng AL2C-INV-103 và cơ chế tự động đóng băng nhắc nợ (Dunning Freeze) khi gửi yêu cầu đối soát hóa đơn hoạt động như thế nào?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px;">
-                                            🛡️ Quy chế Khiếu nại AL2C-INV-103 &amp; Đóng băng Dunning
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">05</span>
+                                            <span class="text-truncate">Khiếu nại AL2C-INV-103 &amp; Dunning</span>
                                         </button>
-                                        <button type="button" class="btn btn-outline-primary btn-sm py-1 px-2 ws-ai-topic-chip"
+                                        <button type="button" class="btn btn-sm text-start d-flex align-items-center gap-2 ws-ai-topic-chip"
                                                 data-topic="sla_customer_care"
                                                 data-prompt="Cam kết SLA hỗ trợ kỹ thuật và bảo hành phần mềm (Mức P1 Critical 15 phút, P2 High 1 giờ, P3 Normal 4 giờ) và cách gửi phiếu yêu cầu hỗ trợ?"
-                                                style="border-radius: 0px !important; box-shadow: none !important; font-size: 11px;">
-                                            🛠️ SLA Bảo hành Kỹ thuật P1/P2/P3 &amp; Liên hệ PM/FinOps
+                                                style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #d0d7de; border-left: 3px solid #0f62fe; background: #f8f9fa; color: #161616; padding: 6px 8px; font-size: 11px; font-weight: 500;">
+                                            <span class="fw-bold text-white flex-shrink-0" style="background: #0f62fe; font-size: 9px; padding: 1px 5px; border-radius: 2px;">06</span>
+                                            <span class="text-truncate">Cam kết SLA Kỹ thuật P1 / P2 / P3</span>
                                         </button>
                                     </div>
                                 </div>
 
                                 <!-- Scrollable Multi-Turn Chat History Window -->
-                                <div id="wsAiChatMessages" class="p-3 bg-white border mb-2 small flex-grow-1" style="min-height: 250px; max-height: 380px; overflow-y: auto; border-radius: 2px !important;">
-                                    <div class="p-2 mb-2 border-start border-4 border-primary bg-light" style="border-radius: 2px !important;">
-                                        <div class="d-flex align-items-center justify-content-between mb-1">
-                                            <strong style="color: #0f62fe; font-size: 11px;">🤖 TRỢ LÝ AI CỔNG KHÁCH HÀNG INNORIA (SOP-RAG-003)</strong>
-                                            <span class="badge bg-white text-dark border" style="border-radius: 4px !important; font-size: 9px;">READY · GROUNDED</span>
+                                <div id="wsAiChatMessages" class="p-2 mb-2 small" style="flex: 1 1 auto; min-height: 360px; max-height: 450px; overflow-y: auto; border-radius: 2px !important; background: #f4f4f4; border: 1px solid #d0d7de;">
+                                    <div class="p-2 mb-2 bg-white border" style="border-radius: 2px !important; border-left: 3px solid #0f62fe !important; border-color: #d0d7de;">
+                                        <div class="d-flex align-items-center justify-content-between mb-1 pb-1 border-bottom" style="border-color: #efefef !important;">
+                                            <strong style="color: #0f62fe; font-size: 10.5px; letter-spacing: 0.02em;">INNORIA PORTAL AI COPILOT · SOP-RAG-003</strong>
+                                            <span class="badge fw-bold" style="background: #defbe6; color: #0e6027; border-radius: 2px !important; font-size: 9px;">READY · GROUNDED</span>
                                         </div>
-                                        <div style="font-size: 12px; color: #161616; line-height: 1.5;">
-                                            Xin chào <strong t-out="partner.name if partner else 'Quý Đối tác'"/>! Hệ thống đang kết nối trực tiếp với
+                                        <div style="font-size: 11.5px; color: #161616; line-height: 1.55;">
+                                            Xin chào <strong t-out="partner.name if partner else 'Quý Đối tác'"/>. Hệ thống đang đồng bộ trực tiếp
                                             <strong><t t-out="len(quotations)"/> Hợp đồng SOW</strong>,
                                             <strong><t t-out="len(timesheet_sheets)"/> Bảng chấm công Kỹ sư</strong>,
                                             <strong><t t-out="len(draft_invoices)"/> Hóa đơn Nháp</strong> và
                                             <strong><t t-out="len(official_invoices)"/> HĐĐT Chính thức 1C26TAA</strong> của Quý đơn vị.
-                                            Hãy bấm vào một trong 6 chủ đề phía trên hoặc nhập câu hỏi bất kỳ bên dưới.
+                                            Chọn một trong 6 nghiệp vụ phía trên hoặc nhập nội dung cần giải trình bên dưới.
                                         </div>
                                     </div>
-                                    <div id="wsAiResult" class="mt-2"/>
+                                    <div id="wsAiResult"/>
                                 </div>
 
                                 <!-- Input Bar -->
@@ -1345,15 +1366,15 @@
                                     <input type="text" id="wsAiQuery" class="form-control"
                                            value="Giải trình chi tiết căn cứ nghiệm thu bảng chấm công kỹ sư và quy trình xuất hóa đơn 1C26TAA?"
                                            placeholder="Nhập câu hỏi về SOW, Timesheet, Hóa đơn Nháp / 1C26TAA, Thuế GTGT hoặc SLA..."
-                                           style="border-radius: 0px !important;"/>
+                                           style="border-radius: 0px !important; border-color: #8d8d8d; font-size: 11.5px;"/>
                                     <button type="button" id="wsAiBtn" class="btn btn-primary fw-bold px-3"
                                             t-att-data-invoice-id="sample_inv.id if sample_inv else 0"
                                             t-att-data-order-id="sample_so.id if sample_so else 0"
                                             t-att-data-sheet-id="sample_sheet.id if sample_sheet else 0"
                                             t-att-data-partner-id="partner.id if partner else 0"
                                             t-att-data-access-token="provided_token or ''"
-                                            style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important;">
-                                        Gửi Câu Hỏi AI
+                                            style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important; font-size: 11.5px;">
+                                        Gửi Yêu Cầu Giải Trình
                                     </button>
                                 </div>
 
@@ -1364,7 +1385,6 @@
                                             const clearBtn = document.getElementById('wsAiClearBtn');
                                             const input = document.getElementById('wsAiQuery');
                                             const chatWindow = document.getElementById('wsAiChatMessages');
-                                            const resultBox = document.getElementById('wsAiResult');
                                             const entailBadge = document.getElementById('wsAiEntailmentBadge');
                                             const chips = document.querySelectorAll('.ws-ai-topic-chip');
                                             if (!btn) return;
@@ -1372,8 +1392,22 @@
 
                                             function cleanMarkdownText(raw) {
                                                 return String(raw || '')
-                                                    .replace(/^###\s+/gm, '▸ ')
-                                                    .replace(/\*\*([^*]+)\*\*/g, '$1');
+                                                    .replace(/^###\s+/gm, '')
+                                                    .replace(/\*\*([^*]+)\*\*/g, '$1')
+                                                    .replace(/`([^`]+)`/g, '$1')
+                                                    .replace(/^[📋⏱️🧾⚖️🛡️🛠️🚀📂💳⬇️💡⏳👤]+\s*/gu, '');
+                                            }
+
+                                            function compactCitationText(cit) {
+                                                const rawCit = String(cit || '').replace(/^\s*\[|\]\s*$/g, '');
+                                                const parts = rawCit.split('|').map(function(p) { return p.trim(); });
+                                                if (parts.length === 4) {
+                                                    const codePart = parts[0].split('·')[0].split(':')[0].trim().slice(0, 16);
+                                                    let secPart = parts[1].split('·').pop().split(':').pop().trim();
+                                                    secPart = secPart.replace(/\([^)]*\)/g, '').trim().slice(0, 22);
+                                                    return '[' + codePart + ' · ' + secPart + ' · #' + parts[2] + ' · ' + parts[3].slice(0, 8) + ']';
+                                                }
+                                                return '[' + rawCit.slice(0, 46) + ']';
                                             }
 
                                             async function askPortalAssistant(queryText, topicCode) {
@@ -1388,15 +1422,22 @@
 
                                                 // Append User Message Bubble
                                                 const userBubble = document.createElement('div');
-                                                userBubble.className = 'p-2 mb-2 bg-white border text-end';
+                                                userBubble.className = 'p-2 mb-2 bg-white border';
                                                 userBubble.style.borderRadius = '2px';
+                                                userBubble.style.borderColor = '#d0d7de';
+                                                userBubble.style.borderRight = '3px solid #161616';
                                                 const userHeader = document.createElement('div');
-                                                userHeader.className = 'text-muted';
-                                                userHeader.style.fontSize = '10px';
-                                                userHeader.textContent = '👤 KHÁCH HÀNG / ĐỐI TÁC';
+                                                userHeader.className = 'd-flex justify-content-between align-items-center mb-1';
+                                                const userRole = document.createElement('span');
+                                                userRole.className = 'fw-bold text-uppercase';
+                                                userRole.style.fontSize = '9.5px';
+                                                userRole.style.color = '#525252';
+                                                userRole.textContent = 'TRUY VẤN CỦA ĐỐI TÁC / KHÁCH HÀNG';
+                                                userHeader.appendChild(userRole);
                                                 const userBody = document.createElement('div');
-                                                userBody.className = 'fw-bold text-dark';
-                                                userBody.style.fontSize = '12px';
+                                                userBody.className = 'fw-bold';
+                                                userBody.style.fontSize = '11.5px';
+                                                userBody.style.color = '#161616';
                                                 userBody.textContent = q;
                                                 userBubble.appendChild(userHeader);
                                                 userBubble.appendChild(userBody);
@@ -1404,14 +1445,17 @@
 
                                                 // Append Loading Bubble
                                                 const botBubble = document.createElement('div');
-                                                botBubble.className = 'p-2 mb-2 bg-light border-start border-4 border-primary';
+                                                botBubble.className = 'p-2 mb-2 bg-white border';
                                                 botBubble.style.borderRadius = '2px';
+                                                botBubble.style.borderColor = '#d0d7de';
+                                                botBubble.style.borderLeft = '3px solid #0f62fe';
                                                 const loadingSpan = document.createElement('span');
-                                                loadingSpan.className = 'text-primary';
-                                                loadingSpan.textContent = '⏳ Đang truy xuất hồ sơ SOW / Timesheet / 1C26TAA và kiểm định Entailment Gate (SOP-RAG-003)...';
+                                                loadingSpan.style.color = '#0f62fe';
+                                                loadingSpan.style.fontSize = '11.5px';
+                                                loadingSpan.textContent = 'Đang truy xuất dữ liệu SOW / Timesheet / 1C26TAA và kiểm định Entailment Gate (SOP-RAG-003)...';
                                                 botBubble.appendChild(loadingSpan);
                                                 chatWindow.appendChild(botBubble);
-                                                chatWindow.scrollTop = chatWindow.scrollHeight;
+                                                chatWindow.scrollTop = botBubble.offsetTop - chatWindow.offsetTop - 8;
 
                                                 btn.disabled = true;
                                                 try {
@@ -1439,49 +1483,77 @@
                                                         const scorePct = ((res.entailment_score || 0.95) * 100).toFixed(1);
                                                         if (entailBadge) {
                                                             entailBadge.textContent = 'VERIFIED ENTAILMENT: ' + scorePct + '%';
-                                                            entailBadge.className = 'badge bg-success text-white';
+                                                            entailBadge.style.background = '#defbe6';
+                                                            entailBadge.style.color = '#0e6027';
+                                                            entailBadge.style.borderColor = '#a7f0ba';
                                                         }
 
                                                         const topRow = document.createElement('div');
-                                                        topRow.className = 'd-flex flex-wrap align-items-center justify-content-between mb-1 gap-1';
+                                                        topRow.className = 'd-flex flex-wrap align-items-center justify-content-between pb-1 mb-2 border-bottom gap-1';
+                                                        topRow.style.borderColor = '#efefef';
                                                         const intentBadge = document.createElement('span');
-                                                        intentBadge.className = 'badge bg-primary text-white';
+                                                        intentBadge.className = 'badge text-white fw-bold';
                                                         intentBadge.style.background = '#0f62fe';
-                                                        intentBadge.style.borderRadius = '4px';
+                                                        intentBadge.style.borderRadius = '2px';
                                                         intentBadge.style.fontSize = '9px';
                                                         intentBadge.textContent = res.intent_badge || 'SOP-RAG-003 VERIFIED';
                                                         const groundBadge = document.createElement('span');
-                                                        groundBadge.className = 'badge bg-success-subtle text-success border border-success';
-                                                        groundBadge.style.borderRadius = '4px';
+                                                        groundBadge.className = 'badge fw-bold';
+                                                        groundBadge.style.background = '#defbe6';
+                                                        groundBadge.style.color = '#0e6027';
+                                                        groundBadge.style.border = '1px solid #a7f0ba';
+                                                        groundBadge.style.borderRadius = '2px';
                                                         groundBadge.style.fontSize = '9px';
-                                                        groundBadge.textContent = '✓ Grounded ' + scorePct + '%';
+                                                        groundBadge.textContent = 'GROUNDED ' + scorePct + '%';
                                                         topRow.appendChild(intentBadge);
                                                         topRow.appendChild(groundBadge);
                                                         botBubble.appendChild(topRow);
 
                                                         const ansDiv = document.createElement('div');
-                                                        ansDiv.className = 'text-dark';
-                                                        ansDiv.style.fontSize = '12px';
-                                                        ansDiv.style.lineHeight = '1.55';
-                                                        ansDiv.style.whiteSpace = 'pre-line';
-                                                        ansDiv.textContent = cleanMarkdownText(res.answer || '');
+                                                        ansDiv.style.fontSize = '11.5px';
+                                                        ansDiv.style.lineHeight = '1.5';
+                                                        ansDiv.style.color = '#161616';
+                                                        const rawLines = String(res.answer || '').split('\n');
+                                                        rawLines.forEach(function(lineStr, idx) {
+                                                            const trimmed = lineStr.trim();
+                                                            if (!trimmed) return;
+                                                            const rowEl = document.createElement('div');
+                                                            if (idx === 0) {
+                                                                rowEl.className = 'fw-bold mb-1';
+                                                                rowEl.style.color = '#0043ce';
+                                                                rowEl.style.fontSize = '12px';
+                                                            } else if (trimmed.indexOf('1.') === 0 || trimmed.indexOf('2.') === 0 || trimmed.indexOf('3.') === 0 || trimmed.indexOf('**1.') === 0 || trimmed.indexOf('**2.') === 0 || trimmed.indexOf('**3.') === 0) {
+                                                                rowEl.className = 'fw-bold mt-1 mb-1';
+                                                                rowEl.style.color = '#161616';
+                                                            } else {
+                                                                rowEl.className = 'mb-1';
+                                                            }
+                                                            rowEl.textContent = cleanMarkdownText(trimmed);
+                                                            ansDiv.appendChild(rowEl);
+                                                        });
                                                         botBubble.appendChild(ansDiv);
 
                                                         if (res.citations) {
                                                             if (res.citations.length) {
                                                                 const citDiv = document.createElement('div');
-                                                                citDiv.className = 'mt-2 pt-1 border-top';
-                                                                citDiv.style.fontSize = '10px';
-                                                                const citTitle = document.createElement('strong');
-                                                                citTitle.className = 'text-muted';
-                                                                citTitle.textContent = 'Nguồn chuẩn đối chiếu (Citations): ';
+                                                                citDiv.className = 'mt-2 pt-2 border-top d-flex flex-wrap align-items-center gap-1';
+                                                                citDiv.style.borderColor = '#efefef';
+                                                                const citTitle = document.createElement('span');
+                                                                citTitle.className = 'fw-bold text-uppercase me-1';
+                                                                citTitle.style.fontSize = '9.5px';
+                                                                citTitle.style.color = '#525252';
+                                                                citTitle.textContent = 'Citations:';
                                                                 citDiv.appendChild(citTitle);
-                                                                res.citations.forEach(function(cit) {
+                                                                res.citations.slice(0, 3).forEach(function(cit) {
                                                                     const cSpan = document.createElement('span');
-                                                                    cSpan.className = 'badge bg-white text-dark border me-1 mt-1';
-                                                                    cSpan.style.borderRadius = '4px';
-                                                                    cSpan.style.fontSize = '9px';
-                                                                    cSpan.textContent = cit;
+                                                                    cSpan.className = 'badge fw-normal';
+                                                                    cSpan.style.background = '#edf5ff';
+                                                                    cSpan.style.color = '#0043ce';
+                                                                    cSpan.style.border = '1px solid #a6c8ff';
+                                                                    cSpan.style.borderRadius = '2px';
+                                                                    cSpan.style.fontSize = '9.5px';
+                                                                    cSpan.style.padding = '2px 6px';
+                                                                    cSpan.textContent = compactCitationText(cit);
                                                                     citDiv.appendChild(cSpan);
                                                                 });
                                                                 botBubble.appendChild(citDiv);
@@ -1491,16 +1563,25 @@
                                                         if (res.recommended_actions) {
                                                             if (res.recommended_actions.length) {
                                                                 const actDiv = document.createElement('div');
-                                                                actDiv.className = 'd-flex flex-wrap gap-1 mt-2';
+                                                                actDiv.className = 'd-flex flex-wrap gap-1 mt-2 pt-1';
                                                                 res.recommended_actions.forEach(function(act) {
                                                                     const aTag = document.createElement('a');
-                                                                    const btnStyle = act.style || 'primary';
+                                                                    const isPrimary = (act.style || 'primary') === 'primary';
                                                                     aTag.href = act.url || '#';
-                                                                    aTag.className = 'btn btn-' + btnStyle + ' btn-sm py-1 px-2 fw-bold';
+                                                                    aTag.className = 'btn btn-sm py-1 px-2 fw-bold';
                                                                     aTag.style.borderRadius = '0px';
                                                                     aTag.style.boxShadow = 'none';
-                                                                    aTag.style.fontSize = '10px';
-                                                                    aTag.textContent = act.label || 'Thao tác';
+                                                                    aTag.style.fontSize = '10.5px';
+                                                                    if (isPrimary) {
+                                                                        aTag.style.background = '#0f62fe';
+                                                                        aTag.style.borderColor = '#0f62fe';
+                                                                        aTag.style.color = '#ffffff';
+                                                                    } else {
+                                                                        aTag.style.background = '#ffffff';
+                                                                        aTag.style.border = '1px solid #161616';
+                                                                        aTag.style.color = '#161616';
+                                                                    }
+                                                                    aTag.textContent = cleanMarkdownText(act.label || 'Thao tác');
                                                                     actDiv.appendChild(aTag);
                                                                 });
                                                                 botBubble.appendChild(actDiv);
@@ -1510,20 +1591,26 @@
                                                         if (res.follow_up_questions) {
                                                             if (res.follow_up_questions.length) {
                                                                 const fqOuter = document.createElement('div');
-                                                                fqOuter.className = 'mt-2 pt-1 border-top';
+                                                                fqOuter.className = 'mt-2 pt-2 border-top';
+                                                                fqOuter.style.borderColor = '#efefef';
                                                                 const fqLabel = document.createElement('div');
-                                                                fqLabel.className = 'text-muted';
-                                                                fqLabel.style.fontSize = '10px';
-                                                                fqLabel.textContent = 'Câu hỏi gợi ý tiếp theo:';
+                                                                fqLabel.className = 'fw-bold text-uppercase mb-1';
+                                                                fqLabel.style.fontSize = '9.5px';
+                                                                fqLabel.style.color = '#525252';
+                                                                fqLabel.textContent = 'Truy vấn đối soát liên quan:';
                                                                 const fqWrap = document.createElement('div');
-                                                                fqWrap.className = 'd-flex flex-wrap gap-1 mt-1';
+                                                                fqWrap.className = 'd-flex flex-wrap gap-1';
                                                                 res.follow_up_questions.forEach(function(fq) {
                                                                     const fbtn = document.createElement('button');
                                                                     fbtn.type = 'button';
-                                                                    fbtn.className = 'btn btn-outline-secondary btn-sm py-0 px-2 ws-ai-followup-btn';
+                                                                    fbtn.className = 'btn btn-sm py-1 px-2 text-start ws-ai-followup-btn';
                                                                     fbtn.style.borderRadius = '0px';
+                                                                    fbtn.style.border = '1px solid #d0d7de';
+                                                                    fbtn.style.borderLeft = '2px solid #0f62fe';
+                                                                    fbtn.style.background = '#f8f9fa';
+                                                                    fbtn.style.color = '#161616';
                                                                     fbtn.style.fontSize = '10px';
-                                                                    fbtn.textContent = '💡 ' + fq;
+                                                                    fbtn.textContent = '▸ ' + fq;
                                                                     fbtn.addEventListener('click', function() {
                                                                         if (input) input.value = fq;
                                                                         askPortalAssistant(fq, '');
@@ -1545,7 +1632,7 @@
                                                     botBubble.textContent = 'Lỗi kết nối tới Trợ lý AI Cổng Khách hàng.';
                                                 } finally {
                                                     btn.disabled = false;
-                                                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                                                    chatWindow.scrollTop = botBubble.offsetTop - chatWindow.offsetTop - 6;
                                                 }
                                             }
 
@@ -1572,8 +1659,9 @@
                                                 clearBtn.addEventListener('click', function() {
                                                     chatWindow.textContent = '';
                                                     const resetMsg = document.createElement('div');
-                                                    resetMsg.className = 'p-2 text-muted small fst-italic';
-                                                    resetMsg.textContent = 'Đã làm mới lịch sử hội thoại. Hãy chọn chủ đề hoặc nhập câu hỏi mới.';
+                                                    resetMsg.className = 'p-2 bg-white border text-muted small';
+                                                    resetMsg.style.borderRadius = '2px';
+                                                    resetMsg.textContent = 'Đã làm mới lịch sử hội thoại. Hãy chọn một trong 6 nghiệp vụ phía trên hoặc nhập câu hỏi mới.';
                                                     chatWindow.appendChild(resetMsg);
                                                 });
                                             }
@@ -1589,57 +1677,59 @@
                         </div>
 
                         <!-- RIGHT COLUMN (col-12 col-lg-5): Interactive Customer Care & SLA Support Ticket / AL2C-INV-103 Desk -->
-                        <div class="col-12 col-lg-5">
-                            <div class="p-3 border bg-light h-100" style="border-radius: 2px !important; border-top: 3px solid #da1e28 !important;">
-                                <div class="d-flex align-items-center justify-content-between mb-2">
-                                    <div class="fw-bold" style="color: #161616; font-size: 14px;">
-                                        🛠️ Gửi Yêu Cầu Hỗ Trợ Kỹ Thuật SLA &amp; Đối Soát AL2C-INV-103
+                        <div class="col-12 col-lg-5 d-flex">
+                            <div class="p-3 border bg-white w-100 d-flex flex-column" style="border-radius: 2px !important; border-color: #d0d7de !important; border-top: 3px solid #161616 !important;">
+                                <div class="d-flex align-items-start justify-content-between pb-2 mb-2 border-bottom gap-2" style="border-color: #e8e8e8 !important;">
+                                    <div>
+                                        <div class="fw-bold" style="color: #161616; font-size: 13.5px;">
+                                            Gửi Yêu Cầu Hỗ Trợ Kỹ Thuật SLA &amp; Đối Soát AL2C-INV-103
+                                        </div>
+                                        <div class="text-muted mt-1" style="font-size: 11px;">
+                                            Định tuyến trực tiếp tới Quản lý Dự án (PM) &amp; Kế toán Trưởng (FinOps).
+                                        </div>
                                     </div>
-                                    <span class="badge bg-danger text-white" style="border-radius: 4px !important; font-size: 9px;">SLA 24/7 DESK</span>
+                                    <span class="badge text-white fw-bold flex-shrink-0" style="background: #161616; border-radius: 2px !important; font-size: 9px; padding: 4px 7px; white-space: nowrap;">SLA 24/7 DESK</span>
                                 </div>
-                                <p class="text-muted small mb-2" style="font-size: 11px;">
-                                    Gửi yêu cầu trực tiếp tới Quản lý Dự án (PM) &amp; Kế toán Trưởng (FinOps). Nếu chọn <strong>Khiếu nại Thương mại AL2C-INV-103</strong>, hệ thống sẽ lập tức <strong>ĐÓNG BĂNG tiến trình nhắc nợ tự động</strong>.
-                                </p>
 
                                 <!-- Customer Care Ticket Submission Form -->
-                                <form action="/my/software-portal/customer_care_ticket" method="post" class="p-2 bg-white border mb-3" style="border-radius: 2px !important;">
+                                <form action="/my/software-portal/customer_care_ticket" method="post" class="p-2 border mb-3" style="border-radius: 2px !important; background: #f8f9fa; border-color: #d0d7de !important;">
                                     <input t-if="provided_token" type="hidden" name="access_token" t-att-value="provided_token"/>
                                     <input t-if="partner" type="hidden" name="partner_id" t-att-value="partner.id"/>
 
                                     <div class="row g-2 mb-2">
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label small fw-bold mb-1" style="font-size: 11px;">Phân loại hỗ trợ:</label>
-                                            <select name="care_category" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px;">
-                                                <option value="technical_sla">🛠️ Hỗ trợ Kỹ thuật &amp; Bảo hành SLA</option>
-                                                <option value="timesheet_scope">⏱️ Đối soát Chấm công &amp; Scope SOW</option>
-                                                <option value="billing_einvoice">🧾 Điều chỉnh Hóa đơn Nháp / 1C26TAA</option>
-                                                <option value="commercial_dispute">🛡️ Khiếu nại AL2C-INV-103 (Đóng băng Dunning)</option>
+                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Phân loại nghiệp vụ:</label>
+                                            <select name="care_category" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;">
+                                                <option value="technical_sla">[SLA] Hỗ trợ Kỹ thuật &amp; Bảo hành</option>
+                                                <option value="timesheet_scope">[TS] Đối soát Chấm công &amp; Scope SOW</option>
+                                                <option value="billing_einvoice">[INV] Điều chỉnh Hóa đơn Nháp / 1C26TAA</option>
+                                                <option value="commercial_dispute">[AL2C-INV-103] Khiếu nại &amp; Đóng băng Dunning</option>
                                             </select>
                                         </div>
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label small fw-bold mb-1" style="font-size: 11px;">Mức ưu tiên SLA:</label>
-                                            <select name="priority_level" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px;">
-                                                <option value="p1_critical">🔥 P1 Critical (Phản hồi 15p · Xử lý 2h)</option>
-                                                <option value="p2_high" selected="selected">⚡ P2 High (Phản hồi 1h · Xử lý 8h)</option>
-                                                <option value="p3_normal">📌 P3 Normal (Phản hồi 4h · Xử lý 24h)</option>
+                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Mức cam kết SLA:</label>
+                                            <select name="priority_level" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;">
+                                                <option value="p1_critical">P1 Critical (Phản hồi 15p · Xử lý 2h)</option>
+                                                <option value="p2_high" selected="selected">P2 High (Phản hồi 1h · Xử lý 8h)</option>
+                                                <option value="p3_normal">P3 Normal (Phản hồi 4h · Xử lý 24h)</option>
                                             </select>
                                         </div>
                                     </div>
 
                                     <div class="row g-2 mb-2">
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label small mb-1" style="font-size: 11px;">Họ tên Người liên hệ:</label>
-                                            <input type="text" name="contact_name" class="form-control form-control-sm" t-att-value="partner.name if partner else ''" required="required" style="border-radius: 0px !important; font-size: 11px;"/>
+                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Người đại diện liên hệ:</label>
+                                            <input type="text" name="contact_name" class="form-control form-control-sm" t-att-value="partner.name if partner else ''" required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;"/>
                                         </div>
                                         <div class="col-12 col-sm-6">
-                                            <label class="form-label small mb-1" style="font-size: 11px;">Email nhận phản hồi SLA:</label>
-                                            <input type="email" name="contact_email" class="form-control form-control-sm" t-att-value="partner.email if partner else ''" style="border-radius: 0px !important; font-size: 11px;"/>
+                                            <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Email nhận biên bản SLA:</label>
+                                            <input type="email" name="contact_email" class="form-control form-control-sm" t-att-value="(partner.email if (partner and partner.email) else 'tham.mai@inno.ai.vn')" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;"/>
                                         </div>
                                     </div>
 
                                     <div class="mb-2" t-if="draft_invoices or official_invoices">
-                                        <label class="form-label small mb-1" style="font-size: 11px;">Hóa đơn liên quan (Tùy chọn):</label>
-                                        <select name="invoice_id" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px;">
+                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Chứng từ / Hóa đơn liên kết:</label>
+                                        <select name="invoice_id" class="form-select form-select-sm" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;">
                                             <option value="">-- Áp dụng chung cho Dự án / Hợp đồng SOW --</option>
                                             <t t-foreach="draft_invoices | official_invoices" t-as="inv_opt">
                                                 <option t-att-value="inv_opt.id">
@@ -1650,54 +1740,58 @@
                                     </div>
 
                                     <div class="mb-2">
-                                        <label class="form-label small fw-bold mb-1" style="font-size: 11px;">Tiêu đề yêu cầu hỗ trợ / đối soát:</label>
-                                        <input type="text" name="subject" class="form-control form-control-sm" placeholder="VD: Yêu cầu kiểm tra lại số giờ OT Sprint hoặc cập nhật MST Hóa đơn Nháp..." required="required" style="border-radius: 0px !important; font-size: 11px;"/>
+                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Tiêu đề yêu cầu hỗ trợ / đối soát:</label>
+                                        <input type="text" name="subject" class="form-control form-control-sm" placeholder="VD: Yêu cầu kiểm tra số giờ OT Sprint hoặc cập nhật MST Hóa đơn Nháp..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;"/>
                                     </div>
 
                                     <div class="mb-2">
-                                        <label class="form-label small mb-1" style="font-size: 11px;">Nội dung chi tiết:</label>
-                                        <textarea name="description" rows="2" class="form-control form-control-sm" placeholder="Mô tả chi tiết hạng mục kỹ thuật, dòng chấm công hoặc hóa đơn cần hỗ trợ..." required="required" style="border-radius: 0px !important; font-size: 11px;"></textarea>
+                                        <label class="form-label small fw-bold mb-1" style="font-size: 10.5px; color: #161616;">Nội dung chi tiết:</label>
+                                        <textarea name="description" rows="2" class="form-control form-control-sm" placeholder="Mô tả chi tiết hạng mục kỹ thuật, dòng chấm công hoặc hóa đơn cần đối soát..." required="required" style="border-radius: 0px !important; font-size: 11px; border-color: #8d8d8d;"></textarea>
                                     </div>
 
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="checkbox" name="freeze_dunning" value="1" id="chkFreezeDunning"/>
-                                        <label class="form-check-label small text-danger fw-bold" for="chkFreezeDunning" style="font-size: 11px;">
-                                            🛡️ Kích hoạt AL2C-INV-103: Đóng băng nhắc nợ tự động (Dunning Freeze)
+                                        <label class="form-check-label small fw-bold" for="chkFreezeDunning" style="font-size: 10.5px; color: #161616;">
+                                            Kích hoạt chốt chặn AL2C-INV-103: Tạm dừng nhắc nợ tự động (Dunning Freeze)
                                         </label>
                                     </div>
 
-                                    <button type="submit" class="btn btn-danger btn-sm w-100 fw-bold py-2" style="border-radius: 0px !important; box-shadow: none !important; font-size: 12px;">
-                                        🚀 Gửi Yêu Cầu Customer Care &amp; Kích Hoạt SLA
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold py-2" style="background: #0f62fe; border-color: #0f62fe; border-radius: 0px !important; box-shadow: none !important; font-size: 11.5px;">
+                                        Gửi Yêu Cầu Hỗ Trợ &amp; Cấp Mã Theo Dõi SLA
                                     </button>
                                 </form>
 
                                 <!-- Active Disputes & Customer Care Tickets Feed -->
-                                <div class="fw-bold mb-1" style="color: #161616; font-size: 12px;">
-                                    📌 Hồ Sơ Đối Soát AL2C-INV-103 &amp; Phiếu Hỗ Trợ Đang Mở (<t t-out="len(disputes) + len(care_tickets or [])"/>)
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="text-uppercase fw-bold" style="color: #525252; font-size: 10px; letter-spacing: 0.04em;">
+                                        HỒ SƠ ĐỐI SOÁT AL2C-INV-103 &amp; PHIẾU SLA ĐANG MỞ
+                                    </span>
+                                    <span class="badge fw-bold" style="background: #f4f4f4; color: #161616; border: 1px solid #d0d7de; border-radius: 2px !important; font-size: 9.5px;">
+                                        <t t-out="len(disputes) + len(care_tickets or [])"/> HỒ SƠ
+                                    </span>
                                 </div>
-                                <div style="max-height: 175px; overflow-y: auto;">
+                                <div class="flex-grow-1" style="max-height: 155px; overflow-y: auto;">
                                     <t t-if="not disputes and not care_tickets">
-                                        <div class="p-2 bg-white border text-muted small" style="border-radius: 2px !important; font-size: 11px;">
-                                            Hiện không có tranh chấp thương mại nào đang mở. Mọi yêu cầu gửi từ biểu mẫu trên sẽ được cấp mã theo dõi SLA tức thời.
+                                        <div class="p-2 bg-light border text-muted small" style="border-radius: 2px !important; font-size: 11px;">
+                                            Hiện không có tranh chấp thương mại nào đang mở. Mọi yêu cầu gửi từ biểu mẫu trên được cấp mã SLA tức thời.
                                         </div>
                                     </t>
-                                    <t t-foreach="disputes" t-as="dsp">
-                                        <div class="p-2 bg-white border mb-2 small" style="border-radius: 2px !important; border-left: 3px solid #da1e28 !important; font-size: 11px;">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <strong class="text-danger" t-out="dsp.name"/>
-                                                <span class="badge bg-warning text-dark" style="border-radius: 4px !important; font-size: 9px;">DUNNING FROZEN · <t t-out="dsp.state"/></span>
+                                    <t t-foreach="disputes[:2]" t-as="dsp">
+                                        <div class="p-2 bg-white border mb-1 small" style="border-radius: 2px !important; border-color: #d0d7de; border-left: 3px solid #da1e28 !important; font-size: 10.5px;">
+                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                <strong style="color: #161616;" t-out="dsp.name"/>
+                                                <span class="badge fw-bold" style="background: #fff1f1; color: #a2191f; border: 1px solid #ffd7d9; border-radius: 2px !important; font-size: 9px;">DUNNING FROZEN · <t t-out="dsp.state"/></span>
                                             </div>
-                                            <div class="text-muted">Hóa đơn: <strong t-out="dsp.invoice_id.name"/> · Số tiền đối soát: <strong t-out="dsp.disputed_amount" t-options="{'widget': 'monetary', 'display_currency': dsp.invoice_id.currency_id}"/></div>
-                                            <div class="mt-1 text-dark" t-out="dsp.resolution_note"/>
+                                            <div class="text-muted">Hóa đơn: <strong style="color: #161616;" t-out="dsp.invoice_id.name"/> · Giá trị đối soát: <strong style="color: #161616;"><t t-out="'{:,.0f}'.format(dsp.disputed_amount or 0.0)"/> VNĐ</strong></div>
                                         </div>
                                     </t>
-                                    <t t-foreach="(care_tickets or [])[:5]" t-as="ctk">
-                                        <div class="p-2 bg-white border mb-2 small" style="border-radius: 2px !important; border-left: 3px solid #0f62fe !important; font-size: 11px;">
+                                    <t t-foreach="(care_tickets or [])[:2]" t-as="ctk">
+                                        <div class="p-2 bg-white border mb-1 small" style="border-radius: 2px !important; border-color: #d0d7de; border-left: 3px solid #0f62fe !important; font-size: 10.5px;">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <strong style="color: #0f62fe;" t-out="ctk.name"/>
-                                                <span class="badge bg-light text-dark border" style="border-radius: 4px !important; font-size: 9px;" t-out="ctk.state"/>
+                                                <span class="badge" style="background: #edf5ff; color: #0043ce; border-radius: 2px !important; font-size: 9px;" t-out="ctk.state"/>
                                             </div>
-                                            <div class="text-muted">Dự án: <strong t-out="ctk.project_id.name"/> · Người nhận: <code t-out="ctk.recipient_email or 'PM/FinOps'"/></div>
+                                            <div class="text-muted">Dự án: <strong style="color: #161616;" t-out="ctk.project_id.name"/> · Đầu mối: <span style="color: #161616;" t-out="ctk.recipient_email or 'PM/FinOps'"/></div>
                                         </div>
                                     </t>
                                 </div>

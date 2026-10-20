@@ -554,10 +554,15 @@ class AccountMove(models.Model):
         elif detected_intent == 'dispute_dunning_freeze':
             citations.append("[AL2C-INV-103 | Commercial Dispute & Dunning Freeze | 103 | f103inv9]")
 
+        import re
         for chunk in chunks:
             context_blocks.append(f"[{chunk.name} | {chunk.section_header}]\n{chunk.content}")
-            tag = chunk.citation_tag or f"[{chunk.name} | {chunk.section_header} | {chunk.id} | {chunk.chunk_hash[:8]}]"
-            if tag not in citations:
+            short_doc = (chunk.name or "KMS-DOC").split("·")[0].split(":")[0].strip()[:22]
+            short_sec = (chunk.section_header or "Standard").split(">")[-1].split("·")[-1].strip()
+            short_sec = re.sub(r"\([^)]*Digimate[^)]*\)", "", short_sec, flags=re.IGNORECASE).strip()[:28]
+            h8 = (chunk.chunk_hash or "verified")[:8]
+            tag = f"[{short_doc} | {short_sec} | {chunk.id} | {h8}]"
+            if tag not in citations and len(citations) < 4:
                 citations.append(tag)
 
         is_grounded, entailment_score, reason = rag_service.verify_grounding_entailment(
