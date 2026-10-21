@@ -149,6 +149,35 @@ async function auditCommonPageInvariants(page, routeLabel, viewportLabel) {
         }
         metrics.checkboxRowsChecked = checkRows.length;
 
+        // 7. Official Phosphor Duotone SVG Brand Iconography & Zero Raw Emoji Check
+        const phIcons = Array.from(document.querySelectorAll('svg.ph-duotone, svg.al2c-ph-icon'));
+        let visiblePhIcons = 0;
+        for (const svg of phIcons) {
+            const cs = window.getComputedStyle(svg);
+            if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+            const sr = svg.getBoundingClientRect();
+            if (sr.width === 0 && sr.height === 0) continue;
+            visiblePhIcons++;
+            if (sr.width < 8 || sr.height < 8) {
+                errors.push(`Phosphor Duotone SVG too small: ${sr.width}x${sr.height}`);
+            }
+        }
+        metrics.phosphorDuotoneIcons = visiblePhIcons;
+
+        // Ensure zero raw emojis in AI Concierge tabs, suggested actions, quick prompts, or service buttons
+        const emojiControls = Array.from(
+            document.querySelectorAll(
+                '.al2c-tab-btn, .al2c-suggested-action-btn, .al2c-quick-chip, .al2c-service-pill, .al2c-svc-btn'
+            )
+        );
+        const emojiRe = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u;
+        for (const ctrl of emojiControls) {
+            const txt = (ctrl.textContent || '').trim();
+            if (emojiRe.test(txt)) {
+                errors.push(`Raw Unicode emoji found in control "${txt}" — must use Phosphor Duotone SVG`);
+            }
+        }
+
         return { errors, metrics };
     }, { isDesktop: viewportLabel === 'Desktop' });
 

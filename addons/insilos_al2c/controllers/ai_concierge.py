@@ -136,8 +136,8 @@ INNORIA_SOFTWARE_SERVICES = [
             'SLA 140–180 giờ/tháng • 5 ngày dùng thử miễn phí',
             'Đối soát Timesheet Portal 1-Click & HĐĐT 1C26TAA',
         ],
-        'cta_configurator_label': '⚙️ Dự toán chi phí & Cấu hình',
-        'cta_quote_label': '📅 Nhận báo giá chính thức',
+        'cta_configurator_label': 'Dự toán chi phí & Cấu hình',
+        'cta_quote_label': 'Nhận báo giá chính thức',
     },
     {
         'code': 'sw_turnkey',
@@ -165,8 +165,8 @@ INNORIA_SOFTWARE_SERVICES = [
             'Nghiệm thu mặc nhiên (Deemed Acceptance) 05 ngày làm việc',
             'Bảo hành lỗi kỹ thuật (Bug-Fix Warranty) 90 ngày – 12 tháng',
         ],
-        'cta_configurator_label': '⚙️ Dự toán chi phí & Cấu hình',
-        'cta_quote_label': '📅 Nhận báo giá chính thức',
+        'cta_configurator_label': 'Dự toán chi phí & Cấu hình',
+        'cta_quote_label': 'Nhận báo giá chính thức',
     },
     {
         'code': 'erp',
@@ -193,8 +193,8 @@ INNORIA_SOFTWARE_SERVICES = [
             'Tự động hóa Báo giá -> Đơn hàng -> Xuất kho -> HĐĐT 1C26TAA',
             'Bảng lương BHXH/BHYT/BHTN & Xuất Excel Ngân hàng 11 cột',
         ],
-        'cta_configurator_label': '⚙️ Dự toán chi phí & Cấu hình',
-        'cta_quote_label': '📅 Nhận báo giá chính thức',
+        'cta_configurator_label': 'Dự toán chi phí & Cấu hình',
+        'cta_quote_label': 'Nhận báo giá chính thức',
     },
     {
         'code': 'grc',
@@ -221,8 +221,8 @@ INNORIA_SOFTWARE_SERVICES = [
             'Tuân thủ Hóa chất Luật 69/2025/QH15 & HSE QCVN 05A:2020/BCT',
             'Tự động tính hàm lượng RVC & Xuất xứ ưu đãi FTA (EVFTA, CPTPP)',
         ],
-        'cta_configurator_label': '⚙️ Dự toán chi phí & Cấu hình',
-        'cta_quote_label': '📅 Nhận báo giá chính thức',
+        'cta_configurator_label': 'Dự toán chi phí & Cấu hình',
+        'cta_quote_label': 'Nhận báo giá chính thức',
     },
     {
         'code': 'ai',
@@ -249,8 +249,8 @@ INNORIA_SOFTWARE_SERVICES = [
             'Bóc tách chứng từ Logistics IDP & đối soát 3 chiều tự động',
             'Hạ tầng LLM riêng tư, không rò rỉ dữ liệu ra bên ngoài',
         ],
-        'cta_configurator_label': '⚙️ Dự toán chi phí & Cấu hình',
-        'cta_quote_label': '📅 Nhận báo giá chính thức',
+        'cta_configurator_label': 'Dự toán chi phí & Cấu hình',
+        'cta_quote_label': 'Nhận báo giá chính thức',
     },
     {
         'code': 'zencode',
@@ -277,8 +277,8 @@ INNORIA_SOFTWARE_SERVICES = [
             'Tự động sinh bộ kiểm thử bất biến (Adversarial & E2E Tests)',
             'Triển khai Kubernetes High-Availability với Rollback tức thời',
         ],
-        'cta_configurator_label': '⚙️ Dự toán chi phí & Cấu hình',
-        'cta_quote_label': '📅 Nhận báo giá chính thức',
+        'cta_configurator_label': 'Dự toán chi phí & Cấu hình',
+        'cta_quote_label': 'Nhận báo giá chính thức',
     },
 ]
 
@@ -1349,25 +1349,28 @@ class InnoriaAiConciergeController(http.Controller):
             'adversarial_containment': adversarial_containment,
             'suggested_actions': [
                 {
+                    'icon': 'ph-calculator',
                     'type': 'open_configurator',
                     'action': 'open_configurator',
                     'service_code': primary_service_code,
                     'pillar': matched_pillar or 'enterprise',
-                    'label': _("⚙️ Dự toán chi phí & Cấu hình"),
+                    'label': _("Dự toán chi phí & Cấu hình"),
                 },
                 {
+                    'icon': 'ph-calendar-check',
                     'type': 'open_lead',
                     'action': 'open_lead',
                     'service_code': primary_service_code,
                     'pillar': matched_pillar or 'enterprise',
-                    'label': _("📅 Nhận báo giá chính thức"),
+                    'label': _("Nhận báo giá chính thức"),
                 },
                 {
+                    'icon': 'ph-users-three',
                     'type': 'prompt',
                     'action': 'prompt',
                     'prompt': _("Tư vấn mô hình thuê đội kỹ sư phần mềm Co-Engineering Squad theo Thông tư 13/2020?"),
                     'text': _("Tư vấn mô hình thuê đội kỹ sư phần mềm Co-Engineering Squad theo Thông tư 13/2020?"),
-                    'label': _("👨‍💻 Báo giá Squad Kỹ sư (TT13)"),
+                    'label': _("Báo giá Squad Kỹ sư (TT13)"),
                     'pillar': matched_pillar or 'enterprise',
                 },
             ]

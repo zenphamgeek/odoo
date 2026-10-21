@@ -71,6 +71,11 @@ def assert_sota_ui_ux_static_invariants():
     assert "logo_innoria_square_icon.svg" in c_xml and "al2c-header-logo-square" in c_xml and "al2c-logo-square-frame" in c_xml, (
         "ai_concierge_widget.xml must render logo_innoria_square_icon.svg inside .al2c-header-logo-square and .al2c-logo-square-frame"
     )
+    assert "phosphor-duotone.svg#ph-" in c_xml and "ph-duotone" in c_xml, (
+        "ai_concierge_widget.xml must use official Phosphor Duotone SVG icons (phosphor-duotone.svg#ph-*)"
+    )
+    for banned_emoji in ("💬", "🧮", "📅", "👨‍💻", "🏗️", "📊", "🛡️", "🤖", "⚡", "⚙️", "📎", "🎉", "🚀"):
+        assert banned_emoji not in c_xml, f"Raw emoji {banned_emoji} found in ai_concierge_widget.xml — use Phosphor Duotone SVG"
     assert "innoria-priority-dropzone" in c_xml and "innoria-dropzone-header-row" in c_xml, (
         "ai_concierge_widget.xml must render .innoria-priority-dropzone with boundary header row"
     )
@@ -82,6 +87,9 @@ def assert_sota_ui_ux_static_invariants():
         p_xml = f.read()
     assert 't-set="no_breadcrumbs" t-value="True"' in p_xml and "portal_breadcrumbs_inherit_al2c" in p_xml, (
         "portal_templates.xml must suppress orphaned breadcrumbs on /my/software-portal and upgrade portal.portal_breadcrumbs"
+    )
+    assert "phosphor-duotone.svg#ph-" in p_xml, (
+        "portal_templates.xml must use official Phosphor Duotone SVG icons (phosphor-duotone.svg#ph-*)"
     )
 
     contactus_xml = os.path.join(ROOT_DIR, "enterprise/insilos_website/views/innoria_pages.xml")
@@ -97,7 +105,7 @@ def assert_sota_ui_ux_static_invariants():
         "portal_branding.scss must enforce canonical Innoria brand palette"
     )
     assert "'Poppins'" in p_scss, "portal_branding.scss must enforce 'Poppins' typography"
-    print("  [PASS] All AL2C & Website static SCSS & XML files satisfy SOP-UI-SOTA-01 & ADR-20261020-017 invariants.")
+    print("  [PASS] All AL2C & Website static SCSS & XML files satisfy SOP-UI-SOTA-01, ADR-20261020-017 & Phosphor Duotone invariants.")
 
 
 def jsonrpc_call(opener, path, params=None):

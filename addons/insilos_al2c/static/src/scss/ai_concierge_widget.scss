@@ -1705,7 +1705,48 @@
     }
 }
 
-#wrapwrap #innoria_ai_concierge_root {
+#wrapwrap #innoria_ai_concierge_root,
+.al2c-concierge-root {
+    .ph-duotone,
+    .al2c-ph-icon {
+        width: 14px;
+        height: 14px;
+        min-width: 14px;
+        min-height: 14px;
+        flex-shrink: 0;
+        display: inline-block;
+        vertical-align: -2px;
+        fill: currentColor;
+        color: inherit;
+    }
+
+    .al2c-tab-btn,
+    .al2c-btn-header-quote,
+    .al2c-cfg-service-pill,
+    .al2c-btn-cfg-ask,
+    .al2c-btn-cfg-proceed,
+    .al2c-service-card-btn,
+    .al2c-action-chip,
+    .al2c-quick-chip {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .al2c-action-chip,
+    .al2c-quick-chip {
+        justify-content: flex-start;
+
+        .al2c-ph-icon {
+            color: var(--al2c-concierge-primary, #005F73);
+        }
+
+        &:hover .al2c-ph-icon {
+            color: currentColor;
+        }
+    }
+
     .al2c-lead-header .al2c-logo-square-frame {
         align-self: stretch !important;
         width: 68px !important;
@@ -1723,5 +1764,6 @@
         }
     }
 }
+
 
 

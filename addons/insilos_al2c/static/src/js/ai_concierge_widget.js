@@ -18,8 +18,9 @@ import { whenReady } from "@insilos/owl";
 const DEFAULT_SERVICES_CATALOG = [
     {
         code: "sw_squad",
+        icon: "ph-users-three",
         name: "Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad)",
-        short_label: "👨‍💻 Squad Đồng Phát Triển",
+        short_label: "Squad Đồng Phát Triển",
         badge: "TT 13/2020/TT-BTTTT • Agile Pod",
         summary:
             "Cung cấp đội ngũ Kỹ sư Phần mềm, Solution Architect & QA/SecOps chuyên trách theo chuẩn Agile/Scrum, tích hợp giám sát năng suất AGY Telemetry và định mức quy trình phần mềm Thông tư 13/2020/TT-BTTTT.",
@@ -50,8 +51,9 @@ const DEFAULT_SERVICES_CATALOG = [
     },
     {
         code: "sw_turnkey",
+        icon: "ph-stack",
         name: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software)",
-        short_label: "🏗️ Phần Mềm Trọn Gói",
+        short_label: "Phần Mềm Trọn Gói",
         badge: "5-Gate Enterprise • Fixed-Scope SLA",
         summary:
             "Thiết kế kiến trúc, phát triển trọn gói hệ thống phần mềm doanh nghiệp, cổng giao dịch B2B/B2C, Web/Mobile App đặc thù theo phương pháp luận 5-Gate Enterprise (Prepare → Explore → Realize → Deploy → Run).",
@@ -82,8 +84,9 @@ const DEFAULT_SERVICES_CATALOG = [
     },
     {
         code: "erp",
+        icon: "ph-chart-bar",
         name: "Insilos Clean-Core ERP & HĐĐT 1C26TAA",
-        short_label: "📊 Clean-Core ERP",
+        short_label: "Clean-Core ERP",
         badge: "VAS 200/133 • NĐ 70/2025",
         summary:
             "Nền tảng ERP thế hệ mới hợp nhất Kế toán chuẩn VAS (Thông tư 200/133) & IFRS, Chuỗi cung ứng WMS, Sản xuất MRP, Nhân sự Tiền lương BHXH/PIT 2026 và Hóa đơn điện tử 1C26TAA.",
@@ -114,8 +117,9 @@ const DEFAULT_SERVICES_CATALOG = [
     },
     {
         code: "grc",
+        icon: "ph-shield-check",
         name: "Vertical Resilience (GRC, ISO 27701 & e-CO)",
-        short_label: "🛡️ GRC & ISO 27701",
+        short_label: "GRC & ISO 27701",
         badge: "ISO 27701 • NĐ 13/2023",
         summary:
             "Hệ thống Quản trị Rủi ro Doanh nghiệp (ERM), Ma trận Kiểm soát Nội bộ (RCM), bảo vệ dữ liệu cá nhân Nghị định 13/2023/NĐ-CP (ISO 27701), truy xuất nguồn gốc xuất xứ e-CO và kiểm kê ESG/CSRD.",
@@ -126,7 +130,7 @@ const DEFAULT_SERVICES_CATALOG = [
         starting_price: "Từ 76.000.000 ₫ / khung",
         lead_option: "Vertical Resilience (GRC, ISO 27001 & PDPD 13/2023)",
         deliverables: [
-            "Ma trận rủi ro - kiểm soát (RCM), hồ sơ xử lý dữ liệu cá nhân الد-PDPD",
+            "Ma trận rủi ro - kiểm soát (RCM), hồ sơ xử lý dữ liệu cá nhân PDPD",
             "Cơ chế che giấu PII tự động (Need-to-Know Masking) & Nhật ký bất biến",
             "Hồ sơ truy xuất nguồn gốc e-CO & báo cáo kiểm toán ISO 27001 / ISO 27701",
         ],
@@ -146,8 +150,9 @@ const DEFAULT_SERVICES_CATALOG = [
     },
     {
         code: "ai",
+        icon: "ph-robot",
         name: "Mojo AI (AL2C Swarm, Grounded RAG & IDP)",
-        short_label: "🤖 Mojo AI & RAG",
+        short_label: "Mojo AI & RAG",
         badge: "Claim Atom • Entailment ≥ 0.75",
         summary:
             "Triển khai hệ thống Tác tử AI tự chủ (AL2C Swarm), trợ lý tri thức nội bộ Grounded RAG triệt tiêu ảo giác (trích dẫn KMS chuẩn xác) và công nhân bóc tách chứng từ/hợp đồng thông minh (IDP).",
@@ -178,8 +183,9 @@ const DEFAULT_SERVICES_CATALOG = [
     },
     {
         code: "zencode",
+        icon: "ph-lightning",
         name: "Zencode Ent (Hiện Đại Hóa Mã Nguồn & AGY Fleet)",
-        short_label: "⚡ Zencode Refactor",
+        short_label: "Zencode Refactor",
         badge: "Hegelian Dialectic • 13 Gates",
         summary:
             "Dịch vụ tái cấu trúc và hiện đại hóa hệ thống phần mềm kế thừa (Legacy ERP, Monolith, .NET/Java/Python/Odoo cũ) sang kiến trúc hiện đại bằng phương pháp Biện chứng Hegelian và 13 cổng kiểm định tự động.",
@@ -347,6 +353,12 @@ async function callJsonRpc(url, params = {}) {
     return data.result;
 }
 
+function stripLeadingEmojiStr(text) {
+    return String(text || "")
+        .replace(/^[\s\uFE0F\u200D\u2600-\u27BF\u{1F300}-\u{1FAFF}]+/gu, "")
+        .trim();
+}
+
 /**
  * Normalize a service card object from backend or fallback catalog.
  * @param {Object} raw
@@ -358,8 +370,9 @@ function normalizeServiceCard(raw) {
         DEFAULT_SERVICES_CATALOG[0];
     return {
         code: raw.code || raw.service_code || fallback.code,
-        name: raw.name || raw.title || fallback.name,
-        short_label: raw.short_label || fallback.short_label || raw.name || fallback.name,
+        icon: raw.icon || fallback.icon || "ph-stack",
+        name: stripLeadingEmojiStr(raw.name || raw.title || fallback.name),
+        short_label: stripLeadingEmojiStr(raw.short_label || fallback.short_label || raw.name || fallback.name),
         badge: raw.badge || raw.pricing_model || raw.category || fallback.badge,
         summary: raw.summary || raw.description || fallback.summary,
         starting_price:
@@ -522,25 +535,29 @@ export class AiConciergeWidget extends Component {
                     reason: "Thông tin được trích xuất từ khung năng lực Dịch vụ Phần mềm & Giải pháp Doanh nghiệp Innoria KMS (Thông tư 13/2020/TT-BTTTT, Nghị định 70/2025/NĐ-CP, Nghị định 13/2023/NĐ-CP).",
                     suggested_actions: [
                         {
-                            label: "🧮 Mở Công Cụ Dự Toán Dịch Vụ Phần Mềm",
+                            icon: "ph-calculator",
+                            label: "Mở Công Cụ Dự Toán Dịch Vụ Phần Mềm",
                             type: "open_configurator",
                             action: "open_configurator",
                             service_code: "sw_squad",
                         },
                         {
-                            label: "👨‍💻 Tư vấn thuê Squad Kỹ sư (TT 13/2020)",
+                            icon: "ph-users-three",
+                            label: "Tư vấn thuê Squad Kỹ sư (TT 13/2020)",
                             type: "prompt",
                             action: "prompt",
                             prompt: "Tư vấn mô hình thuê Squad Kỹ sư Đồng phát triển theo Thông tư 13/2020/TT-BTTTT và cơ chế nghiệm thu?",
                         },
                         {
-                            label: "🏗️ Quy trình Phần mềm Trọn gói (Turnkey)",
+                            icon: "ph-stack",
+                            label: "Quy trình Phần mềm Trọn gói (Turnkey)",
                             type: "prompt",
                             action: "prompt",
                             prompt: "Quy trình phát triển phần mềm trọn gói (Turnkey) theo chuẩn 5-Gate Enterprise và cam kết bàn giao mã nguồn?",
                         },
                         {
-                            label: "📅 Nhận Báo Giá & Hồ Sơ Năng Lực",
+                            icon: "ph-calendar-check",
+                            label: "Nhận Báo Giá & Hồ Sơ Năng Lực",
                             type: "open_lead",
                             action: "open_lead",
                             service_code: "sw_squad",
@@ -572,6 +589,83 @@ export class AiConciergeWidget extends Component {
                 this._cooldownTimer = null;
             }
         });
+    }
+
+    /**
+     * Strip any leading Unicode emoji / symbol prefix from a label so Phosphor Duotone SVG icons render cleanly.
+     * @param {string} text
+     * @returns {string}
+     */
+    stripLeadingEmoji(text) {
+        return stripLeadingEmojiStr(text);
+    }
+
+    /**
+     * Resolve canonical Phosphor Duotone symbol ID for a service catalog item.
+     * @param {Object} svc
+     * @returns {string}
+     */
+    getServiceIcon(svc) {
+        if (!svc) {
+            return "ph-stack";
+        }
+        if (svc.icon && String(svc.icon).startsWith("ph-")) {
+            return svc.icon;
+        }
+        const map = {
+            sw_squad: "ph-users-three",
+            sw_turnkey: "ph-stack",
+            erp: "ph-chart-bar",
+            grc: "ph-shield-check",
+            ai: "ph-robot",
+            zencode: "ph-lightning",
+        };
+        return map[svc.code] || "ph-stack";
+    }
+
+    /**
+     * Resolve canonical Phosphor Duotone symbol ID for a suggested action chip.
+     * @param {Object} act
+     * @returns {string}
+     */
+    getActionIcon(act) {
+        if (!act) {
+            return "ph-arrow-circle-right";
+        }
+        if (act.icon && String(act.icon).startsWith("ph-")) {
+            return act.icon;
+        }
+        const actionType = act.type || act.action || "";
+        const lbl = String(act.label || "").toLowerCase();
+        if (actionType === "open_configurator" || lbl.includes("dự toán") || lbl.includes("cấu hình") || lbl.includes("estimat")) {
+            return "ph-calculator";
+        }
+        if (
+            actionType === "open_lead" ||
+            actionType === "book_lead" ||
+            actionType === "book_meeting" ||
+            lbl.includes("báo giá") ||
+            lbl.includes("tư vấn trực tiếp") ||
+            lbl.includes("quote")
+        ) {
+            return "ph-calendar-check";
+        }
+        if (lbl.includes("squad") || lbl.includes("kỹ sư") || lbl.includes("13/2020")) {
+            return "ph-users-three";
+        }
+        if (lbl.includes("trọn gói") || lbl.includes("turnkey") || lbl.includes("phần mềm")) {
+            return "ph-stack";
+        }
+        if (lbl.includes("erp") || lbl.includes("1c26taa") || lbl.includes("kế toán")) {
+            return "ph-chart-bar";
+        }
+        if (lbl.includes("grc") || lbl.includes("27701") || lbl.includes("e-co") || lbl.includes("tuân thủ")) {
+            return "ph-shield-check";
+        }
+        if (lbl.includes("ai") || lbl.includes("rag") || lbl.includes("mojo")) {
+            return "ph-robot";
+        }
+        return "ph-arrow-circle-right";
     }
 
     /**
@@ -1352,13 +1446,15 @@ export class AiConciergeWidget extends Component {
                         ? []
                         : [
                               {
-                                  label: "🧮 Dự Toán Dịch Vụ Phần Mềm",
+                                  icon: "ph-calculator",
+                                  label: "Dự Toán Dịch Vụ Phần Mềm",
                                   type: "open_configurator",
                                   action: "open_configurator",
                                   service_code: "sw_squad",
                               },
                               {
-                                  label: "📅 Đăng Ký Tư Vấn Trực Tiếp",
+                                  icon: "ph-calendar-check",
+                                  label: "Đăng Ký Tư Vấn Trực Tiếp",
                                   type: "open_lead",
                                   action: "book_lead",
                                   pillar: this.state.selectedPillar,
@@ -1369,7 +1465,7 @@ export class AiConciergeWidget extends Component {
             }
         } catch (err) {
             const fallbackText =
-                "Đã xảy ra sự cố kết nối tới dịch vụ AI Concierge. Quý khách có thể sử dụng ngay tab **🧮 Dịch Vụ & Dự Toán** hoặc gửi yêu cầu để Chuyên gia Innoria hỗ trợ trực tiếp.";
+                "Đã xảy ra sự cố kết nối tới dịch vụ AI Concierge. Quý khách có thể sử dụng ngay tab **Dịch Vụ & Dự Toán** hoặc gửi yêu cầu để Chuyên gia Innoria hỗ trợ trực tiếp.";
             this.state.messages.push({
                 id: `ai-err-${Date.now()}`,
                 sender: "assistant",
@@ -1383,13 +1479,15 @@ export class AiConciergeWidget extends Component {
                 reason: err.message || "",
                 suggested_actions: [
                     {
-                        label: "🧮 Mở Công Cụ Dự Toán",
+                        icon: "ph-calculator",
+                        label: "Mở Công Cụ Dự Toán",
                         type: "open_configurator",
                         action: "open_configurator",
                         service_code: "sw_squad",
                     },
                     {
-                        label: "📅 Đăng Ký Tư Vấn Doanh Nghiệp",
+                        icon: "ph-calendar-check",
+                        label: "Đăng Ký Tư Vấn Doanh Nghiệp",
                         type: "open_lead",
                         action: "book_lead",
                         pillar: "enterprise",
@@ -1446,7 +1544,7 @@ export class AiConciergeWidget extends Component {
 
         // 0. Honeypot check
         if (form.website_url_hp && String(form.website_url_hp).trim()) {
-            this.state.leadErrorMessage = "🛡️ Hệ thống Bảo mật Chống Spam đã chặn yêu cầu tự động (Honeypot Guard).";
+            this.state.leadErrorMessage = "Hệ thống Bảo mật Chống Spam đã chặn yêu cầu tự động (Honeypot Guard).";
             return;
         }
 
@@ -1533,13 +1631,13 @@ export class AiConciergeWidget extends Component {
 
                 // Add confirmation assistant message to chat thread
                 const confirmText =
-                    `🎉 **Tiếp nhận hồ sơ & cấu hình dự toán thành công!**\n\n` +
+                    `**Tiếp nhận hồ sơ & cấu hình dự toán thành công!**\n\n` +
                     `Kính chào Quý khách **${form.name}** (${form.company_name}), yêu cầu tư vấn giải pháp **${form.product_interest}** ` +
                     `đã được khởi tạo thành công trên hệ thống Innoria AL2C.\n` +
                     `• **Mã hồ sơ CRM:** #${result.lead_id} (${result.lead_name})\n` +
                     `• **Cấu hình dự toán:** ${est.scale_label || cfg.scale_tier} • ${cfg.units} ${est.unit_label || "đơn vị"} • ${cfg.duration_months} tháng (**${est.formatted_total_vnd || "Theo khảo sát"}**)\n` +
                     `• **Điểm đánh giá tiềm năng B2B (Fit Score):** ${Math.round(result.fit_score)}/100\n` +
-                    `• **Phân hạng:** ${result.fast_track_priority ? "⚡ ƯU TIÊN CAO (SLA < 2h · Đã đính kèm tài liệu)" : result.qualification_state === "qualified" ? "Ưu tiên cao (Qualified)" : "Đang xử lý (In Progress)"}\n\n` +
+                    `• **Phân hạng:** ${result.fast_track_priority ? "ƯU TIÊN CAO (SLA < 2h · Đã đính kèm tài liệu)" : result.qualification_state === "qualified" ? "Ưu tiên cao (Qualified)" : "Đang xử lý (In Progress)"}\n\n` +
                     `Chuyên gia Solution Architect phụ trách khối doanh nghiệp sẽ liên hệ với Quý khách qua **${form.email || form.phone}** theo cam kết SLA.`;
 
                 this.state.messages.push({

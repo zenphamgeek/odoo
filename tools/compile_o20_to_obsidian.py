@@ -61,6 +61,7 @@ O20_COMPILE_SUBDIRS = [
     "enterprise/documents",
     "enterprise/insilos_theme_genesis",
     "enterprise/insilos_website",
+    "odoo/addons/base/models",
     "odoo/orm",
     "tools",
 ]
@@ -224,6 +225,43 @@ CANONICAL_O20_ADRS: List[Dict[str, str]] = [
             "SLA/intake form desks, 0px rectangular Poppins form inputs); and (3) Orientation-Aware Multi-Style Logo Placement "
             "(logo_innoria_header.svg for horizontal navbars, logo_innoria_vertical.svg inside .al2c-logo-square-frame for square/vertical zones, "
             "and logo_innoria_square_icon.svg for 1:1 avatars/launchers)."
+        ),
+    },
+    {
+        "adr_id": "ADR-20261020-016",
+        "title": "Multi-Pod Content-Addressed Asset Stamp (`ir_asset._deterministic_file_stamp`), 4-Version Attachment Retention & K8s Runtime Overlay Governance",
+        "valid_from": "2026-10-20T09:50:00+00:00",
+        "rationale": (
+            "Eliminates multi-pod asset bundle checksum thrashing and ERR_TOO_MANY_REDIRECTS (302 loops) across Kubernetes pods "
+            "(innoria-prod-app-* and insilos-saas-app-*): (1) replaces raw filesystem st_mtime in odoo/addons/base/models/ir_asset.py "
+            "(_glob_static_file) with _deterministic_file_stamp(filepath) (1700000000 + (zlib.crc32(content) & 0x03ffffff), cached by "
+            "(filepath, st_mtime_ns, st_size)); (2) retains the 4 most recent attachment versions in AssetsBundle._clean_attachments "
+            "(search(domain, order='id desc')[4:]); (3) enforces complete K8s PVC/overlay synchronization (ir_asset.py, assetsbundle.py, "
+            "static/src/fonts, static/src/components, static/src/lib, and all static/src/img/innoria/*.svg logos) in "
+            "tools/sync_all_pods_and_reload.py; and (4) mandates insilos_adapter.hook.install() before parse_config() in tools/safe_asset_warmup.py."
+        ),
+    },
+    {
+        "adr_id": "ADR-20261020-017",
+        "title": "Brand Logo Inventory Discovery, Space-Aware Square/Vertical/Horizontal Logo Selection & Pixel-Level Layout Verification Gate",
+        "valid_from": "2026-10-20T10:55:00+00:00",
+        "rationale": (
+            "Enforces space-aware selection across the 5-variant Innoria vector logo inventory: (1) logo_innoria_square_icon.svg (380x400 1:1 symbol) "
+            "for compact <=76x76px drawer headers (.al2c-concierge-header .al2c-header-logo-square), AI Concierge lead headers, chat avatars, and "
+            "breadcrumb pills; (2) logo_innoria_vertical.svg (1135x1781) inside 100%-height stretched .al2c-logo-square-frame on full-page workspace "
+            "headers (/contactus, /my/software-portal); and (3) logo_innoria_header.svg (1238x381) for horizontal navbars. Suppresses orphaned "
+            "portal home icons via no_breadcrumbs=True and verifies pixel geometry via tools/test_al2c_pixel_layout_audit.js."
+        ),
+    },
+    {
+        "adr_id": "ADR-20261021-018",
+        "title": "Official Phosphor Duotone Brand Iconography Standard (`Zero Raw Emoji Slop in UI`)",
+        "valid_from": "2026-10-21T07:55:00+00:00",
+        "rationale": (
+            "Bans raw Unicode emojis across all AI Concierge tabs, suggested follow-up actions, quick-prompt chips, service configurator cards, "
+            "Priority File Dropzones, and Customer Portal buttons/badges. Mandates exclusive use of Innoria's official Phosphor Duotone SVG icon "
+            "sprite (/insilos_website/static/src/icons/phosphor-duotone.svg#ph-*) with currentColor / brand Teal-Cyan (#005F73, #0ABBDB) and "
+            "Solar Orange (#FF8000) inheritance, verified by static AST/XML checks and Playwright bounding-box assertions."
         ),
     },
 ]
