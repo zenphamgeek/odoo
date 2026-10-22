@@ -26,7 +26,7 @@
                         title="Đóng gợi ý"
                         aria-label="Đóng gợi ý"
                     >
-                        <i class="fa fa-times" aria-hidden="true"/>
+                        <svg class="ph-duotone ph-x al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-x"/></svg>
                     </button>
                 </div>
             </t>
@@ -42,7 +42,7 @@
             >
                 <div class="al2c-launcher-content">
                     <t t-if="state.isOpen">
-                        <i class="fa fa-times al2c-launcher-icon-close" aria-hidden="true"/>
+                        <svg class="ph-duotone ph-x al2c-launcher-icon-close" style="width: 20px; height: 20px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-x"/></svg>
                     </t>
                     <t t-else="">
                         <img
@@ -115,7 +115,7 @@
                             title="Làm mới cuộc trò chuyện"
                             aria-label="Làm mới cuộc trò chuyện"
                         >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                            <svg class="ph-duotone ph-arrows-clockwise al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-arrows-clockwise"/></svg>
                         </button>
                         <button
                             type="button"
@@ -124,7 +124,7 @@
                             title="Thu nhỏ cửa sổ"
                             aria-label="Thu nhỏ cửa sổ"
                         >
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            <svg class="ph-duotone ph-x al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-x"/></svg>
                         </button>
                     </div>
                 </header>
@@ -190,7 +190,7 @@
                                     title="Quay lại"
                                     aria-label="Quay lại"
                                 >
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                                    <svg class="ph-duotone ph-arrow-left al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-arrow-left"/></svg>
                                 </button>
                             </div>
                         </div>
@@ -219,10 +219,10 @@
                                     </div>
                                     <button
                                         type="button"
-                                        class="btn al2c-btn-edit-config innoria-col-right ms-auto"
+                                        class="btn al2c-btn-edit-config innoria-col-right ms-auto d-inline-flex align-items-center gap-1"
                                         t-on-click="() => this.setActiveTab('services')"
                                     >
-                                        <i class="fa fa-sliders me-1" aria-hidden="true"/>
+                                        <svg class="ph-duotone ph-sliders al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-sliders"/></svg>
                                         <span>Chỉnh sửa</span>
                                     </button>
                                 </div>
@@ -231,7 +231,7 @@
                             <!-- Success Banner -->
                             <t t-if="state.leadSuccessMessage">
                                 <div class="alert al2c-alert-success d-flex align-items-center gap-2" role="alert">
-                                    <i class="fa fa-check-circle fs-5" aria-hidden="true"/>
+                                    <svg class="ph-duotone ph-check-circle al2c-ph-icon" style="width: 18px; height: 18px; flex-shrink: 0;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
                                     <div>
                                         <div class="fw-semibold">Gửi yêu cầu thành công!</div>
                                         <div class="small" t-esc="state.leadSuccessMessage"/>
@@ -242,7 +242,7 @@
                             <!-- Error Banner -->
                             <t t-if="state.leadErrorMessage">
                                 <div class="alert al2c-alert-danger d-flex align-items-center gap-2" role="alert">
-                                    <i class="fa fa-exclamation-triangle" aria-hidden="true"/>
+                                    <svg class="ph-duotone ph-warning al2c-ph-icon" style="width: 16px; height: 16px; flex-shrink: 0;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-warning"/></svg>
                                     <div class="small" t-esc="state.leadErrorMessage"/>
                                 </div>
                             </t>
@@ -273,8 +273,8 @@
                                         t-on-input="(ev) => this.updateLeadField('name', ev)"
                                         required="required"
                                     />
-                                    <div t-if="state.leadFieldErrors.name" class="al2c-field-error">
-                                        <i class="fa fa-exclamation-circle me-1" aria-hidden="true"/>
+                                    <div t-if="state.leadFieldErrors.name" class="al2c-field-error d-inline-flex align-items-center gap-1">
+                                        <svg class="ph-duotone ph-warning-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-warning-circle"/></svg>
                                         <span t-esc="state.leadFieldErrors.name"/>
                                     </div>
                                 </div>
@@ -290,8 +290,8 @@
                                             t-att-value="state.leadForm.email"
                                             t-on-input="(ev) => this.updateLeadField('email', ev)"
                                         />
-                                        <div t-if="state.leadFieldErrors.email" class="al2c-field-error">
-                                            <i class="fa fa-exclamation-circle me-1" aria-hidden="true"/>
+                                        <div t-if="state.leadFieldErrors.email" class="al2c-field-error d-inline-flex align-items-center gap-1">
+                                            <svg class="ph-duotone ph-warning-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-warning-circle"/></svg>
                                             <span t-esc="state.leadFieldErrors.email"/>
                                         </div>
                                     </div>
@@ -305,8 +305,8 @@
                                             t-att-value="state.leadForm.phone"
                                             t-on-input="(ev) => this.updateLeadField('phone', ev)"
                                         />
-                                        <div t-if="state.leadFieldErrors.phone" class="al2c-field-error">
-                                            <i class="fa fa-exclamation-circle me-1" aria-hidden="true"/>
+                                        <div t-if="state.leadFieldErrors.phone" class="al2c-field-error d-inline-flex align-items-center gap-1">
+                                            <svg class="ph-duotone ph-warning-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-warning-circle"/></svg>
                                             <span t-esc="state.leadFieldErrors.phone"/>
                                         </div>
                                     </div>
@@ -324,8 +324,8 @@
                                             t-on-input="(ev) => this.updateLeadField('company_name', ev)"
                                             required="required"
                                         />
-                                        <div t-if="state.leadFieldErrors.company_name" class="al2c-field-error">
-                                            <i class="fa fa-exclamation-circle me-1" aria-hidden="true"/>
+                                        <div t-if="state.leadFieldErrors.company_name" class="al2c-field-error d-inline-flex align-items-center gap-1">
+                                            <svg class="ph-duotone ph-warning-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-warning-circle"/></svg>
                                             <span t-esc="state.leadFieldErrors.company_name"/>
                                         </div>
                                     </div>
@@ -353,13 +353,13 @@
                                         t-att-value="state.leadForm.product_interest"
                                         t-on-change="(ev) => this.updateLeadField('product_interest', ev)"
                                     >
-                                        <option value="Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad - TT 13/2020)">Squad Kỹ Sư Đồng Phát Triển (Co-Dev Squad - TT 13/2020)</option>
-                                        <option value="Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - 5-Gate Enterprise)">Phát Triển Phần Mềm Trọn Gói (Turnkey Software - 5-Gate Enterprise)</option>
-                                        <option value="Insilos ERP (VAS &amp; Hóa đơn ĐT Nghị định 70/2025)">Insilos ERP (VAS &amp; Hóa đơn ĐT 70/2025)</option>
-                                        <option value="Vertical Resilience (GRC, ISO 27001 &amp; PDPD 13/2023)">Vertical Resilience (GRC, ISO 27701 &amp; PDPD 13/2023)</option>
-                                        <option value="Mojo AI (Tác tử AL2C &amp; Bóc tách thông minh)">Mojo AI (Tác tử AL2C &amp; Bóc tách thông minh)</option>
-                                        <option value="Zencode Ent (Hiện đại hóa mã kế thừa &amp; AGY Fleet)">Zencode Ent (Hiện đại hóa mã kế thừa &amp; AGY Fleet)</option>
-                                        <option value="Hệ sinh thái Tứ Trụ Toàn Diện (ERP + GRC + AI + Zencode)">Hệ sinh thái Tứ Trụ Toàn Diện</option>
+                                        <option value="Đội Ngũ Kỹ Sư Phần Mềm Chuyên Trách (Dedicated Software Engineering Squad - TT 13/2020)">Đội Ngũ Kỹ Sư Phần Mềm Chuyên Trách (Dedicated Squad - TT 13/2020)</option>
+                                        <option value="Phát Triển Phần Mềm Chuyên Biệt Trọn Gói (Custom Software &amp; Turnkey Delivery)">Phát Triển Phần Mềm Chuyên Biệt Trọn Gói (Turnkey Software Delivery)</option>
+                                        <option value="Hệ Thống ERP Doanh Nghiệp (Insilos Clean-Core ERP &amp; HĐĐT NĐ 70/2025)">Hệ Thống ERP Doanh Nghiệp (Insilos Clean-Core ERP &amp; HĐĐT 70/2025)</option>
+                                        <option value="Phần Mềm Quản Trị Rủi Ro &amp; Tuân Thủ GRC (ISO 27001/27701 &amp; NĐ 13/2023)">Phần Mềm Quản Trị Rủi Ro &amp; Tuân Thủ GRC (ISO 27001/27701 &amp; NĐ 13/2023)</option>
+                                        <option value="Phát Triển Phần Mềm AI Ứng Dụng, Bóc Tách OCR/IDP &amp; Tìm Kiếm Tri Thức">Phát Triển Phần Mềm AI Ứng Dụng, Bóc Tách OCR/IDP &amp; Tìm Kiếm Tri Thức</option>
+                                        <option value="Hiện Đại Hóa Ứng Dụng Legacy, Tái Kiến Trúc Microservices &amp; Tích Hợp API">Hiện Đại Hóa Ứng Dụng Legacy, Tái Kiến Trúc Microservices &amp; Tích Hợp API</option>
+                                        <option value="Tổ Hợp Giải Pháp Phần Mềm Doanh Nghiệp Toàn Diện (ERP + GRC + AI + Modernization)">Tổ Hợp Giải Pháp Phần Mềm Doanh Nghiệp Toàn Diện</option>
                                     </select>
                                 </div>
 
@@ -467,7 +467,7 @@
                                         t-att-disabled="state.isLoading"
                                     >
                                         <t t-if="state.isLoading">
-                                            <i class="fa fa-spinner fa-spin me-2" aria-hidden="true"/>
+                                            <svg class="ph-duotone ph-circle-notch al2c-ph-icon me-1" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-circle-notch"/></svg>
                                             <span>Đang xác thực &amp; khởi tạo hồ sơ...</span>
                                         </t>
                                         <t t-else="">
@@ -769,14 +769,16 @@
                                                 <div class="al2c-citations-wrapper">
                                                     <button
                                                         type="button"
-                                                        class="btn al2c-citations-toggle"
+                                                        class="btn al2c-citations-toggle d-inline-flex align-items-center gap-1"
                                                         t-on-click="() => this.toggleCitations(msg)"
                                                         title="Bấm để xem các trích dẫn tài liệu quy chuẩn"
                                                     >
-                                                        <i
-                                                            t-attf-class="fa fa-caret-{{ msg.citationsExpanded ? 'down' : 'right' }} me-1"
+                                                        <svg
+                                                            t-attf-class="ph-duotone ph-caret-{{ msg.citationsExpanded ? 'down' : 'right' }} al2c-ph-icon"
                                                             aria-hidden="true"
-                                                        />
+                                                        >
+                                                            <use t-att-href="'/insilos_website/static/src/icons/phosphor-duotone.svg#ph-caret-' + (msg.citationsExpanded ? 'down' : 'right')"/>
+                                                        </svg>
                                                         <span>Trích dẫn kiểm chứng KMS (<t t-esc="msg.citations.length"/> nguồn)</span>
                                                     </button>
                                                     <t t-if="msg.citationsExpanded">
@@ -901,13 +903,15 @@
                         <t t-if="state.chatSecurity.lockedOut or state.chatSecurity.warningBanner">
                             <div t-attf-class="al2c-chat-security-banner {{ state.chatSecurity.lockedOut ? 'al2c-chat-security-locked' : 'al2c-chat-security-warn' }}" role="alert">
                                 <div class="al2c-chat-security-banner-head">
-                                    <span class="al2c-chat-security-title">
-                                        <i t-attf-class="fa {{ state.chatSecurity.lockedOut ? 'fa-lock' : 'fa-exclamation-triangle' }} me-1" aria-hidden="true"/>
+                                    <span class="al2c-chat-security-title d-inline-flex align-items-center gap-1">
+                                        <svg t-attf-class="ph-duotone {{ state.chatSecurity.lockedOut ? 'ph-lock-key' : 'ph-warning' }} al2c-ph-icon" aria-hidden="true">
+                                            <use t-att-href="'/insilos_website/static/src/icons/phosphor-duotone.svg#' + (state.chatSecurity.lockedOut ? 'ph-lock-key' : 'ph-warning')"/>
+                                        </svg>
                                         <t t-if="state.chatSecurity.lockedOut">
-                                            Tạm khóa chống Quấy rối / Spam / Tấn công (Còn <t t-esc="state.chatSecurity.cooldownSeconds"/>s)
+                                            <span>Tạm khóa chống Quấy rối / Spam / Tấn công (Còn <t t-esc="state.chatSecurity.cooldownSeconds"/>s)</span>
                                         </t>
                                         <t t-else="">
-                                            Cảnh báo Bảo mật &amp; Chống Quấy rối (<t t-esc="state.chatSecurity.strikeCount"/>/<t t-esc="state.chatSecurity.maxStrikes"/>)
+                                            <span>Cảnh báo Bảo mật &amp; Chống Quấy rối (<t t-esc="state.chatSecurity.strikeCount"/>/<t t-esc="state.chatSecurity.maxStrikes"/>)</span>
                                         </t>
                                     </span>
                                     <span class="al2c-chat-security-tag">WAF GUARD</span>
@@ -936,7 +940,7 @@
                                 title="Gửi câu hỏi (Enter)"
                                 aria-label="Gửi câu hỏi"
                             >
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                <svg class="ph-duotone ph-paper-plane-tilt al2c-ph-icon" style="width: 15px; height: 15px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-paper-plane-tilt"/></svg>
                             </button>
                         </div>
 

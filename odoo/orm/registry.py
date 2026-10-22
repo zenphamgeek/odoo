@@ -551,14 +551,9 @@ class Registry(Mapping[str, type["BaseModel"]]):
 
     def clear_cache(self, cache_name: str = 'default') -> None:
         """ Backward compatibility for registry.clear_cache() """
-        from odoo.orm.environments import Environments
-        env = Environments.get()
-        if env and hasattr(env, 'transaction'):
-            env.transaction.invalidate_ormcache(cache_name)
-        else:
-            for _seq, cache in self.registry_caches__.values():
-                cache.clear()
-            reset_cached_properties(self)
+        for _seq, cache in self.registry_caches__.values():
+            cache.clear()
+        reset_cached_properties(self)
 
     def __setitem__(self, model_name: str, model: type[BaseModel]):
         """ Add or replace a model in the registry."""

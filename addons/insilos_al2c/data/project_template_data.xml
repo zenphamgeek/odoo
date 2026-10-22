@@ -1,997 +1,984 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <odoo>
-<data noupdate="0">
-    <!-- Activate phases as shared task stages -->
-    <record id="stage_prepare" model="project.task.type">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="fold" eval="False"/>
-    </record>
-    <record id="stage_explore" model="project.task.type">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="fold" eval="False"/>
-    </record>
-    <record id="stage_realize" model="project.task.type">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="fold" eval="False"/>
-    </record>
-    <record id="stage_deploy" model="project.task.type">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="fold" eval="False"/>
-    </record>
-    <record id="stage_run" model="project.task.type">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="fold" eval="False"/>
-    </record>
-    <record id="project_consulting_pool" model="project.project">
-        <field name="name">Consulting Pool (T&amp;M)</field>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-    </record>
-
-    <record id="tpl_erp_starter" model="project.project">
-        <field name="name">[TPL] ERP Starter Implementation (Activate)</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_erp_starter_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
+    <data noupdate="0">
+        <record id="stage_prepare" model="project.task.type">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="fold" eval="False" />
+        </record>
+        <record id="stage_explore" model="project.task.type">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="fold" eval="False" />
+        </record>
+        <record id="stage_realize" model="project.task.type">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="fold" eval="False" />
+        </record>
+        <record id="stage_deploy" model="project.task.type">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="fold" eval="False" />
+        </record>
+        <record id="stage_run" model="project.task.type">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="fold" eval="False" />
+        </record>
+        <record id="project_consulting_pool" model="project.project">
+            <field name="name">Consulting Pool (T&amp;M)</field>
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+        </record>
+        <record id="tpl_erp_starter" model="project.project">
+            <field name="name">[TPL] ERP Starter Implementation (Activate)</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-01 | SKU: ERP-STARTER | Contract: TPL-SW-KTT-01..03] 6-week fixed-scope SME Clean-Core ERP rollout (COA Circular 99/2025, CRM, Sales, Inventory, E-Invoice 1C26TAA). Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_erp_starter_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_erp_starter" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_erp_starter_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_erp_starter_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_erp_starter_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
+        </record>
+        <record id="tpl_erp_starter_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_starter" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_erp_starter_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-KTT-01..03) for SKU ERP-STARTER. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_erp_starter_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_erp_starter" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_erp_starter_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_erp_starter_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_erp_starter_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
+        </record>
+        <record id="tpl_erp_starter_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_starter" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_erp_starter_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_erp_starter_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_erp_starter" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_erp_starter_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_erp_starter_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_erp_starter_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
+        </record>
+        <record id="tpl_erp_starter_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_starter" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_erp_starter_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_erp_starter_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_erp_starter" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_erp_starter_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_erp_starter_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_erp_starter_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
+        </record>
+        <record id="tpl_erp_starter_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_starter" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_erp_starter_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_erp_starter_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_erp_starter" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_erp_starter_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_starter"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_erp_starter_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_erp_growth" model="project.project">
-        <field name="name">[TPL] ERP Growth Implementation (Activate)</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_erp_growth_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
+        </record>
+        <record id="tpl_erp_starter_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_starter" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_erp_starter_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_erp_growth" model="project.project">
+            <field name="name">[TPL] ERP Growth Implementation (Activate)</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-01 | SKU: ERP-GROWTH | Contract: TPL-SW-KTT-01..04] Multi-warehouse ERP, MRP BOM routing, Statutory Payroll (BHXH TZ0857G &amp; VCB DigiBiz), and 1C26TAA E-Invoice rollout. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_erp_growth_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_erp_growth" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_erp_growth_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_erp_growth_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_erp_growth_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
+        </record>
+        <record id="tpl_erp_growth_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_growth" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_erp_growth_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-KTT-01..04) for SKU ERP-GROWTH. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_erp_growth_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_erp_growth" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_erp_growth_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_erp_growth_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_erp_growth_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
+        </record>
+        <record id="tpl_erp_growth_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_growth" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_erp_growth_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_erp_growth_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_erp_growth" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_erp_growth_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_erp_growth_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_erp_growth_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
+        </record>
+        <record id="tpl_erp_growth_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_growth" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_erp_growth_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_erp_growth_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_erp_growth" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_erp_growth_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_erp_growth_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_erp_growth_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
+        </record>
+        <record id="tpl_erp_growth_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_growth" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_erp_growth_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_erp_growth_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_erp_growth" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_erp_growth_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_growth"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_erp_growth_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_erp_ent" model="project.project">
-        <field name="name">[TPL] ERP Enterprise Implementation (Activate)</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_erp_ent_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
+        </record>
+        <record id="tpl_erp_growth_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_growth" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_erp_growth_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_erp_ent" model="project.project">
+            <field name="name">[TPL] ERP Enterprise Implementation (Activate)</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-01 | SKU: ERP-ENT | Contract: TPL-SW-KTT-01..04] Multi-company HA Kubernetes ERP programme with OIDC SSO, Compatibility View bridges, and 24x7 DR readiness. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_erp_ent_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_erp_ent" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_erp_ent_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_erp_ent_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_erp_ent_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
+        </record>
+        <record id="tpl_erp_ent_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_ent" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_erp_ent_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-KTT-01..04) for SKU ERP-ENT. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_erp_ent_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_erp_ent" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_erp_ent_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_erp_ent_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_erp_ent_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
+        </record>
+        <record id="tpl_erp_ent_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_ent" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_erp_ent_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_erp_ent_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_erp_ent" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_erp_ent_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_erp_ent_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_erp_ent_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
+        </record>
+        <record id="tpl_erp_ent_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_ent" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_erp_ent_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_erp_ent_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_erp_ent" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_erp_ent_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_erp_ent_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_erp_ent_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
+        </record>
+        <record id="tpl_erp_ent_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_ent" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_erp_ent_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_erp_ent_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_erp_ent" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_erp_ent_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_erp_ent"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_erp_ent_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_grc_essentials" model="project.project">
-        <field name="name">[TPL] GRC Essentials Readiness</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_grc_essentials_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
+        </record>
+        <record id="tpl_erp_ent_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_erp_ent" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_erp_ent_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_grc_essentials" model="project.project">
+            <field name="name">[TPL] GRC Essentials Readiness</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-04 | SKU: GRC-ESSENTIALS | Contract: TPL-SW-AI-02, TPL-SW-KTT-01] ISO/IEC 27001:2022 &amp; Decree 13/2023/ND-CP readiness programme with PII partial masking and 30s audited reveal. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_grc_essentials_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_grc_essentials_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_grc_essentials_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_grc_essentials_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
+        </record>
+        <record id="tpl_grc_essentials_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_grc_essentials_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-AI-02, TPL-SW-KTT-01) for SKU GRC-ESSENTIALS. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_grc_essentials_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_grc_essentials_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_grc_essentials_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_grc_essentials_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
+        </record>
+        <record id="tpl_grc_essentials_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_grc_essentials_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_grc_essentials_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_grc_essentials_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_grc_essentials_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_grc_essentials_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
+        </record>
+        <record id="tpl_grc_essentials_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_grc_essentials_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_grc_essentials_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_grc_essentials_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_grc_essentials_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_grc_essentials_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
+        </record>
+        <record id="tpl_grc_essentials_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_grc_essentials_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_grc_essentials_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_grc_essentials_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_essentials"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_grc_essentials_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_grc_risk" model="project.project">
-        <field name="name">[TPL] GRC Risk Register Setup</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_grc_risk_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
+        </record>
+        <record id="tpl_grc_essentials_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_essentials" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_grc_essentials_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_grc_risk" model="project.project">
+            <field name="name">[TPL] GRC Risk Register Setup</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-04 | SKU: GRC-RISK-REGISTER | Contract: TPL-SW-KTT-01] ISO 31000 / ISO 27005 enterprise risk taxonomy, 5x5 scoring matrix, and GHS chemical safety register setup. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_grc_risk_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_grc_risk" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_grc_risk_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_grc_risk_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_grc_risk_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
+        </record>
+        <record id="tpl_grc_risk_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_risk" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_grc_risk_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-KTT-01) for SKU GRC-RISK-REGISTER. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_grc_risk_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_grc_risk" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_grc_risk_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_grc_risk_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_grc_risk_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
+        </record>
+        <record id="tpl_grc_risk_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_risk" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_grc_risk_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_grc_risk_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_grc_risk" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_grc_risk_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_grc_risk_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_grc_risk_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
+        </record>
+        <record id="tpl_grc_risk_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_risk" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_grc_risk_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_grc_risk_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_grc_risk" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_grc_risk_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_grc_risk_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_grc_risk_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
+        </record>
+        <record id="tpl_grc_risk_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_risk" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_grc_risk_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_grc_risk_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_grc_risk" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_grc_risk_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_risk"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_grc_risk_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_grc_audit" model="project.project">
-        <field name="name">[TPL] GRC Audit Pack</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_grc_audit_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
+        </record>
+        <record id="tpl_grc_risk_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_risk" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_grc_risk_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_grc_audit" model="project.project">
+            <field name="name">[TPL] GRC Audit Pack</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-04 | SKU: GRC-AUDIT-PACK | Contract: TPL-SW-KTT-01, TPL-SW-AI-02] Cryptographic evidence collection, internal mock audit, and external ISO 27001/27701 certification support. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_grc_audit_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_grc_audit" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_grc_audit_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_grc_audit_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_grc_audit_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
+        </record>
+        <record id="tpl_grc_audit_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_audit" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_grc_audit_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-KTT-01, TPL-SW-AI-02) for SKU GRC-AUDIT-PACK. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_grc_audit_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_grc_audit" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_grc_audit_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_grc_audit_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_grc_audit_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
+        </record>
+        <record id="tpl_grc_audit_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_audit" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_grc_audit_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_grc_audit_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_grc_audit" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_grc_audit_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_grc_audit_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_grc_audit_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
+        </record>
+        <record id="tpl_grc_audit_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_audit" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_grc_audit_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_grc_audit_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_grc_audit" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_grc_audit_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_grc_audit_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_grc_audit_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
+        </record>
+        <record id="tpl_grc_audit_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_audit" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_grc_audit_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_grc_audit_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_grc_audit" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_grc_audit_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_grc_audit"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_grc_audit_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_ai_discovery" model="project.project">
-        <field name="name">[TPL] AI Discovery Sprint</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_ai_discovery_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
+        </record>
+        <record id="tpl_grc_audit_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_grc_audit" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_grc_audit_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_ai_discovery" model="project.project">
+            <field name="name">[TPL] AI Discovery Sprint</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-06 | SKU: AI-DISCOVERY | Contract: TPL-SW-AI-01] 2-week AI Discovery sprint: corpus profiling, 11-profile RBAC mapping, benchmark evaluation, and quantitative ROI model. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_ai_discovery_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_ai_discovery_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_ai_discovery_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_ai_discovery_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
+        </record>
+        <record id="tpl_ai_discovery_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_ai_discovery_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-AI-01) for SKU AI-DISCOVERY. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_ai_discovery_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_ai_discovery_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_ai_discovery_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_ai_discovery_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
+        </record>
+        <record id="tpl_ai_discovery_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_ai_discovery_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_ai_discovery_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_ai_discovery_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_ai_discovery_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_ai_discovery_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
+        </record>
+        <record id="tpl_ai_discovery_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_ai_discovery_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_ai_discovery_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_ai_discovery_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_ai_discovery_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_ai_discovery_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
+        </record>
+        <record id="tpl_ai_discovery_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_ai_discovery_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_ai_discovery_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_ai_discovery_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_discovery"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_ai_discovery_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_ai_poc" model="project.project">
-        <field name="name">[TPL] AI Proof of Concept</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_ai_poc_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
+        </record>
+        <record id="tpl_ai_discovery_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_discovery" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_ai_discovery_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_ai_poc" model="project.project">
+            <field name="name">[TPL] AI Proof of Concept</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-06 | SKU: AI-POC | Contract: TPL-SW-AI-01, TPL-SW-AI-02] Fixed-scope Grounded SOP-RAG Proof of Concept on 1,000 customer documents with Entailment &gt;= 0.85 and PII scrubbing. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_ai_poc_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_ai_poc" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_ai_poc_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_ai_poc_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_ai_poc_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
+        </record>
+        <record id="tpl_ai_poc_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_poc" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_ai_poc_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-AI-01, TPL-SW-AI-02) for SKU AI-POC. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_ai_poc_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_ai_poc" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_ai_poc_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_ai_poc_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_ai_poc_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
+        </record>
+        <record id="tpl_ai_poc_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_poc" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_ai_poc_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_ai_poc_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_ai_poc" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_ai_poc_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_ai_poc_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_ai_poc_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
+        </record>
+        <record id="tpl_ai_poc_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_poc" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_ai_poc_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_ai_poc_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_ai_poc" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_ai_poc_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_ai_poc_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_ai_poc_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
+        </record>
+        <record id="tpl_ai_poc_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_poc" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_ai_poc_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_ai_poc_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_ai_poc" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_ai_poc_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_poc"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_ai_poc_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_ai_pilot" model="project.project">
-        <field name="name">[TPL] AI Pilot</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_ai_pilot_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
+        </record>
+        <record id="tpl_ai_poc_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_poc" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_ai_poc_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_ai_pilot" model="project.project">
+            <field name="name">[TPL] AI Pilot</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-06 | SKU: AI-PILOT | Contract: TPL-SW-AI-01, TPL-SW-AI-02] 50-user production pilot of Sovereign AI Concierge &amp; Internal SOP-RAG Copilot with SHA-256 citation verification. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_ai_pilot_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_ai_pilot_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_ai_pilot_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_ai_pilot_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
+        </record>
+        <record id="tpl_ai_pilot_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_ai_pilot_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-AI-01, TPL-SW-AI-02) for SKU AI-PILOT. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_ai_pilot_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_ai_pilot_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_ai_pilot_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_ai_pilot_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
+        </record>
+        <record id="tpl_ai_pilot_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_ai_pilot_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_ai_pilot_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_ai_pilot_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_ai_pilot_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_ai_pilot_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
+        </record>
+        <record id="tpl_ai_pilot_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_ai_pilot_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_ai_pilot_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_ai_pilot_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_ai_pilot_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_ai_pilot_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
+        </record>
+        <record id="tpl_ai_pilot_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_ai_pilot_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_ai_pilot_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_ai_pilot_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_pilot"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_ai_pilot_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_ai_prod" model="project.project">
-        <field name="name">[TPL] AI Production Rollout</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_ai_prod_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
+        </record>
+        <record id="tpl_ai_pilot_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_pilot" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_ai_pilot_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_ai_prod" model="project.project">
+            <field name="name">[TPL] AI Production Rollout</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-06 | SKU: AI-PROD | Contract: TPL-SW-AI-01, TPL-SW-MTI-02] Enterprise MLOps &amp; 4-Layer SOP-RAG production rollout with continuous AST/SOP indexing and kill-switch governance. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_ai_prod_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_ai_prod" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_ai_prod_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_ai_prod_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_ai_prod_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
+        </record>
+        <record id="tpl_ai_prod_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_prod" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_ai_prod_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-AI-01, TPL-SW-MTI-02) for SKU AI-PROD. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_ai_prod_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_ai_prod" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_ai_prod_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_ai_prod_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_ai_prod_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
+        </record>
+        <record id="tpl_ai_prod_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_prod" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_ai_prod_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_ai_prod_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_ai_prod" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_ai_prod_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_ai_prod_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_ai_prod_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
+        </record>
+        <record id="tpl_ai_prod_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_prod" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_ai_prod_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_ai_prod_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_ai_prod" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_ai_prod_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_ai_prod_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_ai_prod_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
+        </record>
+        <record id="tpl_ai_prod_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_prod" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_ai_prod_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_ai_prod_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_ai_prod" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_ai_prod_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_ai_prod"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_ai_prod_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_mojo_onprem" model="project.project">
-        <field name="name">[TPL] Mojo AI On-Premise Setup</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">Activate-style delivery template: Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_mojo_onprem_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
+        </record>
+        <record id="tpl_ai_prod_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_ai_prod" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_ai_prod_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_mojo_onprem" model="project.project">
+            <field name="name">[TPL] Mojo AI On-Premise Setup</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-03 | SKU: MOJO-ONPREM | Contract: TPL-SW-KTT-01, TPL-SW-AI-01] Air-gapped bare-metal/private-cloud Mojo SIMD inference deployment with zero external egress and &lt;45ms latency. Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_mojo_onprem_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_mojo_onprem_task_prepare" model="project.task">
-        <field name="name">Prepare: phase deliverables</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_mojo_onprem_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Project charter, governance, kickoff, environment provisioning.</field>
-    </record>
-    <record id="tpl_mojo_onprem_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
+        </record>
+        <record id="tpl_mojo_onprem_task_prepare" model="project.task">
+            <field name="name">Prepare: phase deliverables</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_mojo_onprem_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-KTT-01, TPL-SW-AI-01) for SKU MOJO-ONPREM. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_mojo_onprem_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
             <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_mojo_onprem_task_explore" model="project.task">
-        <field name="name">Explore: phase deliverables</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_mojo_onprem_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Fit-gap workshops, solution design, backlog and data migration plan.</field>
-    </record>
-    <record id="tpl_mojo_onprem_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
+        </record>
+        <record id="tpl_mojo_onprem_task_explore" model="project.task">
+            <field name="name">Explore: phase deliverables</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_mojo_onprem_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_mojo_onprem_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
             <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_mojo_onprem_task_realize" model="project.task">
-        <field name="name">Realize: phase deliverables</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_mojo_onprem_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Configuration, extensions, integrations, data loads, test cycles.</field>
-    </record>
-    <record id="tpl_mojo_onprem_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
+        </record>
+        <record id="tpl_mojo_onprem_task_realize" model="project.task">
+            <field name="name">Realize: phase deliverables</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_mojo_onprem_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_mojo_onprem_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
             <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_mojo_onprem_task_deploy" model="project.task">
-        <field name="name">Deploy: phase deliverables</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_mojo_onprem_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">User acceptance, training, cutover rehearsal and go-live.</field>
-    </record>
-    <record id="tpl_mojo_onprem_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
+        </record>
+        <record id="tpl_mojo_onprem_task_deploy" model="project.task">
+            <field name="name">Deploy: phase deliverables</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_mojo_onprem_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_mojo_onprem_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
             <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_mojo_onprem_task_run" model="project.task">
-        <field name="name">Run: phase deliverables</field>
-        <field name="project_id" ref="tpl_mojo_onprem"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_mojo_onprem_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Hypercare, handover to support, adoption review and lessons learned.</field>
-    </record>
-
-    <record id="tpl_dgm_onsite_mti" model="project.project">
-        <field name="name">[TPL] DGM B2B Onsite Engineering (MTI Technology)</field>
-        <field name="is_template" eval="True"/>
-        <field name="allow_milestones" eval="True"/>
-        <field name="allow_billable" eval="True"/>
-        <field name="allow_timesheets" eval="True"/>
-        <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]"/>
-        <field name="description">DGM B2B IT Engineering &amp; Onsite Resource Delivery template (HĐ DIGIMATE2401-001): Prepare, Explore, Realize, Deploy, Run.</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_ms_prepare" model="project.milestone">
-        <field name="name">Prepare</field>
-        <field name="sequence">10</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_task_prepare" model="project.task">
-        <field name="name">Prepare: Onboarding &amp; Environment Access</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="stage_id" ref="stage_prepare"/>
-        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_prepare"/>
-        <field name="sequence">10</field>
-        <field name="description">Engineer onboarding, NDA &amp; security clearance, repo &amp; VPN provisioning.</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_ms_explore" model="project.milestone">
-        <field name="name">Explore</field>
-        <field name="sequence">20</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="quantity_percentage">0.25</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_task_explore" model="project.task">
-        <field name="name">Explore: Sprint Backlog &amp; Architecture Alignment</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="stage_id" ref="stage_explore"/>
-        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_explore"/>
-        <field name="sequence">20</field>
-        <field name="description">Sprint planning, architecture review, and technical specification sign-off.</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_ms_realize" model="project.milestone">
-        <field name="name">Realize</field>
-        <field name="sequence">30</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="quantity_percentage">0.35</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_task_realize" model="project.task">
-        <field name="name">Realize: Core Software Engineering &amp; Timesheet Execution</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="stage_id" ref="stage_realize"/>
-        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_realize"/>
-        <field name="sequence">30</field>
-        <field name="description">Standard hours and approved tiered overtime (OT 100% &lt;=20h, OT 150% &gt;20h) software development.</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_ms_deploy" model="project.milestone">
-        <field name="name">Deploy</field>
-        <field name="sequence">40</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="quantity_percentage">0.15</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_task_deploy" model="project.task">
-        <field name="name">Deploy: UAT &amp; Production Release Verification</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="stage_id" ref="stage_deploy"/>
-        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_deploy"/>
-        <field name="sequence">40</field>
-        <field name="description">Release verification, monthly timesheet PM sign-off before the 5th business day.</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_ms_run" model="project.milestone">
-        <field name="name">Run</field>
-        <field name="sequence">50</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="quantity_percentage">0.10</field>
-    </record>
-    <record id="tpl_dgm_onsite_mti_task_run" model="project.task">
-        <field name="name">Run: Monthly Acceptance &amp; Net 40 Settlement</field>
-        <field name="project_id" ref="tpl_dgm_onsite_mti"/>
-        <field name="stage_id" ref="stage_run"/>
-        <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_run"/>
-        <field name="sequence">50</field>
-        <field name="description">Monthly acceptance certificate, KCT e-invoice issuance, and Net 40 settlement tracking.</field>
-    </record>
-    <function model="project.project" name="_al2c_detach_template_folders"/>
-</data>
+        </record>
+        <record id="tpl_mojo_onprem_task_run" model="project.task">
+            <field name="name">Run: phase deliverables</field>
+            <field name="project_id" ref="tpl_mojo_onprem" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_mojo_onprem_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti" model="project.project">
+            <field name="name">[TPL] DGM B2B Onsite Engineering (MTI Technology)</field>
+            <field name="is_template" eval="True" />
+            <field name="allow_milestones" eval="True" />
+            <field name="allow_billable" eval="True" />
+            <field name="allow_timesheets" eval="True" />
+            <field name="type_ids" eval="[Command.set([ref('stage_prepare'), ref('stage_explore'), ref('stage_realize'), ref('stage_deploy'), ref('stage_run')])]" />
+            <field name="description">[PRJ-TPL-PDCA-02 | SKU: DGM-ONSITE-STD | Contract: TPL-SW-MTI-01..04] Dedicated B2B Software Engineering Squad (140-180h/month SLA, Circular 13/2020 7-stage evidence, 2-step Draft Invoice -&gt; 1C26TAA). Governed by SAP Activate 5-Phase (Prepare, Explore, Realize, Deploy, Run) and 4-Stage PDCA loop with SHA-256 milestone/timesheet evidence and Decree 70/2025 (1C26TAA) e-invoicing.</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_ms_prepare" model="project.milestone">
+            <field name="name">Prepare</field>
+            <field name="sequence">10</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="quantity_percentage">0.15</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_task_prepare" model="project.task">
+            <field name="name">Prepare: Onboarding &amp; Environment Access</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="stage_id" ref="stage_prepare" />
+            <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_prepare" />
+            <field name="sequence">10</field>
+            <field name="description">[PDCA: PLAN | Gate 1 (15%)] Issue Project Charter (TPL-PRJ-01), Stakeholder RACI Matrix, and execute Contract (TPL-SW-MTI-01..04) for SKU DGM-ONSITE-STD. Provision isolated tenant/repo and Customer Data Room folder with RBAC profile `project_delivery`. [Evidence: Signed TPL-PRJ-01 &amp; Environment Readiness Log].</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_ms_explore" model="project.milestone">
+            <field name="name">Explore</field>
+            <field name="sequence">20</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="quantity_percentage">0.25</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_task_explore" model="project.task">
+            <field name="name">Explore: Sprint Backlog &amp; Architecture Alignment</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="stage_id" ref="stage_explore" />
+            <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_explore" />
+            <field name="sequence">20</field>
+            <field name="description">[PDCA: PLAN -&gt; DO | Gate 2 (25%)] Conduct Fit-to-Standard workshops, finalize Clean-Core Technical Architecture Blueprint (TPL-PRJ-02), Circular 13/2020 Stage 1-2 specification, and data migration schema. [Evidence: Signed TPL-PRJ-02 Blueprint &amp; Frozen Sprint Backlog].</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_ms_realize" model="project.milestone">
+            <field name="name">Realize</field>
+            <field name="sequence">30</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="quantity_percentage">0.35</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_task_realize" model="project.task">
+            <field name="name">Realize: Core Software Engineering &amp; Timesheet Execution</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="stage_id" ref="stage_realize" />
+            <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_realize" />
+            <field name="sequence">30</field>
+            <field name="description">[PDCA: DO | Gate 3 (35%)] Execute 2-week Agile PDCA sprints (Circular 13/2020 Stage 3-4 Coding &amp; SIT). Enforce 100% pass on predictive verification (`audit_systemic_refactor_risks.py`, `unslop_scss_rigorous.py`, `test_adversarial_security.py`) and log daily billable timesheets. [Evidence: Git Commit SHA-256 Manifest &amp; Automated SIT Pass Log].</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_ms_deploy" model="project.milestone">
+            <field name="name">Deploy</field>
+            <field name="sequence">40</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="quantity_percentage">0.15</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_task_deploy" model="project.task">
+            <field name="name">Deploy: UAT &amp; Production Release Verification</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="stage_id" ref="stage_deploy" />
+            <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_deploy" />
+            <field name="sequence">40</field>
+            <field name="description">[PDCA: CHECK | Gate 4 (15%)] Execute End-to-End User Acceptance Testing (TPL-PRJ-03), key-user training, production cutover rehearsal, and bilateral Milestone/Timesheet Acceptance sign-off (TPL-PRJ-06 / TPL-SW-MTI-03 / TPL-SW-KTT-03). [Evidence: Signed UAT Certificate TPL-PRJ-03 &amp; SHA-256 Acceptance Protocol TPL-PRJ-06].</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_ms_run" model="project.milestone">
+            <field name="name">Run</field>
+            <field name="sequence">50</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="quantity_percentage">0.10</field>
+        </record>
+        <record id="tpl_dgm_onsite_mti_task_run" model="project.task">
+            <field name="name">Run: Monthly Acceptance &amp; Net 40 Settlement</field>
+            <field name="project_id" ref="tpl_dgm_onsite_mti" />
+            <field name="stage_id" ref="stage_run" />
+            <field name="milestone_id" ref="tpl_dgm_onsite_mti_ms_run" />
+            <field name="sequence">50</field>
+            <field name="description">[PDCA: ACT | Gate 5 (10%)] Complete Go-Live Handover (TPL-PRJ-04), 2-step Draft Invoice review (SOP-DGM-08), official Decree 70 E-Invoice issuance (Series 1C26TAA), E2E Traceability Audit (TPL-PRJ-07), and PDCA Retrospective synced to 360-degree HR Appraisals &amp; OKRs (TPL-PRJ-08). [Evidence: E-Invoice 1C26TAA XML/PDF &amp; Signed TPL-PRJ-08].</field>
+        </record>
+        <function model="project.project" name="_al2c_detach_template_folders" />
+    </data>
 </odoo>

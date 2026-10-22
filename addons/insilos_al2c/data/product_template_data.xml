@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <odoo>
 <data noupdate="0">
     <record id="product_erp_starter" model="product.template">
-        <field name="name">Insilos ERP Starter Implementation (6 weeks)</field>
+        <field name="name">Gói Khởi Tạo ERP Tiêu Chuẩn (Core Operations) (ERP Starter Foundation Suite)</field>
         <field name="default_code">ERP-STARTER</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_impl"/>
@@ -17,11 +17,11 @@
         <field name="al2c_product_line">erp</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_erp_starter"/>
-        <field name="description_sale">Fixed-price 6-week rollout of core finance, sales and inventory for SMEs.</field>
+        <field name="description_sale">Triển khai kiến trúc module ERP lõi gồm Mua hàng, Bán hàng, Kho vận và Kế toán theo Thông tư 200/2014/TT-BTC trên nền tảng PostgreSQL. Bàn giao SRS chi tiết, bộ API RESTful nội bộ và quy trình kiểm thử chấp nhận người dùng (UAT) cho tối đa 15 người dùng đồng thời. Hệ thống tích hợp sẵn luồng đồng bộ hóa đơn điện tử cơ bản và kiểm toán sổ cái kép (Double-entry Ledger) tự động.</field>
         <field name="project_template_id" ref="tpl_erp_starter"/>
     </record>
     <record id="product_erp_growth" model="product.template">
-        <field name="name">Insilos ERP Growth Implementation</field>
+        <field name="name">Gói Mở Rộng ERP Doanh Nghiệp Tăng Trưởng (Multi-Entity) (ERP Growth Scale Suite)</field>
         <field name="default_code">ERP-GROWTH</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_impl"/>
@@ -36,11 +36,11 @@
         <field name="al2c_product_line">erp</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_erp_growth"/>
-        <field name="description_sale">Milestone-billed implementation for growing companies with multi-module scope.</field>
+        <field name="description_sale">Mở rộng năng lực vận hành đa chi nhánh, đa đơn vị hạch toán với quy trình sản xuất (MRP II) và quản lý kho vận đa địa điểm (Multi-warehouse). Tích hợp giao thức e-Invoicing theo Nghị định 70/2025/NĐ-CP chuẩn ký hiệu 1C26TAA trực tiếp qua cổng T-VAN và API ký số HSM. Kiến trúc hỗ trợ Domain-Driven Design (DDD) bóc tách nghiệp vụ và CI/CD tự động hóa trên môi trường Staging/Production.</field>
         <field name="project_template_id" ref="tpl_erp_growth"/>
     </record>
     <record id="product_erp_ent" model="product.template">
-        <field name="name">Insilos ERP Enterprise Implementation</field>
+        <field name="name">Gói ERP Doanh Nghiệp Quy Mô Lớn (Enterprise High-Throughput) (Enterprise ERP Sovereign Suite)</field>
         <field name="default_code">ERP-ENT</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_impl"/>
@@ -55,11 +55,11 @@
         <field name="al2c_product_line">erp</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_erp_ent"/>
-        <field name="description_sale">Enterprise programme billed per Activate milestone; extra scope via CONSULT-HOUR (T&amp;M).</field>
+        <field name="description_sale">Hệ thống ERP phân tán tải cao với kiến trúc Event-Driven kết hợp GraphQL và REST APIs, hỗ trợ sharding PostgreSQL và read/write replicas. Đáp ứng toàn diện quy định VAS Circular 200, hợp nhất báo cáo tài chính liên công ty và tự động đối soát thuế theo chuẩn hóa đơn 1C26TAA. Đi kèm tài liệu kiến trúc kỹ thuật (TDD), pipeline test tích hợp tự động và cam kết bàn giao mã nguồn chuyển giao quyền sở hữu.</field>
         <field name="project_template_id" ref="tpl_erp_ent"/>
     </record>
     <record id="product_saas_user_m" model="product.template">
-        <field name="name">Insilos ERP SaaS User (monthly)</field>
+        <field name="name">Gói Thuê Bao Định Danh Người Dùng SaaS Hàng Tháng (SaaS Monthly Named User Seat)</field>
         <field name="default_code">SAAS-USER-M</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_saas"/>
@@ -74,10 +74,10 @@
         <field name="al2c_product_line">erp</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_saas_user_m"/>
-        <field name="description_sale">Named user subscription, billed monthly per user.</field>
+        <field name="description_sale">Cấp phép truy cập định danh người dùng hàng tháng với cơ chế phân quyền dựa trên vai trò (RBAC) và kiểm soát truy cập thuộc tính (ABAC). Hỗ trợ xác thực đa yếu tố (MFA), ghi nhật ký kiểm toán bất biến (Immutable Audit Logs) và kiểm tra phiên làm việc đồng thời qua token JWT/OIDC. Tiêu chí nghiệm thu bao gồm thời gian cấp phát provisioning dưới 500ms và tự động giải phóng tài nguyên khi thu hồi seat.</field>
     </record>
     <record id="product_saas_hosting_pro" model="product.template">
-        <field name="name">Insilos ERP Hosting Pro (monthly)</field>
+        <field name="name">Hạ Tầng Điện Toán Đám Mây Doanh Nghiệp SaaS Pro (SaaS Dedicated Cloud Hosting Pro)</field>
         <field name="default_code">SAAS-HOSTING-PRO</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_saas"/>
@@ -92,10 +92,10 @@
         <field name="al2c_product_line">erp</field>
         <field name="al2c_vat_class">vat_10</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_saas_hosting_pro"/>
-        <field name="description_sale">Dedicated managed hosting with daily backups and staging environment.</field>
+        <field name="description_sale">Cụm tài nguyên điện toán chuyên dụng trên hạ tầng Kubernetes/Docker với cơ sở dữ liệu PostgreSQL Dedicated, mã hóa đĩa cứng AES-256 at-rest và TLS 1.3 in-transit. Thiết lập pipeline sao lưu dữ liệu tự động Point-in-Time Recovery (PITR) RPO &lt; 5 phút và RTO &lt; 30 phút đặt tại trung tâm dữ liệu Tier 3 nội địa. Bàn giao bảng giám sát chỉ số APM, alerting PagerDuty và cấu hình cân bằng tải Ingress tự động co giãn.</field>
     </record>
     <record id="product_saas_sla_plus" model="product.template">
-        <field name="name">Insilos SLA Plus (monthly)</field>
+        <field name="name">Gói Cam Kết Chất Lượng Dịch Vụ Nâng Cao (SLA 99.9%) (SaaS Premium SLA &amp; Runbook Support)</field>
         <field name="default_code">SAAS-SLA-PLUS</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_saas"/>
@@ -110,10 +110,10 @@
         <field name="al2c_product_line">erp</field>
         <field name="al2c_vat_class">vat_8</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_saas_sla_plus"/>
-        <field name="description_sale">Extended support window and faster response targets on top of the standard SLA.</field>
+        <field name="description_sale">Cam kết độ sẵn sàng hạ tầng đạt tối thiểu 99.9% uptime hàng tháng kèm hợp đồng phạt bồi thường dịch vụ (Service Credits) rõ ràng. Thiết lập kênh phản hồi sự cố khẩn cấp độ ưu tiên P1 trong vòng 15 phút với đội ngũ Kỹ sư Độ tin cậy Hệ thống (SRE) 24/7/365. Bao gồm báo cáo RCA (Root Cause Analysis) tiêu chuẩn trong vòng 48 giờ sau sự cố và diễn tập khôi phục thảm họa (DR drills) định kỳ hàng quý.</field>
     </record>
     <record id="product_grc_essentials" model="product.template">
-        <field name="name">GRC Essentials: ISO 27001 / Decree 13 Readiness</field>
+        <field name="name">Khung Quản Trị Rủi Ro &amp; Tuân Thủ Cơ Bản (ISO 27001 &amp; NĐ 13) (GRC Essentials Compliance Baseline)</field>
         <field name="default_code">GRC-ESSENTIALS</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_grc"/>
@@ -128,11 +128,11 @@
         <field name="al2c_product_line">grc</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_grc_essentials"/>
-        <field name="description_sale">Gap assessment and readiness programme for ISO/IEC 27001 and Decree 13/2023 on personal data protection.</field>
+        <field name="description_sale">Bộ khung chính sách và quy trình kỹ thuật chuẩn hóa theo tiêu chuẩn an toàn thông tin ISO/IEC 27001:2022 và Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân. Cung cấp ma trận kiểm soát truy cập, mẫu đánh giá tác động xử lý dữ liệu cá nhân (DPIA) và quy trình ứng phó sự cố rò rỉ dữ liệu. Tiêu chí nghiệm thu được xác thực qua biên bản đánh giá khe hở (Gap Analysis) và danh mục kiểm tra sẵn sàng đánh giá chứng nhận.</field>
         <field name="project_template_id" ref="tpl_grc_essentials"/>
     </record>
     <record id="product_grc_risk_register" model="product.template">
-        <field name="name">GRC Risk Register Setup</field>
+        <field name="name">Hệ Thống Sổ Đăng Ký &amp; Đánh Giá Rủi Ro Tự Động (Automated Risk Register &amp; Threat Matrix System)</field>
         <field name="default_code">GRC-RISK-REGISTER</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_grc"/>
@@ -147,11 +147,11 @@
         <field name="al2c_product_line">grc</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_grc_risk_register"/>
-        <field name="description_sale">Risk taxonomy, register and treatment workflow configured in the platform.</field>
+        <field name="description_sale">Phần mềm quản lý vòng đời rủi ro tập trung theo phương pháp luận Bow-Tie và ma trận rủi ro động tích hợp API giám sát bảo mật. Cho phép định danh tài sản số, lượng hóa thiệt hại tác động dữ liệu người dùng theo Nghị định 13/2023/NĐ-CP và liên kết kiểm soát ISO/IEC 27701. Hệ thống xuất báo cáo KRI tự động, lưu vết thay đổi kiểm toán (Audit Trail) và phân công lộ trình khắc phục (Remediation Workflow).</field>
         <field name="project_template_id" ref="tpl_grc_risk"/>
     </record>
     <record id="product_grc_audit_pack" model="product.template">
-        <field name="name">GRC Audit Pack</field>
+        <field name="name">Gói Kiểm Toán Độc Lập &amp; Sẵn Sàng Chứng Nhận (ISO 27001/27701) (GRC Certification &amp; Independent Audit Readiness Pack)</field>
         <field name="default_code">GRC-AUDIT-PACK</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_grc"/>
@@ -166,11 +166,11 @@
         <field name="al2c_product_line">grc</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_grc_audit_pack"/>
-        <field name="description_sale">Evidence collection, internal audit and certification-audit support, billed per milestone.</field>
+        <field name="description_sale">Dịch vụ rà soát mã nguồn (SAST/DAST), kiểm thử xâm nhập (Penetration Testing) và đánh giá đối soát toàn diện hệ thống quản lý an toàn thông tin ISO 27001/27701. Đảm bảo toàn bộ luồng lưu trữ và xử lý dữ liệu người dùng tuân thủ chặt chẽ chế tài kỹ thuật của Nghị định 13/2023/NĐ-CP. Bàn giao hồ sơ bằng chứng kiểm toán (Audit Evidence Repository), báo cáo lỗ hổng remediated và bảo vệ phiên bảo vệ trước tổ chức chứng nhận độc lập.</field>
         <field name="project_template_id" ref="tpl_grc_audit"/>
     </record>
     <record id="product_ai_discovery" model="product.template">
-        <field name="name">AI Discovery Sprint (2 weeks)</field>
+        <field name="name">Đánh Giá Kiến Trúc &amp; Nghiên Cứu Khả Thi Ứng Dụng AI (Enterprise AI Discovery &amp; Architectural Feasibility)</field>
         <field name="default_code">AI-DISCOVERY</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
@@ -185,11 +185,11 @@
         <field name="al2c_product_line">ai</field>
         <field name="al2c_vat_class">vat_8</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_ai_discovery"/>
-        <field name="description_sale">Fixed 2-week sprint: use-case mapping, data readiness and value case.</field>
+        <field name="description_sale">Khảo sát hạ tầng dữ liệu hiện hữu, hồ sơ bảo mật dữ liệu nhạy cảm và xác định các Bounded Context phù hợp để áp dụng mô hình ngôn ngữ lớn (LLM). Bàn giao tài liệu SRS kỹ thuật cho AI, kiến trúc Vector Database kết hợp Retrieval-Augmented Generation (RAG) và ma trận đo lường chi phí/độ trễ Token Inference. Nghiệm thu dựa trên báo cáo phân tích ROI, ranh giới an toàn dữ liệu nội bộ và lộ trình chuyển đổi kiến trúc chi tiết.</field>
         <field name="project_template_id" ref="tpl_ai_discovery"/>
     </record>
     <record id="product_ai_poc" model="product.template">
-        <field name="name">AI Proof of Concept</field>
+        <field name="name">Phát Triển Nguyên Mẫu AI Khả Thi (Proof of Concept Sandbox) (Enterprise AI Proof of Concept (PoC) Sandbox)</field>
         <field name="default_code">AI-POC</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
@@ -204,11 +204,11 @@
         <field name="al2c_product_line">ai</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_ai_poc"/>
-        <field name="description_sale">Fixed-price proof of concept on customer data with success criteria agreed upfront.</field>
+        <field name="description_sale">Xây dựng bản mẫu ứng dụng AI hoạt động trên môi trường Sandbox, triển khai kiến trúc RAG nâng cao kết hợp kỹ thuật Hybrid Search và Reranking qua API bảo mật. Đánh giá độ chính xác thông qua tập benchmark chuẩn hóa (Faithfulness, Answer Relevance, Context Recall) với dữ liệu mẫu doanh nghiệp. Bàn giao mã nguồn hoàn chỉnh, tài liệu API schema OpenAPI và báo cáo nghiệm thu kỹ thuật xác nhận tỷ lệ phản hồi ảo giác (Hallucination) &lt; 2%.</field>
         <field name="project_template_id" ref="tpl_ai_poc"/>
     </record>
     <record id="product_ai_pilot" model="product.template">
-        <field name="name">AI Pilot</field>
+        <field name="name">Gói Triển khai Khảo sát &amp; Thử nghiệm AI (AI Pilot) (AI Pilot &amp; PoC Implementation)</field>
         <field name="default_code">AI-PILOT</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
@@ -223,11 +223,11 @@
         <field name="al2c_product_line">ai</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_ai_pilot"/>
-        <field name="description_sale">Pilot with real users, billed per milestone.</field>
+        <field name="description_sale">Triển khai thử nghiệm giải pháp AI trong vòng 4-6 tuần trên môi trường sandbox nhằm xác thực tính khả thi của mô hình. Bao gồm tích hợp thử nghiệm pipeline OCR/IDP trích xuất văn bản có cấu trúc và Enterprise RAG cơ bản với cơ chế citation verification. Bàn giao báo cáo đánh giá benchmark độ chính xác, phân tích độ trễ P95 và ước tính chi phí hạ tầng mở rộng.</field>
         <field name="project_template_id" ref="tpl_ai_pilot"/>
     </record>
     <record id="product_ai_prod" model="product.template">
-        <field name="name">AI Production Rollout (time and materials)</field>
+        <field name="name">Triển khai Hệ thống AI Production Chuẩn Doanh nghiệp (Enterprise Production AI Deployment)</field>
         <field name="default_code">AI-PROD</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
@@ -242,11 +242,11 @@
         <field name="al2c_product_line">ai</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_ai_prod"/>
-        <field name="description_sale">Production hardening and rollout billed on timesheets; followed by AMS.</field>
+        <field name="description_sale">Xây dựng và bàn giao hệ thống AI quy mô production tích hợp hybrid search vector database và Private LLM API Gateway. Thiết lập pipeline xử lý OCR/IDP phân tán đạt chuẩn throughput cao, hỗ trợ semantic chunking, dynamic reranking và automated eval metrics. Đi kèm hạ tầng CI/CD, hệ thống audit log bảo mật dữ liệu và tài liệu kiến trúc kỹ thuật chi tiết.</field>
         <field name="project_template_id" ref="tpl_ai_prod"/>
     </record>
     <record id="product_mojo_app_sub" model="product.template">
-        <field name="name">Mojo AI App Subscription (monthly)</field>
+        <field name="name">Thuê bao Nền tảng SaaS Mojo AI (Theo Tháng/Năm) (Mojo AI Platform SaaS Subscription)</field>
         <field name="default_code">MOJO-APP-SUB</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_mojo"/>
@@ -261,10 +261,10 @@
         <field name="al2c_product_line">mojo</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_mojo_app_sub"/>
-        <field name="description_sale">Per-seat subscription to a Mojo AI application.</field>
+        <field name="description_sale">Cung cấp quyền truy cập đa người dùng vào nền tảng Mojo AI với SLA uptime 99.9% trên hạ tầng Multi-Tenant Cloud. Hỗ trợ đầy đủ bộ công cụ quản trị workspace, phân quyền RBAC, webhook tích hợp hệ thống doanh nghiệp và console giám sát model latency. Bao gồm các bản cập nhật tính năng mới định kỳ và hỗ trợ kỹ thuật qua cổng service desk.</field>
     </record>
     <record id="product_mojo_tokens" model="product.template">
-        <field name="name">Mojo AI Token Pack (usage add-on, per 1M tokens)</field>
+        <field name="name">Gói Hạn ngạch LLM Ingest &amp; Inference Tokens (Mojo LLM Ingest &amp; Inference Token Quota)</field>
         <field name="default_code">MOJO-TOKENS</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_mojo"/>
@@ -279,10 +279,10 @@
         <field name="al2c_product_line">mojo</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_mojo_tokens"/>
-        <field name="description_sale">Usage-based add-on billed on consumed token packs.</field>
+        <field name="description_sale">Hạn ngạch token trả trước dùng cho các tác vụ suy luận mô hình ngôn ngữ lớn (LLM inference) và nhúng vector (embedding) trên hệ thống. Hỗ trợ cơ chế token rate-limiting theo từng API key, dynamic load balancing giữa các model providers và tự động cảnh báo ngưỡng tiêu thụ. Dữ liệu token usage được đồng bộ chi tiết theo thời gian thực phục vụ hạch toán chi phí per-tenant.</field>
     </record>
     <record id="product_mojo_onprem" model="product.template">
-        <field name="name">Mojo AI On-Premise License and Setup</field>
+        <field name="name">Giấy phép &amp; Triển khai Mojo AI On-Premise / Private Cloud (Mojo AI On-Premise &amp; Air-Gapped Deployment License)</field>
         <field name="default_code">MOJO-ONPREM</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_mojo"/>
@@ -297,11 +297,11 @@
         <field name="al2c_product_line">mojo</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_mojo_onprem"/>
-        <field name="description_sale">Perpetual on-premise license with installation and hardening project.</field>
+        <field name="description_sale">Giấy phép triển khai toàn bộ nền tảng Mojo AI lên cụm Kubernetes (EKS, GKE, hoặc Bare-Metal OpenShift) trong hạ tầng private của doanh nghiệp. Đảm bảo tuân thủ tiêu chuẩn bảo mật air-gapped, tích hợp sẵn vLLM/TGI runtime với tối ưu phần cứng GPU NVIDIA TensorRT-LLM. Bàn giao kèm Helm charts, cấu hình Prometheus/Grafana stack và kịch bản disaster recovery tự động.</field>
         <field name="project_template_id" ref="tpl_mojo_onprem"/>
     </record>
     <record id="product_ams_bronze" model="product.template">
-        <field name="name">Application Managed Services Bronze (monthly)</field>
+        <field name="name">Dịch vụ Bảo trì &amp; Vận hành Ứng dụng - Gói Bronze (Application Maintenance &amp; Support (AMS) - Bronze Tier)</field>
         <field name="default_code">AMS-BRONZE</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
@@ -316,10 +316,10 @@
         <field name="al2c_product_line">svc</field>
         <field name="al2c_vat_class">vat_8</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_ams_bronze"/>
-        <field name="description_sale">Business-hours support, 20 hours per month.</field>
+        <field name="description_sale">Cung cấp dịch vụ vận hành L1/L2 trong khung giờ hành chính (8x5) với cam kết thời gian phản hồi sự cố khẩn cấp dưới 8 giờ. Thực hiện quét lỗ hổng bảo mật định kỳ hàng tháng, vá lỗi hệ điều hành và cập nhật các bản vá phụ thuộc nhỏ (patch updates). Hỗ trợ kiểm tra sức khỏe hệ thống định kỳ và cung cấp báo cáo khả dụng hạ tầng hàng tháng.</field>
     </record>
     <record id="product_ams_silver" model="product.template">
-        <field name="name">Application Managed Services Silver (monthly)</field>
+        <field name="name">Dịch vụ Bảo trì &amp; Vận hành Ứng dụng - Gói Silver (Application Maintenance &amp; Support (AMS) - Silver Tier)</field>
         <field name="default_code">AMS-SILVER</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
@@ -334,10 +334,10 @@
         <field name="al2c_product_line">svc</field>
         <field name="al2c_vat_class">vat_8</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_ams_silver"/>
-        <field name="description_sale">Extended-hours support, 50 hours per month, quarterly release review.</field>
+        <field name="description_sale">Dịch vụ hỗ trợ kỹ thuật L1/L2/L3 mở rộng 12x5 với cam kết phản hồi sự cố nghiêm trọng (P1 Incident) trong vòng 2 giờ. Bao gồm giám sát chủ động APM (Application Performance Monitoring), bảo trì định kỳ cơ sở dữ liệu và tinh chỉnh index vector. Phân bổ hạn ngạch 16 giờ kỹ thuật/tháng cho các yêu cầu thay đổi nhỏ và tối ưu hóa hiệu năng ứng dụng.</field>
     </record>
     <record id="product_ams_gold" model="product.template">
-        <field name="name">Application Managed Services Gold (monthly)</field>
+        <field name="name">Dịch vụ Vận hành &amp; Phản ứng Sự cố Mission-Critical - Gói Gold (Mission-Critical 24/7/365 AMS - Gold Tier)</field>
         <field name="default_code">AMS-GOLD</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
@@ -352,10 +352,10 @@
         <field name="al2c_product_line">svc</field>
         <field name="al2c_vat_class">vat_8</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_ams_gold"/>
-        <field name="description_sale">24x7 critical support, 120 hours per month, named service manager.</field>
+        <field name="description_sale">Hợp đồng hỗ trợ kỹ thuật toàn diện 24/7/365 với đội ngũ kỹ sư Site Reliability Engineering (SRE) cam kết thời gian phản hồi sự cố P1 dưới 15 phút. Thiết lập kênh trực hotline chuyên trách, quy trình quản lý sự cố tự động (incident command) và cam kết thời gian khắc phục RTO/RPO nghiêm ngặt. Định kỳ thực hiện diễn tập thảm họa (Chaos Engineering) và kiểm toán an toàn thông tin chuyên sâu hàng quý.</field>
     </record>
     <record id="product_training_day" model="product.template">
-        <field name="name">Training Day</field>
+        <field name="name">Khóa Đào tạo Chuyển giao Kỹ thuật &amp; DevSecOps (Theo Ngày) (Technical Enablement &amp; DevSecOps Workshop (Per Day))</field>
         <field name="default_code">TRAINING-DAY</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
@@ -370,10 +370,10 @@
         <field name="al2c_product_line">svc</field>
         <field name="al2c_vat_class">vat_8</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_training_day"/>
-        <field name="description_sale">On-site or remote training day for up to 15 participants.</field>
+        <field name="description_sale">Một ngày đào tạo chuyển giao công nghệ chuyên sâu trực tiếp cho đội ngũ kỹ sư phần mềm của khách hàng. Nội dung bao gồm kỹ thuật xây dựng Enterprise RAG, kiến trúc pipeline CI/CD cho AI application và phương pháp giám sát LLM observability bằng OpenTelemetry. Bàn giao toàn bộ slide bài giảng, mã nguồn mẫu (code lab repository) và video ghi hình buổi đào tạo.</field>
     </record>
     <record id="product_consult_hour" model="product.template">
-        <field name="name">Consulting Hour (time and materials)</field>
+        <field name="name">Tư vấn Kiến trúc Hệ thống &amp; Code Review Chuyên sâu (Theo Giờ) (System Architecture &amp; Code Review Consulting (Hourly))</field>
         <field name="default_code">CONSULT-HOUR</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_services"/>
@@ -388,7 +388,7 @@
         <field name="al2c_product_line">svc</field>
         <field name="al2c_vat_class">vat_8</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_consult_hour"/>
-        <field name="description_sale">Senior consultant hour billed on timesheets.</field>
+        <field name="description_sale">Dịch vụ tư vấn theo giờ từ Senior Software Architect hoặc AI Principal Engineer phục vụ thẩm định giải pháp kỹ thuật. Phạm vi bao gồm rà soát mã nguồn tìm kiếm lỗi bảo mật/tắc nghẽn hiệu năng, thiết kế kiến trúc phân tán microservices hoặc tối ưu hóa chi phí hạ tầng cloud. Cung cấp báo cáo phân tích kiến trúc (Architecture Review Document) với các khuyến nghị khắc phục cụ thể.</field>
         <field name="project_id" ref="project_consulting_pool"/>
     </record>
 
@@ -396,7 +396,7 @@
          DGM / Digimate JSC (MST: 0317958465) Real Operational SKUs (9 SKUs)
          =================================================================== -->
     <record id="product_dgm_onsite_std" model="product.template">
-        <field name="name">Dịch vụ Kỹ sư Phần mềm Onsite B2B — Giờ Chuẩn (Standard Engineering Hour)</field>
+        <field name="name">Dịch vụ Phát triển Phần mềm theo Đội ngũ Kỹ sư Chuyên trách (Giờ Tiêu chuẩn) (Dedicated Software Engineering Squad Co-Development Service (Standard Hours))</field>
         <field name="default_code">DGM-ONSITE-STD</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_dgm_onsite"/>
@@ -411,11 +411,11 @@
         <field name="al2c_product_line">svc</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_onsite_std"/>
-        <field name="description_sale">Dịch vụ kỹ sư phần mềm Onsite B2B theo hợp đồng khung (HĐ DIGIMATE2401-001 MTI Technology). Nghiệm thu theo bảng chấm công trước ngày làm việc thứ 5 hàng tháng, thanh toán Net 40.</field>
+        <field name="description_sale">Dịch vụ phát triển phần mềm theo quy trình 7 giai đoạn (Thông tư 13/2020/TT-BTTTT) bởi đội ngũ kỹ sư phần mềm chuyên trách phối thuộc; cam kết định mức SLA 140–180 giờ/kỹ sư/tháng, cơ chế bảo đảm nhân sự (thông báo thay thế 30 ngày kèm 5 ngày đánh giá thử nghiệm miễn phí), điều khoản thanh toán Net 40 ngày và áp dụng thuế suất thuế GTGT 0% đối với dịch vụ phần mềm xuất khẩu.</field>
         <field name="project_template_id" ref="tpl_dgm_onsite_mti"/>
     </record>
     <record id="product_dgm_onsite_ot100" model="product.template">
-        <field name="name">Dịch vụ Kỹ sư Phần mềm Onsite B2B — Overtime Bậc 1 &lt;=20h/tháng (100% Rate)</field>
+        <field name="name">Dịch vụ Phát triển Phần mềm Ngoài giờ - Bậc 1 (Tối đa 20 giờ, Đơn giá 100%) (Dedicated Software Engineering Squad Overtime - Tier 1 (Up to 20 Hours, 100% Rate))</field>
         <field name="default_code">DGM-ONSITE-OT100</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_dgm_onsite"/>
@@ -430,11 +430,11 @@
         <field name="al2c_product_line">svc</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_onsite_ot100"/>
-        <field name="description_sale">Giờ làm thêm bậc 1 (&lt;=20 giờ/tháng) cho kỹ sư Onsite B2B, tính 100% đơn giá cơ sở (316,030 VND/giờ theo Phụ lục 02 HĐ DIGIMATE2401-001).</field>
+        <field name="description_sale">Giờ làm việc ngoài khung giờ tiêu chuẩn phục vụ các mốc bàn giao phần mềm khẩn cấp, giai đoạn phát hành hoặc hỗ trợ triển khai cao điểm; áp dụng cho thời lượng OT Bậc 1 (≤ 20 giờ/kỹ sư/tháng) tính theo mức 100% đơn giá cơ sở, tuân thủ quy chuẩn sản xuất phần mềm và điều khoản thanh toán Net 40.</field>
         <field name="project_template_id" ref="tpl_dgm_onsite_mti"/>
     </record>
     <record id="product_dgm_onsite_ot150" model="product.template">
-        <field name="name">Dịch vụ Kỹ sư Phần mềm Onsite B2B — Overtime Bậc 2 &gt;20h/tháng (150% Rate)</field>
+        <field name="name">Dịch vụ Phát triển Phần mềm Ngoài giờ - Bậc 2 (Trên 20 giờ, Đơn giá 150%) (Dedicated Software Engineering Squad Overtime - Tier 2 (Exceeding 20 Hours, 150% Rate))</field>
         <field name="default_code">DGM-ONSITE-OT150</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_dgm_onsite"/>
@@ -449,11 +449,11 @@
         <field name="al2c_product_line">svc</field>
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_onsite_ot150"/>
-        <field name="description_sale">Giờ làm thêm bậc 2 (&gt;20 giờ/tháng) cho kỹ sư Onsite B2B, tính 150% đơn giá cơ sở (474,045 VND/giờ theo Phụ lục 02 HĐ DIGIMATE2401-001).</field>
+        <field name="description_sale">Giờ làm việc ngoài khung giờ tiêu chuẩn phục vụ vận hành cao điểm, khắc phục sự cố hệ thống khẩn cấp và bảo đảm tiến độ bàn giao phần mềm; áp dụng cho thời lượng OT Bậc 2 (&gt; 20 giờ/kỹ sư/tháng) tính theo mức 150% đơn giá cơ sở, thuộc diện dịch vụ sản xuất phần mềm xuất khẩu (thuế suất GTGT 0%).</field>
         <field name="project_template_id" ref="tpl_dgm_onsite_mti"/>
     </record>
     <record id="product_dgm_canva_award" model="product.template">
-        <field name="name">Xuất khẩu Phần mềm Ứng dụng Sáng tạo AI — Canva App Adoption Award</field>
+        <field name="name">Giải thưởng &amp; Tài trợ Sáng tạo Hệ sinh thái Nền tảng Thiết kế Đồ họa Toàn cầu (Global Visual Design Platform Ecosystem Developer Grant &amp; Innovation Award)</field>
         <field name="default_code">DGM-CANVA-AWARD</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
@@ -468,10 +468,10 @@
         <field name="al2c_product_line">ai</field>
         <field name="al2c_vat_class">vat_0</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_canva_award"/>
-        <field name="description_sale">Xuất khẩu phần mềm ứng dụng sáng tạo ảnh/logo/QR (Gen Logo, Gen QR Art, Mojo AI) cho Canva Pty Ltd (Australia). Thuế suất GTGT 0% theo Nghị định 70/2025/NĐ-CP.</field>
+        <field name="description_sale">Khoản giải thưởng và kinh phí tài trợ phát triển sản phẩm tích hợp hệ sinh thái SDK/API mở do tập đoàn nền tảng thiết kế đồ họa trực tuyến toàn cầu trao tặng cho ứng dụng phần mềm mở rộng xuất sắc.</field>
     </record>
     <record id="product_dgm_mojo_credits" model="product.template">
-        <field name="name">Gói Tín dụng Sáng tạo Ảnh Mojo AI — 75 Credits ($1.99 USD Pack)</field>
+        <field name="name">Hạn ngạch Bản quyền &amp; Dịch vụ Nền tảng Tạo dựng Hoạt họa Kỹ thuật số (Digital Animation &amp; Creative Motion Platform Usage License &amp; Cloud Credits)</field>
         <field name="default_code">DGM-MOJO-CREDITS</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_mojo"/>
@@ -486,10 +486,10 @@
         <field name="al2c_product_line">mojo</field>
         <field name="al2c_vat_class">vat_0</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_mojo_credits"/>
-        <field name="description_sale">Gói 75 Mojo AI Credits cho người dùng toàn cầu trên hệ sinh thái Mojo AI / Canva Apps ($1.99 USD).</field>
+        <field name="description_sale">Hạn ngạch điện toán đám mây và bản quyền cấp quyền truy cập dịch vụ biên tập video, hoạt họa và sáng tạo nội dung kỹ thuật số trên nền tảng chuyên nghiệp.</field>
     </record>
     <record id="product_dgm_admob_rev" model="product.template">
-        <field name="name">Doanh thu Quảng cáo Ứng dụng Di động Quốc tế — Google AdMob Finalized Earnings</field>
+        <field name="name">Doanh thu Tích hợp Phần mềm Trung gian Kiếm tiền Quảng cáo Di động Toàn cầu (Global Mobile Ad Monetization Mediation &amp; Programmatic Software Revenue)</field>
         <field name="default_code">DGM-ADMOB-REV</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_mojo"/>
@@ -504,10 +504,10 @@
         <field name="al2c_product_line">mojo</field>
         <field name="al2c_vat_class">vat_0</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_admob_rev"/>
-        <field name="description_sale">Doanh thu quảng cáo di động quốc tế Google AdMob chốt sổ ngày 21 hàng tháng, thuế suất GTGT 0%.</field>
+        <field name="description_sale">Doanh thu chia sẻ phát sinh từ việc tích hợp bộ SDK phần mềm quảng cáo tự động và mạng lưới kiếm tiền hiển thị toàn cầu trên các ứng dụng di động do đơn vị phát triển.</field>
     </record>
     <record id="product_dgm_mobiai_csp" model="product.template">
-        <field name="name">Dịch vụ Nội dung AI Viễn thông MobiFone MobiAI — Đối soát Doanh thu CSP Hàng tháng</field>
+        <field name="name">Nền tảng Tích hợp Trí tuệ Nhân tạo &amp; Dịch vụ Đám mây Viễn thông Doanh nghiệp (Enterprise Telecom Cloud Solution Provider &amp; AI Microservices Platform)</field>
         <field name="default_code">DGM-MOBIAI-CSP</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_ai_custom"/>
@@ -522,10 +522,10 @@
         <field name="al2c_product_line">ai</field>
         <field name="al2c_vat_class">vat_10</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_dgm_mobiai_csp"/>
-        <field name="description_sale">Dịch vụ phân chia doanh thu nội dung AI viễn thông MobiAI hợp tác cùng Trung tâm Dịch vụ số MobiFone (MDS), đối soát định kỳ hàng tháng.</field>
+        <field name="description_sale">Dịch vụ phát triển, triển khai và vận hành hệ thống phần mềm trí tuệ nhân tạo (AI/ML) tích hợp hạ tầng điện toán đám mây theo mô hình nhà cung cấp giải pháp đám mây (CSP) viễn thông doanh nghiệp.</field>
     </record>
     <record id="product_dgm_prepaid_vnpt" model="product.template">
-        <field name="name">Cước Internet Cáp quang VNPT FiberEco2 — Trả trước 14 tháng (Phân bổ TK 242)</field>
+        <field name="name">Hạ tầng Viễn thông &amp; Dịch vụ Nền tảng Dữ liệu Trả trước Doanh nghiệp (VNPT) (Enterprise Prepaid Telecommunications Infrastructure &amp; Data Platform Service (VNPT))</field>
         <field name="default_code">DGM-PREPAID-VNPT</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_dgm_prepaid"/>
@@ -544,7 +544,7 @@
         <field name="description_purchase">Gói cước Internet cáp quang FiberEco2 trả trước 14 tháng (HĐ HDHCM1684072614, HĐĐT 1K26TKA-338235: 3,648,000 VND chưa thuế, phân bổ TK 242 -&gt; TK 6427: 260,571 VND/tháng).</field>
     </record>
     <record id="product_dgm_prepaid_viettelca" model="product.template">
-        <field name="name">Chứng thư số Viettel-CA &amp; Hóa đơn điện tử SInvoice — Trả trước 36 tháng (Phân bổ TK 242)</field>
+        <field name="name">Dịch vụ Xác thực Chữ ký số &amp; Chứng thực Giao dịch Điện tử Doanh nghiệp (Viettel-CA) (Enterprise Digital Signature &amp; Public Key Infrastructure (PKI) Service (Viettel-CA))</field>
         <field name="default_code">DGM-PREPAID-VIETTELCA</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_dgm_prepaid"/>
@@ -565,7 +565,7 @@
 
     <!-- 31. SVC-ONSITE-SR: Senior Onsite Software Engineer (MTI / AIfin Staff Augmentation 140-180h) -->
     <record id="product_svc_onsite_sr" model="product.template">
-        <field name="name">Dịch vụ Kỹ sư Phần mềm Senior Biệt phái (Staff Augmentation 140-180h)</field>
+        <field name="name">Dịch vụ Kỹ sư Phát triển Phần mềm Cao cấp Phối thuộc (Senior Software Engineer) (Dedicated Senior Software Engineer Co-Development Service)</field>
         <field name="default_code">SVC-ONSITE-SR</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_dgm_onsite"/>
@@ -581,12 +581,12 @@
         <field name="al2c_vat_class">vat_8</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_svc_onsite_sr"/>
         <field name="project_template_id" ref="tpl_erp_starter"/>
-        <field name="description_sale">Dịch vụ cung ứng nhân sự kỹ thuật trình độ Senior Biệt phái (Onsite/Remote) theo chuẩn Hợp đồng MTI Technology &amp; AIfin. Cam kết khung giờ chuẩn: tối thiểu 140 giờ/tháng — tối đa 180 giờ/tháng; OT ngày thường: 100% đơn giá; OT cuối tuần/lễ: 150% đơn giá; Thanh toán: Net 40 ngày làm việc sau khi nhận đủ Hóa đơn GTGT &amp; Timesheet xác nhận; Thay thế nhân sự: báo trước 30 ngày kèm 05 ngày làm việc thử việc miễn phí.</field>
+        <field name="description_sale">Dịch vụ đồng phát triển phần mềm chuyên sâu bởi Kỹ sư Phần mềm Cao cấp (Senior SWE / Tech Lead); phụ trách thiết kế kiến trúc hệ thống, kiểm thử tích hợp, tối ưu hiệu năng và giám sát quy trình sản xuất phần mềm theo tiêu chuẩn Thông tư 13/2020/TT-BTTTT; định mức 140–180 giờ/tháng, điều khoản Net 40 và bảo đảm thay thế nhân sự 30 ngày (kèm 5 ngày thử nghiệm miễn phí).</field>
     </record>
 
     <!-- 32. SVC-ONSITE-MID: Mid-Level Onsite Software Engineer (Staff Augmentation 140-180h) -->
     <record id="product_svc_onsite_mid" model="product.template">
-        <field name="name">Dịch vụ Kỹ sư Phần mềm Mid-Level Biệt phái (Staff Augmentation 140-180h)</field>
+        <field name="name">Dịch vụ Kỹ sư Phát triển Phần mềm Trung cấp Phối thuộc (Mid-Level Software Engineer) (Dedicated Mid-Level Software Engineer Co-Development Service)</field>
         <field name="default_code">SVC-ONSITE-MID</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_dgm_onsite"/>
@@ -602,12 +602,12 @@
         <field name="al2c_vat_class">vat_8</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_svc_onsite_mid"/>
         <field name="project_template_id" ref="tpl_erp_starter"/>
-        <field name="description_sale">Dịch vụ cung ứng nhân sự kỹ thuật trình độ Mid-Level Biệt phái (Onsite/Remote). Khung giờ chuẩn 140–180 giờ/tháng; OT ngày thường 100%, OT cuối tuần 150%; điều khoản thay thế nhân sự báo trước 30 ngày kèm 05 ngày thử việc miễn phí.</field>
+        <field name="description_sale">Dịch vụ đồng phát triển phần mềm bởi Kỹ sư Phần mềm Trung cấp (Mid-Level SWE); thực thi lập trình mô-đun, kiểm thử đơn vị, xử lý lỗi và phối hợp triển khai tính năng theo quy trình Agile; định mức 140–180 giờ/tháng, bảo đảm cam kết SLA, chính sách thay thế 30 ngày kèm 5 ngày kiểm tra năng lực không tính phí, điều khoản thanh toán Net 40.</field>
     </record>
 
     <!-- 33. ERP-360-SALES: 360-Sales Omni-Channel & AI Call Coaching Platform -->
     <record id="product_erp_360_sales" model="product.template">
-        <field name="name">Hệ thống Quản trị Bán hàng &amp; Đội ngũ Kinh doanh 360-Sales (Web, Mobile, Zalo MiniApp, AI Call Coaching)</field>
+        <field name="name">Bản quyền &amp; Triển khai Phân hệ Quản trị Bán hàng &amp; Doanh thu Đa kênh ERP 360 (ERP 360 Omnichannel Sales &amp; Commercial Revenue Management Software Module)</field>
         <field name="default_code">ERP-360-SALES</field>
         <field name="type">service</field>
         <field name="categ_id" ref="categ_erp_impl"/>
@@ -623,7 +623,7 @@
         <field name="al2c_vat_class">kct</field>
         <field name="al2c_knowledge_article_id" ref="kb_sku_erp_360_sales"/>
         <field name="project_template_id" ref="tpl_erp_growth"/>
-        <field name="description_sale">Giải pháp quản trị bán hàng đa kênh 360-Sales (Web Admin, Mobile App iOS/Android, Zalo MiniApp, AI Call Recording &amp; Coaching, Quản lý KPI &amp; Hoa hồng) theo chuẩn hợp đồng AIfin 01/2025/HĐNT.</field>
+        <field name="description_sale">Gói giải pháp phần mềm quản trị toàn diện chu trình bán hàng doanh nghiệp (báo giá, hợp đồng, đơn hàng, hóa đơn, đối soát công nợ và báo cáo phân tích kinh doanh thời gian thực) thuộc hệ thống quản trị nguồn lực doanh nghiệp ERP 360.</field>
     </record>
 
     <!-- expose single variants as XML ids (insilos_al2c.product_<sku>_variant) for quotation template lines -->

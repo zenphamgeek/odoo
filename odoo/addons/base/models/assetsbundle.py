@@ -217,7 +217,7 @@ class AssetsBundle(object):
             ('public', '=', True),
         ]
 
-        attachments = ira.sudo().search(domain)
+        attachments = ira.sudo().search(domain, order='id desc')[4:]
         # avoid to invalidate cache if it's already empty (mainly useful for test)
 
         if attachments:
@@ -548,6 +548,11 @@ class AssetsBundle(object):
             previous_css = previous_attachment.raw.decode() if previous_attachment else ''
             css_error_message_header = '\n\n/* ## CSS error message ##*/'
             previous_css = previous_css.split(css_error_message_header)[0]
+            if not previous_css.strip() and css and css.strip():
+                fallback_matches = []
+                fallback_body = re.sub(self.rx_css_import, lambda matchobj: fallback_matches.append(matchobj.group(0)) and '', css)
+                fallback_matches.append(fallback_body)
+                previous_css = '\n'.join(fallback_matches)
             css = css_error_message_header.join([
                 previous_css, """
 body::before {
@@ -809,6 +814,20 @@ class WebAsset(object):
 
     def stat(self):
         if not (self.inline or self._filename or self._ir_attach):
+            if self.url:
+                rel = self.url.lstrip('/')
+                for fallback_root in (
+                    '/var/lib/insilos/filestore/custom_addons',
+                    '/app/insilos/enterprise',
+                    '/app/insilos/addons',
+                    '/app/insilos/apps',
+                    '/home/zen/O20/enterprise',
+                    '/home/zen/O20/addons',
+                ):
+                    candidate = os.path.join(fallback_root, rel)
+                    if os.path.isfile(candidate):
+                        self._filename = candidate
+                        return
             try:
                 # Test url against ir.attachments
                 self._ir_attach = self.bundle.env['ir.attachment'].sudo()._get_serve_attachment(self.url)

@@ -1,3 +1,5 @@
+/** @insilos-module **/
+
 import { Component } from "@insilos/owl";
 
 export class ProcessMonitoringCard extends Component {

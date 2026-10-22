@@ -43,9 +43,35 @@ def is_wildcard_glob(path):
     return '*' in path or '[' in path or ']' in path or '?' in path
 
 
+_CONTENT_MTIME_CACHE = {}
+
+
+def _deterministic_file_stamp(filepath):
+    """Return a content-addressed deterministic integer stamp for an asset file.
+    Prevents multi-pod asset checksum thrashing when identical files have different
+    filesystem mtimes across Kubernetes pods or overlay directories.
+    """
+    try:
+        st = os.stat(filepath)
+        cache_key = (filepath, st.st_mtime_ns, st.st_size)
+        cached = _CONTENT_MTIME_CACHE.get(cache_key)
+        if cached is not None:
+            return cached
+        import zlib
+        with open(filepath, 'rb') as f:
+            crc = zlib.crc32(f.read()) & 0xffffffff
+        stamp = 1700000000 + (crc & 0x03ffffff)
+        if len(_CONTENT_MTIME_CACHE) > 32768:
+            _CONTENT_MTIME_CACHE.clear()
+        _CONTENT_MTIME_CACHE[cache_key] = stamp
+        return stamp
+    except OSError:
+        return int(os.path.getmtime(filepath))
+
+
 def _glob_static_file(pattern):
     files = glob(pattern, recursive=True)
-    return sorted((file, os.path.getmtime(file)) for file in files if file.rsplit('.', 1)[-1] in ASSET_EXTENSIONS)
+    return sorted((file, _deterministic_file_stamp(file)) for file in files if file.rsplit('.', 1)[-1] in ASSET_EXTENSIONS)
 
 
 class IrAsset(models.Model):
@@ -335,9 +361,17 @@ class IrAsset(models.Model):
         safe_path = False
         if addon_manifest:
             if addon not in installed:
-                # Assert that the path is in the installed addons
-                raise Exception(f"""Unallowed to fetch files from addon {addon} for file {path_def}. """
-                                f"""Addon {addon} is not installed""")
+                self.env.cr.execute(
+                    "SELECT 1 FROM ir_module_module WHERE name = %s AND state IN ('installed', 'to upgrade', 'to remove') LIMIT 1",
+                    (addon,),
+                )
+                if self.env.cr.fetchone():
+                    self.env.registry._init_modules.add(addon)
+                    installed = set(installed) | {addon}
+                    self.env.registry.clear_cache()
+                else:
+                    _logger.warning("Skipping asset %s from uninstalled addon %s", path_def, addon)
+                    return []
             addons_path = addon_manifest.addons_path
             full_path = os.path.normpath(os.path.join(addons_path, *path_parts))
             # forbid escape from the current addon

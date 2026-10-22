@@ -22,12 +22,19 @@ def warmup_database_assets(dbname=None):
         if os.path.exists(candidate) and candidate not in sys.path:
             sys.path.insert(0, candidate)
 
+    try:
+        from insilos_adapter.hook import install as install_insilos_hook
+        install_insilos_hook()
+        import insilos.cli  # noqa: F401
+    except Exception:
+        pass
+
     import odoo
     from odoo.orm.registry import Registry
     from odoo import api, SUPERUSER_ID
 
     if os.path.exists('/app/insilos'):
-        addons_path = '/var/lib/insilos/filestore/custom_addons,/app/insilos/addons,/app/insilos/apps,/app/insilos/enterprise'
+        addons_path = '/var/lib/insilos/filestore/custom_addons,/app/insilos/addons,/app/insilos/apps'
         data_dir = '/var/lib/insilos/filestore'
         db_host = os.environ.get('DB_HOST', 'pgbouncer-service')
         db_port = os.environ.get('DB_PORT', '6432')
@@ -78,6 +85,8 @@ def warmup_database_assets(dbname=None):
                 bundle = env['ir.qweb']._get_asset_bundle(b, css=True, js=True)
                 css_att = bundle.css()
                 js_att = bundle.js()
+                if getattr(bundle, 'css_errors', None):
+                    raise RuntimeError(f"CSS compile errors in {b}: {bundle.css_errors}")
                 dur = round(time.time() - b_t0, 2)
                 css_size = css_att.file_size if css_att else 0
                 js_size = js_att.file_size if js_att else 0
@@ -103,6 +112,8 @@ def warmup_database_assets(dbname=None):
                     bundle = env['ir.qweb']._get_asset_bundle(b, css=True, js=True, assets_params={'website_id': w.id})
                     css_att = bundle.css()
                     js_att = bundle.js()
+                    if getattr(bundle, 'css_errors', None):
+                        raise RuntimeError(f"CSS compile errors in {b} [Website {w.id}]: {bundle.css_errors}")
                     dur = round(time.time() - b_t0, 2)
                     css_size = css_att.file_size if css_att else 0
                     js_size = js_att.file_size if js_att else 0
@@ -112,14 +123,17 @@ def warmup_database_assets(dbname=None):
                     print(f"  [✗] FAILED warming {b} [Website {w.id}]: {e}")
                     compiled_summary.append((f"{b}_w{w.id}", False, 0, 0))
 
-        # Commit new attachments to DB
+        failed_bundles = [name for name, ok, _, _ in compiled_summary if not ok]
+        if failed_bundles:
+            cr.rollback()
+            raise RuntimeError(f"ABORTED & ROLLED BACK: Asset warmup failed on {failed_bundles}. Existing DB attachments preserved.")
+
+        # Commit new attachments to DB only when 100% of bundles compiled with zero errors
         cr.commit()
 
     total_dur = round(time.time() - t0, 2)
     success_count = sum(1 for _, ok, _, _ in compiled_summary if ok)
-    print(f"\n[🎉] Pre-Warming Completed: {success_count}/{len(bundles)} bundles ready in {total_dur}s.")
-    if success_count < len(bundles):
-        raise RuntimeError("Asset warmup encountered failures.")
+    print(f"\n[🎉] Pre-Warming Completed: {success_count}/{len(compiled_summary)} bundles ready in {total_dur}s.")
 
 if __name__ == '__main__':
     target_db = sys.argv[1] if len(sys.argv) > 1 else os.environ.get('TARGET_DATABASE', 'insilos20_dev')

@@ -497,7 +497,10 @@ flowchart TD
 | :--- | :--- | :--- |
 """
     for adr_id, title, status, _rat, valid_from, _vt, _sha in adrs:
-        moc_content += f"| [[ADR-{adr_id}\\|{adr_id}]] | {title} | `{status}` ({valid_from[:10]}) |\n"
+        moc_content += (
+            f"| [[20-Projects/Active/O20-Insilos-ERP/03-BiTemporal-ADRs-and-Session-Links#{adr_id}\\|{adr_id}]] "
+            f"| {title} | `{status}` ({valid_from[:10]}) |\n"
+        )
 
     moc_content = _sanitize_for_obsidian_export(moc_content)
     moc_path.write_text(moc_content, encoding="utf-8")
@@ -680,13 +683,13 @@ All Architecture Decision Records below are persisted in `~/.hermes/knowledge_co
 
 """
     for adr_id, title, status, rationale, valid_from, valid_to, sha256 in adrs:
-        adr_content += f"""## [[ADR-{adr_id}]] — {title}
+        adr_content += f"""## {adr_id} — {title}
 
 - **Status**: `{status}`
 - **Repository**: `O20`
 - **Valid From**: `{valid_from}` | **Valid To**: `{valid_to or "CURRENT (ACTIVE)"}`
 - **SHA-256 Attestation**: `{sha256}`
-- **Session Link**: [[Session-{SESSION_ID}]] [[ADR-{adr_id}]]
+- **Session Link**: [[Session-{SESSION_ID}]] [[20-Projects/Active/O20-Insilos-ERP/03-BiTemporal-ADRs-and-Session-Links#{adr_id}|{adr_id}]]
 - **Rationale**:
   {rationale}
 
@@ -711,7 +714,7 @@ session_id: "{SESSION_ID}"
 
 # Canonical Google Drive `Shared with me` 9-Level Tree & 11-Profile RBAC Matrix
 
-> Linked to [[20-Projects/Active/O20-Insilos-ERP/00-O20-Master-Architecture-MOC|00 — O20 Master Architecture MOC]] • [[ADR-ADR-20261016-007|ADR-20261016-007]] • [[Session-{SESSION_ID}]]
+> Linked to [[20-Projects/Active/O20-Insilos-ERP/00-O20-Master-Architecture-MOC|00 — O20 Master Architecture MOC]] • [[20-Projects/Active/O20-Insilos-ERP/03-BiTemporal-ADRs-and-Session-Links#ADR-20261016-007|ADR-20261016-007]] • [[Session-{SESSION_ID}]]
 
 ## 1. Canonical Data Room Topology (`3. INNO+ DGM`)
 
@@ -830,6 +833,30 @@ Innoria maintains a multi-style vector logo suite in `/insilos_website/static/sr
     ui_std_content = _sanitize_for_obsidian_export(ui_std_content)
     ui_std_path.write_text(ui_std_content, encoding="utf-8")
 
+    # -------------------------------------------------------------------------
+    # Note 7: Session-{SESSION_ID}.md (Canonical Session Anchor)
+    # -------------------------------------------------------------------------
+    sess_path = O20_VAULT_DIR / f"Session-{SESSION_ID}.md"
+    sess_content = f"""---
+hermes_research: true
+type: session
+project: O20
+status: active
+compiled_at: "{now_iso}"
+session_id: "{SESSION_ID}"
+---
+
+# Session `{SESSION_ID}` — O20 Core Knowledge Compiler & Bi-Temporal ADR Session
+
+> Linked to [[20-Projects/Active/O20-Insilos-ERP/00-O20-Master-Architecture-MOC|00 — O20 Master Architecture MOC]] • [[20-Projects/Active/O20-Insilos-ERP/03-BiTemporal-ADRs-and-Session-Links|03 — O20 Bi-Temporal ADRs & Session Links]] • [[Maps/Decisions|Decisions Map]]
+
+- **Session ID**: `{SESSION_ID}`
+- **Compiled Repository**: `/home/zen/O20` (`repo="O20"`)
+- **Active Bi-Temporal ADRs**: `{len(adrs)}`
+"""
+    sess_content = _sanitize_for_obsidian_export(sess_content)
+    sess_path.write_text(sess_content, encoding="utf-8")
+
     return [
         (str(moc_path.relative_to(VAULT_ROOT)), "ADR-20261016-001"),
         (str(ast_path.relative_to(VAULT_ROOT)), "ADR-20261016-002"),
@@ -837,6 +864,7 @@ Innoria maintains a multi-style vector logo suite in `/insilos_website/static/sr
         (str(adr_path.relative_to(VAULT_ROOT)), "ADR-20261017-011"),
         (str(rbac_path.relative_to(VAULT_ROOT)), "ADR-20261016-007"),
         (str(ui_std_path.relative_to(VAULT_ROOT)), "ADR-20261020-015"),
+        (str(sess_path.relative_to(VAULT_ROOT)), "ADR-20261021-018"),
     ]
 
 

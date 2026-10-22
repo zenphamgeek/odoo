@@ -36,13 +36,24 @@ class ProjectProject(models.Model):
         # Project templates do not hold documents: the delivery project created from
         # the template gets its own workspace folder. Skipping templates also avoids
         # duplicating a folder tree on every "create from template".
+        if self.env.context.get('no_create_folder'):
+            return
+        env_folder = getattr(self.env.company, 'documents_project_folder_id', False)
+        if env_folder and not env_folder.active:
+            return
         valid_projects = self.filtered(
             lambda p: not getattr(p, 'is_template', False)
+            and (
+                not getattr(p.company_id, 'documents_project_folder_id', False)
+                or getattr(p.company_id, 'documents_project_folder_id').active
+            )
             and (
                 not getattr(p.company_id, 'documents_project_folder', False)
                 or getattr(p.company_id, 'documents_project_folder').active
             )
         )
+        if not valid_projects:
+            return
         return super(ProjectProject, valid_projects)._create_missing_folders()
 
     @api.model

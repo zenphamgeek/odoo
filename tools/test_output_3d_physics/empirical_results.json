@@ -1,0 +1,215 @@
+{
+  "timestamp": "2026-10-07T14:47:38.719Z",
+  "scenarios": {
+    "Scenario_1_Orbit_Angle": {
+      "tests": [
+        {
+          "testName": "Pitch_Ceiling_Clamp_85deg",
+          "passed": true,
+          "details": {
+            "maxRotX": 85,
+            "settledRotX": 85,
+            "clampLimit": 85
+          }
+        },
+        {
+          "testName": "Pitch_Floor_Clamp_18deg",
+          "passed": true,
+          "details": {
+            "minRotX": 18,
+            "settledRotX": 18,
+            "clampFloor": 18
+          }
+        },
+        {
+          "testName": "Reset_View_Returns_Default",
+          "passed": true,
+          "details": {
+            "resetRotX": 58,
+            "resetRotZ": -38,
+            "expectedX": 58,
+            "expectedZ": -38
+          }
+        }
+      ],
+      "passed": true
+    },
+    "Scenario_2_Drag_Parallax": {
+      "tests": [
+        {
+          "testName": "Drag_Angle_Significantly_Offset",
+          "passed": true,
+          "details": {
+            "initialZ": -38,
+            "draggedZ": 103.24,
+            "deltaZ": 141.24
+          }
+        },
+        {
+          "testName": "No_Snapback_To_Default_On_Mousemove",
+          "passed": true,
+          "details": {
+            "draggedTargetZ": 103.24,
+            "maxOffsetFromDragged": 7.450000000000003,
+            "closestDistanceToDefault": 142.45,
+            "defaultZ": -38
+          }
+        },
+        {
+          "testName": "Angle_Retained_After_Mouse_Leave",
+          "passed": false,
+          "details": {
+            "outsideRotZ": 111.89,
+            "draggedEdgeZ": 103.24,
+            "offsetFromDraggedEdge": 8.650000000000006,
+            "distanceToDefaultAfterLeave": 149.89,
+            "defaultZ": -38
+          }
+        }
+      ],
+      "passed": false
+    },
+    "Scenario_3_Multi_Slab_Stacking": {
+      "tests": [
+        {
+          "testName": "Resting_Stacking_Order_Maintained",
+          "passed": true,
+          "details": {
+            "gap01": 28,
+            "gap12": 28,
+            "gap23": 28
+          }
+        },
+        {
+          "testName": "Zero_Z_Collision_During_Rapid_Switching",
+          "passed": true,
+          "details": {
+            "sampledFrames": 90,
+            "collisions": 0,
+            "minGap01_px": 28,
+            "minGap12_px": 28,
+            "minGap23_px": 28
+          }
+        }
+      ],
+      "passed": true
+    },
+    "Scenario_4_Exploded_Mode": {
+      "tests": [
+        {
+          "testName": "Exploded_Base_Z_Expanded_Cleanly",
+          "passed": true,
+          "details": {
+            "baseZs": [
+              165,
+              55,
+              -55,
+              -165
+            ],
+            "gaps": [
+              74,
+              74,
+              74
+            ]
+          }
+        },
+        {
+          "testName": "Slab_Pull_Out_In_Exploded_State",
+          "passed": false,
+          "details": {
+            "slab2PullZ": 0,
+            "clearanceAbove": 74
+          }
+        },
+        {
+          "testName": "Smooth_Retraction_With_Active_Pull",
+          "passed": false,
+          "details": {
+            "baseZs": [
+              96,
+              32,
+              -32,
+              -96
+            ],
+            "slab2PullZ": 0,
+            "gap12": 28
+          }
+        }
+      ],
+      "passed": false
+    },
+    "Scenario_6_Volumetric_Slabs": {
+      "tests": [
+        {
+          "testName": "All_24_Faces_Present_Resting_Solid_Opacity",
+          "passed": true,
+          "details": {
+            "totalSlabs": 4,
+            "all24FacesExist": true,
+            "restingOpacitySolid": true,
+            "opacities": [
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        },
+        {
+          "testName": "Dimmed_Slabs_Maintain_Solid_Volume_No_Ghost_Wireframe",
+          "passed": true,
+          "details": {
+            "slab0PulledOpacity": 1,
+            "dimmedOpacities": [
+              1,
+              1,
+              1
+            ],
+            "expectedDimmedOpacity": 0.88
+          }
+        }
+      ],
+      "passed": true
+    },
+    "Scenario_5_Mobile_Touch": {
+      "tests": [
+        {
+          "testName": "Zero_Horizontal_Overflow_Mobile_375px",
+          "passed": true,
+          "details": {
+            "viewportWidth": 375,
+            "docScrollWidth": 375,
+            "bodyScrollWidth": 375,
+            "overflowingCount": 5
+          }
+        },
+        {
+          "testName": "Touch_Drag_Orbit_Responsive_And_Smooth",
+          "passed": true,
+          "details": {
+            "initialTransform": "rotateX(58deg) rotateZ(-38deg) translateY(-15px)",
+            "postDragTransform": "rotateX(85deg) rotateZ(91.63deg) translateY(-15px)",
+            "rotZ": 91.63
+          }
+        },
+        {
+          "testName": "Mobile_Tap_Selects_Layer_And_Updates_HUD",
+          "passed": false,
+          "details": {
+            "badgeText": null,
+            "slab1Pulled": true,
+            "panel1Visible": true
+          }
+        }
+      ],
+      "passed": false
+    }
+  },
+  "failures": [
+    "[Scenario_2_Drag_Parallax] Angle_Retained_After_Mouse_Leave: {\"outsideRotZ\":111.89,\"draggedEdgeZ\":103.24,\"offsetFromDraggedEdge\":8.650000000000006,\"distanceToDefaultAfterLeave\":149.89,\"defaultZ\":-38}",
+    "[Scenario_4_Exploded_Mode] Slab_Pull_Out_In_Exploded_State: {\"slab2PullZ\":0,\"clearanceAbove\":74}",
+    "[Scenario_4_Exploded_Mode] Smooth_Retraction_With_Active_Pull: {\"baseZs\":[96,32,-32,-96],\"slab2PullZ\":0,\"gap12\":28}",
+    "[Scenario_5_Mobile_Touch] Mobile_Tap_Selects_Layer_And_Updates_HUD: {\"badgeText\":null,\"slab1Pulled\":true,\"panel1Visible\":true}"
+  ],
+  "verdict": "REPORT_VULNERABILITY"
+}

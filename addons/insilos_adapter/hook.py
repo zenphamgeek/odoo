@@ -246,10 +246,25 @@ def _patch_mute_logger() -> None:
         _logger.debug("Failed patching mute_logger: %s", exc)
 
 
+def _restore_pvc_runtime_overlay_once() -> None:
+    """Restore persisted runtime overlay archives from PVC into container rootfs on pod boot."""
+    sentinel = "/tmp/.insilos_overlay_restored"
+    restore_script = "/var/lib/insilos/filestore/runtime_overlay/restore_overlay.sh"
+    try:
+        if os.path.isfile(restore_script) and not os.path.exists(sentinel):
+            import subprocess
+            subprocess.run(["sh", restore_script], check=False, timeout=60)
+            with open(sentinel, "w", encoding="utf-8") as f:
+                f.write("1\n")
+    except Exception as exc:
+        _logger.debug("PVC runtime overlay restore skipped: %s", exc)
+
+
 def install() -> None:
     """Install the Insilos PEP 451 import hook into sys.meta_path."""
     global _FINDER_INSTANCE
 
+    _restore_pvc_runtime_overlay_once()
     _ensure_odoo_addons_paths()
 
     # Insert finder if not present

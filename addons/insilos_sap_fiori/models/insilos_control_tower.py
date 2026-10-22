@@ -4,7 +4,7 @@
 import logging
 from datetime import datetime, date, timedelta, timezone
 from insilos import models, fields, api, _
-from odoo.exceptions import AccessError
+from insilos.exceptions import AccessError
 
 _logger = logging.getLogger("insilos.control_tower")
 

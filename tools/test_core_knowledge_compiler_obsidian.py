@@ -59,6 +59,7 @@ EXPECTED_ADR_IDS = [
     "ADR-20261017-013",
     "ADR-20261017-014",
     "ADR-20261020-015",
+    "ADR-20261020-016",
 ]
 
 EXPECTED_OBSIDIAN_NOTES = [
@@ -124,7 +125,7 @@ def main() -> int:
         f"{func_cnt} FUNCTIONs, {sum(tree_counts.values())} Logic Trees, FTS5 hits={fts_hits}."
     )
 
-    # 3. Verify 11 ACTIVE Bi-Temporal ADRs & Session Links
+    # 3. Verify 16 ACTIVE Bi-Temporal ADRs & Session Links
     cur.execute(
         "SELECT adr_id, status, sha256 FROM decisions WHERE repo='O20' AND status='ACTIVE' ORDER BY adr_id"
     )
@@ -141,9 +142,9 @@ def main() -> int:
     link_cnt = cur.fetchone()[0]
     assert link_cnt >= 16, f"Expected >= 16 session_links for {SESSION_ID}, got {link_cnt}"
     conn.close()
-    print(f"  [PASS] 11/11 Bi-Temporal ADRs (`ADR-20261016-001`..`ADR-20261017-011`) & {link_cnt} Session Links verified.")
+    print(f"  [PASS] 16/16 Bi-Temporal ADRs (`ADR-20261016-001`..`ADR-20261020-016`) & {link_cnt} Session Links verified.")
 
-    # 4. Verify 5 Obsidian Notes, Maps/Decisions.md, Home.md & Data/hermes-research.jsonl
+    # 4. Verify 6 Obsidian Notes, Maps/Decisions.md, Home.md & Data/hermes-research.jsonl
     for note_name in EXPECTED_OBSIDIAN_NOTES:
         note_fp = O20_VAULT_DIR / note_name
         assert note_fp.is_file() and note_fp.stat().st_size > 1500, f"Missing or incomplete Obsidian note: {note_fp}"
@@ -153,7 +154,7 @@ def main() -> int:
         assert f"[[Session-{SESSION_ID}]]" in text
 
     decisions_md = (VAULT_ROOT / "Maps" / "Decisions.md").read_text(encoding="utf-8")
-    assert "O20-Insilos-ERP" in decisions_md and "ADR-20261017-011" in decisions_md
+    assert "O20-Insilos-ERP" in decisions_md and "ADR-20261020-016" in decisions_md
 
     home_md = (VAULT_ROOT / "Home.md").read_text(encoding="utf-8")
     assert "O20-Insilos-ERP" in home_md
@@ -168,14 +169,16 @@ def main() -> int:
     assert len(o20_records) >= 6, f"Expected >= 6 exported O20 records in hermes-research.jsonl, got {len(o20_records)}"
     print(f"  [PASS] 6/6 Obsidian Notes, Maps/Decisions.md, Home.md & {len(o20_records)} exported hermes-research.jsonl records verified.")
 
-    # 5. Verify AGENTS.md & .agents/rules/01_insilos_enterprise_odoo_standards.md Section 10 & Section 13
+    # 5. Verify AGENTS.md & .agents/rules/01_insilos_enterprise_odoo_standards.md Section 10, 13 & 14
     agents_md = (O20_ROOT / "AGENTS.md").read_text(encoding="utf-8")
     rules_md = (O20_ROOT / ".agents" / "rules" / "01_insilos_enterprise_odoo_standards.md").read_text(encoding="utf-8")
     assert "## 10. Core Knowledge Compiler" in agents_md
     assert "## 10. Core Knowledge Compiler" in rules_md
     assert "## 13. Innoria SOTA Enterprise UI" in agents_md
     assert "## 13. Innoria SOTA Enterprise UI" in rules_md
-    print("  [PASS] Section 10 & Section 13 verified in AGENTS.md and .agents/rules/01_insilos_enterprise_odoo_standards.md.")
+    assert "## 14. Multi-Pod Content-Addressed Asset Stamp" in agents_md
+    assert "## 14. Multi-Pod Content-Addressed Asset Stamp" in rules_md
+    print("  [PASS] Section 10, Section 13 & Section 14 verified in AGENTS.md and .agents/rules/01_insilos_enterprise_odoo_standards.md.")
 
     print("\n=== ALL CORE KNOWLEDGE COMPILER & OBSIDIAN TESTS PASSED (EXIT 0) ===")
     return 0

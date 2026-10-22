@@ -711,9 +711,12 @@ def is_odoo_module(url, content):
     result = ODOO_MODULE_RE.match(content)
     if result and result['ignore']:
         return False
-    addon = url.split('/')[1]
-    if url.startswith(f'/{addon}/static/src') or url.startswith(f'/{addon}/static/tests'):
-        return True
+    clean_url = '/' + url.lstrip('/')
+    parts = clean_url.split('/')
+    if len(parts) > 1:
+        addon = parts[1]
+        if clean_url.startswith(f'/{addon}/static/src') or clean_url.startswith(f'/{addon}/static/tests'):
+            return True
     return bool(result)
 
 

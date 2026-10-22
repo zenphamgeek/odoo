@@ -1,22 +1,51 @@
 # Insilos O20 & Innoria Master E2E QA Gate Report
 
-- **Generated At (UTC)**: `2026-10-18T18:12:24.384874+00:00`
-- **Mode**: `gates=E2E-QA-11`
-- **Total Gates Executed**: `1`
-- **Passed Gates**: `1`
+- **Generated At (UTC)**: `2026-10-19T06:18:17.785627+00:00`
+- **Mode**: `gates=E2E-QA-12,E2E-QA-13`
+- **Total Gates Executed**: `2`
+- **Passed Gates**: `2`
 - **Failed Gates**: `0`
-- **Total Assertions (`[✓]`)**: `0`
-- **Wall-Clock Duration**: `0.695s`
+- **Total Assertions (`[✓]`)**: `20`
+- **Wall-Clock Duration**: `52.953s`
 - **Overall Verdict**: **PASS**
 
 ## Gate Summary Matrix
 
 | Gate ID | Category | Fast | Title | Commands | Assertions | Duration (s) | Status |
 | :--- | :--- | :---: | :--- | :---: | :---: | :---: | :---: |
-| `E2E-QA-11` | `domain` | Yes | Order-to-Cash (O2C) Sales Lifecycle DAG, PubGrub Discount Solver & Double-Entry Clearing E2E | 1 | 0 | 0.69s | **PASS** |
+| `E2E-QA-12` | `domain` | Yes | RAG-SOP Sales & Marketing Framework (SOP-DGM-15), <5 Min Rapid CPQ Quoting, 5-Archetype ROI Matrix & Executive PDF Report | 1 | 13 | 25.94s | **PASS** |
+| `E2E-QA-13` | `domain` | Yes | CRM 7-Stage Dual-Motion AL2C Pipeline, Hunter/Farmer/SDR Teams, 1-Click Lead-to-CPQ-ROI Bridge, 6 ICP Email Lists, 8 Carbon Mailings & 24 ABM Activities | 1 | 7 | 27.02s | **PASS** |
 
 ## Detailed Gate Evidence
 
-### E2E-QA-11: Order-to-Cash (O2C) Sales Lifecycle DAG, PubGrub Discount Solver & Double-Entry Clearing E2E [PASS]
-- **Category**: `domain` | **Fast Gate**: `True` | **Duration**: `0.69s`
-- **Command**: `pytest tests/test_insilos_victory_critic_harness.py -q` — **PASS** (`0.69s`, `0` assertions)
+### E2E-QA-12: RAG-SOP Sales & Marketing Framework (SOP-DGM-15), <5 Min Rapid CPQ Quoting, 5-Archetype ROI Matrix & Executive PDF Report [PASS]
+- **Category**: `domain` | **Fast Gate**: `True` | **Duration**: `25.94s`
+- **Command**: `python3 tools/test_dgm_rapid_quote_roi_pdf.py` — **PASS** (`25.93s`, `13` assertions)
+  ```text
+  [✓] Gate 1.1: SOP-DGM-15 verified in knowledge.article (#2663), dgm.knowledge.sop.workflow (KMS-SOP-DGM-15), and al2c.rag.chunk (2 chunks).
+  [✓] Gate 1.2 (Maintain Sale & Renewals): Grounded SOP-RAG answer verified (entailment=0.9200, matched=['SOP-DGM-15', 'SOP-DGM']).
+  [✓] Gate 1.2 (Rapid Quoting (GRC, ERP, Mojo AI, KTT)): Grounded SOP-RAG answer verified (entailment=0.9200, matched=['SOP-DGM-15', 'SOP-DGM']).
+  [✓] Gate 1.2 (Timesheet & 1C26TAA Payment Workflow): Grounded SOP-RAG answer verified (entailment=0.9200, matched=['SOP-DGM-15', 'SOP-DGM']).
+  [✓] Gate 2 (outsourcing_partner — Man-Hour Staff Augmentation): Quote=419,000,000 VND, NetAnnual=1,900,000,000 VND, 3YNet=5,281,000,000 VND, Ratio=13.60x, ROI=1260.4%, Payback=2.6m, FTS=3, Elapsed=291.6ms.
+  [✓] Gate 2 (ktt_finance_ops — Chief Accountant KTT Software Dev): Quote=185,000,000 VND, NetAnnual=1,490,000,000 VND, 3YNet=4,285,000,000 VND, Ratio=24.16x, ROI=2316.2%, Payback=1.5m, FTS=3, Elapsed=216.7ms.
+  [✓] Gate 2 (erp_insilos_enterprise — Packaged Insilos ERP): Quote=495,000,000 VND, NetAnnual=3,030,000,000 VND, 3YNet=8,595,000,000 VND, Ratio=18.36x, ROI=1736.4%, Payback=2.0m, FTS=3, Elapsed=194.0ms.
+  [✓] Gate 2 (grc_vertical_resilience — Packaged Vertical Resilience GRC): Quote=550,000,000 VND, NetAnnual=2,130,000,000 VND, 3YNet=5,840,000,000 VND, Ratio=11.62x, ROI=1061.8%, Payback=3.1m, FTS=3, Elapsed=259.8ms.
+  [✓] Gate 2 (mojo_ai_automation — Mojo AI Tools & Sovereign RAG): Quote=415,000,000 VND, NetAnnual=2,260,000,000 VND, 3YNet=6,365,000,000 VND, Ratio=16.34x, ROI=1533.7%, Payback=2.2m, FTS=3, Elapsed=268.1ms.
+  [✓] Gate 3.2: QWeb report `insilos_al2c.report_sales_proposal` rendered cleanly (25879 chars, 0 'Odoo'/'OpenERP' occurrences).
+  [✓] Gate 3.1: Executive PDF verified at both `/home/zen/O20/reports/INNORIA_DIGIMATE_RAG_SOP_RAPID_QUOTATION_ROI_REPORT.pdf` and `/home/zen/.gemini/antigravity/brain/790b1743-1724-4f27-a6fd-6d949bee50cf/INNORIA_DIGIMATE_RAG_SOP_RAPID_QUOTATION_ROI_REPORT.pdf` (397,566 bytes, valid %PDF-1. header).
+  [✓] Gate 3.3: Synced `INNORIA_DIGIMATE_RAG_SOP_RAPID_QUOTATION_ROI_REPORT.pdf` into `documents.document` (#16523) under folder `07. Quy trình Chuẩn & Tự động hóa (SOP & ERP Blueprints)` (#4704, owner_id=False, access_internal='edit', size=405,119 bytes).
+  === ALL SOP-DGM-15 RAPID CPQ, 5-ARCHETYPE ROI & EXECUTIVE PDF GATES PASSED (EXIT 0) ===
+  ```
+
+### E2E-QA-13: CRM 7-Stage Dual-Motion AL2C Pipeline, Hunter/Farmer/SDR Teams, 1-Click Lead-to-CPQ-ROI Bridge, 6 ICP Email Lists, 8 Carbon Mailings & 24 ABM Activities [PASS]
+- **Category**: `domain` | **Fast Gate**: `True` | **Duration**: `27.02s`
+- **Command**: `python3 tools/test_dgm_crm_email_marketing_e2e.py` — **PASS** (`27.02s`, `7` assertions)
+  ```text
+  [✓] Executed `crm.lead.action_configure_canonical_crm_and_email_marketing()` in `insilos20_dev`: {'status': 'configured', 'teams_count': 3, 'stages_count': 7, 'tags_count': 8, 'lost_reasons_count': 6, 'opportunities_calibrated': 12, 'mailing_lists_count': 6, 'mailings_count': 8, 'marketing_campaigns_count': 8, 'autonomous_cron': {'status': 'ok', 'radars_scanned': 6, 'campaigns_executed': 6, 'leads_routed': 21, 'total_pipeline_vnd': 14400000000.0, 'claim_grounding_pct': 100.0, 'tenant_barrier_verified': True, 'merkle_witness': {'tenant_id': 1, 'model_name': 'dgm.marketing.automation.campaign', 'pre_hash': 'de86625fcdce5bcb51e86cd1a1c588eee00cfbda3b6b46ae9ea0c515b32d7967', 'post_hash': '9c309cc77dab9bef57d7c1150af2df96b556cc2f4a9b0c390073ac04ad0c0590', 'merkle_root': '12b8fb1f1945a97654db1d2de57dd32b1f7f8e4b9967a1de71cba40a776202d9', 'signature': '6629fb213730a78addba95badf449a8d3454fa9e88abef055784fadefc350930', 'timestamp': 1792390688, 'latency_ms': 0.3058}}}
+  [✓] Gate 1 (CRM Topology): teams=6 (Hunter/Farmer/SDR verified), stages=7 (01..07=7), tags=24, lost_reasons=15.
+  [✓] Gate 2 (12 Calibrated Opportunities & 1-Click CPQ-ROI): leads=12, stages_covered=7, total_pipeline=6,065,600,000 VND, qualified_leads=12, 1-click quote=S01791 (amount=1,131,000,000 VND, ROI=13.00x, FTS=5, elapsed=249.3ms).
+  [✓] Gate 3 (Email Marketing & 4-Touch ABM): icp_lists=6 (total=6), b2b_contacts=37, carbon_mailings=16 (0 forbidden strings), campaigns=6, activities=24.
+  [✓] Gate 4.1: Executive Critique PDF verified at `/home/zen/O20/reports/INNORIA_CRM_PIPELINE_AND_EMAIL_MARKETING_CRITIQUE_REPORT.pdf` and `/home/zen/.gemini/antigravity/brain/790b1743-1724-4f27-a6fd-6d949bee50cf/INNORIA_CRM_PIPELINE_AND_EMAIL_MARKETING_CRITIQUE_REPORT.pdf` (315,064 bytes, valid %PDF-1. header, 0 forbidden strings).
+  [✓] Gate 4.2: Synced `INNORIA_CRM_PIPELINE_AND_EMAIL_MARKETING_CRITIQUE_REPORT.pdf` into `documents.document` (#16524) under folder `07. Quy trình Chuẩn & Tự động hóa (SOP & ERP Blueprints)` (#4704, owner_id=False, access_internal='edit', size=315,064 bytes).
+  === ALL E2E-QA-13 CRM PIPELINE, 1-CLICK CPQ-ROI, EMAIL MARKETING & PDF GATES PASSED (EXIT 0) ===
+  ```

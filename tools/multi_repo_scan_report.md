@@ -1,14 +1,14 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-16T07:20:10.222031+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-22T04:04:19.144619+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `9c5e599e1` | 541 | ⚠️ 118 | 287,512 | 2,395.9 d | 582.2 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
-| **`VerticalRisk`** | `Development` | `99415c910` | 182 | ⚠️ 6 | 734,620 | 5,101.5 d | 2,647.2 d | 🟢 0 stale (69 missing) | ⚠️ 6 risks |
-| **`insilos_mobile`** | `main` | `9f7830975` | 197 | ✅ 0 | 1,208,602 | 8,393.1 d | 3,000.0 d | 🔴 1 stale (11 missing) | ⚠️ 16 risks |
-| **`zencode-ent`** | `main` | `40f7dbf06` | 112 | ⚠️ 10 | 1,236,586 | 10,304.9 d | 156.4 d | 🟢 0 stale (1 missing) | ⚠️ 54 risks |
+| **`O20`** | `insilos-genesis-fork` | `706bb1501` | 533 | ✅ 0 | 287,512 | 2,395.9 d | 744.0 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
+| **`VerticalRisk`** | `Development` | `2c94d2ca7` | 200 | ⚠️ 13 | 748,270 | 5,196.3 d | 3,270.4 d | 🟢 0 stale (70 missing) | ⚠️ 16 risks |
+| **`insilos_mobile`** | `main` | `ca93dbbc7` | 215 | ✅ 0 | 1,211,286 | 8,411.7 d | 6,816.1 d | 🟢 0 stale (11 missing) | ⚠️ 16 risks |
+| **`zencode-ent`** | `main` | `e164bf075` | 115 | ⚠️ 16 | 1,265,608 | 10,546.7 d | 157.8 d | 🟢 0 stale (1 missing) | ⚠️ 97 risks |
 
 ---
 
@@ -16,28 +16,28 @@
 
 | Repository | Module / Package | Category | Drift (Days) | Status | Last Code Commit | Last Doc Commit |
 |:---|:---|:---|---:|:---:|:---|:---|
-| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:51+00:00 | N/A |
-| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-16T05:18:32+00:00 | N/A |
-| `O20` | `addons/insilos_currency_cron` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:51+00:00 | N/A |
-| `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:15:14+00:00 | N/A |
-| `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:51+00:00 | N/A |
-| `O20` | `addons/insilos_security` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-15T16:15:14+00:00 | N/A |
-| `O20` | `enterprise/innokafe_website` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T00:39:24+00:00 | N/A |
-| `O20` | `enterprise/insilos_capital_markets_decision_governance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_chemical_trade_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_esg_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_finance_agent_os` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-03T18:05:34+00:00 | N/A |
-| `O20` | `enterprise/insilos_hs_sync` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_hse_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_industry_showcase` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_knowledge_graph` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_logistics_idp` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_market_data` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_market_terminal` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_preferential_origin` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_pubsub_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_tenant_control` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
-| `O20` | `enterprise/insilos_treasury_market_risk` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-15T16:20:43+00:00 | N/A |
+| `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:47+00:00 | N/A |
+| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:47+00:00 | N/A |
+| `O20` | `addons/insilos_currency_cron` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-19T08:41:13+00:00 | N/A |
+| `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-19T08:41:13+00:00 | N/A |
+| `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:47+00:00 | N/A |
+| `O20` | `addons/insilos_security` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-19T08:41:13+00:00 | N/A |
+| `O20` | `enterprise/innokafe_website` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_capital_markets_decision_governance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_chemical_trade_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_esg_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_finance_agent_os` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_hs_sync` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_hse_compliance` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_industry_showcase` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_knowledge_graph` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_logistics_idp` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_market_data` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_market_terminal` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_preferential_origin` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_pubsub_bridge` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_tenant_control` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
+| `O20` | `enterprise/insilos_treasury_market_risk` | `odoo_enterprise` | **N/A** | ⚠️ MISSING | 2026-10-22T04:03:27+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-advance-awareness-campaigns` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-ai-copilot` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-analytics-engine` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-14T02:18:38+00:00 | N/A |
@@ -86,12 +86,13 @@
 | `VerticalRisk` | `extensions/verticalrisk-itsm-bridge` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-landing-dashboard` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-multi-tenancy` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
+| `VerticalRisk` | `extensions/verticalrisk-notification-engine` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-17T17:55:29+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-notification-retention-audit` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-notification-retention-policies` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
-| `VerticalRisk` | `extensions/verticalrisk-notify-items` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
+| `VerticalRisk` | `extensions/verticalrisk-notify-items` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-17T17:55:29+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-people-ui` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-platform` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
-| `VerticalRisk` | `extensions/verticalrisk-policy` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
+| `VerticalRisk` | `extensions/verticalrisk-policy` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-21T14:42:02+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-privacy-bcm` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-quality-regulatory-ui` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-rcm-ui` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
@@ -101,24 +102,23 @@
 | `VerticalRisk` | `extensions/verticalrisk-retention-holds` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-risk` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-risk-matrix` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
-| `VerticalRisk` | `extensions/verticalrisk-rule-governance` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
+| `VerticalRisk` | `extensions/verticalrisk-rule-governance` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-20T08:26:30+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-security-operations` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-template-update-status` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-webhooks` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-workflow-api` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
 | `VerticalRisk` | `extensions/verticalrisk-workflow-kernel` | `grc_extension` | **N/A** | ⚠️ MISSING | 2026-10-12T15:41:36+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_audit` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_capa` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_controls` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_core` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-15T11:21:18+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_ecm` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_evidence` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_hse` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_risk` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T07:53:08+00:00 | N/A |
-| `insilos_mobile` | `mobo_vert_shell` | `flutter_package` | **41.1 d** | 🔴 STALE | 2026-10-16T07:20:06+00:00 | 2026-09-05T05:51:48+00:00 |
-| `insilos_mobile` | `mobo_vert_work` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-09-05T05:51:48+00:00 | N/A |
-| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-16T07:20:06+00:00 | N/A |
-| `insilos_mobile` | `packages/insilos_design_system` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-14T06:23:48+00:00 | N/A |
+| `insilos_mobile` | `insi_vert_audit` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `insi_vert_capa` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `insi_vert_controls` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `insi_vert_core` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `insi_vert_ecm` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `insi_vert_evidence` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `insi_vert_hse` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `insi_vert_risk` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `insi_vert_work` | `flutter_package` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `packages/insilos_core` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
+| `insilos_mobile` | `packages/insilos_design_system` | `flutter_core` | **N/A** | ⚠️ MISSING | 2026-10-18T00:43:05+00:00 | N/A |
 | `zencode-ent` | `mobo_vert_core` | `flutter_package` | **N/A** | ⚠️ MISSING | N/A | N/A |
 
 ---
@@ -133,28 +133,61 @@
 | 🔵 LOW | `DEP03` | `O20/package.json` | `playwright` | `^1.63.0` | Pin critical runtime package playwright to exact version or tilde range |
 | 🟡 MEDIUM | `DEP02` | `O20/setup/iot_box_builder/configuration/requirements.txt` | `gatt` | `unpinned` | Specify explicit version pin for gatt |
 | 🟡 MEDIUM | `DEP02` | `O20/setup/iot_box_builder/configuration/requirements.txt` | `decorator` | `unpinned` | Specify explicit version pin for decorator |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `cryptography` | `>=42.0.0` | Add upper bound pin (e.g. cryptography>=42.0.0,<43.0.0) |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `jsonschema` | `>=4.20.0` | Add upper bound pin (e.g. jsonschema>=4.20.0,<5.0.0) |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `typer` | `>=0.12.0` | Add upper bound pin (e.g. typer>=0.12.0,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `psycopg2-binary` | `>=2.9.9` | Add upper bound pin (e.g. psycopg2-binary>=2.9.9,<3.0.0) |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `asyncpg` | `>=0.29.0` | Add upper bound pin (e.g. asyncpg>=0.29.0,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `aiosqlite` | `>=0.20.0` | Add upper bound pin (e.g. aiosqlite>=0.20.0,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `lxml` | `>=5.2.0` | Add upper bound pin (e.g. lxml>=5.2.0,<6.0.0) |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `openpyxl` | `>=3.1.2` | Add upper bound pin (e.g. openpyxl>=3.1.2,<4.0.0) |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `reportlab` | `>=4.1.0` | Add upper bound pin (e.g. reportlab>=4.1.0,<5.0.0) |
+| 🟡 MEDIUM | `DEP02` | `VerticalRisk/requirements.txt` | `pypdf` | `>=4.0.0` | Add upper bound pin (e.g. pypdf>=4.0.0,<5.0.0) |
 | 🔵 LOW | `DEP03` | `VerticalRisk/package.json` | `knex` | `^3.3.0` | Pin critical runtime package knex to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `VerticalRisk/package.json` | `pg` | `^8.23.0` | Pin critical runtime package pg to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `VerticalRisk/package.json` | `vitest` | `^3.2.4` | Pin critical runtime package vitest to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `VerticalRisk/tests/package.json` | `vitest` | `^1.6.0` | Pin critical runtime package vitest to exact version or tilde range |
 | 🟡 MEDIUM | `DEP02` | `VerticalRisk/hermes-agent/optional-skills/finance/dcf-model/requirements.txt` | `openpyxl` | `>=3.0.0` | Add upper bound pin (e.g. openpyxl>=3.0.0,<4.0.0) |
 | 🟡 MEDIUM | `DEP02` | `VerticalRisk/hermes-agent/optional-skills/finance/dcf-model/requirements.txt` | `requests` | `>=2.28.0` | Add upper bound pin (e.g. requests>=2.28.0,<3.0.0) |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_todo/pubspec.yaml` | `flutter_svg` | `any` | Replace ': any' with bounded SemVer caret range for flutter_svg |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_todo/pubspec.yaml` | `path_provider` | `any` | Replace ': any' with bounded SemVer caret range for path_provider |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_manufacturing/pubspec.yaml` | `http` | `any` | Replace ': any' with bounded SemVer caret range for http |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_manufacturing/pubspec.yaml` | `intl` | `any` | Replace ': any' with bounded SemVer caret range for intl |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_fleet/pubspec.yaml` | `http` | `any` | Replace ': any' with bounded SemVer caret range for http |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_pos/pubspec.yaml` | `video_player_platform_interface` | `any` | Replace ': any' with bounded SemVer caret range for video_player_platform_interface |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_pos/pubspec.yaml` | `plugin_platform_interface` | `any` | Replace ': any' with bounded SemVer caret range for plugin_platform_interface |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_rental/pubspec.yaml` | `latlong2` | `any` | Replace ': any' with bounded SemVer caret range for latlong2 |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_attendance/pubspec.yaml` | `collection` | `any` | Replace ': any' with bounded SemVer caret range for collection |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_attendance/pubspec.yaml` | `intl` | `any` | Replace ': any' with bounded SemVer caret range for intl |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_attendance/pubspec.yaml` | `bloc` | `any` | Replace ': any' with bounded SemVer caret range for bloc |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_vert_shell/pubspec.yaml` | `intl` | `any` | Replace ': any' with bounded SemVer caret range for intl |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_billing/pubspec.yaml` | `characters` | `any` | Replace ': any' with bounded SemVer caret range for characters |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_billing/pubspec.yaml` | `latlong2` | `any` | Replace ': any' with bounded SemVer caret range for latlong2 |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_inventory/pubspec.yaml` | `http` | `any` | Replace ': any' with bounded SemVer caret range for http |
-| 🔴 HIGH | `DEP01` | `insilos_mobile/mobo_inventory/pubspec.yaml` | `meta` | `any` | Replace ': any' with bounded SemVer caret range for meta |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_fleet/pubspec.yaml` | `http` | `any` | Replace ': any' with bounded SemVer caret range for http |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_todo/pubspec.yaml` | `flutter_svg` | `any` | Replace ': any' with bounded SemVer caret range for flutter_svg |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_todo/pubspec.yaml` | `path_provider` | `any` | Replace ': any' with bounded SemVer caret range for path_provider |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_rental/pubspec.yaml` | `latlong2` | `any` | Replace ': any' with bounded SemVer caret range for latlong2 |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_manufacturing/pubspec.yaml` | `http` | `any` | Replace ': any' with bounded SemVer caret range for http |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_manufacturing/pubspec.yaml` | `intl` | `any` | Replace ': any' with bounded SemVer caret range for intl |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_vert_shell/pubspec.yaml` | `intl` | `any` | Replace ': any' with bounded SemVer caret range for intl |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_pos/pubspec.yaml` | `video_player_platform_interface` | `any` | Replace ': any' with bounded SemVer caret range for video_player_platform_interface |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_pos/pubspec.yaml` | `plugin_platform_interface` | `any` | Replace ': any' with bounded SemVer caret range for plugin_platform_interface |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_billing/pubspec.yaml` | `characters` | `any` | Replace ': any' with bounded SemVer caret range for characters |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_billing/pubspec.yaml` | `latlong2` | `any` | Replace ': any' with bounded SemVer caret range for latlong2 |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_inventory/pubspec.yaml` | `http` | `any` | Replace ': any' with bounded SemVer caret range for http |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_inventory/pubspec.yaml` | `meta` | `any` | Replace ': any' with bounded SemVer caret range for meta |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_attendance/pubspec.yaml` | `collection` | `any` | Replace ': any' with bounded SemVer caret range for collection |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_attendance/pubspec.yaml` | `intl` | `any` | Replace ': any' with bounded SemVer caret range for intl |
+| 🔴 HIGH | `DEP01` | `insilos_mobile/insi_attendance/pubspec.yaml` | `bloc` | `any` | Replace ': any' with bounded SemVer caret range for bloc |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/requirements.txt` | `canonicaljson` | `>=2.0.0` | Add upper bound pin (e.g. canonicaljson>=2.0.0,<3.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/requirements.txt` | `jsonschema` | `>=4.20.0` | Add upper bound pin (e.g. jsonschema>=4.20.0,<5.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/requirements.txt` | `networkx` | `>=3.2.0` | Add upper bound pin (e.g. networkx>=3.2.0,<4.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/requirements.txt` | `rich` | `>=13.7.0` | Add upper bound pin (e.g. rich>=13.7.0,<14.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/requirements.txt` | `typer` | `>=0.12.0` | Add upper bound pin (e.g. typer>=0.12.0,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/requirements.txt` | `click` | `>=8.1.0` | Add upper bound pin (e.g. click>=8.1.0,<9.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/requirements.txt` | `tzdata` | `>=2024.1` | Add upper bound pin (e.g. tzdata>=2024.1,<2025.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/requirements.txt` | `pywin32` | `>=306` | Add upper bound pin (e.g. pywin32>=306,<307.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `cryptography` | `>=42.0.0` | Add upper bound pin (e.g. cryptography>=42.0.0,<43.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `jsonschema` | `>=4.20.0` | Add upper bound pin (e.g. jsonschema>=4.20.0,<5.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `python-multipart` | `>=0.0.9` | Add upper bound pin (e.g. python-multipart>=0.0.9,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `psycopg2-binary` | `>=2.9.9` | Add upper bound pin (e.g. psycopg2-binary>=2.9.9,<3.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `asyncpg` | `>=0.29.0` | Add upper bound pin (e.g. asyncpg>=0.29.0,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `aiosqlite` | `>=0.20.0` | Add upper bound pin (e.g. aiosqlite>=0.20.0,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `lxml` | `>=5.2.0` | Add upper bound pin (e.g. lxml>=5.2.0,<6.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `openpyxl` | `>=3.1.2` | Add upper bound pin (e.g. openpyxl>=3.1.2,<4.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `reportlab` | `>=4.1.0` | Add upper bound pin (e.g. reportlab>=4.1.0,<5.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `pypdf` | `>=4.0.0` | Add upper bound pin (e.g. pypdf>=4.0.0,<5.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `typer` | `>=0.12.0` | Add upper bound pin (e.g. typer>=0.12.0,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `pytest` | `>=8.0.0` | Add upper bound pin (e.g. pytest>=8.0.0,<9.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `pytest-asyncio` | `>=0.23.0` | Add upper bound pin (e.g. pytest-asyncio>=0.23.0,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `tzdata` | `>=2024.1` | Add upper bound pin (e.g. tzdata>=2024.1,<2025.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/vertical/requirements.txt` | `pywin32` | `>=306` | Add upper bound pin (e.g. pywin32>=306,<307.0.0) |
 | 🔵 LOW | `DEP03` | `zencode-ent/vertical/package.json` | `knex` | `^3.3.0` | Pin critical runtime package knex to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `zencode-ent/vertical/package.json` | `pg` | `^8.23.0` | Pin critical runtime package pg to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `zencode-ent/vertical/tests/package.json` | `vitest` | `^1.6.0` | Pin critical runtime package vitest to exact version or tilde range |
@@ -186,18 +219,38 @@
 | 🔵 LOW | `DEP03` | `zencode-ent/zencode/plugins/package.json` | `vitest` | `^4.1.6` | Pin critical runtime package vitest to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `zencode-ent/hub/package.json` | `pg` | `^8.20.0` | Pin critical runtime package pg to exact version or tilde range |
 | 🔵 LOW | `DEP03` | `zencode-ent/hub/package.json` | `vitest` | `^3.2.4` | Pin critical runtime package vitest to exact version or tilde range |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `aiofiles` | `>=23.2.0` | Add upper bound pin (e.g. aiofiles>=23.2.0,<24.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `websockets` | `>=12.0` | Add upper bound pin (e.g. websockets>=12.0,<13.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `orjson` | `>=3.9.0` | Add upper bound pin (e.g. orjson>=3.9.0,<4.0.0) |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `tomli` | `>=2.0.1` | Add upper bound pin (e.g. tomli>=2.0.1,<3.0.0) |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `modal` | `>=0.64.0` | Add upper bound pin (e.g. modal>=0.64.0,<1.0.0) |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `pillow` | `>=10.0.0` | Add upper bound pin (e.g. pillow>=10.0.0,<11.0.0) |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `numpy` | `>=1.24.0` | Add upper bound pin (e.g. numpy>=1.24.0,<2.0.0) |
-| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `aiofiles` | `>=23.2.0` | Add upper bound pin (e.g. aiofiles>=23.2.0,<24.0.0) |
-| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `websockets` | `>=12.0` | Add upper bound pin (e.g. websockets>=12.0,<13.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `onnxruntime` | `>=1.18.0` | Add upper bound pin (e.g. onnxruntime>=1.18.0,<2.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `huggingface-hub` | `>=0.23.0` | Add upper bound pin (e.g. huggingface-hub>=0.23.0,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `safetensors` | `>=0.4.3` | Add upper bound pin (e.g. safetensors>=0.4.3,<1.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `cryptography` | `>=42.0.0` | Add upper bound pin (e.g. cryptography>=42.0.0,<43.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `psutil` | `>=5.9.0` | Add upper bound pin (e.g. psutil>=5.9.0,<6.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `anyio` | `>=4.0.0` | Add upper bound pin (e.g. anyio>=4.0.0,<5.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `packaging` | `>=24.0` | Add upper bound pin (e.g. packaging>=24.0,<25.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `mcp` | `>=1.0.0` | Add upper bound pin (e.g. mcp>=1.0.0,<2.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `tzdata` | `>=2024.1` | Add upper bound pin (e.g. tzdata>=2024.1,<2025.0.0) |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/requirements.txt` | `pywin32` | `>=306` | Add upper bound pin (e.g. pywin32>=306,<307.0.0) |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `setuptools` | `>=61.0` | Constrain upper bound for setuptools |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `anyio` | `>=4.0.0` | Constrain upper bound for anyio |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `orjson` | `>=3.9.0` | Constrain upper bound for orjson |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `packaging` | `>=24.0` | Constrain upper bound for packaging |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `modal` | `>=0.64.0` | Constrain upper bound for modal |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `pillow` | `>=10.0.0` | Constrain upper bound for pillow |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `numpy` | `>=1.24.0` | Constrain upper bound for numpy |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `onnxruntime` | `>=1.18.0` | Constrain upper bound for onnxruntime |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `huggingface-hub` | `>=0.23.0` | Constrain upper bound for huggingface-hub |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `safetensors` | `>=0.4.3` | Constrain upper bound for safetensors |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `cryptography` | `>=42.0.0` | Constrain upper bound for cryptography |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `psutil` | `>=5.9.0` | Constrain upper bound for psutil |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `aiofiles` | `>=23.2.0` | Constrain upper bound for aiofiles |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `websockets` | `>=12.0` | Constrain upper bound for websockets |
+| 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `mcp` | `>=1.0.0` | Constrain upper bound for mcp |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `packaging` | `>=24.0` | Constrain upper bound for packaging |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `mcp` | `>=1.0.0` | Constrain upper bound for mcp |
 | 🟡 MEDIUM | `DEP02` | `zencode-ent/router/pyproject.toml` | `pytest` | `>=9.1.1` | Constrain upper bound for pytest |
@@ -216,23 +269,22 @@
 
 ```markdown
 - [ ] [GIT01-VERTICAL][P0][architecture] Repair broken Git commit graph traversal in vertical submodule — DoD: Fetch missing commit objects or reconcile submodule history so 'git rev-list' traverses parent tree cleanly <!-- meta: repo=zencode-ent path=vertical verify="git -C vertical rev-list --count HEAD" risk=R3 -->
-- [ ] [DEP01-MOBO_ATTENDANCE-BLOC][P1][security] Pin loose ': any' dependency for bloc in mobo_attendance/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_attendance/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_attendance/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_ATTENDANCE-COLLECTION][P1][security] Pin loose ': any' dependency for collection in mobo_attendance/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_attendance/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_attendance/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_ATTENDANCE-INTL][P1][security] Pin loose ': any' dependency for intl in mobo_attendance/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_attendance/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_attendance/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_BILLING-CHARACTERS][P1][security] Pin loose ': any' dependency for characters in mobo_billing/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_billing/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_billing/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_BILLING-LATLONG2][P1][security] Pin loose ': any' dependency for latlong2 in mobo_billing/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_billing/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_billing/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_FLEET-HTTP][P1][security] Pin loose ': any' dependency for http in mobo_fleet/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_fleet/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_fleet/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_INVENTORY-HTTP][P1][security] Pin loose ': any' dependency for http in mobo_inventory/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_inventory/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_inventory/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_INVENTORY-META][P1][security] Pin loose ': any' dependency for meta in mobo_inventory/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_inventory/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_inventory/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_MANUFACTURING-HTTP][P1][security] Pin loose ': any' dependency for http in mobo_manufacturing/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_manufacturing/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_manufacturing/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_MANUFACTURING-INTL][P1][security] Pin loose ': any' dependency for intl in mobo_manufacturing/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_manufacturing/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_manufacturing/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_POS-PLUGIN_PLATFORM_INTERFACE][P1][security] Pin loose ': any' dependency for plugin_platform_interface in mobo_pos/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_pos/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_pos/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_POS-VIDEO_PLAYER_PLATFORM_INTERFACE][P1][security] Pin loose ': any' dependency for video_player_platform_interface in mobo_pos/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_pos/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_pos/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_RENTAL-LATLONG2][P1][security] Pin loose ': any' dependency for latlong2 in mobo_rental/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_rental/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_rental/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_TODO-FLUTTER_SVG][P1][security] Pin loose ': any' dependency for flutter_svg in mobo_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_TODO-PATH_PROVIDER][P1][security] Pin loose ': any' dependency for path_provider in mobo_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DEP01-MOBO_VERT_SHELL-INTL][P1][security] Pin loose ': any' dependency for intl in mobo_vert_shell/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in mobo_vert_shell/pubspec.yaml <!-- meta: repo=insilos_mobile path=mobo_vert_shell/pubspec.yaml verify="flutter pub get" risk=R2 -->
-- [ ] [DOC01-MOBO_VERT_SHELL][P1][docs] Reconcile documentation drift in mobo_vert_shell (drift: 41.1d) — DoD: Update mobo_vert_shell/README.md to align with latest HEAD code commits and verify living architecture assertions <!-- meta: repo=insilos_mobile path=mobo_vert_shell verify="test -f mobo_vert_shell/README.md" risk=R1 -->
+- [ ] [DEP01-INSI_ATTENDANCE-BLOC][P1][security] Pin loose ': any' dependency for bloc in insi_attendance/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_attendance/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_attendance/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_ATTENDANCE-COLLECTION][P1][security] Pin loose ': any' dependency for collection in insi_attendance/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_attendance/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_attendance/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_ATTENDANCE-INTL][P1][security] Pin loose ': any' dependency for intl in insi_attendance/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_attendance/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_attendance/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_BILLING-CHARACTERS][P1][security] Pin loose ': any' dependency for characters in insi_billing/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_billing/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_billing/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_BILLING-LATLONG2][P1][security] Pin loose ': any' dependency for latlong2 in insi_billing/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_billing/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_billing/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_FLEET-HTTP][P1][security] Pin loose ': any' dependency for http in insi_fleet/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_fleet/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_fleet/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_INVENTORY-HTTP][P1][security] Pin loose ': any' dependency for http in insi_inventory/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_inventory/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_inventory/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_INVENTORY-META][P1][security] Pin loose ': any' dependency for meta in insi_inventory/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_inventory/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_inventory/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_MANUFACTURING-HTTP][P1][security] Pin loose ': any' dependency for http in insi_manufacturing/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_manufacturing/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_manufacturing/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_MANUFACTURING-INTL][P1][security] Pin loose ': any' dependency for intl in insi_manufacturing/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_manufacturing/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_manufacturing/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_POS-PLUGIN_PLATFORM_INTERFACE][P1][security] Pin loose ': any' dependency for plugin_platform_interface in insi_pos/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_pos/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_pos/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_POS-VIDEO_PLAYER_PLATFORM_INTERFACE][P1][security] Pin loose ': any' dependency for video_player_platform_interface in insi_pos/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_pos/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_pos/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_RENTAL-LATLONG2][P1][security] Pin loose ': any' dependency for latlong2 in insi_rental/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_rental/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_rental/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_TODO-FLUTTER_SVG][P1][security] Pin loose ': any' dependency for flutter_svg in insi_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_TODO-PATH_PROVIDER][P1][security] Pin loose ': any' dependency for path_provider in insi_todo/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_todo/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_todo/pubspec.yaml verify="flutter pub get" risk=R2 -->
+- [ ] [DEP01-INSI_VERT_SHELL-INTL][P1][security] Pin loose ': any' dependency for intl in insi_vert_shell/pubspec.yaml — DoD: Replace ': any' with explicit bounded SemVer caret range in insi_vert_shell/pubspec.yaml <!-- meta: repo=insilos_mobile path=insi_vert_shell/pubspec.yaml verify="flutter pub get" risk=R2 -->
 - [ ] [DOC02-INNOKAFE_WEBSITE][P1][docs] Author sovereign localized README for innokafe_website — DoD: Create enterprise/innokafe_website/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/innokafe_website/README.md verify="test -f enterprise/innokafe_website/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_ADAPTER][P1][docs] Author sovereign localized README for insilos_adapter — DoD: Create addons/insilos_adapter/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_adapter/README.md verify="test -f addons/insilos_adapter/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_AL2C][P1][docs] Author sovereign localized README for insilos_al2c — DoD: Create addons/insilos_al2c/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_al2c/README.md verify="test -f addons/insilos_al2c/README.md" risk=R0 -->
@@ -257,16 +309,16 @@
 - [ ] [DOC02-INSILOS_SECURITY][P1][docs] Author sovereign localized README for insilos_security — DoD: Create addons/insilos_security/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=addons/insilos_security/README.md verify="test -f addons/insilos_security/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_TENANT_CONTROL][P1][docs] Author sovereign localized README for insilos_tenant_control — DoD: Create enterprise/insilos_tenant_control/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_tenant_control/README.md verify="test -f enterprise/insilos_tenant_control/README.md" risk=R0 -->
 - [ ] [DOC02-INSILOS_TREASURY_MARKET_RISK][P1][docs] Author sovereign localized README for insilos_treasury_market_risk — DoD: Create enterprise/insilos_treasury_market_risk/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=O20 path=enterprise/insilos_treasury_market_risk/README.md verify="test -f enterprise/insilos_treasury_market_risk/README.md" risk=R0 -->
-- [ ] [DOC02-MOBO_VERT_AUDIT][P1][docs] Author sovereign localized README for mobo_vert_audit — DoD: Create mobo_vert_audit/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_audit/README.md verify="test -f mobo_vert_audit/README.md" risk=R0 -->
-- [ ] [DOC02-MOBO_VERT_CAPA][P1][docs] Author sovereign localized README for mobo_vert_capa — DoD: Create mobo_vert_capa/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_capa/README.md verify="test -f mobo_vert_capa/README.md" risk=R0 -->
-- [ ] [DOC02-MOBO_VERT_CONTROLS][P1][docs] Author sovereign localized README for mobo_vert_controls — DoD: Create mobo_vert_controls/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_controls/README.md verify="test -f mobo_vert_controls/README.md" risk=R0 -->
-- [ ] [DOC02-MOBO_VERT_CORE][P1][docs] Author sovereign localized README for mobo_vert_core — DoD: Create mobo_vert_core/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_core/README.md verify="test -f mobo_vert_core/README.md" risk=R0 -->
+- [ ] [DOC02-INSI_VERT_AUDIT][P1][docs] Author sovereign localized README for insi_vert_audit — DoD: Create insi_vert_audit/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=insi_vert_audit/README.md verify="test -f insi_vert_audit/README.md" risk=R0 -->
+- [ ] [DOC02-INSI_VERT_CAPA][P1][docs] Author sovereign localized README for insi_vert_capa — DoD: Create insi_vert_capa/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=insi_vert_capa/README.md verify="test -f insi_vert_capa/README.md" risk=R0 -->
+- [ ] [DOC02-INSI_VERT_CONTROLS][P1][docs] Author sovereign localized README for insi_vert_controls — DoD: Create insi_vert_controls/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=insi_vert_controls/README.md verify="test -f insi_vert_controls/README.md" risk=R0 -->
+- [ ] [DOC02-INSI_VERT_CORE][P1][docs] Author sovereign localized README for insi_vert_core — DoD: Create insi_vert_core/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=insi_vert_core/README.md verify="test -f insi_vert_core/README.md" risk=R0 -->
+- [ ] [DOC02-INSI_VERT_ECM][P1][docs] Author sovereign localized README for insi_vert_ecm — DoD: Create insi_vert_ecm/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=insi_vert_ecm/README.md verify="test -f insi_vert_ecm/README.md" risk=R0 -->
+- [ ] [DOC02-INSI_VERT_EVIDENCE][P1][docs] Author sovereign localized README for insi_vert_evidence — DoD: Create insi_vert_evidence/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=insi_vert_evidence/README.md verify="test -f insi_vert_evidence/README.md" risk=R0 -->
+- [ ] [DOC02-INSI_VERT_HSE][P1][docs] Author sovereign localized README for insi_vert_hse — DoD: Create insi_vert_hse/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=insi_vert_hse/README.md verify="test -f insi_vert_hse/README.md" risk=R0 -->
+- [ ] [DOC02-INSI_VERT_RISK][P1][docs] Author sovereign localized README for insi_vert_risk — DoD: Create insi_vert_risk/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=insi_vert_risk/README.md verify="test -f insi_vert_risk/README.md" risk=R0 -->
+- [ ] [DOC02-INSI_VERT_WORK][P1][docs] Author sovereign localized README for insi_vert_work — DoD: Create insi_vert_work/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=insi_vert_work/README.md verify="test -f insi_vert_work/README.md" risk=R0 -->
 - [ ] [DOC02-MOBO_VERT_CORE][P1][docs] Author sovereign localized README for mobo_vert_core — DoD: Create mobo_vert_core/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=zencode-ent path=mobo_vert_core/README.md verify="test -f mobo_vert_core/README.md" risk=R0 -->
-- [ ] [DOC02-MOBO_VERT_ECM][P1][docs] Author sovereign localized README for mobo_vert_ecm — DoD: Create mobo_vert_ecm/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_ecm/README.md verify="test -f mobo_vert_ecm/README.md" risk=R0 -->
-- [ ] [DOC02-MOBO_VERT_EVIDENCE][P1][docs] Author sovereign localized README for mobo_vert_evidence — DoD: Create mobo_vert_evidence/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_evidence/README.md verify="test -f mobo_vert_evidence/README.md" risk=R0 -->
-- [ ] [DOC02-MOBO_VERT_HSE][P1][docs] Author sovereign localized README for mobo_vert_hse — DoD: Create mobo_vert_hse/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_hse/README.md verify="test -f mobo_vert_hse/README.md" risk=R0 -->
-- [ ] [DOC02-MOBO_VERT_RISK][P1][docs] Author sovereign localized README for mobo_vert_risk — DoD: Create mobo_vert_risk/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_risk/README.md verify="test -f mobo_vert_risk/README.md" risk=R0 -->
-- [ ] [DOC02-MOBO_VERT_WORK][P1][docs] Author sovereign localized README for mobo_vert_work — DoD: Create mobo_vert_work/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=insilos_mobile path=mobo_vert_work/README.md verify="test -f mobo_vert_work/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_ADVANCE_AWARENESS_CAMPAIGNS][P1][docs] Author sovereign localized README for verticalrisk-advance-awareness-campaigns — DoD: Create extensions/verticalrisk-advance-awareness-campaigns/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-advance-awareness-campaigns/README.md verify="test -f extensions/verticalrisk-advance-awareness-campaigns/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_AI_COPILOT][P1][docs] Author sovereign localized README for verticalrisk-ai-copilot — DoD: Create extensions/verticalrisk-ai-copilot/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-ai-copilot/README.md verify="test -f extensions/verticalrisk-ai-copilot/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_ANALYTICS_ENGINE][P1][docs] Author sovereign localized README for verticalrisk-analytics-engine — DoD: Create extensions/verticalrisk-analytics-engine/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-analytics-engine/README.md verify="test -f extensions/verticalrisk-analytics-engine/README.md" risk=R0 -->
@@ -315,6 +367,7 @@
 - [ ] [DOC02-VERTICALRISK_ITSM_BRIDGE][P1][docs] Author sovereign localized README for verticalrisk-itsm-bridge — DoD: Create extensions/verticalrisk-itsm-bridge/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-itsm-bridge/README.md verify="test -f extensions/verticalrisk-itsm-bridge/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_LANDING_DASHBOARD][P1][docs] Author sovereign localized README for verticalrisk-landing-dashboard — DoD: Create extensions/verticalrisk-landing-dashboard/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-landing-dashboard/README.md verify="test -f extensions/verticalrisk-landing-dashboard/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_MULTI_TENANCY][P1][docs] Author sovereign localized README for verticalrisk-multi-tenancy — DoD: Create extensions/verticalrisk-multi-tenancy/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-multi-tenancy/README.md verify="test -f extensions/verticalrisk-multi-tenancy/README.md" risk=R0 -->
+- [ ] [DOC02-VERTICALRISK_NOTIFICATION_ENGINE][P1][docs] Author sovereign localized README for verticalrisk-notification-engine — DoD: Create extensions/verticalrisk-notification-engine/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-notification-engine/README.md verify="test -f extensions/verticalrisk-notification-engine/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_NOTIFICATION_RETENTION_AUDIT][P1][docs] Author sovereign localized README for verticalrisk-notification-retention-audit — DoD: Create extensions/verticalrisk-notification-retention-audit/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-notification-retention-audit/README.md verify="test -f extensions/verticalrisk-notification-retention-audit/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_NOTIFICATION_RETENTION_POLICIES][P1][docs] Author sovereign localized README for verticalrisk-notification-retention-policies — DoD: Create extensions/verticalrisk-notification-retention-policies/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-notification-retention-policies/README.md verify="test -f extensions/verticalrisk-notification-retention-policies/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_NOTIFY_ITEMS][P1][docs] Author sovereign localized README for verticalrisk-notify-items — DoD: Create extensions/verticalrisk-notify-items/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-notify-items/README.md verify="test -f extensions/verticalrisk-notify-items/README.md" risk=R0 -->
@@ -336,18 +389,24 @@
 - [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks — DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify="test -f extensions/verticalrisk-webhooks/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api — DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify="test -f extensions/verticalrisk-workflow-api/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel — DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify="test -f extensions/verticalrisk-workflow-kernel/README.md" risk=R0 -->
-- [ ] [WIP01-O20][P1][plan] Triage 118 uncommitted dirty files in O20 — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=O20 path=. verify="git -C O20 status --porcelain" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml — DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
+- [ ] [DEP02-PYPROJECT-ANYIO][P2][security] Pin upper bound on Python dependency anyio in router/pyproject.toml — DoD: Add explicit upper bound constraint to anyio in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
+- [ ] [DEP02-PYPROJECT-CRYPTOGRAPHY][P2][security] Pin upper bound on Python dependency cryptography in router/pyproject.toml — DoD: Add explicit upper bound constraint to cryptography in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
+- [ ] [DEP02-PYPROJECT-HUGGINGFACE_HUB][P2][security] Pin upper bound on Python dependency huggingface-hub in router/pyproject.toml — DoD: Add explicit upper bound constraint to huggingface-hub in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MCP][P2][security] Pin upper bound on Python dependency mcp in router/pyproject.toml — DoD: Add explicit upper bound constraint to mcp in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MODAL][P2][security] Pin upper bound on Python dependency modal in router/pyproject.toml — DoD: Add explicit upper bound constraint to modal in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-MYPY][P2][security] Pin upper bound on Python dependency mypy in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to mypy in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-NUMPY][P2][security] Pin upper bound on Python dependency numpy in router/pyproject.toml — DoD: Add explicit upper bound constraint to numpy in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
+- [ ] [DEP02-PYPROJECT-ONNXRUNTIME][P2][security] Pin upper bound on Python dependency onnxruntime in router/pyproject.toml — DoD: Add explicit upper bound constraint to onnxruntime in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
+- [ ] [DEP02-PYPROJECT-ORJSON][P2][security] Pin upper bound on Python dependency orjson in router/pyproject.toml — DoD: Add explicit upper bound constraint to orjson in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-PACKAGING][P2][security] Pin upper bound on Python dependency packaging in router/pyproject.toml — DoD: Add explicit upper bound constraint to packaging in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-PILLOW][P2][security] Pin upper bound on Python dependency pillow in router/pyproject.toml — DoD: Add explicit upper bound constraint to pillow in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
+- [ ] [DEP02-PYPROJECT-PSUTIL][P2][security] Pin upper bound on Python dependency psutil in router/pyproject.toml — DoD: Add explicit upper bound constraint to psutil in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-PYTEST][P2][security] Pin upper bound on Python dependency pytest in router/pyproject.toml — DoD: Add explicit upper bound constraint to pytest in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-PYTZ][P2][security] Pin upper bound on Python dependency pytz in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to pytz in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-REQUESTS][P2][security] Pin upper bound on Python dependency requests in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to requests in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-RUFF][P2][security] Pin upper bound on Python dependency ruff in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to ruff in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
+- [ ] [DEP02-PYPROJECT-SAFETENSORS][P2][security] Pin upper bound on Python dependency safetensors in router/pyproject.toml — DoD: Add explicit upper bound constraint to safetensors in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-SETUPTOOLS][P2][security] Pin upper bound on Python dependency setuptools in router/pyproject.toml — DoD: Add explicit upper bound constraint to setuptools in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-TYPER][P2][security] Pin upper bound on Python dependency typer in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to typer in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-TYPES_PYTZ][P2][security] Pin upper bound on Python dependency types-pytz in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to types-pytz in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
@@ -355,17 +414,53 @@
 - [ ] [DEP02-PYPROJECT-URLLIB3][P2][security] Pin upper bound on Python dependency urllib3 in zencode-core/script/update_top_ranking_issues/pyproject.toml — DoD: Add explicit upper bound constraint to urllib3 in zencode-core/script/update_top_ranking_issues/pyproject.toml <!-- meta: repo=zencode-ent path=zencode-core/script/update_top_ranking_issues/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-WEBSOCKETS][P2][security] Pin upper bound on Python dependency websockets in router/pyproject.toml — DoD: Add explicit upper bound constraint to websockets in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/requirements.txt — DoD: Add explicit upper bound constraint to aiofiles in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-AIOSQLITE][P2][security] Pin upper bound on Python dependency aiosqlite in requirements.txt — DoD: Add explicit upper bound constraint to aiosqlite in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-AIOSQLITE][P2][security] Pin upper bound on Python dependency aiosqlite in vertical/requirements.txt — DoD: Add explicit upper bound constraint to aiosqlite in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-ANYIO][P2][security] Pin upper bound on Python dependency anyio in router/requirements.txt — DoD: Add explicit upper bound constraint to anyio in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-ASYNCPG][P2][security] Pin upper bound on Python dependency asyncpg in requirements.txt — DoD: Add explicit upper bound constraint to asyncpg in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-ASYNCPG][P2][security] Pin upper bound on Python dependency asyncpg in vertical/requirements.txt — DoD: Add explicit upper bound constraint to asyncpg in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-CANONICALJSON][P2][security] Pin upper bound on Python dependency canonicaljson in requirements.txt — DoD: Add explicit upper bound constraint to canonicaljson in requirements.txt <!-- meta: repo=zencode-ent path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-CLICK][P2][security] Pin upper bound on Python dependency click in requirements.txt — DoD: Add explicit upper bound constraint to click in requirements.txt <!-- meta: repo=zencode-ent path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-CRYPTOGRAPHY][P2][security] Pin upper bound on Python dependency cryptography in requirements.txt — DoD: Add explicit upper bound constraint to cryptography in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-CRYPTOGRAPHY][P2][security] Pin upper bound on Python dependency cryptography in vertical/requirements.txt — DoD: Add explicit upper bound constraint to cryptography in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-DECORATOR][P2][security] Pin upper bound on Python dependency decorator in setup/iot_box_builder/configuration/requirements.txt — DoD: Add explicit upper bound constraint to decorator in setup/iot_box_builder/configuration/requirements.txt <!-- meta: repo=O20 path=setup/iot_box_builder/configuration/requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-GATT][P2][security] Pin upper bound on Python dependency gatt in setup/iot_box_builder/configuration/requirements.txt — DoD: Add explicit upper bound constraint to gatt in setup/iot_box_builder/configuration/requirements.txt <!-- meta: repo=O20 path=setup/iot_box_builder/configuration/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-HUGGINGFACE_HUB][P2][security] Pin upper bound on Python dependency huggingface-hub in router/requirements.txt — DoD: Add explicit upper bound constraint to huggingface-hub in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-JSONSCHEMA][P2][security] Pin upper bound on Python dependency jsonschema in requirements.txt — DoD: Add explicit upper bound constraint to jsonschema in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-JSONSCHEMA][P2][security] Pin upper bound on Python dependency jsonschema in requirements.txt — DoD: Add explicit upper bound constraint to jsonschema in requirements.txt <!-- meta: repo=zencode-ent path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-LXML][P2][security] Pin upper bound on Python dependency lxml in requirements.txt — DoD: Add explicit upper bound constraint to lxml in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-LXML][P2][security] Pin upper bound on Python dependency lxml in vertical/requirements.txt — DoD: Add explicit upper bound constraint to lxml in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-LXML_HTML_CLEAN][P2][security] Pin upper bound on Python dependency lxml-html-clean in requirements.txt — DoD: Add explicit upper bound constraint to lxml-html-clean in requirements.txt <!-- meta: repo=O20 path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-MCP][P2][security] Pin upper bound on Python dependency mcp in router/requirements.txt — DoD: Add explicit upper bound constraint to mcp in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-MODAL][P2][security] Pin upper bound on Python dependency modal in router/requirements.txt — DoD: Add explicit upper bound constraint to modal in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-NETWORKX][P2][security] Pin upper bound on Python dependency networkx in requirements.txt — DoD: Add explicit upper bound constraint to networkx in requirements.txt <!-- meta: repo=zencode-ent path=requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-NUMPY][P2][security] Pin upper bound on Python dependency numpy in router/requirements.txt — DoD: Add explicit upper bound constraint to numpy in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
-- [ ] [DEP02-REQUIREMENTS-OPENPYXL][P2][security] Pin upper bound on Python dependency openpyxl in hermes-agent/optional-skills/finance/dcf-model/requirements.txt — DoD: Add explicit upper bound constraint to openpyxl in hermes-agent/optional-skills/finance/dcf-model/requirements.txt <!-- meta: repo=VerticalRisk path=hermes-agent/optional-skills/finance/dcf-model/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-ONNXRUNTIME][P2][security] Pin upper bound on Python dependency onnxruntime in router/requirements.txt — DoD: Add explicit upper bound constraint to onnxruntime in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-OPENPYXL][P2][security] Pin upper bound on Python dependency openpyxl in requirements.txt — DoD: Add explicit upper bound constraint to openpyxl in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-OPENPYXL][P2][security] Pin upper bound on Python dependency openpyxl in vertical/requirements.txt — DoD: Add explicit upper bound constraint to openpyxl in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-ORJSON][P2][security] Pin upper bound on Python dependency orjson in router/requirements.txt — DoD: Add explicit upper bound constraint to orjson in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PACKAGING][P2][security] Pin upper bound on Python dependency packaging in router/requirements.txt — DoD: Add explicit upper bound constraint to packaging in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-PILLOW][P2][security] Pin upper bound on Python dependency pillow in router/requirements.txt — DoD: Add explicit upper bound constraint to pillow in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PSUTIL][P2][security] Pin upper bound on Python dependency psutil in router/requirements.txt — DoD: Add explicit upper bound constraint to psutil in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PSYCOPG2_BINARY][P2][security] Pin upper bound on Python dependency psycopg2-binary in requirements.txt — DoD: Add explicit upper bound constraint to psycopg2-binary in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PSYCOPG2_BINARY][P2][security] Pin upper bound on Python dependency psycopg2-binary in vertical/requirements.txt — DoD: Add explicit upper bound constraint to psycopg2-binary in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PYPDF][P2][security] Pin upper bound on Python dependency pypdf in requirements.txt — DoD: Add explicit upper bound constraint to pypdf in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PYPDF][P2][security] Pin upper bound on Python dependency pypdf in vertical/requirements.txt — DoD: Add explicit upper bound constraint to pypdf in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-PYPIWIN32][P2][security] Pin upper bound on Python dependency pypiwin32 in requirements.txt — DoD: Add explicit upper bound constraint to pypiwin32 in requirements.txt <!-- meta: repo=O20 path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PYTEST][P2][security] Pin upper bound on Python dependency pytest in vertical/requirements.txt — DoD: Add explicit upper bound constraint to pytest in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PYTEST_ASYNCIO][P2][security] Pin upper bound on Python dependency pytest-asyncio in vertical/requirements.txt — DoD: Add explicit upper bound constraint to pytest-asyncio in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PYTHON_MULTIPART][P2][security] Pin upper bound on Python dependency python-multipart in vertical/requirements.txt — DoD: Add explicit upper bound constraint to python-multipart in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-PYWIN32][P2][security] Pin upper bound on Python dependency pywin32 in requirements.txt — DoD: Add explicit upper bound constraint to pywin32 in requirements.txt <!-- meta: repo=zencode-ent path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-REPORTLAB][P2][security] Pin upper bound on Python dependency reportlab in requirements.txt — DoD: Add explicit upper bound constraint to reportlab in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-REPORTLAB][P2][security] Pin upper bound on Python dependency reportlab in vertical/requirements.txt — DoD: Add explicit upper bound constraint to reportlab in vertical/requirements.txt <!-- meta: repo=zencode-ent path=vertical/requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-REQUESTS][P2][security] Pin upper bound on Python dependency requests in hermes-agent/optional-skills/finance/dcf-model/requirements.txt — DoD: Add explicit upper bound constraint to requests in hermes-agent/optional-skills/finance/dcf-model/requirements.txt <!-- meta: repo=VerticalRisk path=hermes-agent/optional-skills/finance/dcf-model/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-RICH][P2][security] Pin upper bound on Python dependency rich in requirements.txt — DoD: Add explicit upper bound constraint to rich in requirements.txt <!-- meta: repo=zencode-ent path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-SAFETENSORS][P2][security] Pin upper bound on Python dependency safetensors in router/requirements.txt — DoD: Add explicit upper bound constraint to safetensors in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-TOMLI][P2][security] Pin upper bound on Python dependency tomli in router/requirements.txt — DoD: Add explicit upper bound constraint to tomli in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-TYPER][P2][security] Pin upper bound on Python dependency typer in requirements.txt — DoD: Add explicit upper bound constraint to typer in requirements.txt <!-- meta: repo=VerticalRisk path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-TYPER][P2][security] Pin upper bound on Python dependency typer in requirements.txt — DoD: Add explicit upper bound constraint to typer in requirements.txt <!-- meta: repo=zencode-ent path=requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-TZDATA][P2][security] Pin upper bound on Python dependency tzdata in requirements.txt — DoD: Add explicit upper bound constraint to tzdata in requirements.txt <!-- meta: repo=O20 path=requirements.txt verify="pip check" risk=R1 -->
+- [ ] [DEP02-REQUIREMENTS-TZDATA][P2][security] Pin upper bound on Python dependency tzdata in requirements.txt — DoD: Add explicit upper bound constraint to tzdata in requirements.txt <!-- meta: repo=zencode-ent path=requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP02-REQUIREMENTS-WEBSOCKETS][P2][security] Pin upper bound on Python dependency websockets in router/requirements.txt — DoD: Add explicit upper bound constraint to websockets in router/requirements.txt <!-- meta: repo=zencode-ent path=router/requirements.txt verify="pip check" risk=R1 -->
 - [ ] [DEP03-4CC6569E-905F-44C2-9249-9B585AE763EA-PLAYWRIGHT][P3][plan] Pin explicit version for playwright in vertical/extensions/.registry/4cc6569e-905f-44c2-9249-9b585ae763ea/package.json — DoD: Replace loose caret with exact SemVer pin in vertical/extensions/.registry/4cc6569e-905f-44c2-9249-9b585ae763ea/package.json <!-- meta: repo=zencode-ent path=vertical/extensions/.registry/4cc6569e-905f-44c2-9249-9b585ae763ea/package.json verify="pnpm test" risk=R0 -->
 - [ ] [DEP03-4CC6569E-905F-44C2-9249-9B585AE763EA-VITEST][P3][plan] Pin explicit version for vitest in vertical/extensions/.registry/4cc6569e-905f-44c2-9249-9b585ae763ea/package.json — DoD: Replace loose caret with exact SemVer pin in vertical/extensions/.registry/4cc6569e-905f-44c2-9249-9b585ae763ea/package.json <!-- meta: repo=zencode-ent path=vertical/extensions/.registry/4cc6569e-905f-44c2-9249-9b585ae763ea/package.json verify="pnpm test" risk=R0 -->

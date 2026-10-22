@@ -1,0 +1,243 @@
+#!/usr/bin/env python3
+"""
+tools/fetch_innokafe_pexels_photos.py
+======================================
+Automated Pexels Curated Photography Downloader & WebP Optimizer for InnoKafe Specialty Coffee.
+"""
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import urllib.request
+from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+PHOTO_DIR = REPO_ROOT / "enterprise/innokafe_website/static/src/img/photography"
+PHOTO_MANIFEST_PATH = REPO_ROOT / "enterprise/innokafe_website/data/pexels_photos_catalog.json"
+USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+
+CURATED_PHOTOS = [
+    {
+        "id": 374757,
+        "name": "farm_cherries_ripe",
+        "title": "Chùm Quả Cà Phê Chín Mọng Cư M'gar",
+        "theme": "terroir_harvest",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/374757/pexels-photo-374757.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/374757/",
+        "alt": "Cà phê Robusta quả chín mọng trên cành tại Cư M'gar Đắk Lắk"
+    },
+    {
+        "id": 2074130,
+        "name": "farm_plantation_mist",
+        "title": "Đồi Cà Phê Trong Sương Sớm Cầu Đất",
+        "theme": "terroir_harvest",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/2074130/pexels-photo-2074130.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/2074130/",
+        "alt": "Nông trại Arabica Cầu Đất độ cao 1.650m trong sương sớm"
+    },
+    {
+        "id": 2147491,
+        "name": "artisan_drying_sun",
+        "title": "Giàn Phơi Nắng Tự Nhiên Đa Tầng",
+        "theme": "artisan_processing",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/2147491/pexels-photo-2147491.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/2147491/",
+        "alt": "Sơ chế phơi chậm 28 ngày trên giàn lưới đón nắng gió cao nguyên"
+    },
+    {
+        "id": 1695052,
+        "name": "artisan_roasting_beans",
+        "title": "Hạt Cà Phê Rang Mộc Hot-Air Hồi Khí",
+        "theme": "precision_roasting",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/1695052/pexels-photo-1695052.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/1695052/",
+        "alt": "Hạt cà phê đặc sản rang mộc bằng luồng khí nóng đối lưu"
+    },
+    {
+        "id": 302899,
+        "name": "sensory_cupping_flight",
+        "title": "Bàn Thử Nếm Chuẩn SCA Quốc Tế",
+        "theme": "sensory_cupping",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/302899/",
+        "alt": "Buổi thử nếm cupping kiểm định chất lượng 84+ SCA"
+    },
+    {
+        "id": 894695,
+        "name": "extraction_pourover_v60",
+        "title": "Nghệ Thuật Chiết Xuất Thủ Công V60",
+        "theme": "sensory_extraction",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/894695/pexels-photo-894695.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/894695/",
+        "alt": "Chiết xuất pour-over V60 tôn vinh nốt hoa nhài và cam bergamot"
+    },
+    {
+        "id": 1459495,
+        "name": "extraction_espresso_crema",
+        "title": "Lớp Crema Dày Hổ Phách Từ Fine Robusta",
+        "theme": "sensory_extraction",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/1459495/pexels-photo-1459495.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/1459495/",
+        "alt": "Dòng chảy espresso sánh đặc với lớp crema màu hạt dẻ tự nhiên"
+    },
+    {
+        "id": 4226881,
+        "name": "lifestyle_barista_craft",
+        "title": "Barista InnoKafe & Kỹ Thuật Đánh Sữa",
+        "theme": "lifestyle_tasting",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/4226881/pexels-photo-4226881.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/4226881/",
+        "alt": "Barista thao tác chuyên nghiệp tại quầy pha chế InnoKafe"
+    },
+    {
+        "id": 3807386,
+        "name": "lifestyle_modern_cafe",
+        "title": "Không Gian Trải Nghiệm Tasting Bar",
+        "theme": "lifestyle_tasting",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/3807386/pexels-photo-3807386.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/3807386/",
+        "alt": "Không gian thưởng thức specialty coffee ấm cúng và tối giản"
+    },
+    {
+        "id": 2396220,
+        "name": "b2b_wholesale_packaging",
+        "title": "Túi Cà Phê Mộc Van 1 Chiều Thụy Sĩ",
+        "theme": "b2b_horeca",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/2396220/pexels-photo-2396220.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/2396220/",
+        "alt": "Đóng gói chuyên nghiệp van khử khí một chiều bảo quản trọn hương vị"
+    },
+    {
+        "id": 7125594,
+        "name": "artisan_farmer_hands_harvest",
+        "title": "Đôi Bàn Tay Người Nông Dân Nâng Niu Vụ Mùa Chín Mọng",
+        "theme": "terroir_harvest",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/7125594/pexels-photo-7125594.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/crop-farmer-with-heap-of-coffee-berries-7125594/",
+        "alt": "Bàn tay người nông dân cao nguyên nâng niu từng chùm quả cà phê chín mọng vừa thu hái thủ công trên nền đất đỏ Bazan"
+    },
+    {
+        "id": 30658822,
+        "name": "natural_raised_beds_drying",
+        "title": "Giàn Phơi Nắng Tự Nhiên Quả Cà Phê Lâm Đồng",
+        "theme": "artisan_processing",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/30658822/pexels-photo-30658822.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/coffee-drying-process-in-lam-d-ng-vietnam-30658822/",
+        "alt": "Giàn phơi nắng tự nhiên đa tầng cho quả cà phê chín mọng tại vùng cao Lâm Đồng, đón nắng gió cao nguyên"
+    },
+    {
+        "id": 15965416,
+        "name": "cooling_tray_artisan_roast",
+        "title": "Hạt Cà Phê Rang Mộc Trong Khay Làm Nguội Cưỡng Bức",
+        "theme": "precision_roasting",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/15965416/pexels-photo-15965416.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/detailed-view-of-freshly-roasted-coffee-beans-in-a-cooling-tray-showcasing-rich-textures-15965416/",
+        "alt": "Hạt cà phê đặc sản vừa ra lò xả nhiệt nhanh trên khay làm nguội cánh khuấy, giữ trọn vẹn tầng hương hoa quả tinh tế"
+    },
+    {
+        "id": 4765838,
+        "name": "roasting_drum_hot_air",
+        "title": "Hạt Cà Phê Đảo Đều Trong Trống Rang Khí Nóng",
+        "theme": "precision_roasting",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/4765838/pexels-photo-4765838.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/close-up-of-coffee-beans-in-a-coffee-roasting-machine-4765838/",
+        "alt": "Cận cảnh hạt cà phê Fine Robusta đảo đều trong lồng máy rang công nghệ hồi khí nóng hiện đại"
+    },
+    {
+        "id": 21967279,
+        "name": "cupping_crust_break_ritual",
+        "title": "Kỹ Thuật Thử Nếm Cảm Quan Cupping Chuẩn SCA",
+        "theme": "sensory_cupping",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/21967279/pexels-photo-21967279.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/man-sipping-coffee-with-a-spoon-21967279/",
+        "alt": "Chuyên gia đánh giá cảm quan nếm thử từng mẫu cà phê bằng thìa cupping tiêu chuẩn quốc tế SCA"
+    },
+    {
+        "id": 7125769,
+        "name": "barista_pourover_v60_flow",
+        "title": "Nghệ Thuật Rót Dòng Nước Phễu Lọc V60",
+        "theme": "sensory_extraction",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/7125769/pexels-photo-7125769.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/faceless-barista-pouring-water-in-dripper-7125769/",
+        "alt": "Barista tập trung kiểm soát tốc độ dòng chảy khi pha chế cà phê pour-over V60 thủ công"
+    },
+    {
+        "id": 34153867,
+        "name": "bar_warm_amber_wood_interior",
+        "title": "Không Gian Quầy Bar Gỗ Mộc Ánh Sáng Vàng Hổ Phách",
+        "theme": "lifestyle_tasting",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/34153867/pexels-photo-34153867.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/cozy-vintage-coffee-shop-interior-in-warm-lighting-34153867/",
+        "alt": "Quầy bar specialty coffee phong cách Wabi-Sabi mộc mạc với chất liệu gỗ tự nhiên và dải ánh sáng vàng ấm áp thư thái"
+    },
+    {
+        "id": 34094297,
+        "name": "artisan_coffee_shop_wood_counter",
+        "title": "Quầy Thưởng Thức Cà Phê Gỗ Tự Nhiên Ấm Cúng",
+        "theme": "lifestyle_tasting",
+        "creator": "Pexels Artist",
+        "url": "https://images.pexels.com/photos/34094297/pexels-photo-34094297.jpeg?auto=compress&cs=tinysrgb&w=1920",
+        "pageUrl": "https://www.pexels.com/photo/cozy-artisan-coffee-shop-interior-with-warm-light-34094297/",
+        "alt": "Không gian quầy bar gỗ mộc ấm áp kết hợp kệ gốm thủ công mộc mạc dưới ánh sáng dịu nhẹ"
+    }
+]
+
+def download_and_convert():
+    PHOTO_DIR.mkdir(parents=True, exist_ok=True)
+    PHOTO_MANIFEST_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+    with open(PHOTO_MANIFEST_PATH, "w", encoding="utf-8") as f:
+        json.dump(CURATED_PHOTOS, f, indent=2, ensure_ascii=False)
+
+    print(f"[*] Saved photo catalog to {PHOTO_MANIFEST_PATH}")
+    print(f"[*] Downloading {len(CURATED_PHOTOS)} curated Pexels photos to {PHOTO_DIR}...")
+
+    success = 0
+    for item in CURATED_PHOTOS:
+        name = item["name"]
+        raw_jpg = PHOTO_DIR / f"{name}.jpg"
+        opt_webp = PHOTO_DIR / f"{name}.webp"
+
+        req = urllib.request.Request(item["url"], headers={"User-Agent": USER_AGENT})
+        try:
+            print(f"  [+] Fetching {name} ({item['id']})...")
+            with urllib.request.urlopen(req, timeout=30) as resp, open(raw_jpg, "wb") as out:
+                shutil.copyfileobj(resp, out)
+
+            # Transcode to WebP with ffmpeg
+            cmd = [
+                "ffmpeg", "-y", "-i", str(raw_jpg),
+                "-vf", "scale=1920:-1:force_original_aspect_ratio=decrease",
+                "-c:v", "libwebp", "-q:v", "82",
+                str(opt_webp)
+            ]
+            subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+            size_kb = opt_webp.stat().st_size / 1024
+            print(f"  [✓] {name}.webp created successfully ({size_kb:.1f} KB)")
+            success += 1
+        except Exception as e:
+            print(f"  [!] Failed for {name}: {e}")
+
+    print(f"\n[✓] Successfully processed {success}/{len(CURATED_PHOTOS)} photography assets.")
+
+if __name__ == "__main__":
+    download_and_convert()

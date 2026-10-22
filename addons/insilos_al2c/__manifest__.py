@@ -90,6 +90,11 @@ Autonomous Lead-to-Cash foundation for Innoria / Insilos.
         'web.assets_web_dark': [
             'insilos_al2c/static/src/scss/ai_concierge_widget.dark.scss',
         ],
+        'web.assets_unit_tests': [
+            'insilos_al2c/static/src/xml/ai_concierge_widget.xml',
+            'insilos_al2c/static/src/js/ai_concierge_widget.js',
+            'insilos_al2c/static/tests/**/*.test.js',
+        ],
     },
     'installable': True,
     'application': False,

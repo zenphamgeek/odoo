@@ -20,20 +20,20 @@ from odoo import api, fields, models, _
 _logger = logging.getLogger(__name__)
 
 PRODUCT_PILLAR_SELECTION = [
-    ('man_hour', '1. Man-Hour Outsourcing & Dedicated Squad (MTI / Global)'),
-    ('ktt_finance', '2. Chief Accountant (KTT) & Automated Finance Software'),
-    ('erp_insilos', '3. Packaged Insilos Clean-Core ERP'),
-    ('grc_resilience', '4. Packaged Vertical Resilience GRC (ISO 27001/27701 & NĐ 13)'),
-    ('mojo_ai', '5. Mojo AI Tools, Sovereign RAG & Agentic Automation'),
+    ('man_hour', '1. Dedicated Software Engineering Squad & Custom Development (Agile Scrum / TT 13/2020)'),
+    ('ktt_finance', '2. Chief Accountant (KTT) & Enterprise Financial Accounting Software'),
+    ('erp_insilos', '3. Insilos Clean-Core ERP Implementation & Customization'),
+    ('grc_resilience', '4. Enterprise GRC & Security Compliance Software (ISO 27001/27701 & NĐ 13)'),
+    ('mojo_ai', '5. Applied AI Software Engineering, Document Extraction (OCR/IDP) & Enterprise RAG'),
 ]
 
 CUSTOMER_ARCHETYPE_SELECTION = [
-    ('outsourcing_partner', '1. Đối tác Outsourcing & Cung ứng Man-Hour (Staff Augmentation)'),
-    ('ktt_finance_ops', '2. Kế toán Trưởng (KTT) & Tự động hóa Tài chính - Thuế - Lương'),
-    ('erp_insilos_enterprise', '3. Doanh nghiệp Triển khai ERP Đóng gói (Insilos Clean-Core ERP)'),
-    ('grc_vertical_resilience', '4. Doanh nghiệp Quản trị Rủi ro & Tuân thủ GRC (Vertical Resilience)'),
-    ('mojo_ai_automation', '5. Doanh nghiệp Chuyển đổi AI & Tự động hóa Tri thức (Mojo AI Tools)'),
-    ('hybrid_full_stack', '6. Tổ hợp Toàn diện (ERP Insilos + GRC Vertical Resilience + Mojo AI + KTT)'),
+    ('outsourcing_partner', '1. Doanh nghiệp thuê Đội ngũ Kỹ sư Phần mềm Chuyên trách (Dedicated Software Engineering Squad)'),
+    ('ktt_finance_ops', '2. Kế toán Trưởng (KTT) & Tự động hóa Phần mềm Tài chính - Thuế - Lương'),
+    ('erp_insilos_enterprise', '3. Doanh nghiệp Triển khai & Tùy biến Hệ thống ERP (Insilos Clean-Core ERP)'),
+    ('grc_vertical_resilience', '4. Doanh nghiệp Triển khai Phần mềm Quản trị Rủi ro & Tuân thủ GRC (ISO 27001/27701)'),
+    ('mojo_ai_automation', '5. Doanh nghiệp Phát triển Phần mềm AI Ứng dụng, OCR/IDP & Tìm kiếm Tri thức'),
+    ('hybrid_full_stack', '6. Tổ hợp Toàn diện (ERP Insilos + Phần mềm GRC + AI/IDP + Đội ngũ Kỹ sư Chuyên trách)'),
 ]
 
 ARCHETYPE_CALIBRATION_PROFILES = {
@@ -45,8 +45,8 @@ ARCHETYPE_CALIBRATION_PROFILES = {
         'compliance_risk_base': 180_000_000.0,
         'productivity_gain_base': 420_000_000.0,
         'skus': [
-            ('CONSULT-HOUR', 320.0, 'Kỹ sư Phần mềm Dedicated Squad & Tư vấn Kiến trúc (Man-Hour T&M)'),
-            ('AMS-SILVER', 1.0, 'Dịch vụ Quản trị Vận hành & SLA Đối soát Timesheet Hàng tháng'),
+            ('CONSULT-HOUR', 320.0, 'Kỹ sư Phần mềm Chuyên trách (Dedicated Engineering Squad) & Tư vấn Kiến trúc Giải pháp'),
+            ('AMS-SILVER', 1.0, 'Dịch vụ Quản trị Vận hành Phần mềm (AMS) & Đối soát Timesheet Điện tử Hàng tháng'),
         ],
         'pillars': ['man_hour', 'mojo_ai'],
     },
@@ -71,9 +71,9 @@ ARCHETYPE_CALIBRATION_PROFILES = {
         'compliance_risk_base': 340_000_000.0,
         'productivity_gain_base': 760_000_000.0,
         'skus': [
-            ('ERP-GROWTH', 1.0, 'Triển khai Giải pháp Đóng gói Insilos Clean-Core ERP Toàn diện'),
-            ('SAAS-HOSTING-PRO', 1.0, 'Hạ tầng Đám mây Chuyên biệt Insilos Hosting Pro (Daily Backup & Staging)'),
-            ('CONSULT-HOUR', 25.0, 'Tư vấn Chuyển đổi Quy trình Fit-to-Standard & Đào tạo Người dùng'),
+            ('ERP-GROWTH', 1.0, 'Triển khai Giải pháp Hệ thống Insilos Clean-Core ERP Toàn diện'),
+            ('SAAS-HOSTING-PRO', 1.0, 'Hạ tầng Đám mây Chuyên biệt Insilos Cloud Hosting Pro (Daily Backup & Staging)'),
+            ('CONSULT-HOUR', 25.0, 'Tư vấn Thiết kế Quy trình Nghiệp vụ (Fit-to-Standard) & Đào tạo Người dùng'),
         ],
         'pillars': ['erp_insilos', 'ktt_finance', 'man_hour'],
     },
@@ -85,9 +85,9 @@ ARCHETYPE_CALIBRATION_PROFILES = {
         'compliance_risk_base': 690_000_000.0,
         'productivity_gain_base': 290_000_000.0,
         'skus': [
-            ('GRC-ESSENTIALS', 1.0, 'Bộ Giải pháp Đóng gói Vertical Resilience GRC (ISO 27001/27701 & Nghị định 13)'),
-            ('GRC-RISK-REGISTER', 1.0, 'Thiết lập Ma trận Kiểm soát Rủi ro & Cổng Bằng chứng Kiểm toán Số'),
-            ('GRC-AUDIT-PACK', 1.0, 'Hồ sơ Kiểm toán Định kỳ & Tự động hóa Bảo vệ Dữ liệu Cá nhân'),
+            ('GRC-ESSENTIALS', 1.0, 'Phần mềm Quản trị Rủi ro & Tuân thủ GRC (ISO/IEC 27001, 27701 & Nghị định 13/2023)'),
+            ('GRC-RISK-REGISTER', 1.0, 'Thiết lập Ma trận Kiểm soát Rủi ro & Kho Lưu trữ Bằng chứng Kiểm toán Số'),
+            ('GRC-AUDIT-PACK', 1.0, 'Gói Hồ sơ Kiểm toán Định kỳ & Tự động hóa Bảo vệ Dữ liệu Cá nhân'),
         ],
         'pillars': ['grc_resilience', 'erp_insilos'],
     },
@@ -99,9 +99,9 @@ ARCHETYPE_CALIBRATION_PROFILES = {
         'compliance_risk_base': 240_000_000.0,
         'productivity_gain_base': 650_000_000.0,
         'skus': [
-            ('AI-PILOT', 1.0, 'Triển khai Trợ lý AI Doanh nghiệp & Khung Tri thức Grounded SOP-RAG'),
-            ('MOJO-APP-SUB', 1.0, 'Thuê bao Bộ Công cụ Mojo AI Apps & Tự động hóa Tài liệu Thông minh'),
-            ('MOJO-TOKENS', 1.0, 'Gói Tín dụng Suy luận Mojo AI Token Pack (1M Tokens Chuẩn Doanh nghiệp)'),
+            ('AI-PILOT', 1.0, 'Phát triển Phần mềm AI Bóc tách Tài liệu (OCR/IDP) & Tìm kiếm Tri thức Doanh nghiệp'),
+            ('MOJO-APP-SUB', 1.0, 'Thuê bao Phần mềm Trợ lý AI Nghiệp vụ & Tự động hóa Xử lý Chứng từ'),
+            ('MOJO-TOKENS', 1.0, 'Gói Hạn mức Xử lý AI API & OCR/IDP (1M Tokens Chuẩn Doanh nghiệp)'),
         ],
         'pillars': ['mojo_ai', 'grc_resilience'],
     },
@@ -113,11 +113,11 @@ ARCHETYPE_CALIBRATION_PROFILES = {
         'compliance_risk_base': 760_000_000.0,
         'productivity_gain_base': 1_140_000_000.0,
         'skus': [
-            ('ERP-GROWTH', 1.0, 'Giải pháp Đóng gói Insilos Clean-Core ERP Đa Phân hệ'),
-            ('GRC-ESSENTIALS', 1.0, 'Giải pháp Đóng gói Vertical Resilience GRC (ISO 27001/27701 & Nghị định 13)'),
-            ('AI-PILOT', 1.0, 'Bộ Công cụ Mojo AI Tools, Sovereign SOP-RAG & Agentic Copilot'),
-            ('MOJO-APP-SUB', 1.0, 'Thuê bao Mojo AI App Subscription cho Đội ngũ Vận hành'),
-            ('CONSULT-HOUR', 80.0, 'Kỹ sư Phần mềm Dedicated Squad & Kế toán Trưởng (KTT) Chuyên trách'),
+            ('ERP-GROWTH', 1.0, 'Hệ thống Quản trị Doanh nghiệp Insilos Clean-Core ERP Đa Phân hệ'),
+            ('GRC-ESSENTIALS', 1.0, 'Phần mềm Quản trị Rủi ro & Tuân thủ GRC (ISO 27001/27701 & Nghị định 13/2023)'),
+            ('AI-PILOT', 1.0, 'Phát triển Phần mềm AI Ứng dụng, OCR/IDP & Hệ thống Tìm kiếm Tri thức RAG'),
+            ('MOJO-APP-SUB', 1.0, 'Thuê bao Phần mềm Trợ lý AI Nghiệp vụ cho Đội ngũ Vận hành'),
+            ('CONSULT-HOUR', 80.0, 'Đội ngũ Kỹ sư Phần mềm Chuyên trách & Chuyên gia Tư vấn Giải pháp'),
         ],
         'pillars': ['man_hour', 'ktt_finance', 'erp_insilos', 'grc_resilience', 'mojo_ai'],
     },
@@ -127,7 +127,7 @@ CANONICAL_PILLAR_FTS_ITEMS = {
     'man_hour': [
         {
             'feature_code': 'FTS-MH-01',
-            'name': 'Cung ứng Kỹ sư Phần mềm Dedicated Squad & Đối soát Timesheet Đa Kênh (MTI / Global)',
+            'name': 'Đội ngũ Kỹ sư Phần mềm Chuyên trách (Dedicated Engineering Squad) & Đối soát Timesheet Điện tử',
             'module': 'Project / Timesheet Staging',
             'clean_core_class': 'class_a',
             'product_pillar': 'man_hour',
@@ -135,14 +135,14 @@ CANONICAL_PILLAR_FTS_ITEMS = {
             'unit_rate_vnd': 850000.0,
             'sla_quote_minutes': 2.0,
             'roi_driver_impact': 'Tiết kiệm 38% chi phí tuyển dụng & quản lý kỹ sư, tự động hóa 100% đối soát OT 2 bậc (100% / 150%).',
-            'description': 'Quản lý chấm công kỹ sư Onsite/Offshore qua al2c.timesheet.staging, chốt trước ngày làm việc thứ 5, xuất hóa đơn tự động.',
-            'justification': 'Chuẩn hóa quy trình nghiệm thu Man-Hour theo SOP-DGM-08 và SOP-DGM-15 trên Clean Core.',
+            'description': 'Quản lý khối lượng công việc và chấm công kỹ sư phần mềm qua al2c.timesheet.staging, chốt trước ngày làm việc thứ 5, xuất hóa đơn tự động.',
+            'justification': 'Chuẩn hóa quy trình sản xuất phần mềm 7 công đoạn (TT 13/2020/TT-BTTTT) và nghiệm thu Man-Hour theo SOP-DGM-08.',
         },
     ],
     'ktt_finance': [
         {
             'feature_code': 'FTS-KTT-01',
-            'name': 'Tự động hóa Kế toán Trưởng (KTT), Hóa đơn Điện tử 1C26TAA (NĐ 70/2025) & Lương VCB DigiBiz 11 Cột',
+            'name': 'Phần mềm Kế toán Trưởng (KTT), Hóa đơn Điện tử 1C26TAA (NĐ 70/2025) & Lương VCB DigiBiz 11 Cột',
             'module': 'Accounting / Payroll / Tax',
             'clean_core_class': 'class_a',
             'product_pillar': 'ktt_finance',
@@ -157,7 +157,7 @@ CANONICAL_PILLAR_FTS_ITEMS = {
     'erp_insilos': [
         {
             'feature_code': 'FTS-ERP-01',
-            'name': 'Hệ thống Đóng gói Insilos Clean-Core ERP Toàn trình (Lead-to-Cash, Procure-to-Pay, Dự án Activate)',
+            'name': 'Triển khai & Tùy biến Hệ thống Insilos Clean-Core ERP Toàn trình (Lead-to-Cash, Procure-to-Pay, WMS)',
             'module': 'Sales / CRM / Project / Inventory',
             'clean_core_class': 'class_a',
             'product_pillar': 'erp_insilos',
@@ -165,14 +165,14 @@ CANONICAL_PILLAR_FTS_ITEMS = {
             'unit_rate_vnd': 1100000.0,
             'sla_quote_minutes': 3.0,
             'roi_driver_impact': 'Rút ngắn 65% chu kỳ triển khai ERP (6 tuần), giảm 42% TCO vận hành hạ tầng và bản quyền phần mềm.',
-            'description': 'Triển khai kiến trúc Clean-Core theo 5 giai đoạn Activate (Prepare, Explore, Realize, Deploy, Run) với cổng kiểm soát Deal-Desk.',
+            'description': 'Triển khai kiến trúc Clean-Core theo 5 giai đoạn (Prepare, Explore, Realize, Deploy, Run) với cổng kiểm soát chất lượng nghiệm thu.',
             'justification': 'Đảm bảo 100% khả năng nâng cấp phiên bản không phát sinh nợ kỹ thuật (Zero Core Modification).',
         },
     ],
     'grc_resilience': [
         {
             'feature_code': 'FTS-GRC-01',
-            'name': 'Giải pháp Đóng gói Vertical Resilience GRC — Quản trị Rủi ro, ISO/IEC 27001/27701 & Nghị định 13/2023/NĐ-CP',
+            'name': 'Phần mềm Quản trị Rủi ro & Tuân thủ GRC — ISO/IEC 27001, ISO/IEC 27701 & Nghị định 13/2023/NĐ-CP',
             'module': 'GRC / Privacy / Audit Trail',
             'clean_core_class': 'class_b',
             'product_pillar': 'grc_resilience',
@@ -187,7 +187,7 @@ CANONICAL_PILLAR_FTS_ITEMS = {
     'mojo_ai': [
         {
             'feature_code': 'FTS-MOJO-01',
-            'name': 'Bộ Công cụ Mojo AI Tools, Sovereign SOP-RAG Copilot (RRF k=60, Entailment >= 0.85) & Tự động hóa Tài liệu',
+            'name': 'Phát triển Phần mềm AI Ứng dụng, Bóc tách Tài liệu (OCR/IDP) & Hệ thống Tìm kiếm Tri thức (Enterprise RAG)',
             'module': 'AI Knowledge / Documents / Mojo Apps',
             'clean_core_class': 'class_c',
             'product_pillar': 'mojo_ai',
@@ -195,8 +195,8 @@ CANONICAL_PILLAR_FTS_ITEMS = {
             'unit_rate_vnd': 1250000.0,
             'sla_quote_minutes': 2.0,
             'roi_driver_impact': 'Tăng 3.2x tốc độ phản hồi khách hàng & tra cứu quy trình nội bộ, tiết kiệm >1,200 giờ nhân sự/năm.',
-            'description': 'Tích hợp Mojo AI qua API phân tách (Class C), băm đoạn tri thức al2c.rag.chunk có kiểm soát phân quyền RBAC và chống ảo giác.',
-            'justification': 'Kiến trúc Microservice / API Decoupled (Class C) theo chuẩn SOP-DGM-12 và SOP-DGM-15.',
+            'description': 'Tích hợp dịch vụ AI qua RESTful API phân tách (Class C), lập chỉ mục tài liệu có kiểm soát phân quyền RBAC và kiểm chứng trích dẫn nguồn.',
+            'justification': 'Kiến trúc Microservice / API Decoupled (Class C) theo chuẩn kỹ thuật phần mềm doanh nghiệp.',
         },
     ],
 }

@@ -1,0 +1,133 @@
+{
+  "timestamp": "2026-10-09T01:10:44Z",
+  "verdict": "APPROVE",
+  "total_duration": 153.86699628829956,
+  "media": {
+    "mp4": {
+      "innokafe_coffee_pour_16x9_opt.mp4": {
+        "size": 8811590,
+        "atoms": [
+          {
+            "type": "ftyp",
+            "offset": 0,
+            "size": 32,
+            "header_size": 8
+          },
+          {
+            "type": "moov",
+            "offset": 32,
+            "size": 9385,
+            "header_size": 8
+          },
+          {
+            "type": "free",
+            "offset": 9417,
+            "size": 8,
+            "header_size": 8
+          },
+          {
+            "type": "mdat",
+            "offset": 9425,
+            "size": 8802165,
+            "header_size": 8
+          }
+        ],
+        "faststart": true,
+        "codec": "h264",
+        "resolution": "1920x1080",
+        "duration": "29.571208",
+        "passed": true
+      },
+      "innokafe_cooling_tray_16x9_opt.mp4": {
+        "size": 16248280,
+        "atoms": [
+          {
+            "type": "ftyp",
+            "offset": 0,
+            "size": 32,
+            "header_size": 8
+          },
+          {
+            "type": "moov",
+            "offset": 32,
+            "size": 5618,
+            "header_size": 8
+          },
+          {
+            "type": "free",
+            "offset": 5650,
+            "size": 8,
+            "header_size": 8
+          },
+          {
+            "type": "mdat",
+            "offset": 5658,
+            "size": 16242622,
+            "header_size": 8
+          }
+        ],
+        "faststart": true,
+        "codec": "h264",
+        "resolution": "1920x1080",
+        "duration": "16.791667",
+        "passed": true
+      }
+    },
+    "webm": {
+      "innokafe_coffee_pour_16x9.webm": {
+        "size": 4101779,
+        "is_ebml": true,
+        "codec": "vp9",
+        "resolution": "1920x1080",
+        "duration": "29.572000",
+        "passed": true
+      },
+      "innokafe_cooling_tray_16x9.webm": {
+        "size": 21366349,
+        "is_ebml": true,
+        "codec": "vp9",
+        "resolution": "1920x1080",
+        "duration": "16.792000",
+        "passed": true
+      }
+    },
+    "posters": {
+      "innokafe_coffee_pour_16x9_poster.webp": {
+        "size": 87412,
+        "size_kb": 85.36,
+        "size_ok": true,
+        "is_riff_webp": true,
+        "dimensions": "1920x1080",
+        "entropy": 7.9976,
+        "passed": true
+      },
+      "innokafe_cooling_tray_16x9_poster.webp": {
+        "size": 113930,
+        "size_kb": 111.26,
+        "size_ok": true,
+        "is_riff_webp": true,
+        "dimensions": "1920x1080",
+        "entropy": 7.9983,
+        "passed": true
+      }
+    },
+    "all_passed": true
+  },
+  "quality_gate": {
+    "exit_code": 0,
+    "duration": 2.2709708213806152,
+    "passed": true
+  },
+  "stress_test": {
+    "sequential_iterations": 5,
+    "seq_all_passed": true,
+    "concurrency_workers": 3,
+    "par_all_passed": true,
+    "passed": true
+  },
+  "schema_invariance": {
+    "exit_code": 0,
+    "duration": 3.4756240844726562,
+    "passed": true
+  }
+}

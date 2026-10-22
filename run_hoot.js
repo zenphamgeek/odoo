@@ -450,15 +450,18 @@ async function main() {
 
   if (targetSuites.length === 0) {
     targetSuites = [
+      'insilos_al2c',
+      'insilos_sap_fiori',
+      'insilos_website',
+      'insilos_logistics_idp',
+      'insilos_market_terminal',
+      'insilos_theme_genesis',
+      'web_enterprise',
       'web_cohort',
       'web_map',
       'web_gantt',
       'web_grid',
       '@web_studio/navigation',
-      'web_enterprise',
-      'insilos_logistics_idp',
-      'insilos_market_terminal',
-      'insilos_theme_genesis',
       'web_mobile',
       'timer',
       'analytic_enterprise',

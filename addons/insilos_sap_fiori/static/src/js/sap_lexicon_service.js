@@ -1,3 +1,5 @@
+/** @odoo-module **/
+
 import { translatedTermsGlobal } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 

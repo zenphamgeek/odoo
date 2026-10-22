@@ -1,0 +1,122 @@
+{
+  "timestamp": "2026-10-07T16:05:19.197Z",
+  "targetUrl": "http://innoria.localhost:28070",
+  "verdict": "APPROVE",
+  "scenarios": {
+    "Scenario_1_Scene_Switching": {
+      "tests": [
+        {
+          "testName": "No_Unhandled_Rejections_At_50ms",
+          "passed": true,
+          "details": {
+            "unhandledCount": 0,
+            "errors": []
+          }
+        },
+        {
+          "testName": "State_Synchronization_After_Barrage",
+          "passed": true,
+          "details": {
+            "expectedMode": 2,
+            "controllerIndex": 2,
+            "navTargetIndex": 2,
+            "activeSlideIndex": 2,
+            "cameraValid": true,
+            "cameraPos": {
+              "x": -3.726565903973977,
+              "y": 2.1995077989832033,
+              "z": 13.5
+            }
+          }
+        },
+        {
+          "testName": "Memory_Stability_No_GPU_Leak",
+          "passed": true,
+          "details": {
+            "initialGeometries": 2,
+            "postGeometries": 2,
+            "initialTextures": 0,
+            "postTextures": 0,
+            "geometriesDiff": 0,
+            "texturesDiff": 0
+          }
+        }
+      ],
+      "passed": true
+    },
+    "Scenario_2_Animation_Performance": {
+      "tests": [
+        {
+          "testName": "Average_FPS_GTE_24",
+          "passed": true,
+          "details": {
+            "avgFps": 55.1,
+            "slaRequired": 24,
+            "minFps": 29.9,
+            "maxDeltaMs": 33.4
+          }
+        },
+        {
+          "testName": "Zero_Frame_Freezes_GT_500ms",
+          "passed": true,
+          "details": {
+            "freezes500ms": 0,
+            "freezes100ms": 0,
+            "maxDeltaMs": 33.4
+          }
+        }
+      ],
+      "passed": true
+    },
+    "Scenario_3_Responsive_Resizing": {
+      "tests": [
+        {
+          "testName": "WebGL_Context_Loss_Immunity",
+          "passed": true,
+          "details": {
+            "contextLost": false,
+            "cyclesExecuted": 18
+          }
+        },
+        {
+          "testName": "Zero_Resize_Crashes",
+          "passed": true,
+          "details": {
+            "crashesObserved": false
+          }
+        },
+        {
+          "testName": "Zero_Horizontal_Overflow_During_Resize",
+          "passed": true,
+          "details": {
+            "overflowViolationsCount": 0,
+            "violations": []
+          }
+        }
+      ],
+      "passed": true
+    },
+    "Scenario_4_Runtime_Cleanliness": {
+      "tests": [
+        {
+          "testName": "Zero_Unhandled_Promise_Rejections",
+          "passed": true,
+          "details": {
+            "rejectionsCount": 0,
+            "rejections": []
+          }
+        },
+        {
+          "testName": "Zero_Unhandled_Console_Errors",
+          "passed": true,
+          "details": {
+            "consoleErrorsCount": 0,
+            "errors": []
+          }
+        }
+      ],
+      "passed": true
+    }
+  },
+  "failures": []
+}

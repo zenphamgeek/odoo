@@ -1,3 +1,5 @@
+/** @insilos-module **/
+
 import { Component, onWillStart, useState } from "@insilos/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";

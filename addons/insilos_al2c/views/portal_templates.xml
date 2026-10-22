@@ -75,7 +75,7 @@
                         <a href="/my/software-portal" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0; border-top: 3px solid #0ABBDB !important;">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge text-white" style="background: #005F73; border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">SOFTWARE DELIVERY HUB</span>
-                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                                <svg class="ph-duotone ph-caret-right al2c-card-arrow text-muted" style="width: 14px; height: 14px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-caret-right"/></svg>
                             </div>
                             <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Trung tâm Dự án Phần mềm &amp; Nghiệm thu</h6>
                             <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
@@ -89,7 +89,7 @@
                         <a href="/my/quotes" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0;">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge bg-dark text-white" style="border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">QUOTATIONS &amp; SOW</span>
-                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                                <svg class="ph-duotone ph-caret-right al2c-card-arrow text-muted" style="width: 14px; height: 14px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-caret-right"/></svg>
                             </div>
                             <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Báo giá, Fit-to-Standard Scope &amp; Ký SOW</h6>
                             <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
@@ -105,7 +105,7 @@
                                 <span class="badge bg-info text-dark" style="border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">
                                     TIMESHEETS (<t t-out="timesheet_sheet_count or 0"/>)
                                 </span>
-                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                                <svg class="ph-duotone ph-caret-right al2c-card-arrow text-muted" style="width: 14px; height: 14px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-caret-right"/></svg>
                             </div>
                             <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Bảng Chấm công Kỹ sư &amp; Nghiệm thu Sprint</h6>
                             <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
@@ -121,7 +121,7 @@
                                 <span class="badge bg-success text-white" style="border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">
                                     1C26TAA (<t t-out="draft_invoice_count or 0"/> NHÁP · <t t-out="official_invoice_count or 0"/> CQT)
                                 </span>
-                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                                <svg class="ph-duotone ph-caret-right al2c-card-arrow text-muted" style="width: 14px; height: 14px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-caret-right"/></svg>
                             </div>
                             <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Hóa đơn Nháp &amp; HĐĐT Chính thức 1C26TAA</h6>
                             <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
@@ -135,7 +135,7 @@
                         <a href="/my/software-portal#disputes" class="al2c-portal-card p-3 h-100" style="border-radius: 2px !important; box-shadow: none !important; border: 1px solid #e0e0e0;">
                             <div class="d-flex align-items-center justify-content-between mb-2">
                                 <span class="badge bg-warning text-dark" style="border-radius: 4px !important; box-shadow: none !important; font-size: 10px; font-weight: 600;">AL2C-INV-103 &amp; SOP-RAG</span>
-                                <i class="oi oi-chevron-right al2c-card-arrow text-muted"/>
+                                <svg class="ph-duotone ph-caret-right al2c-card-arrow text-muted" style="width: 14px; height: 14px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-caret-right"/></svg>
                             </div>
                             <h6 class="fw-bold mb-1" style="color: #161616; font-size: 14px;">Đối soát Thương mại &amp; Trợ lý AI</h6>
                             <p class="text-muted small mb-0 flex-grow-1" style="font-size: 12px; line-height: 1.5; color: #525252;">
@@ -153,16 +153,18 @@
         <xpath expr="//div[@id='introduction']" position="before">
             <div class="al2c_portal_horizon_stripe" style="height: 3px; background: #005F73; width: 100%; border-radius: 0px;"/>
             <div t-if="request.params.get('quotation_approved')" class="alert alert-success d-flex align-items-center justify-content-between p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
-                <div>
-                    <strong>✓ Đã phê duyệt Báo giá &amp; Xác nhận Phạm vi Kỹ thuật (SOW) thành công!</strong>
-                    Đội ngũ Quản lý Dự án (PMO) đang khởi tạo Sprint thực thi theo chuẩn 5-Gate Delivery.
+                <div class="d-inline-flex align-items-center gap-1 flex-wrap">
+                    <svg class="ph-duotone ph-check-circle al2c-ph-icon text-success" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
+                    <strong>Đã phê duyệt Báo giá &amp; Xác nhận Phạm vi Kỹ thuật (SOW) thành công!</strong>
+                    <span>Đội ngũ Quản lý Dự án (PMO) đang khởi tạo Sprint thực thi theo chuẩn 5-Gate Delivery.</span>
                 </div>
                 <a href="/my/software-portal" class="btn btn-sm btn-outline-success" style="border-radius: 0px !important; box-shadow: none !important;">Về Trung Tâm Dự Án</a>
             </div>
             <div t-if="request.params.get('scope_revision_requested')" class="alert alert-warning d-flex align-items-center justify-content-between p-3 mb-3" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
-                <div>
-                    <strong>✎ Đã ghi nhận Yêu cầu Điều chỉnh Scope / Ước lượng Man-Hour:</strong>
-                    Kiến trúc sư Giải pháp (Solution Architect) sẽ cập nhật lại bảng Fit-to-Standard và phản hồi trong vòng 4 giờ làm việc.
+                <div class="d-inline-flex align-items-center gap-1 flex-wrap">
+                    <svg class="ph-duotone ph-pencil-simple al2c-ph-icon text-warning" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-pencil-simple"/></svg>
+                    <strong>Đã ghi nhận Yêu cầu Điều chỉnh Scope / Ước lượng Man-Hour:</strong>
+                    <span>Kiến trúc sư Giải pháp (Solution Architect) sẽ cập nhật lại bảng Fit-to-Standard và phản hồi trong vòng 4 giờ làm việc.</span>
                 </div>
                 <a href="/my/software-portal" class="btn btn-sm btn-outline-dark" style="border-radius: 0px !important; box-shadow: none !important;">Về Trung Tâm Dự Án</a>
             </div>
@@ -237,7 +239,10 @@
                                     </td>
                                     <td class="text-muted" t-out="fts.description or fts.justification or 'Theo chuẩn Fit-to-Standard'"/>
                                     <td class="text-center">
-                                        <span t-if="fts.approved_by_architect or fts.clean_core_class != 'class_d'" class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">✓ Đạt Chuẩn</span>
+                                        <span t-if="fts.approved_by_architect or fts.clean_core_class != 'class_d'" class="badge bg-success-subtle text-success border border-success d-inline-flex align-items-center gap-1" style="border-radius: 4px !important; font-size: 10px;">
+                                            <svg class="ph-duotone ph-check-circle al2c-ph-icon" style="width: 11px; height: 11px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
+                                            <span>Đạt Chuẩn</span>
+                                        </span>
                                         <span t-else="" class="badge bg-warning-subtle text-dark border" style="border-radius: 4px !important; font-size: 10px;">Chờ Hội đồng KT</span>
                                     </td>
                                 </tr>
@@ -256,7 +261,10 @@
                             Khách hàng: <strong t-out="sale_order.partner_id.name"/> · Trạng thái hiện tại: <code t-out="sale_order.state"/>
                         </div>
                     </div>
-                    <span t-if="sale_order.state == 'sale'" class="badge bg-success text-white px-2 py-1" style="border-radius: 4px !important; font-size: 11px;">✓ ĐÃ PHÊ DUYỆT &amp; KÍCH HOẠT SOW</span>
+                    <span t-if="sale_order.state == 'sale'" class="badge bg-success text-white px-2 py-1 d-inline-flex align-items-center gap-1" style="border-radius: 4px !important; font-size: 11px;">
+                        <svg class="ph-duotone ph-check-circle al2c-ph-icon" style="width: 12px; height: 12px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
+                        <span>ĐÃ PHÊ DUYỆT &amp; KÍCH HOẠT SOW</span>
+                    </span>
                     <span t-else="" class="badge bg-primary text-white px-2 py-1" style="background: #005F73; border-radius: 4px !important; font-size: 11px;">CHỜ KHÁCH HÀNG PHÊ DUYỆT</span>
                 </div>
 
@@ -284,8 +292,9 @@
                                 </div>
                             </div>
                             <div>
-                                <button type="submit" class="btn btn-primary btn-sm px-3 py-2 fw-bold w-100" style="background: #005F73; border-color: #005F73; border-radius: 0px !important; box-shadow: none !important;">
-                                    ✅ Phê duyệt Báo giá &amp; Ký Xác nhận SOW
+                                <button type="submit" class="btn btn-primary btn-sm px-3 py-2 fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1" style="background: #005F73; border-color: #005F73; border-radius: 0px !important; box-shadow: none !important;">
+                                    <svg class="ph-duotone ph-check-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
+                                    <span>Phê duyệt Báo giá &amp; Ký Xác nhận SOW</span>
                                 </button>
                             </div>
                         </form>
@@ -308,8 +317,9 @@
                                 </div>
                             </div>
                             <div>
-                                <button type="submit" class="btn btn-sm px-3 py-2 fw-bold w-100" style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #FF8000 !important; color: #B45309 !important; background: #FFF4E5 !important;">
-                                    ✏️ Yêu cầu Điều chỉnh Scope / Man-Hour
+                                <button type="submit" class="btn btn-sm px-3 py-2 fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1" style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #FF8000 !important; color: #B45309 !important; background: #FFF4E5 !important;">
+                                    <svg class="ph-duotone ph-pencil-simple al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-pencil-simple"/></svg>
+                                    <span>Yêu cầu Điều chỉnh Scope / Man-Hour</span>
                                 </button>
                             </div>
                         </form>
@@ -419,11 +429,13 @@
         <!-- Sidebar Enhancement: E-Invoice Downloads, Napas247 Box & AL2C-INV-103 Dispute Button -->
         <xpath expr="//t[@t-set='entries']//div[hasclass('d-flex')][1]" position="after">
             <div class="mt-3 d-grid gap-2">
-                <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_xml" class="btn btn-outline-primary btn-sm py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
-                    ⬇️ Tải File XML Chuẩn CQT (1C26TAA)
+                <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_xml" class="btn btn-outline-primary btn-sm py-2 fw-bold d-inline-flex align-items-center justify-content-center gap-1" style="border-radius: 0px !important; box-shadow: none !important;">
+                    <svg class="ph-duotone ph-download-simple al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-download-simple"/></svg>
+                    <span>Tải File XML Chuẩn CQT (1C26TAA)</span>
                 </a>
-                <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
-                    📄 Xem Bản Thể Hiện HĐĐT (HTML)
+                <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm py-2 fw-bold d-inline-flex align-items-center justify-content-center gap-1" style="border-radius: 0px !important; box-shadow: none !important;">
+                    <svg class="ph-duotone ph-file-text al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-file-text"/></svg>
+                    <span>Xem Bản Thể Hiện HĐĐT (HTML)</span>
                 </a>
             </div>
 
@@ -431,13 +443,17 @@
             <div class="mt-3">
                 <t t-if="invoice.al2c_has_open_dispute">
                     <div class="alert alert-warning p-2 small text-center mb-0 border-secondary" style="border-radius: 2px !important;">
-                        <div class="fw-bold text-body"><i class="oi oi-clock me-1"/> Đang Đối Soát AL2C-INV-103</div>
+                        <div class="fw-bold text-body d-inline-flex align-items-center gap-1">
+                            <svg class="ph-duotone ph-clock al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-clock"/></svg>
+                            <span>Đang Đối Soát AL2C-INV-103</span>
+                        </div>
                         <div class="text-muted" style="font-size: 10px;">Tiến trình nhắc nợ Dunning đã được ĐÓNG BĂNG để bảo vệ quyền lợi đối tác.</div>
                     </div>
                 </t>
                 <t t-elif="invoice.move_type == 'out_invoice' and invoice.state == 'posted' and invoice.payment_state not in ('paid', 'in_payment', 'reversed')">
-                    <button type="button" class="btn btn-outline-danger w-100 btn-sm py-2" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal" style="border-radius: 0px !important; box-shadow: none !important;">
-                        <i class="oi oi-flag me-1"/> Khiếu nại / Đối soát AL2C-INV-103
+                    <button type="button" class="btn btn-outline-danger w-100 btn-sm py-2 d-inline-flex align-items-center justify-content-center gap-1" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal" style="border-radius: 0px !important; box-shadow: none !important;">
+                        <svg class="ph-duotone ph-flag al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-flag"/></svg>
+                        <span>Khiếu nại / Đối soát AL2C-INV-103</span>
                     </button>
                 </t>
             </div>
@@ -464,12 +480,18 @@
         <xpath expr="//div[hasclass('o_portal_html_view')]" position="before">
             <!-- Status Alert Banners -->
             <div t-if="request.params.get('draft_invoice_confirmed')" class="alert alert-success alert-dismissible fade show" style="border-radius: 2px !important; border-left: 4px solid #198038 !important;" role="alert">
-                <strong>✓ Đã xác nhận Hóa đơn Nháp &amp; Phát hành Hóa đơn GTGT Điện tử Chính thức (1C26TAA) thành công!</strong>
+                <strong class="d-inline-flex align-items-center gap-1">
+                    <svg class="ph-duotone ph-check-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
+                    <span>Đã xác nhận Hóa đơn Nháp &amp; Phát hành Hóa đơn GTGT Điện tử Chính thức (1C26TAA) thành công!</span>
+                </strong>
                 Quý Khách hàng có thể tải trực tiếp file XML chuẩn CQT và bản thể hiện HTML bên dưới.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <div t-if="request.params.get('draft_adjustment_requested')" class="alert alert-warning alert-dismissible fade show" style="border-radius: 2px !important; border-left: 4px solid #f1c21b !important;" role="alert">
-                <strong>✎ Đã ghi nhận Yêu cầu Điều chỉnh Hóa đơn Nháp:</strong> Bộ phận Kế toán Thuế (FinOps) sẽ cập nhật lại thông tin pháp nhân / số liệu và gửi lại bản nháp đối soát.
+                <strong class="d-inline-flex align-items-center gap-1">
+                    <svg class="ph-duotone ph-pencil-simple al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-pencil-simple"/></svg>
+                    <span>Đã ghi nhận Yêu cầu Điều chỉnh Hóa đơn Nháp:</span>
+                </strong> Bộ phận Kế toán Thuế (FinOps) sẽ cập nhật lại thông tin pháp nhân / số liệu và gửi lại bản nháp đối soát.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <div t-if="invoice.al2c_has_open_dispute" class="al2c-dispute-alert" style="border-radius: 2px !important;">
@@ -482,15 +504,24 @@
                 </div>
             </div>
             <div t-if="request.params.get('dispute_submitted')" class="alert alert-success alert-dismissible fade show" style="border-radius: 2px !important;" role="alert">
-                <strong>✓ Yêu cầu đối soát / khiếu nại AL2C-INV-103 đã được ghi nhận:</strong> Hệ thống đã lập tức đóng băng tiến trình nhắc nợ tự động.
+                <strong class="d-inline-flex align-items-center gap-1">
+                    <svg class="ph-duotone ph-check-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
+                    <span>Yêu cầu đối soát / khiếu nại AL2C-INV-103 đã được ghi nhận:</span>
+                </strong> Hệ thống đã lập tức đóng băng tiến trình nhắc nợ tự động.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <div t-if="request.params.get('timesheet_confirmed')" class="alert alert-success alert-dismissible fade show" style="border-radius: 2px !important;" role="alert">
-                <strong>✓ Xác nhận Bảng kê Giờ công thành công!</strong> Cảm ơn Quý Khách hàng. Hệ thống đang tiến hành ký số và phát hành Hóa đơn Giá trị Gia tăng điện tử theo Nghị định 70/2025/NĐ-CP.
+                <strong class="d-inline-flex align-items-center gap-1">
+                    <svg class="ph-duotone ph-check-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
+                    <span>Xác nhận Bảng kê Giờ công thành công!</span>
+                </strong> Cảm ơn Quý Khách hàng. Hệ thống đang tiến hành ký số và phát hành Hóa đơn Giá trị Gia tăng điện tử theo Nghị định 70/2025/NĐ-CP.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             <div t-if="request.params.get('invalid_token')" class="alert alert-danger alert-dismissible fade show" style="border-radius: 2px !important;" role="alert">
-                <strong>✕ Mã xác nhận không hợp lệ hoặc đã hết hạn:</strong> Vui lòng đăng nhập Cổng Khách hàng để xác nhận hoặc liên hệ quản trị viên dự án.
+                <strong class="d-inline-flex align-items-center gap-1">
+                    <svg class="ph-duotone ph-x-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-x-circle"/></svg>
+                    <span>Mã xác nhận không hợp lệ hoặc đã hết hạn:</span>
+                </strong> Vui lòng đăng nhập Cổng Khách hàng để xác nhận hoặc liên hệ quản trị viên dự án.
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
@@ -515,75 +546,87 @@
                             </div>
                         </div>
                         <div class="d-flex gap-2">
-                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
-                                📄 Xem Bản Nháp (HTML)
+                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_html" target="_blank" class="btn btn-outline-dark btn-sm d-inline-flex align-items-center gap-1" style="border-radius: 0px !important; box-shadow: none !important;">
+                                <svg class="ph-duotone ph-file-text al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-file-text"/></svg>
+                                <span>Xem Bản Nháp (HTML)</span>
                             </a>
-                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_xml" class="btn btn-outline-primary btn-sm" style="border-radius: 0px !important; box-shadow: none !important;">
-                                ⬇️ XML Nháp 1C26TAA
+                            <a t-attf-href="/my/invoices/#{invoice.id}/download_einvoice_xml" class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1" style="border-radius: 0px !important; box-shadow: none !important;">
+                                <svg class="ph-duotone ph-download-simple al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-download-simple"/></svg>
+                                <span>XML Nháp 1C26TAA</span>
                             </a>
                         </div>
                     </div>
 
-                    <div class="row g-3">
+                    <div class="row g-3 align-items-stretch">
                         <!-- Form 1: Confirm Draft Invoice & Issue Official 1C26TAA E-Invoice -->
-                        <div class="col-12 col-lg-7">
-                            <form t-attf-action="/my/invoices/#{invoice.id}/draft_decide" method="post" class="p-3 border bg-light h-100" style="border-radius: 2px !important;">
-                                <input type="hidden" name="action" value="confirm_draft_invoice"/>
-                                <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
-                                <div class="fw-bold mb-2" style="font-size: 13px; color: #161616;">
-                                    1. Xác nhận Thông tin Pháp nhân Bên mua &amp; Phát hành HĐĐT Chính thức
+                        <div class="col-12 col-lg-7 d-flex">
+                            <form t-attf-action="/my/invoices/#{invoice.id}/draft_decide" method="post" class="p-3 border bg-light h-100 w-100 d-flex flex-column justify-content-between innoria-sota-pane-teal" style="border-radius: 2px !important; border-top: 3px solid #005F73 !important;">
+                                <div>
+                                    <input type="hidden" name="action" value="confirm_draft_invoice"/>
+                                    <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
+                                    <div class="fw-bold mb-2 text-start" style="font-size: 13px; color: #003333;">
+                                        1. Xác nhận Thông tin Pháp nhân Bên mua &amp; Phát hành HĐĐT Chính thức
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-12 col-sm-7">
+                                            <label class="form-label small mb-1">Tên đơn vị mua hàng (Pháp nhân trên HĐĐT):</label>
+                                            <input type="text" name="buyer_name" class="form-control form-control-sm" t-att-value="invoice.partner_id.name" required="required" style="border-radius: 0px !important;"/>
+                                        </div>
+                                        <div class="col-12 col-sm-5">
+                                            <label class="form-label small mb-1">Mã số thuế (MST):</label>
+                                            <input type="text" name="buyer_vat" class="form-control form-control-sm" t-att-value="invoice.partner_id.vat or ''" placeholder="Nhập MST doanh nghiệp" style="border-radius: 0px !important;"/>
+                                        </div>
+                                        <div class="col-12 col-sm-7">
+                                            <label class="form-label small mb-1">Địa chỉ đăng ký thuế:</label>
+                                            <input type="text" name="buyer_address" class="form-control form-control-sm" t-att-value="invoice.partner_id.street or invoice.partner_id.contact_address_complete or ''" style="border-radius: 0px !important;"/>
+                                        </div>
+                                        <div class="col-12 col-sm-5">
+                                            <label class="form-label small mb-1">Email nhận HĐĐT (XML/PDF):</label>
+                                            <input type="email" name="buyer_email" class="form-control form-control-sm" t-att-value="invoice.partner_id.email or ''" style="border-radius: 0px !important;"/>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label small mb-1">Người đại diện xác nhận đối soát:</label>
+                                            <input type="text" name="confirmed_by" class="form-control form-control-sm" t-att-value="invoice.partner_id.name" required="required" style="border-radius: 0px !important;"/>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="row g-2 mb-2">
-                                    <div class="col-12 col-sm-7">
-                                        <label class="form-label small mb-1">Tên đơn vị mua hàng (Pháp nhân trên HĐĐT):</label>
-                                        <input type="text" name="buyer_name" class="form-control form-control-sm" t-att-value="invoice.partner_id.name" required="required" style="border-radius: 0px !important;"/>
-                                    </div>
-                                    <div class="col-12 col-sm-5">
-                                        <label class="form-label small mb-1">Mã số thuế (MST):</label>
-                                        <input type="text" name="buyer_vat" class="form-control form-control-sm" t-att-value="invoice.partner_id.vat or ''" placeholder="Nhập MST doanh nghiệp" style="border-radius: 0px !important;"/>
-                                    </div>
-                                    <div class="col-12 col-sm-7">
-                                        <label class="form-label small mb-1">Địa chỉ đăng ký thuế:</label>
-                                        <input type="text" name="buyer_address" class="form-control form-control-sm" t-att-value="invoice.partner_id.street or invoice.partner_id.contact_address_complete or ''" style="border-radius: 0px !important;"/>
-                                    </div>
-                                    <div class="col-12 col-sm-5">
-                                        <label class="form-label small mb-1">Email nhận HĐĐT (XML/PDF):</label>
-                                        <input type="email" name="buyer_email" class="form-control form-control-sm" t-att-value="invoice.partner_id.email or ''" style="border-radius: 0px !important;"/>
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label small mb-1">Người đại diện xác nhận đối soát:</label>
-                                        <input type="text" name="confirmed_by" class="form-control form-control-sm" t-att-value="invoice.partner_id.name" required="required" style="border-radius: 0px !important;"/>
-                                    </div>
+                                <div>
+                                    <button type="submit" class="btn btn-primary btn-sm px-3 py-2 fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1" style="background: #005F73; border-color: #005F73; border-radius: 0px !important; box-shadow: none !important;">
+                                        <svg class="ph-duotone ph-receipt al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-receipt"/></svg>
+                                        <span>Xác nhận Hóa đơn Nháp &amp; Phát hành HĐĐT Chính thức (1C26TAA)</span>
+                                    </button>
                                 </div>
-                                <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
-                                    🧾 Xác nhận Hóa đơn Nháp &amp; Phát hành HĐĐT Chính thức (1C26TAA)
-                                </button>
                             </form>
                         </div>
 
                         <!-- Form 2: Request Draft Adjustment -->
-                        <div class="col-12 col-lg-5">
-                            <form t-attf-action="/my/invoices/#{invoice.id}/draft_decide" method="post" class="p-3 border bg-light h-100" style="border-radius: 2px !important;">
-                                <input type="hidden" name="action" value="request_draft_adjustment"/>
-                                <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
-                                <div class="fw-bold mb-2" style="font-size: 13px; color: #161616;">
-                                    2. Yêu cầu Điều chỉnh Thông tin Thuế / Số liệu Nháp
+                        <div class="col-12 col-lg-5 d-flex">
+                            <form t-attf-action="/my/invoices/#{invoice.id}/draft_decide" method="post" class="p-3 border bg-light h-100 w-100 d-flex flex-column justify-content-between innoria-sota-pane-orange" style="border-radius: 2px !important; border-top: 3px solid #FF8000 !important;">
+                                <div>
+                                    <input type="hidden" name="action" value="request_draft_adjustment"/>
+                                    <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
+                                    <div class="fw-bold mb-2 text-start" style="font-size: 13px; color: #003333;">
+                                        2. Yêu cầu Điều chỉnh Thông tin Thuế / Số liệu Nháp
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small mb-1">Người yêu cầu điều chỉnh:</label>
+                                        <input type="text" name="requested_by" class="form-control form-control-sm" t-att-value="invoice.partner_id.name" style="border-radius: 0px !important;"/>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small mb-1">Mã số thuế / Địa chỉ đúng (nếu cần sửa):</label>
+                                        <input type="text" name="buyer_vat" class="form-control form-control-sm" t-att-value="invoice.partner_id.vat or ''" placeholder="MST hoặc thông tin pháp nhân cần cập nhật..." style="border-radius: 0px !important;"/>
+                                    </div>
+                                    <div class="mb-2">
+                                        <label class="form-label small mb-1">Nội dung yêu cầu điều chỉnh:</label>
+                                        <textarea name="reason" rows="2" class="form-control form-control-sm" placeholder="Nhập chi tiết nội dung dòng hàng hóa dịch vụ, thuế suất hoặc thông tin pháp nhân cần điều chỉnh..." required="required" style="border-radius: 0px !important;"></textarea>
+                                    </div>
                                 </div>
-                                <div class="mb-2">
-                                    <label class="form-label small mb-1">Người yêu cầu điều chỉnh:</label>
-                                    <input type="text" name="requested_by" class="form-control form-control-sm" t-att-value="invoice.partner_id.name" style="border-radius: 0px !important;"/>
+                                <div>
+                                    <button type="submit" class="btn btn-sm px-3 py-2 fw-bold w-100 d-inline-flex align-items-center justify-content-center gap-1" style="border-radius: 0px !important; box-shadow: none !important; border: 1px solid #FF8000 !important; color: #B45309 !important; background: #FFF4E5 !important;">
+                                        <svg class="ph-duotone ph-pencil-simple al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-pencil-simple"/></svg>
+                                        <span>Yêu cầu Điều chỉnh Thông tin Thuế / Số liệu Nháp</span>
+                                    </button>
                                 </div>
-                                <div class="mb-2">
-                                    <label class="form-label small mb-1">Mã số thuế / Địa chỉ đúng (nếu cần sửa):</label>
-                                    <input type="text" name="buyer_vat" class="form-control form-control-sm" t-att-value="invoice.partner_id.vat or ''" placeholder="MST hoặc thông tin pháp nhân cần cập nhật..." style="border-radius: 0px !important;"/>
-                                </div>
-                                <div class="mb-2">
-                                    <label class="form-label small mb-1">Nội dung yêu cầu điều chỉnh:</label>
-                                    <textarea name="reason" rows="2" class="form-control form-control-sm" placeholder="Nhập chi tiết nội dung dòng hàng hóa dịch vụ, thuế suất hoặc thông tin pháp nhân cần điều chỉnh..." required="required" style="border-radius: 0px !important;"></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-outline-danger btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
-                                    ✏️ Yêu cầu Điều chỉnh Thông tin Thuế / Số liệu Nháp
-                                </button>
                             </form>
                         </div>
                     </div>
@@ -600,7 +643,10 @@
                             <div class="d-flex flex-wrap align-items-center gap-2">
                                 <span class="badge text-white" style="background: #005F73; border-radius: 4px !important; font-size: 10px;">NGHỊ ĐỊNH 70/2025/NĐ-CP</span>
                                 <span class="badge bg-light text-body border" style="border-radius: 4px !important; font-size: 10px;">MẪU SỐ 1/001 · KÝ HIỆU <t t-out="invoice.dgm_einvoice_symbol or '1C26TAA'"/></span>
-                                <span class="badge bg-success-subtle text-success border border-success" style="border-radius: 4px !important; font-size: 10px;">✓ ĐÃ CẤP MÃ CQT &amp; KÝ SỐ HỢP LỆ</span>
+                                <span class="badge bg-success-subtle text-success border border-success d-inline-flex align-items-center gap-1" style="border-radius: 4px !important; font-size: 10px;">
+                                    <svg class="ph-duotone ph-check-circle al2c-ph-icon" style="width: 11px; height: 11px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
+                                    <span>ĐÃ CẤP MÃ CQT &amp; KÝ SỐ HỢP LỆ</span>
+                                </span>
                             </div>
                             <div class="fw-bold mt-2" style="font-size: 15px; color: #161616;">
                                 Hóa Đơn Giá Trị Gia Tăng Điện Tử Chính Thức (<t t-out="invoice.dgm_einvoice_symbol or '1C26TAA'"/> - <t t-out="invoice.dgm_einvoice_number or invoice.name"/>)
@@ -644,15 +690,18 @@
                     <form t-attf-action="/my/invoices/#{invoice.id}/confirm_timesheet" method="post" class="d-inline">
                         <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
                         <input t-if="request.params.get('confirm_token')" type="hidden" name="confirm_token" t-att-value="request.params.get('confirm_token')"/>
-                        <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-bold" style="border-radius: 0px !important; box-shadow: none !important;">
-                            <i class="oi oi-check me-1"/> Xác Nhận Giờ Công &amp; Đồng Ý Phát Hành Hóa Đơn
+                        <button type="submit" class="btn btn-success btn-sm px-3 py-2 fw-bold d-inline-flex align-items-center gap-1" style="border-radius: 0px !important; box-shadow: none !important;">
+                            <svg class="ph-duotone ph-check-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-check-circle"/></svg>
+                            <span>Xác Nhận Giờ Công &amp; Đồng Ý Phát Hành Hóa Đơn</span>
                         </button>
                     </form>
-                    <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2" data-bs-toggle="collapse" data-bs-target="#al2cAiExplainerCollapse" aria-expanded="false" aria-controls="al2cAiExplainerCollapse" style="border-radius: 0px !important; box-shadow: none !important;">
-                        <i class="oi oi-search me-1"/> Hỏi Trợ Lý AI (SOP-RAG)
+                    <button type="button" class="btn btn-outline-primary btn-sm px-3 py-2 d-inline-flex align-items-center gap-1" data-bs-toggle="collapse" data-bs-target="#al2cAiExplainerCollapse" aria-expanded="false" aria-controls="al2cAiExplainerCollapse" style="border-radius: 0px !important; box-shadow: none !important;">
+                        <svg class="ph-duotone ph-magnifying-glass al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-magnifying-glass"/></svg>
+                        <span>Hỏi Trợ Lý AI (SOP-RAG)</span>
                     </button>
-                    <button type="button" class="btn btn-outline-danger btn-sm px-3 py-2" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal" style="border-radius: 0px !important; box-shadow: none !important;">
-                        <i class="oi oi-flag me-1"/> Yêu Cầu Đối Soát / Khiếu Nại AL2C-INV-103
+                    <button type="button" class="btn btn-outline-danger btn-sm px-3 py-2 d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#al2cDisputeModal" style="border-radius: 0px !important; box-shadow: none !important;">
+                        <svg class="ph-duotone ph-flag al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-flag"/></svg>
+                        <span>Yêu Cầu Đối Soát / Khiếu Nại AL2C-INV-103</span>
                     </button>
                 </div>
             </div>
@@ -675,8 +724,9 @@
                     </div>
                     <div class="input-group input-group-sm">
                         <input type="text" id="al2cAiQueryInput" class="form-control" placeholder="Đặt câu hỏi về các dòng giờ công này (VD: Căn cứ tính giờ giai đoạn Realize?)..." style="border-radius: 0px !important;"/>
-                        <button class="btn btn-primary" type="button" id="al2cBtnAskAi" t-att-data-invoice-id="invoice.id" t-att-data-access-token="access_token" style="border-radius: 0px !important; box-shadow: none !important;">
-                            <i class="oi oi-play me-1"/> Giải Trình Bảng Kê
+                        <button class="btn btn-primary d-inline-flex align-items-center gap-1" type="button" id="al2cBtnAskAi" t-att-data-invoice-id="invoice.id" t-att-data-access-token="access_token" style="border-radius: 0px !important; box-shadow: none !important;">
+                            <svg class="ph-duotone ph-play-circle al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-play-circle"/></svg>
+                            <span>Giải Trình Bảng Kê</span>
                         </button>
                     </div>
                 </div>
@@ -694,7 +744,7 @@
                                 const accessToken = btn.getAttribute('data-access-token') || '';
                                 const query = input ? (input.value || '') : '';
 
-                                resultDiv.textContent = '⏳ Đang đối soát cơ sở tri thức KMS và kiểm tra Entailment Gate...';
+                                resultDiv.textContent = 'Đang đối soát cơ sở tri thức KMS và kiểm tra Entailment Gate...';
                                 btn.disabled = true;
 
                                 try {
@@ -740,7 +790,7 @@
                                             const gDiv = document.createElement('div');
                                             gDiv.className = 'mt-1 text-success fw-bold';
                                             gDiv.style.fontSize = '10px';
-                                            gDiv.textContent = '✓ Grounding Entailment: ' + ((res.entailment_score || 0.95) * 100).toFixed(1) + '% (Verified)';
+                                            gDiv.textContent = 'Grounding Entailment: ' + ((res.entailment_score || 0.95) * 100).toFixed(1) + '% (Verified)';
                                             resultDiv.appendChild(gDiv);
                                         }
                                     } else {
@@ -769,7 +819,7 @@
             <div t-if="invoice.al2c_timesheet_statement_state == 'confirmed'" class="alert alert-success d-flex align-items-center gap-2 p-3 mb-3" style="border-radius: 2px !important;" role="alert">
                 <span class="badge bg-success text-white" style="font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 10px; border-radius: 4px !important;">ĐÃ XÁC NHẬN BẢNG KÊ</span>
                 <div class="small" style="font-size: 12px;">
-                    <strong>✓ Bảng kê giờ công đã được Quý Khách hàng xác nhận</strong> vào ngày <span t-out="invoice.al2c_timesheet_confirmed_date"/> (Bởi: <strong t-out="invoice.al2c_timesheet_confirmed_by"/>). Hóa đơn điện tử đủ điều kiện phát hành theo Nghị định 70/2025/NĐ-CP.
+                    <strong>Bảng kê giờ công đã được Quý Khách hàng xác nhận</strong> vào ngày <span t-out="invoice.al2c_timesheet_confirmed_date"/> (Bởi: <strong t-out="invoice.al2c_timesheet_confirmed_by"/>). Hóa đơn điện tử đủ điều kiện phát hành theo Nghị định 70/2025/NĐ-CP.
                 </div>
             </div>
         </xpath>
@@ -784,8 +834,9 @@
                             <input t-if="access_token" type="hidden" name="access_token" t-att-value="access_token"/>
 
                             <div class="modal-header bg-light border-bottom">
-                                <h5 class="modal-title fw-bold" id="al2cDisputeModalLabel" style="font-size: 15px; color: #161616;">
-                                    <i class="oi oi-flag text-danger me-1"/> Khiếu nại / Đối soát Hóa đơn AL2C-INV-103
+                                <h5 class="modal-title fw-bold d-inline-flex align-items-center gap-1" id="al2cDisputeModalLabel" style="font-size: 15px; color: #161616;">
+                                    <svg class="ph-duotone ph-flag al2c-ph-icon text-danger" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-flag"/></svg>
+                                    <span>Khiếu nại / Đối soát Hóa đơn AL2C-INV-103</span>
                                 </h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
@@ -1426,8 +1477,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <button type="button" id="wsAiClearBtn" class="btn btn-sm py-1 px-2 flex-shrink-0 fw-bold ms-auto innoria-col-right align-self-center" style="border-radius: 0px !important; box-shadow: none !important; font-size: 10.5px; border: 1px solid #005F73 !important; color: #005F73 !important; background: #E6F8FB !important; white-space: nowrap;">
-                                        Làm mới hội thoại
+                                    <button type="button" id="wsAiClearBtn" class="btn btn-sm py-1 px-2 flex-shrink-0 fw-bold ms-auto innoria-col-right align-self-center d-inline-flex align-items-center gap-1" style="border-radius: 0px !important; box-shadow: none !important; font-size: 10.5px; border: 1px solid #005F73 !important; color: #005F73 !important; background: #E6F8FB !important; white-space: nowrap;">
+                                        <svg class="ph-duotone ph-arrows-clockwise al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-arrows-clockwise"/></svg>
+                                        <span>Làm mới hội thoại</span>
                                     </button>
                                 </div>
 
@@ -1507,14 +1559,15 @@
                                            value="Giải trình chi tiết căn cứ nghiệm thu bảng chấm công kỹ sư và quy trình xuất hóa đơn 1C26TAA?"
                                            placeholder="Nhập câu hỏi về SOW, Timesheet, Hóa đơn Nháp / 1C26TAA, Thuế GTGT hoặc SLA..."
                                            style="border-radius: 0px !important; border-color: #005F73; font-size: 11.5px;"/>
-                                    <button type="button" id="wsAiBtn" class="btn btn-primary fw-bold px-3"
+                                    <button type="button" id="wsAiBtn" class="btn btn-primary fw-bold px-3 d-inline-flex align-items-center gap-1"
                                             t-att-data-invoice-id="sample_inv.id if sample_inv else 0"
                                             t-att-data-order-id="sample_so.id if sample_so else 0"
                                             t-att-data-sheet-id="sample_sheet.id if sample_sheet else 0"
                                             t-att-data-partner-id="partner.id if partner else 0"
                                             t-att-data-access-token="provided_token or ''"
                                             style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important; font-size: 11.5px;">
-                                        Gửi Yêu Cầu Giải Trình
+                                        <svg class="ph-duotone ph-paper-plane-tilt al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-paper-plane-tilt"/></svg>
+                                        <span>Gửi Yêu Cầu Giải Trình</span>
                                     </button>
                                 </div>
 
@@ -1900,8 +1953,9 @@
                                         </label>
                                     </div>
 
-                                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold py-2" style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important; font-size: 11.5px;">
-                                        Gửi Yêu Cầu Hỗ Trợ &amp; Cấp Mã Theo Dõi SLA
+                                    <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold py-2 d-inline-flex align-items-center justify-content-center gap-1" style="background: #005F73 !important; border-color: #005F73 !important; color: #ffffff !important; border-radius: 0px !important; box-shadow: none !important; font-size: 11.5px;">
+                                        <svg class="ph-duotone ph-shield-check al2c-ph-icon" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-shield-check"/></svg>
+                                        <span>Gửi Yêu Cầu Hỗ Trợ &amp; Cấp Mã Theo Dõi SLA</span>
                                     </button>
                                 </form>
 

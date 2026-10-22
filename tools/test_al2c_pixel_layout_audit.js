@@ -177,6 +177,14 @@ async function auditCommonPageInvariants(page, routeLabel, viewportLabel) {
                 errors.push(`Raw Unicode emoji found in control "${txt}" — must use Phosphor Duotone SVG`);
             }
         }
+        const legacyIcons = Array.from(
+            document.querySelectorAll(
+                '.al2c-concierge-drawer i[class*="fa-"], .al2c-concierge-drawer i[class*="oi-"], .al2c-brand-workspace i[class*="fa-"], .al2c-brand-workspace i[class*="oi-"], .al2c-portal-card i[class*="fa-"], .al2c-portal-card i[class*="oi-"]'
+            )
+        ).filter((el) => el.getBoundingClientRect().width > 0);
+        if (legacyIcons.length > 0) {
+            errors.push(`Legacy fa-/oi- icon elements detected (${legacyIcons.length}) inside SOTA workspace`);
+        }
 
         return { errors, metrics };
     }, { isDesktop: viewportLabel === 'Desktop' });
@@ -329,6 +337,13 @@ async function auditCommonPageInvariants(page, routeLabel, viewportLabel) {
         // Screenshot Top Header + KPI + Section 1
         await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'verified_software_customer_portal_top.png') });
 
+        // Scroll to Section 2 (#timesheets-section) and screenshot
+        await page.locator('#timesheets-section').scrollIntoViewIfNeeded();
+        await page.waitForTimeout(250);
+        await page.screenshot({
+            path: path.join(SCREENSHOT_DIR, 'verified_software_customer_portal_timesheets_section.png'),
+        });
+
         // Scroll to Section 3 (#invoices-section) and screenshot
         await page.locator('#invoices-section').scrollIntoViewIfNeeded();
         await page.waitForTimeout(250);
@@ -342,6 +357,28 @@ async function auditCommonPageInvariants(page, routeLabel, viewportLabel) {
         await page.screenshot({
             path: path.join(SCREENSHOT_DIR, 'verified_portal_chat_assistant_customer_care_pdca.png'),
         });
+
+        // 1E. Customer Portal /my/home, /my/orders/<id>, and /my/invoices/<id>
+        const portalLinks = await page.evaluate(() => {
+            const orderA = document.querySelector('a[href*="/my/orders/"]');
+            const invA = document.querySelector('a[href*="/my/invoices/"]');
+            return {
+                orderHref: orderA ? orderA.getAttribute('href') : null,
+                invHref: invA ? invA.getAttribute('href') : null,
+            };
+        });
+        if (portalLinks.orderHref) {
+            await page.goto(`${BASE_URL}${portalLinks.orderHref}`, { waitUntil: 'networkidle', timeout: 30000 });
+            await page.waitForTimeout(400);
+            await auditCommonPageInvariants(page, '/my/orders/<id> (SOW Split-Pane)', 'Desktop');
+            await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'verified_portal_order_sow_split_pane.png') });
+        }
+        if (portalLinks.invHref) {
+            await page.goto(`${BASE_URL}${portalLinks.invHref}`, { waitUntil: 'networkidle', timeout: 30000 });
+            await page.waitForTimeout(400);
+            await auditCommonPageInvariants(page, '/my/invoices/<id> (Reconciliation & 1C26TAA)', 'Desktop');
+            await page.screenshot({ path: path.join(SCREENSHOT_DIR, 'verified_portal_invoice_reconciliation_sota.png') });
+        }
 
         await desktopCtx.close();
 

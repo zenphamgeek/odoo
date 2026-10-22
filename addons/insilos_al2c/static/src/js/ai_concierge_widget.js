@@ -19,199 +19,199 @@ const DEFAULT_SERVICES_CATALOG = [
     {
         code: "sw_squad",
         icon: "ph-users-three",
-        name: "Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad)",
-        short_label: "Squad Đồng Phát Triển",
-        badge: "TT 13/2020/TT-BTTTT • Agile Pod",
+        name: "Đội Ngũ Kỹ Sư Phần Mềm Chuyên Trách (Dedicated Software Engineering Squad)",
+        short_label: "Đội Ngũ Kỹ Sư Chuyên Trách",
+        badge: "TT 13/2020/TT-BTTTT • Agile Scrum Squad",
         summary:
-            "Cung cấp đội ngũ Kỹ sư Phần mềm, Solution Architect & QA/SecOps chuyên trách theo chuẩn Agile/Scrum, tích hợp giám sát năng suất AGY Telemetry và định mức quy trình phần mềm Thông tư 13/2020/TT-BTTTT.",
-        unit_label: "Kỹ sư chuyên trách (FTE)",
+            "Xây dựng và vận hành đội ngũ Kỹ sư Phần mềm, Solution Architect & QA/DevOps chuyên trách theo quy trình Agile/Scrum, quản trị tiến độ minh bạch qua Jira/GitLab và đáp ứng 7 công đoạn sản xuất phần mềm theo Thông tư 13/2020/TT-BTTTT.",
+        unit_label: "Kỹ sư chuyên trách (FTE / Man-Month)",
         unit_options: [2, 4, 6, 8, 12],
         default_units: 4,
-        base_unit_monthly_vnd: 42000000,
-        starting_price: "Từ 84.000.000 ₫ / tháng",
-        lead_option: "Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad - TT 13/2020)",
+        base_unit_monthly_vnd: 45000000,
+        starting_price: "Từ 90.000.000 ₫ / tháng",
+        lead_option: "Đội Ngũ Kỹ Sư Phần Mềm Chuyên Trách (Dedicated Software Engineering Squad - TT 13/2020)",
         deliverables: [
-            "Dedicated Full-stack / AI / Odoo Engineers + Scrum Master",
-            "Báo cáo Velocity, Burn-down & Timesheet tự động qua info@inno.ai.vn",
-            "Kiểm thử bảo mật SAST/DAST & bàn giao 100% quyền sở hữu trí tuệ (IP)",
+            "Dedicated Full-Stack / Backend / Mobile / ERP Engineers + Scrum Master",
+            "Báo cáo Sprint Velocity, Burn-down & Timesheet đối soát qua info@inno.ai.vn",
+            "Kiểm thử tự động CI/CD, rà soát bảo mật SAST/DAST & bàn giao 100% quyền sở hữu trí tuệ (IP)",
         ],
         payment_schedule:
-            "Thanh toán định kỳ hàng tháng theo biên bản nghiệm thu Sprint & bảng chấm công điện tử xác thực (HĐĐT Nghị định 70/2025/NĐ-CP).",
+            "Thanh toán định kỳ hàng tháng theo biên bản nghiệm thu Sprint & bảng chấm công điện tử xác thực (HĐĐT 1C26TAA theo Nghị định 70/2025/NĐ-CP).",
         lifecycle_steps: [
-            "1. Khảo sát kiến trúc & Phỏng vấn chọn kỹ sư (48h)",
-            "2. Thiết lập môi trường CI/CD, GitSecOps & Quy ước Sprint",
-            "3. Thực thi phát triển song song (2 tuần/Sprint) & Demo nghiệm thu",
-            "4. Chuyển giao mã nguồn, tài liệu kiến trúc & vận hành dài hạn",
+            "1. Xác định yêu cầu tính năng & Lập kế hoạch Sprint (Sprint Planning)",
+            "2. Phân tích nghiệp vụ & Thiết kế kỹ thuật hệ thống (Technical Design)",
+            "3. Lập trình tính năng, viết Unit Test, Code Review & Kiểm thử CI/CD",
+            "4. Kiểm thử chấp nhận (UAT), phát hành Release & bàn giao mã nguồn",
         ],
         compliance_guarantees: [
-            "Tuân thủ quy trình sản xuất phần mềm Thông tư 13/2020/TT-BTTTT",
+            "Tuân thủ 7 công đoạn sản xuất phần mềm Thông tư 13/2020/TT-BTTTT",
             "Cam kết bảo mật NDA & Bảo vệ dữ liệu cá nhân Nghị định 13/2023/NĐ-CP",
-            "Xuất hóa đơn điện tử GTGT hợp lệ 1C26TAA (Nghị định 70/2025/NĐ-CP)",
+            "Xuất hóa đơn điện tử hợp lệ 1C26TAA (Nghị định 70/2025/NĐ-CP)",
         ],
     },
     {
         code: "sw_turnkey",
         icon: "ph-stack",
-        name: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software)",
+        name: "Phát Triển Phần Mềm Chuyên Biệt Trọn Gói (Custom Software & Turnkey Delivery)",
         short_label: "Phần Mềm Trọn Gói",
-        badge: "5-Gate Enterprise • Fixed-Scope SLA",
+        badge: "Turnkey Fixed-Scope • 100% Source Code",
         summary:
-            "Thiết kế kiến trúc, phát triển trọn gói hệ thống phần mềm doanh nghiệp, cổng giao dịch B2B/B2C, Web/Mobile App đặc thù theo phương pháp luận 5-Gate Enterprise (Prepare → Explore → Realize → Deploy → Run).",
+            "Khảo sát, thiết kế kiến trúc và phát triển trọn gói hệ thống phần mềm doanh nghiệp, cổng giao dịch B2B/B2C, Web/Mobile App chuyên biệt theo phạm vi, tiến độ và chất lượng (SLA) cam kết bằng hợp đồng.",
         unit_label: "Phân hệ nghiệp vụ (Modules)",
-        unit_options: [2, 3, 5, 8, 12],
+        unit_options: [1, 2, 3, 5, 8],
         default_units: 3,
         base_unit_monthly_vnd: 48000000,
-        starting_price: "Từ 144.000.000 ₫ / giai đoạn",
-        lead_option: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - 5-Gate Enterprise)",
+        starting_price: "Từ 180.000.000 ₫ / dự án",
+        lead_option: "Phát Triển Phần Mềm Chuyên Biệt Trọn Gói (Custom Software & Turnkey Delivery)",
         deliverables: [
-            "Hồ sơ kiến trúc BRD/SRS, UI/UX Prototype & Database Blueprint",
-            "Mã nguồn Clean-Room chuẩn hóa, bộ kiểm thử tự động E2E Playwright",
-            "Triển khai Kubernetes HA, đào tạo chuyển giao & bảo hành SLA 12 tháng",
+            "Tài liệu đặc tả yêu cầu phần mềm (SRS), Thiết kế CSDL & UI/UX Design System",
+            "Mã nguồn Full-Stack chuẩn hóa, tài liệu API & bộ kiểm thử tự động E2E",
+            "Triển khai hạ tầng Cloud/Kubernetes HA, đào tạo vận hành & bảo hành 12 tháng",
         ],
         payment_schedule:
-            "Thanh toán theo 4 mốc nghiệm thu: 30% Khởi động (Prepare) • 30% Thiết kế & Prototype (Explore) • 30% Kiểm thử UAT (Realize) • 10% Go-Live (Deploy).",
+            "Thanh toán theo 3 mốc nghiệm thu: 30% Khởi động & Phê duyệt SRS • 40% Bàn giao Kiểm thử UAT • 30% Nghiệm thu Go-Live & Chuyển giao Source Code.",
         lifecycle_steps: [
-            "1. Prepare & Explore: Phân tích nghiệp vụ, chốt Blueprint & Prototype",
-            "2. Realize: Lập trình Clean-Core, tích hợp API & kiểm thử bảo mật",
-            "3. Deploy: Kiểm thử chấp thuận UAT, đào tạo & cắt chuyển dữ liệu Go-Live",
-            "4. Run: Bảo hành SLA 99.95%, tối ưu hiệu năng & bàn giao toàn bộ mã nguồn",
+            "1. Khảo sát nghiệp vụ, phân tích & Đặc tả yêu cầu phần mềm (SRS)",
+            "2. Thiết kế kiến trúc giải pháp, CSDL & Nguyên mẫu giao diện UI/UX",
+            "3. Phát triển Full-Stack Web/Mobile, tích hợp API & Kiểm thử tải/bảo mật",
+            "4. Kiểm thử UAT, chuyển đổi dữ liệu, Go-Live & Bảo hành 12 tháng",
         ],
         compliance_guarantees: [
-            "Đáp ứng 7 công đoạn sản xuất phần mềm Thông tư 13/2020/TT-BTTTT",
-            "Kiểm định an toàn thông tin theo tiêu chuẩn ISO/IEC 27001 & OWASP Top 10",
-            "Bàn giao 100% Source Code, Docker/K8s Manifests & tài liệu vận hành",
+            "Đáp ứng đầy đủ 7 công đoạn sản xuất phần mềm Thông tư 13/2020/TT-BTTTT",
+            "Kiểm định an toàn ứng dụng theo tiêu chuẩn ISO/IEC 27001 & OWASP Top 10",
+            "Bàn giao 100% Source Code, Docker/K8s Manifests & hồ sơ thiết kế kỹ thuật",
         ],
     },
     {
         code: "erp",
         icon: "ph-chart-bar",
-        name: "Insilos Clean-Core ERP & HĐĐT 1C26TAA",
-        short_label: "Clean-Core ERP",
-        badge: "VAS 200/133 • NĐ 70/2025",
+        name: "Triển Khai & Tùy Biến Hệ Thống ERP Doanh Nghiệp (Insilos Clean-Core ERP)",
+        short_label: "Hệ Thống ERP Doanh Nghiệp",
+        badge: "Clean-Core ERP • VAS TT200 • NĐ 70/2025",
         summary:
-            "Nền tảng ERP thế hệ mới hợp nhất Kế toán chuẩn VAS (Thông tư 200/133) & IFRS, Chuỗi cung ứng WMS, Sản xuất MRP, Nhân sự Tiền lương BHXH/PIT 2026 và Hóa đơn điện tử 1C26TAA.",
-        unit_label: "Phân hệ cốt lõi triển khai",
-        unit_options: [2, 4, 6, 8, 10],
-        default_units: 4,
+            "Tư vấn quy trình, triển khai và tùy biến hệ thống quản trị nguồn lực doanh nghiệp hợp nhất Kế toán chuẩn VAS (Thông tư 200/133) & IFRS, Mua hàng, Bán hàng B2B, Kho vận WMS, Sản xuất MRP và Hóa đơn điện tử 1C26TAA.",
+        unit_label: "Người dùng hệ thống (Users)",
+        unit_options: [10, 25, 50, 100, 250],
+        default_units: 25,
         base_unit_monthly_vnd: 35000000,
-        starting_price: "Từ 140.000.000 ₫ / gói",
-        lead_option: "Insilos ERP (VAS & Hóa đơn ĐT Nghị định 70/2025)",
+        starting_price: "Từ 150.000.000 ₫ / gói",
+        lead_option: "Hệ Thống ERP Doanh Nghiệp (Insilos Clean-Core ERP & HĐĐT NĐ 70/2025)",
         deliverables: [
-            "Hệ thống Kế toán VAS/IFRS, Mua hàng, Bán hàng AL2C, Kho WMS & HRM",
+            "Hệ thống Kế toán VAS/IFRS, Mua hàng, Bán hàng B2B, Kho WMS & Nhân sự Tiền lương",
             "Tích hợp trực tiếp Hóa đơn điện tử Nghị định 70/2025 & Ngân hàng số Doanh nghiệp",
-            "Báo cáo quản trị thời gian thực CFO/CEO Dashboard & phân quyền đa công ty",
+            "Báo cáo quản trị thời gian thực CFO/CEO Dashboard & phân quyền đa chi nhánh",
         ],
         payment_schedule:
-            "35% Ký hợp đồng & Khảo sát Fit-Gap • 40% Bàn giao cấu hình & Kiểm thử UAT • 25% Nghiệm thu Go-Live & Đào tạo.",
+            "30% Khởi động & Phân tích Fit-Gap • 40% Cấu hình, Tùy biến & Kiểm thử UAT • 30% Nghiệm thu Go-Live & Đào tạo.",
         lifecycle_steps: [
-            "1. Khảo sát Fit-Gap & Chuẩn hóa danh mục dữ liệu gốc (Master Data)",
-            "2. Cấu hình quy trình Clean-Core ERP & tích hợp HĐĐT / Ngân hàng",
-            "3. Chuyển đổi số dư đầu kỳ, đào tạo Key Users & chạy thử nghiệm UAT",
-            "4. Go-Live chính thức & hỗ trợ quyết toán kỳ kế toán đầu tiên",
+            "1. Phân tích khoảng cách quy trình (Fit-Gap) & Chuẩn hóa Master Data",
+            "2. Thiết kế mô hình Clean-Core ERP, cấu hình nghiệp vụ & tích hợp API",
+            "3. Chuyển đổi số dư đầu kỳ, kiểm thử tích hợp E2E & đào tạo Key Users",
+            "4. Vận hành Go-Live chính thức & hỗ trợ quyết toán kỳ kế toán",
         ],
         compliance_guarantees: [
             "Chuẩn mực Kế toán Việt Nam (TT 200/2014 & TT 133/2016) & IFRS",
             "Tích hợp Hóa đơn điện tử có mã CQT theo Nghị định 70/2025/NĐ-CP",
-            "Bảo mật phân quyền RBAC/ABAC và nhật ký kiểm toán bất biến",
+            "Kiến trúc Clean-Core tách biệt lớp lõi và mô-đun mở rộng, dễ dàng nâng cấp",
         ],
     },
     {
         code: "grc",
         icon: "ph-shield-check",
-        name: "Vertical Resilience (GRC, ISO 27701 & e-CO)",
-        short_label: "GRC & ISO 27701",
-        badge: "ISO 27701 • NĐ 13/2023",
+        name: "Phần Mềm Quản Trị Rủi Ro, Tuân Thủ Bảo Mật & Kiểm Toán Nội Bộ (Enterprise GRC)",
+        short_label: "Phần Mềm GRC & Bảo Mật",
+        badge: "ISO/IEC 27001 & 27701 • NĐ 13/2023",
         summary:
-            "Hệ thống Quản trị Rủi ro Doanh nghiệp (ERM), Ma trận Kiểm soát Nội bộ (RCM), bảo vệ dữ liệu cá nhân Nghị định 13/2023/NĐ-CP (ISO 27701), truy xuất nguồn gốc xuất xứ e-CO và kiểm kê ESG/CSRD.",
-        unit_label: "Khung tuân thủ & Phân hệ GRC",
-        unit_options: [1, 2, 3, 5, 8],
-        default_units: 2,
+            "Phần mềm Quản trị Rủi ro Doanh nghiệp (ERM), Ma trận Kiểm soát Nội bộ (RCM), quản lý tuân thủ bảo vệ dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP (ISO/IEC 27701), an toàn vận hành EHS và hồ sơ xuất xứ e-CO.",
+        unit_label: "Quy trình / Chốt kiểm soát rủi ro",
+        unit_options: [10, 20, 50, 100],
+        default_units: 20,
         base_unit_monthly_vnd: 38000000,
-        starting_price: "Từ 76.000.000 ₫ / khung",
-        lead_option: "Vertical Resilience (GRC, ISO 27001 & PDPD 13/2023)",
+        starting_price: "Từ 180.000.000 ₫ / gói",
+        lead_option: "Phần Mềm Quản Trị Rủi Ro & Tuân Thủ GRC (ISO 27001/27701 & NĐ 13/2023)",
         deliverables: [
-            "Ma trận rủi ro - kiểm soát (RCM), hồ sơ xử lý dữ liệu cá nhân PDPD",
-            "Cơ chế che giấu PII tự động (Need-to-Know Masking) & Nhật ký bất biến",
-            "Hồ sơ truy xuất nguồn gốc e-CO & báo cáo kiểm toán ISO 27001 / ISO 27701",
+            "Phần mềm Quản lý Sổ đăng ký Rủi ro (Risk Register) & Ma trận Kiểm soát (RCM)",
+            "Mô-đun che giấu dữ liệu nhạy cảm (PII Masking), phân quyền RBAC & Audit Log",
+            "Hệ thống quản lý bằng chứng kiểm toán ISO 27001/27701 & truy xuất nguồn gốc e-CO",
         ],
         payment_schedule:
-            "40% Đánh giá Gap Assessment • 40% Triển khai hệ thống kiểm soát GRC • 20% Nghiệm thu hồ sơ đánh giá tuân thủ.",
+            "30% Đánh giá hiện trạng & Thiết kế khung kiểm soát • 40% Triển khai phần mềm GRC • 30% Nghiệm thu vận hành & Hồ sơ kiểm toán.",
         lifecycle_steps: [
-            "1. Đánh giá mức độ trưởng thành bảo mật & rà soát lỗ hổng tuân thủ",
-            "2. Thiết lập Ma trận Kiểm soát (RCM) & cổng bảo vệ dữ liệu ISO 27701",
-            "3. Diễn tập ứng cứu sự cố, kiểm toán nội bộ & hoàn thiện hồ sơ pháp lý",
-            "4. Giám sát tuân thủ liên tục (Continuous Compliance Monitoring)",
+            "1. Đánh giá hiện trạng tuân thủ, kiểm kê tài sản dữ liệu & Ma trận rủi ro",
+            "2. Triển khai mô-đun quản trị rủi ro, phân quyền RBAC/ABAC & PII Masking",
+            "3. Tích hợp giám sát nhật ký kiểm toán tập trung & kiểm thử an ninh SAST",
+            "4. Nghiệm thu kỹ thuật, diễn tập ứng phó sự cố & vận hành chính thức",
         ],
         compliance_guarantees: [
-            "Tuân thủ toàn diện Nghị định 13/2023/NĐ-CP về Bảo vệ dữ liệu cá nhân",
-            "Đáp ứng tiêu chuẩn quốc tế ISO/IEC 27001:2022 & ISO/IEC 27701",
-            "Sẵn sàng hồ sơ chứng nhận xuất xứ điện tử e-CO & báo cáo ESG",
+            "Đáp ứng yêu cầu kỹ thuật Nghị định 13/2023/NĐ-CP về Bảo vệ dữ liệu cá nhân",
+            "Chuẩn hóa theo khung tiêu chuẩn quốc tế ISO/IEC 27001:2022 & ISO/IEC 27701",
+            "Tự động hóa kết xuất bằng chứng kiểm toán nội bộ và hồ sơ xuất xứ e-CO",
         ],
     },
     {
         code: "ai",
         icon: "ph-robot",
-        name: "Mojo AI (AL2C Swarm, Grounded RAG & IDP)",
-        short_label: "Mojo AI & RAG",
-        badge: "Claim Atom • Entailment ≥ 0.75",
+        name: "Phát Triển Phần Mềm AI Ứng Dụng, Bóc Tách Tài Liệu (OCR/IDP) & Tìm Kiếm Tri Thức",
+        short_label: "Phần Mềm AI & OCR/IDP",
+        badge: "Applied AI • OCR/IDP & Enterprise RAG",
         summary:
-            "Triển khai hệ thống Tác tử AI tự chủ (AL2C Swarm), trợ lý tri thức nội bộ Grounded RAG triệt tiêu ảo giác (trích dẫn KMS chuẩn xác) và công nhân bóc tách chứng từ/hợp đồng thông minh (IDP).",
-        unit_label: "Tác tử AI & Đường ống RAG",
-        unit_options: [1, 2, 4, 6, 10],
-        default_units: 2,
+            "Phát triển và tích hợp các mô-đun phần mềm AI chuyên dụng: bóc tách tự động hóa đơn, hợp đồng, chứng từ (OCR/IDP), hệ thống tìm kiếm tri thức doanh nghiệp có kiểm chứng trích dẫn (Enterprise RAG) và trợ lý ảo nội bộ.",
+        unit_label: "Luồng xử lý AI & Đường ống dữ liệu",
+        unit_options: [2, 5, 10, 25],
+        default_units: 5,
         base_unit_monthly_vnd: 45000000,
-        starting_price: "Từ 90.000.000 ₫ / cụm AI",
-        lead_option: "Mojo AI (Tác tử AL2C & Bóc tách thông minh)",
+        starting_price: "Từ 150.000.000 ₫ / giải pháp",
+        lead_option: "Phát Triển Phần Mềm AI Ứng Dụng, Bóc Tách OCR/IDP & Tìm Kiếm Tri Thức",
         deliverables: [
-            "Cơ sở tri thức KMS chuẩn hóa Claim Atom kèm cổng kiểm chứng Entailment Gate",
-            "Tác tử tự động hóa Lead-to-Cash, bóc tách hóa đơn/hợp đồng & đối soát",
-            "Cơ chế Kill-Switch, giới hạn ngân sách token theo ngày & lọc rò rỉ PII/Secret",
+            "Dịch vụ OCR/IDP bóc tách hóa đơn, chứng từ, hợp đồng & đối soát 3 chiều tự động",
+            "Hệ thống tìm kiếm tri thức doanh nghiệp (Vector Search + Citation Verification)",
+            "Triển khai độc lập trên hạ tầng Private Cloud / On-Premise kèm API tích hợp ERP/CRM",
         ],
         payment_schedule:
-            "30% Khởi tạo & Chuẩn hóa dữ liệu KMS • 40% Huấn luyện & Tích hợp Tác tử AI • 30% Nghiệm thu độ chính xác Grounding.",
+            "30% Chuẩn hóa dữ liệu & Xây dựng PoC • 40% Phát triển mô-đun AI & Tích hợp API • 30% Nghiệm thu độ chính xác & Go-Live.",
         lifecycle_steps: [
-            "1. Khảo sát nguồn dữ liệu & xây dựng kiến trúc KMS Claim Atom",
-            "2. Cấu hình đường ống Grounded RAG & cổng kiểm chứng chống ảo giác",
-            "3. Tích hợp Tác tử AI vào quy trình CRM/ERP & kiểm thử Red-Team",
-            "4. Vận hành thực tế kèm bảng điều khiển giám sát chất lượng AI",
+            "1. Thu thập, làm sạch & Chuẩn hóa tập dữ liệu nghiệp vụ (Data Preprocessing)",
+            "2. Phát triển mô-đun trích xuất OCR/IDP & Cơ sở dữ liệu Vector (Enterprise RAG)",
+            "3. Lập trình API tích hợp vào hệ thống ERP/CRM/DMS & Kiểm thử độ chính xác",
+            "4. Đóng gói triển khai VPC/On-Premise & Giám sát chất lượng vận hành",
         ],
         compliance_guarantees: [
-            "Kiểm chứng Entailment Score ≥ 0.75 trên 100% câu trả lời tư vấn",
-            "Tự động lọc sạch khóa bí mật (API Keys) & che số điện thoại/CCCD",
-            "Lưu vết toàn bộ quyết định của AI phục vụ hậu kiểm (Audit Trail)",
+            "100% câu trả lời tra cứu tri thức đều đính kèm trích dẫn tài liệu gốc xác thực",
+            "Tự động ẩn thông tin định danh cá nhân (PII) & kiểm soát truy cập theo vai trò",
+            "Triển khai trong mạng nội bộ doanh nghiệp, không chia sẻ dữ liệu ra bên ngoài",
         ],
     },
     {
         code: "zencode",
         icon: "ph-lightning",
-        name: "Zencode Ent (Hiện Đại Hóa Mã Nguồn & AGY Fleet)",
-        short_label: "Zencode Refactor",
-        badge: "Hegelian Dialectic • 13 Gates",
+        name: "Hiện Đại Hóa Ứng Dụng Legacy, Tái Kiến Trúc Microservices & Tích Hợp Hệ Thống API",
+        short_label: "Hiện Đại Hóa Legacy & API",
+        badge: "Legacy Modernization • Cloud-Native",
         summary:
-            "Dịch vụ tái cấu trúc và hiện đại hóa hệ thống phần mềm kế thừa (Legacy ERP, Monolith, .NET/Java/Python/Odoo cũ) sang kiến trúc hiện đại bằng phương pháp Biện chứng Hegelian và 13 cổng kiểm định tự động.",
-        unit_label: "Quy mô phân hệ / Cụm mã nguồn",
-        unit_options: [1, 2, 4, 6, 8],
-        default_units: 2,
+            "Dịch vụ đánh giá nợ kỹ thuật, tái cấu trúc và chuyển đổi hệ thống phần mềm kế thừa (Legacy Monolith, .NET/Java/PHP/ERP cũ) sang kiến trúc Microservices Cloud-Native, chuẩn hóa API Gateway và tự động hóa CI/CD.",
+        unit_label: "Phân hệ Legacy / Microservices chuyển đổi",
+        unit_options: [1, 3, 5, 10],
+        default_units: 3,
         base_unit_monthly_vnd: 52000000,
-        starting_price: "Từ 104.000.000 ₫ / dự án",
-        lead_option: "Zencode Ent (Hiện đại hóa mã kế thừa & AGY Fleet)",
+        starting_price: "Từ 220.000.000 ₫ / dự án",
+        lead_option: "Hiện Đại Hóa Ứng Dụng Legacy, Tái Kiến Trúc Microservices & Tích Hợp API",
         deliverables: [
-            "Báo cáo giải phẫu kiến trúc, phát hiện nợ kỹ thuật & lỗ hổng bảo mật",
-            "Tái cấu trúc Clean-Room bảo toàn 100% nghiệp vụ cốt lõi & dữ liệu lịch sử",
-            "Bộ kiểm thử hồi quy tự động (Regression Suite) & tối ưu hóa hiệu năng DB",
+            "Báo cáo đánh giá kiến trúc hiện trạng, phân tích phụ thuộc & đo lường nợ kỹ thuật",
+            "Tái cấu trúc dịch vụ theo mô hình Domain-Driven Design (DDD) & API Gateway",
+            "Bộ kiểm thử hồi quy tự động (Automated Regression Suite), CI/CD & Zero-Downtime Migration",
         ],
         payment_schedule:
-            "30% Kiểm toán mã nguồn & Kiến trúc (Thesis) • 40% Tái cấu trúc & Đối chứng (Antithesis) • 30% Nghiệm thu hợp nhất (Synthesis).",
+            "30% Khảo sát Kiến trúc & Thiết kế đích • 40% Tái cấu trúc Microservices & Kiểm thử hồi quy • 30% Cắt chuyển dữ liệu & Go-Live.",
         lifecycle_steps: [
-            "1. Thesis: Giải dịch & lập bản đồ phụ thuộc toàn bộ hệ thống kế thừa",
-            "2. Antithesis: Tái thiết kế Clean-Core & viết bộ kiểm thử bất biến",
-            "3. Synthesis: Chuyển đổi dữ liệu song song & vượt qua 13 cổng kiểm định",
-            "4. Cutover: Chuyển giao vận hành không gián đoạn (Zero-Downtime)",
+            "1. Rà soát kiến trúc hiện hữu, phân tích phụ thuộc mã nguồn & nợ kỹ thuật",
+            "2. Thiết kế kiến trúc Cloud-Native, chia tách Domain (DDD) & xây dựng cầu nối Strangler Fig",
+            "3. Tái cấu trúc dịch vụ, chuẩn hóa RESTful/gRPC API & viết kiểm thử hồi quy tự động",
+            "4. Di chuyển dữ liệu không gián đoạn (Zero-Downtime Cutover) & bàn giao vận hành",
         ],
         compliance_guarantees: [
-            "Bảo toàn 100% tính toàn vẹn dữ liệu lịch sử và luồng nghiệp vụ",
-            "Vượt qua 13 cổng kiểm soát chất lượng mã nguồn & bảo mật tự động",
-            "Giảm thiểu 40% - 65% chi phí vận hành hạ tầng và nợ kỹ thuật",
+            "Bảo toàn 100% tính toàn vẹn dữ liệu lịch sử và luồng nghiệp vụ đang vận hành",
+            "Kiểm soát chất lượng mã nguồn tự động qua SonarQube, SAST/DAST & E2E Testing",
+            "Giảm thiểu 40% - 60% chi phí vận hành hạ tầng và thời gian phát triển tính năng mới",
         ],
     },
 ];
@@ -522,7 +522,7 @@ export class AiConciergeWidget extends Component {
                 {
                     id: "welcome-01",
                     sender: "assistant",
-                    text: "Kính chào Quý khách! Tôi là **Executive AI Concierge & Kiến trúc sư Dự toán** của Innoria.\n\nTôi hỗ trợ tư vấn kiến trúc, cấu hình đội ngũ kỹ sư phần mềm (Dedicated Co-Dev Squad theo **Thông tư 13/2020/TT-BTTTT**), phát triển phần mềm trọn gói (**5-Gate Enterprise**) và báo giá dự toán tức thì cho:\n• **Squad Kỹ Sư Đồng Phát Triển & Turnkey Software:** Xây dựng hệ thống may đo, Web/Mobile App & tích hợp AI/ERP.\n• **Insilos ERP:** Quản trị tài chính kế toán VAS (TT 200/133), WMS & Hóa đơn điện tử **1C26TAA** (Nghị định 70/2025/NĐ-CP).\n• **Vertical Resilience:** Quản trị rủi ro GRC, bảo vệ dữ liệu **ISO 27701 / Nghị định 13/2023** & truy xuất e-CO.\n• **Mojo AI & Zencode Ent:** Tác tử AL2C Swarm, Grounded RAG triệt tiêu ảo giác & Hiện đại hóa mã nguồn kế thừa.\n\nQuý khách có thể chọn trực tiếp gói dịch vụ bên dưới để **Cấu hình & Xem dự toán tự động** hoặc đặt câu hỏi cho AI!",
+                    text: "Kính chào Quý khách! Tôi là **Executive AI Concierge & Kiến trúc sư Dự toán** của Innoria.\n\nTôi hỗ trợ tư vấn kiến trúc giải pháp, cấu hình **Đội Ngũ Kỹ Sư Phần Mềm Chuyên Trách** (theo chuẩn 7 công đoạn **Thông tư 13/2020/TT-BTTTT**), **Phát Triển Phần Mềm Trọn Gói** và báo giá dự toán tức thì cho:\n• **Đội Ngũ Kỹ Sư Chuyên Trách & Phần Mềm Trọn Gói (Turnkey):** Xây dựng hệ thống phần mềm chuyên biệt, Web/Mobile App & tích hợp hệ thống API.\n• **Hệ Thống ERP Doanh Nghiệp (Insilos Clean-Core ERP):** Quản trị tài chính kế toán VAS (TT 200/133), Kho vận WMS & Hóa đơn điện tử **1C26TAA** (Nghị định 70/2025/NĐ-CP).\n• **Phần Mềm Quản Trị Rủi Ro GRC & Bảo Mật:** Kiểm soát nội bộ, bảo vệ dữ liệu cá nhân **ISO/IEC 27701 / Nghị định 13/2023** & truy xuất e-CO.\n• **Phần Mềm AI Ứng Dụng & Hiện Đại Hóa Legacy:** Bóc tách chứng từ tự động OCR/IDP, tìm kiếm tri thức doanh nghiệp (Enterprise RAG) & tái cấu trúc Microservices.\n\nQuý khách có thể chọn trực tiếp gói dịch vụ bên dưới để **Cấu hình & Xem dự toán tự động** hoặc đặt câu hỏi cho chuyên gia!",
                     formattedText: null,
                     service_cards: initialCatalog.slice(0, 4),
                     citations: [
@@ -532,7 +532,7 @@ export class AiConciergeWidget extends Component {
                     citationsExpanded: false,
                     grounded: true,
                     entailment_score: 0.98,
-                    reason: "Thông tin được trích xuất từ khung năng lực Dịch vụ Phần mềm & Giải pháp Doanh nghiệp Innoria KMS (Thông tư 13/2020/TT-BTTTT, Nghị định 70/2025/NĐ-CP, Nghị định 13/2023/NĐ-CP).",
+                    reason: "Thông tin được trích xuất từ khung năng lực Dịch vụ Phát triển Phần mềm & Giải pháp Doanh nghiệp Innoria (Thông tư 13/2020/TT-BTTTT, Nghị định 70/2025/NĐ-CP, Nghị định 13/2023/NĐ-CP).",
                     suggested_actions: [
                         {
                             icon: "ph-calculator",
@@ -543,10 +543,10 @@ export class AiConciergeWidget extends Component {
                         },
                         {
                             icon: "ph-users-three",
-                            label: "Tư vấn thuê Squad Kỹ sư (TT 13/2020)",
+                            label: "Tư vấn Đội Ngũ Kỹ Sư (TT 13/2020)",
                             type: "prompt",
                             action: "prompt",
-                            prompt: "Tư vấn mô hình thuê Squad Kỹ sư Đồng phát triển theo Thông tư 13/2020/TT-BTTTT và cơ chế nghiệm thu?",
+                            prompt: "Tư vấn mô hình Đội ngũ Kỹ sư Phần mềm Chuyên trách theo Thông tư 13/2020/TT-BTTTT và cơ chế nghiệm thu Sprint?",
                         },
                         {
                             icon: "ph-stack",
@@ -588,6 +588,8 @@ export class AiConciergeWidget extends Component {
                 clearInterval(this._cooldownTimer);
                 this._cooldownTimer = null;
             }
+            delete window.InnoriaConcierge;
+            delete window.InnoriaAiConcierge;
         });
     }
 
@@ -680,10 +682,10 @@ export class AiConciergeWidget extends Component {
     }
 
     /**
-     * Register global window.InnoriaConcierge bridge for website CTA buttons.
+     * Register global window.InnoriaConcierge and window.InnoriaAiConcierge bridge for website CTA buttons.
      */
     _registerGlobalBridge() {
-        window.InnoriaConcierge = {
+        const bridge = {
             open: (tab = "chat") => {
                 this.state.isOpen = true;
                 this.state.proactiveNudgeVisible = false;
@@ -703,6 +705,11 @@ export class AiConciergeWidget extends Component {
                 this.state.proactiveNudgeVisible = false;
                 this.openServiceConfigurator(serviceCode);
             },
+            openLead: (serviceCode = "sw_squad") => {
+                this.state.isOpen = true;
+                this.state.proactiveNudgeVisible = false;
+                this.openLeadFormForService(serviceCode);
+            },
             askPrompt: (promptText, serviceCode = null) => {
                 this.state.isOpen = true;
                 this.state.proactiveNudgeVisible = false;
@@ -715,6 +722,8 @@ export class AiConciergeWidget extends Component {
                 }
             },
         };
+        window.InnoriaConcierge = bridge;
+        window.InnoriaAiConcierge = bridge;
     }
 
     /**
@@ -902,7 +911,7 @@ export class AiConciergeWidget extends Component {
             this.state.configurator.units = target.default_units || target.unit_options[0] || 2;
         }
         this.state.leadForm.product_interest = target.lead_option || target.name;
-        this.updateServiceEstimate();
+        return this.updateServiceEstimate();
     }
 
     /**
@@ -915,7 +924,7 @@ export class AiConciergeWidget extends Component {
         }
         this.state.configurator.scale_tier = tierKey;
         this.state.leadForm.employee_count = SCALE_TIER_META[tierKey].employee_hint;
-        this.updateServiceEstimate();
+        return this.updateServiceEstimate();
     }
 
     /**
@@ -925,7 +934,7 @@ export class AiConciergeWidget extends Component {
     setConfiguratorUnits(units) {
         const safeUnits = Math.max(1, Math.min(50, Number(units) || 1));
         this.state.configurator.units = safeUnits;
-        this.updateServiceEstimate();
+        return this.updateServiceEstimate();
     }
 
     /**
@@ -935,7 +944,7 @@ export class AiConciergeWidget extends Component {
     adjustConfiguratorUnits(delta) {
         const next = Math.max(1, Math.min(50, (Number(this.state.configurator.units) || 1) + delta));
         this.state.configurator.units = next;
-        this.updateServiceEstimate();
+        return this.updateServiceEstimate();
     }
 
     /**
@@ -945,7 +954,7 @@ export class AiConciergeWidget extends Component {
     setConfiguratorDuration(months) {
         const safeMonths = [3, 6, 12].includes(Number(months)) ? Number(months) : 6;
         this.state.configurator.duration_months = safeMonths;
-        this.updateServiceEstimate();
+        return this.updateServiceEstimate();
     }
 
     /**
@@ -1094,13 +1103,13 @@ export class AiConciergeWidget extends Component {
 
         if (pillar && pillar !== "all") {
             const pillarMap = {
-                sw_squad: "Squad Kỹ Sư Đồng Phát Triển (Dedicated Co-Dev Squad - TT 13/2020)",
-                sw_turnkey: "Phát Triển Phần Mềm Trọn Gói (Turnkey Custom Software - 5-Gate Enterprise)",
-                erp: "Insilos ERP (VAS & Hóa đơn ĐT Nghị định 70/2025)",
-                grc: "Vertical Resilience (GRC, ISO 27001 & PDPD 13/2023)",
-                ai: "Mojo AI (Tác tử AL2C & Bóc tách thông minh)",
-                zencode: "Zencode Ent (Hiện đại hóa mã kế thừa & AGY Fleet)",
-                enterprise: "Hệ sinh thái Tứ Trụ Toàn Diện (ERP + GRC + AI + Zencode)",
+                sw_squad: "Đội Ngũ Kỹ Sư Phần Mềm Chuyên Trách (Dedicated Software Engineering Squad - TT 13/2020)",
+                sw_turnkey: "Phát Triển Phần Mềm Chuyên Biệt Trọn Gói (Custom Software & Turnkey Delivery)",
+                erp: "Hệ Thống ERP Doanh Nghiệp (Insilos Clean-Core ERP & HĐĐT NĐ 70/2025)",
+                grc: "Phần Mềm Quản Trị Rủi Ro & Tuân Thủ GRC (ISO 27001/27701 & NĐ 13/2023)",
+                ai: "Phát Triển Phần Mềm AI Ứng Dụng, Bóc Tách OCR/IDP & Tìm Kiếm Tri Thức",
+                zencode: "Hiện Đại Hóa Ứng Dụng Legacy, Tái Kiến Trúc Microservices & Tích Hợp API",
+                enterprise: "Tổ Hợp Giải Pháp Phần Mềm Doanh Nghiệp Toàn Diện (ERP + GRC + AI + Modernization)",
             };
             if (pillarMap[pillar]) {
                 this.state.leadForm.product_interest = pillarMap[pillar];
@@ -1389,7 +1398,7 @@ export class AiConciergeWidget extends Component {
                 lang: "vi",
             });
 
-            if (result && result.success) {
+            if (result && (result.success || (result.answer && !result.blocked))) {
                 this.state.chatSecurity.warningBanner = null;
                 if (result.pct_token) {
                     this.state.pctToken = result.pct_token;

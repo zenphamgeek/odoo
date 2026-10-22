@@ -236,13 +236,20 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
 
         # 1. Website Addon
         WEBSITE_MEMBERS = [
+            "__init__.py",
             "__manifest__.py",
             "controllers",
             "data",
+            "i18n",
+            "models",
+            "security",
             "views",
-            "static/src/scss",
-            "static/src/js",
+            "static/src/components",
+            "static/src/fonts",
             "static/src/icons",
+            "static/src/js",
+            "static/src/lib",
+            "static/src/scss",
         ]
         frozen_website = os.path.join(staging_dir, "frozen_website")
         freeze_and_audit_members("enterprise/insilos_website", WEBSITE_MEMBERS, frozen_website)
@@ -288,6 +295,17 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             "static/src/img/innoria/bg_about_architecture.webp",
             "static/src/img/innoria/bg_blockchain_lattice.webp",
             "static/src/img/innoria/logo_innoria_header.png",
+            "static/src/img/innoria/logo_innoria_header.svg",
+            "static/src/img/innoria/logo_innoria_horizontal_white.svg",
+            "static/src/img/innoria/logo_innoria_horizontal_white.png",
+            "static/src/img/innoria/logo_innoria_vertical.svg",
+            "static/src/img/innoria/logo_innoria_vertical.png",
+            "static/src/img/innoria/logo_innoria_vertical_white.svg",
+            "static/src/img/innoria/logo_innoria_vertical_white.png",
+            "static/src/img/innoria/logo_innoria_vertical_grayscale.svg",
+            "static/src/img/innoria/logo_innoria_square_icon.svg",
+            "static/src/img/innoria/logo_innoria_intelligent_erp.svg",
+            "static/src/img/innoria/innoria_logo_grayscale.svg",
         ]
         existing_media = [m for m in media_files if os.path.exists(os.path.join("enterprise/insilos_website", m))]
         frozen_media = os.path.join(staging_dir, "frozen_media")
@@ -359,6 +377,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             "static/src/webclient/color_scheme/color_scheme_service.js",
             "static/src/webclient/promote_studio/promote_studio_dialog.js",
             "static/src/webclient/settings_form_view/res_config_edition.xml",
+            "static/tests",
         ]
         frozen_web_ent = os.path.join(staging_dir, "frozen_web_ent")
         freeze_and_audit_members("enterprise/web_enterprise", WEB_ENT_MEMBERS, frozen_web_ent)
@@ -392,8 +411,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         IDP_MEMBERS = [
             "__manifest__.py",
             "views",
-            "static/src/dashboard/dashboard.scss",
-            "static/src/dashboard/dashboard.dark.scss",
+            "static",
         ]
         frozen_idp = os.path.join(staging_dir, "frozen_idp")
         freeze_and_audit_members("enterprise/insilos_logistics_idp", IDP_MEMBERS, frozen_idp)
@@ -488,9 +506,9 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         subprocess.run(tar_orm_cmd, check=True)
         print(f"[✓] Created {tar_path_orm}")
 
-        # 4I. Base Views & Actions Sovereign Aliases Fix
+        # 4I. Base Views, Actions & Resilient AssetsBundle Sovereign Aliases Fix
         tar_path_base = os.path.join(staging_dir, "odoo_base_sync.tar.gz")
-        BASE_MEMBERS = ["ir_ui_view.py", "ir_actions.py"]
+        BASE_MEMBERS = ["ir_ui_view.py", "ir_actions.py", "assetsbundle.py", "ir_asset.py"]
         frozen_base = os.path.join(staging_dir, "frozen_base")
         freeze_and_audit_members("odoo/addons/base/models", BASE_MEMBERS, frozen_base)
         tar_base_cmd = [
@@ -667,10 +685,7 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
         tar_path_terminal = os.path.join(staging_dir, "insilos_market_terminal_sync.tar.gz")
         TERMINAL_MEMBERS = [
             "__manifest__.py",
-            "static/src/terminal/terminal.scss",
-            "static/src/terminal/terminal.dark.scss",
-            "static/src/terminal/terminal_action.js",
-            "static/src/terminal/terminal_action.xml",
+            "static",
         ]
         frozen_terminal = os.path.join(staging_dir, "frozen_terminal")
         freeze_and_audit_members("enterprise/insilos_market_terminal", TERMINAL_MEMBERS, frozen_terminal)
@@ -720,8 +735,10 @@ def stage_and_deploy_archives(targets: list[dict]) -> None:
             "static/src/owl2/owl3_compatibility_layer.js",
             "static/src/core/checkbox/checkbox.scss",
             "static/src/core/errors/error_dialogs.js",
+            "static/src/core/errors/error_dialogs.xml",
             "static/src/core/ui/ui_utils.js",
             "static/src/core/utils/hooks.js",
+            "static/src/search/control_panel/control_panel.xml",
             "static/src/views/kanban/kanban_controller.js",
             "static/src/views/kanban/kanban_record.js",
             "static/src/views/list/list_controller.js",
@@ -923,22 +940,19 @@ for ad_dir in /app/insilos/addons/insilos_adapter /app/insilos/insilos_adapter /
     tar -xzf /tmp/insilos_adapter_sync.tar.gz -C "$ad_dir/"
 done
 
-for wed in /app/insilos/enterprise/web_enterprise /app/insilos/apps/web_enterprise; do
-    if [ -d "$wed" ]; then
-        tar -xzf /tmp/web_enterprise_sync.tar.gz -C "$wed/"
-    fi
+for wed in /app/insilos/enterprise/web_enterprise /app/insilos/apps/web_enterprise /var/lib/insilos/filestore/custom_addons/web_enterprise; do
+    mkdir -p "$wed"
+    tar -xzf /tmp/web_enterprise_sync.tar.gz -C "$wed/"
 done
 
-for fsm in /app/insilos/enterprise/industry_fsm_theme /app/insilos/apps/industry_fsm_theme; do
-    if [ -d "$fsm" ]; then
-        tar -xzf /tmp/industry_fsm_theme_sync.tar.gz -C "$fsm/"
-    fi
+for fsm in /app/insilos/enterprise/industry_fsm_theme /app/insilos/apps/industry_fsm_theme /var/lib/insilos/filestore/custom_addons/industry_fsm_theme; do
+    mkdir -p "$fsm"
+    tar -xzf /tmp/industry_fsm_theme_sync.tar.gz -C "$fsm/"
 done
 
-for idp in /app/insilos/enterprise/insilos_logistics_idp /app/insilos/apps/insilos_logistics_idp; do
-    if [ -d "$idp" ]; then
-        tar -xzf /tmp/insilos_logistics_idp_sync.tar.gz -C "$idp/"
-    fi
+for idp in /app/insilos/enterprise/insilos_logistics_idp /app/insilos/apps/insilos_logistics_idp /var/lib/insilos/filestore/custom_addons/insilos_logistics_idp; do
+    mkdir -p "$idp"
+    tar -xzf /tmp/insilos_logistics_idp_sync.tar.gz -C "$idp/"
 done
 
 for pos in /app/insilos/enterprise/pos_react /app/insilos/apps/pos_react; do
@@ -948,9 +962,8 @@ for pos in /app/insilos/enterprise/pos_react /app/insilos/apps/pos_react; do
 done
 
 for term in /app/insilos/enterprise/insilos_market_terminal /app/insilos/apps/insilos_market_terminal /var/lib/insilos/filestore/custom_addons/insilos_market_terminal; do
-    if [ -d "$term" ]; then
-        tar -xzf /tmp/insilos_market_terminal_sync.tar.gz -C "$term/"
-    fi
+    mkdir -p "$term"
+    tar -xzf /tmp/insilos_market_terminal_sync.tar.gz -C "$term/"
 done
 
 for core_dir in /app/insilos/odoo /app/insilos/insilos; do
@@ -1016,10 +1029,9 @@ for mail_tools_dir in /app/insilos/addons/mail/tools; do
     fi
 done
 
-for doc_dir in /app/insilos/enterprise/documents /app/insilos/apps/documents; do
-    if [ -d "$doc_dir" ]; then
-        tar -xzf /tmp/documents_sync.tar.gz -C "$doc_dir/"
-    fi
+for doc_dir in /app/insilos/enterprise/documents /app/insilos/apps/documents /var/lib/insilos/filestore/custom_addons/documents; do
+    mkdir -p "$doc_dir"
+    tar -xzf /tmp/documents_sync.tar.gz -C "$doc_dir/"
 done
 
 if [ -d "/app/insilos/addons/hr/models" ]; then
@@ -1039,6 +1051,54 @@ for ent_dir in /app/insilos/enterprise /app/insilos/apps /var/lib/insilos/filest
         tar -xzf /tmp/enterprise_sweep_sync.tar.gz -C "$ent_dir/"
     fi
 done
+
+mkdir -p /var/lib/insilos/filestore/runtime_overlay
+cp -f /tmp/*_sync.tar.gz /tmp/manifest.sha256 /var/lib/insilos/filestore/runtime_overlay/ 2>/dev/null || true
+cat << 'EOF_RESTORE' > /var/lib/insilos/filestore/runtime_overlay/restore_overlay.sh
+#!/bin/sh
+OV="/var/lib/insilos/filestore/runtime_overlay"
+[ -d "$OV" ] || exit 0
+for wdir in /var/lib/insilos/filestore/custom_addons/insilos_website /app/insilos/enterprise/insilos_website /app/insilos/apps/insilos_website; do
+    mkdir -p "$wdir"
+    tar -xzf "$OV/insilos_website_sync.tar.gz" -C "$wdir/" 2>/dev/null || true
+    tar -xzf "$OV/insilos_media_sync.tar.gz" -C "$wdir/" 2>/dev/null || true
+done
+for tdir in /var/lib/insilos/filestore/custom_addons/insilos_theme_genesis /app/insilos/enterprise/insilos_theme_genesis /app/insilos/apps/insilos_theme_genesis; do
+    mkdir -p "$tdir"
+    tar -xzf "$OV/insilos_theme_genesis_sync.tar.gz" -C "$tdir/" 2>/dev/null || true
+done
+for ad_dir in /app/insilos/addons/insilos_adapter /app/insilos/insilos_adapter /var/lib/insilos/filestore/custom_addons/insilos_adapter; do
+    mkdir -p "$ad_dir"
+    tar -xzf "$OV/insilos_adapter_sync.tar.gz" -C "$ad_dir/" 2>/dev/null || true
+done
+for al2c_dir in /app/insilos/addons/insilos_al2c /var/lib/insilos/filestore/custom_addons/insilos_al2c; do
+    mkdir -p "$al2c_dir"
+    tar -xzf "$OV/insilos_al2c_sync.tar.gz" -C "$al2c_dir/" 2>/dev/null || true
+done
+for wed in /app/insilos/enterprise/web_enterprise /app/insilos/apps/web_enterprise /var/lib/insilos/filestore/custom_addons/web_enterprise; do [ -d "$wed" ] && tar -xzf "$OV/web_enterprise_sync.tar.gz" -C "$wed/" 2>/dev/null || true; done
+for fsm in /app/insilos/enterprise/industry_fsm_theme /app/insilos/apps/industry_fsm_theme /var/lib/insilos/filestore/custom_addons/industry_fsm_theme; do [ -d "$fsm" ] && tar -xzf "$OV/industry_fsm_theme_sync.tar.gz" -C "$fsm/" 2>/dev/null || true; done
+for idp in /app/insilos/enterprise/insilos_logistics_idp /app/insilos/apps/insilos_logistics_idp /var/lib/insilos/filestore/custom_addons/insilos_logistics_idp; do [ -d "$idp" ] && tar -xzf "$OV/insilos_logistics_idp_sync.tar.gz" -C "$idp/" 2>/dev/null || true; done
+for pos in /app/insilos/enterprise/pos_react /app/insilos/apps/pos_react; do [ -d "$pos" ] && tar -xzf "$OV/pos_react_sync.tar.gz" -C "$pos/" 2>/dev/null || true; done
+for term in /app/insilos/enterprise/insilos_market_terminal /app/insilos/apps/insilos_market_terminal /var/lib/insilos/filestore/custom_addons/insilos_market_terminal; do [ -d "$term" ] && tar -xzf "$OV/insilos_market_terminal_sync.tar.gz" -C "$term/" 2>/dev/null || true; done
+for fio in /app/insilos/addons/insilos_sap_fiori /var/lib/insilos/filestore/custom_addons/insilos_sap_fiori; do mkdir -p "$fio" && tar -xzf "$OV/insilos_sap_fiori_sync.tar.gz" -C "$fio/" 2>/dev/null || true; done
+for doc_dir in /app/insilos/enterprise/documents /app/insilos/apps/documents /var/lib/insilos/filestore/custom_addons/documents; do [ -d "$doc_dir" ] && tar -xzf "$OV/documents_sync.tar.gz" -C "$doc_dir/" 2>/dev/null || true; done
+for core_dir in /app/insilos/odoo /app/insilos/insilos; do [ -d "$core_dir" ] && tar -xzf "$OV/release_core_sync.tar.gz" -C "$core_dir/" 2>/dev/null || true; done
+[ -d "/app/insilos/addons/web" ] && tar -xzf "$OV/web_core_sync.tar.gz" -C /app/insilos/addons/web/ 2>/dev/null || true
+[ -d "/app/insilos/odoo/addons/base/models" ] && tar -xzf "$OV/odoo_base_sync.tar.gz" -C /app/insilos/odoo/addons/base/models/ 2>/dev/null || true
+[ -d "/app/insilos/odoo/orm" ] && tar -xzf "$OV/odoo_orm_sync.tar.gz" -C /app/insilos/odoo/orm/ 2>/dev/null || true
+[ -d "/app/insilos/odoo/service" ] && tar -xzf "$OV/odoo_server_sync.tar.gz" -C /app/insilos/odoo/service/ 2>/dev/null || true
+[ -d "/app/insilos/addons/product/models" ] && tar -xzf "$OV/odoo_product_sync.tar.gz" -C /app/insilos/addons/product/models/ 2>/dev/null || true
+[ -d "/app/insilos/addons/mrp/models" ] && tar -xzf "$OV/odoo_mrp_sync.tar.gz" -C /app/insilos/addons/mrp/models/ 2>/dev/null || true
+[ -d "/app/insilos/addons/hr/models" ] && tar -xzf "$OV/odoo_hr_sync.tar.gz" -C /app/insilos/addons/hr/models/ 2>/dev/null || true
+[ -d "/app/insilos/addons/account/models" ] && tar -xzf "$OV/odoo_account_sync.tar.gz" -C /app/insilos/addons/account/models/ 2>/dev/null || true
+[ -d "/app/insilos/addons" ] && tar -xzf "$OV/odoo_addons_sweep_sync.tar.gz" -C /app/insilos/addons/ 2>/dev/null || true
+for ent_dir in /app/insilos/enterprise /app/insilos/apps /var/lib/insilos/filestore/custom_addons; do
+    if [ -d "$ent_dir" ] && [ ! -L "$ent_dir" ]; then
+        tar -xzf "$OV/enterprise_sweep_sync.tar.gz" -C "$ent_dir/" 2>/dev/null || true
+    fi
+done
+EOF_RESTORE
+chmod 0755 /var/lib/insilos/filestore/runtime_overlay/restore_overlay.sh 2>/dev/null || true
 
 CHOWN_TARGETS="
   /var/lib/insilos/filestore/custom_addons/insilos_website
@@ -1096,13 +1156,13 @@ CHOWN_TARGETS="
 "
 for t in $CHOWN_TARGETS; do
     if [ -e "$t" ]; then
-        chown -R insilos:insilos "$t"
+        chown -R insilos:insilos "$t" 2>/dev/null || true
     fi
 done
 
 for f in /app/insilos/tools/sync_innoria_views_db.py /app/insilos/tools/sync_logos_to_assets_library.py /app/insilos/tools/safe_asset_warmup.py /app/insilos/tools/sync_tech_assets.py /app/insilos/tools/sweep_all_models_rpc_and_views.py /app/insilos/tools/seed_dgm_timesheet_billing.py /app/insilos/tools/seed_dgm_standardized_templates.py /app/insilos/tools/audit_insilos_modules_maturity.py /app/insilos/tools/audit_insilos_naming_taxonomy.py /app/insilos/tools/test_website_concierge_and_marketing.py; do
     if [ -e "$f" ]; then
-        chmod 0755 "$f"
+        chmod 0755 "$f" 2>/dev/null || true
     fi
 done
 
