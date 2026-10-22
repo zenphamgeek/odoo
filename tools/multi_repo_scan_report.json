@@ -1,6 +1,6 @@
 {
   "audit_metadata": {
-    "timestamp": "2026-10-22T10:55:17.888522+00:00",
+    "timestamp": "2026-10-22T13:15:22.122979+00:00",
     "scanner_version": "2.0.0",
     "drift_threshold_days": 30.0,
     "scanned_repositories_count": 4,
@@ -9,16 +9,16 @@
   "summary": {
     "total_repositories": 4,
     "total_modules": 128,
-    "total_loc_code": 3520696,
+    "total_loc_code": 3522494,
     "total_loc_test": 2492595,
-    "total_velocity_30d": 1071,
-    "total_dirty_files": 17,
+    "total_velocity_30d": 1073,
+    "total_dirty_files": 54,
     "drift_stale_modules_count": 0,
     "missing_doc_modules_count": 104,
     "dependency_risks_count": 135,
-    "total_replacement_man_days": 26606.4,
-    "total_active_sprint_workload_days": 11096.4,
-    "candidate_backlog_items_count": 220
+    "total_replacement_man_days": 26621.4,
+    "total_active_sprint_workload_days": 11103.8,
+    "candidate_backlog_items_count": 221
   },
   "repositories": {
     "O20": {
@@ -27,16 +27,16 @@
       "git": {
         "is_git": true,
         "branch": "insilos-genesis-fork",
-        "head": "a1c65b42e",
-        "head_full": "a1c65b42e59d246fc5ac0ce4fb94f3c4413ce62f",
+        "head": "fa0a32037",
+        "head_full": "fa0a3203774322c84f96684755b4ddf19cf4c621",
         "author": "Zen",
-        "commit_date": "2026-10-22T17:54:49+07:00",
-        "commit_timestamp": 1792666489,
-        "commit_subject": "fix(copilot,homemenu): update enterprise submodule with AI Copilot click fix and Favorites Apps to top",
+        "commit_date": "2026-10-22T20:14:55+07:00",
+        "commit_timestamp": 1792674895,
+        "commit_subject": "feat(website): elevate Section 8 to 5-Tier 3D CAD Flywheel, purge all residual AI slop across main routes, and update enterprise submodule",
         "dirty_files_count": 0,
         "is_dirty": false,
-        "velocity_30d": 536,
-        "churn_30d": 472958,
+        "velocity_30d": 538,
+        "churn_30d": 473461,
         "git_health_warning": null
       },
       "topology": {
@@ -50,16 +50,16 @@
             "git": {
               "is_git": true,
               "branch": "main",
-              "head": "00555a92f",
-              "head_full": "00555a92f22aab905426223325de8de0c22f423f",
+              "head": "ce5a37e0d",
+              "head_full": "ce5a37e0ddb421b5864e52e15c73ebea8903cda6",
               "author": "Zen",
-              "commit_date": "2026-10-22T17:54:05+07:00",
-              "commit_timestamp": 1792666445,
-              "commit_subject": "fix(copilot,homemenu): resolve AI Copilot click in form view and implement Favorites Apps to top in Apps Drawer",
+              "commit_date": "2026-10-22T20:14:08+07:00",
+              "commit_timestamp": 1792674848,
+              "commit_subject": "feat(website): elevate Section 8 to 5-Tier 3D CAD Flywheel, purge all residual AI slop, and achieve 7/7 Quality Gate certification",
               "dirty_files_count": 0,
               "is_dirty": false,
-              "velocity_30d": 239,
-              "churn_30d": 340243,
+              "velocity_30d": 241,
+              "churn_30d": 340669,
               "git_health_warning": null
             }
           }
@@ -426,11 +426,11 @@
             "category": "odoo_enterprise",
             "has_localized_doc": true,
             "doc_rel_path": "README.md",
-            "last_code_commit_ts": 1792641807,
-            "last_code_commit_date": "2026-10-22T04:03:27+00:00",
+            "last_code_commit_ts": 1792674848,
+            "last_code_commit_date": "2026-10-22T13:14:08+00:00",
             "last_doc_commit_ts": 1790510508,
             "last_doc_commit_date": "2026-09-27T12:01:48+00:00",
-            "drift_days": 24.67,
+            "drift_days": 25.05,
             "status": "IN_SYNC",
             "is_drift_stale": false,
             "is_missing_doc": false
@@ -500,7 +500,7 @@
         }
       ],
       "sizing": {
-        "total_files": 90288,
+        "total_files": 90292,
         "loc_code": 287512,
         "loc_test": 211740,
         "loc_docs": 2229,
@@ -861,7 +861,7 @@
         "commit_date": "2026-10-22T17:38:58+07:00",
         "commit_timestamp": 1792665538,
         "commit_subject": "feat(docs): 5-phase color card grid pipeline, 31 live authenticated screenshots &amp; zero NOT_APPLICABLE disposition (qa-sdlc-insights-20261022f)",
-        "dirty_files_count": 1,
+        "dirty_files_count": 38,
         "is_dirty": true,
         "velocity_30d": 205,
         "churn_30d": 396941,
@@ -2147,7 +2147,7 @@
         "test_coverage_ratio": 1.362,
         "complexity_rating": 1.25,
         "replacement_man_days": 5251.3,
-        "active_sprint_workload_days": 3378.0,
+        "active_sprint_workload_days": 3385.4,
         "effective_churn_30d": 396941
       },
       "candidate_backlog_items": [
@@ -3122,6 +3122,18 @@
           "verify": "pip check",
           "risk": "R1",
           "formatted_line": "- [ ] [DEP02-REQUIREMENTS-REQUESTS][P2][security] Pin upper bound on Python dependency requests in hermes-agent/optional-skills/finance/dcf-model/requirements.txt \u2014 DoD: Add explicit upper bound constraint to requests in hermes-agent/optional-skills/finance/dcf-model/requirements.txt <!-- meta: repo=VerticalRisk path=hermes-agent/optional-skills/finance/dcf-model/requirements.txt verify=\"pip check\" risk=R1 -->"
+        },
+        {
+          "item_code": "WIP01-VERTICALRISK",
+          "priority": "P1",
+          "track": "plan",
+          "title": "Triage 38 uncommitted dirty files in VerticalRisk",
+          "dod": "Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree",
+          "repo": "VerticalRisk",
+          "path": ".",
+          "verify": "git -C VerticalRisk status --porcelain",
+          "risk": "R1",
+          "formatted_line": "- [ ] [WIP01-VERTICALRISK][P1][plan] Triage 38 uncommitted dirty files in VerticalRisk \u2014 DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=VerticalRisk path=. verify=\"git -C VerticalRisk status --porcelain\" risk=R1 -->"
         },
         {
           "item_code": "DEP03-ROOT-KNEX",
@@ -4255,7 +4267,7 @@
               "commit_date": "2026-10-19T10:13:05+07:00",
               "commit_timestamp": 1792379585,
               "commit_subject": "build(deps): sync requirements.txt and pyproject.toml with full Clef/JEV, S-REA, MCP, and test dependencies",
-              "dirty_files_count": 367,
+              "dirty_files_count": 368,
               "is_dirty": true,
               "velocity_30d": 153,
               "churn_30d": 0,
@@ -5359,12 +5371,12 @@
       ],
       "sizing": {
         "total_files": 13681,
-        "loc_code": 1265704,
+        "loc_code": 1267502,
         "loc_test": 551205,
         "loc_docs": 60997,
         "test_coverage_ratio": 0.435,
         "complexity_rating": 1.5,
-        "replacement_man_days": 10547.5,
+        "replacement_man_days": 10562.5,
         "active_sprint_workload_days": 157.8,
         "effective_churn_30d": 18429
       },
@@ -6454,6 +6466,7 @@
     "- [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks \u2014 DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify=\"test -f extensions/verticalrisk-webhooks/README.md\" risk=R0 -->",
     "- [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api \u2014 DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify=\"test -f extensions/verticalrisk-workflow-api/README.md\" risk=R0 -->",
     "- [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel \u2014 DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify=\"test -f extensions/verticalrisk-workflow-kernel/README.md\" risk=R0 -->",
+    "- [ ] [WIP01-VERTICALRISK][P1][plan] Triage 38 uncommitted dirty files in VerticalRisk \u2014 DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=VerticalRisk path=. verify=\"git -C VerticalRisk status --porcelain\" risk=R1 -->",
     "- [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml \u2014 DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify=\"pip check\" risk=R1 -->",
     "- [ ] [DEP02-PYPROJECT-ANYIO][P2][security] Pin upper bound on Python dependency anyio in router/pyproject.toml \u2014 DoD: Add explicit upper bound constraint to anyio in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify=\"pip check\" risk=R1 -->",
     "- [ ] [DEP02-PYPROJECT-CRYPTOGRAPHY][P2][security] Pin upper bound on Python dependency cryptography in router/pyproject.toml \u2014 DoD: Add explicit upper bound constraint to cryptography in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify=\"pip check\" risk=R1 -->",

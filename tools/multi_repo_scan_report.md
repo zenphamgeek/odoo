@@ -1,14 +1,14 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-22T10:55:17.888522+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-22T13:15:22.122979+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `a1c65b42e` | 536 | ✅ 0 | 287,512 | 2,395.9 d | 744.5 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
-| **`VerticalRisk`** | `Development` | `1e1bba3f9` | 205 | ⚠️ 1 | 756,194 | 5,251.3 d | 3,378.0 d | 🟢 0 stale (70 missing) | ⚠️ 16 risks |
+| **`O20`** | `insilos-genesis-fork` | `fa0a32037` | 538 | ✅ 0 | 287,512 | 2,395.9 d | 744.5 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
+| **`VerticalRisk`** | `Development` | `1e1bba3f9` | 205 | ⚠️ 38 | 756,194 | 5,251.3 d | 3,385.4 d | 🟢 0 stale (70 missing) | ⚠️ 16 risks |
 | **`insilos_mobile`** | `main` | `ca93dbbc7` | 215 | ✅ 0 | 1,211,286 | 8,411.7 d | 6,816.1 d | 🟢 0 stale (11 missing) | ⚠️ 16 risks |
-| **`zencode-ent`** | `main` | `e164bf075` | 115 | ⚠️ 16 | 1,265,704 | 10,547.5 d | 157.8 d | 🟢 0 stale (1 missing) | ⚠️ 97 risks |
+| **`zencode-ent`** | `main` | `e164bf075` | 115 | ⚠️ 16 | 1,267,502 | 10,562.5 d | 157.8 d | 🟢 0 stale (1 missing) | ⚠️ 97 risks |
 
 ---
 
@@ -389,6 +389,7 @@
 - [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks — DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify="test -f extensions/verticalrisk-webhooks/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api — DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify="test -f extensions/verticalrisk-workflow-api/README.md" risk=R0 -->
 - [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel — DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify="test -f extensions/verticalrisk-workflow-kernel/README.md" risk=R0 -->
+- [ ] [WIP01-VERTICALRISK][P1][plan] Triage 38 uncommitted dirty files in VerticalRisk — DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=VerticalRisk path=. verify="git -C VerticalRisk status --porcelain" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml — DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-ANYIO][P2][security] Pin upper bound on Python dependency anyio in router/pyproject.toml — DoD: Add explicit upper bound constraint to anyio in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
 - [ ] [DEP02-PYPROJECT-CRYPTOGRAPHY][P2][security] Pin upper bound on Python dependency cryptography in router/pyproject.toml — DoD: Add explicit upper bound constraint to cryptography in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify="pip check" risk=R1 -->
