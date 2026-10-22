@@ -269,7 +269,7 @@ textarea.o_input,
     background-color: var(--insilos-bg-surface) !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 
-    .o_searchview {
+    .o_searchview:not(.o_cp_searchview *):not(.o_smart_filterbar *) {
         background-color: var(--insilos-bg-subtle) !important;
         border: 1px solid rgba(255, 255, 255, 0.15) !important;
 

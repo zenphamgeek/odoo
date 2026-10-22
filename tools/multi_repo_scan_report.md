@@ -1,14 +1,14 @@
 # Insilos Multi-Repository Continuous Governance Report
-> **Audit Timestamp:** `2026-10-22T07:49:15.511017+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
+> **Audit Timestamp:** `2026-10-22T10:39:07.860583+00:00` | **Scanner Version:** `v2.0.0` | **Drift Threshold:** `30.0 days`
 
 ## 1. Executive Telemetry Overview
 
 | Repository | Active Branch | HEAD Commit | 30d Velocity | Dirty Files | Code LOC | Sizing ($S_{replace}$) | Sprint Churn ($S_{sprint}$) | Doc Drift >30d | Dependency Risks |
 |:---|:---|:---:|---:|---:|---:|---:|---:|:---:|:---:|
-| **`O20`** | `insilos-genesis-fork` | `374c14ed8` | 532 | ⚠️ 12 | 287,512 | 2,395.9 d | 746.4 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
-| **`VerticalRisk`** | `Development` | `a6767ce03` | 204 | ⚠️ 1 | 755,931 | 5,249.5 d | 3,370.4 d | 🟢 0 stale (70 missing) | ⚠️ 16 risks |
+| **`O20`** | `insilos-genesis-fork` | `8d9d675d3` | 536 | ⚠️ 5 | 287,512 | 2,395.9 d | 745.5 d | 🟢 0 stale (22 missing) | ⚠️ 6 risks |
+| **`VerticalRisk`** | `Development` | `1e1bba3f9` | 205 | ⚠️ 1 | 756,194 | 5,251.3 d | 3,378.0 d | 🟢 0 stale (70 missing) | ⚠️ 16 risks |
 | **`insilos_mobile`** | `main` | `ca93dbbc7` | 215 | ✅ 0 | 1,211,286 | 8,411.7 d | 6,816.1 d | 🟢 0 stale (11 missing) | ⚠️ 16 risks |
-| **`zencode-ent`** | `main` | `e164bf075` | 115 | ⚠️ 16 | 1,265,608 | 10,546.7 d | 157.8 d | 🟢 0 stale (1 missing) | ⚠️ 97 risks |
+| **`zencode-ent`** | `main` | `e164bf075` | 115 | ⚠️ 16 | 1,265,704 | 10,547.5 d | 157.8 d | 🟢 0 stale (1 missing) | ⚠️ 97 risks |
 
 ---
 
@@ -17,7 +17,7 @@
 | Repository | Module / Package | Category | Drift (Days) | Status | Last Code Commit | Last Doc Commit |
 |:---|:---|:---|---:|:---:|:---|:---|
 | `O20` | `addons/insilos_adapter` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-22T04:05:36+00:00 | N/A |
-| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-22T04:05:36+00:00 | N/A |
+| `O20` | `addons/insilos_al2c` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-22T09:32:22+00:00 | N/A |
 | `O20` | `addons/insilos_currency_cron` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-19T08:41:13+00:00 | N/A |
 | `O20` | `addons/insilos_pinned_conversion` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-19T08:41:13+00:00 | N/A |
 | `O20` | `addons/insilos_sap_fiori` | `odoo_addon` | **N/A** | ⚠️ MISSING | 2026-10-22T04:05:36+00:00 | N/A |

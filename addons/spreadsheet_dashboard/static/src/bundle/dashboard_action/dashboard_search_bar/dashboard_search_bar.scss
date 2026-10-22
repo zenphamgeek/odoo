@@ -5,6 +5,35 @@
         height: fit-content;
     }
 
+    .o_cp_searchview {
+        .o_searchview {
+            border: none !important;
+            background-color: transparent !important;
+            box-shadow: none !important;
+            padding-block: 0 !important;
+
+            &:focus,
+            &:focus-within {
+                border: none !important;
+                box-shadow: none !important;
+            }
+
+            .o_searchview_input {
+                border: none !important;
+                box-shadow: none !important;
+                outline: none !important;
+                background-color: transparent !important;
+
+                &:focus,
+                &:focus-visible {
+                    border: none !important;
+                    box-shadow: none !important;
+                    outline: none !important;
+                }
+            }
+        }
+    }
+
     @media (min-width: 768px){
         .o_searchview .o_searchview_input_container {
             overflow-y: auto;
@@ -15,5 +44,5 @@
     .o_searchview_dropdown_toggler {
         margin-left: calc(var(--border-width) * -1);
     }
-
 }
+

@@ -1,25 +1,31 @@
 .o_spreadsheet_dashboard_search_panel {
-    width: fit-content;
-    max-width: 200px;
-    align-items: center;
+    width: var(--SearchPanel-width, 240px);
+    min-width: 200px;
+    max-width: 450px;
+    flex: 0 0 auto !important;
+    border-right: 1px solid var(--insilos-border-subtle, #{$border-color}) !important;
+    resize: horizontal;
+    overflow-x: auto;
+    overflow-y: auto;
 
     ul {
         padding-inline-start: 0px;
     }
 
     li {
-        padding: 4px 8px 4px 12px;
+        padding: 6px 10px 6px 12px;
         list-style-type: none;
         white-space: nowrap;
 
         &:hover:not(.active) {
-            background-color: $o-gray-100;
+            background-color: var(--insilos-bg-hover, #{$o-gray-100});
         }
 
         .o_dashboard_name {
             overflow: hidden;
             text-overflow: ellipsis;
             padding-right: 8px;
+            flex-grow: 1;
         }
 
         .o_edit_dashboard {

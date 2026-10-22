@@ -1,6 +1,6 @@
 {
   "audit_metadata": {
-    "timestamp": "2026-10-22T07:49:15.511017+00:00",
+    "timestamp": "2026-10-22T10:39:07.860583+00:00",
     "scanner_version": "2.0.0",
     "drift_threshold_days": 30.0,
     "scanned_repositories_count": 4,
@@ -9,15 +9,15 @@
   "summary": {
     "total_repositories": 4,
     "total_modules": 128,
-    "total_loc_code": 3520337,
-    "total_loc_test": 2497441,
-    "total_velocity_30d": 1066,
-    "total_dirty_files": 29,
+    "total_loc_code": 3520696,
+    "total_loc_test": 2492595,
+    "total_velocity_30d": 1071,
+    "total_dirty_files": 22,
     "drift_stale_modules_count": 0,
     "missing_doc_modules_count": 104,
     "dependency_risks_count": 135,
-    "total_replacement_man_days": 26603.8,
-    "total_active_sprint_workload_days": 11090.7,
+    "total_replacement_man_days": 26606.4,
+    "total_active_sprint_workload_days": 11097.4,
     "candidate_backlog_items_count": 220
   },
   "repositories": {
@@ -27,16 +27,16 @@
       "git": {
         "is_git": true,
         "branch": "insilos-genesis-fork",
-        "head": "374c14ed8",
-        "head_full": "374c14ed86a0ce36a0ed161eb2f8c90f9f3eef2a",
+        "head": "8d9d675d3",
+        "head_full": "8d9d675d35fa658657e853a79c76c5d6ffb4324f",
         "author": "Zen",
-        "commit_date": "2026-10-22T11:05:36+07:00",
-        "commit_timestamp": 1792641936,
-        "commit_subject": "feat(al2c,webclient): overhaul catalogs, resolve js_transpiler prefix and add odoo-module annotations",
-        "dirty_files_count": 12,
+        "commit_date": "2026-10-22T17:35:45+07:00",
+        "commit_timestamp": 1792665345,
+        "commit_subject": "fix(copilot,homemenu): update enterprise submodule with AI Copilot click fix and Favorites Apps to top",
+        "dirty_files_count": 5,
         "is_dirty": true,
-        "velocity_30d": 532,
-        "churn_30d": 470609,
+        "velocity_30d": 536,
+        "churn_30d": 472610,
         "git_health_warning": null
       },
       "topology": {
@@ -50,16 +50,16 @@
             "git": {
               "is_git": true,
               "branch": "main",
-              "head": "00ebd7821",
-              "head_full": "00ebd78212442503a7af98b442ab67647e4aa141",
+              "head": "bdd27e179",
+              "head_full": "bdd27e179937ce2b27718cffec6a5d6edb226bd5",
               "author": "Zen",
-              "commit_date": "2026-10-22T11:03:27+07:00",
-              "commit_timestamp": 1792641807,
-              "commit_subject": "fix(webclient): resolve js transpiler prefix and add odoo-module annotations across custom addons",
-              "dirty_files_count": 1,
-              "is_dirty": true,
-              "velocity_30d": 236,
-              "churn_30d": 339668,
+              "commit_date": "2026-10-22T17:35:05+07:00",
+              "commit_timestamp": 1792665305,
+              "commit_subject": "fix(copilot,homemenu): resolve AI Copilot click in form view and implement Favorites Apps to top in Apps Drawer",
+              "dirty_files_count": 0,
+              "is_dirty": false,
+              "velocity_30d": 239,
+              "churn_30d": 340243,
               "git_health_warning": null
             }
           }
@@ -96,8 +96,8 @@
             "category": "odoo_addon",
             "has_localized_doc": false,
             "doc_rel_path": null,
-            "last_code_commit_ts": 1792641936,
-            "last_code_commit_date": "2026-10-22T04:05:36+00:00",
+            "last_code_commit_ts": 1792661542,
+            "last_code_commit_date": "2026-10-22T09:32:22+00:00",
             "last_doc_commit_ts": null,
             "last_doc_commit_date": null,
             "drift_days": null,
@@ -500,15 +500,15 @@
         }
       ],
       "sizing": {
-        "total_files": 90280,
+        "total_files": 90285,
         "loc_code": 287512,
         "loc_test": 211740,
         "loc_docs": 2229,
         "test_coverage_ratio": 0.736,
         "complexity_rating": 1.5,
         "replacement_man_days": 2395.9,
-        "active_sprint_workload_days": 746.4,
-        "effective_churn_30d": 86639
+        "active_sprint_workload_days": 745.5,
+        "effective_churn_30d": 86702
       },
       "candidate_backlog_items": [
         {
@@ -855,16 +855,16 @@
       "git": {
         "is_git": true,
         "branch": "Development",
-        "head": "a6767ce03",
-        "head_full": "a6767ce033db7605b008a875c0901fd37c8267b5",
+        "head": "1e1bba3f9",
+        "head_full": "1e1bba3f93078c8ff7c673fedea91aa2f7dea24e",
         "author": "Antigravity Agent",
-        "commit_date": "2026-10-22T14:49:10+07:00",
-        "commit_timestamp": 1792655350,
-        "commit_subject": "fix(docs): remediate evidence layout text truncation and full-width row grid for qa release 20261022d",
+        "commit_date": "2026-10-22T17:38:58+07:00",
+        "commit_timestamp": 1792665538,
+        "commit_subject": "feat(docs): 5-phase color card grid pipeline, 31 live authenticated screenshots &amp; zero NOT_APPLICABLE disposition (qa-sdlc-insights-20261022f)",
         "dirty_files_count": 1,
         "is_dirty": true,
-        "velocity_30d": 204,
-        "churn_30d": 396019,
+        "velocity_30d": 205,
+        "churn_30d": 396941,
         "git_health_warning": null
       },
       "topology": {
@@ -2140,15 +2140,15 @@
         }
       ],
       "sizing": {
-        "total_files": 12217,
-        "loc_code": 755931,
-        "loc_test": 1034634,
-        "loc_docs": 115901,
-        "test_coverage_ratio": 1.369,
+        "total_files": 12236,
+        "loc_code": 756194,
+        "loc_test": 1029788,
+        "loc_docs": 115951,
+        "test_coverage_ratio": 1.362,
         "complexity_rating": 1.25,
-        "replacement_man_days": 5249.5,
-        "active_sprint_workload_days": 3370.4,
-        "effective_churn_30d": 396019
+        "replacement_man_days": 5251.3,
+        "active_sprint_workload_days": 3378.0,
+        "effective_churn_30d": 396941
       },
       "candidate_backlog_items": [
         {
@@ -4152,8 +4152,8 @@
               "commit_subject": "feat(runtime,server): dual-host auto-bootstrap (:6768/:6767) and /api/fleet/handoff reverse proxy",
               "dirty_files_count": 17,
               "is_dirty": true,
-              "velocity_30d": 297,
-              "churn_30d": 172989,
+              "velocity_30d": 292,
+              "churn_30d": 172412,
               "git_health_warning": null
             }
           },
@@ -4255,7 +4255,7 @@
               "commit_date": "2026-10-19T10:13:05+07:00",
               "commit_timestamp": 1792379585,
               "commit_subject": "build(deps): sync requirements.txt and pyproject.toml with full Clef/JEV, S-REA, MCP, and test dependencies",
-              "dirty_files_count": 363,
+              "dirty_files_count": 367,
               "is_dirty": true,
               "velocity_30d": 153,
               "churn_30d": 0,
@@ -5359,12 +5359,12 @@
       ],
       "sizing": {
         "total_files": 13681,
-        "loc_code": 1265608,
+        "loc_code": 1265704,
         "loc_test": 551205,
         "loc_docs": 60997,
-        "test_coverage_ratio": 0.436,
+        "test_coverage_ratio": 0.435,
         "complexity_rating": 1.5,
-        "replacement_man_days": 10546.7,
+        "replacement_man_days": 10547.5,
         "active_sprint_workload_days": 157.8,
         "effective_churn_30d": 18429
       },
