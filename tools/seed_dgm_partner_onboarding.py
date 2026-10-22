@@ -350,7 +350,7 @@ def render_companion_docs_for_seed(p):
         <table>
             <tr><th>Đại diện Pháp luật Bên A (AIfin)</th><td><strong>Ông Nguyễn Khắc Huy</strong> — Chức vụ: <strong>GIÁM ĐỐC</strong></td></tr>
             <tr><th>Hợp đồng Cung ứng Nhân sự</th><td><strong>DIGIMATE-AIFIN-VN_2610-001</strong> &amp; Phụ lục <strong>2610-001</strong> (Hiệu lực: 01/10/2026 – 30/09/2027)</td></tr>
-            <tr><th>Nhân sự Kỹ thuật Biệt phái</th><td><strong>Ông Trần Văn Huỳnh Phố</strong> — Mã NV: <strong>DGM-009</strong> (Legacy: <code>NV-00074</code>) • CCCD: <code>079098014567</code> • Email: <code>pho.tran@inno.ai.vn</code></td></tr>
+            <tr><th>Nhân sự Kỹ thuật Biệt phái</th><td><strong>Ông Trần Văn Huỳnh Phố</strong> — Mã NV: <strong>DGM-009</strong> (Legacy: <code>NV-00074</code>) • CCCD: <code>083201003426</code> • Email: <code>pho.tran@inno.ai.vn</code></td></tr>
             <tr><th>Chức danh &amp; Đơn giá Dịch vụ</th><td><strong>Kỹ sư Phần mềm Senior (AIfin Onsite)</strong> • Đơn giá: <strong>350,000 VND/giờ</strong> (<strong>56,000,000 VND/tháng</strong> tiêu chuẩn 160h)</td></tr>
             <tr><th>Khung giờ chuẩn &amp; OT (MTI SLA)</th><td>Khung giờ chuẩn: <strong>140 – 180 giờ/tháng</strong> • OT &gt;180h: <strong>100%</strong> (ngày thường) / <strong>150%</strong> (cuối tuần &amp; Lễ) • Thay thế nhân sự: báo trước 30 ngày, miễn phí 05 ngày thử việc</td></tr>
             <tr><th>Hợp đồng Giải pháp 360-Sales</th><td><strong>AIFIN-DIGIMATE/360-SALES/2026</strong> (Ký ngày 11/09/2026 • Giá trị: <strong>200,000,000 VND</strong> • Đợt 1: 65% = 130,000,000 VND • Đợt 2: 35% = 70,000,000 VND)</td></tr>

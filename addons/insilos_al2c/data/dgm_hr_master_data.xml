@@ -146,7 +146,7 @@
         <field name="department_id" ref="dept_dgm_board"/>
         <field name="job_id" ref="job_dgm_ceo"/>
         <field name="job_title">Chủ tịch HĐQT &amp; Tổng Giám đốc</field>
-        <field name="wage">45000000</field>
+        <field name="wage">22554000</field>
         <field name="contract_date_start">2024-01-01</field>
         <field name="work_contact_id" ref="partner_emp_hoang"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_hoang')])]"/>
@@ -163,7 +163,7 @@
         <field name="department_id" ref="dept_dgm_tech_ai"/>
         <field name="job_id" ref="job_dgm_cto"/>
         <field name="job_title">Cổ đông sáng lập &amp; CTO</field>
-        <field name="wage">42000000</field>
+        <field name="wage">19058000</field>
         <field name="contract_date_start">2024-01-01</field>
         <field name="work_contact_id" ref="partner_emp_an"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_an')])]"/>
@@ -180,7 +180,7 @@
         <field name="department_id" ref="dept_dgm_finance_hr"/>
         <field name="job_id" ref="job_dgm_cfo_hr"/>
         <field name="job_title">Cổ đông sáng lập &amp; CFO/HR Lead</field>
-        <field name="wage">35000000</field>
+        <field name="wage">14026000</field>
         <field name="contract_date_start">2024-01-01</field>
         <field name="work_contact_id" ref="partner_emp_tham"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_tham')])]"/>
@@ -190,14 +190,14 @@
         <field name="name">Bùi Hữu Tài</field>
         <field name="legal_name">Bùi Hữu Tài</field>
         <field name="registration_number">DGM-004</field>
-        <field name="id_card_name">365931521</field>
-        <field name="identification_id">365931521</field>
+        <field name="id_card_name">094094005852</field>
+        <field name="identification_id">094094005852</field>
         <field name="work_email">tai.bui@inno.ai.vn</field>
         <field name="work_phone">0903881004</field>
         <field name="department_id" ref="dept_dgm_b2b_onsite"/>
         <field name="job_id" ref="job_dgm_senior_onsite"/>
         <field name="job_title">Kỹ sư Phần mềm Senior (MTI Onsite)</field>
-        <field name="wage">32000000</field>
+        <field name="wage">18555000</field>
         <field name="contract_date_start">2024-01-01</field>
         <field name="work_contact_id" ref="partner_emp_tai"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_tai')])]"/>
@@ -214,24 +214,24 @@
         <field name="department_id" ref="dept_dgm_tech_ai"/>
         <field name="job_id" ref="job_dgm_tech_lead"/>
         <field name="job_title">Kỹ sư Phần mềm Senior / Tech Lead</field>
-        <field name="wage">34000000</field>
+        <field name="wage">25860000</field>
         <field name="contract_date_start">2024-02-01</field>
         <field name="work_contact_id" ref="partner_emp_khanh"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_khanh')])]"/>
     </record>
 
     <record id="emp_dgm_006" model="hr.employee">
-        <field name="name">Ngô Thanh Lộc</field>
-        <field name="legal_name">Ngô Thanh Lộc</field>
+        <field name="name">Ngô Thành Lộc</field>
+        <field name="legal_name">Ngô Thành Lộc</field>
         <field name="registration_number">DGM-006</field>
-        <field name="id_card_name">079096011234</field>
-        <field name="identification_id">079096011234</field>
+        <field name="id_card_name">086091003038</field>
+        <field name="identification_id">086091003038</field>
         <field name="work_email">loc.ngo@inno.ai.vn</field>
         <field name="work_phone">0903881006</field>
         <field name="department_id" ref="dept_dgm_b2b_onsite"/>
         <field name="job_id" ref="job_dgm_senior_onsite"/>
         <field name="job_title">Kỹ sư Phần mềm Senior (MTI Onsite)</field>
-        <field name="wage">28000000</field>
+        <field name="wage">28963000</field>
         <field name="contract_date_start">2024-02-01</field>
         <field name="work_contact_id" ref="partner_emp_loc"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_loc')])]"/>
@@ -241,14 +241,14 @@
         <field name="name">Lê Cao Bảo Phúc</field>
         <field name="legal_name">Lê Cao Bảo Phúc</field>
         <field name="registration_number">DGM-007</field>
-        <field name="id_card_name">079097022345</field>
-        <field name="identification_id">079097022345</field>
+        <field name="id_card_name">089095016227</field>
+        <field name="identification_id">089095016227</field>
         <field name="work_email">phuc.le@inno.ai.vn</field>
         <field name="work_phone">0903881007</field>
         <field name="department_id" ref="dept_dgm_b2b_onsite"/>
         <field name="job_id" ref="job_dgm_swe_onsite"/>
         <field name="job_title">Kỹ sư Phần mềm (MTI Onsite)</field>
-        <field name="wage">25000000</field>
+        <field name="wage">17158000</field>
         <field name="contract_date_start">2024-03-01</field>
         <field name="work_contact_id" ref="partner_emp_phuc"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_phuc')])]"/>
@@ -258,14 +258,14 @@
         <field name="name">Thái Nguyễn Đăng Khoa</field>
         <field name="legal_name">Thái Nguyễn Đăng Khoa</field>
         <field name="registration_number">DGM-008</field>
-        <field name="id_card_name">079099033456</field>
-        <field name="identification_id">079099033456</field>
+        <field name="id_card_name">079203037187</field>
+        <field name="identification_id">079203037187</field>
         <field name="work_email">khoa.thai@inno.ai.vn</field>
         <field name="work_phone">0903881008</field>
         <field name="department_id" ref="dept_dgm_tech_ai"/>
         <field name="job_id" ref="job_dgm_junior_dev"/>
         <field name="job_title">Kỹ sư Phần mềm / Junior Developer</field>
-        <field name="wage">18000000</field>
+        <field name="wage">8057000</field>
         <field name="contract_date_start">2024-06-01</field>
         <field name="work_contact_id" ref="partner_emp_khoa"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_khoa')])]"/>
@@ -300,14 +300,14 @@
         <field name="name">Trần Văn Huỳnh Phố</field>
         <field name="legal_name">Trần Văn Huỳnh Phố</field>
         <field name="registration_number">DGM-009</field>
-        <field name="id_card_name">079098014567</field>
-        <field name="identification_id">079098014567</field>
+        <field name="id_card_name">083201003426</field>
+        <field name="identification_id">083201003426</field>
         <field name="work_email">pho.tran@inno.ai.vn</field>
         <field name="work_phone">0903881009</field>
         <field name="department_id" ref="dept_dgm_b2b_onsite"/>
         <field name="job_id" ref="job_dgm_senior_onsite"/>
         <field name="job_title">Kỹ sư Phần mềm Senior (AIfin Onsite)</field>
-        <field name="wage">30000000</field>
+        <field name="wage">14088000</field>
         <field name="contract_date_start">2024-04-01</field>
         <field name="work_contact_id" ref="partner_emp_pho"/>
         <field name="bank_account_ids" eval="[(6, 0, [ref('bank_emp_pho')])]"/>

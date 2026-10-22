@@ -185,7 +185,7 @@
         <field name="name">Bùi Hữu Tài</field>
         <field name="legal_name">Bùi Hữu Tài</field>
         <field name="registration_number">DGM-004</field>
-        <field name="id_card_name">365931521</field>
+        <field name="id_card_name">094094005852</field>
         <field name="job_title">Kỹ sư Phần mềm Senior (MTI Onsite)</field>
         <field name="company_id" ref="company_digimate_jsc"/>
         <field name="work_contact_id" ref="partner_emp_tai"/>
@@ -235,6 +235,7 @@
         <field name="name">Ngô Thanh Lộc</field>
         <field name="legal_name">Ngô Thanh Lộc</field>
         <field name="registration_number">DGM-006</field>
+        <field name="id_card_name">086091003038</field>
         <field name="job_title">Kỹ sư Phần mềm Senior (MTI Onsite)</field>
         <field name="company_id" ref="company_digimate_jsc"/>
         <field name="work_contact_id" ref="partner_emp_loc"/>
@@ -259,6 +260,7 @@
         <field name="name">Lê Cao Bảo Phúc</field>
         <field name="legal_name">Lê Cao Bảo Phúc</field>
         <field name="registration_number">DGM-007</field>
+        <field name="id_card_name">089095016227</field>
         <field name="job_title">Kỹ sư Phần mềm (MTI Onsite)</field>
         <field name="company_id" ref="company_digimate_jsc"/>
         <field name="work_contact_id" ref="partner_emp_phuc"/>
@@ -283,6 +285,7 @@
         <field name="name">Thái Nguyễn Đăng Khoa</field>
         <field name="legal_name">Thái Nguyễn Đăng Khoa</field>
         <field name="registration_number">DGM-008</field>
+        <field name="id_card_name">079203037187</field>
         <field name="job_title">Kỹ sư Phần mềm / Junior Developer</field>
         <field name="company_id" ref="company_digimate_jsc"/>
         <field name="work_contact_id" ref="partner_emp_khoa"/>

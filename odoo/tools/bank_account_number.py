@@ -48,33 +48,41 @@ def get_iban_part(iban, number_kind):
     return template_nocc and "".join(c for c, t in zip(iban_nocc, template_nocc) if t == mask_char)
 
 
-def validate_iban(env, iban):
+def validate_iban(env, iban=None):
+    if iban is None:
+        iban = env
+        env = None
+    _tr = getattr(env, '_', None) or (lambda s, *a: (s % a if a else s))
     iban = normalize_account_number(iban)
     if not iban:
-        raise ValidationError(env._("There is no IBAN code."))
+        raise ValidationError(_tr("There is no IBAN code."))
 
     country_code = iban[:2].lower()
     if country_code not in _map_iban_template:
-        raise ValidationError(env._("The IBAN is invalid, it should begin with the country code"))
+        raise ValidationError(_tr("The IBAN is invalid, it should begin with the country code"))
 
     iban_template = _map_iban_template[country_code]
     if len(iban) != len(iban_template.replace(' ', '')) or not re.fullmatch(r"[a-zA-Z0-9]+", iban):
-        raise ValidationError(env._("The IBAN does not seem to be correct. You should have entered something like this %s\n"
-                                    "Where B = National bank code, S = Branch code, C = Account No, k = Check digit", iban_template))
+        raise ValidationError(_tr("The IBAN does not seem to be correct. You should have entered something like this %s\n"
+                                  "Where B = National bank code, S = Branch code, C = Account No, k = Check digit", iban_template))
 
     check_chars = iban[4:] + iban[:4]
     digits = int(''.join(str(int(char, 36)) for char in check_chars))  # BASE 36: 0..9,A..Z -> 0..35
     if digits % 97 != 1:
-        raise ValidationError(env._("This IBAN does not pass the validation check, please verify it."))
+        raise ValidationError(_tr("This IBAN does not pass the validation check, please verify it."))
 
     return iban
 
 
-def validate_clabe(env, clabe):
+def validate_clabe(env, clabe=None):
+    if clabe is None:
+        clabe = env
+        env = None
+    _tr = getattr(env, '_', None) or (lambda s, *a: (s % a if a else s))
     clabe = normalize_account_number(clabe)
 
     if not isinstance(clabe, str) or len(clabe) != 18 or not clabe.isdigit():
-        raise ValidationError(env._("CLABE should be a string of 18 digits."))
+        raise ValidationError(_tr("CLABE should be a string of 18 digits."))
 
     factors = [3, 7, 1]
     total = 0
@@ -87,7 +95,7 @@ def validate_clabe(env, clabe):
     actual = int(clabe[17])  # checksum
 
     if expected != actual:
-        raise ValidationError(env._("This CLABE does not pass the checksum check, please verify it."))
+        raise ValidationError(_tr("This CLABE does not pass the checksum check, please verify it."))
 
     return clabe
 
