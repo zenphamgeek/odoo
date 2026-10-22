@@ -35,7 +35,7 @@ def verify_db_state(dbname):
     conn = get_local_conn(dbname)
     cur = conn.cursor()
 
-    # 1. Verify exactly 9 active DGM employees (including DGM-009 Trần Văn Huỳnh Phố)
+    # 1. Verify exactly 19 active DGM employees (DGM-001..DGM-019)
     cur.execute(
         """
         SELECT e.id, e.registration_number, e.name, e.user_id, v.wage, v.job_title
@@ -46,12 +46,13 @@ def verify_db_state(dbname):
         """
     )
     emps = cur.fetchall()
-    assert len(emps) == 9, f"{dbname}: Expected 9 active employees, got {len(emps)}"
+    assert len(emps) == 19, f"{dbname}: Expected 19 active employees, got {len(emps)}"
     regs = [r[1] for r in emps]
-    assert regs == [f"DGM-00{i}" for i in range(1, 10)], f"{dbname}: Unexpected regs {regs}"
+    assert regs == [f"DGM-{i:03d}" for i in range(1, 20)], f"{dbname}: Unexpected regs {regs}"
     assert emps[0][3] == 2, f"{dbname}: Expected DGM-001 linked to admin user_id=2, got {emps[0][3]}"
-    assert int(emps[0][4]) == 45000000, f"{dbname}: Expected DGM-001 wage 45,000,000, got {emps[0][4]}"
-    assert emps[8][1] == "DGM-009" and emps[8][2] == "Trần Văn Huỳnh Phố" and int(emps[8][4]) == 30000000
+    assert int(emps[0][4]) == 22556800, f"{dbname}: Expected DGM-001 wage 22,556,800, got {emps[0][4]}"
+    assert emps[8][1] == "DGM-009" and emps[8][2] == "Trần Văn Huỳnh Phố" and int(emps[8][4]) == 9027000
+    assert emps[9][1] == "DGM-010" and emps[9][2] == "Phạm Vũ Thắng" and int(emps[9][4]) == 31770000
 
     # 2. Verify 4 active departments
     cur.execute("SELECT COUNT(*) FROM hr_department WHERE active = TRUE;")
@@ -78,18 +79,20 @@ def verify_db_state(dbname):
 
     cur.execute("SELECT COUNT(*) FROM hr_payslip;")
     slips_cnt = cur.fetchone()[0]
-    assert slips_cnt >= 18, f"{dbname}: Expected >= 18 payslips, got {slips_cnt}"
+    assert slips_cnt >= 19, f"{dbname}: Expected >= 19 payslips, got {slips_cnt}"
 
     # 5. Verify ir_config_parameter master registry & lifecycle
     cur.execute("SELECT value FROM ir_config_parameter WHERE key = 'dgm.hr.master_registry';")
     reg_row = cur.fetchone()
     assert reg_row, f"{dbname}: Missing dgm.hr.master_registry"
     reg_data = json.loads(reg_row[0])
-    assert len(reg_data["employees"]) == 9
-    assert sum(e["gross_wage"] for e in reg_data["employees"]) == 289000000
+    assert len(reg_data["employees"]) == 19
+    assert sum(e["gross_wage"] for e in reg_data["employees"]) == 332451400
+    assert reg_data["total_vcb_dgm"] == 287944000
+    assert reg_data["total_acb_inno"] == 30150000
 
     conn.close()
-    print(f"[✓] {dbname}: 9 DGM employees (including DGM-009 Trần Văn Huỳnh Phố), 4 departments, 9 contracts, {slips_cnt} payslips, and VCB bank accounts verified")
+    print(f"[✓] {dbname}: 19 DGM employees (DGM-001..DGM-019), 4 departments, 19 contracts, {slips_cnt} payslips, and VCB bank accounts verified")
 
 
 def _setup_controller_module():
@@ -179,6 +182,7 @@ def verify_iso27701_privacy_and_maker_checker_workflow():
 
     # 1. Verify Deterministic Partial Masking Helpers (ISO/IEC 27701 A.8.11)
     assert ed._mask_cccd("089094016917") == "089******917", ed._mask_cccd("089094016917")
+    assert ed._mask_cccd("094094005852") == "094******852", ed._mask_cccd("094094005852")
     assert ed._mask_cccd("365931521") == "365***521", ed._mask_cccd("365931521")
     assert ed._mask_phone("0903881001") == "090*****01", ed._mask_phone("0903881001")
     assert ed._mask_bank_acc("1373068161") == "13****8161", ed._mask_bank_acc("1373068161")
@@ -609,7 +613,7 @@ conn = psycopg2.connect(
 cur = conn.cursor()
 cur.execute("SELECT COUNT(*) FROM hr_employee WHERE active = TRUE;")
 emp_cnt = cur.fetchone()[0]
-assert emp_cnt == 9, f'Expected 9 active employees on K8s, got {emp_cnt}'
+assert emp_cnt == 19, f'Expected 19 active employees on K8s, got {emp_cnt}'
 
 cur.execute("SELECT COUNT(*) FROM hr_department WHERE active = TRUE;")
 dept_cnt = cur.fetchone()[0]
