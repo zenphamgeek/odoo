@@ -1,5 +1,7 @@
 .o_sp_dashboard_search {
-    min-width: 50vw;
+    min-width: 260px;
+    max-width: 480px;
+    flex: 1 1 auto;
 
     .o_sp_date_filter_button {
         height: fit-content;

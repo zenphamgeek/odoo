@@ -4,12 +4,14 @@ import {
     computed,
     onWillStart,
     proxy,
+    signal,
     useEffect,
     useListener,
     useProps,
 } from "@odoo/owl";
 import { SpreadsheetComponent } from "@spreadsheet/actions/spreadsheet_component";
 import { SpreadsheetShareButton } from "@spreadsheet/components/share_button/share_button";
+import { browser } from "@web/core/browser/browser";
 import { _t } from "@web/core/l10n/translation";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
@@ -40,6 +42,8 @@ export class SpreadsheetDashboardAction extends Component {
 
     props = useProps(standardActionServiceProps);
 
+    sidebarRef = signal.ref();
+
     activeDashboardId = computed(() => this.loader.activeDashboardId);
     dashboard = computed(() => {
         const id = this.activeDashboardId();
@@ -53,6 +57,16 @@ export class SpreadsheetDashboardAction extends Component {
         this.uiService = useService("ui");
         this.actionService = useService("action");
         this.loader = useService("spreadsheet_dashboard_loader");
+
+        const savedWidth = browser.localStorage.getItem("spreadsheet_dashboard_sidebar_width");
+        this.sidebarWidth = savedWidth || "240px";
+
+        const savedExpanded = browser.localStorage.getItem("spreadsheet_dashboard_sidebar_expanded");
+        /** @type {{ sidebarExpanded: boolean}} */
+        this.state = proxy({
+            sidebarExpanded: savedExpanded !== null ? (savedExpanded !== "false") : true,
+        });
+
         onWillStart(async () => {
             if (this.props.state && this.props.state.dashboardLoader) {
                 const state = this.props.state.dashboardLoader;
@@ -73,6 +87,13 @@ export class SpreadsheetDashboardAction extends Component {
                 return () => dashboard.model.off("update", this, onUpdate);
             }
         });
+        useEffect(() => {
+            const el = this.sidebarRef();
+            if (el && this.state.sidebarExpanded) {
+                el.style.width = this.sidebarWidth;
+                el.style.minWidth = this.sidebarWidth;
+            }
+        });
         useListener(window, "afterprint", this.logExport.bind(this));
 
         useSetupAction({
@@ -80,8 +101,6 @@ export class SpreadsheetDashboardAction extends Component {
                 dashboardLoader: this.loader.getState(),
             }),
         });
-        /** @type {{ sidebarExpanded: boolean}} */
-        this.state = proxy({ sidebarExpanded: true });
         this.searchBarToggler = useSearchBarToggler();
     }
 
@@ -156,6 +175,54 @@ export class SpreadsheetDashboardAction extends Component {
 
     toggleSidebar() {
         this.state.sidebarExpanded = !this.state.sidebarExpanded;
+        browser.localStorage.setItem(
+            "spreadsheet_dashboard_sidebar_expanded",
+            this.state.sidebarExpanded
+        );
+    }
+
+    _onStartResize(ev) {
+        if (ev.button !== 0) return;
+        const initialX = ev.pageX;
+        const sidebarEl = this.sidebarRef();
+        if (!sidebarEl) return;
+        const initialWidth = sidebarEl.offsetWidth;
+        const resizeStoppingEvents = ["keydown", "pointerdown", "pointerup"];
+
+        const resizePanel = (moveEv) => {
+            moveEv.preventDefault();
+            moveEv.stopPropagation();
+            const minWidth = 180;
+            const maxWidth = Math.max(minWidth, Math.min(600, window.innerWidth * 0.45));
+            const delta = moveEv.pageX - initialX;
+            const newWidth = Math.min(maxWidth, Math.max(minWidth, initialWidth + delta));
+            this.sidebarWidth = `${newWidth}px`;
+            const el = this.sidebarRef();
+            if (el) {
+                el.style.width = this.sidebarWidth;
+                el.style.minWidth = this.sidebarWidth;
+            }
+        };
+        document.addEventListener("pointermove", resizePanel, true);
+
+        const stopResize = (stopEv) => {
+            if (stopEv.type === "pointerdown" && stopEv.button === 0) return;
+            stopEv.preventDefault();
+            stopEv.stopPropagation();
+
+            document.removeEventListener("pointermove", resizePanel, true);
+            resizeStoppingEvents.forEach((stoppingEvent) => {
+                document.removeEventListener(stoppingEvent, stopResize, true);
+            });
+            browser.localStorage.setItem("spreadsheet_dashboard_sidebar_width", this.sidebarWidth);
+            if (document.activeElement) {
+                document.activeElement.blur();
+            }
+        };
+
+        resizeStoppingEvents.forEach((stoppingEvent) => {
+            document.addEventListener(stoppingEvent, stopResize, true);
+        });
     }
 
     get activeDashboardGroupName() {
