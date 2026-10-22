@@ -707,6 +707,21 @@ var owl = (() => {
       return readValue;
     };
     readSignal[atomSymbol] = atom;
+    readSignal.toString = function() {
+      const v = readSignal();
+      return v === null || v === undefined ? "" : String(v);
+    };
+    readSignal.valueOf = function() {
+      const v = readSignal();
+      return v === null || v === undefined ? "" : v;
+    };
+    readSignal[Symbol.toPrimitive] = function(hint) {
+      const v = readSignal();
+      if (hint === "number") {
+        return Number(v);
+      }
+      return v === null || v === undefined ? "" : String(v);
+    };
     readSignal.set = function writeSignal(newValue) {
       if (equalsFn(atom.value, newValue)) {
         return;
@@ -783,6 +798,21 @@ var owl = (() => {
     }
     readComputed[atomSymbol] = computation;
     readComputed.set = options.set ?? readonlySetter;
+    readComputed.toString = function() {
+      const v = readComputed();
+      return v === null || v === undefined ? "" : String(v);
+    };
+    readComputed.valueOf = function() {
+      const v = readComputed();
+      return v === null || v === undefined ? "" : v;
+    };
+    readComputed[Symbol.toPrimitive] = function(hint) {
+      const v = readComputed();
+      if (hint === "number") {
+        return Number(v);
+      }
+      return v === null || v === undefined ? "" : String(v);
+    };
     getScope()?.computations.push(computation);
     return readComputed;
   }
@@ -2515,6 +2545,9 @@ ${issueStrings}`);
     return new VText(str);
   }
   function toText(value) {
+    if (typeof value === "function" && value[atomSymbol]) {
+      value = value();
+    }
     switch (typeof value) {
       case "string":
         return value;
@@ -3872,7 +3905,7 @@ ${issueStrings}`);
       if (!this.fiber) {
         return;
       }
-      if (this.bdom === this.fiber.bdom) {
+      if (this.bdom === (this.fiber ? this.fiber.bdom : null)) {
         for (let k in this.children) {
           const child = this.children[k];
           child.updateDom();
@@ -3880,14 +3913,18 @@ ${issueStrings}`);
       } else {
         removalDepth++;
         try {
-          this.bdom.patch(this.fiber.bdom, false);
+          if (this.bdom && this.fiber && this.fiber.bdom) {
+            this.bdom.patch(this.fiber.bdom, false);
+          }
         } finally {
           removalDepth--;
         }
         this.sweepRefs();
         sweepRemovedRefs();
-        this.fiber.renderState |= APPLIED_TO_DOM;
-        this.fiber = null;
+        if (this.fiber) {
+          this.fiber.renderState |= APPLIED_TO_DOM;
+          this.fiber = null;
+        }
       }
     }
     // ---------------------------------------------------------------------------
@@ -3898,19 +3935,24 @@ ${issueStrings}`);
       return bdom2 ? bdom2.firstNode() : void 0;
     }
     mount(parent, anchor) {
-      const bdom2 = this.fiber.bdom;
+      const bdom2 = this.fiber ? this.fiber.bdom : this.bdom;
+      if (!bdom2) {
+        return;
+      }
       this.bdom = bdom2;
       bdom2.mount(parent, anchor);
       this.status = STATUS.MOUNTED;
-      this.fiber.renderState |= APPLIED_TO_DOM;
-      this.children = this.fiber.childrenMap;
-      this.fiber = null;
+      if (this.fiber) {
+        this.fiber.renderState |= APPLIED_TO_DOM;
+        this.children = this.fiber.childrenMap;
+        this.fiber = null;
+      }
     }
     moveBeforeDOMNode(node, parent) {
-      this.bdom.moveBeforeDOMNode(node, parent);
+      this.bdom?.moveBeforeDOMNode(node, parent);
     }
     moveBeforeVNode(other, afterNode) {
-      this.bdom.moveBeforeVNode(other ? other.bdom : null, afterNode);
+      this.bdom?.moveBeforeVNode(other ? other.bdom : null, afterNode);
     }
     /**
      * Register a t-ref signal bound to an element this component hosts, so its
@@ -3932,10 +3974,15 @@ ${issueStrings}`);
         break;
       }
       const fiber = this.fiber;
+      if (!fiber) {
+        return;
+      }
       this.children = fiber.childrenMap;
       removalDepth++;
       try {
-        this.bdom.patch(fiber.bdom, hasChildren);
+        if (this.bdom && fiber.bdom) {
+          this.bdom.patch(fiber.bdom, hasChildren);
+        }
       } finally {
         removalDepth--;
       }
@@ -3948,7 +3995,7 @@ ${issueStrings}`);
       this._destroy();
     }
     remove() {
-      this.bdom.remove();
+      this.bdom?.remove();
     }
   };
   var removalDepth = 0;
@@ -4135,7 +4182,10 @@ ${issueStrings}`);
     }
   };
   function safeOutput(value, defaultValue) {
-    if (value === void 0 || value === null) {
+    if (typeof value === "function" && value[atomSymbol]) {
+      value = value();
+    }
+    if (value === void 0 || value === null || value === false) {
       return defaultValue ? toggler("default", defaultValue) : toggler("undefined", text(""));
     }
     let safeKey;

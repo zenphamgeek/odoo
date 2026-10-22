@@ -29,6 +29,8 @@
             "spreadsheet_dashboard/static/src/**/*.scss",
         ],
         'web.assets_unit_tests': [
+            "spreadsheet_dashboard/static/src/bundle/**/*.js",
+            "spreadsheet_dashboard/static/src/bundle/**/*.xml",
             "spreadsheet_dashboard/static/src/public/**/*.js",
             "spreadsheet_dashboard/static/src/public/**/*.xml",
             "spreadsheet_dashboard/static/tests/**/*",

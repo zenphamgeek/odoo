@@ -1,13 +1,21 @@
-import { test, expect, describe, animationFrame } from "@odoo/hoot";
+import { test, expect, describe, beforeEach, animationFrame } from "@odoo/hoot";
 import { contains, mountView, onRpc } from "@web/../tests/web_test_helpers";
+import { registry } from "@web/core/registry";
 import {
     defineSpreadsheetDashboardModels,
     SpreadsheetDashboard,
     SpreadsheetDashboardFavoriteFilters,
 } from "../helpers/data";
+import { GlobalFilterWidget } from "@spreadsheet_dashboard/bundle/global_filter_widget/global_filter_widget";
 
 describe.current.tags("desktop");
 defineSpreadsheetDashboardModels();
+
+beforeEach(() => {
+    registry
+        .category("lazy_components")
+        .add("spreadsheet_dashboard.GlobalFilterWidget", GlobalFilterWidget, { force: true });
+});
 
 SpreadsheetDashboardFavoriteFilters._records = [
     {

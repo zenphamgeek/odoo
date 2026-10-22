@@ -13,7 +13,7 @@ export function getProductRelatedModel() {
     const field = this.props.record.fields[this.props.productField];
     // The widget is either used alongisde a product related field or either used in a product view.
     let resModel = field?.relation || this.props.record.resModel;
-    if (!["product.product", "product.template"].includes(resModel)) {
+    if (!["product.product", "product.template", "catalog.sku", "catalog.item"].includes(resModel)) {
         throw new Error(`The widget '${this.constructor.name}' (field '${this.props.name}') needs a 'product.product' or 'product.template' field. '${this.props.productField}' is used but is related to '${field?.relation}' model.`);
     }
     return resModel;
