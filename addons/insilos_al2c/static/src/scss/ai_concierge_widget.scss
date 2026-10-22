@@ -152,23 +152,241 @@
     }
 }
 
-// 1. Floating Action Launcher Button
-.al2c-concierge-launcher {
+// 1. Floating Action Launcher Wrapper & 90-Degree Fan-Out Radial Interaction
+.al2c-launcher-wrapper {
     position: fixed;
     bottom: 24px;
     right: 24px;
+    width: 60px;
+    height: 60px;
+    z-index: var(--al2c-concierge-zindex);
+    pointer-events: auto;
+}
+
+// Fan-Out Backdrop Barrier (Clicks outside dismiss radial menu)
+.al2c-fanout-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--al2c-concierge-zindex) - 1);
+    background: rgba(0, 31, 38, 0.18);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    cursor: default;
+    animation: al2c-fanout-fade-in 0.2s ease-out forwards;
+}
+
+@keyframes al2c-fanout-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+// Fan-Out Quarter-Circle Arc & Cluster (90-Degree Inward Sector)
+.al2c-fanout-cluster {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    pointer-events: none;
+    z-index: 1;
+
+    // SVG 90-Degree Guide Arc
+    .al2c-fanout-svg-arc {
+        position: absolute;
+        bottom: -20px;
+        right: -20px;
+        width: 170px;
+        height: 170px;
+        pointer-events: none;
+        opacity: 0;
+        transform: scale(0.65);
+        transform-origin: bottom right;
+        transition: opacity 0.28s ease, transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    // Individual Radial Fan-Out Node
+    .al2c-fanout-node {
+        position: absolute;
+        bottom: 6px;
+        right: 6px;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        opacity: 0;
+        transform: translate3d(0, 0, 0) scale(0.2);
+        transform-origin: center center;
+        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
+        outline: none;
+
+        // Node Button
+        .al2c-fanout-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: var(--al2c-concierge-bg-surface);
+            border: 1.5px solid #0ABBDB;
+            box-shadow: 0 8px 24px rgba(0, 51, 51, 0.18);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+
+            .al2c-fanout-icon {
+                width: 22px;
+                height: 22px;
+                color: var(--al2c-concierge-primary);
+                transition: color 0.2s ease, transform 0.2s ease;
+            }
+
+            &:hover {
+                transform: scale(1.12);
+                border-color: #FF8000;
+                box-shadow: 0 12px 28px rgba(255, 128, 0, 0.3);
+
+                .al2c-fanout-icon {
+                    color: #003333;
+                    transform: scale(1.08);
+                }
+            }
+
+            &:active {
+                transform: scale(0.96);
+            }
+        }
+
+        // Attached Floating Label Pill
+        .al2c-fanout-pill {
+            position: absolute;
+            right: 58px;
+            top: 50%;
+            transform: translateY(-50%) translateX(4px);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            padding: 4px 10px;
+            background: var(--al2c-concierge-bg-surface);
+            border: 1px solid var(--al2c-concierge-border-subtle);
+            border-right: 3px solid #0ABBDB;
+            border-radius: 2px;
+            box-shadow: 0 6px 20px rgba(0, 51, 51, 0.12);
+            white-space: nowrap;
+            pointer-events: auto;
+            cursor: pointer;
+            opacity: 0.96;
+            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+
+            .al2c-pill-tag {
+                font-size: 8.5px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                color: #0ABBDB;
+                background: rgba(10, 187, 219, 0.1);
+                padding: 1px 5px;
+                border-radius: 2px;
+                margin-bottom: 2px;
+
+                &.al2c-pill-tag-calc {
+                    color: #005F73;
+                    background: rgba(0, 95, 115, 0.12);
+                }
+
+                &.al2c-pill-tag-deal {
+                    color: #D97706;
+                    background: rgba(217, 119, 6, 0.12);
+                }
+            }
+
+            .al2c-pill-title {
+                font-size: 11.5px;
+                font-weight: 700;
+                color: var(--al2c-concierge-text-primary);
+                line-height: 1.25;
+            }
+
+            .al2c-pill-subtitle {
+                font-size: 9.5px;
+                font-weight: 500;
+                color: var(--al2c-concierge-text-muted);
+                line-height: 1.2;
+                margin-top: 1px;
+            }
+
+            &:hover {
+                transform: translateY(-50%) translateX(-2px);
+                border-color: #0ABBDB;
+                box-shadow: 0 8px 24px rgba(10, 187, 219, 0.22);
+            }
+        }
+
+        &:hover {
+            .al2c-fanout-pill {
+                transform: translateY(-50%) translateX(-2px);
+                border-color: #0ABBDB;
+                box-shadow: 0 8px 24px rgba(10, 187, 219, 0.22);
+            }
+        }
+    }
+
+    // Active Fan-Out Quarter-Circle State (Trigonometric Radial Offsets: R=110px)
+    &.is-active {
+        pointer-events: auto;
+
+        .al2c-fanout-svg-arc {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        // Node 1: UP (~75° from horizontal, dx=-28px, dy=-106px)
+        .al2c-fanout-node-chat {
+            pointer-events: auto;
+            opacity: 1;
+            transform: translate3d(-28px, -106px, 0) scale(1);
+            transition-delay: 0.03s;
+        }
+
+        // Node 2: Center Diagonal (45°, dx=-78px, dy=-78px)
+        .al2c-fanout-node-services {
+            pointer-events: auto;
+            opacity: 1;
+            transform: translate3d(-78px, -78px, 0) scale(1);
+            transition-delay: 0.07s;
+        }
+
+        // Node 3: LEFT (~15° from horizontal, dx=-106px, dy=-28px)
+        .al2c-fanout-node-lead {
+            pointer-events: auto;
+            opacity: 1;
+            transform: translate3d(-106px, -28px, 0) scale(1);
+            transition-delay: 0.11s;
+        }
+    }
+}
+
+// Main Launcher Floating Button
+.al2c-concierge-launcher {
+    position: relative;
     width: 60px;
     height: 60px;
     border-radius: 50%;
     background: linear-gradient(135deg, #005F73 0%, #003333 100%);
     border: 2px solid #0ABBDB;
     box-shadow: var(--al2c-concierge-launcher-shadow);
-    z-index: var(--al2c-concierge-zindex);
+    z-index: 2;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
     padding: 0;
 
     &:hover {
@@ -178,6 +396,17 @@
 
     &:active {
         transform: scale(0.96);
+    }
+
+    &.is-active {
+        background: linear-gradient(135deg, #003333 0%, #001A1A 100%);
+        border-color: #FF8000;
+        box-shadow: 0 10px 30px rgba(255, 128, 0, 0.35);
+
+        .al2c-launcher-icon-close {
+            transform: rotate(90deg);
+            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
     }
 
     .al2c-launcher-content {

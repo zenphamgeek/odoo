@@ -1,6 +1,6 @@
 {
   "audit_metadata": {
-    "timestamp": "2026-10-22T13:15:22.122979+00:00",
+    "timestamp": "2026-10-22T13:23:06.832968+00:00",
     "scanner_version": "2.0.0",
     "drift_threshold_days": 30.0,
     "scanned_repositories_count": 4,
@@ -11,14 +11,14 @@
     "total_modules": 128,
     "total_loc_code": 3522494,
     "total_loc_test": 2492595,
-    "total_velocity_30d": 1073,
-    "total_dirty_files": 54,
+    "total_velocity_30d": 1075,
+    "total_dirty_files": 19,
     "drift_stale_modules_count": 0,
     "missing_doc_modules_count": 104,
     "dependency_risks_count": 135,
     "total_replacement_man_days": 26621.4,
-    "total_active_sprint_workload_days": 11103.8,
-    "candidate_backlog_items_count": 221
+    "total_active_sprint_workload_days": 11098.3,
+    "candidate_backlog_items_count": 220
   },
   "repositories": {
     "O20": {
@@ -27,16 +27,16 @@
       "git": {
         "is_git": true,
         "branch": "insilos-genesis-fork",
-        "head": "fa0a32037",
-        "head_full": "fa0a3203774322c84f96684755b4ddf19cf4c621",
+        "head": "e8c194f56",
+        "head_full": "e8c194f564fac5922939d114b319c6a78c947f17",
         "author": "Zen",
-        "commit_date": "2026-10-22T20:14:55+07:00",
-        "commit_timestamp": 1792674895,
-        "commit_subject": "feat(website): elevate Section 8 to 5-Tier 3D CAD Flywheel, purge all residual AI slop across main routes, and update enterprise submodule",
-        "dirty_files_count": 0,
-        "is_dirty": false,
-        "velocity_30d": 538,
-        "churn_30d": 473461,
+        "commit_date": "2026-10-22T20:22:11+07:00",
+        "commit_timestamp": 1792675331,
+        "commit_subject": "chore(governance): update multi-repo continuous scan report and build telemetry",
+        "dirty_files_count": 2,
+        "is_dirty": true,
+        "velocity_30d": 539,
+        "churn_30d": 473475,
         "git_health_warning": null
       },
       "topology": {
@@ -507,7 +507,7 @@
         "test_coverage_ratio": 0.736,
         "complexity_rating": 1.5,
         "replacement_man_days": 2395.9,
-        "active_sprint_workload_days": 744.5,
+        "active_sprint_workload_days": 744.9,
         "effective_churn_30d": 86706
       },
       "candidate_backlog_items": [
@@ -855,16 +855,16 @@
       "git": {
         "is_git": true,
         "branch": "Development",
-        "head": "1e1bba3f9",
-        "head_full": "1e1bba3f93078c8ff7c673fedea91aa2f7dea24e",
+        "head": "d5ed6aa12",
+        "head_full": "d5ed6aa12eb50a0c92aa5c7e59d6d21a708d05f4",
         "author": "Antigravity Agent",
-        "commit_date": "2026-10-22T17:38:58+07:00",
-        "commit_timestamp": 1792665538,
-        "commit_subject": "feat(docs): 5-phase color card grid pipeline, 31 live authenticated screenshots &amp; zero NOT_APPLICABLE disposition (qa-sdlc-insights-20261022f)",
-        "dirty_files_count": 38,
+        "commit_date": "2026-10-22T20:23:00+07:00",
+        "commit_timestamp": 1792675380,
+        "commit_subject": "fix(docs): remediate grc_risks preset runtime error, sanitize tabular alias fields &amp; refresh clean screenshots (qa-sdlc-insights-20261022g)",
+        "dirty_files_count": 1,
         "is_dirty": true,
-        "velocity_30d": 205,
-        "churn_30d": 396941,
+        "velocity_30d": 206,
+        "churn_30d": 397122,
         "git_health_warning": null
       },
       "topology": {
@@ -2143,12 +2143,12 @@
         "total_files": 12236,
         "loc_code": 756194,
         "loc_test": 1029788,
-        "loc_docs": 115951,
+        "loc_docs": 115991,
         "test_coverage_ratio": 1.362,
         "complexity_rating": 1.25,
         "replacement_man_days": 5251.3,
-        "active_sprint_workload_days": 3385.4,
-        "effective_churn_30d": 396941
+        "active_sprint_workload_days": 3379.5,
+        "effective_churn_30d": 397122
       },
       "candidate_backlog_items": [
         {
@@ -3122,18 +3122,6 @@
           "verify": "pip check",
           "risk": "R1",
           "formatted_line": "- [ ] [DEP02-REQUIREMENTS-REQUESTS][P2][security] Pin upper bound on Python dependency requests in hermes-agent/optional-skills/finance/dcf-model/requirements.txt \u2014 DoD: Add explicit upper bound constraint to requests in hermes-agent/optional-skills/finance/dcf-model/requirements.txt <!-- meta: repo=VerticalRisk path=hermes-agent/optional-skills/finance/dcf-model/requirements.txt verify=\"pip check\" risk=R1 -->"
-        },
-        {
-          "item_code": "WIP01-VERTICALRISK",
-          "priority": "P1",
-          "track": "plan",
-          "title": "Triage 38 uncommitted dirty files in VerticalRisk",
-          "dod": "Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree",
-          "repo": "VerticalRisk",
-          "path": ".",
-          "verify": "git -C VerticalRisk status --porcelain",
-          "risk": "R1",
-          "formatted_line": "- [ ] [WIP01-VERTICALRISK][P1][plan] Triage 38 uncommitted dirty files in VerticalRisk \u2014 DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=VerticalRisk path=. verify=\"git -C VerticalRisk status --porcelain\" risk=R1 -->"
         },
         {
           "item_code": "DEP03-ROOT-KNEX",
@@ -6466,7 +6454,6 @@
     "- [ ] [DOC02-VERTICALRISK_WEBHOOKS][P1][docs] Author sovereign localized README for verticalrisk-webhooks \u2014 DoD: Create extensions/verticalrisk-webhooks/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-webhooks/README.md verify=\"test -f extensions/verticalrisk-webhooks/README.md\" risk=R0 -->",
     "- [ ] [DOC02-VERTICALRISK_WORKFLOW_API][P1][docs] Author sovereign localized README for verticalrisk-workflow-api \u2014 DoD: Create extensions/verticalrisk-workflow-api/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-api/README.md verify=\"test -f extensions/verticalrisk-workflow-api/README.md\" risk=R0 -->",
     "- [ ] [DOC02-VERTICALRISK_WORKFLOW_KERNEL][P1][docs] Author sovereign localized README for verticalrisk-workflow-kernel \u2014 DoD: Create extensions/verticalrisk-workflow-kernel/README.md documenting architecture, dependencies, and contract tests <!-- meta: repo=VerticalRisk path=extensions/verticalrisk-workflow-kernel/README.md verify=\"test -f extensions/verticalrisk-workflow-kernel/README.md\" risk=R0 -->",
-    "- [ ] [WIP01-VERTICALRISK][P1][plan] Triage 38 uncommitted dirty files in VerticalRisk \u2014 DoD: Review and quarantine uncommitted working tree modifications into feature branches to restore clean tree <!-- meta: repo=VerticalRisk path=. verify=\"git -C VerticalRisk status --porcelain\" risk=R1 -->",
     "- [ ] [DEP02-PYPROJECT-AIOFILES][P2][security] Pin upper bound on Python dependency aiofiles in router/pyproject.toml \u2014 DoD: Add explicit upper bound constraint to aiofiles in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify=\"pip check\" risk=R1 -->",
     "- [ ] [DEP02-PYPROJECT-ANYIO][P2][security] Pin upper bound on Python dependency anyio in router/pyproject.toml \u2014 DoD: Add explicit upper bound constraint to anyio in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify=\"pip check\" risk=R1 -->",
     "- [ ] [DEP02-PYPROJECT-CRYPTOGRAPHY][P2][security] Pin upper bound on Python dependency cryptography in router/pyproject.toml \u2014 DoD: Add explicit upper bound constraint to cryptography in router/pyproject.toml <!-- meta: repo=zencode-ent path=router/pyproject.toml verify=\"pip check\" risk=R1 -->",

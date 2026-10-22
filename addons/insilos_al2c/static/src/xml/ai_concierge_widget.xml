@@ -31,29 +31,142 @@
                 </div>
             </t>
 
-            <!-- 1. Floating Action Launcher Button -->
-            <button
-                type="button"
-                class="al2c-concierge-launcher"
-                t-att-class="{'is-active': state.isOpen}"
-                t-on-click="this.toggleDrawer"
-                title="Trợ Lý AI &amp; Dự Toán Dịch Vụ Phần Mềm Innoria"
-                aria-label="Trợ Lý AI &amp; Dự Toán Dịch Vụ Phần Mềm Innoria"
-            >
-                <div class="al2c-launcher-content">
-                    <t t-if="state.isOpen">
-                        <svg class="ph-duotone ph-x al2c-launcher-icon-close" style="width: 20px; height: 20px;" aria-hidden="true"><use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-x"/></svg>
-                    </t>
-                    <t t-else="">
-                        <img
-                            src="/insilos_al2c/static/src/img/logo_innoria_square_icon.svg"
-                            alt="Innoria AI"
-                            class="al2c-launcher-logo"
-                        />
-                        <span class="al2c-launcher-pulse" aria-hidden="true"/>
-                    </t>
+            <!-- 0B. Fan-Out Click-Outside Backdrop Barrier -->
+            <t t-if="state.isFanOutOpen and !state.isOpen">
+                <div
+                    class="al2c-fanout-backdrop"
+                    t-on-click="this.closeFanOut"
+                    aria-hidden="true"
+                />
+            </t>
+
+            <!-- 1. Floating Action Launcher & 90-Degree Quarter-Circle Fan-Out Menu -->
+            <div class="al2c-launcher-wrapper" t-att-class="{'is-fanout-open': state.isFanOutOpen, 'is-drawer-open': state.isOpen}">
+                <!-- Fan-Out Quarter-Circle Arc & Options Cluster -->
+                <div
+                    class="al2c-fanout-cluster"
+                    t-att-class="{'is-active': state.isFanOutOpen and !state.isOpen}"
+                    role="menu"
+                    aria-label="Menu Tương Tác 90° Innoria"
+                >
+                    <!-- SVG Quarter-Circle (90°) Guide Arc -->
+                    <svg class="al2c-fanout-svg-arc" viewBox="0 0 160 160" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="al2cFanoutArcGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+                                <stop offset="0%" stop-color="#0ABBDB" stop-opacity="0.85"/>
+                                <stop offset="50%" stop-color="#005F73" stop-opacity="0.65"/>
+                                <stop offset="100%" stop-color="#FF8000" stop-opacity="0.9"/>
+                            </linearGradient>
+                        </defs>
+                        <!-- 110px radius 90-degree arc centered at launcher center (130, 130) -->
+                        <path d="M 20 130 A 110 110 0 0 1 130 20" fill="none" stroke="url(#al2cFanoutArcGrad)" stroke-width="2" stroke-dasharray="4 4" class="al2c-fanout-arc-path"/>
+                    </svg>
+
+                    <!-- Node 1: Vertical UP (~75° from horizontal: dx=-28px, dy=-106px) -> Hội Thoại AI / Copilot -->
+                    <div
+                        class="al2c-fanout-node al2c-fanout-node-chat"
+                        role="menuitem"
+                        tabindex="0"
+                        t-on-click="(ev) => this.selectFanOutOption('chat', ev)"
+                        t-att-title="state.isBackend ? 'Hội Thoại Copilot · Tra cứu tri thức &amp; Hỏi đáp' : 'Hội Thoại AI · Trợ lý Tri thức RAG 24/7'"
+                    >
+                        <div class="al2c-fanout-pill">
+                            <span class="al2c-pill-tag">AI RAG</span>
+                            <span class="al2c-pill-title">
+                                <t t-if="state.isBackend">Hội Thoại Copilot</t>
+                                <t t-else="">Hội Thoại AI</t>
+                            </span>
+                            <span class="al2c-pill-subtitle">
+                                <t t-if="state.isBackend">Hỏi đáp quy trình &amp; Dữ liệu</t>
+                                <t t-else="">Trợ lý Tri thức RAG 24/7</t>
+                            </span>
+                        </div>
+                        <button type="button" class="al2c-fanout-btn" aria-label="Hội Thoại AI">
+                            <svg class="ph-duotone ph-chats-circle al2c-fanout-icon" aria-hidden="true">
+                                <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-chats-circle"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Node 2: Center Diagonal (45°: dx=-78px, dy=-78px) -> Dịch Vụ & Dự Toán -->
+                    <div
+                        class="al2c-fanout-node al2c-fanout-node-services"
+                        role="menuitem"
+                        tabindex="0"
+                        t-on-click="(ev) => this.selectFanOutOption('services', ev)"
+                        t-att-title="state.isBackend ? 'Dự Toán &amp; Báo Cáo · Chi phí &amp; Tiến độ dự án' : 'Dịch Vụ &amp; Dự Toán · Cấu hình phần mềm &amp; Báo giá'"
+                    >
+                        <div class="al2c-fanout-pill">
+                            <span class="al2c-pill-tag al2c-pill-tag-calc">CPQ</span>
+                            <span class="al2c-pill-title">
+                                <t t-if="state.isBackend">Dự Toán &amp; Báo Cáo</t>
+                                <t t-else="">Dịch Vụ &amp; Dự Toán</t>
+                            </span>
+                            <span class="al2c-pill-subtitle">
+                                <t t-if="state.isBackend">Chi phí &amp; Tiến độ dự án</t>
+                                <t t-else="">Cấu hình giải pháp phần mềm</t>
+                            </span>
+                        </div>
+                        <button type="button" class="al2c-fanout-btn" aria-label="Dịch Vụ &amp; Dự Toán">
+                            <svg class="ph-duotone ph-calculator al2c-fanout-icon" aria-hidden="true">
+                                <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-calculator"/>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Node 3: Horizontal LEFT (~15° from horizontal: dx=-106px, dy=-28px) -> Nhận Báo Giá -->
+                    <div
+                        class="al2c-fanout-node al2c-fanout-node-lead"
+                        role="menuitem"
+                        tabindex="0"
+                        t-on-click="(ev) => this.selectFanOutOption('lead', ev)"
+                        t-att-title="state.isBackend ? 'Tạo Lead &amp; SOW · Fast-Track Deal Desk' : 'Nhận Báo Giá · Fast-Track SOW trong &lt; 2h'"
+                    >
+                        <div class="al2c-fanout-pill">
+                            <span class="al2c-pill-tag al2c-pill-tag-deal">SOW &lt; 2h</span>
+                            <span class="al2c-pill-title">
+                                <t t-if="state.isBackend">Tạo Lead &amp; SOW</t>
+                                <t t-else="">Nhận Báo Giá</t>
+                            </span>
+                            <span class="al2c-pill-subtitle">
+                                <t t-if="state.isBackend">Fast-Track Deal Desk</t>
+                                <t t-else="">Dự toán SOW nhanh &lt; 2h</t>
+                            </span>
+                        </div>
+                        <button type="button" class="al2c-fanout-btn" aria-label="Nhận Báo Giá">
+                            <svg class="ph-duotone ph-calendar-check al2c-fanout-icon" aria-hidden="true">
+                                <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-calendar-check"/>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
-            </button>
+
+                <!-- Main Floating Action Launcher Button -->
+                <button
+                    type="button"
+                    class="al2c-concierge-launcher"
+                    t-att-class="{'is-active': state.isOpen or state.isFanOutOpen}"
+                    t-on-click="this.toggleDrawer"
+                    title="Menu Tương Tác 90° Innoria AI &amp; Dịch Vụ"
+                    aria-label="Menu Tương Tác 90° Innoria AI &amp; Dịch Vụ"
+                >
+                    <div class="al2c-launcher-content">
+                        <t t-if="state.isOpen or state.isFanOutOpen">
+                            <svg class="ph-duotone ph-x al2c-launcher-icon-close" style="width: 20px; height: 20px;" aria-hidden="true">
+                                <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-x"/>
+                            </svg>
+                        </t>
+                        <t t-else="">
+                            <img
+                                src="/insilos_al2c/static/src/img/logo_innoria_square_icon.svg"
+                                alt="Innoria AI"
+                                class="al2c-launcher-logo"
+                            />
+                            <span class="al2c-launcher-pulse" aria-hidden="true"/>
+                        </t>
+                    </div>
+                </button>
+            </div>
 
             <!-- 2. Chat & Services Configurator Drawer Container -->
             <div

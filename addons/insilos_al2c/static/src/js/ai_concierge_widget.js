@@ -463,6 +463,11 @@ export class AiConciergeWidget extends Component {
 
         this.state = useState({
             isOpen: false,
+            isFanOutOpen: false,
+            isBackend: Boolean(
+                (typeof window !== "undefined" && (window.location.pathname.startsWith("/web") || window.location.pathname.startsWith("/odoo"))) ||
+                (typeof odoo !== "undefined" && odoo.__session_info__ && !odoo.__session_info__.is_website)
+            ),
             isLoading: false,
             activeTab: "chat", // 'chat' | 'services' | 'lead'
             showLeadForm: false,
@@ -572,18 +577,27 @@ export class AiConciergeWidget extends Component {
         this.state.messages[0].formattedText = markup(parseMarkdownToHtml(this.state.messages[0].text));
 
         // Bind external website trigger handler
-        this._onDocumentConciergeClick = this._handleDocumentConciergeClick.bind(this);
-        this._cooldownTimer = null;
+        this._onDocumentKeyDown = (e) => {
+            if (e.key === "Escape") {
+                if (this.state.isFanOutOpen) {
+                    this.state.isFanOutOpen = false;
+                } else if (this.state.isOpen) {
+                    this.state.isOpen = false;
+                }
+            }
+        };
 
         onMounted(() => {
             this.scrollToBottom();
             this.loadServicesCatalog();
             this._registerGlobalBridge();
             document.addEventListener("click", this._onDocumentConciergeClick);
+            document.addEventListener("keydown", this._onDocumentKeyDown);
         });
 
         onWillUnmount(() => {
             document.removeEventListener("click", this._onDocumentConciergeClick);
+            document.removeEventListener("keydown", this._onDocumentKeyDown);
             if (this._cooldownTimer) {
                 clearInterval(this._cooldownTimer);
                 this._cooldownTimer = null;
@@ -1064,18 +1078,75 @@ export class AiConciergeWidget extends Component {
     }
 
     /**
-     * Toggle open/close state of chat drawer.
+     * Toggle Fan-Out Quarter-Circle 90-degree radial menu.
      */
-    toggleDrawer() {
-        this.state.isOpen = !this.state.isOpen;
+    toggleFanOut(ev) {
+        if (ev) {
+            ev.stopPropagation();
+            ev.preventDefault();
+        }
         if (this.state.isOpen) {
+            this.state.isOpen = false;
+            this.state.isFanOutOpen = false;
+            return;
+        }
+        this.state.isFanOutOpen = !this.state.isFanOutOpen;
+        if (this.state.isFanOutOpen) {
             this.state.proactiveNudgeVisible = false;
-            this.scrollToBottom();
+        }
+    }
+
+    /**
+     * Close Fan-Out Quarter-Circle menu cleanly.
+     */
+    closeFanOut(ev) {
+        if (ev) {
+            ev.stopPropagation();
+        }
+        this.state.isFanOutOpen = false;
+    }
+
+    /**
+     * Handle direct option selection from Fan-Out radial node.
+     * @param {'chat' | 'services' | 'lead'} tab
+     */
+    selectFanOutOption(tab, ev) {
+        if (ev) {
+            ev.stopPropagation();
+            ev.preventDefault();
+        }
+        this.state.isFanOutOpen = false;
+        this.state.proactiveNudgeVisible = false;
+        this.state.isOpen = true;
+        if (tab === "lead") {
+            this.openLeadForm("all");
+        } else {
+            this.setActiveTab(tab);
+        }
+        this.scrollToBottom();
+        if (tab === "chat") {
             setTimeout(() => {
                 if (this.queryInputRef && this.queryInputRef.el) {
                     this.queryInputRef.el.focus();
                 }
             }, 200);
+        }
+    }
+
+    /**
+     * Toggle open/close state of chat drawer.
+     * When closed, clicking the launcher opens the 90-degree fan-out quarter-circle interaction.
+     * When open, clicking the launcher closes the drawer.
+     */
+    toggleDrawer(ev) {
+        if (ev) {
+            ev.stopPropagation();
+        }
+        if (this.state.isOpen) {
+            this.state.isOpen = false;
+            this.state.isFanOutOpen = false;
+        } else {
+            this.toggleFanOut(ev);
         }
     }
 
