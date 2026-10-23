@@ -68,42 +68,34 @@ body.o_dark_mode,
 
             .al2c-fan-blade {
                 .al2c-fan-blade-path {
-                    stroke: rgba(255, 255, 255, 0.4);
+                    stroke: rgba(255, 255, 255, 0.45);
+                }
+
+                .al2c-fan-label {
+                    fill: #F8FAFC;
+                    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.8));
                 }
 
                 &:hover, &:focus-visible {
-                    filter: drop-shadow(0 12px 28px rgba(10, 187, 219, 0.55));
-
                     .al2c-fan-blade-path {
                         stroke: #FFFFFF;
-                        stroke-width: 2;
+                        stroke-width: 2.2;
                     }
                 }
-            }
-        }
 
-        .al2c-fanout-node {
-            .al2c-fanout-pill {
-                background: #0F172A;
-                border-color: rgba(255, 255, 255, 0.14);
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-
-                .al2c-pill-title {
-                    color: #F8FAFC;
+                &.al2c-fan-blade-01:hover,
+                &.al2c-fan-blade-01:focus-visible {
+                    filter: drop-shadow(0 14px 34px rgba(56, 189, 248, 0.75));
                 }
 
-                .al2c-pill-subtitle {
-                    color: #94A3B8;
+                &.al2c-fan-blade-02:hover,
+                &.al2c-fan-blade-02:focus-visible {
+                    filter: drop-shadow(0 14px 34px rgba(10, 187, 219, 0.75));
                 }
 
-                &:hover {
-                    box-shadow: 0 12px 28px rgba(10, 187, 219, 0.35);
-                }
-            }
-
-            &:hover {
-                .al2c-fanout-pill {
-                    box-shadow: 0 12px 28px rgba(10, 187, 219, 0.35);
+                &.al2c-fan-blade-03:hover,
+                &.al2c-fan-blade-03:focus-visible {
+                    filter: drop-shadow(0 14px 34px rgba(147, 51, 234, 0.75));
                 }
             }
         }

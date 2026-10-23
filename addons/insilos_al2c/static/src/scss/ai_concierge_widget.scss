@@ -161,6 +161,42 @@
     height: 60px;
     z-index: var(--al2c-concierge-zindex);
     pointer-events: auto;
+
+    // Trigger fan-out on hover over launcher wrapper (gốc) OR when state is active
+    &:hover,
+    &.is-fanout-hovered,
+    &.is-fanout-open {
+        .al2c-fanout-cluster:not(.is-drawer-open) {
+            pointer-events: auto;
+
+            .al2c-fan-hit-area {
+                pointer-events: auto;
+            }
+
+            .al2c-fan-orbit-path,
+            .al2c-fan-outer-arc {
+                opacity: 1;
+            }
+
+            .al2c-fan-blade-01 {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+                transition-delay: 0.02s;
+            }
+
+            .al2c-fan-blade-02 {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+                transition-delay: 0.05s;
+            }
+
+            .al2c-fan-blade-03 {
+                opacity: 1;
+                transform: scale(1) rotate(0deg);
+                transition-delay: 0.08s;
+            }
+        }
+    }
 }
 
 // Fan-Out Backdrop Barrier (Clicks outside dismiss radial menu)
@@ -189,8 +225,8 @@
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 320px;
-    height: 320px;
+    width: 380px;
+    height: 380px;
     pointer-events: none;
     z-index: 1;
 
@@ -199,10 +235,15 @@
         position: absolute;
         bottom: 0;
         right: 0;
-        width: 320px;
-        height: 320px;
+        width: 380px;
+        height: 380px;
         overflow: visible;
         pointer-events: none;
+
+        .al2c-fan-hit-area {
+            pointer-events: none;
+            cursor: default;
+        }
 
         .al2c-fan-orbit-path {
             stroke: rgba(0, 95, 115, 0.45);
@@ -213,8 +254,8 @@
         }
 
         .al2c-fan-outer-arc {
-            stroke: rgba(10, 187, 219, 0.2);
-            stroke-width: 1;
+            stroke: rgba(10, 187, 219, 0.25);
+            stroke-width: 1.2;
             stroke-dasharray: 4, 4;
             opacity: 0;
             transition: opacity 0.3s ease;
@@ -225,24 +266,28 @@
             pointer-events: auto;
             cursor: pointer;
             outline: none;
-            transform-origin: 290px 290px;
+            transform-origin: 350px 350px;
             opacity: 0;
             transform: scale(0.2) rotate(18deg);
             transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease, filter 0.25s ease;
 
             .al2c-fan-blade-path {
-                transition: fill-opacity 0.2s ease, stroke-width 0.2s ease;
-                stroke: rgba(255, 255, 255, 0.5);
-                stroke-width: 1;
+                transition: fill-opacity 0.2s ease, stroke 0.2s ease, stroke-width 0.2s ease;
+                stroke: rgba(255, 255, 255, 0.6);
+                stroke-width: 1.2;
             }
 
             .al2c-fan-inner-band {
                 opacity: 0.95;
             }
 
+            .al2c-fan-dot {
+                transition: transform 0.2s ease, r 0.2s ease;
+            }
+
             .al2c-fan-num {
                 font-family: 'Poppins', -apple-system, sans-serif;
-                font-size: 15px;
+                font-size: 14px;
                 font-weight: 800;
                 fill: #FFFFFF;
                 text-anchor: middle;
@@ -250,27 +295,73 @@
                 letter-spacing: 0.02em;
                 user-select: none;
                 pointer-events: none;
+                filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
             }
 
             .al2c-fan-icon-group {
                 pointer-events: none;
                 .al2c-fan-icon {
-                    width: 24px;
-                    height: 24px;
+                    width: 26px;
+                    height: 26px;
                     color: #FFFFFF;
                     fill: currentColor;
-                    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+                    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
+                    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
                 }
             }
 
+            .al2c-fan-label {
+                font-family: 'Poppins', -apple-system, sans-serif;
+                font-size: 13.5px;
+                font-weight: 700;
+                fill: #FFFFFF;
+                text-anchor: middle;
+                dominant-baseline: central;
+                letter-spacing: 0.03em;
+                user-select: none;
+                pointer-events: none;
+                filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.45));
+                transition: font-size 0.25s ease, letter-spacing 0.25s ease;
+            }
+
+            // MOUSE OVER VÀO THẺ THÌ NÓ ZOOM RA!
             &:hover, &:focus-visible {
-                transform: scale(1.045);
-                filter: drop-shadow(0 10px 26px rgba(10, 187, 219, 0.45));
+                transform: scale(1.08) translate3d(-6px, -6px, 0);
+                z-index: 10;
 
                 .al2c-fan-blade-path {
                     stroke: #FFFFFF;
-                    stroke-width: 1.8;
+                    stroke-width: 2.2;
                 }
+
+                .al2c-fan-label {
+                    font-size: 14.5px;
+                    font-weight: 800;
+                    letter-spacing: 0.05em;
+                }
+
+                .al2c-fan-icon {
+                    transform: scale(1.15);
+                }
+
+                .al2c-fan-dot {
+                    r: 4.5;
+                }
+            }
+
+            &.al2c-fan-blade-01:hover,
+            &.al2c-fan-blade-01:focus-visible {
+                filter: drop-shadow(0 14px 34px rgba(56, 189, 248, 0.7));
+            }
+
+            &.al2c-fan-blade-02:hover,
+            &.al2c-fan-blade-02:focus-visible {
+                filter: drop-shadow(0 14px 34px rgba(10, 187, 219, 0.7));
+            }
+
+            &.al2c-fan-blade-03:hover,
+            &.al2c-fan-blade-03:focus-visible {
+                filter: drop-shadow(0 14px 34px rgba(147, 51, 234, 0.7));
             }
 
             &:active {
@@ -279,145 +370,35 @@
         }
     }
 
-    // Attached Floating Info Pills (Left of Blades)
-    .al2c-fanout-node {
-        position: absolute;
-        pointer-events: none;
-        opacity: 0;
-        outline: none;
-        transform: translate3d(24px, 24px, 0) scale(0.7);
-        transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.22s ease;
-
-        &.al2c-fanout-node-chat {
-            bottom: 215px;
-            right: 130px;
-        }
-
-        &.al2c-fanout-node-services {
-            bottom: 135px;
-            right: 180px;
-        }
-
-        &.al2c-fanout-node-lead {
-            bottom: 35px;
-            right: 200px;
-        }
-
-        .al2c-fanout-pill {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            padding: 5px 12px;
-            background: var(--al2c-concierge-bg-surface);
-            border: 1px solid var(--al2c-concierge-border-subtle);
-            border-radius: 4px;
-            box-shadow: 0 8px 24px rgba(0, 51, 51, 0.14);
-            white-space: nowrap;
-            pointer-events: auto;
-            cursor: pointer;
-            transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-            backdrop-filter: blur(8px);
-
-            &.al2c-fanout-pill-01 {
-                border-right: 3px solid #38BDF8;
-                .al2c-pill-tag { color: #0284C7; }
-            }
-            &.al2c-fanout-pill-02 {
-                border-right: 3px solid #0ABBDB;
-                .al2c-pill-tag { color: #005F73; }
-            }
-            &.al2c-fanout-pill-03 {
-                border-right: 3px solid #9333EA;
-                .al2c-pill-tag { color: #7C3AED; }
-            }
-
-            .al2c-pill-tag {
-                font-size: 8.5px;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 0.05em;
-                margin-bottom: 2px;
-            }
-
-            .al2c-pill-title {
-                font-size: 12px;
-                font-weight: 700;
-                color: var(--al2c-concierge-text-primary);
-                line-height: 1.25;
-            }
-
-            .al2c-pill-subtitle {
-                font-size: 9.5px;
-                font-weight: 500;
-                color: var(--al2c-concierge-text-muted);
-                line-height: 1.2;
-                margin-top: 1px;
-            }
-
-            &:hover {
-                transform: translateX(-4px);
-                box-shadow: 0 12px 28px rgba(10, 187, 219, 0.25);
-            }
-        }
-
-        &:hover {
-            .al2c-fanout-pill {
-                transform: translateX(-4px);
-                box-shadow: 0 12px 28px rgba(10, 187, 219, 0.25);
-            }
-        }
-    }
-
-    // Active Fan-Out Radial Infographic State
+    // Active Fan-Out Radial Infographic State (fallback / programmatic)
     &.is-active {
         pointer-events: auto;
+
+        .al2c-fan-hit-area {
+            pointer-events: auto;
+        }
 
         .al2c-fan-orbit-path,
         .al2c-fan-outer-arc {
             opacity: 1;
         }
 
-        // Blade 01: Top (Cyan)
         .al2c-fan-blade-01 {
             opacity: 1;
             transform: scale(1) rotate(0deg);
-            transition-delay: 0.03s;
+            transition-delay: 0.02s;
         }
 
-        // Blade 02: Center (Teal)
         .al2c-fan-blade-02 {
             opacity: 1;
             transform: scale(1) rotate(0deg);
-            transition-delay: 0.07s;
+            transition-delay: 0.05s;
         }
 
-        // Blade 03: Left (Purple)
         .al2c-fan-blade-03 {
             opacity: 1;
             transform: scale(1) rotate(0deg);
-            transition-delay: 0.11s;
-        }
-
-        // Nodes & Floating Pills
-        .al2c-fanout-node-chat {
-            pointer-events: auto;
-            opacity: 1;
-            transform: translate3d(0, 0, 0) scale(1);
-            transition-delay: 0.04s;
-        }
-
-        .al2c-fanout-node-services {
-            pointer-events: auto;
-            opacity: 1;
-            transform: translate3d(0, 0, 0) scale(1);
             transition-delay: 0.08s;
-        }
-
-        .al2c-fanout-node-lead {
-            pointer-events: auto;
-            opacity: 1;
-            transform: translate3d(0, 0, 0) scale(1);
-            transition-delay: 0.12s;
         }
     }
 }

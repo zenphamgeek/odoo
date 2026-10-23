@@ -464,6 +464,7 @@ export class AiConciergeWidget extends Component {
         this.state = useState({
             isOpen: false,
             isFanOutOpen: false,
+            isFanOutHovered: false,
             isBackend: Boolean(
                 (typeof window !== "undefined" && (window.location.pathname.startsWith("/web") || window.location.pathname.startsWith("/odoo"))) ||
                 (typeof odoo !== "undefined" && odoo.__session_info__ && !odoo.__session_info__.is_website)
@@ -1078,6 +1079,34 @@ export class AiConciergeWidget extends Component {
     }
 
     /**
+     * Mouse enter on launcher wrapper (gốc) triggers fan-out unfolding.
+     */
+    onMouseEnterLauncherWrapper(ev) {
+        if (this.fanOutCloseTimer) {
+            clearTimeout(this.fanOutCloseTimer);
+            this.fanOutCloseTimer = null;
+        }
+        if (!this.state.isOpen) {
+            this.state.isFanOutHovered = true;
+            this.state.proactiveNudgeVisible = false;
+        }
+    }
+
+    /**
+     * Mouse leave on launcher wrapper allows graceful transition to blades.
+     * Collapses fan-out menu after 350ms if cursor leaves the area.
+     */
+    onMouseLeaveLauncherWrapper(ev) {
+        if (this.fanOutCloseTimer) {
+            clearTimeout(this.fanOutCloseTimer);
+        }
+        this.fanOutCloseTimer = setTimeout(() => {
+            this.state.isFanOutHovered = false;
+            this.state.isFanOutOpen = false;
+        }, 350);
+    }
+
+    /**
      * Toggle Fan-Out Quarter-Circle 90-degree radial menu.
      */
     toggleFanOut(ev) {
@@ -1085,9 +1114,14 @@ export class AiConciergeWidget extends Component {
             ev.stopPropagation();
             ev.preventDefault();
         }
+        if (this.fanOutCloseTimer) {
+            clearTimeout(this.fanOutCloseTimer);
+            this.fanOutCloseTimer = null;
+        }
         if (this.state.isOpen) {
             this.state.isOpen = false;
             this.state.isFanOutOpen = false;
+            this.state.isFanOutHovered = false;
             return;
         }
         this.state.isFanOutOpen = !this.state.isFanOutOpen;
@@ -1103,7 +1137,12 @@ export class AiConciergeWidget extends Component {
         if (ev) {
             ev.stopPropagation();
         }
+        if (this.fanOutCloseTimer) {
+            clearTimeout(this.fanOutCloseTimer);
+            this.fanOutCloseTimer = null;
+        }
         this.state.isFanOutOpen = false;
+        this.state.isFanOutHovered = false;
     }
 
     /**
@@ -1115,7 +1154,12 @@ export class AiConciergeWidget extends Component {
             ev.stopPropagation();
             ev.preventDefault();
         }
+        if (this.fanOutCloseTimer) {
+            clearTimeout(this.fanOutCloseTimer);
+            this.fanOutCloseTimer = null;
+        }
         this.state.isFanOutOpen = false;
+        this.state.isFanOutHovered = false;
         this.state.proactiveNudgeVisible = false;
         this.state.isOpen = true;
         if (tab === "lead") {
@@ -1145,6 +1189,7 @@ export class AiConciergeWidget extends Component {
         if (this.state.isOpen) {
             this.state.isOpen = false;
             this.state.isFanOutOpen = false;
+            this.state.isFanOutHovered = false;
         } else {
             this.toggleFanOut(ev);
         }
