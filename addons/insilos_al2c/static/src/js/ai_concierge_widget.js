@@ -1179,8 +1179,8 @@ export class AiConciergeWidget extends Component {
 
     /**
      * Toggle open/close state of chat drawer.
-     * When closed, clicking the launcher opens the 90-degree fan-out quarter-circle interaction.
-     * When open, clicking the launcher closes the drawer.
+     * When closed, clicking the launcher opens the drawer to chat tab.
+     * When open, clicking the launcher closes the drawer (returning to floating fan blades).
      */
     toggleDrawer(ev) {
         if (ev) {
@@ -1191,7 +1191,9 @@ export class AiConciergeWidget extends Component {
             this.state.isFanOutOpen = false;
             this.state.isFanOutHovered = false;
         } else {
-            this.toggleFanOut(ev);
+            this.state.isOpen = true;
+            this.state.proactiveNudgeVisible = false;
+            this.setActiveTab("chat");
         }
     }
 

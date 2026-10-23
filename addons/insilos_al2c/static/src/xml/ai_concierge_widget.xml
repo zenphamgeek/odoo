@@ -31,31 +31,20 @@
                 </div>
             </t>
 
-            <!-- 0B. Fan-Out Click-Outside Backdrop Barrier -->
-            <t t-if="state.isFanOutOpen and !state.isOpen">
-                <div
-                    class="al2c-fanout-backdrop"
-                    t-on-click="this.closeFanOut"
-                    aria-hidden="true"
-                />
-            </t>
-
             <!-- 1. Floating Action Launcher & 90-Degree Quarter-Circle Fan-Out Menu -->
             <div
                 class="al2c-launcher-wrapper"
-                t-att-class="{'is-fanout-open': state.isFanOutOpen, 'is-fanout-hovered': state.isFanOutHovered, 'is-drawer-open': state.isOpen}"
-                t-on-mouseenter="this.onMouseEnterLauncherWrapper"
-                t-on-mouseleave="this.onMouseLeaveLauncherWrapper"
+                t-att-class="{'is-drawer-open': state.isOpen}"
             >
-                <!-- Fan-Out Radial Infographic Cluster (3 Left Blades: 01 · 02 · 03) -->
+                <!-- Fan-Out Radial Infographic Cluster (3 Left Blades: 01 · 02 · 03 Floating Always on Screen) -->
                 <div
                     class="al2c-fanout-cluster"
-                    t-att-class="{'is-active': (state.isFanOutOpen or state.isFanOutHovered) and !state.isOpen}"
+                    t-att-class="{'is-drawer-open': state.isOpen}"
                     role="menu"
                     aria-label="Menu Tương Tác Cánh Quạt 90° Innoria"
                 >
-                    <!-- Master SVG for Radial Fan Blades, Inner Accent Bands & Orbital Track -->
-                    <svg class="al2c-fanout-svg" viewBox="0 0 380 380" aria-hidden="true">
+                    <!-- Master SVG for Radial Fan Blades, Inner Accent Bands & Orbital Track (420x420) -->
+                    <svg class="al2c-fanout-svg" viewBox="0 0 420 420" aria-hidden="true">
                         <defs>
                             <linearGradient id="al2cFanGrad01" x1="100%" y1="100%" x2="0%" y2="0%">
                                 <stop offset="0%" stop-color="#0284C7"/>
@@ -70,58 +59,60 @@
                                 <stop offset="100%" stop-color="#9333EA"/>
                             </linearGradient>
                             <filter id="al2cFanShadow" x="-20%" y="-20%" width="150%" height="150%">
-                                <feDropShadow dx="-3" dy="-3" stdDeviation="6" flood-color="rgba(0, 0, 0, 0.38)"/>
+                                <feDropShadow dx="-3" dy="-3" stdDeviation="6" flood-color="rgba(0, 0, 0, 0.45)"/>
                             </filter>
+
+                            <!-- Radial Text Curved Arcs at r=198 (Clockwise sweep for upright letters facing outwards) -->
+                            <path id="al2cFanArc01" d="M 289.01 211.83 A 198 198 0 0 1 379.82 187.07" fill="none"/>
+                            <path id="al2cFanArc02" d="M 216.18 281.55 A 198 198 0 0 1 283.02 215.28" fill="none"/>
+                            <path id="al2cFanArc03" d="M 187.12 378.09 A 198 198 0 0 1 212.67 287.5" fill="none"/>
                         </defs>
 
-                        <!-- Invisible Continuous Hover Sector Wedge (Preserves hover state between launcher and blades) -->
-                        <path d="M 350 120 A 230 230 0 0 0 120 350 L 350 350 Z" fill="transparent" class="al2c-fan-hit-area"/>
-
                         <!-- Concentric Orbital Guide Track (Dashed Arc at r=39) -->
-                        <path d="M 350 311 A 39 39 0 0 0 311 350" fill="none" class="al2c-fan-orbit-path"/>
-                        <!-- Outer Boundary Guide Arc at r=220 -->
-                        <path d="M 350 130 A 220 220 0 0 0 130 350" fill="none" class="al2c-fan-outer-arc"/>
+                        <path d="M 385 346 A 39 39 0 0 0 346 385" fill="none" class="al2c-fan-orbit-path"/>
+                        <!-- Outer Boundary Guide Arc at r=250 -->
+                        <path d="M 385 135 A 250 250 0 0 0 135 385" fill="none" class="al2c-fan-outer-arc"/>
 
-                        <!-- Blade 01: Top (Cyan · 01 · Chat) -->
+                        <!-- Blade 01: Top (Cyan · 01 · CHAT) -->
                         <g class="al2c-fan-blade al2c-fan-blade-01" filter="url(#al2cFanShadow)" t-on-click="(ev) => this.selectFanOutOption('chat', ev)" role="button" tabindex="0" aria-label="01 · Chat">
-                            <path d="M 347.99 304.04 L 340.4 130.21 A 220.0 220.0 0 0 0 245.03 156.66 L 328.05 309.57 A 46.0 46.0 0 0 1 347.99 304.04 Z" fill="url(#al2cFanGrad01)" class="al2c-fan-blade-path"/>
-                            <path d="M 348.47 315.03 L 348.12 307.04 A 43.0 43.0 0 0 0 329.48 312.21 L 333.3 319.24 A 35.0 35.0 0 0 1 348.47 315.03 Z" fill="url(#al2cFanGrad01)" class="al2c-fan-inner-band"/>
-                            <circle cx="339.58" cy="312.42" r="3.5" fill="#FFFFFF" stroke="#38BDF8" stroke-width="2" class="al2c-fan-dot"/>
-                            <text x="329.69" y="276.76" class="al2c-fan-num">01</text>
-                            <g transform="translate(303, 214)" class="al2c-fan-icon-group">
+                            <path d="M 383.74 337.02 L 378.46 135.09 A 250.0 250.0 0 0 0 263.8 166.35 L 361.73 343.02 A 48.0 48.0 0 0 1 383.74 337.02 Z" fill="url(#al2cFanGrad01)" class="al2c-fan-blade-path"/>
+                            <path d="M 384.08 350.01 L 383.87 342.01 A 43 43 0 0 0 364.15 347.39 L 368.03 354.39 A 35 35 0 0 1 384.08 350.01 Z" fill="url(#al2cFanGrad01)" class="al2c-fan-inner-band"/>
+                            <circle cx="374.74" cy="347.37" r="3.5" fill="#FFFFFF" stroke="#38BDF8" stroke-width="2" class="al2c-fan-dot"/>
+                            <text x="363.96" y="307.82" class="al2c-fan-num">01</text>
+                            <g transform="translate(336.5, 241.8)" class="al2c-fan-icon-group">
                                 <svg class="ph-duotone ph-chats-circle al2c-fan-icon" width="26" height="26" viewBox="0 0 256 256">
                                     <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-chats-circle"/>
                                 </svg>
                             </g>
-                            <text x="301.36" y="174.62" class="al2c-fan-label">Chat</text>
+                            <text class="al2c-fan-label"><textPath href="#al2cFanArc01" startOffset="50%" text-anchor="middle">CHAT</textPath></text>
                         </g>
 
-                        <!-- Blade 02: Center (Teal · 02 · Dự Toán) -->
+                        <!-- Blade 02: Center (Teal · 02 · DỰ TOÁN) -->
                         <g class="al2c-fan-blade al2c-fan-blade-02" filter="url(#al2cFanShadow)" t-on-click="(ev) => this.selectFanOutOption('services', ev)" role="button" tabindex="0" aria-label="02 · Dự Toán">
-                            <path d="M 325.62 310.99 L 233.42 163.43 A 220.0 220.0 0 0 0 163.43 233.42 L 310.99 325.62 A 46.0 46.0 0 0 1 325.62 310.99 Z" fill="url(#al2cFanGrad02)" class="al2c-fan-blade-path"/>
-                            <path d="M 331.45 320.32 L 327.21 313.53 A 43.0 43.0 0 0 0 313.53 327.21 L 320.32 331.45 A 35.0 35.0 0 0 1 331.45 320.32 Z" fill="url(#al2cFanGrad02)" class="al2c-fan-inner-band"/>
-                            <circle cx="322.42" cy="322.42" r="3.5" fill="#FFFFFF" stroke="#0ABBDB" stroke-width="2" class="al2c-fan-dot"/>
-                            <text x="296.26" y="296.26" class="al2c-fan-num">02</text>
-                            <g transform="translate(246.5, 246.5)" class="al2c-fan-icon-group">
+                            <path d="M 360.28 343.86 L 256.24 170.71 A 250.0 250.0 0 0 0 171.84 254.38 L 344.07 359.92 A 48.0 48.0 0 0 1 360.28 343.86 Z" fill="url(#al2cFanGrad02)" class="al2c-fan-blade-path"/>
+                            <path d="M 366.97 355.0 L 362.85 348.14 A 43 43 0 0 0 348.34 362.53 L 355.16 366.71 A 35 35 0 0 1 366.97 355.0 Z" fill="url(#al2cFanGrad02)" class="al2c-fan-inner-band"/>
+                            <circle cx="357.54" cy="357.3" r="3.5" fill="#FFFFFF" stroke="#0ABBDB" stroke-width="2" class="al2c-fan-dot"/>
+                            <text x="328.68" y="328.19" class="al2c-fan-num">02</text>
+                            <g transform="translate(277, 276.1)" class="al2c-fan-icon-group">
                                 <svg class="ph-duotone ph-calculator al2c-fan-icon" width="26" height="26" viewBox="0 0 256 256">
                                     <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-calculator"/>
                                 </svg>
                             </g>
-                            <text x="221.31" y="221.31" class="al2c-fan-label">Dự Toán</text>
+                            <text class="al2c-fan-label"><textPath href="#al2cFanArc02" startOffset="50%" text-anchor="middle">DỰ TOÁN</textPath></text>
                         </g>
 
-                        <!-- Blade 03: Left (Purple · 03 · Báo Giá) -->
+                        <!-- Blade 03: Left (Purple · 03 · BÁO GIÁ) -->
                         <g class="al2c-fan-blade al2c-fan-blade-03" filter="url(#al2cFanShadow)" t-on-click="(ev) => this.selectFanOutOption('lead', ev)" role="button" tabindex="0" aria-label="03 · Báo Giá">
-                            <path d="M 309.57 328.05 L 156.66 245.03 A 220.0 220.0 0 0 0 130.21 340.4 L 304.04 347.99 A 46.0 46.0 0 0 1 309.57 328.05 Z" fill="url(#al2cFanGrad03)" class="al2c-fan-blade-path"/>
-                            <path d="M 319.24 333.3 L 312.21 329.48 A 43.0 43.0 0 0 0 307.04 348.12 L 315.03 348.47 A 35.0 35.0 0 0 1 319.24 333.3 Z" fill="url(#al2cFanGrad03)" class="al2c-fan-inner-band"/>
-                            <circle cx="312.42" cy="339.58" r="3.5" fill="#FFFFFF" stroke="#9333EA" stroke-width="2" class="al2c-fan-dot"/>
-                            <text x="276.76" y="329.69" class="al2c-fan-num">03</text>
-                            <g transform="translate(214, 303)" class="al2c-fan-icon-group">
+                            <path d="M 343.22 361.36 L 167.41 261.89 A 250.0 250.0 0 0 0 135.15 376.28 L 337.03 383.32 A 48.0 48.0 0 0 1 343.22 361.36 Z" fill="url(#al2cFanGrad03)" class="al2c-fan-blade-path"/>
+                            <path d="M 354.54 367.77 L 347.57 363.83 A 43 43 0 0 0 342.03 383.5 L 350.02 383.78 A 35 35 0 0 1 354.54 367.77 Z" fill="url(#al2cFanGrad03)" class="al2c-fan-inner-band"/>
+                            <circle cx="347.46" cy="374.41" r="3.5" fill="#FFFFFF" stroke="#9333EA" stroke-width="2" class="al2c-fan-dot"/>
+                            <text x="308.0" y="363.28" class="al2c-fan-num">03</text>
+                            <g transform="translate(242.1, 335.4)" class="al2c-fan-icon-group">
                                 <svg class="ph-duotone ph-calendar-check al2c-fan-icon" width="26" height="26" viewBox="0 0 256 256">
                                     <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-calendar-check"/>
                                 </svg>
                             </g>
-                            <text x="174.62" y="301.36" class="al2c-fan-label">Báo Giá</text>
+                            <text class="al2c-fan-label"><textPath href="#al2cFanArc03" startOffset="50%" text-anchor="middle">BÁO GIÁ</textPath></text>
                         </g>
                     </svg>
                 </div>
