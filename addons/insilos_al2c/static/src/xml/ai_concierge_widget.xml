@@ -42,27 +42,80 @@
 
             <!-- 1. Floating Action Launcher & 90-Degree Quarter-Circle Fan-Out Menu -->
             <div class="al2c-launcher-wrapper" t-att-class="{'is-fanout-open': state.isFanOutOpen, 'is-drawer-open': state.isOpen}">
-                <!-- Fan-Out Quarter-Circle Arc & Options Cluster -->
+                <!-- Fan-Out Radial Infographic Cluster (3 Left Blades: 01 · 02 · 03) -->
                 <div
                     class="al2c-fanout-cluster"
                     t-att-class="{'is-active': state.isFanOutOpen and !state.isOpen}"
                     role="menu"
-                    aria-label="Menu Tương Tác 90° Innoria"
+                    aria-label="Menu Tương Tác Cánh Quạt 90° Innoria"
                 >
-                    <!-- SVG Quarter-Circle (90°) Guide Arc -->
-                    <svg class="al2c-fanout-svg-arc" viewBox="0 0 160 160" aria-hidden="true">
+                    <!-- Master SVG for Radial Fan Blades, Inner Accent Bands & Orbital Track -->
+                    <svg class="al2c-fanout-svg" viewBox="0 0 320 320" aria-hidden="true">
                         <defs>
-                            <linearGradient id="al2cFanoutArcGrad" x1="0%" y1="100%" x2="100%" y2="0%">
-                                <stop offset="0%" stop-color="#0ABBDB" stop-opacity="0.85"/>
-                                <stop offset="50%" stop-color="#005F73" stop-opacity="0.65"/>
-                                <stop offset="100%" stop-color="#FF8000" stop-opacity="0.9"/>
+                            <linearGradient id="al2cFanGrad01" x1="100%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" stop-color="#0284C7"/>
+                                <stop offset="100%" stop-color="#38BDF8"/>
                             </linearGradient>
+                            <linearGradient id="al2cFanGrad02" x1="100%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" stop-color="#005F73"/>
+                                <stop offset="100%" stop-color="#0ABBDB"/>
+                            </linearGradient>
+                            <linearGradient id="al2cFanGrad03" x1="100%" y1="100%" x2="0%" y2="0%">
+                                <stop offset="0%" stop-color="#581C87"/>
+                                <stop offset="100%" stop-color="#9333EA"/>
+                            </linearGradient>
+                            <filter id="al2cFanShadow" x="-20%" y="-20%" width="150%" height="150%">
+                                <feDropShadow dx="-3" dy="-3" stdDeviation="5" flood-color="rgba(0, 0, 0, 0.35)"/>
+                            </filter>
                         </defs>
-                        <!-- 110px radius 90-degree arc centered at launcher center (130, 130) -->
-                        <path d="M 20 130 A 110 110 0 0 1 130 20" fill="none" stroke="url(#al2cFanoutArcGrad)" stroke-width="2" stroke-dasharray="4 4" class="al2c-fanout-arc-path"/>
+
+                        <!-- Concentric Orbital Guide Track (Dashed Arc) -->
+                        <path d="M 290 254 A 36 36 0 0 0 254 290" fill="none" class="al2c-fan-orbit-path"/>
+                        <!-- Outer Boundary Guide Arc -->
+                        <path d="M 290 122 A 168 168 0 0 0 122 290" fill="none" class="al2c-fan-outer-arc"/>
+
+                        <!-- Blade 01: Top (Cyan · 01) -->
+                        <g class="al2c-fan-blade al2c-fan-blade-01" filter="url(#al2cFanShadow)" t-on-click="(ev) => this.selectFanOutOption('chat', ev)" role="button" tabindex="0" aria-label="01 · Hội Thoại AI">
+                            <path d="M 287.07 248.1 L 278.28 122.41 A 168 168 0 0 0 211.13 141.66 L 270.28 252.92 A 42 42 0 0 1 287.07 248.1 Z" fill="url(#al2cFanGrad01)" class="al2c-fan-blade-path"/>
+                            <path d="M 287.7 257.08 L 287.28 251.1 A 39 39 0 0 0 271.69 255.57 L 274.51 260.86 A 33 33 0 0 1 287.7 257.08 Z" fill="url(#al2cFanGrad01)" class="al2c-fan-inner-band"/>
+                            <circle cx="280.08" cy="255.39" r="3.5" fill="#FFFFFF" stroke="#38BDF8" stroke-width="2" class="al2c-fan-dot"/>
+                            <text x="265.23" y="203.6" class="al2c-fan-num">01</text>
+                            <g transform="translate(240, 145)" class="al2c-fan-icon-group">
+                                <svg class="ph-duotone ph-chats-circle al2c-fan-icon" width="24" height="24" viewBox="0 0 256 256">
+                                    <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-chats-circle"/>
+                                </svg>
+                            </g>
+                        </g>
+
+                        <!-- Blade 02: Center (Teal · 02) -->
+                        <g class="al2c-fan-blade al2c-fan-blade-02" filter="url(#al2cFanShadow)" t-on-click="(ev) => this.selectFanOutOption('services', ev)" role="button" tabindex="0" aria-label="02 · Dịch Vụ &amp; Dự Toán">
+                            <path d="M 266.51 255.18 L 196.06 150.72 A 168 168 0 0 0 147.53 200.97 L 254.38 267.74 A 42 42 0 0 1 266.51 255.18 Z" fill="url(#al2cFanGrad02)" class="al2c-fan-blade-path"/>
+                            <path d="M 271.55 262.64 L 268.19 257.67 A 39 39 0 0 0 256.93 269.33 L 262.01 272.51 A 33 33 0 0 1 271.55 262.64 Z" fill="url(#al2cFanGrad02)" class="al2c-fan-inner-band"/>
+                            <circle cx="264.1" cy="264.99" r="3.5" fill="#FFFFFF" stroke="#0ABBDB" stroke-width="2" class="al2c-fan-dot"/>
+                            <text x="225.35" y="227.56" class="al2c-fan-num">02</text>
+                            <g transform="translate(179, 182)" class="al2c-fan-icon-group">
+                                <svg class="ph-duotone ph-calculator al2c-fan-icon" width="24" height="24" viewBox="0 0 256 256">
+                                    <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-calculator"/>
+                                </svg>
+                            </g>
+                        </g>
+
+                        <!-- Blade 03: Left (Purple · 03) -->
+                        <g class="al2c-fan-blade al2c-fan-blade-03" filter="url(#al2cFanShadow)" t-on-click="(ev) => this.selectFanOutOption('lead', ev)" role="button" tabindex="0" aria-label="03 · Nhận Báo Giá">
+                            <path d="M 252.25 271.59 L 139.0 216.35 A 168 168 0 0 0 122.1 284.14 L 248.03 288.53 A 42 42 0 0 1 252.25 271.59 Z" fill="url(#al2cFanGrad03)" class="al2c-fan-blade-path"/>
+                            <path d="M 260.34 275.53 L 254.95 272.9 A 39 39 0 0 0 251.02 288.64 L 257.02 288.85 A 33 33 0 0 1 260.34 275.53 Z" fill="url(#al2cFanGrad03)" class="al2c-fan-inner-band"/>
+                            <circle cx="255.07" cy="281.29" r="3.5" fill="#FFFFFF" stroke="#9333EA" stroke-width="2" class="al2c-fan-dot"/>
+                            <text x="202.79" y="268.26" class="al2c-fan-num">03</text>
+                            <g transform="translate(144, 244)" class="al2c-fan-icon-group">
+                                <svg class="ph-duotone ph-calendar-check al2c-fan-icon" width="24" height="24" viewBox="0 0 256 256">
+                                    <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-calendar-check"/>
+                                </svg>
+                            </g>
+                        </g>
                     </svg>
 
-                    <!-- Node 1: Vertical UP (~75° from horizontal: dx=-28px, dy=-106px) -> Hội Thoại AI / Copilot -->
+                    <!-- Attached Floating Info Pills (Left of Blades) -->
+                    <!-- Node 1: Vertical UP (~75°) -->
                     <div
                         class="al2c-fanout-node al2c-fanout-node-chat"
                         role="menuitem"
@@ -70,8 +123,8 @@
                         t-on-click="(ev) => this.selectFanOutOption('chat', ev)"
                         t-att-title="state.isBackend ? 'Hội Thoại Copilot · Tra cứu tri thức &amp; Hỏi đáp' : 'Hội Thoại AI · Trợ lý Tri thức RAG 24/7'"
                     >
-                        <div class="al2c-fanout-pill">
-                            <span class="al2c-pill-tag">AI RAG</span>
+                        <div class="al2c-fanout-pill al2c-fanout-pill-01">
+                            <span class="al2c-pill-tag">AI RAG · 01</span>
                             <span class="al2c-pill-title">
                                 <t t-if="state.isBackend">Hội Thoại Copilot</t>
                                 <t t-else="">Hội Thoại AI</t>
@@ -81,14 +134,9 @@
                                 <t t-else="">Trợ lý Tri thức RAG 24/7</t>
                             </span>
                         </div>
-                        <button type="button" class="al2c-fanout-btn" aria-label="Hội Thoại AI">
-                            <svg class="ph-duotone ph-chats-circle al2c-fanout-icon" aria-hidden="true">
-                                <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-chats-circle"/>
-                            </svg>
-                        </button>
                     </div>
 
-                    <!-- Node 2: Center Diagonal (45°: dx=-78px, dy=-78px) -> Dịch Vụ & Dự Toán -->
+                    <!-- Node 2: Center Diagonal (45°) -->
                     <div
                         class="al2c-fanout-node al2c-fanout-node-services"
                         role="menuitem"
@@ -96,8 +144,8 @@
                         t-on-click="(ev) => this.selectFanOutOption('services', ev)"
                         t-att-title="state.isBackend ? 'Dự Toán &amp; Báo Cáo · Chi phí &amp; Tiến độ dự án' : 'Dịch Vụ &amp; Dự Toán · Cấu hình phần mềm &amp; Báo giá'"
                     >
-                        <div class="al2c-fanout-pill">
-                            <span class="al2c-pill-tag al2c-pill-tag-calc">CPQ</span>
+                        <div class="al2c-fanout-pill al2c-fanout-pill-02">
+                            <span class="al2c-pill-tag al2c-pill-tag-calc">CPQ · 02</span>
                             <span class="al2c-pill-title">
                                 <t t-if="state.isBackend">Dự Toán &amp; Báo Cáo</t>
                                 <t t-else="">Dịch Vụ &amp; Dự Toán</t>
@@ -107,14 +155,9 @@
                                 <t t-else="">Cấu hình giải pháp phần mềm</t>
                             </span>
                         </div>
-                        <button type="button" class="al2c-fanout-btn" aria-label="Dịch Vụ &amp; Dự Toán">
-                            <svg class="ph-duotone ph-calculator al2c-fanout-icon" aria-hidden="true">
-                                <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-calculator"/>
-                            </svg>
-                        </button>
                     </div>
 
-                    <!-- Node 3: Horizontal LEFT (~15° from horizontal: dx=-106px, dy=-28px) -> Nhận Báo Giá -->
+                    <!-- Node 3: Horizontal LEFT (~15°) -->
                     <div
                         class="al2c-fanout-node al2c-fanout-node-lead"
                         role="menuitem"
@@ -122,8 +165,8 @@
                         t-on-click="(ev) => this.selectFanOutOption('lead', ev)"
                         t-att-title="state.isBackend ? 'Tạo Lead &amp; SOW · Fast-Track Deal Desk' : 'Nhận Báo Giá · Fast-Track SOW trong &lt; 2h'"
                     >
-                        <div class="al2c-fanout-pill">
-                            <span class="al2c-pill-tag al2c-pill-tag-deal">SOW &lt; 2h</span>
+                        <div class="al2c-fanout-pill al2c-fanout-pill-03">
+                            <span class="al2c-pill-tag al2c-pill-tag-deal">SOW &lt; 2h · 03</span>
                             <span class="al2c-pill-title">
                                 <t t-if="state.isBackend">Tạo Lead &amp; SOW</t>
                                 <t t-else="">Nhận Báo Giá</t>
@@ -133,11 +176,6 @@
                                 <t t-else="">Dự toán SOW nhanh &lt; 2h</t>
                             </span>
                         </div>
-                        <button type="button" class="al2c-fanout-btn" aria-label="Nhận Báo Giá">
-                            <svg class="ph-duotone ph-calendar-check al2c-fanout-icon" aria-hidden="true">
-                                <use href="/insilos_website/static/src/icons/phosphor-duotone.svg#ph-calendar-check"/>
-                            </svg>
-                        </button>
                     </div>
                 </div>
 

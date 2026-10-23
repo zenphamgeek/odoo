@@ -57,31 +57,36 @@ body.o_dark_mode,
     }
 
     .al2c-fanout-cluster {
-        .al2c-fanout-node {
-            .al2c-fanout-btn {
-                background: #0F172A;
-                border-color: #0ABBDB;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+        .al2c-fanout-svg {
+            .al2c-fan-orbit-path {
+                stroke: rgba(56, 189, 248, 0.45);
+            }
 
-                .al2c-fanout-icon {
-                    color: #0ABBDB;
+            .al2c-fan-outer-arc {
+                stroke: rgba(255, 255, 255, 0.18);
+            }
+
+            .al2c-fan-blade {
+                .al2c-fan-blade-path {
+                    stroke: rgba(255, 255, 255, 0.4);
                 }
 
-                &:hover {
-                    border-color: #FF8000;
-                    box-shadow: 0 12px 28px rgba(255, 128, 0, 0.4);
+                &:hover, &:focus-visible {
+                    filter: drop-shadow(0 12px 28px rgba(10, 187, 219, 0.55));
 
-                    .al2c-fanout-icon {
-                        color: #FF8000;
+                    .al2c-fan-blade-path {
+                        stroke: #FFFFFF;
+                        stroke-width: 2;
                     }
                 }
             }
+        }
 
+        .al2c-fanout-node {
             .al2c-fanout-pill {
                 background: #0F172A;
                 border-color: rgba(255, 255, 255, 0.14);
-                border-right-color: #0ABBDB;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
 
                 .al2c-pill-title {
                     color: #F8FAFC;
@@ -92,14 +97,13 @@ body.o_dark_mode,
                 }
 
                 &:hover {
-                    border-color: #0ABBDB;
-                    box-shadow: 0 10px 28px rgba(10, 187, 219, 0.3);
+                    box-shadow: 0 12px 28px rgba(10, 187, 219, 0.35);
                 }
             }
 
             &:hover {
                 .al2c-fanout-pill {
-                    border-color: #0ABBDB;
+                    box-shadow: 0 12px 28px rgba(10, 187, 219, 0.35);
                 }
             }
         }
